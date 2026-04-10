@@ -34,7 +34,9 @@ const resources = {
         tags: '語義標籤',
         tagsP: '輸入標籤後按下 Enter...',
         saveDraft: '儲存草稿',
-        commit: '提交記憶'
+        commit: '提交記憶',
+        exportLocal: '匯出JSON',
+        importLocal: '匯入JSON'
       }
     }
   },
@@ -69,7 +71,9 @@ const resources = {
         tags: 'Semantic Tags',
         tagsP: 'Type a tag and press Enter...',
         saveDraft: 'Save as Draft',
-        commit: 'Commit Memory'
+        commit: 'Commit Memory',
+        exportLocal: 'Export JSON',
+        importLocal: 'Import JSON'
       }
     }
   }
@@ -82,7 +86,7 @@ i18n
     resources,
     fallbackLng: 'zh-TW',
     interpolation: {
-      escapeValue: false, // react already safes from xss
+      escapeValue: false,
     }
   });
 

@@ -28,11 +28,13 @@ MemTrace is an open platform for capturing, connecting, and sharing knowledge me
 - Memories are digitally fingerprinted with SHA-256 hashes generated from the content.
 - Community and AI votes update the trust scores continuously.
 
-## 5. Operations (Phase 1)
+## 5. Operations
 - `new`: Create a new memory interacting with standard terminal.
 - `link`: Create an edge between two existing nodes.
 - `push`: Sync local changes to a remote repository (e.g. GitHub).
 - `pull`: Pull remote changes from GitHub or central index.
+- `export`: Export memories matching standard JSON schema to local filesystem.
+- `import`: Import previously exported memory JSON files into the hub.
 
 ## 6. Decay Mechanics
 Weight formula over time: `weight(t) = w0_current * (0.5 ^ (days_since_last_access / half_life))`
@@ -132,3 +134,6 @@ The MemTrace Web UI is fully internationalized to support a global user base and
   - English (`en`)
 - **Scope**: All UI elements including sidebars, headers, tooltips, form labels, and placeholders must utilize the translation engine.
 - **Language Selection**: Users can toggle between languages globally, which operates independently from the bilingual content tabs used during memory creation.
+
+### 8.2 Memory Export & Import
+Users must be able to export their current working memory to a local JSON file (conforming to `node.v1.json`) and import an existing JSON file directly into the editor for further modification or restoration.
