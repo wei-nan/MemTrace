@@ -163,6 +163,7 @@ Low-trust memories (`score < 0.3`) are flagged ⚠️. Memories below `0.1` are 
 ### Phase 2 — API & UI
 - [x] PostgreSQL 17 + pgvector — DB schema, Docker setup, SQL decay functions
 - [ ] FastAPI backend (CRUD, search, vote, decay engine)
+- [ ] Multi-Language UI (i18n for `zh-TW` & `en`)
 - [ ] Knowledge graph visualisation (D3 / force-directed)
 - [ ] Memory detail panel with trust dimensions
 - [ ] Team workspaces

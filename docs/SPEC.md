@@ -121,3 +121,14 @@ cp .env.example .env       # fill in credentials
 docker compose up -d       # start DB (schema auto-applied)
 docker compose down -v     # stop and wipe data
 ```
+
+## 8. Frontend (UI) Specifications
+
+### 8.1 Multi-Language Support (i18n)
+The MemTrace Web UI is fully internationalized to support a global user base and knowledge network.
+- **Library**: `react-i18next` with `i18next`.
+- **Supported Languages**:
+  - Traditional Chinese (`zh-TW` / `zh-Hant`)
+  - English (`en`)
+- **Scope**: All UI elements including sidebars, headers, tooltips, form labels, and placeholders must utilize the translation engine.
+- **Language Selection**: Users can toggle between languages globally, which operates independently from the bilingual content tabs used during memory creation.
