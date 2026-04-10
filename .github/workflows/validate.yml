@@ -1,0 +1,21 @@
+name: Schema Validation
+
+on:
+  pull_request:
+    paths:
+      - 'schema/**'
+      - 'packages/core/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - name: Install dependencies
+        run: npm ci
+      - name: Test Core Package
+        run: npm run test --workspace=@memtrace/core

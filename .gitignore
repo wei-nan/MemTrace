@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Environment — never commit real credentials
+.env
+
+# Build outputs
+dist/
+build/
+*.js.map
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

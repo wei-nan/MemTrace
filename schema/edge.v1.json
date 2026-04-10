@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MemTrace Edge Schema v1",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the edge. E.g. edge_xyz789"
+    },
+    "from": {
+      "type": "string",
+      "description": "Source memory node ID"
+    },
+    "to": {
+      "type": "string",
+      "description": "Target memory node ID"
+    },
+    "relation": {
+      "type": "string",
+      "enum": ["depends_on", "extends", "related_to", "contradicts"]
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "co_access_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "last_co_accessed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decay": {
+      "type": "object",
+      "properties": {
+        "half_life_days": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": ["half_life_days", "min_weight"]
+    }
+  },
+  "required": [
+    "id",
+    "from",
+    "to",
+    "relation",
+    "weight",
+    "co_access_count",
+    "last_co_accessed",
+    "decay"
+  ],
+  "additionalProperties": false
+}

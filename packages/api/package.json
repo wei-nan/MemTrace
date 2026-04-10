@@ -1,0 +1,6 @@
+{
+  "name": "@memtrace/api",
+  "version": "1.0.0",
+  "description": "MemTrace FastAPI backend representation (in Python). This package.json is just for monorepo linking if needed.",
+  "private": true
+}

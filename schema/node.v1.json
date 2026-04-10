@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MemTrace Memory Node Schema v1",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the memory node. E.g. mem_abc123"
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"]
+    },
+    "title": {
+      "type": "object",
+      "properties": {
+        "zh-TW": { "type": "string" },
+        "en": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": ["en", "zh-TW"]
+    },
+    "content": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["factual", "procedural", "preference", "context"]
+        },
+        "body": {
+          "type": "object",
+          "properties": {
+            "zh-TW": { "type": "string" },
+            "en": { "type": "string" }
+          },
+          "additionalProperties": false,
+          "required": ["en", "zh-TW"]
+        }
+      },
+      "required": ["type", "body"]
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["public", "team", "private"]
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "signature": { "type": "string" },
+        "source_type": {
+          "type": "string",
+          "enum": ["human", "ai_generated", "ai_verified"]
+        }
+      },
+      "required": ["author", "created_at", "signature", "source_type"]
+    },
+    "trust": {
+      "type": "object",
+      "properties": {
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "dimensions": {
+          "type": "object",
+          "properties": {
+            "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+            "freshness": { "type": "number", "minimum": 0, "maximum": 1 },
+            "utility": { "type": "number", "minimum": 0, "maximum": 1 },
+            "author_rep": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "required": ["accuracy", "freshness", "utility", "author_rep"]
+        },
+        "votes": {
+          "type": "object",
+          "properties": {
+            "up": { "type": "integer", "minimum": 0 },
+            "down": { "type": "integer", "minimum": 0 },
+            "verifications": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["up", "down", "verifications"]
+        }
+      },
+      "required": ["score", "dimensions", "votes"]
+    }
+  },
+  "required": [
+    "id",
+    "schema_version",
+    "title",
+    "content",
+    "tags",
+    "visibility",
+    "provenance",
+    "trust"
+  ],
+  "additionalProperties": false
+}
