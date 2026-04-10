@@ -35,8 +35,9 @@ const resources = {
         tagsP: '輸入標籤後按下 Enter...',
         saveDraft: '儲存草稿',
         commit: '提交記憶',
-        exportLocal: '匯出JSON',
-        importLocal: '匯入JSON'
+        exportLocal: '匯出 JSON',
+        importLocal: '匯入 JSON',
+        importMarkdown: '匯入 Markdown'
       }
     }
   },
@@ -73,7 +74,8 @@ const resources = {
         saveDraft: 'Save as Draft',
         commit: 'Commit Memory',
         exportLocal: 'Export JSON',
-        importLocal: 'Import JSON'
+        importLocal: 'Import JSON',
+        importMarkdown: 'Import Markdown'
       }
     }
   }

@@ -11,13 +11,21 @@ import {
   X,
   Globe,
   Download,
-  Upload
+  Upload,
+  FileText,
+  Layers
 } from 'lucide-react';
 import './index.css';
+import GraphView from './GraphView';
+import GraphView3D from './GraphView3D';
 
 function App() {
   const { t, i18n } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mdInputRef = useRef<HTMLInputElement>(null);
+  
+  // Navigation State
+  const [currentView, setCurrentView] = useState<'editor' | 'graph' | 'graph3d'>('editor');
   
   const [activeTab, setActiveTab] = useState<'zh' | 'en'>('zh');
   
@@ -45,7 +53,7 @@ function App() {
     i18n.changeLanguage(i18n.language === 'zh-TW' ? 'en' : 'zh-TW');
   };
 
-  // EXPORT FEATURE
+  // EXPORT JSON
   const handleExport = () => {
     const memoryNode = {
       id: "mem_" + Math.random().toString(36).substr(2, 6),
@@ -85,8 +93,8 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  // IMPORT FEATURE
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // IMPORT JSON
+  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -118,6 +126,41 @@ function App() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // IMPORT MARKDOWN
+  const handleImportMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        
+        const titleMatch = text.match(/^#\s+(.*)$/m);
+        const extractedTitle = titleMatch ? titleMatch[1].trim() : file.name.replace(/\.md$/i, '');
+        
+        let extractedBody = text;
+        if (titleMatch && titleMatch.index !== undefined && titleMatch.index < 10) {
+           extractedBody = text.replace(titleMatch[0], '').trim();
+        }
+
+        if (activeTab === 'zh') {
+           setTitles(prev => ({ ...prev, zh: extractedTitle }));
+           setBodies(prev => ({ ...prev, zh: extractedBody }));
+        } else {
+           setTitles(prev => ({ ...prev, en: extractedTitle }));
+           setBodies(prev => ({ ...prev, en: extractedBody }));
+        }
+
+        alert('Markdown imported successfully into the active language tab!');
+      } catch (err) {
+        alert('Failed to read Markdown file.');
+      }
+    };
+    reader.readAsText(file);
+    if (mdInputRef.current) mdInputRef.current.value = '';
+  };
+
   return (
     <div className="app-container">
       <aside className="sidebar">
@@ -140,13 +183,26 @@ function App() {
         </div>
 
         <nav>
-          <div className="nav-item active">
+          <div 
+            className={`nav-item ${currentView === 'editor' ? 'active' : ''}`}
+            onClick={() => setCurrentView('editor')}
+          >
             <PlusCircle size={18} />
             {t('sidebar.write')}
           </div>
-          <div className="nav-item">
+          <div 
+            className={`nav-item ${currentView === 'graph' ? 'active' : ''}`}
+            onClick={() => setCurrentView('graph')}
+          >
             <Network size={18} />
-            {t('sidebar.graph')}
+            2D {t('sidebar.graph')}
+          </div>
+          <div 
+            className={`nav-item ${currentView === 'graph3d' ? 'active' : ''}`}
+            onClick={() => setCurrentView('graph3d')}
+          >
+            <Layers size={18} />
+            3D {t('sidebar.graph')}
           </div>
           <div className="nav-item">
             <Search size={18} />
@@ -162,124 +218,129 @@ function App() {
         </div>
       </aside>
 
-      <main className="main-content">
-        <header className="page-header animate-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 className="page-title">{t('header.title')}</h1>
-            <p className="page-subtitle">{t('header.subtitle')}</p>
-          </div>
-          
-          {/* Export / Import Controls */}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <input 
-              type="file" 
-              accept=".json" 
-              ref={fileInputRef} 
-              style={{ display: 'none' }} 
-              onChange={handleImport} 
-            />
-            <button className="btn-secondary" onClick={() => fileInputRef.current?.click()}>
-              <Upload size={16} style={{ marginRight: '6px' }} />
-              {t('form.importLocal')}
-            </button>
-            <button className="btn-secondary" onClick={handleExport}>
-              <Download size={16} style={{ marginRight: '6px' }} />
-              {t('form.exportLocal')}
-            </button>
-          </div>
-        </header>
-
-        <form className="glass-panel animate-fade-in" style={{ padding: '32px', animationDelay: '0.1s' }} onSubmit={(e) => e.preventDefault()}>
-          <div className="tabs">
-            <div 
-              className={`tab ${activeTab === 'zh' ? 'active' : ''}`}
-              onClick={() => setActiveTab('zh')}
-            >
-              {t('form.tab_zh')}
+      {/* Conditional Rendering between Editor, 2D Graph, and 3D Graph */}
+      {currentView === 'editor' && (
+        <main className="main-content">
+          <header className="page-header animate-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h1 className="page-title">{t('header.title')}</h1>
+              <p className="page-subtitle">{t('header.subtitle')}</p>
             </div>
-            <div 
-              className={`tab ${activeTab === 'en' ? 'active' : ''}`}
-              onClick={() => setActiveTab('en')}
-            >
-              {t('form.tab_en')}
-            </div>
-          </div>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImportJson} />
+              <input type="file" accept=".md,.markdown" ref={mdInputRef} style={{ display: 'none' }} onChange={handleImportMarkdown} />
 
-          <div className="editor-grid">
-            <div className="form-group two-col">
-              <label className="form-label">{t('form.title')}</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder={t('form.titleP')}
-                value={activeTab === 'zh' ? titles.zh : titles.en}
-                onChange={(e) => setTitles({ ...titles, [activeTab]: e.target.value })}
-              />
+              <button className="btn-secondary" onClick={() => mdInputRef.current?.click()}>
+                <FileText size={16} style={{ marginRight: '6px' }} />
+                {t('form.importMarkdown')}
+              </button>
+              <button className="btn-secondary" onClick={() => fileInputRef.current?.click()}>
+                <Upload size={16} style={{ marginRight: '6px' }} />
+                {t('form.importLocal')}
+              </button>
+              <button className="btn-secondary" onClick={handleExport}>
+                <Download size={16} style={{ marginRight: '6px' }} />
+                {t('form.exportLocal')}
+              </button>
+            </div>
+          </header>
+
+          <form className="glass-panel animate-fade-in" style={{ padding: '32px', animationDelay: '0.1s' }} onSubmit={(e) => e.preventDefault()}>
+            <div className="tabs">
+              <div 
+                className={`tab ${activeTab === 'zh' ? 'active' : ''}`}
+                onClick={() => setActiveTab('zh')}
+              >
+                {t('form.tab_zh')}
+              </div>
+              <div 
+                className={`tab ${activeTab === 'en' ? 'active' : ''}`}
+                onClick={() => setActiveTab('en')}
+              >
+                {t('form.tab_en')}
+              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">{t('form.type')}</label>
-              <select className="form-select" value={contentType} onChange={(e) => setContentType(e.target.value)}>
-                <option value="factual">{t('form.type_factual')}</option>
-                <option value="procedural">{t('form.type_procedural')}</option>
-                <option value="preference">{t('form.type_preference')}</option>
-                <option value="context">{t('form.type_context')}</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">{t('form.vis')}</label>
-              <select className="form-select" value={visibility} onChange={(e) => setVisibility(e.target.value)}>
-                <option value="private">{t('form.vis_private')}</option>
-                <option value="team">{t('form.vis_team')}</option>
-                <option value="public">{t('form.vis_public')}</option>
-              </select>
-            </div>
-
-            <div className="form-group two-col">
-              <label className="form-label">{t('form.body')}</label>
-              <textarea 
-                className="form-textarea" 
-                placeholder={t('form.bodyP')}
-                value={activeTab === 'zh' ? bodies.zh : bodies.en}
-                onChange={(e) => setBodies({ ...bodies, [activeTab]: e.target.value })}
-              ></textarea>
-            </div>
-
-            <div className="form-group two-col">
-              <label className="form-label">{t('form.tags')}</label>
-              <div style={{ position: 'relative' }}>
-                <TagIcon size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+            <div className="editor-grid">
+              <div className="form-group two-col">
+                <label className="form-label">{t('form.title')}</label>
                 <input 
                   type="text" 
                   className="form-input" 
-                  style={{ paddingLeft: '36px' }}
-                  placeholder={t('form.tagsP')}
-                  value={currentTag}
-                  onChange={(e) => setCurrentTag(e.target.value)}
-                  onKeyDown={handleAddTag}
+                  placeholder={t('form.titleP')}
+                  value={activeTab === 'zh' ? titles.zh : titles.en}
+                  onChange={(e) => setTitles({ ...titles, [activeTab]: e.target.value })}
                 />
               </div>
-              <div className="tag-container">
-                {tags.map(tag => (
-                  <span className="tag" key={tag}>
-                    #{tag}
-                    <X size={12} className="tag-remove" onClick={() => removeTag(tag)} />
-                  </span>
-                ))}
+
+              <div className="form-group">
+                <label className="form-label">{t('form.type')}</label>
+                <select className="form-select" value={contentType} onChange={(e) => setContentType(e.target.value)}>
+                  <option value="factual">{t('form.type_factual')}</option>
+                  <option value="procedural">{t('form.type_procedural')}</option>
+                  <option value="preference">{t('form.type_preference')}</option>
+                  <option value="context">{t('form.type_context')}</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">{t('form.vis')}</label>
+                <select className="form-select" value={visibility} onChange={(e) => setVisibility(e.target.value)}>
+                  <option value="private">{t('form.vis_private')}</option>
+                  <option value="team">{t('form.vis_team')}</option>
+                  <option value="public">{t('form.vis_public')}</option>
+                </select>
+              </div>
+
+              <div className="form-group two-col">
+                <label className="form-label">{t('form.body')}</label>
+                <textarea 
+                  className="form-textarea" 
+                  placeholder={t('form.bodyP')}
+                  value={activeTab === 'zh' ? bodies.zh : bodies.en}
+                  onChange={(e) => setBodies({ ...bodies, [activeTab]: e.target.value })}
+                ></textarea>
+              </div>
+
+              <div className="form-group two-col">
+                <label className="form-label">{t('form.tags')}</label>
+                <div style={{ position: 'relative' }}>
+                  <TagIcon size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    style={{ paddingLeft: '36px' }}
+                    placeholder={t('form.tagsP')}
+                    value={currentTag}
+                    onChange={(e) => setCurrentTag(e.target.value)}
+                    onKeyDown={handleAddTag}
+                  />
+                </div>
+                <div className="tag-container">
+                  {tags.map(tag => (
+                    <span className="tag" key={tag}>
+                      #{tag}
+                      <X size={12} className="tag-remove" onClick={() => removeTag(tag)} />
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--panel-border)' }}>
-            <button type="button" className="btn-secondary">{t('form.saveDraft')}</button>
-            <button type="submit" className="btn-primary">
-              <Save size={18} />
-              {t('form.commit')}
-            </button>
-          </div>
-        </form>
-      </main>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--panel-border)' }}>
+              <button type="button" className="btn-secondary">{t('form.saveDraft')}</button>
+              <button type="submit" className="btn-primary">
+                <Save size={18} />
+                {t('form.commit')}
+              </button>
+            </div>
+          </form>
+        </main>
+      )}
+      
+      {currentView === 'graph' && <GraphView />}
+      {currentView === 'graph3d' && <GraphView3D />}
     </div>
   );
 }

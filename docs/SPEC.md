@@ -9,26 +9,32 @@ MemTrace is an open platform for capturing, connecting, and sharing knowledge me
 - **Co-Access**: An event where two connected memories are accessed sequentially or simultaneously in the same context.
 - **Decay**: The natural reduction of edge weight over time if not co-accessed.
 
-## 3. Schemas
+## 3. Product User Flow
+1. **Knowledge Base Creation**: A user can initialize multiple isolated or public "Knowledge Bases" (Workspaces).
+2. **Ingestion & Upload**: Users can input raw text, Markdown, or upload rich files (PDF, Word, video, meeting recordings). The Ingestion Pipeline processes these into structured Memory Nodes.
+3. **Relationship Mapping**: Memory Nodes are placed into the Knowledge Graph. Users can manually draw connections (Edges) between memories, choose the relation type, adjust relationship structures, and explicitly save the graph state.
+4. **Organic Decay**: Once established, the system takes over with the organic decay mechanism unless manually pinned.
 
-### 3.1 Memory Node v1
+## 4. Schemas
+
+### 4.1 Memory Node v1
 - Validated via `schema/node.v1.json`
 - Supports multi-lingual title/body (en/zh-TW).
 - Tags array, visibility (public/team/private).
 - Built in trust dimensions: accuracy, freshness, utility, author reputation.
 
-### 3.2 Edge v1
+### 4.2 Edge v1
 - Validated via `schema/edge.v1.json`
 - From -> To directed graph.
 - Relationship types: `depends_on`, `extends`, `related_to`, `contradicts`.
 - Weight tracked between 0 and 1.
 - Decay half-life tracked individually.
 
-## 4. Trust & Anti-Forgery
+## 5. Trust & Anti-Forgery
 - Memories are digitally fingerprinted with SHA-256 hashes generated from the content.
 - Community and AI votes update the trust scores continuously.
 
-## 5. Operations
+## 6. Operations
 - `new`: Create a new memory interacting with standard terminal.
 - `link`: Create an edge between two existing nodes.
 - `push`: Sync local changes to a remote repository (e.g. GitHub).
@@ -36,7 +42,7 @@ MemTrace is an open platform for capturing, connecting, and sharing knowledge me
 - `export`: Export memories matching standard JSON schema to local filesystem.
 - `import`: Import previously exported memory JSON files into the hub.
 
-## 6. Decay Mechanics
+## 7. Decay Mechanics
 Weight formula over time: `weight(t) = w0_current * (0.5 ^ (days_since_last_access / half_life))`
 When weight < `min_weight`, the edge is automatically marked stale or removed.
 
@@ -49,12 +55,12 @@ Co-access boost by relation type:
 | `related_to`  | +0.15  |
 | `contradicts` | +0.10  |
 
-## 7. Data Storage
+## 8. Data Storage
 
-### 7.1 Local (Phase 1 — CLI)
+### 8.1 Local (Phase 1 — CLI)
 The CLI stores memories and edges as JSON files under `~/.memtrace/`, validated against `schema/node.v1.json` and `schema/edge.v1.json`.
 
-### 7.2 Server (Phase 2 — API)
+### 8.2 Server (Phase 2 — API)
 The API layer uses **PostgreSQL 17 + pgvector** as the primary data store.
 
 #### Infrastructure
@@ -124,9 +130,9 @@ docker compose up -d       # start DB (schema auto-applied)
 docker compose down -v     # stop and wipe data
 ```
 
-## 8. Frontend (UI) Specifications
+## 9. Frontend (UI) Specifications
 
-### 8.1 Multi-Language Support (i18n)
+### 9.1 Multi-Language Support (i18n)
 The MemTrace Web UI is fully internationalized to support a global user base and knowledge network.
 - **Library**: `react-i18next` with `i18next`.
 - **Supported Languages**:
@@ -135,5 +141,5 @@ The MemTrace Web UI is fully internationalized to support a global user base and
 - **Scope**: All UI elements including sidebars, headers, tooltips, form labels, and placeholders must utilize the translation engine.
 - **Language Selection**: Users can toggle between languages globally, which operates independently from the bilingual content tabs used during memory creation.
 
-### 8.2 Memory Export & Import
+### 9.2 Memory Export & Import
 Users must be able to export their current working memory to a local JSON file (conforming to `node.v1.json`) and import an existing JSON file directly into the editor for further modification or restoration.
