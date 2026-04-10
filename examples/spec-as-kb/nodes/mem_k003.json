@@ -1,0 +1,30 @@
+{
+  "id": "mem_k003",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "節點跨庫複製：可攜性",
+    "en": "Cross-workspace node copy: portability"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "任何節點可被複製到另一個知識庫，但 Edge 不隨行。複製行為：目標庫中取得新 id；created_at 重設為複製時間；provenance.copied_from 記錄 { node_id, workspace_id } 供溯源；目標庫中 visibility 預設為 private；Trust 分數以快照帶入，兩邊後續互不影響；signature 在目標庫環境重新計算。CLI 指令：memtrace copy-node <node-id> --to <workspace-id>。API：POST /workspaces/{ws_id}/nodes（帶 copied_from 參數）。",
+      "en": "Any node can be copied to another Knowledge Base, but its Edges are not copied. Copy behaviour: the target KB assigns a new id; created_at is reset to the copy time; provenance.copied_from records { node_id, workspace_id } for traceability; visibility defaults to private in the target KB; Trust scores are carried as a snapshot — subsequent changes in either KB do not affect the other; signature is recomputed in the target KB context. CLI: memtrace copy-node <node-id> --to <workspace-id>. API: POST /workspaces/{ws_id}/nodes (with copied_from parameter)."
+    }
+  },
+  "tags": ["knowledge-base", "portability", "copy", "provenance"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

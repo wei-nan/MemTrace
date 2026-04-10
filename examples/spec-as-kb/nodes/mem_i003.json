@@ -1,0 +1,30 @@
+{
+  "id": "mem_i003",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MCP Server：AI Agent 整合",
+    "en": "MCP Server: AI agent integration"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MemTrace 實作 **Model Context Protocol (MCP)**，讓 AI agent 可以將 MemTrace 作為 context provider。\n\n**Transport**：本地 stdio（CLI）或 HTTP + SSE（`memtrace serve --mcp`）\n\n**Resources**（agent 讀取用）：\n- `memtrace://workspaces` — 知識庫清單\n- `memtrace://node/{id}` — 節點完整內容（含走訪統計）\n- `memtrace://node/{id}/edges` — 節點的所有 Edge\n\n**Tools**（agent 操作用）：`search_nodes`、`get_node`、`create_node`、`update_node`、`list_edges`、`create_edge`、`traverse_edge`（觸發 co-access boost）、`rate_path`（提交評分）\n\nAgent 每次沿 Edge 移動時應呼叫 `traverse_edge`，讓常用路徑保持活躍，抵抗 decay。",
+      "en": "MemTrace implements the **Model Context Protocol (MCP)** so AI agents can use MemTrace as a context provider.\n\n**Transport**: local stdio (CLI) or HTTP + SSE (`memtrace serve --mcp`)\n\n**Resources** (agent reads):\n- `memtrace://workspaces` — list of Knowledge Bases\n- `memtrace://node/{id}` — full node content with traversal stats\n- `memtrace://node/{id}/edges` — all edges for a node\n\n**Tools** (agent actions): `search_nodes`, `get_node`, `create_node`, `update_node`, `list_edges`, `create_edge`, `traverse_edge` (triggers co-access boost), `rate_path` (submit rating)\n\nAgents should call `traverse_edge` each time they follow an edge, keeping frequently used paths alive against decay."
+    }
+  },
+  "tags": ["mcp", "ai-agent", "integration", "api"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

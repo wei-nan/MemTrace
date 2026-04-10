@@ -1,0 +1,23 @@
+{
+  "id": "mem_w004",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "開發實作順序",
+    "en": "Development Implementation Order"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MemTrace 的建議開發順序（從底層往上）：\n\n1. **core** — 型別、decay、ID/簽章\n2. **SQL schema** — 001_init.sql，建立全部資料表\n3. **api/core** — config、database、security、deps\n4. **api/routers/auth** — register、login、Google OAuth、JWT\n5. **api/routers/kb** — workspace、node、edge CRUD + traversal\n6. **cli** — init、new、link、list、export、import、copy-node\n7. **Seed** — 載入 spec-as-kb 驗證 API 可讀寫\n8. **ui/api.ts** — TypeScript API client\n9. **ui/AuthPage** — 登入 / 註冊 / Google OAuth\n10. **ui/NodeEditor** — 節點編輯器（含 edge panel）\n11. **ui/GraphView** — 2D 知識圖，雙擊開啟 NodeEditor\n12. **ui/App** — 串接 auth、workspace selector、overlay\n13. **MCP server** — Resources + Tools（最後階段）",
+      "en": "Recommended build order for MemTrace (bottom-up):\n\n1. **core** — types, decay, ID/signature\n2. **SQL schema** — 001_init.sql, create all tables\n3. **api/core** — config, database, security, deps\n4. **api/routers/auth** — register, login, Google OAuth, JWT\n5. **api/routers/kb** — workspace, node, edge CRUD + traversal\n6. **cli** — init, new, link, list, export, import, copy-node\n7. **Seed** — load spec-as-kb to validate API reads/writes\n8. **ui/api.ts** — TypeScript API client\n9. **ui/AuthPage** — login / register / Google OAuth\n10. **ui/NodeEditor** — node editor with edge panel\n11. **ui/GraphView** — 2D graph, double-click to open NodeEditor\n12. **ui/App** — wire auth, workspace selector, modal overlay\n13. **MCP server** — Resources + Tools (final phase)"
+    }
+  },
+  "tags": ["dev", "workflow", "procedural"],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_system01",
+    "created_at": "2025-01-01T00:00:00Z",
+    "source_type": "human"
+  }
+}

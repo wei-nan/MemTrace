@@ -46,6 +46,29 @@
         }
       },
       "required": ["half_life_days", "min_weight"]
+    },
+    "traversal": {
+      "type": "object",
+      "description": "Tracks how many times this edge (path) has been traversed and its aggregate rating.",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total traversal events recorded on this edge."
+        },
+        "rating_avg": {
+          "type": ["number", "null"],
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Average explicit path rating (1–5). Null if no ratings have been submitted."
+        },
+        "rating_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of explicit ratings submitted for this path."
+        }
+      },
+      "required": ["count", "rating_avg", "rating_count"]
     }
   },
   "required": [
@@ -56,7 +79,8 @@
     "weight",
     "co_access_count",
     "last_co_accessed",
-    "decay"
+    "decay",
+    "traversal"
   ],
   "additionalProperties": false
 }

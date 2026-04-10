@@ -1,0 +1,30 @@
+{
+  "id": "mem_a002",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "文件攝入與 AI 節點萃取",
+    "en": "Document ingestion and AI node extraction"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "支援格式：`.md`、`.txt`、`.pdf`、`.docx`。萃取流程：\n\n1. AI 依文件結構（標題、段落）切割成候選塊\n2. 各塊被分類為 Content Type\n3. 生成雙語標題與內文草稿\n4. 提議候選 Edge（依語意相近與文件順序）\n\n所有結果進入 **Review Queue**，不自動 commit。萃取節點的 source_type 預設為 `ai_generated`，人工無修改接受 → `ai_verified`，人工修改後接受 → `human`。每個節點記錄 source_document 與 extraction_model。",
+      "en": "Supported formats: `.md`, `.txt`, `.pdf`, `.docx`. Extraction flow:\n\n1. AI segments the document into candidate chunks by structure (headings, paragraphs)\n2. Each chunk is classified into a Content Type\n3. Bilingual title and body drafts are generated\n4. Candidate Edges are proposed based on semantic proximity and document order\n\nAll results enter the **Review Queue** — never auto-committed. Extracted node source_type defaults to `ai_generated`; accepted without edits → `ai_verified`; accepted after edits → `human`. Each node records source_document and extraction_model."
+    }
+  },
+  "tags": ["ai", "ingestion", "extraction", "document"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

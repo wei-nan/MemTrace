@@ -1,0 +1,23 @@
+{
+  "id": "mem_w002",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "本地開發環境啟動",
+    "en": "Local Development Stack Setup"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "## 前置需求\n- Node.js 20+、Python 3.11+\n- PostgreSQL 17（含 pgvector extension）\n\n## 資料庫初始化\n```bash\npsql -U postgres -c \"CREATE DATABASE memtrace;\"\npsql -U postgres -d memtrace -f schema/sql/001_init.sql\n```\n\n## 環境變數（packages/api/.env）\n```\nDATABASE_URL=postgresql://postgres:password@localhost/memtrace\nSECRET_KEY=<random-32-chars>\nGOOGLE_CLIENT_ID=<optional>\nGOOGLE_CLIENT_SECRET=<optional>\nGOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback\n```\n\n## 啟動服務\n```bash\n# 安裝 TS 相依\nnpm install\n\n# 安裝 Python 相依\ncd packages/api && pip install -r requirements.txt\n\n# 終端 1：FastAPI\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 終端 2：Vite 前端（proxy 已設定至 localhost:8000）\ncd packages/ui && npm run dev\n```",
+      "en": "## Prerequisites\n- Node.js 20+, Python 3.11+\n- PostgreSQL 17 (with pgvector extension)\n\n## Database Init\n```bash\npsql -U postgres -c \"CREATE DATABASE memtrace;\"\npsql -U postgres -d memtrace -f schema/sql/001_init.sql\n```\n\n## Environment Variables (packages/api/.env)\n```\nDATABASE_URL=postgresql://postgres:password@localhost/memtrace\nSECRET_KEY=<random-32-chars>\nGOOGLE_CLIENT_ID=<optional>\nGOOGLE_CLIENT_SECRET=<optional>\nGOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback\n```\n\n## Start Services\n```bash\n# Install TS dependencies\nnpm install\n\n# Install Python dependencies\ncd packages/api && pip install -r requirements.txt\n\n# Terminal 1: FastAPI\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# Terminal 2: Vite frontend (proxy pre-configured to localhost:8000)\ncd packages/ui && npm run dev\n```"
+    }
+  },
+  "tags": ["dev", "setup", "database", "procedural"],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_system01",
+    "created_at": "2025-01-01T00:00:00Z",
+    "source_type": "human"
+  }
+}

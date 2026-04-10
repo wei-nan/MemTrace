@@ -1,0 +1,30 @@
+{
+  "id": "mem_a001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "AI Provider 與 API Key 自管",
+    "en": "AI provider and self-managed API keys"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "MemTrace 不自營 AI 推論服務。所有 AI 功能由使用者選擇的第三方供應商提供（OpenAI 或 Anthropic）。API Key 儲存於本地：CLI 存於 ~/.memtrace/config.json（chmod 600），UI 存於 localStorage。Key 不傳送至任何 MemTrace 伺服器。未設定 Key 時 AI 功能停用，提示前往設定。Key 無效或配額耗盡時攝入流程中止，顯示原始錯誤訊息。未來商業模式可能提供 MemTrace 代管額度（免費層 + 付費方案），架構上需透過 provider interface 抽象以便日後切換。",
+      "en": "MemTrace does not operate its own AI inference service. All AI features are powered by the user's chosen third-party provider (OpenAI or Anthropic). API keys are stored locally: CLI in ~/.memtrace/config.json (chmod 600), UI in localStorage. Keys are never sent to any MemTrace server. If no key is configured, AI features are disabled with a prompt to configure one. On invalid key or quota exhaustion, the ingestion step aborts and the raw error is shown. Future: a managed credit model (free tier + paid) may be introduced; the architecture must abstract the AI call path via a provider interface to allow switching without changing extraction logic."
+    }
+  },
+  "tags": ["ai", "api-key", "provider", "security"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

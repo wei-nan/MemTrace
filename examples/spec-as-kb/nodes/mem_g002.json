@@ -1,0 +1,30 @@
+{
+  "id": "mem_g002",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Co-Access Boost：共存取加成",
+    "en": "Co-Access Boost: strengthening edges through use"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "當兩個相連節點在同一情境下被循序或同時存取（Co-Access），對應 Edge 的 weight 會得到加成，加成量依 relation type 而異：\n\n| Relation | Boost |\n|----------|-------|\n| `depends_on` | +0.30 |\n| `extends` | +0.20 |\n| `related_to` | +0.15 |\n| `contradicts` | +0.10 |\n\n同時觸發：co_access_count +1、last_co_accessed 更新、weight 上限 1.0。API 路徑 POST /edges/{id}/traverse 或 MCP tool traverse_edge 皆會觸發 co-access boost。",
+      "en": "When two connected nodes are accessed sequentially or simultaneously in the same context (Co-Access), the corresponding edge's weight receives a boost based on relation type:\n\n| Relation | Boost |\n|----------|-------|\n| `depends_on` | +0.30 |\n| `extends` | +0.20 |\n| `related_to` | +0.15 |\n| `contradicts` | +0.10 |\n\nAlso increments co_access_count, updates last_co_accessed, and caps weight at 1.0. Triggered by POST /edges/{id}/traverse or MCP tool traverse_edge."
+    }
+  },
+  "tags": ["graph-mechanics", "co-access", "boost", "weight"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

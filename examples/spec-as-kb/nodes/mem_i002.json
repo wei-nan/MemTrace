@@ -1,0 +1,30 @@
+{
+  "id": "mem_i002",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "REST API 與外部 API Key",
+    "en": "REST API and external API keys"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "外部服務與腳本以 **API Key** 認證（格式：`mt_live_<hex>`），而非 session JWT。Key 可綁定至特定 workspace 或跨 workspace，建立後完整金鑰只顯示一次。四種 scope：\n\n| Scope | 權限 |\n|-------|------|\n| `kb:read` | 讀取 KB、節點、Edge |\n| `kb:write` | 建立與編輯節點、Edge |\n| `node:traverse` | 記錄走訪事件 |\n| `node:rate` | 提交路徑評分（1–5）|\n\n所有 API 端點前綴 `/api/v1`，使用 `Authorization: Bearer` 傳遞 key 或 token（伺服器依前綴區分）。",
+      "en": "External services and scripts authenticate with **API Keys** (format: `mt_live_<hex>`), not session JWTs. Keys may be scoped to a specific workspace or valid across all. Full key value shown only once at creation. Four scopes:\n\n| Scope | Grants |\n|-------|--------|\n| `kb:read` | Read KBs, nodes, edges |\n| `kb:write` | Create and edit nodes, edges |\n| `node:traverse` | Record traversal events |\n| `node:rate` | Submit path ratings (1–5) |\n\nAll API endpoints prefixed with `/api/v1`, using `Authorization: Bearer` for both keys and session tokens (server distinguishes by prefix)."
+    }
+  },
+  "tags": ["api", "api-key", "access-control", "integration"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

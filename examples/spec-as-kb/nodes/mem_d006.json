@@ -1,0 +1,30 @@
+{
+  "id": "mem_d006",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Traversal Tracking：走訪計數",
+    "en": "Traversal Tracking: measuring real usage"
+  },
+  "content": {
+    "type": "factual",
+    "format": "plain",
+    "body": {
+      "zh-TW": "節點與 Edge 各自記錄走訪數據。節點記錄：traversal_count（總走訪次數）、unique_traverser_count（不重複訪客數）。Edge 記錄：traversal_count、rating_avg（1–5 平均評分，無評分時為 null）、rating_count。走訪透過 API 的 POST /nodes/{id}/traverse 或 POST /edges/{id}/traverse 記錄。MCP tool traverse_edge 也會觸發計數。這些數字反映知識的實際使用頻率，不只是被記錄的事實。",
+      "en": "Nodes and edges each track traversal data. Nodes record: traversal_count (total visits) and unique_traverser_count (distinct actors). Edges record: traversal_count, rating_avg (1–5 average, null if no ratings), and rating_count. Traversals are recorded via POST /nodes/{id}/traverse or POST /edges/{id}/traverse in the REST API, or via the MCP tool traverse_edge. These numbers reflect actual knowledge usage frequency, not just what was recorded."
+    }
+  },
+  "tags": ["data-model", "traversal", "usage-tracking"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

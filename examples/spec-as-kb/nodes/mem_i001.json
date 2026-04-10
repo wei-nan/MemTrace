@@ -1,0 +1,30 @@
+{
+  "id": "mem_i001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "使用者認證：Email 或 Google OAuth",
+    "en": "User authentication: email or Google OAuth"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "兩種登入路徑，產生相同的 User 物件（id: usr_<hex8>）。Email + Password：bcrypt 雜湊（cost ≥ 12）、密碼政策（8–128 字元、大小寫+數字、HaveIBeenPwned 洩漏檢查）、email 驗證信（24 小時效期）、失敗 5 次鎖定 15 分鐘。Google OAuth 2.0：server-side Authorization Code Flow，ID token 在後端驗證（Google JWKS），state 參數防 CSRF。帳號比對：Google sub 已存在 → 登入；email 與密碼帳號吻合 → 合併；全新 → 建立帳號。Session：JWT（7 天），透過 Authorization: Bearer 傳遞，登出以 blocklist 立即失效。",
+      "en": "Two login paths, both producing the same User object (id: usr_<hex8>). Email + Password: bcrypt hash (cost ≥ 12), password policy (8–128 chars, upper+lower+digit, HaveIBeenPwned check), verification email (24h expiry), 5-failure lockout for 15 minutes. Google OAuth 2.0: server-side Authorization Code Flow, ID token validated on backend (Google JWKS), state parameter prevents CSRF. Account matching: Google sub exists → login; email matches password account → merge; new → create account. Session: JWT (7 days), passed via Authorization: Bearer, logout immediately invalidated via blocklist."
+    }
+  },
+  "tags": ["auth", "security", "oauth", "jwt"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

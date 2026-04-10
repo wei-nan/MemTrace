@@ -1,0 +1,30 @@
+{
+  "id": "mem_g003",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Edge 關係類型：四種語意方向",
+    "en": "Edge relation types: four semantic directions"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "| Relation | 語意 | 使用時機 |\n|----------|------|----------|\n| `depends_on` | 來源節點的成立依賴目標節點 | A 的流程前提是 B 的概念 |\n| `extends` | 來源節點延伸或補充目標節點 | A 是 B 的進階版本 |\n| `related_to` | 有相關性但無明確依賴方向 | A 和 B 都屬於同一主題 |\n| `contradicts` | 來源節點的內容與目標節點矛盾 | A 的結論與 B 相衝突 |\n\n選擇正確的 relation type 很重要，因為它決定了 co-access boost 的強度，以及 AI agent 在遍歷圖時如何解讀關係。",
+      "en": "| Relation | Semantics | When to use |\n|----------|-----------|-------------|\n| `depends_on` | Source requires target to be valid | A's process presupposes B's concept |\n| `extends` | Source extends or supplements target | A is an advanced version of B |\n| `related_to` | Related without clear dependency direction | A and B belong to the same topic |\n| `contradicts` | Source conflicts with target | A's conclusion conflicts with B |\n\nChoosing the correct relation type matters: it determines co-access boost strength and how AI agents interpret the relationship when traversing the graph."
+    }
+  },
+  "tags": ["graph-mechanics", "relation-type", "edge", "schema"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

@@ -8,26 +8,132 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ─── ENUM TYPES ───────────────────────────────────────────────────
 
-CREATE TYPE content_type   AS ENUM ('factual', 'procedural', 'preference', 'context');
+CREATE TYPE content_type    AS ENUM ('factual', 'procedural', 'preference', 'context');
+CREATE TYPE content_format  AS ENUM ('plain', 'markdown');
 CREATE TYPE visibility_type AS ENUM ('public', 'team', 'private');
-CREATE TYPE source_type    AS ENUM ('human', 'ai_generated', 'ai_verified');
-CREATE TYPE relation_type  AS ENUM ('depends_on', 'extends', 'related_to', 'contradicts');
+CREATE TYPE source_type     AS ENUM ('human', 'ai_generated', 'ai_verified');
+CREATE TYPE relation_type   AS ENUM ('depends_on', 'extends', 'related_to', 'contradicts');
+CREATE TYPE kb_visibility   AS ENUM ('public', 'restricted', 'private');
+CREATE TYPE member_role     AS ENUM ('viewer', 'editor');
+
+-- ─── USERS ────────────────────────────────────────────────────────
+
+CREATE TABLE users (
+  id              TEXT PRIMARY KEY,              -- usr_<hex8>
+  display_name    TEXT        NOT NULL,
+  email           TEXT        NOT NULL UNIQUE,
+  email_verified  BOOLEAN     NOT NULL DEFAULT FALSE,
+  password_hash   TEXT,                          -- NULL for OAuth-only accounts
+  avatar_url      TEXT,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login_at   TIMESTAMPTZ,
+
+  -- Onboarding state (JSON blob)
+  onboarding      JSONB       NOT NULL DEFAULT '{
+    "completed": false,
+    "steps_done": [],
+    "steps_skipped": [],
+    "first_kb_id": null
+  }'::JSONB
+);
+
+CREATE INDEX idx_users_email ON users (email);
+
+-- ─── OAUTH IDENTITIES ─────────────────────────────────────────────
+
+CREATE TABLE oauth_identities (
+  id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider    TEXT NOT NULL,                     -- 'google'
+  subject     TEXT NOT NULL,                     -- provider's `sub` claim
+  linked_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (provider, subject)
+);
+
+-- ─── SESSION BLOCKLIST (for logout invalidation) ──────────────────
+
+CREATE TABLE session_blocklist (
+  jti         TEXT PRIMARY KEY,                  -- JWT ID claim
+  expires_at  TIMESTAMPTZ NOT NULL
+);
+
+-- ─── PASSWORD RESET TOKENS ───────────────────────────────────────
+
+CREATE TABLE password_reset_tokens (
+  token       TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  expires_at  TIMESTAMPTZ NOT NULL
+);
+
+-- ─── API KEYS ─────────────────────────────────────────────────────
+
+CREATE TABLE api_keys (
+  id            TEXT PRIMARY KEY,                -- apikey_<hex8>
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name          TEXT NOT NULL,
+  key_hash      TEXT NOT NULL UNIQUE,            -- bcrypt/sha256 of full key
+  prefix        TEXT NOT NULL,                   -- first 12 chars shown in UI
+  scopes        TEXT[] NOT NULL DEFAULT '{}',
+  workspace_id  TEXT,                            -- NULL = all workspaces
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_used_at  TIMESTAMPTZ,
+  expires_at    TIMESTAMPTZ
+);
+
+-- ─── KNOWLEDGE BASES (WORKSPACES) ─────────────────────────────────
+
+CREATE TABLE workspaces (
+  id            TEXT PRIMARY KEY,                -- ws_<hex8>
+  schema_version TEXT NOT NULL DEFAULT '1.0',
+  name_zh       TEXT NOT NULL,
+  name_en       TEXT NOT NULL,
+  visibility    kb_visibility NOT NULL DEFAULT 'private',
+  owner_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_workspaces_owner      ON workspaces (owner_id);
+CREATE INDEX idx_workspaces_visibility ON workspaces (visibility);
+
+-- ─── WORKSPACE MEMBERS ────────────────────────────────────────────
+
+CREATE TABLE workspace_members (
+  workspace_id  TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id       TEXT NOT NULL REFERENCES users(id)      ON DELETE CASCADE,
+  role          member_role NOT NULL DEFAULT 'viewer',
+  granted_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (workspace_id, user_id)
+);
+
+-- ─── WORKSPACE INVITE LINKS ───────────────────────────────────────
+
+CREATE TABLE workspace_invites (
+  token         TEXT PRIMARY KEY,                -- UUID
+  workspace_id  TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  role          member_role NOT NULL DEFAULT 'viewer',
+  created_by    TEXT NOT NULL REFERENCES users(id),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at    TIMESTAMPTZ                      -- NULL = never expires
+);
 
 -- ─── MEMORY NODES ─────────────────────────────────────────────────
 
 CREATE TABLE memory_nodes (
   -- Identity
-  id              TEXT PRIMARY KEY,
+  id              TEXT PRIMARY KEY,              -- mem_<hex8>
   schema_version  TEXT NOT NULL DEFAULT '1.0',
+  workspace_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
 
   -- Bilingual title
   title_zh        TEXT NOT NULL,
   title_en        TEXT NOT NULL,
 
   -- Content
-  content_type    content_type NOT NULL,
-  body_zh         TEXT NOT NULL,
-  body_en         TEXT NOT NULL,
+  content_type    content_type   NOT NULL,
+  content_format  content_format NOT NULL DEFAULT 'plain',
+  body_zh         TEXT NOT NULL DEFAULT '',
+  body_en         TEXT NOT NULL DEFAULT '',
 
   -- Classification
   tags            TEXT[]           NOT NULL DEFAULT '{}',
@@ -36,28 +142,39 @@ CREATE TABLE memory_nodes (
   -- Provenance
   author          TEXT         NOT NULL,
   created_at      TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  signature       TEXT         NOT NULL,
-  source_type     source_type  NOT NULL,
+  updated_at      TIMESTAMPTZ,                   -- set on edit
+  signature       TEXT         NOT NULL,         -- SHA-256 of content fields
+  source_type     source_type  NOT NULL DEFAULT 'human',
+
+  -- AI extraction metadata (nullable)
+  source_document   TEXT,                        -- filename or SHA-256 of source
+  extraction_model  TEXT,                        -- AI model identifier
+  copied_from_node  TEXT,                        -- original node_id if copied
+  copied_from_ws    TEXT,                        -- original workspace_id if copied
 
   -- Trust score (composite)
-  trust_score     NUMERIC(4,3) NOT NULL DEFAULT 0 CHECK (trust_score BETWEEN 0 AND 1),
+  trust_score     NUMERIC(4,3) NOT NULL DEFAULT 0.5 CHECK (trust_score BETWEEN 0 AND 1),
 
   -- Trust dimensions
-  dim_accuracy    NUMERIC(4,3) NOT NULL DEFAULT 0 CHECK (dim_accuracy    BETWEEN 0 AND 1),
-  dim_freshness   NUMERIC(4,3) NOT NULL DEFAULT 0 CHECK (dim_freshness   BETWEEN 0 AND 1),
-  dim_utility     NUMERIC(4,3) NOT NULL DEFAULT 0 CHECK (dim_utility     BETWEEN 0 AND 1),
-  dim_author_rep  NUMERIC(4,3) NOT NULL DEFAULT 0 CHECK (dim_author_rep  BETWEEN 0 AND 1),
+  dim_accuracy    NUMERIC(4,3) NOT NULL DEFAULT 0.5 CHECK (dim_accuracy   BETWEEN 0 AND 1),
+  dim_freshness   NUMERIC(4,3) NOT NULL DEFAULT 1.0 CHECK (dim_freshness  BETWEEN 0 AND 1),
+  dim_utility     NUMERIC(4,3) NOT NULL DEFAULT 0.5 CHECK (dim_utility    BETWEEN 0 AND 1),
+  dim_author_rep  NUMERIC(4,3) NOT NULL DEFAULT 0.5 CHECK (dim_author_rep BETWEEN 0 AND 1),
 
   -- Community votes
   votes_up        INTEGER NOT NULL DEFAULT 0 CHECK (votes_up        >= 0),
   votes_down      INTEGER NOT NULL DEFAULT 0 CHECK (votes_down      >= 0),
   verifications   INTEGER NOT NULL DEFAULT 0 CHECK (verifications   >= 0),
 
+  -- Traversal tracking
+  traversal_count          INTEGER NOT NULL DEFAULT 0 CHECK (traversal_count          >= 0),
+  unique_traverser_count   INTEGER NOT NULL DEFAULT 0 CHECK (unique_traverser_count   >= 0),
+
   -- Semantic embedding (text-embedding-3-small = 1536 dims)
   embedding       vector(1536)
 );
 
--- Indexes
+CREATE INDEX idx_nodes_workspace   ON memory_nodes (workspace_id);
 CREATE INDEX idx_nodes_tags        ON memory_nodes USING GIN (tags);
 CREATE INDEX idx_nodes_visibility  ON memory_nodes (visibility);
 CREATE INDEX idx_nodes_author      ON memory_nodes (author);
@@ -68,9 +185,10 @@ CREATE INDEX idx_nodes_embedding   ON memory_nodes USING ivfflat (embedding vect
 -- ─── EDGES ────────────────────────────────────────────────────────
 
 CREATE TABLE edges (
-  id               TEXT PRIMARY KEY,
-  from_id          TEXT          NOT NULL REFERENCES memory_nodes(id) ON DELETE CASCADE,
-  to_id            TEXT          NOT NULL REFERENCES memory_nodes(id) ON DELETE CASCADE,
+  id               TEXT PRIMARY KEY,             -- edge_<hex8>
+  workspace_id     TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  from_id          TEXT NOT NULL REFERENCES memory_nodes(id) ON DELETE CASCADE,
+  to_id            TEXT NOT NULL REFERENCES memory_nodes(id) ON DELETE CASCADE,
   relation         relation_type NOT NULL,
 
   -- Decay state
@@ -82,13 +200,40 @@ CREATE TABLE edges (
   half_life_days   INTEGER       NOT NULL DEFAULT 30  CHECK (half_life_days >= 1),
   min_weight       NUMERIC(4,3)  NOT NULL DEFAULT 0.1 CHECK (min_weight BETWEEN 0 AND 1),
 
-  CONSTRAINT no_self_loop CHECK (from_id <> to_id)
+  -- Traversal tracking
+  traversal_count  INTEGER       NOT NULL DEFAULT 0   CHECK (traversal_count >= 0),
+  rating_sum       NUMERIC(10,2) NOT NULL DEFAULT 0,
+  rating_count     INTEGER       NOT NULL DEFAULT 0   CHECK (rating_count >= 0),
+
+  CONSTRAINT no_self_loop        CHECK (from_id <> to_id),
+  CONSTRAINT unique_edge         UNIQUE (from_id, to_id, relation)
 );
 
-CREATE INDEX idx_edges_from     ON edges (from_id);
-CREATE INDEX idx_edges_to       ON edges (to_id);
-CREATE INDEX idx_edges_weight   ON edges (weight);
-CREATE INDEX idx_edges_relation ON edges (relation);
+CREATE INDEX idx_edges_workspace ON edges (workspace_id);
+CREATE INDEX idx_edges_from      ON edges (from_id);
+CREATE INDEX idx_edges_to        ON edges (to_id);
+CREATE INDEX idx_edges_weight    ON edges (weight);
+CREATE INDEX idx_edges_relation  ON edges (relation);
+
+-- ─── TRAVERSAL LOG ────────────────────────────────────────────────
+-- Tracks unique actor × node/edge pairs for unique_traverser_count
+
+CREATE TABLE traversal_log (
+  id            BIGSERIAL    PRIMARY KEY,
+  edge_id       TEXT         REFERENCES edges(id) ON DELETE CASCADE,
+  node_id       TEXT         REFERENCES memory_nodes(id) ON DELETE CASCADE,
+  actor_id      TEXT         NOT NULL,           -- user_id or api_key_id
+  traversed_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  rating        SMALLINT     CHECK (rating BETWEEN 1 AND 5),
+  note          TEXT,
+  CONSTRAINT must_have_target CHECK (
+    (edge_id IS NOT NULL) OR (node_id IS NOT NULL)
+  )
+);
+
+CREATE INDEX idx_traversal_edge  ON traversal_log (edge_id);
+CREATE INDEX idx_traversal_node  ON traversal_log (node_id);
+CREATE INDEX idx_traversal_actor ON traversal_log (actor_id);
 
 -- ─── DECAY FUNCTION ───────────────────────────────────────────────
 -- Mirrors packages/core/src/decay.ts :: calculateDecayedWeight()
@@ -98,7 +243,6 @@ RETURNS INTEGER AS $$
 DECLARE
   updated_count INTEGER;
 BEGIN
-  -- Update decayed weights
   UPDATE edges
   SET weight = GREATEST(
     min_weight,
@@ -108,7 +252,6 @@ BEGIN
 
   GET DIAGNOSTICS updated_count = ROW_COUNT;
 
-  -- Remove edges that have fully decayed (weight == min_weight and stale > 2x half_life)
   DELETE FROM edges
   WHERE weight <= min_weight
     AND last_co_accessed < now() - (half_life_days * 2 || ' days')::INTERVAL;
@@ -122,18 +265,17 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION record_co_access(edge_id TEXT)
 RETURNS VOID AS $$
 DECLARE
-  rel relation_type;
+  rel   relation_type;
   boost NUMERIC;
 BEGIN
   SELECT relation INTO rel FROM edges WHERE id = edge_id;
 
-  -- Boost amount depends on relation type (matches SPEC intent)
   boost := CASE rel
-    WHEN 'depends_on'  THEN 0.3
-    WHEN 'extends'     THEN 0.2
+    WHEN 'depends_on'  THEN 0.30
+    WHEN 'extends'     THEN 0.20
     WHEN 'related_to'  THEN 0.15
-    WHEN 'contradicts' THEN 0.1
-    ELSE 0.1
+    WHEN 'contradicts' THEN 0.10
+    ELSE 0.10
   END;
 
   UPDATE edges
@@ -144,3 +286,77 @@ BEGIN
   WHERE id = edge_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ─── TRAVERSAL RECORD FUNCTION ────────────────────────────────────
+
+CREATE OR REPLACE FUNCTION record_traversal(
+  p_edge_id  TEXT,
+  p_actor_id TEXT,
+  p_rating   SMALLINT DEFAULT NULL,
+  p_note     TEXT     DEFAULT NULL
+)
+RETURNS VOID AS $$
+DECLARE
+  v_from_id TEXT;
+  v_to_id   TEXT;
+  v_is_new_actor_edge  BOOLEAN;
+  v_is_new_actor_from  BOOLEAN;
+  v_is_new_actor_to    BOOLEAN;
+BEGIN
+  -- Resolve endpoint node IDs
+  SELECT from_id, to_id INTO v_from_id, v_to_id FROM edges WHERE id = p_edge_id;
+
+  -- Check novelty before inserting log row
+  v_is_new_actor_edge := NOT EXISTS (
+    SELECT 1 FROM traversal_log WHERE edge_id = p_edge_id AND actor_id = p_actor_id
+  );
+  v_is_new_actor_from := NOT EXISTS (
+    SELECT 1 FROM traversal_log WHERE node_id = v_from_id AND actor_id = p_actor_id
+  );
+  v_is_new_actor_to := NOT EXISTS (
+    SELECT 1 FROM traversal_log WHERE node_id = v_to_id AND actor_id = p_actor_id
+  );
+
+  -- Insert log row (handles both traversal and rating in one row)
+  INSERT INTO traversal_log (edge_id, actor_id, rating, note)
+  VALUES (p_edge_id, p_actor_id, p_rating, p_note);
+
+  -- Update edge counters
+  UPDATE edges
+  SET
+    traversal_count = traversal_count + 1,
+    rating_sum      = rating_sum  + COALESCE(p_rating, 0),
+    rating_count    = rating_count + CASE WHEN p_rating IS NOT NULL THEN 1 ELSE 0 END
+  WHERE id = p_edge_id;
+
+  -- Update node traversal counters
+  UPDATE memory_nodes
+  SET
+    traversal_count        = traversal_count + 1,
+    unique_traverser_count = unique_traverser_count + CASE WHEN v_is_new_actor_from THEN 1 ELSE 0 END
+  WHERE id = v_from_id;
+
+  UPDATE memory_nodes
+  SET
+    traversal_count        = traversal_count + 1,
+    unique_traverser_count = unique_traverser_count + CASE WHEN v_is_new_actor_to THEN 1 ELSE 0 END
+  WHERE id = v_to_id;
+
+  -- Also trigger co-access boost
+  PERFORM record_co_access(p_edge_id);
+END;
+$$ LANGUAGE plpgsql;
+
+-- ─── WORKSPACE updated_at TRIGGER ─────────────────────────────────
+
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_workspaces_updated_at
+  BEFORE UPDATE ON workspaces
+  FOR EACH ROW EXECUTE FUNCTION update_timestamp();

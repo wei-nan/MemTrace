@@ -2,240 +2,168 @@
 
 > Collaborative memory hub with knowledge graph, trust scoring, and decay — for teams and AI agents.
 
-**MemTrace** is an open platform for capturing, connecting, and sharing knowledge memories across teams and AI tools. Memories are structured nodes in a living knowledge graph — links between them strengthen with use and fade when neglected, mirroring how human memory actually works.
+**MemTrace** is an open platform for capturing, connecting, and sharing knowledge across teams and AI tools.
+
+The core idea is simple: knowledge does not need to live in large documents. It lives in small, focused **Memory Nodes** — each capturing one idea — connected by typed relationships that together form a living knowledge graph. The value is not in any single node, but in the network they form.
+
+MemTrace is designed for **knowledge inheritance**: when someone new joins a project, or an AI agent enters an unfamiliar context, they can enter at any node and follow the edges to everything related — without needing the original author to guide them. Connections that prove useful strengthen over time; connections nobody follows fade away.
+
+It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sharing. Every contributor writes into the same graph.
+
+→ Full specification: [docs/SPEC.md](docs/SPEC.md) · Developer setup: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 
 ---
 
-## ✨ Core Concepts
+## Core Concepts
 
-### Memory Nodes
-Every piece of knowledge is a **Memory** — a structured, bilingual (zh-TW / en) record with a type, visibility, tags, and a trust score.
+**Memory Node** — A structured, bilingual (zh-TW / en) piece of knowledge with a content type, visibility, tags, trust score, and traversal counter.
 
-### Knowledge Graph
-Memories connect to each other through typed **Edges**. The more two memories are accessed together, the stronger their link. Links that go unused decay over time and eventually dissolve.
+**Knowledge Graph** — Nodes connect through typed Edges (`depends_on`, `extends`, `related_to`, `contradicts`). Co-accessed edges grow stronger; unused edges decay and eventually dissolve.
 
-### Trust & Anti-Forgery
-Each memory carries a multi-dimensional **trust score** built from community votes, author reputation, and verification history. Content is hashed on creation to detect tampering.
+**Trust** — Each node carries a multi-dimensional score built from community votes, author reputation, and verification history. Content is SHA-256 hashed on creation to detect tampering.
 
-### Public + Private
-Memories can be `public`, `team`, or `private`. Public memories can be forked, subscribed to, and contributed back — similar to GitHub repositories.
+**Decay** — Edge weight follows `w(t) = w₀ × 0.5 ^ (days_since_use / half_life)`. Co-access boosts weight by +0.10–0.30 depending on relation type.
 
-### Local-first + Remote Sync
-MemTrace works offline. You own your data. Remote hubs (including GitHub-backed ones) are opt-in for sharing and discovery.
+**Traversal Tracking** — Every node and edge records how many times it has been visited and by how many distinct actors (users or agents).
 
 ---
 
-## 🧠 Memory Schema
+## Feature Overview
 
-```yaml
-id: mem_abc123
-schema_version: "1.0"
-
-title:
-  zh-TW: "GKE 排程縮放模式"
-  en: "GKE Scheduled Scaling Pattern"
-
-content:
-  type: procedural        # factual | procedural | preference | context
-  body:
-    zh-TW: "使用 bitnami/kubectl CronJob，上班時間擴容，下班後縮容。"
-    en: "Use bitnami/kubectl CronJob to scale up during business hours and down after."
-
-tags: [gcp, kubernetes, gke]
-visibility: public         # public | team | private
-
-provenance:
-  author: "wilian0104"
-  created_at: "2026-04-10T10:00:00Z"
-  signature: "sha256:abc..."
-  source_type: human       # human | ai_generated | ai_verified
-
-trust:
-  score: 0.87
-  dimensions:
-    accuracy: 0.90
-    freshness: 0.85
-    utility: 0.88
-    author_rep: 0.85
-  votes:
-    up: 24
-    down: 2
-    verifications: 8
-```
+| Area | Features |
+|------|----------|
+| **Nodes** | Manual create/edit, plain text or Markdown body, bilingual titles, content type, tags, visibility |
+| **Graph** | Typed edges, weight decay, co-access boost, path ratings (1–5), traversal counts |
+| **Knowledge Bases** | Multiple workspaces, three sharing levels (public / restricted / private), invite links |
+| **AI Extraction** | Upload document → AI proposes candidate nodes → user review before commit |
+| **AI Providers** | User-supplied API key (OpenAI / Anthropic); no key stored server-side |
+| **Node Portability** | Copy individual nodes across Knowledge Bases; edges not copied |
+| **Trust** | accuracy, freshness, utility, author\_rep dimensions; SHA-256 anti-forgery |
+| **Auth** | Email + password registration with verification, Google OAuth 2.0 |
+| **External API** | REST API with scoped API keys (`kb:read`, `kb:write`, `node:traverse`, `node:rate`) |
+| **MCP Server** | AI agent integration via Model Context Protocol (stdio & HTTP+SSE) |
+| **i18n** | Full UI in Traditional Chinese (zh-TW) and English |
+| **Onboarding** | Guided web wizard and interactive `memtrace init` CLI flow |
 
 ---
 
-## 🔗 Edge & Decay Schema
-
-```yaml
-id: edge_xyz789
-from: mem_abc123
-to: mem_def456
-relation: depends_on       # depends_on | extends | related_to | contradicts
-
-weight: 0.82               # 0.0 ~ 1.0
-co_access_count: 14
-last_co_accessed: "2026-04-09T00:00:00Z"
-
-decay:
-  half_life_days: 30       # weight halves every 30 days without co-access
-  min_weight: 0.1          # auto-removed below this threshold
-```
-
-**Decay formula:**
-```
-weight(t) = w₀ × 0.5 ^ (days_since_use / half_life)
-```
-Each co-access boosts weight by `+0.1 ~ +0.3` depending on relation type.
-
----
-
-## 📥 Memory Ingestion
-
-MemTrace accepts memories from multiple sources:
-
-| Source | Processing |
-|--------|-----------|
-| 📄 Document (PDF, Word, txt) | Text extraction → AI summarisation |
-| 🖼 Image / Screenshot | Vision OCR + understanding |
-| 🎥 Video / Meeting recording | Speech-to-text → structured summary |
-| 🎙 Audio | Whisper transcription → summary |
-| 💬 Chat / conversation | Paste or pipe directly |
-
-All ingested content goes through an **AI-assisted review flow** before entering the memory store — the user confirms, edits, or splits the AI-generated draft before it is committed.
-
----
-
-## 🏗 Architecture
+## Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│              MemTrace Web App               │
-│  Knowledge Graph UI · Memory Editor · Chat  │
-└────────────────────┬────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────┐
-│              MemTrace API (FastAPI)          │
-│  CRUD · Search · Vote · Decay · Ingest      │
-└──────┬─────────────┬───────────────┬────────┘
-       │             │               │
-  PostgreSQL      pgvector        GitHub
-  (metadata)    (embeddings)    (public hub)
+┌──────────────────────────────────────────────┐
+│            MemTrace Web App (React)          │
+│  Graph View · Memory Editor · Onboarding     │
+└────────────────────┬─────────────────────────┘
+                     │ REST / MCP
+┌────────────────────▼─────────────────────────┐
+│           MemTrace API (FastAPI)             │
+│  Auth · CRUD · Search · Decay · Ingest       │
+└──────┬──────────────┬──────────────┬─────────┘
+       │              │              │
+  PostgreSQL 17   pgvector       MCP Server
+  (metadata +    (embeddings)   (stdio / SSE)
+   traversal)
 ```
 
-### Packages (planned)
+### Package Layout
 
 ```
 packages/
-├── core/        # Schema, validation, decay engine (TypeScript)
-├── api/         # FastAPI backend
-├── ui/          # React web app (knowledge graph + editor)
-├── cli/         # mem push / pull / fetch / verify
-└── ingest/      # Document, image, video processing pipeline
+├── core/      TypeScript — schema validation, decay engine
+├── api/       Python / FastAPI — REST backend
+├── ui/        React / Vite — web app
+├── cli/       TypeScript — memtrace CLI
+└── ingest/    Document & AI extraction pipeline
 ```
 
 ---
 
-## 🔐 Trust & Anti-Forgery
-
-| Mechanism | Description |
-|-----------|-------------|
-| Content Hash | SHA-256 of body on creation — detects tampering |
-| Author DID | Bound to GitHub identity |
-| Immutable History | Git-backed — every change is auditable |
-| Community Votes | accuracy / freshness / utility dimensions |
-| Author Reputation | Score degrades if published memories are flagged |
-| Fork Lineage | Forked memories trace back to original source |
-
-Low-trust memories (`score < 0.3`) are flagged ⚠️. Memories below `0.1` are removed from the public index.
-
----
-
-## 🗺 Roadmap
-
-### Phase 1 — Foundation
-- [x] Memory Node + Edge JSON Schema with validation
-- [x] Decay engine (`packages/core/src/decay.ts`)
-- [ ] CLI: `mem new`, `mem list`, `mem link`, `mem push`, `mem pull`
-- [ ] Local store (`~/.memtrace/`)
-- [ ] GitHub-backed public hub
-
-### Phase 2 — API & UI
-- [x] PostgreSQL 17 + pgvector — DB schema, Docker setup, SQL decay functions
-- [ ] FastAPI backend (CRUD, search, vote, decay engine)
-- [ ] Multi-Language UI (i18n for `zh-TW` & `en`)
-- [ ] Knowledge graph visualisation (D3 / force-directed)
-- [ ] Memory detail panel with trust dimensions
-- [ ] Team workspaces
-
-### Phase 3 — Ingestion
-- [ ] Document ingestion (PDF, Word)
-- [ ] Image / screenshot OCR
-- [ ] Audio / video transcription pipeline
-- [ ] AI-assisted review & confirmation flow
-
-### Phase 4 — Federation
-- [ ] Subscribe to remote memory collections
-- [ ] Cross-hub search
-- [ ] MCP server for AI agent integration
-
----
-
-## 🚀 Getting Started
-
-> Work in progress. See [SPEC.md](docs/SPEC.md) for full specification.
-
-```bash
-# Coming soon
-npm install -g @memtrace/cli
-mem init
-mem new
-```
-
----
-
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 memtrace/
 ├── docs/
-│   └── SPEC.md              # Full specification
+│   ├── SPEC.md              Full specification
+│   └── DEVELOPMENT.md       Developer setup guide
 ├── schema/
-│   ├── node.v1.json         # Memory Node JSON Schema
-│   ├── edge.v1.json         # Edge JSON Schema
+│   ├── node.v1.json         Memory Node JSON Schema
+│   ├── edge.v1.json         Edge JSON Schema
 │   └── sql/
-│       └── 001_init.sql     # PostgreSQL schema (auto-applied on docker compose up)
+│       └── 001_init.sql     PostgreSQL schema (auto-applied on first docker compose up)
 ├── packages/
-│   ├── core/                # Schema validation + decay engine (TypeScript)
-│   ├── api/                 # FastAPI backend
-│   ├── ui/                  # React web app
-│   ├── cli/                 # CLI tool
-│   └── ingest/              # Ingestion pipeline
+│   ├── core/
+│   ├── api/
+│   ├── ui/
+│   ├── cli/
+│   └── ingest/
 ├── examples/
-│   └── sample-collection/
-├── docker-compose.yml       # PostgreSQL 17 + pgvector
-├── .env.example             # Environment variable template
-└── .github/
-    └── workflows/
-        ├── validate.yml     # Schema validation on PR
-        └── decay.yml        # Weekly decay calculation
+├── docker-compose.yml       PostgreSQL 17 + pgvector
+├── .env.example             Environment variable template
+└── package.json             npm workspaces root
 ```
 
 ---
 
-## 🤝 Contributing
+## Quick Start
 
-MemTrace is designed to be open and federated. Contributions to the schema, core engine, and documentation are welcome.
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the full setup guide.
 
-1. Fork the repo
-2. Create a feature branch
-3. Open a PR with a clear description of the change
+```bash
+# 1. Clone and install
+git clone https://github.com/your-org/memtrace.git
+cd memtrace
+cp .env.example .env          # fill in credentials
+npm install
 
-Public memory contributions follow the same trust model — community verification builds confidence over time.
+# 2. Start the database
+docker compose up -d
+
+# 3. Start the API
+cd packages/api
+python -m uvicorn main:app --reload
+
+# 4. Start the UI (new terminal)
+cd packages/ui
+npm run dev
+```
 
 ---
 
-## 📄 License
+## Roadmap
+
+### Phase 1 — Foundation (CLI + Core)
+- [x] Memory Node + Edge JSON Schema with validation
+- [x] Decay engine (`packages/core/src/decay.ts`)
+- [ ] CLI: `memtrace init`, `new`, `link`, `ingest`, `push`, `pull`, `copy-node`
+- [ ] Local store (`~/.memtrace/`)
+- [ ] `memtrace init` onboarding wizard
+
+### Phase 2 — API & UI
+- [x] PostgreSQL 17 + pgvector — schema, Docker, SQL decay functions
+- [x] React UI scaffold with i18n (zh-TW / en)
+- [x] Graph visualisation (ReactFlow + 3D force graph)
+- [ ] Auth — email + password, Google OAuth
+- [ ] REST API (CRUD, search, decay, traversal, rating)
+- [ ] Memory editor (plain text + Markdown, live preview)
+- [ ] Knowledge Base sharing (public / restricted / private)
+- [ ] API key management
+- [ ] Onboarding wizard (web)
+
+### Phase 3 — AI & Ingestion
+- [ ] Document ingestion (Markdown, PDF, Word)
+- [ ] AI-driven node extraction with Review Queue
+- [ ] User-supplied AI provider API key (OpenAI / Anthropic)
+- [ ] Managed credit model (future)
+
+### Phase 4 — MCP & Federation
+- [ ] MCP server (stdio + HTTP+SSE)
+- [ ] `traverse_edge` and `rate_path` tools for AI agents
+- [ ] Cross-workspace node copy
+- [ ] Subscribe to remote Knowledge Bases
+
+---
+
+## License
 
 MIT — see [LICENSE](LICENSE) for details.
 

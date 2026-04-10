@@ -1,0 +1,23 @@
+{
+  "id": "mem_w003",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Seed 載入 Spec KB",
+    "en": "Seeding the Spec Knowledge Base"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "## 方法一：Python 直接寫入 DB（推薦）\n```bash\ncd D:/Workspace/MemTrace\npython scripts/seed_spec_kb.py\n```\n產生系統使用者 `usr_system01`、工作區 `ws_spec0001`，並 upsert 全部節點與邊。\n\n## 方法二：透過 CLI import\n```bash\ncd packages/cli && npm run build\nnpx memtrace import examples/spec-as-kb/nodes\nnpx memtrace import examples/spec-as-kb/edges/edges.json\n```\n\n## 驗證\n```bash\ncurl http://localhost:8000/api/v1/workspaces/ws_spec0001/nodes | jq length\n# 期望：23\n```",
+      "en": "## Method 1: Python direct DB insert (recommended)\n```bash\ncd /path/to/MemTrace\npython scripts/seed_spec_kb.py\n```\nCreates system user `usr_system01`, workspace `ws_spec0001`, and upserts all nodes and edges.\n\n## Method 2: Via CLI import\n```bash\ncd packages/cli && npm run build\nnpx memtrace import examples/spec-as-kb/nodes\nnpx memtrace import examples/spec-as-kb/edges/edges.json\n```\n\n## Verify\n```bash\ncurl http://localhost:8000/api/v1/workspaces/ws_spec0001/nodes | jq length\n# Expected: 23\n```"
+    }
+  },
+  "tags": ["dev", "seed", "procedural"],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_system01",
+    "created_at": "2025-01-01T00:00:00Z",
+    "source_type": "human"
+  }
+}

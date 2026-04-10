@@ -2,15 +2,20 @@
 
 :root {
   --bg-color: #0f1115;
+  --bg-main: #0f1115;
+  --bg-secondary: rgba(255, 255, 255, 0.05);
   --panel-bg: rgba(255, 255, 255, 0.03);
   --panel-border: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(255, 255, 255, 0.12);
   --text-main: #f3f4f6;
+  --text-primary: #f3f4f6;
   --text-muted: #9ca3af;
   --accent-color: #6366f1;
   --accent-hover: #4f46e5;
   --accent-glow: rgba(99, 102, 241, 0.25);
   --gradient-start: #3b82f6;
   --gradient-end: #8b5cf6;
+  --error-color: #f87171;
 }
 
 * {
@@ -84,6 +89,46 @@ h1, h2, h3, h4, h5, h6 {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.15);
+}
+
+.btn-danger {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+  background: rgba(248, 113, 113, 0.25);
+}
+
+/* Shared input style used by NodeEditor / AuthPage */
+.mt-input {
+  display: block;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  margin-top: 4px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.mt-input:focus {
+  border-color: var(--accent-color);
+}
+
+.mt-input option {
+  background: #1a1d24;
 }
 
 .form-group {
@@ -253,6 +298,14 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: 6px;
+  border: 1px solid transparent;
+  cursor: default;
+}
+
+.tag-active {
+  background: var(--accent-color);
+  color: #fff;
+  border-color: var(--accent-color);
 }
 
 .tag-remove {

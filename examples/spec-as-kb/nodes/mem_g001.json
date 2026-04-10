@@ -1,0 +1,30 @@
+{
+  "id": "mem_g001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Decay：Edge 權重的自然衰減",
+    "en": "Decay: natural weight reduction on edges"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "Edge 的 weight 隨時間依以下公式衰減：\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n- `half_life_days` 預設 30 天，可各別設定\n- 當 weight < `min_weight`（預設 0.1），Edge 標記為 stale 或自動移除\n- 衰減每日由 `apply_edge_decay()` SQL 函式執行\n- Decay 的目的是讓圖保持誠實：沒人使用的連結自然消退",
+      "en": "Edge weight decays over time according to:\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n- `half_life_days` defaults to 30 days, configurable per edge\n- When weight < `min_weight` (default 0.1), the edge is marked stale or auto-removed\n- Decay is applied daily by the `apply_edge_decay()` SQL function\n- The purpose of decay is to keep the graph honest: unused connections fade naturally"
+    }
+  },
+  "tags": ["graph-mechanics", "decay", "weight"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

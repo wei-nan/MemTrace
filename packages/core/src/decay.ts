@@ -1,12 +1,8 @@
+import type { RelationType } from "./types";
+
 /**
  * Calculates the new weight based on decay formula.
- *
  * weight(t) = w0_current * (0.5 ^ (days_since_last_access / half_life))
- *
- * @param currentWeight The weight at the last co-access time
- * @param lastCoAccessed Date of the last co-access
- * @param halfLifeDays The half-life in days for decay
- * @returns new weight
  */
 export function calculateDecayedWeight(
   currentWeight: number,
@@ -15,17 +11,32 @@ export function calculateDecayedWeight(
 ): number {
   const lastAcc = new Date(lastCoAccessed);
   const now = new Date();
+  const daysSinceUse = (now.getTime() - lastAcc.getTime()) / (24 * 60 * 60 * 1000);
 
-  // Convert to days
-  const msInDay = 24 * 60 * 60 * 1000;
-  const daysSinceUse = (now.getTime() - lastAcc.getTime()) / msInDay;
+  if (daysSinceUse <= 0) return currentWeight;
 
-  if (daysSinceUse <= 0) {
-    return currentWeight;
-  }
+  return currentWeight * Math.pow(0.5, daysSinceUse / halfLifeDays);
+}
 
-  const factor = Math.pow(0.5, daysSinceUse / halfLifeDays);
-  return currentWeight * factor;
+/**
+ * Returns the co-access weight boost for a given relation type.
+ * Mirrors the boost values in SPEC §7 and SQL record_co_access().
+ */
+export function coAccessBoost(relation: RelationType): number {
+  const boosts: Record<RelationType, number> = {
+    depends_on:  0.30,
+    extends:     0.20,
+    related_to:  0.15,
+    contradicts: 0.10,
+  };
+  return boosts[relation] ?? 0.10;
+}
+
+/**
+ * Applies co-access boost and clamps result to [0, 1].
+ */
+export function applyCoAccessBoost(currentWeight: number, relation: RelationType): number {
+  return Math.min(1.0, currentWeight + coAccessBoost(relation));
 }
 
 /**

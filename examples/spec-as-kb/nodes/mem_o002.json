@@ -1,0 +1,30 @@
+{
+  "id": "mem_o002",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "初次使用引導：CLI memtrace init",
+    "en": "First-run onboarding: CLI memtrace init"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "執行 `memtrace init` 啟動終端機互動式精靈，分三步：① 認證（輸入 token 或跳過離線使用） → ② AI Provider 設定（選供應商並輸入 API Key，可 Enter 跳過） → ③ 完成（顯示 next steps）。設定寫入 ~/.memtrace/config.json，立即設定 chmod 600。重複執行時，詢問要更新哪個項目（AI 設定 / 重新認證 / 退出），不自動覆寫現有設定。",
+      "en": "Running `memtrace init` launches an interactive terminal wizard with three steps: ① Authentication (enter token or skip for offline use) → ② AI provider setup (choose provider and enter API key, or press Enter to skip) → ③ Done (display next steps). Config written to ~/.memtrace/config.json with chmod 600 immediately. Re-running prompts which setting to update (AI config / re-authenticate / exit) — existing values are not overwritten unless the user selects the relevant option."
+    }
+  },
+  "tags": ["onboarding", "cli", "init", "setup"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

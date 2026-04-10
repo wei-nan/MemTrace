@@ -1,0 +1,30 @@
+{
+  "id": "mem_o001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "初次使用引導：Web UI 精靈",
+    "en": "First-run onboarding: web UI wizard"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "首次登入後自動顯示，完成後永久不再彈出（可從 Settings → Getting Started 重新開啟）。七步流程：① 建立帳號（Google OAuth 或 Email） → ② 驗證 Email（OAuth 使用者跳過） → ③ 命名第一個知識庫（名稱 + 可見性） → ④ 選擇起點（空白 或 上傳文件） → ⑤ AI Provider 設定（可跳過，文件路徑才出現） → ⑥ Review 萃取候選節點（至少接受一個） → ⑦ 完成（提供三個捷徑：手動新增節點、邀請成員、連接 AI 工具）。進度以 steps_done[] 與 steps_skipped[] 追蹤於伺服器端，可中斷後恢復。",
+      "en": "Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Seven-step flow: ① Create account (Google OAuth or email) → ② Verify email (skipped for OAuth) → ③ Name first Knowledge Base (name + visibility) → ④ Choose starting point (blank or upload document) → ⑤ AI provider setup (skippable, shown only on document path) → ⑥ Review extracted candidate nodes (at least one must be accepted) → ⑦ Done (three shortcuts: add first node, invite someone, connect AI tool). Progress tracked server-side via steps_done[] and steps_skipped[]; resumable after interruption."
+    }
+  },
+  "tags": ["onboarding", "ui", "wizard", "ux"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

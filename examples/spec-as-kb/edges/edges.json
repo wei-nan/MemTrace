@@ -1,0 +1,310 @@
+[
+  {
+    "id": "edge_p001_d001", "from": "mem_p001", "to": "mem_d001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_p001_d002", "from": "mem_p001", "to": "mem_d002",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_p002_d006", "from": "mem_p002", "to": "mem_d006",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_p002_d005", "from": "mem_p002", "to": "mem_d005",
+    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_p003_i003", "from": "mem_p003", "to": "mem_i003",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_p003_g001", "from": "mem_p003", "to": "mem_g001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_p001_p002", "from": "mem_p001", "to": "mem_p002",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_p001_p003", "from": "mem_p001", "to": "mem_p003",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d001_d003", "from": "mem_d001", "to": "mem_d003",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d001_d004", "from": "mem_d001", "to": "mem_d004",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d001_d005", "from": "mem_d001", "to": "mem_d005",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d001_d006", "from": "mem_d001", "to": "mem_d006",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d002_g003", "from": "mem_d002", "to": "mem_g003",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d002_g001", "from": "mem_d002", "to": "mem_g001",
+    "relation": "related_to", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d005_i001", "from": "mem_d005", "to": "mem_i001",
+    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d006_g002", "from": "mem_d006", "to": "mem_g002",
+    "relation": "related_to", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_g001_d002", "from": "mem_g001", "to": "mem_d002",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_g002_g001", "from": "mem_g002", "to": "mem_g001",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_g002_g003", "from": "mem_g002", "to": "mem_g003",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_d004_d001", "from": "mem_d004", "to": "mem_d001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k001_d001", "from": "mem_k001", "to": "mem_d001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k001_d002", "from": "mem_k001", "to": "mem_d002",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k002_k001", "from": "mem_k002", "to": "mem_k001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k003_k001", "from": "mem_k003", "to": "mem_k001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k003_d005", "from": "mem_k003", "to": "mem_d005",
+    "relation": "extends", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_a002_a001", "from": "mem_a002", "to": "mem_a001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_a002_k001", "from": "mem_a002", "to": "mem_k001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_a003_a002", "from": "mem_a003", "to": "mem_a002",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_a003_d001", "from": "mem_a003", "to": "mem_d001",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i002_i001", "from": "mem_i002", "to": "mem_i001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i002_k001", "from": "mem_i002", "to": "mem_k001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i003_i002", "from": "mem_i003", "to": "mem_i002",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i003_g002", "from": "mem_i003", "to": "mem_g002",
+    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_o001_i001", "from": "mem_o001", "to": "mem_i001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_o001_k001", "from": "mem_o001", "to": "mem_k001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_o001_a002", "from": "mem_o001", "to": "mem_a002",
+    "relation": "extends", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_o002_i001", "from": "mem_o002", "to": "mem_i001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_o002_a001", "from": "mem_o002", "to": "mem_a001",
+    "relation": "extends", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 90, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_w001_w002", "from": "mem_w001", "to": "mem_w002",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_w002_w003", "from": "mem_w002", "to": "mem_w003",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_w004_w001", "from": "mem_w004", "to": "mem_w001",
+    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_w004_d001", "from": "mem_w004", "to": "mem_d001",
+    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_w004_i001", "from": "mem_w004", "to": "mem_i001",
+    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_w002_d006", "from": "mem_w002", "to": "mem_d006",
+    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.1 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  }
+]

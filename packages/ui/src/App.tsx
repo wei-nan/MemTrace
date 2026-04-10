@@ -1,203 +1,160 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  Network, 
-  PlusCircle, 
-  Search, 
-  Settings, 
-  Save, 
-  BrainCircuit,
-  Tag as TagIcon,
-  X,
-  Globe,
-  Download,
-  Upload,
-  FileText,
-  Layers
+import {
+  Network, PlusCircle, Search, Settings,
+  BrainCircuit, Globe, Layers, LogOut, ChevronDown,
 } from 'lucide-react';
 import './index.css';
+import AuthPage from './AuthPage';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
+import NodeEditor from './NodeEditor';
+import { auth, workspaces, type Workspace, type Node as ApiNode } from './api';
 
-function App() {
+type View = 'graph' | 'graph3d';
+
+export default function App() {
   const { t, i18n } = useTranslation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const mdInputRef = useRef<HTMLInputElement>(null);
-  
-  // Navigation State
-  const [currentView, setCurrentView] = useState<'editor' | 'graph' | 'graph3d'>('editor');
-  
-  const [activeTab, setActiveTab] = useState<'zh' | 'en'>('zh');
-  
-  // Memory States
-  const [titles, setTitles] = useState({ zh: '', en: '' });
-  const [bodies, setBodies] = useState({ zh: '', en: '' });
-  const [contentType, setContentType] = useState('factual');
-  const [visibility, setVisibility] = useState('private');
-  const [tags, setTags] = useState<string[]>(['knowledge']);
-  const [currentTag, setCurrentTag] = useState('');
 
-  const handleAddTag = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && currentTag.trim() && !tags.includes(currentTag.trim())) {
-      e.preventDefault();
-      setTags([...tags, currentTag.trim()]);
-      setCurrentTag('');
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const [authenticated, setAuthenticated] = useState(() => !!localStorage.getItem('mt_token'));
+  const [user, setUser] = useState<{ display_name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    if (authenticated) {
+      auth.me()
+        .then(u => setUser(u))
+        .catch(() => { localStorage.removeItem('mt_token'); setAuthenticated(false); });
     }
+  }, [authenticated]);
+
+  const handleLogout = async () => {
+    await auth.logout().catch(() => {});
+    localStorage.removeItem('mt_token');
+    setAuthenticated(false);
+    setUser(null);
+    setSelectedWs(null);
+    setWsList([]);
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
+  // ── Workspaces ────────────────────────────────────────────────────────────
+  const [wsList, setWsList] = useState<Workspace[]>([]);
+  const [selectedWs, setSelectedWs] = useState<Workspace | null>(null);
+  const [wsMenuOpen, setWsMenuOpen] = useState(false);
+  const wsMenuRef = useRef<HTMLDivElement>(null);
 
-  const toggleUiLang = () => {
-    i18n.changeLanguage(i18n.language === 'zh-TW' ? 'en' : 'zh-TW');
-  };
+  useEffect(() => {
+    if (!authenticated) return;
+    workspaces.list().then(list => {
+      setWsList(list);
+      if (list.length > 0 && !selectedWs) setSelectedWs(list[0]);
+    }).catch(() => {});
+  }, [authenticated]);
 
-  // EXPORT JSON
-  const handleExport = () => {
-    const memoryNode = {
-      id: "mem_" + Math.random().toString(36).substr(2, 6),
-      schema_version: "1.0",
-      title: {
-        "zh-TW": titles.zh,
-        "en": titles.en
-      },
-      content: {
-        type: contentType,
-        body: {
-          "zh-TW": bodies.zh,
-          "en": bodies.en
-        }
-      },
-      tags: tags,
-      visibility: visibility,
-      provenance: {
-        author: "local-user",
-        created_at: new Date().toISOString(),
-        signature: "sha256:generated-offline",
-        source_type: "human"
-      },
-      trust: {
-        score: 1.0,
-        dimensions: { accuracy: 1.0, freshness: 1.0, utility: 1.0, author_rep: 1.0 },
-        votes: { up: 0, down: 0, verifications: 0 }
+  // close ws dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wsMenuRef.current && !wsMenuRef.current.contains(e.target as Node)) {
+        setWsMenuOpen(false);
       }
     };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-    const blob = new Blob([JSON.stringify(memoryNode, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${memoryNode.id}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  // ── Navigation ────────────────────────────────────────────────────────────
+  const [currentView, setCurrentView] = useState<View>('graph');
+
+  // ── Node Editor ───────────────────────────────────────────────────────────
+  // undefined  = panel closed
+  // null       = create new node
+  // ApiNode    = edit existing node
+  const [editingNode, setEditingNode] = useState<ApiNode | null | undefined>(undefined);
+  const [graphVersion, setGraphVersion] = useState(0);
+
+  const handleNodeSaved = (saved: ApiNode) => {
+    // Keep modal open so the edge panel appears; reload graph in background
+    setEditingNode(saved);
+    setGraphVersion(v => v + 1);
   };
 
-  // IMPORT JSON
-  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const json = JSON.parse(event.target?.result as string);
-        if (json.schema_version) {
-          setTitles({ 
-            zh: json.title?.['zh-TW'] || '', 
-            en: json.title?.en || '' 
-          });
-          setBodies({ 
-            zh: json.content?.body?.['zh-TW'] || '', 
-            en: json.content?.body?.en || '' 
-          });
-          setContentType(json.content?.type || 'factual');
-          setVisibility(json.visibility || 'private');
-          setTags(json.tags || []);
-          alert('Memory imported successfully!');
-        } else {
-          alert('Invalid MemTrace node format.');
-        }
-      } catch (err) {
-        alert('Failed to parse JSON file.');
-      }
-    };
-    reader.readAsText(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  // IMPORT MARKDOWN
-  const handleImportMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        
-        const titleMatch = text.match(/^#\s+(.*)$/m);
-        const extractedTitle = titleMatch ? titleMatch[1].trim() : file.name.replace(/\.md$/i, '');
-        
-        let extractedBody = text;
-        if (titleMatch && titleMatch.index !== undefined && titleMatch.index < 10) {
-           extractedBody = text.replace(titleMatch[0], '').trim();
-        }
-
-        if (activeTab === 'zh') {
-           setTitles(prev => ({ ...prev, zh: extractedTitle }));
-           setBodies(prev => ({ ...prev, zh: extractedBody }));
-        } else {
-           setTitles(prev => ({ ...prev, en: extractedTitle }));
-           setBodies(prev => ({ ...prev, en: extractedBody }));
-        }
-
-        alert('Markdown imported successfully into the active language tab!');
-      } catch (err) {
-        alert('Failed to read Markdown file.');
-      }
-    };
-    reader.readAsText(file);
-    if (mdInputRef.current) mdInputRef.current.value = '';
-  };
+  // ── Render ────────────────────────────────────────────────────────────────
+  if (!authenticated) {
+    return <AuthPage onAuthenticated={() => setAuthenticated(true)} />;
+  }
 
   return (
     <div className="app-container">
+      {/* ── Sidebar ──────────────────────────────────────────────────────── */}
       <aside className="sidebar">
         <div className="brand" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="brand-icon">
-              <BrainCircuit size={20} />
-            </div>
+            <div className="brand-icon"><BrainCircuit size={20} /></div>
             <div className="brand-text">MemTrace</div>
           </div>
-          <button 
-            className="btn-secondary" 
+          <button
+            className="btn-secondary"
             style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
-            onClick={toggleUiLang}
-            title="Toggle Language"
+            onClick={() => i18n.changeLanguage(i18n.language === 'zh-TW' ? 'en' : 'zh-TW')}
           >
             <Globe size={14} />
             {i18n.language === 'zh-TW' ? 'EN' : '中文'}
           </button>
         </div>
 
-        <nav>
-          <div 
-            className={`nav-item ${currentView === 'editor' ? 'active' : ''}`}
-            onClick={() => setCurrentView('editor')}
+        {/* Workspace selector */}
+        <div ref={wsMenuRef} style={{ position: 'relative', padding: '0 16px 12px' }}>
+          <button
+            onClick={() => setWsMenuOpen(o => !o)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 12px', background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)', borderRadius: 8, cursor: 'pointer',
+              color: 'var(--text-primary)', fontSize: 13,
+            }}
           >
-            <PlusCircle size={18} />
-            {t('sidebar.write')}
-          </div>
-          <div 
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {selectedWs ? (i18n.language === 'zh-TW' ? selectedWs.name_zh : selectedWs.name_en) : 'Select workspace…'}
+            </span>
+            <ChevronDown size={14} />
+          </button>
+          {wsMenuOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 16, right: 16, zIndex: 50,
+              background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+              borderRadius: 8, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+            }}>
+              {wsList.map(ws => (
+                <div
+                  key={ws.id}
+                  onClick={() => { setSelectedWs(ws); setWsMenuOpen(false); }}
+                  style={{
+                    padding: '9px 14px', cursor: 'pointer', fontSize: 13,
+                    background: selectedWs?.id === ws.id ? 'var(--accent-color)' : 'transparent',
+                    color: selectedWs?.id === ws.id ? '#fff' : 'var(--text-primary)',
+                  }}
+                >
+                  {i18n.language === 'zh-TW' ? ws.name_zh : ws.name_en}
+                </div>
+              ))}
+              {wsList.length === 0 && (
+                <div style={{ padding: '9px 14px', fontSize: 13, color: 'var(--text-muted)' }}>
+                  No workspaces yet
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <nav>
+          <div
             className={`nav-item ${currentView === 'graph' ? 'active' : ''}`}
             onClick={() => setCurrentView('graph')}
           >
             <Network size={18} />
             2D {t('sidebar.graph')}
           </div>
-          <div 
+          <div
             className={`nav-item ${currentView === 'graph3d' ? 'active' : ''}`}
             onClick={() => setCurrentView('graph3d')}
           >
@@ -208,9 +165,29 @@ function App() {
             <Search size={18} />
             {t('sidebar.explore')}
           </div>
+
+          {selectedWs && (
+            <div
+              className="nav-item"
+              style={{ marginTop: 8, color: 'var(--accent-color)' }}
+              onClick={() => setEditingNode(null)}
+            >
+              <PlusCircle size={18} />
+              New Node
+            </div>
+          )}
         </nav>
 
         <div style={{ marginTop: 'auto' }}>
+          {user && (
+            <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)' }}>
+              {user.display_name}
+            </div>
+          )}
+          <div className="nav-item" onClick={handleLogout}>
+            <LogOut size={18} />
+            Sign Out
+          </div>
           <div className="nav-item">
             <Settings size={18} />
             {t('sidebar.settings')}
@@ -218,131 +195,35 @@ function App() {
         </div>
       </aside>
 
-      {/* Conditional Rendering between Editor, 2D Graph, and 3D Graph */}
-      {currentView === 'editor' && (
-        <main className="main-content">
-          <header className="page-header animate-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <h1 className="page-title">{t('header.title')}</h1>
-              <p className="page-subtitle">{t('header.subtitle')}</p>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImportJson} />
-              <input type="file" accept=".md,.markdown" ref={mdInputRef} style={{ display: 'none' }} onChange={handleImportMarkdown} />
-
-              <button className="btn-secondary" onClick={() => mdInputRef.current?.click()}>
-                <FileText size={16} style={{ marginRight: '6px' }} />
-                {t('form.importMarkdown')}
-              </button>
-              <button className="btn-secondary" onClick={() => fileInputRef.current?.click()}>
-                <Upload size={16} style={{ marginRight: '6px' }} />
-                {t('form.importLocal')}
-              </button>
-              <button className="btn-secondary" onClick={handleExport}>
-                <Download size={16} style={{ marginRight: '6px' }} />
-                {t('form.exportLocal')}
-              </button>
-            </div>
-          </header>
-
-          <form className="glass-panel animate-fade-in" style={{ padding: '32px', animationDelay: '0.1s' }} onSubmit={(e) => e.preventDefault()}>
-            <div className="tabs">
-              <div 
-                className={`tab ${activeTab === 'zh' ? 'active' : ''}`}
-                onClick={() => setActiveTab('zh')}
-              >
-                {t('form.tab_zh')}
-              </div>
-              <div 
-                className={`tab ${activeTab === 'en' ? 'active' : ''}`}
-                onClick={() => setActiveTab('en')}
-              >
-                {t('form.tab_en')}
-              </div>
-            </div>
-
-            <div className="editor-grid">
-              <div className="form-group two-col">
-                <label className="form-label">{t('form.title')}</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder={t('form.titleP')}
-                  value={activeTab === 'zh' ? titles.zh : titles.en}
-                  onChange={(e) => setTitles({ ...titles, [activeTab]: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">{t('form.type')}</label>
-                <select className="form-select" value={contentType} onChange={(e) => setContentType(e.target.value)}>
-                  <option value="factual">{t('form.type_factual')}</option>
-                  <option value="procedural">{t('form.type_procedural')}</option>
-                  <option value="preference">{t('form.type_preference')}</option>
-                  <option value="context">{t('form.type_context')}</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">{t('form.vis')}</label>
-                <select className="form-select" value={visibility} onChange={(e) => setVisibility(e.target.value)}>
-                  <option value="private">{t('form.vis_private')}</option>
-                  <option value="team">{t('form.vis_team')}</option>
-                  <option value="public">{t('form.vis_public')}</option>
-                </select>
-              </div>
-
-              <div className="form-group two-col">
-                <label className="form-label">{t('form.body')}</label>
-                <textarea 
-                  className="form-textarea" 
-                  placeholder={t('form.bodyP')}
-                  value={activeTab === 'zh' ? bodies.zh : bodies.en}
-                  onChange={(e) => setBodies({ ...bodies, [activeTab]: e.target.value })}
-                ></textarea>
-              </div>
-
-              <div className="form-group two-col">
-                <label className="form-label">{t('form.tags')}</label>
-                <div style={{ position: 'relative' }}>
-                  <TagIcon size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    style={{ paddingLeft: '36px' }}
-                    placeholder={t('form.tagsP')}
-                    value={currentTag}
-                    onChange={(e) => setCurrentTag(e.target.value)}
-                    onKeyDown={handleAddTag}
-                  />
-                </div>
-                <div className="tag-container">
-                  {tags.map(tag => (
-                    <span className="tag" key={tag}>
-                      #{tag}
-                      <X size={12} className="tag-remove" onClick={() => removeTag(tag)} />
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--panel-border)' }}>
-              <button type="button" className="btn-secondary">{t('form.saveDraft')}</button>
-              <button type="submit" className="btn-primary">
-                <Save size={18} />
-                {t('form.commit')}
-              </button>
-            </div>
-          </form>
-        </main>
+      {/* ── Main content ─────────────────────────────────────────────────── */}
+      {currentView === 'graph' && (
+        <GraphView
+          wsId={selectedWs?.id}
+          reloadKey={graphVersion}
+          onEditNode={node => setEditingNode(node)}
+          onNewNode={() => setEditingNode(null)}
+        />
       )}
-      
-      {currentView === 'graph' && <GraphView />}
       {currentView === 'graph3d' && <GraphView3D />}
+
+      {/* ── NodeEditor overlay ───────────────────────────────────────────── */}
+      {editingNode !== undefined && selectedWs && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setEditingNode(undefined); }}
+        >
+          <NodeEditor
+            wsId={selectedWs.id}
+            node={editingNode}
+            onSaved={handleNodeSaved}
+            onClose={() => setEditingNode(undefined)}
+          />
+        </div>
+      )}
     </div>
   );
 }
-
-export default App;

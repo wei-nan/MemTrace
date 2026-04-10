@@ -1,0 +1,30 @@
+{
+  "id": "mem_k002",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "知識庫共享層級：三種可見性",
+    "en": "Knowledge Base sharing levels: three visibility modes"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "| 層級 | 識別碼 | 說明 |\n|------|--------|------|\n| 全公開 | `public` | 任何人（含未登入）皆可探索與閱讀 |\n| 限定公開 | `restricted` | 不可被公開探索；持邀請連結或被授權者才能存取 |\n| 私人 | `private` | 僅限擁有者，完全不對外可見 |\n\n`restricted` 知識庫透過時限邀請連結（token + expires_at）或直接加入成員管理存取。成員角色分 `viewer`（唯讀）與 `editor`（可編輯）。降級（如 public → private）立即生效，現有邀請連結同步撤銷。",
+      "en": "| Level | Identifier | Description |\n|-------|------------|-------------|\n| Public | `public` | Anyone, including unauthenticated users, can discover and read |\n| Restricted | `restricted` | Not publicly discoverable; only accessible via invite link or explicit grant |\n| Private | `private` | Owner only; completely hidden from all others |\n\n`restricted` Knowledge Bases are managed via time-limited invite links (token + expires_at) or direct member grants. Member roles: `viewer` (read-only) and `editor` (can write). Downgrading (e.g. public → private) takes effect immediately and revokes all existing invite links."
+    }
+  },
+  "tags": ["knowledge-base", "sharing", "visibility", "access-control"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "mem_p001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "知識透過連結而非積累",
+    "en": "Knowledge through connection, not accumulation"
+  },
+  "content": {
+    "type": "context",
+    "format": "plain",
+    "body": {
+      "zh-TW": "MemTrace 的核心前提：知識不需要存在於龐大的文件中。每個節點只捕捉一個想法，價值來自節點之間的連結網絡。節點本身輕量，但透過關聯性形成龐大的知識庫。知識庫的規模不是由單一節點的大小決定，而是由節點之間關係的密度與品質決定。",
+      "en": "The core premise of MemTrace: knowledge does not need to live in large, monolithic documents. Each node captures one idea. Value emerges from the network of relationships between nodes. A node alone is lightweight; connected to others, it becomes part of a knowledge base whose scale is determined by the density and quality of its relationships, not the size of any single entry."
+    }
+  },
+  "tags": ["philosophy", "core", "design-principle"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}
