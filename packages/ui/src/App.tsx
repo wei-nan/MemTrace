@@ -92,6 +92,7 @@ export default function App() {
   // null       = create new node
   // ApiNode    = edit existing node
   const [editingNode, setEditingNode] = useState<ApiNode | null | undefined>(undefined);
+  const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
   const [graphVersion, setGraphVersion] = useState(0);
 
   const handleNodeSaved = (saved: ApiNode) => {
@@ -231,7 +232,12 @@ export default function App() {
             wsId={selectedWs.id}
             node={editingNode}
             onSaved={handleNodeSaved}
-            onClose={() => setEditingNode(undefined)}
+            onClose={() => { setEditingNode(undefined); setSourceNodeId(undefined); }}
+            onSelectNode={n => {
+              setSourceNodeId(editingNode?.id ?? undefined);
+              setEditingNode(n);
+            }}
+            sourceNodeId={sourceNodeId}
           />
         )}
       </aside>
