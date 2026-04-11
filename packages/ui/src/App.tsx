@@ -10,9 +10,15 @@ import AuthPage from './AuthPage';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
 import NodeEditor from './NodeEditor';
-import { auth, workspaces, ai, type Workspace, type Node as ApiNode, type AIKey, type CreditStatus } from './api';
+import ReviewQueue from './ReviewQueue';
+import IngestButton from './IngestButton';
+import OnboardingWizard from './OnboardingWizard';
+import WorkspaceSettings from './WorkspaceSettings';
+import { Inbox, Users, Mail } from 'lucide-react';
+import { auth, workspaces, ai, type Workspace, type Node as ApiNode, type AIKey, type CreditStatus, type Onboarding } from './api';
 
-type View = 'graph' | 'graph3d' | 'settings';
+type User = { id: string; display_name: string; email: string; email_verified: boolean };
+type View = 'graph' | 'graph3d' | 'settings' | 'review' | 'ws_settings';
 
 // ── CreateWorkspaceModal ───────────────────────────────────────────────────────
 
@@ -358,16 +364,29 @@ export default function App() {
   };
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const [authenticated, setAuthenticated] = useState(() => !!localStorage.getItem('mt_token'));
-  const [user, setUser] = useState<{ display_name: string; email: string } | null>(null);
+  const [authenticated, setAuthenticated] = useState<boolean>(!!localStorage.getItem('mt_token'));
+  const [user, setUser] = useState<User | null>(null);
+  const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
 
   useEffect(() => {
     if (authenticated) {
       auth.me()
         .then(u => setUser(u))
         .catch(() => { localStorage.removeItem('mt_token'); setAuthenticated(false); });
+      
+      auth.getOnboarding()
+        .then(o => setOnboarding(o))
+        .catch(() => {});
     }
   }, [authenticated]);
+
+  const handleUpdateOnboarding = async (data: Partial<Onboarding>) => {
+    if (!onboarding) return;
+    try {
+      const updated = await auth.updateOnboarding(data);
+      setOnboarding(updated);
+    } catch (e) {}
+  };
 
   const handleLogout = async () => {
     await auth.logout().catch(() => {});
@@ -434,6 +453,15 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {/* ── Onboarding Wizard ─────────────────────────────────────────── */}
+      {onboarding && !onboarding.completed && (
+        <OnboardingWizard 
+          state={onboarding} 
+          onUpdate={handleUpdateOnboarding}
+          onComplete={() => handleUpdateOnboarding({ completed: true })}
+        />
+      )}
+
       {/* ── Create Workspace Modal ──────────────────────────────────────── */}
       {showCreateWs && (
         <CreateWorkspaceModal
@@ -530,9 +558,46 @@ export default function App() {
               <span className="nav-text">{zh ? '新增節點' : 'New Node'}</span>
             </div>
           )}
+
+          {!sidebarCollapsed && selectedWs && (
+            <div className={`nav-item ${currentView === 'review' ? 'active' : ''}`} style={{ marginTop: 4 }} onClick={() => setCurrentView('review')}>
+              <Inbox size={18} />
+              <span className="nav-text">{zh ? '審核佇列' : 'Review Queue'}</span>
+            </div>
+          )}
+          {!sidebarCollapsed && selectedWs && (
+            <div className={`nav-item ${currentView === 'ws_settings' ? 'active' : ''}`} style={{ marginTop: 4 }} onClick={() => setCurrentView('ws_settings')}>
+              <Users size={18} />
+              <span className="nav-text">{zh ? '成員管理' : 'Workspace Members'}</span>
+            </div>
+          )}
         </nav>
 
+        {!sidebarCollapsed && selectedWs && (
+          <div style={{ padding: '4px 0 16px' }}>
+            <IngestButton wsId={selectedWs.id} onStarted={() => setCurrentView('review')} />
+          </div>
+        )}
+
         <div style={{ marginTop: 'auto' }}>
+          {!sidebarCollapsed && user && !user.email_verified && (
+            <div style={{
+              margin: '0 12px 12px', padding: '10px 12px', borderRadius: 8,
+              background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)',
+              display: 'flex', flexDirection: 'column', gap: 6
+            }}>
+              <div style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Mail size={12} /> {zh ? '信箱未驗證' : 'Email Unverified'}
+              </div>
+              <button 
+                onClick={() => auth.resendVerification().then(() => alert(zh ? '已送出' : 'Sent!'))}
+                style={{ background: 'none', border: 'none', color: 'var(--accent-color)', fontSize: 10, cursor: 'pointer', textAlign: 'left', padding: 0 }}
+              >
+                {zh ? '重新發送驗證信' : 'Resend verification'}
+              </button>
+            </div>
+          )}
+
           <div className="nav-item" onClick={switchLanguage}>
             <Globe size={18} />
             {!sidebarCollapsed && <span className="nav-text">{zh ? 'Switch to English' : '切換至中文'}</span>}
@@ -573,6 +638,15 @@ export default function App() {
           />
         )}
         {currentView === 'settings' && <SettingsPanel />}
+        {currentView === 'review' && selectedWs && (
+          <ReviewQueue wsId={selectedWs.id} onClose={() => setCurrentView('graph')} />
+        )}
+        {currentView === 'ws_settings' && selectedWs && (
+          <div style={{ padding: 40, maxWidth: 800, margin: '0 auto' }}>
+             <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '工作區設定' : 'Workspace Settings'}</h2>
+             <WorkspaceSettings wsId={selectedWs.id} />
+          </div>
+        )}
       </main>
 
       {/* ── Integrated Side Panel ────────────────────────────────────────── */}

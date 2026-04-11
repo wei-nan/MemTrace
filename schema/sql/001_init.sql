@@ -15,6 +15,9 @@ CREATE TYPE source_type     AS ENUM ('human', 'ai_generated', 'ai_verified');
 CREATE TYPE relation_type   AS ENUM ('depends_on', 'extends', 'related_to', 'contradicts');
 CREATE TYPE kb_visibility   AS ENUM ('public', 'restricted', 'private');
 CREATE TYPE member_role     AS ENUM ('viewer', 'editor');
+CREATE TYPE kb_type         AS ENUM ('evergreen', 'ephemeral');
+CREATE TYPE node_status     AS ENUM ('active', 'archived');
+CREATE TYPE edge_status     AS ENUM ('active', 'faded', 'pinned');
 
 -- ─── USERS ────────────────────────────────────────────────────────
 
@@ -65,6 +68,12 @@ CREATE TABLE password_reset_tokens (
   expires_at  TIMESTAMPTZ NOT NULL
 );
 
+CREATE TABLE email_verification_tokens (
+  token       TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at  TIMESTAMPTZ NOT NULL
+);
+
 -- ─── API KEYS ─────────────────────────────────────────────────────
 
 CREATE TABLE api_keys (
@@ -82,7 +91,7 @@ CREATE TABLE api_keys (
 
 -- ─── KNOWLEDGE BASES (WORKSPACES) ─────────────────────────────────
 
-CREATE TYPE kb_type AS ENUM ('evergreen', 'ephemeral');
+
 
 CREATE TABLE workspaces (
   id            TEXT PRIMARY KEY,                -- ws_<hex8>
@@ -92,33 +101,42 @@ CREATE TABLE workspaces (
   visibility    kb_visibility NOT NULL DEFAULT 'private',
   kb_type       kb_type NOT NULL DEFAULT 'evergreen',  -- immutable after creation
   owner_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  
+  -- Decay & Archive config (SPEC §7.3)
+  archive_window_days  INTEGER NOT NULL DEFAULT 90,
+  min_traversals       INTEGER NOT NULL DEFAULT 1,
+  
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_workspaces_owner      ON workspaces (owner_id);
-CREATE INDEX idx_workspaces_visibility ON workspaces (visibility);
-
--- ─── WORKSPACE MEMBERS ────────────────────────────────────────────
-
 CREATE TABLE workspace_members (
   workspace_id  TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-  user_id       TEXT NOT NULL REFERENCES users(id)      ON DELETE CASCADE,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   role          member_role NOT NULL DEFAULT 'viewer',
-  granted_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  joined_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (workspace_id, user_id)
 );
 
--- ─── WORKSPACE INVITE LINKS ───────────────────────────────────────
-
 CREATE TABLE workspace_invites (
-  token         TEXT PRIMARY KEY,                -- UUID
+  id            TEXT PRIMARY KEY,                -- inv_<hex8>
   workspace_id  TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  email         TEXT NOT NULL,
   role          member_role NOT NULL DEFAULT 'viewer',
-  created_by    TEXT NOT NULL REFERENCES users(id),
+  token         TEXT NOT NULL UNIQUE,
+  inviter_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  expires_at    TIMESTAMPTZ                      -- NULL = never expires
+  expires_at    TIMESTAMPTZ NOT NULL,
+  accepted_at   TIMESTAMPTZ
 );
+
+CREATE INDEX idx_members_user ON workspace_members (user_id);
+CREATE INDEX idx_invites_token ON workspace_invites (token);
+
+CREATE INDEX idx_workspaces_owner      ON workspaces (owner_id);
+CREATE INDEX idx_workspaces_visibility ON workspaces (visibility);
+
+
 
 -- ─── MEMORY NODES ─────────────────────────────────────────────────
 
@@ -173,6 +191,10 @@ CREATE TABLE memory_nodes (
   traversal_count          INTEGER NOT NULL DEFAULT 0 CHECK (traversal_count          >= 0),
   unique_traverser_count   INTEGER NOT NULL DEFAULT 0 CHECK (unique_traverser_count   >= 0),
 
+  -- Lifecycle (SPEC §7.3)
+  status          node_status NOT NULL DEFAULT 'active',
+  archived_at     TIMESTAMPTZ,
+
   -- Semantic embedding (text-embedding-3-small = 1536 dims)
   embedding       vector(1536)
 );
@@ -202,6 +224,10 @@ CREATE TABLE edges (
   -- Decay parameters
   half_life_days   INTEGER       NOT NULL DEFAULT 30  CHECK (half_life_days >= 1),
   min_weight       NUMERIC(4,3)  NOT NULL DEFAULT 0.1 CHECK (min_weight BETWEEN 0 AND 1),
+
+  -- Lifecycle (SPEC §7.3)
+  status           edge_status   NOT NULL DEFAULT 'active',
+  pinned           BOOLEAN       NOT NULL DEFAULT FALSE,
 
   -- Traversal tracking
   traversal_count  INTEGER       NOT NULL DEFAULT 0   CHECK (traversal_count >= 0),
@@ -246,20 +272,87 @@ RETURNS INTEGER AS $$
 DECLARE
   updated_count INTEGER;
 BEGIN
+  -- 1. Time-based decay for 'ephemeral' workspaces (SPEC §7.3)
+  -- 'evergreen' workspaces use traversal-based archiving instead.
   UPDATE edges
-  SET weight = GREATEST(
-    min_weight,
-    weight * POWER(0.5, EXTRACT(EPOCH FROM (now() - last_co_accessed)) / 86400.0 / half_life_days)
-  )
-  WHERE last_co_accessed < now() - INTERVAL '1 day';
+  SET 
+    weight = GREATEST(
+      min_weight,
+      weight * POWER(0.5, EXTRACT(EPOCH FROM (now() - last_co_accessed)) / 86400.0 / half_life_days)
+    ),
+    status = CASE 
+      WHEN (weight * POWER(0.5, EXTRACT(EPOCH FROM (now() - last_co_accessed)) / 86400.0 / half_life_days)) < min_weight 
+      THEN 'faded'::edge_status 
+      ELSE status 
+    END
+  FROM workspaces ws
+  WHERE edges.workspace_id = ws.id
+    AND ws.kb_type = 'ephemeral'
+    AND edges.status = 'active'
+    AND edges.pinned = FALSE
+    AND edges.last_co_accessed < now() - INTERVAL '1 hour'; -- more aggressive for ephemeral
 
   GET DIAGNOSTICS updated_count = ROW_COUNT;
 
-  DELETE FROM edges
-  WHERE weight <= min_weight
-    AND last_co_accessed < now() - (half_life_days * 2 || ' days')::INTERVAL;
+  -- 2. Traversal-based archiving for 'evergreen' workspaces (SPEC §7.3)
+  UPDATE edges
+  SET status = 'faded'::edge_status
+  FROM workspaces ws
+  WHERE edges.workspace_id = ws.id
+    AND ws.kb_type = 'evergreen'
+    AND edges.status = 'active'
+    AND edges.pinned = FALSE
+    AND edges.last_co_accessed < now() - (ws.archive_window_days || ' days')::INTERVAL
+    AND edges.traversal_count < ws.min_traversals;
 
   RETURN updated_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ─── NODE ARCHIVING FUNCTION ──────────────────────────────────────
+-- Implements archiving logic based on kb_type (SPEC §7.3)
+
+CREATE OR REPLACE FUNCTION apply_node_archiving()
+RETURNS INTEGER AS $$
+DECLARE
+  archived_count INTEGER;
+BEGIN
+  -- 1. Evergreen: traversal-count based
+  UPDATE memory_nodes
+  SET 
+    status = 'archived'::node_status,
+    archived_at = now()
+  FROM workspaces ws
+  WHERE memory_nodes.workspace_id = ws.id
+    AND ws.kb_type = 'evergreen'
+    AND memory_nodes.status = 'active'
+    AND memory_nodes.created_at < now() - (ws.archive_window_days || ' days')::INTERVAL
+    AND memory_nodes.traversal_count < ws.min_traversals;
+
+  GET DIAGNOSTICS archived_count = ROW_COUNT;
+
+  -- 2. Ephemeral: all-edges-faded based
+  UPDATE memory_nodes
+  SET 
+    status = 'archived'::node_status,
+    archived_at = now()
+  FROM workspaces ws
+  WHERE memory_nodes.workspace_id = ws.id
+    AND ws.kb_type = 'ephemeral'
+    AND memory_nodes.status = 'active'
+    -- All edges are either faded or non-existent
+    AND NOT EXISTS (
+      SELECT 1 FROM edges 
+      WHERE (from_id = memory_nodes.id OR to_id = memory_nodes.id)
+        AND status = 'active'
+    )
+    -- Node without edges: archive after 60 days of inactivity
+    AND (
+      memory_nodes.traversal_count = 0 
+      OR memory_nodes.created_at < now() - INTERVAL '60 days'
+    );
+
+  RETURN archived_count + archived_count; -- rough estimation
 END;
 $$ LANGUAGE plpgsql;
 
@@ -363,3 +456,28 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_workspaces_updated_at
   BEFORE UPDATE ON workspaces
   FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+-- ─── REVIEW QUEUE (AI Candidates) ─────────────────────────────────
+
+CREATE TYPE review_status AS ENUM ('pending', 'accepted', 'rejected');
+
+CREATE TABLE review_queue (
+  id            TEXT PRIMARY KEY,                -- rev_<hex8>
+  workspace_id  TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  
+  -- The proposed node data (matches NodeCreate payload)
+  node_data     JSONB NOT NULL,
+  
+  -- Proposed edges relative to this node or other nodes in the same batch
+  suggested_edges JSONB NOT NULL DEFAULT '[]',
+  
+  status        review_status NOT NULL DEFAULT 'pending',
+  source_info   TEXT,                            -- e.g. "ingest: spec.md"
+  
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reviewed_at   TIMESTAMPTZ,
+  reviewer_id   TEXT REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_review_workspace ON review_queue (workspace_id);
+CREATE INDEX idx_review_status    ON review_queue (status);

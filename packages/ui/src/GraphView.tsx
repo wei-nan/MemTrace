@@ -6,7 +6,7 @@ import ReactFlow, {
 import type { Node, Edge, Connection, NodeChange, EdgeChange } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Search, Sparkles } from 'lucide-react';
 import MemoryNode from './MemoryNode';
 import { nodes as nodesApi, edges as edgesApi, type Node as ApiNode } from './api';
 
@@ -34,6 +34,8 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
   const [apiNodes, setApiNodes] = useState<ApiNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<'keyword' | 'semantic'>('keyword');
 
   // ── Load data ─────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -77,6 +79,39 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
     }
   }, [wsId]);
 
+  const performSearch = async () => {
+    if (!wsId || !searchQuery.trim()) {
+      load();
+      return;
+    }
+    setLoading(true);
+    try {
+      let results: ApiNode[] = [];
+      if (searchMode === 'semantic') {
+        results = await nodesApi.searchSemantic(wsId, searchQuery);
+      } else {
+        results = await nodesApi.list(wsId, { q: searchQuery });
+      }
+      setApiNodes(results);
+      
+      const cols = Math.ceil(Math.sqrt(results.length || 1));
+      setRfNodes(results.map((n, i) => ({
+        id: n.id,
+        type: 'memoryNode',
+        position: { x: (i % cols) * 240, y: Math.floor(i / cols) * 160 },
+        data: {
+          title: i18n.language === 'zh-TW' ? n.title_zh : n.title_en,
+          type: n.content_type,
+          tags: n.tags,
+        },
+      })));
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => { load(); }, [load, reloadKey]);
 
   // ── ReactFlow handlers ────────────────────────────────────────────────────
@@ -115,13 +150,45 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
             {loading ? 'Loading…' : error ? `Error: ${error}` : `${rfNodes.length} nodes · ${rfEdges.length} edges — double-click a node to edit`}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-secondary" onClick={load} disabled={loading}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* Search Bar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)', borderRadius: 12, padding: '2px 8px',
+            width: 320, boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+          }}>
+            <Search size={16} style={{ color: 'var(--text-muted)', marginLeft: 4 }} />
+            <input
+              style={{
+                background: 'none', border: 'none', padding: '8px 12px', color: 'var(--text-primary)',
+                fontSize: 13, flex: 1, outline: 'none'
+              }}
+              placeholder={searchMode === 'keyword' ? t('search.keyword') : t('search.semantic')}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && performSearch()}
+            />
+            <button 
+              onClick={() => setSearchMode(m => m === 'keyword' ? 'semantic' : 'keyword')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px',
+                borderRadius: 8, background: searchMode === 'semantic' ? 'var(--accent-color)' : 'transparent',
+                border: searchMode === 'semantic' ? 'none' : '1px solid var(--border-color)',
+                color: searchMode === 'semantic' ? '#fff' : 'var(--text-muted)',
+                fontSize: 11, cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              <Sparkles size={12} />
+              {searchMode === 'semantic' ? 'AI' : 'Text'}
+            </button>
+          </div>
+
+          <button className="btn-secondary" onClick={load} disabled={loading} style={{ height: 38 }}>
             <RefreshCw size={16} style={{ marginRight: 6, animation: loading ? 'spin 1s linear infinite' : 'none' }} />
             Refresh
           </button>
           {onNewNode && (
-            <button className="btn-primary" onClick={onNewNode}>
+            <button className="btn-primary" onClick={onNewNode} style={{ height: 38 }}>
               + New Node
             </button>
           )}

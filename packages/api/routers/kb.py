@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List, Literal
+import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 
 from core.database import db_cursor
 from core.deps import get_current_user, get_current_user_optional
 from core.security import compute_signature, generate_id
+from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable, AIQuotaExceeded
 from models.kb import (
     EdgeCreate, EdgeResponse,
     NodeCreate, NodeResponse, NodeUpdate,
@@ -80,10 +82,16 @@ def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_use
     ws_id = generate_id("ws")
     with db_cursor(commit=True) as cur:
         cur.execute("""
-            INSERT INTO workspaces (id, name_zh, name_en, visibility, kb_type, owner_id)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO workspaces (
+                id, name_zh, name_en, visibility, kb_type, owner_id,
+                archive_window_days, min_traversals
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
-        """, (ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, user["sub"]))
+        """, (
+            ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, user["sub"],
+            body.archive_window_days, body.min_traversals
+        ))
         return cur.fetchone()
 
 
@@ -105,12 +113,16 @@ def list_nodes(
     content_type: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0),
+    status: str = Query("active"),
     user: dict = Depends(get_current_user_optional),
 ):
     with db_cursor() as cur:
         _require_ws_access(cur, ws_id, user)
         filters = ["workspace_id = %s"]
         params: list = [ws_id]
+        if status != "all":
+            filters.append("status = %s")
+            params.append(status)
         if q:
             filters.append(
                 "(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)"
@@ -131,6 +143,41 @@ def list_nodes(
         )
         return cur.fetchall()
 
+async def _bg_embed_node(ws_id: str, node_id: str, text: str, user_id: str):
+    try:
+        resolved = resolve_provider(user_id, "embedding")
+        vector, tokens = await embed(resolved, text)
+        with db_cursor(commit=True) as cur:
+            cur.execute(
+                "UPDATE memory_nodes SET embedding = %s WHERE id = %s AND workspace_id = %s",
+                (vector, node_id, ws_id)
+            )
+        record_usage(resolved, "embedding", tokens, ws_id, node_id)
+    except Exception as e:
+        print(f"BG Embedding failed for node {node_id}: {e}")
+
+@router.post("/workspaces/{ws_id}/nodes/search-semantic", response_model=List[NodeResponse])
+async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: dict = Depends(get_current_user)):
+    try:
+        resolved = resolve_provider(user["sub"], "embedding")
+        vector, tokens = await embed(resolved, query)
+        record_usage(resolved, "embedding", tokens, ws_id)
+        
+        with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user)
+            cur.execute("""
+                SELECT *, (1 - (embedding <=> %s::vector)) AS similarity
+                FROM memory_nodes
+                WHERE workspace_id = %s AND embedding IS NOT NULL
+                ORDER BY similarity DESC
+                LIMIT %s
+            """, (vector, ws_id, limit))
+            return cur.fetchall()
+    except (AIProviderUnavailable, AIQuotaExceeded) as e:
+        raise HTTPException(status_code=402, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Embedding error: {str(e)}")
+
 
 @router.get("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
 def get_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user_optional)):
@@ -147,7 +194,7 @@ def get_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user_opt
 
 
 @router.post("/workspaces/{ws_id}/nodes", response_model=NodeResponse, status_code=201)
-def create_node(ws_id: str, body: NodeCreate, user: dict = Depends(get_current_user)):
+def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     if body.content_type not in VALID_CONTENT_T:
         raise HTTPException(status_code=400, detail="Invalid content_type")
     if body.content_format not in VALID_FORMAT:
@@ -172,17 +219,23 @@ def create_node(ws_id: str, body: NodeCreate, user: dict = Depends(get_current_u
                 title_zh, title_en,
                 content_type, content_format, body_zh, body_en,
                 tags, visibility,
-                author, signature, source_type
-            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'human')
+                author, signature, source_type,
+                copied_from_node, copied_from_ws
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'human',%s,%s)
             RETURNING *
         """, (
             node_id, ws_id,
             body.title_zh, body.title_en,
-            body.content_type, body.content_format, body.body_zh, body.body_en,
-            body.tags, body.visibility,
             author, sig,
+            body.copied_from_node, body.copied_from_ws
         ))
-        return cur.fetchone()
+        node = cur.fetchone()
+        
+        # Trigger background embedding
+        bg_text = f"{body.title_zh}\n{body.title_en}\n{body.body_zh}\n{body.body_en}"
+        background_tasks.add_task(_bg_embed_node, ws_id, node_id, bg_text, user["sub"])
+        
+        return node
 
 
 @router.patch("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
@@ -258,7 +311,7 @@ def list_edges(
             cur.execute("""
                 SELECT *,
                   CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
-                FROM edges WHERE workspace_id = %s ORDER BY weight DESC
+                FROM edges WHERE workspace_id = %s AND status = 'active' ORDER BY weight DESC
             """, (ws_id,))
         return cur.fetchall()
 
@@ -284,13 +337,27 @@ def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_u
             if not cur.fetchone():
                 raise HTTPException(status_code=404, detail=f"Node not found: {nid}")
 
+        # Choose default half-life based on node content_type (SPEC §7.1)
+        if body.half_life_days == 30: # If using old default
+            cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (body.from_id,))
+            node_row = cur.fetchone()
+            if node_row:
+                ct = node_row["content_type"]
+                if   ct == "factual":    body.half_life_days = 365
+                elif ct == "procedural": body.half_life_days = 90
+                elif ct == "preference": body.half_life_days = 30
+                elif ct == "context":    body.half_life_days = 14
+
         try:
             cur.execute("""
-                INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, half_life_days)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO edges (
+                    id, workspace_id, from_id, to_id, relation, 
+                    weight, half_life_days, pinned
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING *,
                   CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
-            """, (edge_id, ws_id, body.from_id, body.to_id, body.relation, body.weight, body.half_life_days))
+            """, (edge_id, ws_id, body.from_id, body.to_id, body.relation, body.weight, body.half_life_days, body.pinned))
             return cur.fetchone()
         except Exception as e:
             if "unique_edge" in str(e):

@@ -27,6 +27,10 @@ export const auth = {
     request<{ access_token: string }>("POST", "/auth/login", data),
   logout: () => request("POST", "/auth/logout"),
   me: () => request<{ id: string; display_name: string; email: string; email_verified: boolean }>("GET", "/auth/me"),
+  verifyEmail: (token: string) => request("POST", `/auth/verify-email/${token}`),
+  resendVerification: () => request("POST", "/auth/resend-verification-email"),
+  getOnboarding: () => request<Onboarding>("GET", "/auth/me/onboarding"),
+  updateOnboarding: (data: Partial<Onboarding>) => request<Onboarding>("PATCH", "/auth/me/onboarding", data),
 };
 
 // ── Workspaces ────────────────────────────────────────────────────────────────
@@ -35,6 +39,16 @@ export const workspaces = {
   create: (data: { name_zh: string; name_en: string; visibility: string; kb_type: 'evergreen' | 'ephemeral' }) =>
     request<Workspace>("POST", `${BASE}/workspaces`, data),
   get: (id: string) => request<Workspace>("GET", `${BASE}/workspaces/${id}`),
+  members: (wsId: string) => request<Member[]>("GET", `${BASE}/workspaces/${wsId}/members`),
+  invites: (wsId: string) => request<Invite[]>("GET", `${BASE}/workspaces/${wsId}/invites`),
+  createInvite: (wsId: string, data: { email: string; role: string }) => 
+    request<Invite>("POST", `${BASE}/workspaces/${wsId}/invites`, data),
+  acceptInvite: (token: string) => request("POST", `/workspaces/invites/${token}/accept`),
+  deleteInvite: (id: string) => request("DELETE", `/workspaces/invites/${id}`),
+  updateMember: (wsId: string, userId: string, role: string) =>
+    request("PUT", `${BASE}/workspaces/${wsId}/members/${userId}`, { role }),
+  removeMember: (wsId: string, userId: string) =>
+    request("DELETE", `${BASE}/workspaces/${wsId}/members/${userId}`),
 };
 
 // ── Nodes ─────────────────────────────────────────────────────────────────────
@@ -53,6 +67,8 @@ export const nodes = {
     request("DELETE", `${BASE}/workspaces/${wsId}/nodes/${nodeId}`),
   traverse: (nodeId: string) =>
     request("POST", `${BASE}/nodes/${nodeId}/traverse`),
+  searchSemantic: (wsId: string, query: string, limit: number = 10) =>
+    request<Node[]>("POST", `${BASE}/workspaces/${wsId}/nodes/search-semantic?query=${encodeURIComponent(query)}&limit=${limit}`),
 };
 
 // ── Edges ─────────────────────────────────────────────────────────────────────
@@ -79,6 +95,38 @@ export const ai = {
   getCredits: () => request<CreditStatus>("GET", `${BASE}/ai/credits`),
 };
 
+// ── Review Queue ──────────────────────────────────────────────────────────────
+export const review = {
+  list: (wsId: string, status = "pending") => 
+    request<ReviewItem[]>("GET", `${BASE}/workspaces/${wsId}/review-queue?status=${status}`),
+  update: (id: string, data: Partial<ReviewItem>) =>
+    request<ReviewItem>("PATCH", `${BASE}/workspaces/review-queue/${id}`, data),
+  accept: (id: string) => 
+    request<Node>("POST", `${BASE}/workspaces/review-queue/${id}/accept`),
+  reject: (id: string) => 
+    request("POST", `${BASE}/workspaces/review-queue/${id}/reject`),
+  acceptAll: (wsId: string) =>
+    request<{ accepted_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/accept-all`),
+  rejectAll: (wsId: string) =>
+    request("POST", `${BASE}/workspaces/${wsId}/review-queue/reject-all`),
+};
+
+// ── Ingest ────────────────────────────────────────────────────────────────────
+export const ingest = {
+  upload: (wsId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return fetch(`${BASE}/workspaces/${wsId}/ingest`, {
+      method: "POST",
+      headers: { ...authHeaders() },
+      body: formData,
+    }).then(res => {
+      if (!res.ok) throw new Error("Upload failed");
+      return res.json();
+    });
+  }
+};
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 export interface AIKey {
   id: string; provider: string; key_hint: string;
@@ -100,6 +148,24 @@ export interface Node {
   dim_accuracy: number; dim_freshness: number; dim_utility: number; dim_author_rep: number;
   traversal_count: number; unique_traverser_count: number;
   created_at: string; updated_at?: string; signature: string; source_type: string;
+  copied_from_node?: string; copied_from_ws?: string;
+}
+export interface Member {
+  user_id: string; display_name: string; email: string; role: string; joined_at: string;
+}
+export interface Invite {
+  id: string; workspace_id: string; email: string; role: string; token: string;
+  inviter_id: string; created_at: string; expires_at: string; accepted_at: string | null;
+}
+export interface ReviewItem {
+  id: string; workspace_id: string; node_data: any; suggested_edges: any[];
+  status: string; source_info: string; created_at: string;
+}
+export interface Onboarding {
+  completed: boolean;
+  steps_done: string[];
+  steps_skipped: string[];
+  first_kb_id: string | null;
 }
 export interface Edge {
   id: string; workspace_id: string; from_id: string; to_id: string;

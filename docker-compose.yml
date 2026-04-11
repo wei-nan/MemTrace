@@ -37,6 +37,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   ui:
     build:
@@ -47,7 +52,8 @@ services:
     ports:
       - "5173:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   memtrace_pgdata:

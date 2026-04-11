@@ -1,4 +1,5 @@
 import secrets
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -59,7 +60,13 @@ def register(body: RegisterRequest):
             VALUES (%s, '我的知識庫', 'My Knowledge Base', 'private', %s)
         """, (ws_id, user_id))
 
-        # TODO: send verification email
+        # generate verification token
+        verify_token = secrets.token_urlsafe(32)
+        cur.execute(
+            "INSERT INTO email_verification_tokens (token, user_id, expires_at) VALUES (%s, %s, %s)",
+            (verify_token, user_id, now + timedelta(hours=24))
+        )
+        print(f"DEBUG: Verification email for {body.email}: http://localhost:5173/verify-email?token={verify_token}")
 
     token = create_access_token(user_id, body.email, body.display_name)
     return TokenResponse(access_token=token)
@@ -295,3 +302,58 @@ def google_callback(code: str, state: str):
     cur_display = display_name
     token = create_access_token(user_id, email, cur_display)
     return TokenResponse(access_token=token)
+
+@router.get("/me/onboarding")
+def get_onboarding(user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        cur.execute("SELECT onboarding FROM users WHERE id = %s", (user["sub"],))
+        return cur.fetchone()["onboarding"]
+
+@router.patch("/me/onboarding")
+def update_onboarding(body: dict, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT onboarding FROM users WHERE id = %s", (user["sub"],))
+        current = cur.fetchone()["onboarding"]
+        
+        # Merge shallowly
+        new_state = {**current, **body}
+        
+        cur.execute("UPDATE users SET onboarding = %s WHERE id = %s", (json.dumps(new_state), user["sub"]))
+        return new_state
+@router.post("/verify-email/{token}")
+def verify_email(token: str):
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "SELECT user_id, expires_at FROM email_verification_tokens WHERE token = %s",
+            (token,)
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Invalid or expired token")
+        
+        if row["expires_at"] < datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="Token has expired")
+            
+        cur.execute("UPDATE users SET email_verified = true WHERE id = %s", (row["user_id"],))
+        cur.execute("DELETE FROM email_verification_tokens WHERE token = %s", (token,))
+        
+        return {"message": "Email verified successfully"}
+
+@router.post("/resend-verification-email")
+def resend_verification_email(user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        # Check if already verified
+        cur.execute("SELECT email, email_verified FROM users WHERE id = %s", (user["sub"],))
+        u = cur.fetchone()
+        if u and u["email_verified"]:
+            return {"message": "Email already verified"}
+            
+        verify_token = secrets.token_urlsafe(32)
+        now = datetime.now(timezone.utc)
+        cur.execute(
+            "INSERT INTO email_verification_tokens (token, user_id, expires_at) VALUES (%s, %s, %s)",
+            (verify_token, user["sub"], now + timedelta(hours=24))
+        )
+        print(f"DEBUG: Resent verification email for {u['email']}: http://localhost:5173/verify-email?token={verify_token}")
+        
+        return {"message": "Verification email resent"}

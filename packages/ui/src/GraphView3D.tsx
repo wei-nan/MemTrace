@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type { ForceGraphMethods } from 'react-force-graph-3d';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +21,7 @@ const RELATION_COLORS: Record<string, string> = {
 
 export default function GraphView3D({ wsId, reloadKey, onEditNode }: Props) {
   const { t, i18n } = useTranslation();
-  const fgRef = useRef<ForceGraphMethods>();
+  const fgRef = useRef<ForceGraphMethods>(null!);
   
   const [data, setData] = useState({ nodes: [] as any[], links: [] as any[] });
   const [hoveredNode, setHoveredNode] = useState<any>(null);

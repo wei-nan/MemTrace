@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import {
   X, Edit3, Save, Trash2, Link as LinkIcon,
-  ChevronRight, ChevronLeft, Calendar, User, Shield, Type, Search,
+  ChevronRight, Calendar, User, Shield, Type, Search,
 } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, type Node, type Edge } from './api';
 

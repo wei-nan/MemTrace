@@ -42,7 +42,8 @@ def compute_signature(title, content, tags, author):
     return hashlib.sha256(payload.encode()).hexdigest()
 
 def bootstrap_spec():
-    spec_path = "../docs/SPEC.md"
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    spec_path = os.path.join(repo_root, "docs", "SPEC.md")
     if not os.path.exists(spec_path):
         print(f"Error: {spec_path} not found")
         return
@@ -66,10 +67,12 @@ def bootstrap_spec():
         cur.execute("SELECT id FROM workspaces WHERE id = %s", (ws_id,))
         if not cur.fetchone():
             cur.execute("""
-                INSERT INTO workspaces (id, name_zh, name_en, visibility, owner_id)
-                VALUES (%s, %s, %s, 'public', %s)
+                INSERT INTO workspaces (
+                    id, name_zh, name_en, visibility, owner_id, kb_type
+                )
+                VALUES (%s, %s, %s, 'public', %s, 'evergreen')
             """, (ws_id, "MemTrace 產品規格書", "MemTrace Specification", author_id))
-            print(f"Created public workspace: {ws_id}")
+            print(f"Created public evergreen workspace: {ws_id}")
         else:
             print(f"Workspace {ws_id} already exists, updating nodes...")
             cur.execute("DELETE FROM memory_nodes WHERE workspace_id = %s", (ws_id,))

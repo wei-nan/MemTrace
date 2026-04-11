@@ -40,7 +40,7 @@ if not DATABASE_URL:
 SPEC_WS_ID   = "ws_spec0001"
 SPEC_WS_NAME_ZH = "MemTrace 規格知識庫"
 SPEC_WS_NAME_EN = "MemTrace Spec Knowledge Base"
-SPEC_OWNER   = "usr_system01"   # placeholder — adjust to a real user id
+SPEC_OWNER   = "system"         # matches the system user already in DB
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -59,11 +59,20 @@ def load_edges() -> list[dict]:
 # ── Insert functions ──────────────────────────────────────────────────────────
 
 def upsert_system_user(cur):
+    # Resolve actual system user ID by email (handles pre-existing users with different IDs)
+    cur.execute("SELECT id FROM users WHERE email = 'system@memtrace.local'")
+    row = cur.fetchone()
+    if row:
+        global SPEC_OWNER
+        SPEC_OWNER = row["id"]
+        print(f"  system user: found existing id={SPEC_OWNER}")
+        return
     cur.execute("""
         INSERT INTO users (id, display_name, email, email_verified)
         VALUES (%s, %s, %s, true)
         ON CONFLICT (id) DO NOTHING
     """, (SPEC_OWNER, "MemTrace System", "system@memtrace.local"))
+    print(f"  system user: created id={SPEC_OWNER}")
 
 
 def upsert_workspace(cur):
@@ -109,7 +118,19 @@ def upsert_nodes(cur, nodes: list[dict]):
                 %s, %s, %s,
                 %s, %s
             )
-            ON CONFLICT (id) DO NOTHING
+            ON CONFLICT (id) DO UPDATE SET
+                title_zh = EXCLUDED.title_zh,
+                title_en = EXCLUDED.title_en,
+                content_type = EXCLUDED.content_type,
+                content_format = EXCLUDED.content_format,
+                body_zh = EXCLUDED.body_zh,
+                body_en = EXCLUDED.body_en,
+                tags = EXCLUDED.tags,
+                trust_score = EXCLUDED.trust_score,
+                dim_accuracy = EXCLUDED.dim_accuracy,
+                dim_freshness = EXCLUDED.dim_freshness,
+                dim_utility = EXCLUDED.dim_utility,
+                dim_author_rep = EXCLUDED.dim_author_rep
         """, (
             n["id"], n.get("schema_version", "1.0"), SPEC_WS_ID,
             n["title"]["zh-TW"], n["title"]["en"],
@@ -125,7 +146,7 @@ def upsert_nodes(cur, nodes: list[dict]):
             tr.get("count", 0), tr.get("unique_traversers", 0),
         ))
         inserted += 1
-    print(f"  nodes:     {inserted} inserted (duplicates skipped)")
+    print(f"  nodes:     {inserted} upserted")
 
 
 def upsert_edges(cur, edges: list[dict]):
@@ -163,7 +184,7 @@ def upsert_edges(cur, edges: list[dict]):
 
 def main():
     print(f"\n>>  Connecting to database...")
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
     conn.autocommit = False
 
     try:

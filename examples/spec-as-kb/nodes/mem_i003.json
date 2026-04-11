@@ -9,15 +9,16 @@
     "type": "factual",
     "format": "markdown",
     "body": {
-      "zh-TW": "MemTrace 實作 **Model Context Protocol (MCP)**，讓 AI agent 可以將 MemTrace 作為 context provider。\n\n**Transport**：本地 stdio（CLI）或 HTTP + SSE（`memtrace serve --mcp`）\n\n**Resources**（agent 讀取用）：\n- `memtrace://workspaces` — 知識庫清單\n- `memtrace://node/{id}` — 節點完整內容（含走訪統計）\n- `memtrace://node/{id}/edges` — 節點的所有 Edge\n\n**Tools**（agent 操作用）：`search_nodes`、`get_node`、`create_node`、`update_node`、`list_edges`、`create_edge`、`traverse_edge`（觸發 co-access boost）、`rate_path`（提交評分）\n\nAgent 每次沿 Edge 移動時應呼叫 `traverse_edge`，讓常用路徑保持活躍，抵抗 decay。",
-      "en": "MemTrace implements the **Model Context Protocol (MCP)** so AI agents can use MemTrace as a context provider.\n\n**Transport**: local stdio (CLI) or HTTP + SSE (`memtrace serve --mcp`)\n\n**Resources** (agent reads):\n- `memtrace://workspaces` — list of Knowledge Bases\n- `memtrace://node/{id}` — full node content with traversal stats\n- `memtrace://node/{id}/edges` — all edges for a node\n\n**Tools** (agent actions): `search_nodes`, `get_node`, `create_node`, `update_node`, `list_edges`, `create_edge`, `traverse_edge` (triggers co-access boost), `rate_path` (submit rating)\n\nAgents should call `traverse_edge` each time they follow an edge, keeping frequently used paths alive against decay."
+      "zh-TW": "MemTrace 實作 **Model Context Protocol (MCP)**，讓 AI agent（如 Claude Code）可以將 MemTrace 知識庫作為 context provider，無需直接讀取規格文件。\n\n**Transport**：目前僅支援 stdio（`node packages/mcp/dist/index.js`）。\n\n**當前實作工具（Tools）**：\n\n| 工具 | 說明 |\n|------|------|\n| `search_nodes` | 關鍵字搜尋節點（中英文皆可），回傳完整內容 |\n| `get_node` | 依 ID 取得特定節點完整內容與 metadata |\n| `traverse` | 取得節點及其上下游關聯（depth=1 或 2）|\n| `list_by_tag` | 依 tag 列出所有節點 |\n\n**環境變數**：\n- `MEMTRACE_API`：API base URL（預設 `http://localhost:8000/api/v1`）\n- `MEMTRACE_WS`：Workspace ID（預設 `ws_spec0001`）\n- `MEMTRACE_LANG`：顯示語言（預設 `zh-TW`）\n\n**已規劃但尚未實作**：\n- Resources（`memtrace://node/{id}` 等 URI 讀取）\n- 寫入工具（`create_node`、`update_node`、`create_edge`）\n- HTTP + SSE transport\n- `traverse_edge` 觸發 co-access boost\n\nAgent 每次沿 Edge 移動時應呼叫 traverse 工具，讓常用路徑保持活躍，抵抗 decay。",
+      "en": "MemTrace implements the **Model Context Protocol (MCP)**, allowing AI agents (e.g. Claude Code) to use MemTrace as a context provider without reading raw spec documents.\n\n**Transport**: stdio only for now (`node packages/mcp/dist/index.js`).\n\n**Currently implemented tools**:\n\n| Tool | Description |\n|------|-------------|\n| `search_nodes` | Keyword search across nodes (Chinese and English), returns full content |\n| `get_node` | Retrieve a specific node by ID with full content and metadata |\n| `traverse` | Get a node plus its upstream/downstream associations (depth=1 or 2) |\n| `list_by_tag` | List all nodes with a specific tag |\n\n**Environment variables**:\n- `MEMTRACE_API`: API base URL (default `http://localhost:8000/api/v1`)\n- `MEMTRACE_WS`: Workspace ID (default `ws_spec0001`)\n- `MEMTRACE_LANG`: Display language (default `zh-TW`)\n\n**Planned but not yet implemented**:\n- Resources (`memtrace://node/{id}` URI reads)\n- Write tools (`create_node`, `update_node`, `create_edge`)\n- HTTP + SSE transport\n- `traverse_edge` to trigger co-access boost\n\nAgents should call traverse when following an edge, keeping frequently used paths alive against decay."
     }
   },
   "tags": ["mcp", "ai-agent", "integration", "api"],
   "visibility": "public",
   "provenance": {
-    "author": "memtrace-spec",
+    "author": "system",
     "created_at": "2026-04-11T00:00:00Z",
+    "updated_at": "2026-04-11T00:00:00Z",
     "signature": "c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7",
     "source_type": "human"
   },

@@ -10,6 +10,8 @@ class WorkspaceCreate(BaseModel):
     name_en: str
     visibility: str = "private"                          # public | restricted | private
     kb_type: Literal["evergreen", "ephemeral"] = "evergreen"  # immutable after creation
+    archive_window_days: int = 90
+    min_traversals: int = 1
 
 
 class WorkspaceResponse(BaseModel):
@@ -19,6 +21,8 @@ class WorkspaceResponse(BaseModel):
     visibility: str
     kb_type: str
     owner_id: str
+    archive_window_days: int
+    min_traversals: int
     created_at: datetime
     updated_at: datetime
 
@@ -34,6 +38,8 @@ class NodeCreate(BaseModel):
     body_en: str = ""
     tags: list[str] = []
     visibility: str = "private"
+    copied_from_node: Optional[str] = None
+    copied_from_ws: Optional[str] = None
 
 
 class NodeUpdate(BaseModel):
@@ -71,6 +77,10 @@ class NodeResponse(BaseModel):
     dim_author_rep: float
     traversal_count: int
     unique_traverser_count: int
+    status: str
+    archived_at: Optional[datetime]
+    copied_from_node: Optional[str]
+    copied_from_ws: Optional[str]
 
 
 # ── Edge ──────────────────────────────────────────────────────────────────────
@@ -81,6 +91,7 @@ class EdgeCreate(BaseModel):
     relation: str          # depends_on | extends | related_to | contradicts
     weight: float = 1.0
     half_life_days: int = 30
+    pinned: bool = False
 
 
 class EdgeResponse(BaseModel):
@@ -97,6 +108,8 @@ class EdgeResponse(BaseModel):
     traversal_count: int
     rating_avg: Optional[float]
     rating_count: int
+    status: str
+    pinned: bool
 
 
 # ── Traversal / Rating ────────────────────────────────────────────────────────
