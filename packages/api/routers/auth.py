@@ -52,6 +52,13 @@ def register(body: RegisterRequest):
             VALUES (%s, %s, %s, %s, false, %s)
         """, (user_id, body.display_name, body.email, pw_hash, now))
 
+        # Create default workspace
+        ws_id = generate_id("ws")
+        cur.execute("""
+            INSERT INTO workspaces (id, name_zh, name_en, visibility, owner_id)
+            VALUES (%s, '我的知識庫', 'My Knowledge Base', 'private', %s)
+        """, (ws_id, user_id))
+
         # TODO: send verification email
 
     token = create_access_token(user_id, body.email, body.display_name)
@@ -164,7 +171,7 @@ def reset_password(body: ResetPasswordRequest):
 def me(current_user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
         cur.execute(
-            "SELECT id, display_name, email, email_verified, avatar_url FROM users WHERE id = %s",
+            "SELECT id, display_name, email, password_hash, email_verified, avatar_url FROM users WHERE id = %s",
             (current_user["sub"],)
         )
         user = cur.fetchone()
@@ -176,7 +183,7 @@ def me(current_user: dict = Depends(get_current_user)):
             (user["id"],)
         )
         providers = [r["provider"] for r in cur.fetchall()]
-        if user["password_hash"] if "password_hash" in user else False:
+        if user.get("password_hash"):
             providers.append("password")
 
     return UserResponse(

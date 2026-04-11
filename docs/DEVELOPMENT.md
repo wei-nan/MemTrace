@@ -88,7 +88,7 @@ cd ../..
 
 MemTrace uses PostgreSQL 17 with the pgvector extension, managed via Docker Compose.
 
-### 2.1 Start the Database
+### 2.1 Start the Database (Recommended)
 
 ```bash
 docker compose up -d
@@ -99,25 +99,38 @@ On first run, Docker will:
 2. Create the database with the credentials from `.env`.
 3. Auto-execute `schema/sql/001_init.sql` to create all tables, enums, indexes, and SQL functions.
 
-### 2.2 Verify the Database is Ready
+### 2.2 Manual Schema Initialization
+
+If the database was already created or you need to re-run the initialization:
+
+```bash
+# Using Docker
+docker exec -i memtrace-db psql -U memtrace -d memtrace < schema/sql/001_init.sql
+
+# Using local psql (if installed)
+psql -h localhost -U memtrace -d memtrace -f schema/sql/001_init.sql
+```
+
+### 2.3 SQLite Fallback (Alternative)
+
+If you cannot run Docker or PostgreSQL, you can use SQLite for local development with limited functionality:
+
+1. **Update `.env`**:
+   ```dotenv
+   DATABASE_URL=sqlite:///./memtrace.db
+   ```
+2. **Limitations**:
+   - No vector embedding search (pgvector is not available in standard SQLite).
+   - Some SQL functions (decay, traversing) may need to be implemented in the application layer or using a different SQL dialect.
+   - **Note**: The current API is optimized for PostgreSQL. Switching to SQLite may require updates to `packages/api/core/database.py`.
+
+### 2.4 Verify the Database is Ready
 
 ```bash
 docker compose ps          # status should be "healthy"
 docker compose logs db     # inspect startup logs
 ```
 
-### 2.3 Connect Manually (optional)
-
-```bash
-docker exec -it memtrace-db psql -U memtrace -d memtrace
-```
-
-### 2.4 Reset the Database
-
-```bash
-docker compose down -v     # stops containers and wipes the data volume
-docker compose up -d       # re-creates fresh with the SQL schema
-```
 
 ---
 
@@ -202,7 +215,12 @@ Open four terminal tabs:
 memtrace/
 ├── docs/
 │   ├── SPEC.md              Full product specification
-│   └── DEVELOPMENT.md       This file
+│   ├── DEVELOPMENT.md       This file
+│   └── TEMPLATE_KB.md       Reference for template knowledge base
+│
+├── examples/
+│   ├── sample-collection/   Example Memory Node JSON files
+│   └── spec-as-kb/          The canonical Spec-as-KB (see TEMPLATE_KB.md)
 │
 ├── schema/
 │   ├── node.v1.json         Memory Node JSON Schema (AJV-validated)
@@ -237,9 +255,6 @@ memtrace/
 │   │       └── index.ts     Commander.js entrypoint
 │   │
 │   └── ingest/              Document + AI extraction pipeline (to be implemented)
-│
-├── examples/
-│   └── sample-collection/   Example Memory Node JSON files
 │
 ├── docker-compose.yml
 ├── .env.example
