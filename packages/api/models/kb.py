@@ -63,6 +63,10 @@ class NodeResponse(BaseModel):
     signature: str
     source_type: str
     trust_score: float
+    dim_accuracy: float
+    dim_freshness: float
+    dim_utility: float
+    dim_author_rep: float
     traversal_count: int
     unique_traverser_count: int
 

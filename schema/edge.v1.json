@@ -7,11 +7,11 @@
       "type": "string",
       "description": "Unique identifier for the edge. E.g. edge_xyz789"
     },
-    "from": {
+    "from_id": {
       "type": "string",
       "description": "Source memory node ID"
     },
-    "to": {
+    "to_id": {
       "type": "string",
       "description": "Target memory node ID"
     },
@@ -73,8 +73,8 @@
   },
   "required": [
     "id",
-    "from",
-    "to",
+    "from_id",
+    "to_id",
     "relation",
     "weight",
     "co_access_count",

@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
+import { 
+  X, Edit3, Save, Trash2, Link as LinkIcon, 
+  ChevronRight, Calendar, User, Shield, Type 
+} from 'lucide-react';
 import { nodes, edges as edgesApi, type Node, type Edge } from './api';
 
 interface Props {
@@ -15,43 +20,53 @@ const VISIBILITIES  = ['private', 'team', 'public'];
 const RELATIONS     = ['depends_on', 'extends', 'related_to', 'contradicts'];
 
 export default function NodeEditor({ wsId, node, onSaved, onClose }: Props) {
-  const isEdit = !!node;
+  const { i18n } = useTranslation();
+  const isCreate = node === null;
+  const [isEditing, setIsEditing] = useState(isCreate);
 
   const [titleZh, setTitleZh]       = useState(node?.title_zh ?? '');
   const [titleEn, setTitleEn]       = useState(node?.title_en ?? '');
   const [contentType, setContentType] = useState(node?.content_type ?? 'factual');
   const [format, setFormat]         = useState<'plain' | 'markdown'>(
-    (node?.content_format as 'plain' | 'markdown') ?? 'plain'
+    (node?.content_format as 'plain' | 'markdown') ?? 'markdown'
   );
   const [bodyZh, setBodyZh]         = useState(node?.body_zh ?? '');
   const [bodyEn, setBodyEn]         = useState(node?.body_en ?? '');
   const [tags, setTags]             = useState((node?.tags ?? []).join(', '));
   const [visibility, setVisibility] = useState(node?.visibility ?? 'private');
-  const [lang, setLang]             = useState<'zh' | 'en'>('en');
+  const [displayLang, setDisplayLang] = useState<'zh' | 'en'>(i18n.language === 'zh-TW' ? 'zh' : 'en');
 
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
 
-  // ── Edge creation sub-panel ──────────────────────────────────────────────
-  const [showEdgePanel, setShowEdgePanel] = useState(false);
+  // ── Edges ────────────────────────────────────────────────────────────────
   const [nodeEdges, setNodeEdges]         = useState<Edge[]>([]);
   const [edgeTarget, setEdgeTarget]       = useState('');
   const [edgeRelation, setEdgeRelation]   = useState('related_to');
-  const [edgeWeight, setEdgeWeight]       = useState(1.0);
-  const [edgeHalfLife, setEdgeHalfLife]   = useState(30);
   const [edgeSaving, setEdgeSaving]       = useState(false);
-  const [edgeError, setEdgeError]         = useState('');
 
   useEffect(() => {
-    if (isEdit && node) {
+    if (node) {
       edgesApi.list(wsId, node.id).then(setNodeEdges).catch(() => {});
+      nodes.traverse(node.id).catch(() => {});
+      setIsEditing(false);
+      // Update form fields when node changes
+      setTitleZh(node.title_zh);
+      setTitleEn(node.title_en);
+      setContentType(node.content_type);
+      setFormat(node.content_format as any);
+      setBodyZh(node.body_zh);
+      setBodyEn(node.body_en);
+      setTags(node.tags.join(', '));
+      setVisibility(node.visibility);
+    } else {
+      setIsEditing(true);
+      setTitleZh(''); setTitleEn(''); setBodyZh(''); setBodyEn(''); setTags('');
     }
-  }, [isEdit, node, wsId]);
+  }, [node, wsId]);
 
-  // ── Save node ─────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!titleZh.trim() || !titleEn.trim()) { setError('Both titles are required.'); return; }
-    if (!bodyZh.trim() && !bodyEn.trim())   { setError('At least one body field must be non-empty.'); return; }
     setSaving(true); setError('');
     try {
       const payload = {
@@ -61,11 +76,11 @@ export default function NodeEditor({ wsId, node, onSaved, onClose }: Props) {
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
         visibility,
       };
-      const saved = isEdit
-        ? await nodes.update(wsId, node!.id, payload)
+      const saved = node
+        ? await nodes.update(wsId, node.id, payload)
         : await nodes.create(wsId, payload);
       onSaved(saved);
-      setShowEdgePanel(true);
+      setIsEditing(false);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -73,192 +88,158 @@ export default function NodeEditor({ wsId, node, onSaved, onClose }: Props) {
     }
   };
 
-  // ── Save edge ──────────────────────────────────────────────────────────────
+  const handleDelete = async () => {
+    if (!node || !window.confirm(`Delete "${node.title_en}"?`)) return;
+    await nodes.delete(wsId, node.id);
+    onClose();
+  };
+
   const handleAddEdge = async () => {
     if (!edgeTarget.trim() || !node) return;
-    setEdgeSaving(true); setEdgeError('');
+    setEdgeSaving(true);
     try {
       const created = await edgesApi.create(wsId, {
         from_id: node.id, to_id: edgeTarget.trim(),
-        relation: edgeRelation, weight: edgeWeight, half_life_days: edgeHalfLife,
+        relation: edgeRelation, weight: 1.0, half_life_days: 30,
       });
       setNodeEdges(prev => [...prev, created]);
       setEdgeTarget('');
     } catch (e: any) {
-      setEdgeError(e.message);
+      alert(e.message);
     } finally {
       setEdgeSaving(false);
     }
   };
 
-  // ── Delete node ───────────────────────────────────────────────────────────
-  const handleDelete = async () => {
-    if (!node) return;
-    const edgeCount = nodeEdges.length;
-    const msg = `Delete "${node.title_en}"?` +
-      (edgeCount > 0 ? `\nThis will also remove ${edgeCount} edge(s).` : '');
-    if (!window.confirm(msg)) return;
-    await nodes.delete(wsId, node.id);
-    onClose();
-  };
-
-  const body    = lang === 'zh' ? bodyZh : bodyEn;
-  const setBody = lang === 'zh' ? setBodyZh : setBodyEn;
+  const currentTitle = displayLang === 'zh' ? titleZh : titleEn;
+  const currentBody = displayLang === 'zh' ? bodyZh : bodyEn;
 
   return (
-    <div className="node-editor glass-panel" style={{ padding: 24, minWidth: 520, maxWidth: 720 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h3 style={{ margin: 0 }}>{isEdit ? 'Edit Memory Node' : 'New Memory Node'}</h3>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>✕</button>
-      </div>
-
-      {/* Titles */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-        <label>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Title (zh-TW) *</span>
-          <input className="mt-input" value={titleZh} onChange={e => setTitleZh(e.target.value)} />
-        </label>
-        <label>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Title (en) *</span>
-          <input className="mt-input" value={titleEn} onChange={e => setTitleEn(e.target.value)} />
-        </label>
-      </div>
-
-      {/* Type / Format / Visibility row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-        <label>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Content Type *</span>
-          <select className="mt-input" value={contentType} onChange={e => setContentType(e.target.value)}>
-            {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
-        </label>
-        <label>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Format</span>
-          <select className="mt-input" value={format} onChange={e => setFormat(e.target.value as any)}>
-            <option value="plain">plain</option>
-            <option value="markdown">markdown</option>
-          </select>
-        </label>
-        <label>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Visibility</span>
-          <select className="mt-input" value={visibility} onChange={e => setVisibility(e.target.value)}>
-            {VISIBILITIES.map(v => <option key={v}>{v}</option>)}
-          </select>
-        </label>
-      </div>
-
-      {/* Language tab */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        {(['en', 'zh'] as const).map(l => (
-          <button key={l} className={`tag ${lang === l ? 'tag-active' : ''}`}
-            onClick={() => setLang(l)} style={{ cursor: 'pointer' }}>
-            {l === 'en' ? 'English' : '中文'}
-          </button>
-        ))}
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', alignSelf: 'center' }}>
-          (at least one required)
-        </span>
-      </div>
-
-      {/* Body editor */}
-      {format === 'markdown' ? (
-        <div style={{ marginBottom: 12 }}>
-          <MDEditor value={body} onChange={v => setBody(v ?? '')} height={200} />
-        </div>
-      ) : (
-        <textarea
-          className="mt-input"
-          rows={6}
-          value={body}
-          onChange={e => setBody(e.target.value)}
-          style={{ width: '100%', marginBottom: 12, fontFamily: 'monospace', resize: 'vertical' }}
-        />
-      )}
-
-      {/* Tags */}
-      <label style={{ display: 'block', marginBottom: 16 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tags (comma-separated)</span>
-        <input className="mt-input" value={tags} onChange={e => setTags(e.target.value)}
-          placeholder="e.g. graph, decay, core" />
-      </label>
-
-      {error && <p style={{ color: 'var(--error-color, #f87)', fontSize: 13, marginBottom: 8 }}>{error}</p>}
-
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
-        <div>
-          {isEdit && (
-            <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
-          )}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--panel-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="brand-icon" style={{ width: 28, height: 28 }}><Type size={14} /></div>
+          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
+            {isCreate ? 'New Memory' : isEditing ? 'Edit Memory' : 'Memory Details'}
+          </h3>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Node'}
+          {!isCreate && !isEditing && (
+            <button className="nav-item" style={{ padding: 6, margin: 0 }} onClick={() => setIsEditing(true)}>
+              <Edit3 size={18} />
+            </button>
+          )}
+          <button className="nav-item" style={{ padding: 6, margin: 0 }} onClick={onClose}>
+            <X size={20} />
           </button>
         </div>
       </div>
 
-      {/* ── Associations ───────────────────────────────────────────── */}
-      {showEdgePanel && node && (
-        <div style={{ marginTop: 24, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
-          <h4 style={{ margin: '0 0 12px' }}>Associations</h4>
-
-          {nodeEdges.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              {nodeEdges.map(e => (
-                <div key={e.id} className="tag" style={{ display: 'inline-flex', gap: 6, marginRight: 8, marginBottom: 4 }}>
-                  <span style={{ color: 'var(--accent-color)' }}>{e.relation}</span>
-                  <span>→ {e.to_id}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>w:{e.weight.toFixed(2)}</span>
-                </div>
-              ))}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        {isEditing ? (
+          <div className="animate-fade-in">
+            <div className="form-group">
+              <label className="form-label">Title (English / 中文)</label>
+              <div style={{ display: 'grid', gap: 8 }}>
+                <input className="mt-input" placeholder="English Title" value={titleEn} onChange={e => setTitleEn(e.target.value)} />
+                <input className="mt-input" placeholder="中文名稱" value={titleZh} onChange={e => setTitleZh(e.target.value)} />
+              </div>
             </div>
-          )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 0.5fr 0.5fr auto', gap: 8, alignItems: 'end' }}>
-            <label>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Target Node ID</span>
-              <input className="mt-input" value={edgeTarget} onChange={e => setEdgeTarget(e.target.value)}
-                placeholder="mem_xxxxxxxx" />
-            </label>
-            <label>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Relation</span>
-              <select className="mt-input" value={edgeRelation} onChange={e => setEdgeRelation(e.target.value)}>
-                {RELATIONS.map(r => <option key={r}>{r}</option>)}
-              </select>
-            </label>
-            <label>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Weight</span>
-              <input className="mt-input" type="number" min="0.1" max="1" step="0.1"
-                value={edgeWeight} onChange={e => setEdgeWeight(parseFloat(e.target.value))} />
-            </label>
-            <label>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Half-life</span>
-              <input className="mt-input" type="number" min="1"
-                value={edgeHalfLife} onChange={e => setEdgeHalfLife(parseInt(e.target.value, 10))} />
-            </label>
-            <button className="btn btn-primary" onClick={handleAddEdge} disabled={edgeSaving || !edgeTarget.trim()}>
-              + Link
-            </button>
+            <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label className="form-label">Type</label>
+                <select className="mt-input" value={contentType} onChange={e => setContentType(e.target.value)}>
+                  {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Visibility</label>
+                <select className="mt-input" value={visibility} onChange={e => setVisibility(e.target.value)}>
+                  {VISIBILITIES.map(v => <option key={v}>{v}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label className="form-label" style={{ margin: 0 }}>Content</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className={`tag ${displayLang === 'en' ? 'tag-active' : ''}`} onClick={() => setDisplayLang('en')}>EN</button>
+                  <button className={`tag ${displayLang === 'zh' ? 'tag-active' : ''}`} onClick={() => setDisplayLang('zh')}>中文</button>
+                </div>
+              </div>
+              <div data-color-mode="dark">
+                <MDEditor value={displayLang === 'zh' ? bodyZh : bodyEn} onChange={v => displayLang === 'zh' ? setBodyZh(v ?? '') : setBodyEn(v ?? '')} height={300} preview="edit" />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Tags</label>
+              <input className="mt-input" value={tags} onChange={e => setTags(e.target.value)} placeholder="comma separated..." />
+            </div>
+
+            {error && <p style={{ color: 'var(--error-color)', fontSize: 13, marginBottom: 16 }}>{error}</p>}
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
+              <button className="btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving}>
+                <Save size={18} /> {saving ? 'Saving...' : 'Save Memory'}
+              </button>
+              {!isCreate && (
+                <button className="btn-danger" onClick={handleDelete}>
+                  <Trash2 size={18} />
+                </button>
+              )}
+            </div>
           </div>
-          {edgeError && <p style={{ color: 'var(--error-color, #f87)', fontSize: 12, marginTop: 4 }}>{edgeError}</p>}
+        ) : (
+          <div className="animate-fade-in">
+            <div style={{ marginBottom: 24 }}>
+              <h1 style={{ fontSize: '1.75rem', marginBottom: 8 }}>{currentTitle}</h1>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                <span className="tag" style={{ background: 'var(--bg-secondary)' }}><Shield size={12} /> {contentType}</span>
+                <span className="tag" style={{ background: 'var(--bg-secondary)' }}><Calendar size={12} /> {node?.created_at?.split('T')[0]}</span>
+                <span className="tag" title={`accuracy ${(node?.dim_accuracy ?? 0).toFixed(2)} · freshness ${(node?.dim_freshness ?? 0).toFixed(2)} · utility ${(node?.dim_utility ?? 0).toFixed(2)} · author_rep ${(node?.dim_author_rep ?? 0).toFixed(2)}`} style={{ background: 'var(--bg-secondary)', cursor: 'default' }}>
+                  <User size={12} /> trust {(node?.trust_score ?? 0).toFixed(2)}
+                </span>
+                {node?.tags.map(t => <span key={t} className="tag">#{t}</span>)}
+              </div>
+            </div>
 
-          <button className="btn btn-secondary" onClick={onClose} style={{ marginTop: 12 }}>
-            Done
-          </button>
-        </div>
-      )}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              <button className={`tag ${displayLang === 'en' ? 'tag-active' : ''}`} onClick={() => setDisplayLang('en')}>English</button>
+              <button className={`tag ${displayLang === 'zh' ? 'tag-active' : ''}`} onClick={() => setDisplayLang('zh')}>中文內容</button>
+            </div>
 
-      {/* Markdown preview (read mode) */}
-      {format === 'markdown' && body && !showEdgePanel && (
-        <details style={{ marginTop: 12 }}>
-          <summary style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer' }}>Preview</summary>
-          <div className="markdown-body" style={{ marginTop: 8, padding: 12, background: 'var(--bg-secondary)' }}>
-            <ReactMarkdown>{body}</ReactMarkdown>
+            <div className="markdown-body" style={{ background: 'var(--panel-bg)', padding: 20, borderRadius: 12, border: '1px solid var(--panel-border)', lineHeight: 1.6 }}>
+              <ReactMarkdown>{currentBody || '*No content available in this language.*'}</ReactMarkdown>
+            </div>
+
+            <div style={{ marginTop: 32 }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: 'var(--text-muted)' }}>
+                <LinkIcon size={16} /> Associations
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {nodeEdges.map(e => (
+                  <div key={e.id} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--panel-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ fontSize: 11, background: 'var(--accent-color)', color: 'white', padding: '2px 6px', borderRadius: 4 }}>{e.relation}</span>
+                      <span style={{ fontSize: 13 }}>{e.to_id}</span>
+                    </div>
+                    <ChevronRight size={14} style={{ opacity: 0.3 }} />
+                  </div>
+                ))}
+              </div>
+              
+              <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+                <input className="mt-input" style={{ flex: 1, margin: 0 }} placeholder="Target ID" value={edgeTarget} onChange={e => setEdgeTarget(e.target.value)} />
+                <button className="btn-secondary" style={{ padding: '0 12px' }} onClick={handleAddEdge} disabled={edgeSaving || !edgeTarget}>Link</button>
+              </div>
+            </div>
           </div>
-        </details>
-      )}
+        )}
+      </div>
     </div>
   );
 }

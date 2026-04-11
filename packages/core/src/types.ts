@@ -88,8 +88,8 @@ export interface EdgeTraversal {
 
 export interface Edge {
   id: string;
-  from: string;            // Memory Node ID
-  to: string;              // Memory Node ID
+  from_id: string;         // Memory Node ID
+  to_id: string;           // Memory Node ID
   relation: RelationType;
   weight: number;          // 0–1
   co_access_count: number;

@@ -27,7 +27,7 @@ interface Props {
 }
 
 export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [rfNodes, setRfNodes] = useState<Node[]>([]);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
@@ -53,7 +53,7 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
         type: 'memoryNode',
         position: { x: (i % cols) * 240, y: Math.floor(i / cols) * 160 },
         data: {
-          title: n.title_en || n.title_zh,
+          title: i18n.language === 'zh-TW' ? n.title_zh : n.title_en,
           type: n.content_type,
           tags: n.tags,
         },

@@ -78,6 +78,7 @@ export interface Node {
   id: string; workspace_id: string; title_zh: string; title_en: string;
   content_type: string; content_format: string; body_zh: string; body_en: string;
   tags: string[]; visibility: string; author: string; trust_score: number;
+  dim_accuracy: number; dim_freshness: number; dim_utility: number; dim_author_rep: number;
   traversal_count: number; unique_traverser_count: number;
   created_at: string; updated_at?: string; signature: string; source_type: string;
 }
