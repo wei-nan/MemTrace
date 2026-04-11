@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Literal, Optional
 from datetime import datetime
 
 
@@ -8,7 +8,8 @@ from datetime import datetime
 class WorkspaceCreate(BaseModel):
     name_zh: str
     name_en: str
-    visibility: str = "private"   # public | restricted | private
+    visibility: str = "private"                          # public | restricted | private
+    kb_type: Literal["evergreen", "ephemeral"] = "evergreen"  # immutable after creation
 
 
 class WorkspaceResponse(BaseModel):
@@ -16,6 +17,7 @@ class WorkspaceResponse(BaseModel):
     name_zh: str
     name_en: str
     visibility: str
+    kb_type: str
     owner_id: str
     created_at: datetime
     updated_at: datetime

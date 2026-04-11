@@ -80,10 +80,10 @@ def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_use
     ws_id = generate_id("ws")
     with db_cursor(commit=True) as cur:
         cur.execute("""
-            INSERT INTO workspaces (id, name_zh, name_en, visibility, owner_id)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO workspaces (id, name_zh, name_en, visibility, kb_type, owner_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING *
-        """, (ws_id, body.name_zh, body.name_en, body.visibility, user["sub"]))
+        """, (ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, user["sub"]))
         return cur.fetchone()
 
 
@@ -100,6 +100,7 @@ def get_workspace(ws_id: str, user: dict = Depends(get_current_user_optional)):
 @router.get("/workspaces/{ws_id}/nodes", response_model=list[NodeResponse])
 def list_nodes(
     ws_id: str,
+    q: Optional[str] = Query(None, description="Full-text keyword search across titles and body"),
     tag: Optional[str] = Query(None),
     content_type: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
@@ -110,6 +111,12 @@ def list_nodes(
         _require_ws_access(cur, ws_id, user)
         filters = ["workspace_id = %s"]
         params: list = [ws_id]
+        if q:
+            filters.append(
+                "(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)"
+            )
+            like = f"%{q}%"
+            params += [like, like, like, like]
         if tag:
             filters.append("%s = ANY(tags)")
             params.append(tag)

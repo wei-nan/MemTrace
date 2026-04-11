@@ -75,12 +75,18 @@ def upsert_workspace(cur):
     print(f"  workspace: {SPEC_WS_ID}")
 
 
+DEFAULT_TRUST = {"score": 0.8, "dimensions": {"accuracy": 0.8, "freshness": 1.0, "utility": 0.8, "author_rep": 0.8}, "votes": {"up": 0, "down": 0, "verifications": 0}}
+DEFAULT_TRAVERSAL = {"count": 0, "unique_traversers": 0}
+
 def upsert_nodes(cur, nodes: list[dict]):
     inserted = 0
     for n in nodes:
-        p = n["provenance"]
-        c = n["content"]
-        t = n["trust"]
+        p   = n["provenance"]
+        c   = n["content"]
+        t   = n.get("trust", DEFAULT_TRUST)
+        tr  = n.get("traversal", DEFAULT_TRAVERSAL)
+        dim = t.get("dimensions", DEFAULT_TRUST["dimensions"])
+        votes = t.get("votes", DEFAULT_TRUST["votes"])
         cur.execute("""
             INSERT INTO memory_nodes (
                 id, schema_version, workspace_id,
@@ -105,17 +111,18 @@ def upsert_nodes(cur, nodes: list[dict]):
             )
             ON CONFLICT (id) DO NOTHING
         """, (
-            n["id"], n["schema_version"], SPEC_WS_ID,
+            n["id"], n.get("schema_version", "1.0"), SPEC_WS_ID,
             n["title"]["zh-TW"], n["title"]["en"],
-            c["type"], c["format"],
+            c["type"], c.get("format", "plain"),
             c["body"]["zh-TW"], c["body"]["en"],
-            n["tags"], n["visibility"],
-            p["author"], p["created_at"], p["signature"], p["source_type"],
-            t["score"],
-            t["dimensions"]["accuracy"], t["dimensions"]["freshness"],
-            t["dimensions"]["utility"],  t["dimensions"]["author_rep"],
-            t["votes"]["up"], t["votes"]["down"], t["votes"]["verifications"],
-            n["traversal"]["count"], n["traversal"]["unique_traversers"],
+            n.get("tags", []), n.get("visibility", "public"),
+            p["author"], p.get("created_at", now_iso()),
+            p.get("signature", ""), p.get("source_type", "human"),
+            t.get("score", 0.8),
+            dim.get("accuracy", 0.8), dim.get("freshness", 1.0),
+            dim.get("utility", 0.8),  dim.get("author_rep", 0.8),
+            votes.get("up", 0), votes.get("down", 0), votes.get("verifications", 0),
+            tr.get("count", 0), tr.get("unique_traversers", 0),
         ))
         inserted += 1
     print(f"  nodes:     {inserted} inserted (duplicates skipped)")
@@ -155,22 +162,22 @@ def upsert_edges(cur, edges: list[dict]):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    print(f"\n▶  Connecting to database...")
+    print(f"\n>>  Connecting to database...")
     conn = psycopg2.connect(DATABASE_URL)
     conn.autocommit = False
 
     try:
         with conn.cursor() as cur:
-            print(f"▶  Seeding spec-as-kb into workspace {SPEC_WS_ID}...\n")
+            print(f">>  Seeding spec-as-kb into workspace {SPEC_WS_ID}...\n")
             upsert_system_user(cur)
             upsert_workspace(cur)
             upsert_nodes(cur, load_nodes())
             upsert_edges(cur, load_edges())
         conn.commit()
-        print(f"\n✓  Seed complete.")
+        print(f"\nOK  Seed complete.")
     except Exception as e:
         conn.rollback()
-        print(f"\n✗  Seed failed: {e}")
+        print(f"\nFAIL  Seed failed: {e}")
         raise
     finally:
         conn.close()

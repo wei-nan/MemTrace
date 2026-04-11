@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.database import db_cursor
 from routers.auth import router as auth_router
 from routers.kb   import router as kb_router
+from routers.ai   import router as ai_router
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(kb_router)
+app.include_router(ai_router)
 
 
 @app.get("/")

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "memtrace-kb": {
+      "command": "node",
+      "args": ["packages/mcp/dist/index.js"],
+      "env": {
+        "MEMTRACE_API": "http://localhost:8000/api/v1",
+        "MEMTRACE_WS": "ws_spec0001",
+        "MEMTRACE_LANG": "zh-TW"
+      }
+    }
+  }
+}

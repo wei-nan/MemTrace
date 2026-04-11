@@ -32,7 +32,7 @@ export const auth = {
 // ── Workspaces ────────────────────────────────────────────────────────────────
 export const workspaces = {
   list: () => request<Workspace[]>("GET", `${BASE}/workspaces`),
-  create: (data: { name_zh: string; name_en: string; visibility: string }) =>
+  create: (data: { name_zh: string; name_en: string; visibility: string; kb_type: 'evergreen' | 'ephemeral' }) =>
     request<Workspace>("POST", `${BASE}/workspaces`, data),
   get: (id: string) => request<Workspace>("GET", `${BASE}/workspaces/${id}`),
 };
@@ -69,9 +69,28 @@ export const edges = {
     request("POST", `${BASE}/edges/${edgeId}/rate`, { rating, note }),
 };
 
+// ── AI Keys & Credits ─────────────────────────────────────────────────────────
+export const ai = {
+  listKeys: () => request<AIKey[]>("GET", `${BASE}/ai/keys`),
+  createKey: (data: { provider: string; api_key: string }) =>
+    request<AIKey>("POST", `${BASE}/ai/keys`, data),
+  deleteKey: (provider: string) =>
+    request("DELETE", `${BASE}/ai/keys/${provider}`),
+  getCredits: () => request<CreditStatus>("GET", `${BASE}/ai/credits`),
+};
+
 // ── Types ─────────────────────────────────────────────────────────────────────
+export interface AIKey {
+  id: string; provider: string; key_hint: string;
+  created_at: string; last_used_at: string | null;
+}
+export interface CreditStatus {
+  free_limit: number; free_used: number; free_remaining: number;
+  has_own_key: { openai: boolean; anthropic: boolean };
+}
 export interface Workspace {
   id: string; name_zh: string; name_en: string; visibility: string;
+  kb_type: 'evergreen' | 'ephemeral';
   owner_id: string; created_at: string; updated_at: string;
 }
 export interface Node {

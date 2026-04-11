@@ -82,12 +82,15 @@ CREATE TABLE api_keys (
 
 -- ─── KNOWLEDGE BASES (WORKSPACES) ─────────────────────────────────
 
+CREATE TYPE kb_type AS ENUM ('evergreen', 'ephemeral');
+
 CREATE TABLE workspaces (
   id            TEXT PRIMARY KEY,                -- ws_<hex8>
   schema_version TEXT NOT NULL DEFAULT '1.0',
   name_zh       TEXT NOT NULL,
   name_en       TEXT NOT NULL,
   visibility    kb_visibility NOT NULL DEFAULT 'private',
+  kb_type       kb_type NOT NULL DEFAULT 'evergreen',  -- immutable after creation
   owner_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
