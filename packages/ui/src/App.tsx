@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Network, PlusCircle, Search, Settings,
-  BrainCircuit, Globe, Layers, LogOut, ChevronDown,
+  Globe, Layers, LogOut, ChevronDown,
   ChevronLeft, ChevronRight, X, Key, Coins, Trash2,
+  Inbox, Users, Mail, Moon, Sun
 } from 'lucide-react';
 import './index.css';
 import AuthPage from './AuthPage';
@@ -14,7 +15,6 @@ import ReviewQueue from './ReviewQueue';
 import IngestButton from './IngestButton';
 import OnboardingWizard from './OnboardingWizard';
 import WorkspaceSettings from './WorkspaceSettings';
-import { Inbox, Users, Mail } from 'lucide-react';
 import { auth, workspaces, ai, type Workspace, type Node as ApiNode, type AIKey, type CreditStatus, type Onboarding } from './api';
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean };
@@ -339,7 +339,21 @@ function SettingsPanel() {
 // ── App ────────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
+
+  // ── Theme Management ───────────────────────────────────────────────────
+  const [theme, setTheme] = useState(() => localStorage.getItem('mt_theme') || 'dark');
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('mt_theme', next);
+      return next;
+    });
+  };
 
   // ── Language ──────────────────────────────────────────────────────────────
   const switchLanguage = () => {
@@ -478,7 +492,9 @@ export default function App() {
 
         <div className="brand" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="brand-icon"><BrainCircuit size={20} /></div>
+            <div className="brand-icon">
+              <img src="/favicon.svg" alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
             {!sidebarCollapsed && <div className="brand-text">MemTrace</div>}
           </div>
         </div>
@@ -488,10 +504,11 @@ export default function App() {
           <div ref={wsMenuRef} style={{ position: 'relative', padding: '0 0 12px' }}>
             <button
               onClick={() => setWsMenuOpen(o => !o)}
+              className="search-bar"
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px 12px', background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)', borderRadius: 8, cursor: 'pointer',
+                padding: '8px 12px', background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-default)', borderRadius: 8, cursor: 'pointer',
                 color: 'var(--text-primary)', fontSize: 13,
               }}
             >
@@ -503,8 +520,8 @@ export default function App() {
             {wsMenuOpen && (
               <div style={{
                 position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-                background: '#1a1d24', border: '1px solid var(--border-color)',
-                borderRadius: 8, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+                borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-lg)',
               }}>
                 {wsList.map(ws => (
                   <div
@@ -512,8 +529,9 @@ export default function App() {
                     onClick={() => { setSelectedWs(ws); setWsMenuOpen(false); }}
                     style={{
                       padding: '9px 14px', cursor: 'pointer', fontSize: 13,
-                      background: selectedWs?.id === ws.id ? 'var(--accent-color)' : 'transparent',
-                      color: selectedWs?.id === ws.id ? '#fff' : 'var(--text-primary)',
+                      background: selectedWs?.id === ws.id ? 'var(--color-primary-subtle)' : 'transparent',
+                      color: selectedWs?.id === ws.id ? 'var(--color-primary)' : 'var(--text-primary)',
+                      transition: 'all 0.15s'
                     }}
                   >
                     {zh ? ws.name_zh : ws.name_en}
@@ -525,8 +543,8 @@ export default function App() {
                   onClick={() => { setWsMenuOpen(false); setShowCreateWs(true); }}
                   style={{
                     padding: '9px 14px', cursor: 'pointer', fontSize: 13,
-                    borderTop: '1px solid var(--border-color)',
-                    color: 'var(--accent-color)',
+                    borderTop: '1px solid var(--border-default)',
+                    color: 'var(--color-primary)',
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}
                 >
@@ -541,19 +559,19 @@ export default function App() {
         <nav style={{ flex: 1 }}>
           <div className={`nav-item ${currentView === 'graph' ? 'active' : ''}`} onClick={() => setCurrentView('graph')}>
             <Network size={18} />
-            {!sidebarCollapsed && <span className="nav-text">2D {t('sidebar.graph')}</span>}
+            {!sidebarCollapsed && <span className="nav-text">2D {zh ? '圖譜' : 'Graph'}</span>}
           </div>
           <div className={`nav-item ${currentView === 'graph3d' ? 'active' : ''}`} onClick={() => setCurrentView('graph3d')}>
             <Layers size={18} />
-            {!sidebarCollapsed && <span className="nav-text">3D {t('sidebar.graph')}</span>}
+            {!sidebarCollapsed && <span className="nav-text">3D {zh ? '圖譜' : 'Graph'}</span>}
           </div>
           <div className="nav-item">
             <Search size={18} />
-            {!sidebarCollapsed && <span className="nav-text">{t('sidebar.explore')}</span>}
+            {!sidebarCollapsed && <span className="nav-text">{zh ? '語言探索' : 'Explore'}</span>}
           </div>
 
           {!sidebarCollapsed && selectedWs && currentView !== 'settings' && (
-            <div className="nav-item" style={{ marginTop: 8, color: 'var(--accent-color)' }} onClick={() => setEditingNode(null)}>
+            <div className="nav-item" style={{ marginTop: 8, color: 'var(--color-primary)' }} onClick={() => setEditingNode(null)}>
               <PlusCircle size={18} />
               <span className="nav-text">{zh ? '新增節點' : 'New Node'}</span>
             </div>
@@ -598,24 +616,29 @@ export default function App() {
             </div>
           )}
 
+          <div className="nav-item" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {!sidebarCollapsed && <span className="nav-text">{zh ? (theme === 'dark' ? '切換至亮色模式' : '切換至暗色模式') : (theme === 'dark' ? 'Switch to Light' : 'Switch to Dark')}</span>}
+          </div>
+
           <div className="nav-item" onClick={switchLanguage}>
             <Globe size={18} />
             {!sidebarCollapsed && <span className="nav-text">{zh ? 'Switch to English' : '切換至中文'}</span>}
           </div>
 
           {!sidebarCollapsed && user && (
-            <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--panel-border)' }}>
+            <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border-default)' }}>
               {user.display_name}
             </div>
           )}
 
           <div className={`nav-item ${currentView === 'settings' ? 'active' : ''}`} onClick={() => setCurrentView('settings')}>
             <Settings size={18} />
-            {!sidebarCollapsed && <span className="nav-text">{t('sidebar.settings')}</span>}
+            {!sidebarCollapsed && <span className="nav-text">{zh ? '系統設定' : 'Settings'}</span>}
           </div>
           <div className="nav-item" onClick={handleLogout}>
             <LogOut size={18} />
-            {!sidebarCollapsed && <span className="nav-text">{zh ? '登出' : 'Sign Out'}</span>}
+            {!sidebarCollapsed && <span className="nav-text">{zh ? '登出' : 'Logout'}</span>}
           </div>
         </div>
       </aside>

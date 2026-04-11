@@ -40,11 +40,12 @@ export default function AuthPage({ onAuthenticated }: Props) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      minHeight: '100vh', background: 'var(--bg-main)',
+      minHeight: '100vh', background: 'var(--bg-base)',
     }}>
       <div className="glass-panel" style={{ padding: 40, minWidth: 380, maxWidth: 440 }}>
         {/* Logo / Title */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <img src="/logo.svg" alt="MemTrace Logo" style={{ width: 120, height: 'auto', marginBottom: 16 }} />
           <h1 style={{ fontSize: 28, marginBottom: 4 }}>MemTrace</h1>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
             Knowledge through connection
@@ -57,9 +58,10 @@ export default function AuthPage({ onAuthenticated }: Props) {
             <button key={m} onClick={() => { setMode(m); setError(''); }}
               style={{
                 flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
-                background: mode === m ? 'var(--accent-color)' : 'transparent',
-                color: mode === m ? '#fff' : 'var(--text-muted)',
+                background: mode === m ? 'var(--color-primary)' : 'transparent',
+                color: mode === m ? 'var(--text-on-primary)' : 'var(--text-secondary)',
                 fontWeight: mode === m ? 600 : 400, fontSize: 14,
+                transition: 'all 0.2s'
               }}>
               {m === 'login' ? 'Sign In' : 'Create Account'}
             </button>
@@ -126,8 +128,8 @@ export default function AuthPage({ onAuthenticated }: Props) {
 
         {mode === 'login' && (
           <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13 }}>
-            <a href="#" onClick={e => { e.preventDefault(); /* TODO: forgot password flow */ }}
-              style={{ color: 'var(--accent-color)' }}>
+            <a href="#" onClick={e => { e.preventDefault(); }}
+              style={{ color: 'var(--color-primary)' }}>
               Forgot password?
             </a>
           </p>

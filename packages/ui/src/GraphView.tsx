@@ -13,10 +13,10 @@ import { nodes as nodesApi, edges as edgesApi, type Node as ApiNode } from './ap
 const nodeTypes = { memoryNode: MemoryNode };
 
 const RELATION_COLORS: Record<string, string> = {
-  depends_on:  'var(--accent-color)',
-  extends:     '#a78bfa',
+  depends_on:  'var(--color-primary)',
+  extends:     'var(--node-secondary)',
   related_to:  'var(--text-muted)',
-  contradicts: '#f87171',
+  contradicts: 'var(--color-error)',
 };
 
 interface Props {
@@ -28,6 +28,7 @@ interface Props {
 
 export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Props) {
   const { t, i18n } = useTranslation();
+  const zh = i18n.language === 'zh-TW';
 
   const [rfNodes, setRfNodes] = useState<Node[]>([]);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
@@ -123,7 +124,7 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
   );
   const onConnect = useCallback(
     (params: Connection | Edge) =>
-      setRfEdges(eds => addEdge({ ...params, animated: true, style: { stroke: 'var(--accent-color)' }, label: 'related_to' }, eds)),
+      setRfEdges(eds => addEdge({ ...params, animated: true, style: { stroke: 'var(--color-primary)' }, label: 'related_to' }, eds)),
     [],
   );
 
@@ -152,18 +153,11 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Search Bar */}
-          <div style={{
-            display: 'flex', alignItems: 'center', background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)', borderRadius: 12, padding: '2px 8px',
-            width: 320, boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-          }}>
+          <div className="search-bar" style={{ width: 320, boxShadow: 'var(--shadow-md)' }}>
             <Search size={16} style={{ color: 'var(--text-muted)', marginLeft: 4 }} />
             <input
-              style={{
-                background: 'none', border: 'none', padding: '8px 12px', color: 'var(--text-primary)',
-                fontSize: 13, flex: 1, outline: 'none'
-              }}
-              placeholder={searchMode === 'keyword' ? t('search.keyword') : t('search.semantic')}
+              className="search-input"
+              placeholder={searchMode === 'keyword' ? (zh ? '搜尋關鍵字…' : 'Search keyword…') : (zh ? '語意搜尋…' : 'Semantic search…')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && performSearch()}
@@ -172,9 +166,9 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
               onClick={() => setSearchMode(m => m === 'keyword' ? 'semantic' : 'keyword')}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px',
-                borderRadius: 8, background: searchMode === 'semantic' ? 'var(--accent-color)' : 'transparent',
-                border: searchMode === 'semantic' ? 'none' : '1px solid var(--border-color)',
-                color: searchMode === 'semantic' ? '#fff' : 'var(--text-muted)',
+                borderRadius: 8, background: searchMode === 'semantic' ? 'var(--color-primary)' : 'transparent',
+                border: searchMode === 'semantic' ? 'none' : '1px solid var(--border-default)',
+                color: searchMode === 'semantic' ? 'var(--text-on-primary)' : 'var(--text-secondary)',
                 fontSize: 11, cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
@@ -206,9 +200,9 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
           nodeTypes={nodeTypes}
           fitView
         >
-          <Background color="var(--panel-border)" gap={20} size={1} />
-          <Controls style={{ background: 'var(--bg-color)', fill: 'white' }} />
-          <MiniMap style={{ background: 'var(--bg-color)' }} nodeColor={() => 'var(--accent-color)'} maskColor="rgba(0,0,0,0.5)" />
+          <Background color="var(--border-default)" gap={20} size={1} />
+          <Controls style={{ background: 'var(--bg-surface)', fill: 'var(--text-primary)' }} />
+          <MiniMap style={{ background: 'var(--bg-surface)' }} nodeColor={() => 'var(--color-primary)'} maskColor="rgba(0,0,0,0.5)" />
         </ReactFlow>
       </div>
     </div>
