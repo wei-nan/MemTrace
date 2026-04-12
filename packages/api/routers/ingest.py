@@ -27,7 +27,15 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         raw, tokens = await chat_completion(resolved, messages)
         
         # Cleanup JSON using shared utility
-        nodes_data = json.loads(strip_fences(raw))
+        try:
+            nodes_data = json.loads(strip_fences(raw))
+        except json.JSONDecodeError as jde:
+            print(f"DEBUG: Extraction failed to parse JSON for {filename}")
+            print(f"DEBUG: Raw response from {resolved.provider.name}:")
+            print("-" * 40)
+            print(raw if raw else "<EMPTY RESPONSE>")
+            print("-" * 40)
+            raise ValueError(f"AI response was not valid JSON: {str(jde)}")
         
         with db_cursor(commit=True) as cur:
             for n in nodes_data:

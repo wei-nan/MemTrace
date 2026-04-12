@@ -12,6 +12,7 @@ import GraphContainer from './GraphContainer';
 import NodeEditor from './NodeEditor';
 import ReviewQueue from './ReviewQueue';
 import IngestButton from './IngestButton';
+import IngestionHistory from './IngestionHistory';
 import OnboardingWizard from './OnboardingWizard';
 import WorkspaceSettings from './WorkspaceSettings';
 import { auth, workspaces, ai, type Workspace, type Node as ApiNode, type AIKey, type CreditStatus, type Onboarding } from './api';
@@ -105,7 +106,7 @@ function CreateWorkspaceModal({
             </label>
             <input
               className="mt-input"
-              placeholder={zh ? '例：MemTrace 規格書' : 'e.g. MemTrace Spec'}
+              placeholder={zh ? '例：我的知識庫' : 'e.g. My Knowledge Base'}
               value={nameZh}
               onChange={e => setNameZh(e.target.value)}
             />
@@ -424,7 +425,7 @@ function SettingsPanel({
 
 export default function App() {
   const { i18n } = useTranslation();
-  useModal();
+  const { toast } = useModal();
 
   // ── Theme Management ───────────────────────────────────────────────────
   const [theme, setTheme] = useState(() => localStorage.getItem('mt_theme') || 'dark');
@@ -537,6 +538,7 @@ export default function App() {
   const [editingNode, setEditingNode] = useState<ApiNode | null | undefined>(undefined);
   const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
   const [graphVersion, setGraphVersion] = useState(0);
+  const [ingestRefreshKey, setIngestRefreshKey] = useState(0);
 
   const handleNodeSaved = (saved: ApiNode) => {
     setEditingNode(saved);
@@ -735,14 +737,25 @@ export default function App() {
                </p>
                <IngestButton 
                   wsId={selectedWs.id} 
-                  onStarted={() => setCurrentView('review')} 
+                  onStarted={() => {
+                      setIngestRefreshKey(prev => prev + 1);
+                      toast({ message: zh ? '開始上傳...' : 'Starting upload...', variant: 'success' });
+                  }} 
                />
-               <div style={{ marginTop: 40, padding: 20, background: 'var(--bg-elevated)', borderRadius: 12, textAlign: 'left' }}>
-                 <h4 style={{ fontSize: 14, marginBottom: 10 }}>{zh ? '匯入說明' : 'Ingestion Tips'}</h4>
-                 <ul style={{ fontSize: 13, color: 'var(--text-secondary)', paddingLeft: 20, lineHeight: 1.6 }}>
+               
+               <IngestionHistory 
+                 wsId={selectedWs.id} 
+                 refreshKey={ingestRefreshKey}
+                 onGoToReview={() => setCurrentView('review')}
+               />
+
+               <div style={{ marginTop: 60, padding: 24, background: 'var(--bg-elevated)', borderRadius: 16, textAlign: 'left', border: '1px solid var(--border-subtle)' }}>
+                 <h4 style={{ fontSize: 14, marginBottom: 12, fontWeight: 700 }}>{zh ? '匯入說明' : 'Ingestion Tips'}</h4>
+                 <ul style={{ fontSize: 13, color: 'var(--text-secondary)', paddingLeft: 20, lineHeight: 1.8, margin: 0 }}>
                    <li>{zh ? '支援格式：Markdown (.md) 與純文字 (.txt)' : 'Supported formats: Markdown (.md) and Plain Text (.txt)'}</li>
                    <li>{zh ? 'AI 會自動辨識標題、節點類型與關聯' : 'AI automatically identifies titles, types, and relations'}</li>
                    <li>{zh ? '擷取結果將進入「審核佇列」，確認後才正式存入圖譜' : 'Extractions go to the Review Queue for your final confirmation'}</li>
+                   <li>{zh ? '您可以隨時離開此頁面，處理進度將在背景持續進行' : 'You can leave this page; processing continues in the background'}</li>
                  </ul>
                </div>
             </div>

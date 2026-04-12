@@ -12,7 +12,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Spec workspace
 INSERT INTO workspaces (id, name_zh, name_en, visibility, kb_type, owner_id)
-VALUES ('ws_spec0001', 'MemTrace 規格知識庫', 'MemTrace Spec Knowledge Base', 'public', 'evergreen', 'system')
+VALUES ('ws_spec0001', '規格知識庫', 'Spec Knowledge Base', 'public', 'evergreen', 'system')
 ON CONFLICT (id) DO NOTHING;
 
 -- Nodes

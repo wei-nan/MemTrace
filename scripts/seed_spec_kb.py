@@ -38,8 +38,8 @@ if not DATABASE_URL:
 # ── Seed workspace ────────────────────────────────────────────────────────────
 
 SPEC_WS_ID   = "ws_spec0001"
-SPEC_WS_NAME_ZH = "MemTrace 規格知識庫"
-SPEC_WS_NAME_EN = "MemTrace Spec Knowledge Base"
+SPEC_WS_NAME_ZH = "規格知識庫"
+SPEC_WS_NAME_EN = "Spec Knowledge Base"
 SPEC_OWNER   = "system"         # matches the system user already in DB
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

@@ -95,11 +95,20 @@ export const ai = {
   getCredits: () => request<CreditStatus>("GET", `${BASE}/ai/credits`),
 };
 
+export interface IngestionLog {
+  id: string;
+  filename: string;
+  status: 'processing' | 'completed' | 'failed';
+  error_msg?: string;
+  created_at: string;
+  completed_at?: string;
+}
+
 // ── Review Queue ──────────────────────────────────────────────────────────────
 export const review = {
   list: (wsId: string, status = "pending") => 
     request<ReviewItem[]>("GET", `${BASE}/workspaces/${wsId}/review-queue?status=${status}`),
-  update: (id: string, data: Partial<ReviewItem>) =>
+  update: (id: string, data: { node_data?: any; suggested_edges?: any }) =>
     request<ReviewItem>("PATCH", `${BASE}/workspaces/review-queue/${id}`, data),
   accept: (id: string) => 
     request<Node>("POST", `${BASE}/workspaces/review-queue/${id}/accept`),
@@ -121,10 +130,11 @@ export const ingest = {
       headers: { ...authHeaders() },
       body: formData,
     }).then(res => {
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) throw new Error(res.statusText);
       return res.json();
     });
-  }
+  },
+  getLogs: (wsId: string) => request<IngestionLog[]>("GET", `${BASE}/workspaces/${wsId}/ingest/logs`),
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────

@@ -421,9 +421,17 @@ Return ONLY the JSON array."""
 # ── Utility ────────────────────────────────────────────────────────────────────
 
 def strip_fences(text: str) -> str:
-    """Remove markdown code fences if the model wrapped its JSON output."""
+    """Extract JSON content from text that might contain markdown fences or conversational filler."""
     import re
-    text = text.strip()
-    text = re.sub(r"^```(?:json)?\s*", "", text)
-    text = re.sub(r"\s*```$", "", text)
+    
+    # First, try to find content between ```json and ```
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+    if match:
+        return match.group(1).strip()
+    
+    # If no fences, find the outermost [ ] or { }
+    match = re.search(r"(\[[\s\S]*\]|\{[\s\S]*\})", text)
+    if match:
+        return match.group(1).strip()
+    
     return text.strip()

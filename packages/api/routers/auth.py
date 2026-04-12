@@ -54,12 +54,8 @@ def register(body: RegisterRequest):
             VALUES (%s, %s, %s, %s, false, %s)
         """, (user_id, body.display_name, body.email, pw_hash, now))
 
-        # Create default workspace
-        ws_id = generate_id("ws")
-        cur.execute("""
-            INSERT INTO workspaces (id, name_zh, name_en, visibility, owner_id)
-            VALUES (%s, '我的知識庫', 'My Knowledge Base', 'private', %s)
-        """, (ws_id, user_id))
+        # No default workspace creation — rely on onboarding or manual creation
+        pass
 
         # generate verification token
         verify_token = secrets.token_urlsafe(32)

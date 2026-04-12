@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   CheckCircle2, Mail, Database, FileUp, 
-  Settings2, Eye, PartyPopper, ChevronRight,
-  Upload, Loader2, AlertCircle, RefreshCw
+  Settings2, PartyPopper, ChevronRight,
+  Upload, Loader2, AlertCircle, RefreshCw,
+  Languages
 } from 'lucide-react';
-import { auth, workspaces, ai, ingest, type Onboarding, type ReviewItem } from './api';
-import { ReviewList } from './ReviewQueue';
+import { auth, workspaces, ai, ingest, type Onboarding } from './api';
 
 const STEPS = [
+  { id: 'welcome', icon: Languages },
   { id: 'account', icon: CheckCircle2 },
   { id: 'email', icon: Mail },
   { id: 'kb', icon: Database },
   { id: 'ingest', icon: FileUp },
   { id: 'ai', icon: Settings2 },
-  { id: 'review', icon: Eye },
   { id: 'done', icon: PartyPopper },
 ];
 
@@ -45,7 +45,6 @@ export default function OnboardingWizard({
   const [apiKey, setApiKey] = useState('');
 
   // Review State
-  const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -80,12 +79,19 @@ export default function OnboardingWizard({
         visibility: 'private',
         kb_type: 'evergreen'
       });
-      onUpdate({ first_kb_id: ws.id, steps_done: [...state.steps_done, 'kb'] });
+      onUpdate({ first_kb_id: ws.id, steps_done: [...new Set([...state.steps_done, 'kb'])] });
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSkipKb = () => {
+    onUpdate({ 
+      steps_done: [...new Set([...state.steps_done, 'kb', 'ingest'])],
+      steps_skipped: [...new Set([...state.steps_skipped, 'kb', 'ingest'])]
+    });
   };
 
   const handleUpload = async (file?: File) => {
@@ -138,12 +144,39 @@ export default function OnboardingWizard({
     }
   };
 
+  const renderWelcome = () => (
+    <div className="onboard-card">
+      <div className="onboard-icon"><Languages size={48} /></div>
+      <h3 style={{ fontFamily: 'Outfit, sans-serif' }}>Welcome to MemTrace</h3>
+      <p>Please select your preferred language to continue.</p>
+      <div className="flex-center mt-32 gap-12">
+        <button 
+          className={`btn-secondary ${i18n.language === 'en' ? 'active' : ''}`} 
+          onClick={() => i18n.changeLanguage('en')}
+          style={i18n.language === 'en' ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' } : {}}
+        >
+          English
+        </button>
+        <button 
+          className={`btn-secondary ${i18n.language === 'zh-TW' ? 'active' : ''}`} 
+          onClick={() => i18n.changeLanguage('zh-TW')}
+          style={i18n.language === 'zh-TW' ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' } : {}}
+        >
+          繁體中文
+        </button>
+      </div>
+      <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('welcome')}>
+        {zh ? '下一步' : 'Next Step'} <ChevronRight size={16} />
+      </button>
+    </div>
+  );
+
   const renderAccount = () => (
     <div className="onboard-card">
       <div className="onboard-icon-success"><CheckCircle2 size={48} /></div>
       <h3>{zh ? '帳號已準備就緒' : 'Account Ready'}</h3>
       <p>{zh ? '歡迎來到 MemTrace！您的數據將被加密存儲並支持跨平台同步。' : 'Welcome to MemTrace! Your data is encrypted and synced across devices.'}</p>
-      <button className="btn-primary mt-32" onClick={() => next('account')}>
+      <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('account')}>
         {zh ? '開始設定' : 'Start Setup'} <ChevronRight size={16} />
       </button>
     </div>
@@ -173,24 +206,27 @@ export default function OnboardingWizard({
   const renderKb = () => (
     <div className="onboard-card">
       <div className="onboard-icon"><Database size={48} /></div>
-      <h3>{zh ? '命名您的第一個知識庫' : 'Name Your First KB'}</h3>
+      <h3>{zh ? '建立您的第一個知識庫' : 'Create Your First KB'}</h3>
       <p>{zh ? '這將是您存放記憶的容器，之後可以隨時更改。' : 'This is where your memories will live. You can change this later.'}</p>
       <div className="onboard-form mt-24">
         <input 
           className="mt-input" 
-          placeholder={zh ? '中文名稱 (如：規格書)' : 'Chinese Name'} 
+          placeholder={zh ? '中文名稱 (如：我的筆記)' : 'Chinese Name'} 
           value={kbNameZh} onChange={e => setKbNameZh(e.target.value)}
         />
         <input 
           className="mt-input" 
-          placeholder={zh ? '英文名稱 (如：Specs)' : 'English Name'} 
+          placeholder={zh ? '英文名稱 (如：My Notes)' : 'English Name'} 
           value={kbNameEn} onChange={e => setKbNameEn(e.target.value)}
         />
       </div>
       {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
-      <button className="btn-primary mt-24" onClick={handleCreateKb} disabled={loading}>
-        {loading ? <Loader2 className="animate-spin" /> : (zh ? '建立知識庫' : 'Create KB')}
-      </button>
+      <div className="flex-center mt-32 gap-12">
+        <button className="btn-ghost" onClick={handleSkipKb}>{zh ? '略過' : 'Skip'}</button>
+        <button className="btn-primary" onClick={handleCreateKb} disabled={loading}>
+          {loading ? <Loader2 className="animate-spin" /> : (zh ? '建立知識庫' : 'Create KB')}
+        </button>
+      </div>
     </div>
   );
 
@@ -225,7 +261,7 @@ export default function OnboardingWizard({
         </div>
       )}
       <div className="flex-center mt-32 gap-12">
-        {!isProcessing && <button className="btn-ghost" onClick={() => skip('ingest')}>{zh ? '暫不匯入' : 'Skip'}</button>}
+        {!isProcessing && <button className="btn-ghost" onClick={() => skip('ingest')}>{zh ? '略過' : 'Skip'}</button>}
       </div>
     </div>
   );
@@ -246,7 +282,7 @@ export default function OnboardingWizard({
       />
       {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
       <div className="flex-center mt-32 gap-12">
-        <button className="btn-ghost" onClick={() => skip('ai')}>{zh ? '使用公共額度' : 'Skip (Use Credits)'}</button>
+        <button className="btn-ghost" onClick={() => skip('ai')}>{zh ? '略過' : 'Skip'}</button>
         <button className="btn-primary" onClick={handleSaveAiKey} disabled={loading}>
           {loading ? <Loader2 className="animate-spin" /> : (zh ? '儲存並完成' : 'Save & Finish')}
         </button>
@@ -254,38 +290,13 @@ export default function OnboardingWizard({
     </div>
   );
 
-  const renderReview = () => (
-    <div className="onboard-card" style={{ width: '800px', maxWidth: '95vw' }}>
-      <div className="onboard-icon"><Eye size={48} /></div>
-      <h3>{zh ? '審核 AI 擷取結果' : 'Review AI Extractions'}</h3>
-      <p className="mb-24">{zh ? '您可以編輯、接受或拒絕 AI 擷取的候選節點。' : 'You can edit, accept, or reject the knowledge nodes extracted by AI.'}</p>
-      
-      {state.first_kb_id && (
-        <div style={{ textAlign: 'left', marginBottom: 24 }}>
-          <ReviewList 
-            wsId={state.first_kb_id} 
-            compact 
-            onItemsLoaded={setReviewItems} 
-          />
-        </div>
-      )}
-
-      {reviewItems.length === 0 && (
-        <p style={{ opacity: 0.6, fontSize: 13 }}>{zh ? '目前暫無待審核節點，您可以直接繼續。' : 'No items to review, you can proceed.'}</p>
-      )}
-
-      <button className="btn-primary mt-24" onClick={() => next('review')}>
-        {zh ? '完成審核並繼續' : 'Finish Review & Continue'} <ChevronRight size={16} />
-      </button>
-    </div>
-  );
 
   const renderDone = () => (
     <div className="onboard-card">
       <div className="onboard-icon-warn"><PartyPopper size={48} /></div>
       <h3>{zh ? '一切準備就緒！' : 'You′re Ready!'}</h3>
       <p>{zh ? '您已完成所有基礎設定，現在可以開始探索與串聯您的知識。' : 'You have completed the setup. Start exploring and connecting your knowledge.'}</p>
-      <button className="btn-primary mt-32" onClick={onComplete}>
+      <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={onComplete}>
         {zh ? '進入我的 MemTrace' : 'Enter MemTrace'}
       </button>
     </div>
@@ -305,12 +316,12 @@ export default function OnboardingWizard({
         </div>
 
         <div className="onboarding-view">
-          {activeStepIdx === 0 && renderAccount()}
-          {activeStepIdx === 1 && renderEmail()}
-          {activeStepIdx === 2 && renderKb()}
-          {activeStepIdx === 3 && renderIngest()}
-          {activeStepIdx === 4 && renderAi()}
-          {activeStepIdx === 5 && renderReview()}
+          {activeStepIdx === 0 && renderWelcome()}
+          {activeStepIdx === 1 && renderAccount()}
+          {activeStepIdx === 2 && renderEmail()}
+          {activeStepIdx === 3 && renderKb()}
+          {activeStepIdx === 4 && renderIngest()}
+          {activeStepIdx === 5 && renderAi()}
           {activeStepIdx === 6 && renderDone()}
         </div>
       </div>
@@ -380,6 +391,14 @@ export default function OnboardingWizard({
         
         .error-text { color: var(--color-error); font-size: 13px; display: flex; alignItems: center; gap: 6px; justify-content: center; }
         
+        .btn-ghost {
+          background: transparent; border: none;
+          color: var(--text-muted); cursor: pointer;
+          padding: 8px 16px; border-radius: 8px;
+          transition: all 0.2s; font-size: 14px;
+        }
+        .btn-ghost:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
         .mt-32 { margin-top: 32px; }
         .mt-24 { margin-top: 24px; }
         .mt-16 { margin-top: 16px; }
