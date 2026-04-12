@@ -45,19 +45,23 @@ export default function AuthPage({ onAuthenticated }: Props) {
       <div className="glass-panel" style={{ padding: 40, minWidth: 380, maxWidth: 440 }}>
         {/* Logo / Title */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <img src="/logo.svg" alt="MemTrace Logo" style={{ width: 120, height: 'auto', marginBottom: 16 }} />
-          <h1 style={{ fontSize: 28, marginBottom: 4 }}>MemTrace</h1>
+          <img
+            src={document.documentElement.getAttribute('data-theme') === 'light' ? '/logo-light.svg' : '/logo-dark.svg'}
+            alt="MemTrace Logo"
+            style={{ width: 180, height: 'auto', marginBottom: 16 }}
+          />
           <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
             Knowledge through connection
           </p>
         </div>
 
         {/* Mode tabs */}
-        <div style={{ display: 'flex', gap: 0, marginBottom: 24, border: '1px solid var(--border-color)', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: 0, marginBottom: 24, border: '1px solid var(--border-default)', borderRadius: 8, overflow: 'hidden' }}>
           {(['login', 'register'] as const).map(m => (
             <button key={m} onClick={() => { setMode(m); setError(''); }}
               style={{
                 flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: mode === m ? 'var(--color-primary)' : 'transparent',
                 color: mode === m ? 'var(--text-on-primary)' : 'var(--text-secondary)',
                 fontWeight: mode === m ? 600 : 400, fontSize: 14,
@@ -86,9 +90,9 @@ export default function AuthPage({ onAuthenticated }: Props) {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)' }} />
+          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-default)' }} />
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>or</span>
-          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)' }} />
+          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-default)' }} />
         </div>
 
         {/* Form */}
@@ -117,10 +121,10 @@ export default function AuthPage({ onAuthenticated }: Props) {
           </label>
 
           {error && (
-            <p style={{ color: 'var(--error-color, #f87)', fontSize: 13, marginBottom: 12 }}>{error}</p>
+            <p style={{ color: 'var(--color-error)', fontSize: 13, marginBottom: 12 }}>{error}</p>
           )}
 
-          <button className="btn btn-primary" type="submit" disabled={loading}
+          <button className="btn-primary" type="submit" disabled={loading}
             style={{ width: '100%', padding: '12px 0', fontSize: 15 }}>
             {loading ? '…' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>

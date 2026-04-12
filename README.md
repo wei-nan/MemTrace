@@ -118,14 +118,171 @@ npm install
 # 2. Start the database
 docker compose up -d
 
-# 3. Start the API
+# 3. Seed the spec knowledge base
 cd packages/api
+python ../../scripts/seed_spec_kb.py
+
+# 4. Start the API
 python -m uvicorn main:app --reload
 
-# 4. Start the UI (new terminal)
+# 5. Start the UI (new terminal)
 cd packages/ui
 npm run dev
 ```
+
+---
+
+## MCP Integration
+
+MemTrace exposes its knowledge base to AI coding tools via the **Model Context Protocol (MCP)**. Once connected, your AI assistant can search, read, and traverse the knowledge graph directly — without reading raw spec documents.
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `search_nodes` | Keyword search across all nodes (title + body) |
+| `get_node` | Retrieve a specific node by ID |
+| `traverse` | Walk the graph from a node up to N hops |
+| `list_by_tag` | List all nodes matching a tag |
+
+### Step 1 — Build the MCP Server
+
+```bash
+cd packages/mcp
+npm install
+npm run build        # output → packages/mcp/dist/index.js
+```
+
+### Step 2 — Start the API
+
+The MCP server proxies requests to the MemTrace API. The API must be running before your AI tool connects.
+
+```bash
+cd packages/api
+python -m uvicorn main:app --port 8000
+```
+
+### Step 3 — Configure Your Tool
+
+All three tools use the same `mcpServers` JSON format. Adjust the env vars to point at your workspace.
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `MEMTRACE_API` | `http://localhost:8000/api/v1` | API base URL |
+| `MEMTRACE_WS` | `ws_spec0001` | Workspace ID to query |
+| `MEMTRACE_LANG` | `zh-TW` | Response language (`zh-TW` or `en`) |
+
+---
+
+#### Claude Code
+
+A project-level `.mcp.json` is already included in the repo root. Claude Code picks it up automatically when you open this project.
+
+```json
+// .mcp.json  (already committed)
+{
+  "mcpServers": {
+    "memtrace-kb": {
+      "command": "node",
+      "args": ["packages/mcp/dist/index.js"],
+      "env": {
+        "MEMTRACE_API": "http://localhost:8000/api/v1",
+        "MEMTRACE_WS": "ws_spec0001",
+        "MEMTRACE_LANG": "zh-TW"
+      }
+    }
+  }
+}
+```
+
+To use a different workspace, edit `MEMTRACE_WS` in `.mcp.json`.  
+To register globally (all projects), add the same block to `~/.claude/settings.json` under `"mcpServers"`.
+
+---
+
+#### Cursor
+
+Create `.cursor/mcp.json` in the project root (project-scoped) or `~/.cursor/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "memtrace-kb": {
+      "command": "node",
+      "args": ["/absolute/path/to/memtrace/packages/mcp/dist/index.js"],
+      "env": {
+        "MEMTRACE_API": "http://localhost:8000/api/v1",
+        "MEMTRACE_WS": "ws_spec0001",
+        "MEMTRACE_LANG": "zh-TW"
+      }
+    }
+  }
+}
+```
+
+> **Note:** Cursor requires **absolute paths** in `args`. Replace `/absolute/path/to/memtrace` with the actual path on your machine.
+
+Then restart Cursor. Verify the server is active under **Cursor Settings → MCP**.
+
+---
+
+#### Antigravity (Google)
+
+Add to the global config file:
+
+- **macOS / Linux:** `~/.gemini/antigravity/mcp_config.json`
+- **Windows:** `%USERPROFILE%\.gemini\antigravity\mcp_config.json`
+
+```json
+{
+  "mcpServers": {
+    "memtrace-kb": {
+      "command": "node",
+      "args": ["C:\\absolute\\path\\to\\memtrace\\packages\\mcp\\dist\\index.js"],
+      "env": {
+        "MEMTRACE_API": "http://localhost:8000/api/v1",
+        "MEMTRACE_WS": "ws_spec0001",
+        "MEMTRACE_LANG": "zh-TW"
+      }
+    }
+  }
+}
+```
+
+> **Note:** Antigravity requires absolute paths and does **not** support `${workspaceFolder}` variable substitution. Keep total enabled MCP tools under 50.
+
+Restart Antigravity after saving. Confirm the server appears in **Settings → AI → MCP Servers**.
+
+---
+
+### Verifying the Connection
+
+Once connected, ask your AI assistant:
+
+```
+What MCP tools are available from memtrace-kb?
+```
+
+You should see `search_nodes`, `get_node`, `traverse`, and `list_by_tag` listed.
+
+Try a real query:
+
+```
+Use memtrace-kb to find the decay half-life for each node type.
+```
+
+The assistant should call `search_nodes` and return the answer from `mem_d002` without reading the full spec document.
+
+---
+
+### Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| `ENOENT` or `command not found` | Wrong path in `args` | Use absolute path; verify `dist/index.js` exists |
+| `Workspace not found` | Wrong `MEMTRACE_WS` | Run `seed_spec_kb.py` and confirm workspace ID |
+| `Connection refused` | API not running | Start with `uvicorn main:app --port 8000` |
+| Tools not listed | Server crashed on start | Check logs; run `node packages/mcp/dist/index.js` directly to see errors |
 
 ---
 

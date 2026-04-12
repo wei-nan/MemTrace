@@ -306,5 +306,85 @@
     "last_co_accessed": "2026-04-11T00:00:00Z",
     "decay": { "half_life_days": 180, "min_weight": 0.1 },
     "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i004_i001", "from": "mem_i004", "to": "mem_i001",
+    "relation": "extends",
+    "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i004_i002", "from": "mem_i004", "to": "mem_i002",
+    "relation": "extends",
+    "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i004_i003", "from": "mem_i004", "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 0.9, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_i004_a003", "from": "mem_i004", "to": "mem_a003",
+    "relation": "related_to",
+    "weight": 0.85, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k004_k001", "from": "mem_k004", "to": "mem_k001",
+    "relation": "extends",
+    "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k004_i004", "from": "mem_k004", "to": "mem_i004",
+    "relation": "depends_on",
+    "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_k004_g003", "from": "mem_k004", "to": "mem_g003",
+    "relation": "related_to",
+    "weight": 0.8, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_a004_a001", "from": "mem_a004", "to": "mem_a001",
+    "relation": "depends_on",
+    "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_a004_i004", "from": "mem_a004", "to": "mem_i004",
+    "relation": "depends_on",
+    "weight": 1.0, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+  },
+  {
+    "id": "edge_a004_i003", "from": "mem_a004", "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 0.85, "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00Z",
+    "decay": { "half_life_days": 180, "min_weight": 0.05 },
+    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
   }
 ]

@@ -1538,3 +1538,246 @@ All three features use the same provider resolution order:
 2. **Account-level key** — if no workspace key is set, fall back to the user's account-level key.
 3. **Managed credits** (future, §11.2.3) — if neither is present and managed credits are enabled.
 4. **Disabled** — if no key is available, the AI feature button is greyed out with a tooltip prompting the user to configure a provider in Settings.
+
+---
+
+## 10. Access Control & Permission Roles
+
+### 10.1 Design Philosophy
+
+MemTrace adopts a **git-inspired permission model**: read access and write access are separate, and write access is further split between _proposing changes_ (like a pull request) and _merging them directly_. This applies equally to human users and AI tools.
+
+Every workspace member and every API key (including MCP-connected AI agents) operates under exactly one of three roles.
+
+### 10.2 Roles
+
+| Role | Analogy | Capabilities |
+|------|---------|-------------|
+| **viewer** | `git clone` (read-only) | Search, read, traverse, Q&A chat, rate nodes |
+| **contributor** | `git fork` + pull request | All viewer capabilities + propose node/edge changes (→ review queue, requires admin approval) |
+| **admin** | Repository owner/maintainer | All contributor capabilities + direct write (create/edit/delete nodes and edges) + approve or reject proposals + manage members + invite users + soft-delete and restore workspace |
+
+The workspace **owner** is always an admin and cannot be demoted.
+
+### 10.3 Role Capabilities Detail
+
+#### viewer
+- `GET /workspaces/{ws_id}/nodes` (search, list, get)
+- `POST /nodes/{id}/traverse` (traversal tracking)
+- `POST /edges/{id}/rate` (node rating: votes_up / votes_down)
+- `POST /workspaces/{ws_id}/chat` (conversational Q&A — §13)
+- **Cannot** create, modify, or delete any nodes, edges, or workspace settings
+- **Cannot** propose changes
+
+#### contributor
+- All viewer capabilities
+- `POST /workspaces/{ws_id}/proposals` — propose a new node, an edit to an existing node, or a new/deleted edge
+- Proposals enter the review queue with `status = pending_admin_review`; they are **not** applied until an admin approves
+- A contributor may not approve their own proposals
+
+#### admin
+- All contributor capabilities
+- Direct write to nodes and edges (bypasses review queue)
+- `PATCH /review-queue/{id}/approve` and `/reject` — review contributor proposals
+- `PUT /workspaces/{ws_id}/members/{user_id}` — change member role
+- `DELETE /workspaces/{ws_id}/members/{user_id}` — remove member
+- `POST /workspaces/{ws_id}/invites` — create invite links
+- `DELETE /workspaces/{ws_id}` — initiate soft-delete (§12)
+- `POST /workspaces/{ws_id}/restore` — cancel pending deletion
+
+### 10.4 API Key Scopes
+
+API keys (used by AI tools and CLI integrations) carry a role encoded as a scope:
+
+| Scope | Role | Description |
+|-------|------|-------------|
+| `kb:read` | viewer | Search, read, traverse, rate |
+| `kb:propose` | contributor | All read + submit proposals |
+| `kb:write` | admin | Full write access |
+
+An API key may hold exactly one of these three scopes. MCP tools respect the key's scope identically to a human user of the same role — a `kb:read` key cannot call `create_node`, a `kb:propose` key can call `propose_node`, and a `kb:write` key can call `create_node` directly.
+
+### 10.5 Default Role on Join
+
+| Entry point | Default role |
+|-------------|--------------|
+| Workspace created by user | admin (owner) |
+| Accepted invite link | role embedded in the invite token (set by admin at creation) |
+| Copied node (cross-workspace) | no membership granted — copy is independent |
+
+### 10.6 Proposal Flow (contributor)
+
+```
+contributor submits proposal
+        ↓
+review_queue entry (status = pending_admin_review)
+        ↓
+admin reviews: approve / reject / edit-then-approve
+        ↓
+approved → change applied to KB
+rejected → entry closed, contributor notified
+```
+
+Proposals use the same `review_queue` table as AI-extraction candidates (§11.3.1), distinguished by `source_type = 'contributor_proposal'`.
+
+---
+
+## 12. Workspace Lifecycle & Soft-Delete
+
+### 12.1 States
+
+A workspace moves through three states:
+
+| State | Description |
+|-------|-------------|
+| `active` | Normal operation — all members can access |
+| `pending_deletion` | Soft-deleted; 30-day grace period in progress |
+| `deleted` | Purged from database (cascade) — cannot be restored |
+
+### 12.2 Soft-Delete Behaviour
+
+When an admin calls `DELETE /workspaces/{ws_id}`:
+- `status` is set to `pending_deletion`
+- `deleted_at` is set to `NOW()`
+- All non-admin members immediately **lose access**
+- The admin/owner retains read-only access to allow data export during the grace period
+- An email notification is sent to the owner at: day 0 (deletion initiated), day 25 (5-day warning), day 30 (final purge)
+
+### 12.3 Restoration
+
+During the 30-day grace period, any admin calls `POST /workspaces/{ws_id}/restore`:
+- `status` returns to `active`
+- `deleted_at` is cleared
+- All member access is restored
+
+### 12.4 Automatic Purge
+
+A background job runs daily and purges all workspaces where:
+
+```sql
+status = 'pending_deletion'
+AND deleted_at < NOW() - INTERVAL '30 days'
+```
+
+Purge is a **hard CASCADE DELETE** — all nodes, edges, members, invites, and chat sessions in the workspace are deleted. This cannot be undone.
+
+### 12.5 Schema Changes
+
+```sql
+ALTER TABLE workspaces
+  ADD COLUMN status        TEXT NOT NULL DEFAULT 'active'
+                           CHECK (status IN ('active','pending_deletion','deleted')),
+  ADD COLUMN deleted_at    TIMESTAMPTZ;
+```
+
+### 12.6 KB Type Interaction
+
+| KB Type | Grace Period | Notes |
+|---------|-------------|-------|
+| `evergreen` | 30 days | Standard grace period |
+| `ephemeral` | 7 days | Shorter grace period; ephemeral KBs are expected to expire |
+
+---
+
+## 13. Conversational Q&A
+
+### 13.1 Overview
+
+Any member with **viewer role or above** can ask natural-language questions against a workspace's knowledge base. The system retrieves relevant nodes, builds a context prompt, calls the configured AI provider, and returns an answer citing the source nodes.
+
+This is distinct from AI extraction (§11.3): Q&A is **read-only** — it never writes to the KB.
+
+### 13.2 Request / Response Flow
+
+```
+user message
+     ↓
+search_nodes(query) → top-5 relevant nodes     [keyword + optional vector]
+     ↓
+traverse(top node, depth=1) → neighbour context [optional, improves multi-hop answers]
+     ↓
+build prompt:
+  system: "You are a knowledge assistant. Answer using only the provided nodes.
+           Cite node IDs in your response."
+  context: rendered node blocks (id, title, body)
+  user: original question
+     ↓
+AI completion (respects workspace AI provider config — §16.5)
+     ↓
+response: { answer, cited_nodes: [node_id, ...], tokens_used, session_id }
+```
+
+### 13.3 API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/workspaces/{ws_id}/chat` | Send a message; optionally pass `session_id` to continue a conversation |
+| `GET` | `/workspaces/{ws_id}/chat/sessions` | List the caller's chat sessions |
+| `GET` | `/workspaces/{ws_id}/chat/sessions/{session_id}` | Get full message history for a session |
+
+Request body for `POST /chat`:
+```json
+{
+  "message": "What are the decay half-life values for each content type?",
+  "session_id": "optional — omit to start a new session",
+  "lang": "en"
+}
+```
+
+Response:
+```json
+{
+  "answer": "...",
+  "cited_nodes": ["mem_d002", "mem_g001"],
+  "tokens_used": 312,
+  "session_id": "sess_a1b2c3d4"
+}
+```
+
+### 13.4 Session & History
+
+- Each `POST /chat` without a `session_id` creates a new `chat_sessions` row
+- Messages are stored in `chat_messages` (role: `user` | `assistant`)
+- Sessions are scoped to the workspace and the authenticated user
+- Sessions are **not** affected by node decay — conversation history is preserved even if cited nodes are later archived
+- Maximum context window: last 10 messages in the session are included for multi-turn continuity
+
+### 13.5 Database Schema
+
+```sql
+CREATE TABLE chat_sessions (
+  id           TEXT PRIMARY KEY DEFAULT gen_id('sess'),
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE chat_messages (
+  id           TEXT PRIMARY KEY DEFAULT gen_id('msg'),
+  session_id   TEXT NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  role         TEXT NOT NULL CHECK (role IN ('user','assistant')),
+  content      TEXT NOT NULL,
+  cited_nodes  TEXT[] NOT NULL DEFAULT '{}',
+  tokens_used  INTEGER NOT NULL DEFAULT 0,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### 13.6 Access Control
+
+| Role | Q&A access |
+|------|-----------|
+| viewer | Full access — can ask questions and view session history |
+| contributor | Full access |
+| admin | Full access |
+| Unauthenticated | Not allowed (even for public workspaces) — requires login |
+
+### 13.7 AI Feature Table Update
+
+| Feature | Trigger | AI Call | Human Review | Modifies Data |
+|---------|---------|---------|-------------|--------------|
+| Document → KB | Upload / `ingest` | LLM completion | Yes — Review Queue | No (until approved) |
+| Node Search | Search query | Embedding | No | No |
+| Node Restructuring | Manual selection | LLM completion | Yes — Review Panel | No (until approved) |
+| **Conversational Q&A** | **Chat message** | **LLM completion** | **No** | **No (read-only)** |

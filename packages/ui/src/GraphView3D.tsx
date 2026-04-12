@@ -13,10 +13,10 @@ interface Props {
 }
 
 const RELATION_COLORS: Record<string, string> = {
-  depends_on:  '#3b82f6',
-  extends:     '#a78bfa',
-  related_to:  '#94a3b8',
-  contradicts: '#f87171',
+  depends_on:  'var(--color-primary)',
+  extends:     'var(--node-secondary)',
+  related_to:  'var(--text-muted)',
+  contradicts: 'var(--color-error)',
 };
 
 export default function GraphView3D({ wsId, reloadKey, onEditNode }: Props) {
@@ -46,14 +46,14 @@ export default function GraphView3D({ wsId, reloadKey, onEditNode }: Props) {
         name: i18n.language === 'zh-TW' ? n.title_zh : n.title_en,
         val: n.trust_score * 5,
         group: n.content_type,
-        color: RELATION_COLORS[n.content_type] || '#ffffff'
+        color: RELATION_COLORS[n.content_type] || 'var(--text-primary)'
       }));
 
       const links = rawEdges.map(e => ({
         source: e.from_id,
         target: e.to_id,
         relation: e.relation,
-        color: RELATION_COLORS[e.relation] || '#94a3b8'
+        color: RELATION_COLORS[e.relation] || 'var(--text-muted)'
       }));
 
       setData({ nodes, links });
@@ -153,7 +153,7 @@ export default function GraphView3D({ wsId, reloadKey, onEditNode }: Props) {
         </div>
       </header>
 
-      <div style={{ flex: 1, position: 'relative', margin: '0 40px 40px 40px', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--panel-border)', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)' }}>
+      <div style={{ flex: 1, position: 'relative', margin: '0 40px 40px 40px', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
         <ForceGraph3D
           ref={fgRef}
           graphData={data}
@@ -175,7 +175,7 @@ export default function GraphView3D({ wsId, reloadKey, onEditNode }: Props) {
             // Sphere for node
             const sphere = new THREE.Mesh(
               new THREE.SphereGeometry(1, 16, 16),
-              new THREE.MeshLambertMaterial({ color: node.color || '#3b82f6', transparent: true, opacity: 0.8 })
+              new THREE.MeshLambertMaterial({ color: node.color || 'var(--color-primary)', transparent: true, opacity: 0.8 })
             );
             sphere.scale.set(node.val || 2, node.val || 2, node.val || 2);
             group.add(sphere);

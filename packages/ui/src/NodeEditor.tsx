@@ -162,7 +162,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Header */}
-      <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--panel-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className="brand-icon" style={{ width: 28, height: 28 }}><Type size={14} /></div>
           <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
@@ -225,7 +225,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <input className="mt-input" value={tags} onChange={e => setTags(e.target.value)} placeholder="comma separated..." />
             </div>
 
-            {error && <p style={{ color: 'var(--error-color)', fontSize: 13, marginBottom: 16 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--color-error)', fontSize: 13, marginBottom: 16 }}>{error}</p>}
 
             <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
               <button className="btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={saving}>
@@ -244,12 +244,12 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
             <div style={{ marginBottom: 24 }}>
               <h1 style={{ fontSize: '1.75rem', marginBottom: 8 }}>{currentTitle}</h1>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-                <span className="tag" style={{ background: 'var(--bg-secondary)' }}><Shield size={12} /> {contentType}</span>
-                <span className="tag" style={{ background: 'var(--bg-secondary)' }}><Calendar size={12} /> {node?.created_at?.split('T')[0]}</span>
+                <span className="tag" style={{ background: 'var(--bg-surface)' }}><Shield size={12} /> {contentType}</span>
+                <span className="tag" style={{ background: 'var(--bg-surface)' }}><Calendar size={12} /> {node?.created_at?.split('T')[0]}</span>
                 <span
                   className="tag"
                   title={`accuracy ${(node?.dim_accuracy ?? 0).toFixed(2)} · freshness ${(node?.dim_freshness ?? 0).toFixed(2)} · utility ${(node?.dim_utility ?? 0).toFixed(2)} · author_rep ${(node?.dim_author_rep ?? 0).toFixed(2)}`}
-                  style={{ background: 'var(--bg-secondary)', cursor: 'default' }}
+                  style={{ background: 'var(--bg-surface)', cursor: 'default' }}
                 >
                   <User size={12} /> trust {(node?.trust_score ?? 0).toFixed(2)}
                 </span>
@@ -262,7 +262,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <button className={`tag ${displayLang === 'zh' ? 'tag-active' : ''}`} onClick={() => setDisplayLang('zh')}>中文內容</button>
             </div>
 
-            <div className="markdown-body" style={{ background: 'var(--panel-bg)', padding: 20, borderRadius: 12, border: '1px solid var(--panel-border)', lineHeight: 1.6 }}>
+            <div className="markdown-body" style={{ background: 'var(--bg-surface)', padding: 20, borderRadius: 12, border: '1px solid var(--border-default)', lineHeight: 1.6 }}>
               <ReactMarkdown>{currentBody || '*No content available in this language.*'}</ReactMarkdown>
             </div>
 
@@ -290,13 +290,13 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
                   // Style priority: source > hover > default
                   const bg = isSource
-                    ? 'rgba(99,102,241,0.18)'
+                    ? 'var(--color-primary-subtle)'
                     : isHovered
-                      ? 'rgba(99,102,241,0.10)'
-                      : 'rgba(255,255,255,0.03)';
+                      ? 'var(--color-primary-subtle)'
+                      : 'var(--bg-surface)';
                   const borderColor = isSource || isHovered
-                    ? 'var(--accent-color)'
-                    : 'var(--panel-border)';
+                    ? 'var(--color-primary)'
+                    : 'var(--border-default)';
 
                   return (
                     <div
@@ -322,7 +322,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                           {isFrom ? '→' : '←'}
                         </span>
                         {/* Relation badge */}
-                        <span style={{ fontSize: 11, background: 'var(--accent-color)', color: 'white', padding: '2px 6px', borderRadius: 4, flexShrink: 0 }}>
+                        <span style={{ fontSize: 11, background: 'var(--color-primary)', color: 'white', padding: '2px 6px', borderRadius: 4, flexShrink: 0 }}>
                           {e.relation}
                         </span>
                         {/* Node title */}
@@ -331,7 +331,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                         </span>
                         {/* Source badge */}
                         {isSource && (
-                          <span style={{ fontSize: 10, background: 'var(--accent-color)', color: 'white', padding: '1px 5px', borderRadius: 3, flexShrink: 0, opacity: 0.85 }}>
+                          <span style={{ fontSize: 10, background: 'var(--color-primary)', color: 'white', padding: '1px 5px', borderRadius: 3, flexShrink: 0, opacity: 0.85 }}>
                             came from
                           </span>
                         )}
@@ -357,8 +357,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                       style={{
                         margin: 0,
                         paddingLeft: 32,
-                        borderColor: selectedTargetNode ? 'var(--accent-color)' : undefined,
-                        background: selectedTargetNode ? 'rgba(99,102,241,0.08)' : undefined,
+                        borderColor: selectedTargetNode ? 'var(--color-primary)' : undefined,
+                        background: selectedTargetNode ? 'var(--color-primary-subtle)' : undefined,
                       }}
                       placeholder="Search node by title…"
                       value={searchQuery}
@@ -375,8 +375,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                   {searchOpen && searchResults.length > 0 && (
                     <div style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                      background: 'var(--bg-secondary)', border: '1px solid var(--panel-border)',
-                      borderRadius: 8, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                      background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+                      borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-lg)',
                       maxHeight: 220, overflowY: 'auto',
                     }}>
                       {searchResults.map(n => (
@@ -401,9 +401,9 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                   {searchOpen && searchQuery.trim() && searchResults.length === 0 && (
                     <div style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                      background: 'var(--bg-secondary)', border: '1px solid var(--panel-border)',
+                      background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                       borderRadius: 8, padding: '10px 14px', fontSize: 13,
-                      color: 'var(--text-muted)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                      color: 'var(--text-muted)', boxShadow: 'var(--shadow-lg)',
                     }}>
                       No nodes found
                     </div>

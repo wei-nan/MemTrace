@@ -80,15 +80,15 @@ function CreateWorkspaceModal({
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.7)', display: 'flex',
+        background: 'var(--bg-overlay)', display: 'flex',
         alignItems: 'center', justifyContent: 'center',
       }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: '#1a1d24', border: '1px solid var(--border-color)',
+        background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
         borderRadius: 16, padding: 32, width: 480, maxWidth: '90vw',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        boxShadow: 'var(--shadow-lg)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h2 style={{ fontSize: 18 }}>{zh ? '建立工作區' : 'Create Workspace'}</h2>
@@ -132,8 +132,8 @@ function CreateWorkspaceModal({
                   onClick={() => setKbType(card.value)}
                   style={{
                     padding: '12px 14px', borderRadius: 10, cursor: 'pointer',
-                    border: `2px solid ${kbType === card.value ? 'var(--accent-color)' : 'var(--border-color)'}`,
-                    background: kbType === card.value ? 'rgba(99,102,241,0.12)' : 'var(--bg-secondary)',
+                    border: `2px solid ${kbType === card.value ? 'var(--color-primary)' : 'var(--border-default)'}`,
+                    background: kbType === card.value ? 'var(--color-primary-subtle)' : 'var(--bg-surface)',
                     transition: 'all 0.15s',
                   }}
                 >
@@ -144,7 +144,7 @@ function CreateWorkspaceModal({
             </div>
           </div>
 
-          {error && <div style={{ color: 'var(--error-color)', fontSize: 13 }}>{error}</div>}
+          {error && <div style={{ color: 'var(--color-error)', fontSize: 13 }}>{error}</div>}
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
             <button className="btn-secondary" onClick={onClose} disabled={loading}>
@@ -223,12 +223,12 @@ function SettingsPanel() {
       {/* Free Credits */}
       <section style={{ marginBottom: 40 }}>
         <h3 style={{ fontSize: 15, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Coins size={16} style={{ color: 'var(--accent-color)' }} />
+          <Coins size={16} style={{ color: 'var(--color-primary)' }} />
           {zh ? '免費 AI 額度' : 'Free AI Credits'}
         </h3>
         {credits ? (
           <div style={{
-            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+            background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
             borderRadius: 12, padding: 20,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -239,10 +239,10 @@ function SettingsPanel() {
                 {credits.free_used.toLocaleString()} / {credits.free_limit.toLocaleString()} tokens
               </span>
             </div>
-            <div style={{ height: 6, background: 'var(--border-color)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{ height: 6, background: 'var(--border-subtle)', borderRadius: 3, overflow: 'hidden' }}>
               <div style={{
                 height: '100%', borderRadius: 3,
-                background: 'linear-gradient(90deg, var(--gradient-start), var(--gradient-end))',
+                background: 'var(--color-primary)',
                 width: `${Math.min(100, (credits.free_used / credits.free_limit) * 100)}%`,
                 transition: 'width 0.4s',
               }} />
@@ -261,7 +261,7 @@ function SettingsPanel() {
       {/* API Keys */}
       <section style={{ marginBottom: 40 }}>
         <h3 style={{ fontSize: 15, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Key size={16} style={{ color: 'var(--accent-color)' }} />
+          <Key size={16} style={{ color: 'var(--color-primary)' }} />
           {zh ? '個人 API Key' : 'Personal API Keys'}
         </h3>
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
@@ -276,7 +276,7 @@ function SettingsPanel() {
             {keys.map(k => (
               <div key={k.id} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                 borderRadius: 8, padding: '10px 14px',
               }}>
                 <div>
@@ -298,7 +298,7 @@ function SettingsPanel() {
 
         {/* Add key form */}
         <div style={{
-          background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
           borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 12,
         }}>
           <div style={{ display: 'flex', gap: 10 }}>
@@ -308,9 +308,9 @@ function SettingsPanel() {
                 onClick={() => setProvider(p.value)}
                 style={{
                   padding: '6px 14px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
-                  border: `1px solid ${provider === p.value ? 'var(--accent-color)' : 'var(--border-color)'}`,
-                  background: provider === p.value ? 'rgba(99,102,241,0.18)' : 'transparent',
-                  color: provider === p.value ? 'var(--accent-color)' : 'var(--text-muted)',
+                  border: `1px solid ${provider === p.value ? 'var(--color-primary)' : 'var(--border-default)'}`,
+                  background: provider === p.value ? 'var(--color-primary-subtle)' : 'transparent',
+                  color: provider === p.value ? 'var(--color-primary)' : 'var(--text-muted)',
                 }}
               >
                 {p.label}
@@ -325,8 +325,8 @@ function SettingsPanel() {
             onChange={e => setApiKey(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
           />
-          {error && <div style={{ color: 'var(--error-color)', fontSize: 12 }}>{error}</div>}
-          {success && <div style={{ color: '#4ade80', fontSize: 12 }}>{success}</div>}
+          {error && <div style={{ color: 'var(--color-error)', fontSize: 12 }}>{error}</div>}
+          {success && <div style={{ color: 'var(--color-success)', fontSize: 12 }}>{success}</div>}
           <button className="btn-primary" onClick={handleSaveKey} disabled={saving} style={{ alignSelf: 'flex-start' }}>
             {saving ? (zh ? '儲存中…' : 'Saving…') : (zh ? '儲存 API Key' : 'Save API Key')}
           </button>
@@ -601,15 +601,15 @@ export default function App() {
           {!sidebarCollapsed && user && !user.email_verified && (
             <div style={{
               margin: '0 12px 12px', padding: '10px 12px', borderRadius: 8,
-              background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)',
+              background: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning)',
               display: 'flex', flexDirection: 'column', gap: 6
             }}>
-              <div style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 11, color: 'var(--color-warning)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Mail size={12} /> {zh ? '信箱未驗證' : 'Email Unverified'}
               </div>
               <button 
                 onClick={() => auth.resendVerification().then(() => alert(zh ? '已送出' : 'Sent!'))}
-                style={{ background: 'none', border: 'none', color: 'var(--accent-color)', fontSize: 10, cursor: 'pointer', textAlign: 'left', padding: 0 }}
+                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: 10, cursor: 'pointer', textAlign: 'left', padding: 0 }}
               >
                 {zh ? '重新發送驗證信' : 'Resend verification'}
               </button>

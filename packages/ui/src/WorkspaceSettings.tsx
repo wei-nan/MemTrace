@@ -70,10 +70,10 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
       {/* Invite Member */}
       <section>
         <h3 style={{ fontSize: 16, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <UserPlus size={18} className="text-accent" />
+          <UserPlus size={18} style={{ color: 'var(--color-primary)' }} />
           {zh ? '邀請成員' : 'Invite Member'}
         </h3>
-        <div style={{ display: 'flex', gap: 10, background: 'var(--bg-secondary)', padding: 16, borderRadius: 12, border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', gap: 10, background: 'var(--bg-surface)', padding: 16, borderRadius: 12, border: '1px solid var(--border-default)' }}>
           <input 
             className="mt-input" 
             placeholder="email@example.com" 
@@ -105,7 +105,7 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {invites.map(inv => (
-              <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13 }}>
+              <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 8, fontSize: 13 }}>
                 <div>{inv.email} <span style={{ opacity: 0.5 }}>({inv.role})</span></div>
                 <button onClick={() => handleDeleteInvite(inv.id)} style={{ background: 'none', border: 'none', color: 'var(--error-color)', cursor: 'pointer' }}>
                   <Trash2 size={14} />
@@ -119,14 +119,14 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
       {/* Members List */}
       <section>
         <h3 style={{ fontSize: 16, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Users size={18} className="text-accent" />
+          <Users size={18} style={{ color: 'var(--color-primary)' }} />
           {zh ? '工作區成員' : 'Workspace Members'}
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {members.map(m => (
-            <div key={m.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 12 }}>
+            <div key={m.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 16, background: 'var(--panel-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 16, background: 'var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>
                   {m.display_name[0].toUpperCase()}
                 </div>
                 <div>

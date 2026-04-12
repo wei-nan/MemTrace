@@ -40,13 +40,13 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
         disabled={uploading}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 12px', background: 'rgba(99,102,241,0.1)',
-          border: '1px dashed var(--accent-color)', borderRadius: 8,
-          cursor: 'pointer', color: 'var(--accent-color)', fontSize: 13,
+          padding: '10px 12px', background: 'var(--color-primary-subtle)',
+          border: '1px dashed var(--color-primary)', borderRadius: 8,
+          cursor: 'pointer', color: 'var(--color-primary)', fontSize: 13,
           transition: 'all 0.2s',
         }}
-        onMouseOver={e => e.currentTarget.style.background = 'rgba(99,102,241,0.15)'}
-        onMouseOut={e => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'}
+        onMouseOver={e => e.currentTarget.style.background = 'var(--color-primary-subtle)'}
+        onMouseOut={e => e.currentTarget.style.background = 'var(--color-primary-subtle)'}
       >
         {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
         <span style={{ fontWeight: 500 }}>{zh ? '攝入新文件' : 'Ingest File'}</span>

@@ -44,7 +44,7 @@ export default function OnboardingWizard({
 
   const renderAccount = () => (
     <div style={{ textAlign: 'center' }}>
-      <CheckCircle2 size={48} color="#4ade80" style={{ marginBottom: 16 }} />
+      <CheckCircle2 size={48} style={{ color: 'var(--color-success)', marginBottom: 16 }} />
       <h3>{zh ? '帳號已建立' : 'Account Created'}</h3>
       <p style={{ color: 'var(--text-muted)' }}>{zh ? '歡迎來到 MemTrace！您已經成功踏出第一步。' : 'Welcome to MemTrace! You have successfully taken the first step.'}</p>
       <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('account')}>
@@ -55,7 +55,7 @@ export default function OnboardingWizard({
 
   const renderEmail = () => (
     <div style={{ textAlign: 'center' }}>
-      <Mail size={48} color="var(--accent-color)" style={{ marginBottom: 16 }} />
+      <Mail size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
       <h3>{zh ? '驗證信箱' : 'Verify Email'}</h3>
       <p style={{ color: 'var(--text-muted)' }}>{zh ? '我們已發送驗證連結至您的信箱，請查看。' : 'We sent a verification link to your email, please check.'}</p>
       <button className="btn-secondary" style={{ marginTop: 12 }} onClick={() => auth.resendVerification()}>
@@ -71,7 +71,7 @@ export default function OnboardingWizard({
 
   const renderKb = () => (
     <div style={{ textAlign: 'center' }}>
-      <Database size={48} color="var(--accent-color)" style={{ marginBottom: 16 }} />
+      <Database size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
       <h3>{zh ? '建立第一個知識庫' : 'Create First KB'}</h3>
       <p style={{ color: 'var(--text-muted)' }}>{zh ? '知識庫是您的記憶容器。' : 'A knowledge base is a container for your memories.'}</p>
       <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('kb')}>
@@ -82,7 +82,7 @@ export default function OnboardingWizard({
 
   const renderIngest = () => (
     <div style={{ textAlign: 'center' }}>
-      <FileUp size={48} color="var(--accent-color)" style={{ marginBottom: 16 }} />
+      <FileUp size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
       <h3>{zh ? '匯入資料' : 'Ingest Data'}</h3>
       <p style={{ color: 'var(--text-muted)' }}>{zh ? '您可以上傳文件讓 AI 自動為您建立知識節點。' : 'You can upload documents to let AI build knowledge nodes for you.'}</p>
       <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('ingest')}>
@@ -93,7 +93,7 @@ export default function OnboardingWizard({
 
   const renderAi = () => (
     <div style={{ textAlign: 'center' }}>
-      <Settings2 size={48} color="var(--accent-color)" style={{ marginBottom: 16 }} />
+      <Settings2 size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
       <h3>{zh ? 'AI 設定' : 'AI Settings'}</h3>
       <p style={{ color: 'var(--text-muted)' }}>{zh ? '若您有自己的 OpenAI/Claude Key，可以在此設定。' : 'Provide your own OpenAI/Claude key if you have one.'}</p>
       <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('ai')}>
@@ -104,7 +104,7 @@ export default function OnboardingWizard({
 
   const renderReview = () => (
     <div style={{ textAlign: 'center' }}>
-      <Eye size={48} color="var(--accent-color)" style={{ marginBottom: 16 }} />
+      <Eye size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
       <h3>{zh ? '審核 AI 擷取內容' : 'Review AI Extractions'}</h3>
       <p style={{ color: 'var(--text-muted)' }}>{zh ? '所有 AI 產生的內容都會進入審核佇列，確保品質。' : 'Everything AI generates goes to the review queue to ensure quality.'}</p>
       <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('review')}>
@@ -115,7 +115,7 @@ export default function OnboardingWizard({
 
   const renderDone = () => (
     <div style={{ textAlign: 'center' }}>
-      <PartyPopper size={48} color="#facc15" style={{ marginBottom: 16 }} />
+      <PartyPopper size={48} style={{ color: 'var(--color-warning)', marginBottom: 16 }} />
       <h3>{zh ? '大功告成！' : 'All Set!'}</h3>
       <p style={{ color: 'var(--text-muted)' }}>{zh ? '您已準備好開始構建您的數位大腦。' : 'You are ready to start building your digital brain.'}</p>
       <button className="btn-primary" style={{ marginTop: 24 }} onClick={onComplete}>
@@ -127,10 +127,10 @@ export default function OnboardingWizard({
   return (
     <div className="onboarding-overlay" style={{
       position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column'
+      background: 'var(--bg-base)', display: 'flex', flexDirection: 'column'
     }}>
       {/* Progress Header */}
-      <div style={{ padding: '32px 64px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ padding: '32px 64px', borderBottom: '1px solid var(--border-default)', display: 'flex', justifyContent: 'center' }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', maxWidth: 800, width: '100%' }}>
           {STEPS.map((step, i) => {
              const Icon = step.icon;
@@ -140,14 +140,14 @@ export default function OnboardingWizard({
                <div key={step.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                  <div style={{
                    width: 32, height: 32, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                   background: isDone ? '#4ade80' : isActive ? 'var(--accent-color)' : 'var(--bg-secondary)',
-                   color: isDone || isActive ? '#fff' : 'var(--text-muted)',
+                   background: isDone ? 'var(--color-success)' : isActive ? 'var(--color-primary)' : 'var(--bg-surface)',
+                   color: isDone || isActive ? 'white' : 'var(--text-muted)',
                    transition: 'all 0.3s'
                  }}>
                    <Icon size={16} />
                  </div>
                  {i < STEPS.length - 1 && (
-                   <div style={{ position: 'absolute', height: 2, background: 'var(--border-color)', width: '100%' }} />
+                   <div style={{ position: 'absolute', height: 2, background: 'var(--border-default)', width: '100%' }} />
                  )}
                </div>
              )

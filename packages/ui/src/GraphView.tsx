@@ -189,7 +189,7 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
         </div>
       </header>
 
-      <div style={{ flex: 1, position: 'relative', margin: '0 40px 40px', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--panel-border)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}>
+      <div style={{ flex: 1, position: 'relative', margin: '0 40px 40px', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
         <ReactFlow
           nodes={rfNodes}
           edges={rfEdges}
@@ -202,7 +202,7 @@ export default function GraphView({ wsId, reloadKey, onEditNode, onNewNode }: Pr
         >
           <Background color="var(--border-default)" gap={20} size={1} />
           <Controls style={{ background: 'var(--bg-surface)', fill: 'var(--text-primary)' }} />
-          <MiniMap style={{ background: 'var(--bg-surface)' }} nodeColor={() => 'var(--color-primary)'} maskColor="rgba(0,0,0,0.5)" />
+          <MiniMap style={{ background: 'var(--bg-surface)' }} nodeColor={() => 'var(--color-primary)'} maskColor="var(--bg-overlay)" />
         </ReactFlow>
       </div>
     </div>
