@@ -19,7 +19,7 @@ import { useModal } from './components/ModalContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean };
-type View = 'graph' | 'settings' | 'review' | 'ws_settings';
+type View = 'graph' | 'settings' | 'review' | 'ws_settings' | 'ingest';
 
 // ── CreateWorkspaceModal ───────────────────────────────────────────────────────
 
@@ -667,6 +667,12 @@ export default function App() {
               <span className="nav-text">{zh ? '成員管理' : 'Workspace Members'}</span>
             </div>
           )}
+          {!sidebarCollapsed && selectedWs && (
+            <div className={`nav-item ${currentView === 'ingest' ? 'active' : ''}`} style={{ marginTop: 4 }} onClick={() => setCurrentView('ingest')}>
+              <Mail size={18} />
+              <span className="nav-text">{zh ? '匯入文件' : 'Ingest File'}</span>
+            </div>
+          )}
         </nav>
 
         <div style={{ marginTop: 'auto' }}>
@@ -714,6 +720,26 @@ export default function App() {
           <div style={{ padding: 40, maxWidth: 800, margin: '0 auto' }}>
              <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '工作區設定' : 'Workspace Settings'}</h2>
              <WorkspaceSettings wsId={selectedWs.id} />
+          </div>
+        )}
+        {currentView === 'ingest' && selectedWs && (
+          <div style={{ padding: 40, maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
+             <h2 style={{ fontSize: 22, marginBottom: 12 }}>{zh ? '匯入現有文件' : 'Ingest Existing File'}</h2>
+             <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>
+               {zh ? '上傳 .md 或 .txt 檔案，讓 AI 幫您拆解成知識節點。' : 'Upload .md or .txt files; AI will break them into knowledge nodes.'}
+             </p>
+             <IngestButton 
+                wsId={selectedWs.id} 
+                onStarted={() => setCurrentView('review')} 
+             />
+             <div style={{ marginTop: 40, padding: 20, background: 'var(--bg-elevated)', borderRadius: 12, textAlign: 'left' }}>
+               <h4 style={{ fontSize: 14, marginBottom: 10 }}>{zh ? '匯入說明' : 'Ingestion Tips'}</h4>
+               <ul style={{ fontSize: 13, color: 'var(--text-secondary)', paddingLeft: 20, lineHeight: 1.6 }}>
+                 <li>{zh ? '支援格式：Markdown (.md) 與純文字 (.txt)' : 'Supported formats: Markdown (.md) and Plain Text (.txt)'}</li>
+                 <li>{zh ? 'AI 會自動辨識標題、節點類型與關聯' : 'AI automatically identifies titles, types, and relations'}</li>
+                 <li>{zh ? '擷取結果將進入「審核佇列」，確認後才正式存入圖譜' : 'Extractions go to the Review Queue for your final confirmation'}</li>
+               </ul>
+             </div>
           </div>
         )}
         </ErrorBoundary>

@@ -5,20 +5,19 @@ import json
 from core.database import db_cursor
 from core.deps import get_current_user
 from core.security import generate_id
-from models.ai import ExtractionRequest
+from core.ai import (
+    resolve_provider, 
+    chat_completion, 
+    record_usage, 
+    EXTRACTION_SYSTEM, 
+    strip_fences
+)
 from routers.kb import _require_ws_access
-from routers.ai import extract_nodes
 
 router = APIRouter(prefix="/workspaces", tags=["ingest"])
 
 async def process_ingestion(ws_id: str, content: str, user_id: str, filename: str):
-    # This calls the AI extraction
-    # We fake the ExtractionRequest for extract_nodes
-    # Note: in a real background task, we'd need to mock the user dict for Depends
-    
-    # For now, let's implement the logic directly or call the helper functions from ai.py
-    from core.ai import resolve_provider, chat_completion, record_usage, EXTRACTION_SYSTEM
-    
+    """Background task to extract knowledge nodes from uploaded content."""
     try:
         resolved = resolve_provider(user_id, "extraction")
         messages = [
@@ -27,12 +26,8 @@ async def process_ingestion(ws_id: str, content: str, user_id: str, filename: st
         ]
         raw, tokens = await chat_completion(resolved, messages)
         
-        # Cleanup JSON
-        import re
-        text = raw.strip()
-        text = re.sub(r"^```(?:json)?\s*", "", text)
-        text = re.sub(r"\s*```$", "", text)
-        nodes_data = json.loads(text)
+        # Cleanup JSON using shared utility
+        nodes_data = json.loads(strip_fences(raw))
         
         with db_cursor(commit=True) as cur:
             for n in nodes_data:
@@ -41,11 +36,12 @@ async def process_ingestion(ws_id: str, content: str, user_id: str, filename: st
                 cur.execute("""
                     INSERT INTO review_queue (id, workspace_id, node_data, suggested_edges, source_info)
                     VALUES (%s, %s, %s, %s, %s)
-                """, (rev_id, ws_id, json.dumps(n), json.dumps(edges), f"ingest: {filename}"))
+                """, (rev_id, ws_id, json.dumps(n, ensure_ascii=False), json.dumps(edges), f"ingest: {filename}"))
         
         record_usage(resolved, "extraction", tokens, ws_id)
         
     except Exception as e:
+        # In a real app, we might write a failure record to the DB or notify the user
         print(f"Ingestion failed for {filename}: {e}")
 
 @router.post("/{ws_id}/ingest")
@@ -58,12 +54,15 @@ async def ingest_file(
     with db_cursor() as cur:
         _require_ws_access(cur, ws_id, user, write=True)
     
-    # Read content (assuming text for now)
+    # Read content
     try:
         content_bytes = await file.read()
         content = content_bytes.decode("utf-8")
     except Exception:
-        raise HTTPException(status_code=400, detail="Only UTF-8 text files are supported currently")
+        raise HTTPException(
+            status_code=400, 
+            detail="Only UTF-8 encoded files (.txt, .md) are supported currently."
+        )
         
     background_tasks.add_task(process_ingestion, ws_id, content, user["sub"], file.filename)
     

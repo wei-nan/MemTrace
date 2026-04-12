@@ -47,6 +47,7 @@ export default function OnboardingWizard({
   // Review State
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const idx = STEPS.findIndex(s => !state.steps_done.includes(s.id));
@@ -87,8 +88,7 @@ export default function OnboardingWizard({
     }
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleUpload = async (file?: File) => {
     if (!file || !state.first_kb_id) return;
     setLoading(true);
     setError('');
@@ -104,6 +104,22 @@ export default function OnboardingWizard({
       setError(e.message);
       setLoading(false);
     }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleUpload(file);
   };
 
   const handleSaveAiKey = async () => {
@@ -188,10 +204,19 @@ export default function OnboardingWizard({
           : (zh ? '上傳 .md 或 .txt 檔案，讓 AI 幫您拆解成知識節點。' : 'Upload .md or .txt files; AI will break them into knowledge nodes.')}
       </p>
       {!isProcessing && (
-        <label className="onboard-upload mt-24">
-          <input type="file" accept=".md,.txt" onChange={handleUpload} hidden disabled={loading}/>
+        <label 
+          className={`onboard-upload mt-24 ${isDragging ? 'dragging' : ''}`}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+        >
+          <input type="file" accept=".md,.txt" onChange={e => handleUpload(e.target.files?.[0])} hidden disabled={loading}/>
           <Upload size={32} />
-          <span>{loading ? (zh ? '上傳中...' : 'Uploading...') : (zh ? '點擊或拖放檔案' : 'Click or Drag File')}</span>
+          <span>
+            {loading ? (zh ? '上傳中...' : 'Uploading...') : 
+             isDragging ? (zh ? '放開以匯入' : 'Drop to Ingest') :
+             (zh ? '點擊或拖放檔案' : 'Click or Drag File')}
+          </span>
         </label>
       )}
       {isProcessing && (
@@ -344,6 +369,7 @@ export default function OnboardingWizard({
           cursor: pointer; transition: all 0.2s; color: var(--text-muted);
         }
         .onboard-upload:hover { border-color: var(--color-primary); background: var(--color-primary-subtle); color: var(--color-primary); }
+        .onboard-upload.dragging { border-color: var(--color-primary); background: var(--color-primary-subtle); color: var(--color-primary); transform: scale(1.02); }
         
         .provider-selector { display: flex; gap: 8px; justify-content: center; }
         .provider-selector button {

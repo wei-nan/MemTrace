@@ -154,7 +154,7 @@ class OpenAIProvider(AIProvider):
 
 class AnthropicProvider(AIProvider):
     name                    = "anthropic"
-    default_chat_model      = "claude-haiku-4-5-20251001"
+    default_chat_model      = "claude-3-haiku-20240307"
     default_embedding_model = ""  # Anthropic does not offer a native embedding API
 
     async def chat(self, api_key, model, messages, max_tokens, temperature):
@@ -361,3 +361,69 @@ async def embed(
     text: str,
 ) -> tuple[list[float], int]:
     return await resolved.provider.embed(resolved.api_key, resolved.model, text)
+
+# ── AI Prompts ────────────────────────────────────────────────────────────────
+
+EXTRACTION_SYSTEM = """\
+You are a knowledge graph extraction assistant. Your goal is to convert source \
+material into the smallest possible set of atomic Memory Nodes connected by the \
+richest possible set of typed edges.
+
+Rules:
+- A node must contain exactly one idea. If a segment contains two ideas, split them.
+- Every node must have at least one suggested_edge to another node in the output, \
+  unless it is the only node produced.
+- The body must not repeat information already in the title.
+- Keep bodies concise — the minimum text needed to be self-contained.
+- Prefer specific edge types (depends_on > extends > related_to > contradicts).
+- Cross-segment edges are encouraged.
+
+The design goal: a human or AI agent must be able to reach any answer by \
+following the shortest possible path through the graph.
+
+Output a JSON array of nodes. Each node:
+{
+  "title_zh": "...",
+  "title_en": "...",
+  "content_type": "factual|procedural|preference|context",
+  "body_zh": "...",
+  "body_en": "...",
+  "tags": ["..."],
+  "suggested_edges": [{"to_index": 1, "relation": "depends_on"}]
+}
+Return ONLY the JSON array, no markdown fences."""
+
+
+RESTRUCTURE_SYSTEM = """\
+You are a knowledge graph editor. Evaluate a set of Memory Nodes against the \
+Node Minimization Principle:
+
+1. Does any node contain more than one discrete idea? If yes → Split.
+2. Are any two nodes not meaningfully distinct when separated? → Merge.
+3. Are related nodes missing a typed edge? → Suggest edges.
+4. Is any node title vague or too long? → Retitle.
+5. Is the content_type wrong? → Reclassify.
+6. Does any body restate its title or contain excess content? → Trim body.
+
+The measure of a good proposal: can a human or AI reach any answer faster \
+after your changes?
+
+Output a JSON array of proposed changes:
+[{
+  "operation": "split|merge|retitle|reclassify|suggest_edges|trim_body",
+  "target_node_ids": ["mem_xxx"],
+  "reason": "one sentence",
+  "proposed": { ... }
+}]
+If no changes are needed, return [].
+Return ONLY the JSON array."""
+
+# ── Utility ────────────────────────────────────────────────────────────────────
+
+def strip_fences(text: str) -> str:
+    """Remove markdown code fences if the model wrapped its JSON output."""
+    import re
+    text = text.strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    return text.strip()

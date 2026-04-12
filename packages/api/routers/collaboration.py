@@ -101,3 +101,46 @@ def delete_invite(id: str, user: dict = Depends(get_current_user)):
         
         cur.execute("DELETE FROM workspace_invites WHERE id = %s", (id,))
         return {"message": "Invite deleted"}
+
+@router.put("/{ws_id}/members/{user_id}")
+def update_member_role(ws_id: str, user_id: str, body: dict, user: dict = Depends(get_current_user)):
+    # role is expected in body["role"]
+    new_role = body.get("role")
+    if new_role not in ["viewer", "editor"]:
+        raise HTTPException(status_code=400, detail="Invalid role. Must be 'viewer' or 'editor'")
+        
+    with db_cursor(commit=True) as cur:
+        # Verify requester is owner
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws or ws["owner_id"] != user["sub"]:
+             raise HTTPException(status_code=403, detail="Only workspace owner can update member roles")
+             
+        # Owners cannot have their role changed via this endpoint
+        if user_id == ws["owner_id"]:
+            raise HTTPException(status_code=400, detail="Cannot change role of workspace owner")
+            
+        cur.execute("""
+            UPDATE workspace_members 
+            SET role = %s 
+            WHERE workspace_id = %s AND user_id = %s
+        """, (new_role, ws_id, user_id))
+        
+        return {"message": "Member role updated"}
+
+@router.delete("/{ws_id}/members/{user_id}")
+def remove_member(ws_id: str, user_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        # Verify requester is owner
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws or ws["owner_id"] != user["sub"]:
+             raise HTTPException(status_code=403, detail="Only workspace owner can remove members")
+             
+        # Owners cannot be removed
+        if user_id == ws["owner_id"]:
+            raise HTTPException(status_code=400, detail="Cannot remove workspace owner")
+            
+        cur.execute("DELETE FROM workspace_members WHERE workspace_id = %s AND user_id = %s", (ws_id, user_id))
+        
+        return {"message": "Member removed"}

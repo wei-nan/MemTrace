@@ -8,7 +8,6 @@ AI router — user-facing endpoints for:
 from __future__ import annotations
 
 import json
-import re
 from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,6 +25,9 @@ from core.ai import (
     record_usage,
     resolve_provider,
     FREE_TOKEN_LIMIT,
+    EXTRACTION_SYSTEM,
+    RESTRUCTURE_SYSTEM,
+    strip_fences,
 )
 from core.database import db_cursor
 from core.deps import get_current_user
@@ -202,36 +204,6 @@ def get_credit_status(user: dict = Depends(get_current_user)):
 
 # ── AI Feature: Extraction ─────────────────────────────────────────────────────
 
-EXTRACTION_SYSTEM = """\
-You are a knowledge graph extraction assistant. Your goal is to convert source \
-material into the smallest possible set of atomic Memory Nodes connected by the \
-richest possible set of typed edges.
-
-Rules:
-- A node must contain exactly one idea. If a segment contains two ideas, split them.
-- Every node must have at least one suggested_edge to another node in the output, \
-  unless it is the only node produced.
-- The body must not repeat information already in the title.
-- Keep bodies concise — the minimum text needed to be self-contained.
-- Prefer specific edge types (depends_on > extends > related_to > contradicts).
-- Cross-segment edges are encouraged.
-
-The design goal: a human or AI agent must be able to reach any answer by \
-following the shortest possible path through the graph.
-
-Output a JSON array of nodes. Each node:
-{
-  "title_zh": "...",
-  "title_en": "...",
-  "content_type": "factual|procedural|preference|context",
-  "body_zh": "...",
-  "body_en": "...",
-  "tags": ["..."],
-  "suggested_edges": [{"to_index": 1, "relation": "depends_on"}]
-}
-Return ONLY the JSON array, no markdown fences."""
-
-
 @router.post("/extract", response_model=ExtractionResponse)
 async def extract_nodes(
     body: ExtractionRequest,
@@ -268,7 +240,7 @@ async def extract_nodes(
         raise HTTPException(status_code=502, detail=str(e))
 
     try:
-        nodes_data = json.loads(_strip_fences(raw))
+        nodes_data = json.loads(strip_fences(raw))
         if not isinstance(nodes_data, list):
             raise ValueError("Expected JSON array")
         nodes = [ExtractedNode(**n) for n in nodes_data]
@@ -308,31 +280,6 @@ async def embed_text(
 
 
 # ── AI Feature: Restructure ────────────────────────────────────────────────────
-
-RESTRUCTURE_SYSTEM = """\
-You are a knowledge graph editor. Evaluate a set of Memory Nodes against the \
-Node Minimization Principle:
-
-1. Does any node contain more than one discrete idea? If yes → Split.
-2. Are any two nodes not meaningfully distinct when separated? → Merge.
-3. Are related nodes missing a typed edge? → Suggest edges.
-4. Is any node title vague or too long? → Retitle.
-5. Is the content_type wrong? → Reclassify.
-6. Does any body restate its title or contain excess content? → Trim body.
-
-The measure of a good proposal: can a human or AI reach any answer faster \
-after your changes?
-
-Output a JSON array of proposed changes:
-[{
-  "operation": "split|merge|retitle|reclassify|suggest_edges|trim_body",
-  "target_node_ids": ["mem_xxx"],
-  "reason": "one sentence",
-  "proposed": { ... }
-}]
-If no changes are needed, return [].
-Return ONLY the JSON array."""
-
 
 @router.post("/restructure", response_model=RestructureResponse)
 async def restructure_nodes(
@@ -380,7 +327,7 @@ async def restructure_nodes(
         raise HTTPException(status_code=502, detail=str(e))
 
     try:
-        changes_data = json.loads(_strip_fences(raw))
+        changes_data = json.loads(strip_fences(raw))
         changes = [ProposedChange(**c) for c in changes_data]
     except Exception:
         raise HTTPException(
@@ -391,13 +338,3 @@ async def restructure_nodes(
     record_usage(resolved, "restructure", tokens, body.workspace_id)
 
     return RestructureResponse(changes=changes, tokens_used=tokens, source=resolved.source)
-
-
-# ── Utility ────────────────────────────────────────────────────────────────────
-
-def _strip_fences(text: str) -> str:
-    """Remove markdown code fences if the model wrapped its JSON output."""
-    text = text.strip()
-    text = re.sub(r"^```(?:json)?\s*", "", text)
-    text = re.sub(r"\s*```$", "", text)
-    return text.strip()
