@@ -10,7 +10,7 @@ from models.review import ReviewQueueResponse, ReviewUpdate
 from models.kb import NodeCreate, NodeResponse
 from routers.kb import _require_ws_access, create_node, create_edge, EdgeCreate
 
-router = APIRouter(prefix="/workspaces", tags=["review"])
+router = APIRouter(prefix="/api/v1/workspaces", tags=["review"])
 
 @router.get("/{ws_id}/review-queue", response_model=List[ReviewQueueResponse])
 def list_review_queue(ws_id: str, status: str = "pending", user: dict = Depends(get_current_user)):

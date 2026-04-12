@@ -9,7 +9,7 @@ from core.security import generate_id
 from models.collaboration import MemberResponse, InviteCreate, InviteResponse
 from routers.kb import _require_ws_access
 
-router = APIRouter(prefix="/workspaces", tags=["collaboration"])
+router = APIRouter(prefix="/api/v1/workspaces", tags=["collaboration"])
 
 @router.get("/{ws_id}/members", response_model=List[MemberResponse])
 def list_members(ws_id: str, user: dict = Depends(get_current_user)):

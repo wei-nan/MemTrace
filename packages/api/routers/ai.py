@@ -7,7 +7,7 @@ AI router — user-facing endpoints for:
 
 from __future__ import annotations
 
-import json
+from datetime import datetime
 from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -51,8 +51,8 @@ class AIKeyResponse(BaseModel):
     id:           str
     provider:     str
     key_hint:     str
-    created_at:   str
-    last_used_at: Optional[str]
+    created_at:   datetime
+    last_used_at: Optional[datetime]
 
 
 class CreditStatusResponse(BaseModel):
@@ -128,21 +128,19 @@ def list_ai_keys(user: dict = Depends(get_current_user)):
             "FROM user_ai_keys WHERE user_id = %s ORDER BY created_at DESC",
             (user["sub"],),
         )
-        return cur.fetchall()
+        rows = cur.fetchall()
+        return [dict(row) for row in rows]
 
 
 @router.post("/keys", response_model=AIKeyResponse, status_code=201)
 def create_ai_key(body: AIKeyCreate, user: dict = Depends(get_current_user)):
     try:
         body.validate_provider()
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    key_hint = body.api_key[-4:]
-    key_enc  = encrypt_api_key(body.api_key)
-    key_id   = generate_id("uak")
+        key_hint = body.api_key[-4:]
+        key_enc  = encrypt_api_key(body.api_key)
+        key_id   = generate_id("uak")
 
-    with db_cursor(commit=True) as cur:
-        try:
+        with db_cursor(commit=True) as cur:
             cur.execute(
                 """
                 INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint)
@@ -155,9 +153,14 @@ def create_ai_key(body: AIKeyCreate, user: dict = Depends(get_current_user)):
                 """,
                 (key_id, user["sub"], body.provider, key_enc, key_hint),
             )
-            return cur.fetchone()
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=500, detail="Failed to save key")
+            return dict(row)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/keys/{provider}", status_code=204)

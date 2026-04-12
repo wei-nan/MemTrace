@@ -14,9 +14,9 @@ from core.ai import (
 )
 from routers.kb import _require_ws_access
 
-router = APIRouter(prefix="/workspaces", tags=["ingest"])
+router = APIRouter(prefix="/api/v1/workspaces", tags=["ingest"])
 
-async def process_ingestion(ws_id: str, content: str, user_id: str, filename: str):
+async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str, filename: str):
     """Background task to extract knowledge nodes from uploaded content."""
     try:
         resolved = resolve_provider(user_id, "extraction")
@@ -40,9 +40,20 @@ async def process_ingestion(ws_id: str, content: str, user_id: str, filename: st
         
         record_usage(resolved, "extraction", tokens, ws_id)
         
+        with db_cursor(commit=True) as cur:
+            cur.execute(
+                "UPDATE ingestion_logs SET status = 'completed', completed_at = now() WHERE id = %s",
+                (job_id,)
+            )
+        
     except Exception as e:
-        # In a real app, we might write a failure record to the DB or notify the user
-        print(f"Ingestion failed for {filename}: {e}")
+        error_str = str(e)
+        print(f"Ingestion failed for {filename}: {error_str}")
+        with db_cursor(commit=True) as cur:
+            cur.execute(
+                "UPDATE ingestion_logs SET status = 'failed', error_msg = %s, completed_at = now() WHERE id = %s",
+                (error_str, job_id)
+            )
 
 @router.post("/{ws_id}/ingest")
 async def ingest_file(
@@ -51,19 +62,42 @@ async def ingest_file(
     file: UploadFile = File(...), 
     user: dict = Depends(get_current_user)
 ):
-    with db_cursor() as cur:
+    with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, write=True)
+        job_id = generate_id("ing")
+        cur.execute("""
+            INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status)
+            VALUES (%s, %s, %s, %s, 'processing')
+        """, (job_id, ws_id, user["sub"], file.filename))
     
     # Read content
     try:
         content_bytes = await file.read()
         content = content_bytes.decode("utf-8")
     except Exception:
+        with db_cursor(commit=True) as cur:
+            cur.execute(
+                "UPDATE ingestion_logs SET status = 'failed', error_msg = %s, completed_at = now() WHERE id = %s",
+                ("Only UTF-8 encoded files (.txt, .md) are supported currently.", job_id)
+            )
         raise HTTPException(
             status_code=400, 
             detail="Only UTF-8 encoded files (.txt, .md) are supported currently."
         )
         
-    background_tasks.add_task(process_ingestion, ws_id, content, user["sub"], file.filename)
+    background_tasks.add_task(process_ingestion, job_id, ws_id, content, user["sub"], file.filename)
     
-    return {"message": "Ingestion started in background", "filename": file.filename}
+    return {"message": "Ingestion started in background", "filename": file.filename, "job_id": job_id}
+
+@router.get("/{ws_id}/ingest/logs")
+def list_ingestion_logs(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("""
+            SELECT id, filename, status, error_msg, created_at, completed_at
+            FROM ingestion_logs
+            WHERE workspace_id = %s
+            ORDER BY created_at DESC
+            LIMIT 20
+        """, (ws_id,))
+        return cur.fetchall()

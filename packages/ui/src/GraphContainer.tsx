@@ -29,7 +29,7 @@ interface Props {
 }
 
 export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode }: Props) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
 
   // ── Shared graph state ────────────────────────────────────────────────────

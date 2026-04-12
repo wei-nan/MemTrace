@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Check, X, Edit3, Clock, FileText,
-  Trash2, Save, ExternalLink, AlertCircle
+  Trash2, Save
 } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import { review, type ReviewItem } from './api';

@@ -176,7 +176,7 @@ function SettingsPanel({
   language: string;
   switchLanguage: () => void;
 }) {
-  const { i18n } = useTranslation();
+  useTranslation();
   const zh = language === 'zh-TW';
   const { confirm, toast } = useModal();
 
@@ -424,7 +424,7 @@ function SettingsPanel({
 
 export default function App() {
   const { i18n } = useTranslation();
-  const { toast } = useModal();
+  useModal();
 
   // ── Theme Management ───────────────────────────────────────────────────
   const [theme, setTheme] = useState(() => localStorage.getItem('mt_theme') || 'dark');
@@ -705,41 +705,47 @@ export default function App() {
           />
         )}
         {currentView === 'settings' && (
-          <SettingsPanel 
-            user={user}
-            theme={theme} 
-            toggleTheme={toggleTheme} 
-            language={i18n.language} 
-            switchLanguage={switchLanguage} 
-          />
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <SettingsPanel 
+              user={user}
+              theme={theme} 
+              toggleTheme={toggleTheme} 
+              language={i18n.language} 
+              switchLanguage={switchLanguage} 
+            />
+          </div>
         )}
         {currentView === 'review' && selectedWs && (
           <ReviewQueue wsId={selectedWs.id} onClose={() => setCurrentView('graph')} />
         )}
         {currentView === 'ws_settings' && selectedWs && (
-          <div style={{ padding: 40, maxWidth: 800, margin: '0 auto' }}>
-             <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '工作區設定' : 'Workspace Settings'}</h2>
-             <WorkspaceSettings wsId={selectedWs.id} />
+          <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
+             <div style={{ maxWidth: 800, margin: '0 auto' }}>
+                <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '工作區設定' : 'Workspace Settings'}</h2>
+                <WorkspaceSettings wsId={selectedWs.id} />
+             </div>
           </div>
         )}
         {currentView === 'ingest' && selectedWs && (
-          <div style={{ padding: 40, maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
-             <h2 style={{ fontSize: 22, marginBottom: 12 }}>{zh ? '匯入現有文件' : 'Ingest Existing File'}</h2>
-             <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>
-               {zh ? '上傳 .md 或 .txt 檔案，讓 AI 幫您拆解成知識節點。' : 'Upload .md or .txt files; AI will break them into knowledge nodes.'}
-             </p>
-             <IngestButton 
-                wsId={selectedWs.id} 
-                onStarted={() => setCurrentView('review')} 
-             />
-             <div style={{ marginTop: 40, padding: 20, background: 'var(--bg-elevated)', borderRadius: 12, textAlign: 'left' }}>
-               <h4 style={{ fontSize: 14, marginBottom: 10 }}>{zh ? '匯入說明' : 'Ingestion Tips'}</h4>
-               <ul style={{ fontSize: 13, color: 'var(--text-secondary)', paddingLeft: 20, lineHeight: 1.6 }}>
-                 <li>{zh ? '支援格式：Markdown (.md) 與純文字 (.txt)' : 'Supported formats: Markdown (.md) and Plain Text (.txt)'}</li>
-                 <li>{zh ? 'AI 會自動辨識標題、節點類型與關聯' : 'AI automatically identifies titles, types, and relations'}</li>
-                 <li>{zh ? '擷取結果將進入「審核佇列」，確認後才正式存入圖譜' : 'Extractions go to the Review Queue for your final confirmation'}</li>
-               </ul>
-             </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
+            <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
+               <h2 style={{ fontSize: 22, marginBottom: 12 }}>{zh ? '匯入現有文件' : 'Ingest Existing File'}</h2>
+               <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>
+                 {zh ? '上傳 .md 或 .txt 檔案，讓 AI 幫您拆解成知識節點。' : 'Upload .md or .txt files; AI will break them into knowledge nodes.'}
+               </p>
+               <IngestButton 
+                  wsId={selectedWs.id} 
+                  onStarted={() => setCurrentView('review')} 
+               />
+               <div style={{ marginTop: 40, padding: 20, background: 'var(--bg-elevated)', borderRadius: 12, textAlign: 'left' }}>
+                 <h4 style={{ fontSize: 14, marginBottom: 10 }}>{zh ? '匯入說明' : 'Ingestion Tips'}</h4>
+                 <ul style={{ fontSize: 13, color: 'var(--text-secondary)', paddingLeft: 20, lineHeight: 1.6 }}>
+                   <li>{zh ? '支援格式：Markdown (.md) 與純文字 (.txt)' : 'Supported formats: Markdown (.md) and Plain Text (.txt)'}</li>
+                   <li>{zh ? 'AI 會自動辨識標題、節點類型與關聯' : 'AI automatically identifies titles, types, and relations'}</li>
+                   <li>{zh ? '擷取結果將進入「審核佇列」，確認後才正式存入圖譜' : 'Extractions go to the Review Queue for your final confirmation'}</li>
+                 </ul>
+               </div>
+            </div>
           </div>
         )}
         </ErrorBoundary>

@@ -194,15 +194,7 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode }: Props) {
   }, []);
 
   // ── Expanded node tracking ───────────────────────────────────────────────
-  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-
-  // Auto-expand all nodes when data loads (show full graph initially)
-  useEffect(() => {
-    if (apiNodes.length > 0) {
-      setExpandedNodeIds(new Set(apiNodes.map(n => n.id)));
-    }
-  }, [apiNodes]);
 
   // ── Convert API data → graph format ──────────────────────────────────────
   const graphData = useMemo(() => {
@@ -258,11 +250,6 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode }: Props) {
     if (node._api && onEditNode) onEditNode(node._api);
     setSelectedNodeId(node.id);
 
-    setExpandedNodeIds(prev => {
-      const next = new Set(prev);
-      if (!next.has(node.id)) next.add(node.id);
-      return next;
-    });
 
     // Fly to node
     const dist = 80;
