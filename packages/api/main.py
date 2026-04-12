@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.database import db_cursor
+from core.email import send_workspace_deletion_notice
 from routers.auth import router as auth_router
 from routers.kb   import router as kb_router
 from routers.ai   import router as ai_router
@@ -19,7 +20,7 @@ DECAY_INTERVAL_SECONDS = 86400  # 24 hours
 
 
 async def _decay_loop():
-    """Background task: apply edge weight decay once per day."""
+    """Background task: apply edge weight decay and node archiving once per day."""
     while True:
         try:
             with db_cursor(commit=True) as cur:
@@ -27,24 +28,102 @@ async def _decay_loop():
                 cur.execute("SELECT apply_node_archiving()")
             logger.info("Decay and archiving applied successfully")
         except Exception as exc:
-            # apply_edge_decay() may not exist in SQLite dev mode — log and continue
             logger.warning("Edge decay skipped: %s", exc)
         await asyncio.sleep(DECAY_INTERVAL_SECONDS)
 
 
+async def _deletion_notification_loop():
+    """
+    Background task: send email warnings for workspaces pending deletion.
+    Runs once per day and notifies owners at:
+      - 30 days remaining (first notice, sent immediately on soft-delete)
+      - 5 days remaining  (urgent warning)
+      - 0 days remaining  (purged — hard delete performed)
+    """
+    while True:
+        await asyncio.sleep(DECAY_INTERVAL_SECONDS)   # first run after 24 h
+        try:
+            _run_deletion_notifications()
+        except Exception as exc:
+            logger.warning("Deletion notification loop error: %s", exc)
+
+
+def _run_deletion_notifications() -> None:
+    with db_cursor(commit=True) as cur:
+        # ── Purge workspaces past the grace period ────────────────────────────
+        cur.execute("""
+            SELECT w.id, w.name_en, w.name_zh, u.email, u.display_name,
+                   w.kb_type,
+                   CASE w.kb_type
+                     WHEN 'ephemeral' THEN 7
+                     ELSE 30
+                   END AS grace_days
+            FROM workspaces w
+            JOIN users u ON u.id = w.owner_id
+            WHERE w.status = 'pending_deletion'
+              AND w.deleted_at < now() - (
+                    CASE w.kb_type WHEN 'ephemeral' THEN INTERVAL '7 days'
+                                   ELSE INTERVAL '30 days' END
+                  )
+        """)
+        to_purge = cur.fetchall()
+        for ws in to_purge:
+            try:
+                send_workspace_deletion_notice(
+                    ws["email"], ws["name_zh"] or ws["name_en"], days_left=0
+                )
+                logger.info("Purging workspace %s (%s)", ws["id"], ws["name_en"])
+            except Exception as e:
+                logger.warning("Failed to send purge notice for %s: %s", ws["id"], e)
+            cur.execute("DELETE FROM workspaces WHERE id = %s", (ws["id"],))
+
+        # ── 5-day urgent warning ──────────────────────────────────────────────
+        cur.execute("""
+            SELECT w.id, w.name_en, w.name_zh, u.email,
+                   w.kb_type,
+                   CASE w.kb_type WHEN 'ephemeral' THEN 7 ELSE 30 END AS grace_days
+            FROM workspaces w
+            JOIN users u ON u.id = w.owner_id
+            WHERE w.status = 'pending_deletion'
+              AND w.deleted_at BETWEEN
+                    now() - (CASE w.kb_type WHEN 'ephemeral' THEN INTERVAL '7 days'
+                                            ELSE INTERVAL '30 days' END)
+                              + INTERVAL '1 day'
+                AND now() - (CASE w.kb_type WHEN 'ephemeral' THEN INTERVAL '7 days'
+                                            ELSE INTERVAL '30 days' END)
+                              + INTERVAL '2 days'
+        """)
+        for ws in cur.fetchall():
+            days_left = 5 if ws["kb_type"] != "ephemeral" else 2
+            restore_url = f"http://localhost:5173/workspaces/{ws['id']}/restore"
+            try:
+                send_workspace_deletion_notice(
+                    ws["email"],
+                    ws["name_zh"] or ws["name_en"],
+                    days_left=days_left,
+                    restore_url=restore_url,
+                )
+            except Exception as e:
+                logger.warning("Failed to send warning notice for %s: %s", ws["id"], e)
+
+    logger.info("Deletion notification cycle complete (purged=%d)", len(to_purge))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    task = asyncio.create_task(_decay_loop())
-    logger.info("Decay scheduler started (interval=%ds)", DECAY_INTERVAL_SECONDS)
+    decay_task      = asyncio.create_task(_decay_loop())
+    deletion_task   = asyncio.create_task(_deletion_notification_loop())
+    logger.info("Background schedulers started (decay + deletion notifications)")
     try:
         yield
     finally:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
-        logger.info("Decay scheduler stopped")
+        for t in (decay_task, deletion_task):
+            t.cancel()
+            try:
+                await t
+            except asyncio.CancelledError:
+                pass
+        logger.info("Background schedulers stopped")
 
 
 app = FastAPI(

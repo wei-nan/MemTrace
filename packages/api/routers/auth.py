@@ -10,6 +10,7 @@ from fastapi.responses import RedirectResponse
 from core.config import settings
 from core.database import db_cursor
 from core.deps import bearer, get_current_user
+from core.email import send_password_reset_email, send_verification_email
 from core.security import (
     check_password_policy,
     compute_signature,
@@ -66,7 +67,7 @@ def register(body: RegisterRequest):
             "INSERT INTO email_verification_tokens (token, user_id, expires_at) VALUES (%s, %s, %s)",
             (verify_token, user_id, now + timedelta(hours=24))
         )
-        print(f"DEBUG: Verification email for {body.email}: http://localhost:5173/verify-email?token={verify_token}")
+        send_verification_email(body.email, verify_token)
 
     token = create_access_token(user_id, body.email, body.display_name)
     return TokenResponse(access_token=token)
@@ -143,7 +144,7 @@ def forgot_password(body: ForgotPasswordRequest):
                 VALUES (%s, %s, %s)
                 ON CONFLICT (user_id) DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at
             """, (token, user["id"], expires))
-            # TODO: send reset email
+            send_password_reset_email(body.email, token)
     # Always return 204 — no user enumeration
 
 
@@ -354,6 +355,6 @@ def resend_verification_email(user: dict = Depends(get_current_user)):
             "INSERT INTO email_verification_tokens (token, user_id, expires_at) VALUES (%s, %s, %s)",
             (verify_token, user["sub"], now + timedelta(hours=24))
         )
-        print(f"DEBUG: Resent verification email for {u['email']}: http://localhost:5173/verify-email?token={verify_token}")
+        send_verification_email(u["email"], verify_token)
         
         return {"message": "Verification email resent"}
