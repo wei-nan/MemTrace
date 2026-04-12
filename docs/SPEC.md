@@ -3,6 +3,8 @@
 ## 1. Introduction
 MemTrace is an open platform for building shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to allow any human or AI agent to reach any answer by following the shortest possible path through a graph of small, typed relationships — rather than reading through large documents. This specification outlines all core components, including Memory Schema, Edge Schema, Trust mechanics, and the Decay engine.
 
+Central to MemTrace is the belief that **knowledge itself has intrinsic value** and that the people who curate it should have full sovereignty over how it is shared — whether openly with the world, conditionally with an audience, or kept entirely private. The platform is designed so that sharing a knowledge base is a deliberate choice, not an accident.
+
 ## 1.1 Core Product Philosophy
 
 ### Knowledge through connection, not accumulation
@@ -25,6 +27,19 @@ Decay ensures that the graph stays honest: connections that nobody follows fade 
 
 Importantly, **nothing is deleted by decay alone**. A node that has not been accessed in a long time does not disappear — it fades into the background, becoming less visible in default views and traversal results. An author or workspace admin can always retrieve, restore, or archive any node explicitly. The decay mechanism shapes attention, not existence.
 
+### Knowledge has intrinsic value
+
+Knowledge is not a commodity that becomes more valuable only when shared freely. The effort, insight, and curation behind a well-structured Knowledge Base represent real intellectual work — work that belongs to its author.
+
+MemTrace is built on the premise that **anyone can choose how to present the knowledge they manage**:
+
+- **Openly** — a public Knowledge Base becomes a shared resource, discoverable by anyone, growing in value through community traversal and contribution.
+- **Conditionally** — a conditionally-public Knowledge Base lets the wider world see its shape and structure, signalling that the knowledge exists, without surrendering the content itself. Interested parties can request access; the author decides who enters.
+- **Restrictedly** — a restricted Knowledge Base is invisible to those not invited. Its existence is not disclosed, and access is entirely on the author's terms.
+- **Privately** — a private Knowledge Base is for the author alone, a personal thinking space with no external surface.
+
+This is not merely a permissions model. It is a statement about the **relationship between knowledge and its curator**. MemTrace does not assume that value is created only when knowledge is free. It assumes that value is created when knowledge is structured, connected, and curated — and that the curator has the right to decide what happens next.
+
 ### Design principles that follow from this
 
 | Principle | Implication |
@@ -34,8 +49,9 @@ Importantly, **nothing is deleted by decay alone**. A node that has not been acc
 | **Shortest path is the design goal** | Every structural decision — node granularity, edge type, content type — should be evaluated by whether it shortens the path a human or AI agent needs to follow to reach an answer. |
 | **Entry point independence** | Any node can serve as an entry point. Navigation follows edges, not a fixed hierarchy. |
 | **Value is earned** | Trust scores, traversal counts, and edge weights reflect real usage, not just authorship intent. |
-| **Authorship is traceable but not gatekeeping** | Provenance is always recorded, but anyone with access can read, extend, or copy a node. |
+| **Knowledge sovereignty and protection** | The core value is knowledge sharing, but the author retains full control over the depth of that sharing. Roles clearly distinguish between those who can only see the graph structure (Viewers) and those who can access and edit detailed content (Editors/Admins). |
 | **Decay shapes attention, not existence** | No node or edge is permanently deleted by the decay engine alone. Faded content is archived, not destroyed. |
+| **Knowledge sovereignty belongs to the curator** | Every Knowledge Base owner decides how their knowledge is shared — fully public, conditionally visible, invitation-only, or entirely private. Sharing is always a deliberate act, never a default. |
 
 ## 2. Terminology
 - **Memory Node**: A discrete piece of knowledge, written bilingually (zh-TW and en) or unilaterally.
@@ -45,12 +61,16 @@ Importantly, **nothing is deleted by decay alone**. A node that has not been acc
 - **Archive**: The state a node or edge enters when it is no longer relevant to default views. Archived content is hidden but not destroyed and can be restored at any time.
 - **Faded**: The state an edge enters when its weight drops below `min_weight` due to decay. A faded edge is archived automatically but can be restored.
 - **Knowledge Base Type**: A workspace-level setting (`evergreen` or `ephemeral`) that governs how the decay engine treats nodes and edges in that workspace (see §7.3).
-- **Knowledge Base Visibility**: The sharing level of a Knowledge Base, controlling who can discover and access it. Distinct from Memory Node visibility, which controls individual node access within a Knowledge Base.
+- **Knowledge Base Visibility**: The four-tier sharing level of a Knowledge Base (`public`, `conditional_public`, `restricted`, `private`), controlling who can discover and access it. Set at creation time and immutable thereafter. Distinct from Memory Node visibility, which controls individual node access within a Knowledge Base.
+- **Write Serialization**: The per-workspace write queue mechanism that ensures concurrent writes (by humans or AI) are applied in arrival order, preventing race conditions.
+- **Conflict Flag**: A marker applied to a Memory Node when the system detects a logical inconsistency introduced by an AI or concurrent human edit (see §17.4).
+- **KB Association**: An explicit link between two Knowledge Bases that grants AI agents permission to reason across their contents (see §18).
+- **Source Document Node**: A special `source_document` node created when a file is ingested, retaining the original text with paragraph-level markers. Excluded from default graph and search views (see §20).
 - **Identity Provider (IdP)**: An external service that authenticates a user and returns a verified identity claim. Google is the supported IdP for OAuth login.
 - **Session Token**: A short-lived signed token issued by MemTrace after successful authentication, used to authorize subsequent API requests.
 
 ## 3. Product User Flow
-1. **Knowledge Base Creation**: A user can initialize multiple Knowledge Bases (Workspaces) with a chosen **type** (`evergreen` or `ephemeral`, see §7.3) and **sharing level** (`public`, `restricted`, or `private`). A Knowledge Base may be started blank or bootstrapped from a document (see §11.1). Sharing level can be changed by the owner at any time (see §12).
+1. **Knowledge Base Creation**: A user can initialize multiple Knowledge Bases (Workspaces) with a chosen **type** (`evergreen` or `ephemeral`, see §7.3) and **sharing level** — one of four tiers: `public`, `conditional_public`, `restricted`, or `private` (see §12). The sharing level is immutable after creation. The creating user is automatically added as an admin. A Knowledge Base may be started blank or bootstrapped from a document (see §11.1). A workspace may be associated with other workspaces to enable AI cross-KB reasoning (see §18).
 2. **Ingestion & Upload**: Users can input raw text, Markdown, or upload rich files (PDF, Word, video, meeting recordings). The AI Extraction pipeline applies the Node Minimization Principle (§11.3) to split source material into the smallest meaningful units and proposes typed edges between them. All candidates enter a Review Queue for human approval before committing (see §11.2).
 3. **Relationship Mapping**: Edges are as important as nodes. After creating or accepting a node, users are expected to define its relationships — by drawing connections in the Graph View, using the Edge panel in the Node Editor, or accepting AI-proposed edges. A node with no edges is incomplete.
 4. **Node Portability**: Any individual Memory Node can be copied to another Knowledge Base without carrying its Edges (see §11.3).
@@ -83,8 +103,8 @@ Importantly, **nothing is deleted by decay alone**. A node that has not been acc
 - `copy-node <node-id> --to <workspace-id>`: Copy a single Memory Node into another Knowledge Base; Edges are not copied (see §11.3).
 - `push`: Sync local changes to a remote repository (e.g. GitHub).
 - `pull`: Pull remote changes from GitHub or central index.
-- `export`: Export memories matching standard JSON schema to local filesystem.
-- `import`: Import previously exported memory JSON files into the hub.
+- `export`: Export a Knowledge Base or filtered subset to local filesystem. Accepts `--type` and `--format` flags (see §22).
+- `import`: Import a previously exported Knowledge Base archive into MemTrace (see §22).
 
 ## 7. Decay Mechanics
 
@@ -324,7 +344,7 @@ The MemTrace Web UI is fully internationalized to support a global user base and
 - **Language Selection**: Users can toggle between languages globally, which operates independently from the bilingual content tabs used during memory creation.
 
 ### 9.2 Memory Export & Import
-Users must be able to export their current working memory to a local JSON file (conforming to `node.v1.json`) and import an existing JSON file directly into the editor for further modification or restoration.
+Users can export their current working memory to a local file (JSON, Markdown, or plain text) and import an existing archive back into any workspace. Node-level and full-KB export/import are supported. For full specification including export types, filterable scopes, and format details, see **§22 — Knowledge Base Export & Import**.
 
 ### 9.3 Manual Memory Node Creation & Editing
 
@@ -442,10 +462,15 @@ MemTrace does **not** operate its own AI inference service. All AI features (nod
 
 The following providers are supported in the official release:
 
-| Provider | Identifier | Chat model (default) | Embedding model |
-|----------|------------|----------------------|-----------------|
-| OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` |
-| Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` |
+| Provider | Identifier | Chat model (default) | Embedding model | Embedding Dim |
+|----------|------------|----------------------|-----------------|---------------|
+| OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` | 1536 |
+| Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` | 1024 |
+| **Google Gemini** | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | **768** |
+
+> **Embedding dimension note**: Different providers produce vectors of different dimensions. A workspace's embedding dimension is fixed at creation time based on the provider chosen (stored in `workspaces.embedding_provider` and `workspaces.embedding_dim`). Nodes embedded with different models cannot be compared by cosine similarity.
+
+The Gemini provider is implemented as a built-in `AIProvider` calling the Google Generative Language API. Users supply a personal Gemini API key (`AIza...`) via Settings → AI Provider, stored encrypted under `provider = 'gemini'` in `user_ai_keys`.
 
 #### 11.2.3 Community-Contributed Providers
 
@@ -640,91 +665,174 @@ The copied node's `visibility` defaults to `private` in the target Knowledge Bas
 
 ## 12. Knowledge Base Sharing Levels
 
-### 12.1 Overview
+### 12.1 Four-Tier Visibility System
 
-Each Knowledge Base has a **visibility** setting that controls who can discover and access it. This is independent from the `visibility` field on individual Memory Nodes, which controls access at the node level within a Knowledge Base.
+Each Knowledge Base has a **visibility** setting that controls who can discover and access it. This is independent from the `visibility` field on individual Memory Nodes. **Visibility is set at creation time and cannot be changed thereafter.**
 
-| Level | Identifier | Description |
-|-------|------------|-------------|
-| 全公開 | `public` | Discoverable and readable by anyone, including unauthenticated users. |
-| 限定公開 | `restricted` | Not publicly discoverable. Accessible only to users who hold an explicit invite link or have been granted access by the owner. |
-| 私人 | `private` | Visible only to the owner. Not discoverable or accessible by any other user. |
+| Tier | Identifier | Chinese | Description |
+|------|------------|---------|-------------|
+| 全公開 | `public` | 公開 | Discoverable and readable by anyone, including unauthenticated users. |
+| 有條件公開 | `conditional_public` | 有條件公開 | Anyone can discover the KB and submit a **join request** to admins. Admission requires explicit admin approval. |
+| 限制公開 | `restricted` | 限制公開 | The KB is **invisible** to non-members through search or discovery. Access requires explicit invitation from an admin. |
+| 私有 | `private` | 私有 | Completely inaccessible to all other users. Invitations cannot be issued. |
 
-### 12.2 Behavior by Level
+> **Design constraint**: The visibility selector must be shown clearly during workspace creation, each tier described inline, and the user must explicitly confirm their choice. The field is immutable — any `PATCH /workspaces/{ws_id}` request that includes `visibility` returns `400 Immutable field: visibility`.
+
+### 12.2 Behavior by Tier
 
 #### `public`
-- Appears in global search and discovery feeds.
-- Any user (authenticated or not) can read all nodes whose node-level `visibility` is `public`.
-- Nodes with node-level `visibility: team` or `private` remain hidden from external viewers regardless of Knowledge Base visibility.
+- Appears in global search and discovery feeds, accessible without login.
+- Any authenticated user can read all nodes whose node-level `visibility` is `public`.
+- Nodes with node-level `visibility: team` or `private` remain hidden from non-members.
 - Anyone can copy `public`-visibility nodes to their own Knowledge Base.
 
+#### `conditional_public`
+- Appears in global search and discovery. KB name, description, and public-facing summary are readable by anyone.
+- **Graph Preview Mode**: Non-members (unauthenticated or not-yet-approved) may view the **knowledge graph topology** (node positions, edge connections, relation type labels) but **cannot access node content**. Clicking any node displays a locked placeholder instead of the node body.
+- Node titles are **obfuscated** in graph preview: only the `content_type` badge and an anonymized node ID are shown. Titles and body content are not transmitted to the client.
+- The graph preview is read-only and non-interactive beyond panning and zooming.
+- Any authenticated user may submit a join request (`POST /workspaces/{ws_id}/join-requests`).
+- An admin must explicitly approve or reject each request.
+- Approved users are added as `viewer` by default (configurable per request) and gain full node content access.
+- Rejected applicants may not reapply for 7 days.
+
 #### `restricted`
-- Does not appear in global search or discovery feeds.
-- Access is granted via **invite link** (time-limited, revocable) or by the owner adding specific users.
-- Invited users can read all nodes whose node-level `visibility` is `public` or `team`.
-- Node-level `private` nodes remain visible only to the owner.
-- Copying nodes is allowed for users who have been granted access.
+- Does **not** appear in global search or discovery. The KB's existence is not disclosed to non-members through any API.
+- Access is granted via explicit admin invitation only (`POST /workspaces/{ws_id}/invites`).
+- Invited users are added with the role specified in the invite token.
 
 #### `private`
 - Completely hidden from all other users.
-- Only the owner can read, edit, or copy nodes.
-- Does not appear in any search or listing.
+- **Invitations cannot be issued.** No non-owner user may be added to the workspace.
+- Does not appear in any listing or search result.
 
-### 12.3 Changing Visibility
+### 12.3 Workspace Roles & Permissions
 
-- The owner can change the Knowledge Base visibility at any time from the workspace settings panel.
-- **Downgrade (e.g. `public` → `private`)**: Previously accessible content becomes inaccessible immediately. Existing invite links are revoked.
-- **Upgrade (e.g. `private` → `public`)**: Content becomes accessible according to the new level. No retroactive change to individual node-level visibility.
-- Changing Knowledge Base visibility does **not** automatically change node-level `visibility` on any Memory Node.
+To firmly establish the product's core focus on the **Knowledge Owner**, access to knowledge within a workspace (particularly `conditional_public` and `restricted` workspaces) is strictly role-based. Knowledge sharing is the primary goal, but the author has the ultimate choice regarding who can extract raw facts or modify the structure.
 
-### 12.4 Interaction with Node-Level Visibility
+| Role | Permissions |
+|------|-------------|
+| **`viewer`** (檢視者) | Can view the knowledge graph topology and node titles, but **cannot access individual node body content or details**. This allows viewers to understand the shape of the knowledge and its connections without allowing data extraction. |
+| **`editor`** (編輯者) | Can view both the topology and full node details. Can propose edits to nodes, create new nodes, and establish edges. |
+| **`admin`** (管理者) | Retains full ownership features. Can view and edit everything, configure the Knowledge Base, manage join requests, and invite users while assigning roles. |
 
-The effective access of a node is the **more restrictive** of the two levels:
+A workspace may have **multiple admins**. The original creator is automatically assigned the `admin` role and cannot demote themselves unless another admin exists. Any existing admin may promote another member to admin.
 
-| KB Visibility | Node Visibility | Effective Access |
-|---------------|-----------------|-----------------|
-| `public` | `public` | Anyone |
-| `public` | `team` | Invited / granted users only |
-| `public` | `private` | Owner only |
-| `restricted` | `public` | Invited / granted users only |
-| `restricted` | `team` | Invited / granted users only |
-| `restricted` | `private` | Owner only |
-| `private` | any | Owner only |
+```sql
+-- member_role ENUM definition:
+ALTER TYPE member_role ADD VALUE IF NOT EXISTS 'admin';
+```
 
-### 12.5 Schema — Knowledge Base Object
+API: `PUT /workspaces/{ws_id}/members/{user_id}` accepts `{ "role": "viewer | editor | admin" }`.
 
-A Knowledge Base is represented as a workspace-level object (separate from `node.v1.json`):
+### 12.4 Creator Auto-Membership
+
+When a workspace is created, the creating user is automatically inserted into `workspace_members` with `role = 'admin'`. This makes admin status explicit, auditable, and visible in the Members UI.
+
+```sql
+-- Runs atomically in the same transaction as the workspace INSERT:
+INSERT INTO workspace_members (workspace_id, user_id, role)
+VALUES (<new_ws_id>, <creator_id>, 'admin');
+```
+
+### 12.5 Join Request Flow (`conditional_public` only)
+
+```
+Applicant → POST /workspaces/{ws_id}/join-requests
+        ↓
+join_requests row created (status = pending)
+        ↓
+Admin(s) notified (in-app + email)
+        ↓
+Admin reviews: approve / reject
+        ↓
+Approved → workspace_members inserted (viewer by default)
+Rejected → status = rejected; 7-day reapplication cooldown
+```
+
+**Schema:**
+```sql
+CREATE TABLE join_requests (
+  id            TEXT PRIMARY KEY,
+  workspace_id  TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message       TEXT,
+  status        TEXT NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending','approved','rejected')),
+  requested_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reviewed_at   TIMESTAMPTZ,
+  reviewed_by   TEXT REFERENCES users(id),
+  UNIQUE (workspace_id, user_id)
+);
+```
+
+| KB Visibility | Viewer Type | Graph Topology | Node Title | Node Body | Edges |
+|---------------|------------|---------------|-----------|----------|-------|
+| `public` | Anyone | ✓ Visible | ✓ Visible | ✓ Visible (if node `public`) | ✓ |
+| `conditional_public` | Non-member | ✓ Visible | ✗ Obfuscated | ✗ Hidden | ✓ (relation type only) |
+| `conditional_public` | Member (`viewer`) | ✓ Visible | ✓ Visible | ✗ Hidden | ✓ |
+| `conditional_public` | Member (`editor`/`admin`) | ✓ Visible | ✓ Visible | ✓ Visible | ✓ |
+| `restricted` | Non-member | ✗ Hidden | ✗ Hidden | ✗ Hidden | ✗ |
+| `restricted` | Member (`viewer`) | ✓ Visible | ✓ Visible | ✗ Hidden | ✓ |
+| `restricted` | Member (`editor`/`admin`) | ✓ Visible | ✓ Visible | ✓ Visible | ✓ |
+| `private` | Anyone else | ✗ Hidden | ✗ Hidden | ✗ Hidden | ✗ |
+
+> **Note**: For `conditional_public` non-members, the graph preview transmits only node coordinates, edge connectivity, and relation type labels. For `viewer` members, Titles and Edges are visible, but Body content is **never sent** to the client. This is enforced at the API response layer, not by frontend filtering.
+
+### 12.7 Schema — Knowledge Base Object
 
 ```json
 {
   "id": "ws_abc123",
   "schema_version": "1.0",
   "name": { "zh-TW": "...", "en": "..." },
-  "visibility": "public | restricted | private",
+  "visibility": "public | conditional_public | restricted | private",
+  "visibility_locked": true,
   "kb_type": "evergreen | ephemeral",
+  "embedding_provider": "openai | anthropic | gemini",
+  "embedding_dim": 1536,
   "owner": "<user-id>",
-  "decay_config": {
-    "archive_window_days": 90,
-    "min_traversals": 1
-  },
+  "decay_config": { "archive_window_days": 90, "min_traversals": 1 },
   "members": [
-    { "user_id": "<user-id>", "role": "viewer | editor" }
+    { "user_id": "<user-id>", "role": "viewer | editor | admin" }
   ],
-  "invite_links": [
-    {
-      "token": "<uuid>",
-      "role": "viewer | editor",
-      "expires_at": "<date-time | null>"
-    }
-  ],
+  "associations": ["ws_xyz"],
   "created_at": "<date-time>",
   "updated_at": "<date-time>"
 }
 ```
 
-- `kb_type` is set at creation and **cannot be changed** after the workspace is created.
-- `decay_config` is only relevant for `evergreen` workspaces. For `ephemeral` workspaces, decay parameters are set per content type (see §7.3).
-- `members` and `invite_links` are only relevant for `restricted` workspaces. For `public` workspaces, all authenticated users implicitly have `viewer` access.
+- `kb_type`, `visibility`, `embedding_provider`, and `embedding_dim` are all **immutable after creation**.
+- `members` for `private` workspaces contains only the owner.
+
+### 12.8 Graph Preview Response Shape (`conditional_public`, non-member)
+
+When the graph data endpoint is called by a non-member on a `conditional_public` workspace, the server returns a **stripped graph payload**:
+
+```json
+{
+  "preview_mode": true,
+  "nodes": [
+    {
+      "id": "node_preview_1",
+      "content_type": "factual",
+      "position": { "x": 120.4, "y": -88.2 }
+    }
+  ],
+  "edges": [
+    {
+      "from": "node_preview_1",
+      "to": "node_preview_2",
+      "relation": "depends_on"
+    }
+  ]
+}
+```
+
+- Real `memory_node.id` values are **replaced** with opaque sequential preview IDs (`node_preview_N`) that are not stable across requests.
+- `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, `trust_score`, and all provenance fields are **omitted entirely** from the response.
+- The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` serves this stripped payload. Attempting `GET /api/v1/workspaces/{ws_id}/nodes/{id}` as a non-member returns `HTTP 403`.
+- Preview payload is **not cacheable** by the client (response header: `Cache-Control: no-store`).
 
 ## 10. Schema Extensions
 
@@ -1781,3 +1889,952 @@ CREATE TABLE chat_messages (
 | Node Search | Search query | Embedding | No | No |
 | Node Restructuring | Manual selection | LLM completion | Yes — Review Panel | No (until approved) |
 | **Conversational Q&A** | **Chat message** | **LLM completion** | **No** | **No (read-only)** |
+| **AI Conversation Panel (edit mode)** | **Chat message + allow_edits** | **LLM completion** | **Yes — inline proposal card** | **No (until accepted)** |
+
+---
+
+## 17. Write Serialization & Concurrent Edit Safety
+
+### 17.1 Motivation
+
+When multiple users (or AI agents) submit writes to the same Knowledge Base simultaneously, the following failure modes must be prevented:
+
+- A node is modified by two parties simultaneously, producing a split-brain state.
+- A document ingestion creates duplicate nodes or conflicting edges because two ingestions ran in parallel.
+- An AI restructure proposes changes on a stale snapshot while a concurrent human edit was being saved.
+
+### 17.2 Optimistic Locking on Nodes
+
+Every `memory_nodes` row carries an `updated_at` timestamp and a `version` integer. All update endpoints require the caller to supply the last-known version:
+
+```http
+PATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}
+X-Node-Version: <integer>
+```
+
+If the node has been modified since the supplied version, the server returns:
+
+```
+HTTP 412 Precondition Failed
+{ "detail": "Node was modified by another actor since your last fetch. Reload and retry." }
+```
+
+The client must re-fetch the node, merge changes, and re-submit. No silent clobber.
+
+**Schema addition:**
+
+```sql
+ALTER TABLE memory_nodes ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;
+-- Increment on every successful UPDATE:
+-- version = version + 1
+```
+
+### 17.3 Write Queue per Workspace
+
+To prevent race conditions during document ingestion, bulk AI extraction, and concurrent node creation, **writes to the same workspace are serialized through a per-workspace advisory lock.**
+
+```sql
+-- Acquired at the start of every write transaction:
+SELECT pg_advisory_xact_lock(hashtext(<ws_id>));
+-- Released automatically on transaction commit or rollback
+```
+
+- If the lock cannot be acquired within the timeout, the server returns `HTTP 429 Write queue busy — try again shortly`.
+- The lock is scoped per-workspace; writes to different workspaces are fully parallel.
+- Read operations are **never** gated by the write lock.
+- Timeout is configurable via `WS_WRITE_LOCK_TIMEOUT_SECONDS` (default: 5).
+
+### 17.4 Logical Conflict Detection
+
+After any AI-generated or AI-restructured node is committed, an **asynchronous conflict check** runs to detect logical inconsistencies introduced by the AI.
+
+#### 17.4.1 Conflict Types
+
+| Type | Description |
+|------|-------------|
+| `contradicts_existing` | Node body contradicts a body-level assertion in an existing `contradicts`-linked node |
+| `duplicate_content` | Node embedding cosine-similarity ≥ 0.92 to an existing active node |
+| `circular_dependency` | A `depends_on` edge would create a cycle in the dependency graph |
+| `orphaned_reference` | Node body references another node by ID but no edge exists |
+
+#### 17.4.2 Conflict Flagging Schema
+
+```sql
+ALTER TABLE memory_nodes
+  ADD COLUMN IF NOT EXISTS conflict_status  TEXT
+    CHECK (conflict_status IN (NULL, 'flagged', 'resolved')),
+  ADD COLUMN IF NOT EXISTS conflict_detail  JSONB;
+  -- { "type": "...", "conflicting_node_id": "...", "message": "..." }
+```
+
+Flagged nodes display an **amber warning indicator** in the Graph View and a dismissible conflict card in the node editor.
+
+**Resolving:** Edit the node to remove the contradiction → `conflict_status = 'resolved'`, or call `PATCH .../acknowledge-conflict` to dismiss without content change.
+
+#### 17.4.3 AI Write Rules
+
+AI agents (MCP) are subject to the same write serialization and conflict detection as human users. A `conflict_warning` field is returned in the next tool response if a conflict is detected post-commit:
+
+```json
+{
+  "result": "...",
+  "conflict_warning": {
+    "node_id": "mem_xyz",
+    "type": "duplicate_content",
+    "similar_node_id": "mem_abc"
+  }
+}
+```
+
+---
+
+## 18. Knowledge Base Associations
+
+### 18.1 Purpose
+
+A Knowledge Base may be **associated** with one or more other Knowledge Bases to form a trusted knowledge network. Associations are the explicit signal that AI agents may use to reason across workspace boundaries. An AI agent operating in a workspace may **not** reference or query nodes from an unassociated workspace, regardless of visibility.
+
+### 18.2 Association Model
+
+Associations are directional. Mutual association (both directions) is required for full bidirectional AI cross-querying.
+
+```sql
+CREATE TABLE workspace_associations (
+  id              TEXT PRIMARY KEY,
+  source_ws_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  target_ws_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  created_by      TEXT NOT NULL REFERENCES users(id),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (source_ws_id, target_ws_id),
+  CHECK (source_ws_id <> target_ws_id)
+);
+```
+
+**API:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/workspaces/{ws_id}/associations` | List all associated workspaces |
+| `POST` | `/workspaces/{ws_id}/associations` | Add an association (admin only) |
+| `DELETE` | `/workspaces/{ws_id}/associations/{target_ws_id}` | Remove an association (admin only) |
+
+### 18.3 AI Cross-Workspace Rules
+
+1. **Boundary enforcement**: AI agents may only query workspaces directly associated with the target workspace. No transitive lookup — one hop maximum.
+2. **Permission check**: Before including any node from an associated workspace in a prompt, the system verifies the requesting user has at least `viewer` role in that workspace. Non-accessible nodes are silently excluded.
+3. **Write restriction**: AI mutation tools may only write to the workspace specified in the API call. They cannot write to an associated workspace, even if the user has rights in both.
+4. **Scope disclosure**: Nodes cited from an associated workspace include a `cross_kb: true` flag in the response.
+
+---
+
+## 19. AI Conversation Panel
+
+### 19.1 Overview
+
+The **AI Conversation Panel** is a first-class, standalone UI surface — separate from the graph search bar. It allows persistent, multi-turn dialogue grounded in the workspace knowledge graph. Unlike the read-only Conversational Q&A (§13), it supports **in-conversation edit proposals**.
+
+### 19.2 Access
+
+- Accessible via a dedicated panel button in the sidebar (distinct from the search icon).
+- Available to users with **viewer role or above**.
+- Authentication required — not accessible to unauthenticated users.
+
+### 19.3 Conversation Capabilities
+
+| Capability | Description |
+|------------|-------------|
+| **KB enquiry** | Ask questions about knowledge base content; AI retrieves and cites relevant nodes (same pipeline as §13). |
+| **Content clarification** | Ask AI to explain, expand, or simplify a specific node, grounded in its body and depth-1 graph neighborhood. |
+| **In-conversation edit proposal** | User says "update this node to reflect X" — AI generates a diff proposal shown as an inline card. User Accepts, Edits, or Rejects. |
+| **Cross-KB query** | If associated workspaces are configured (§18) and the user has access, AI may draw on those nodes (labeled accordingly). |
+
+### 19.4 Edit Proposal Flow
+
+```
+User: "Update mem_a002 to mention OCR requirement."
+        ↓
+AI generates proposed body diff
+        ↓
+Inline proposal card rendered:
+  ┌─────────────────────────────────────────────────┐
+  │  📝 Proposed edit to mem_a002                   │
+  │  + Scanned PDFs require OCR (Phase 2+)          │
+  │  [Accept]  [Edit]  [Reject]                     │
+  └─────────────────────────────────────────────────┘
+        ↓
+contributor → enters review_queue (pending_admin_review)
+admin       → applied immediately
+```
+
+### 19.5 API Extension
+
+```http
+POST /api/v1/workspaces/{ws_id}/chat
+{
+  "message": "...",
+  "session_id": "optional",
+  "lang": "zh-TW | en",
+  "allow_edits": true
+}
+```
+
+Response when a proposal is generated:
+
+```json
+{
+  "answer": "Here is the proposed change:",
+  "cited_nodes": ["mem_a002"],
+  "proposal": {
+    "operation": "update_node",
+    "target_node_id": "mem_a002",
+    "diff": { "body_zh": "...", "body_en": "..." },
+    "proposal_id": "prop_xyz"
+  },
+  "session_id": "sess_xyz"
+}
+```
+
+A follow-up request with `{ "action": "accept" | "reject", "proposal_id": "prop_xyz" }` applies or discards the change.
+
+### 19.6 Cross-KB Boundary
+
+When `allow_edits: true`, AI may propose edits **only to nodes in the current workspace**. It may read from associated workspaces but may not propose writes to them.
+
+---
+
+## 20. Source File Retention on Ingested Nodes
+
+### 20.1 Purpose
+
+When a document is ingested, the **original source file is retained** as a special node. This ensures extraction traceability and gives users a direct link from any extracted node back to its source passage without polluting the main knowledge graph.
+
+### 20.2 Source Document Node
+
+A `source_document` content type is added:
+
+```sql
+ALTER TYPE content_type ADD VALUE IF NOT EXISTS 'source_document';
+```
+
+| Field | Value |
+|-------|-------|
+| `content_type` | `source_document` |
+| `title_zh` / `title_en` | Original filename + ingestion timestamp |
+| `body_zh` / `body_en` | Full extracted text or transcript |
+| `visibility` | `private` (default) |
+| `source_type` | `human` |
+
+### 20.3 Paragraph-Level Markers
+
+Each extracted node carries a reference to its source passage:
+
+```sql
+ALTER TABLE memory_nodes
+  ADD COLUMN IF NOT EXISTS source_doc_node_id   TEXT REFERENCES memory_nodes(id),
+  ADD COLUMN IF NOT EXISTS source_paragraph_ref TEXT;
+```
+
+| Source Format | Reference Format |
+|---------------|-----------------|
+| Markdown / plain text | `§<heading>` or `¶<paragraph_index>` |
+| PDF / DOCX | `page:<n>, para:<m>` |
+| PPTX | `slide:<n>` |
+| Video / audio | `<HH:MM:SS>-<HH:MM:SS>` |
+| Web page | `<section heading or XPath fragment>` |
+
+### 20.4 Traversal Exclusion
+
+Source document nodes are **excluded by default** from:
+- Graph View (hidden unless "Show source files" is enabled)
+- Keyword and semantic search results
+- Q&A and AI Conversation context retrieval
+- MCP `search_nodes` results
+
+They are accessible via:
+- Direct `GET /workspaces/{ws_id}/nodes/{node_id}`
+- `GET /workspaces/{ws_id}/source-documents` (dedicated endpoint)
+- The "View source passage" link in the node editor sidebar
+
+---
+
+## 21. AI Usage Logging
+
+### 21.1 Requirement
+
+**All AI calls — regardless of key type (user-supplied, free tier, or future managed credits) — must be logged.** The log is the authoritative record for billing, debugging, and policy enforcement.
+
+### 21.2 Log Schema
+
+```sql
+CREATE TABLE ai_usage_log (
+  id              TEXT PRIMARY KEY,
+  user_id         TEXT NOT NULL REFERENCES users(id),
+  key_source      TEXT NOT NULL
+                  CHECK (key_source IN ('user_key', 'free_tier', 'managed')),
+  provider        TEXT NOT NULL,        -- 'openai' | 'anthropic' | 'gemini' | ...
+  model           TEXT NOT NULL,        -- e.g. 'gpt-4o-mini', 'gemini-2.0-flash'
+  feature         TEXT NOT NULL
+                  CHECK (feature IN ('extraction','embedding','restructure',
+                                     'chat','conflict_check','conversation_panel')),
+  workspace_id    TEXT REFERENCES workspaces(id) ON DELETE SET NULL,
+  node_id         TEXT,
+  tokens_input    INTEGER NOT NULL DEFAULT 0,
+  tokens_output   INTEGER NOT NULL DEFAULT 0,
+  tokens_total    INTEGER GENERATED ALWAYS AS (tokens_input + tokens_output) STORED,
+  latency_ms      INTEGER,
+  success         BOOLEAN NOT NULL DEFAULT true,
+  error_code      TEXT,
+  called_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_ai_usage_user     ON ai_usage_log (user_id, called_at DESC);
+CREATE INDEX idx_ai_usage_feature  ON ai_usage_log (feature, called_at DESC);
+CREATE INDEX idx_ai_usage_provider ON ai_usage_log (provider, called_at DESC);
+```
+
+### 21.3 Field Notes
+
+| Field | Notes |
+|-------|-------|
+| `key_source` | `user_key` = user-supplied key; `free_tier` = managed free allowance; `managed` = future paid tier |
+| `feature` | Which AI capability triggered the call |
+| `tokens_input` / `tokens_output` | Reported by provider; used for quota accounting |
+| `latency_ms` | Provider call wall time; useful for SLO monitoring |
+| `success` | `false` if provider returned an error |
+| `error_code` | Raw provider error code (e.g. `insufficient_quota`, `rate_limit_exceeded`) |
+
+### 21.4 API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/user/ai-usage` | Paginated usage log for the current user |
+| `GET` | `/api/v1/user/ai-usage/summary` | Aggregated by day, feature, and provider |
+
+Query parameters: `?from=<ISO date>&to=<ISO date>&provider=openai|anthropic|gemini|all`
+
+Summary response:
+```json
+{
+  "period": { "from": "2026-04-01", "to": "2026-04-30" },
+  "by_feature": {
+    "chat": { "calls": 42, "tokens_total": 18400 },
+    "extraction": { "calls": 7, "tokens_total": 31200 }
+  },
+  "by_provider": {
+    "openai": { "tokens_total": 49600 },
+    "gemini": { "tokens_total": 0 }
+  }
+}
+```
+
+### 21.5 Retention
+
+Logs are retained for **12 months**, then archived. Logs are never deleted before the retention period expires.
+
+---
+
+## Summary of Schema Changes (Spec Rev 2)
+
+| Table / Object | Change | Section |
+|----------------|--------|---------|
+| `workspaces` | Add `visibility_locked`, `embedding_provider`, `embedding_dim` columns | §12.7, §11.2.2 |
+| `kb_visibility` ENUM | Add `conditional_public` value | §12.1 |
+| `member_role` ENUM | Add `admin` value | §12.3 |
+| `workspace_members` | Creator auto-inserted as `admin` on CREATE | §12.4 |
+| `workspace_associations` | New table | §18.2 |
+| `join_requests` | New table | §12.5 |
+| `memory_nodes` | Add `version`, `conflict_status`, `conflict_detail`, `source_doc_node_id`, `source_paragraph_ref` | §17.2, §17.4, §20.3 |
+| `content_type` ENUM | Add `source_document` value | §20.2 |
+| `ai_provider` ENUM | Add `gemini` value | §11.2.2 |
+| `ai_usage_log` | New table | §21.2 |
+| `kb_exports` | New table (export job tracking) | §22.5 |
+
+---
+
+## 22. Knowledge Base Export & Import
+
+### 22.1 Purpose
+
+Knowledge Base export and import provide a portable, format-agnostic mechanism to:
+
+1. **Back up** a workspace to a local archive that can be restored into any MemTrace instance.
+2. **Share** curated subsets of knowledge across teams or organizations without granting direct workspace access.
+3. **Migrate** knowledge into a new workspace or a different MemTrace deployment.
+
+Export is always a **pull-only operation** — it never modifies the source workspace. Import is an **additive operation** — it never deletes existing nodes or edges in the target workspace.
+
+---
+
+### 22.2 Export Scope
+
+An export may target the **entire workspace** or a **filtered subset** defined by one or more scope dimensions. Scopes can be combined (intersection of all active filters).
+
+#### 22.2.1 Scope Types
+
+| Scope Key | CLI Flag | Description | Matching Logic |
+|-----------|----------|-------------|----------------|
+| **User Manual** | `--type user-manual` | Nodes that describe how to use the product from an end-user perspective | Tags contain any of: `how-to`, `tutorial`, `guide`, `usage`, `onboarding`, `walkthrough`; or `content_type = 'procedural'` AND node is traversal-reachable from a root tagged `user-manual` |
+| **Business Logic** | `--type business-logic` | Nodes that encode domain rules, decision criteria, or policy constraints | Tags contain any of: `rule`, `policy`, `constraint`, `decision`, `business-logic`, `domain`; or `content_type IN ('factual', 'context')` AND tagged with at least one business-logic signal |
+| **Functional Spec** | `--type functional-spec` | Nodes that define product features, acceptance criteria, or system behaviour | Tags contain any of: `spec`, `feature`, `requirement`, `acceptance`, `behaviour`, `api`; or `content_type = 'factual'` AND tagged `spec` or `feature` |
+| **User-Defined** | `--filter` (multi-value) | Any combination of tags, content types, node IDs, or a freeform keyword query | See §22.2.2 |
+| **Full workspace** | *(no scope flag)* | All active nodes and edges in the workspace | Excludes `archived` nodes by default; include with `--include-archived` |
+
+> **Note**: Scope matching is evaluated on the server at export time. Nodes that have been archived, conflict-flagged, or are of type `source_document` are **excluded by default** from all scope types. Use explicit flags to override.
+
+#### 22.2.2 User-Defined Filter (`--filter`)
+
+Users can compose a custom export by combining any of the following filter primitives:
+
+| Filter Key | Example | Description |
+|------------|---------|-------------|
+| `tag` | `--filter tag:auth` | Include nodes whose `tags[]` contain the value |
+| `content_type` | `--filter type:procedural` | Include nodes of the specified content type |
+| `node` | `--filter node:mem_d001` | Include a specific node and its depth-1 neighbours |
+| `query` | `--filter query:"edge decay"` | Full-text keyword match across title and body |
+| `semantic` | `--filter semantic:"how does trust work"` | Semantic similarity search (requires AI provider) |
+
+Multiple `--filter` flags are combined with **AND** logic. To use OR logic, run separate exports and merge the archives.
+
+The UI provides an equivalent **"Custom Export" panel** with tag pickers, a node selector, and a keyword/semantic search field.
+
+#### 22.2.3 Edge Inclusion
+
+When a node is included in an export, its **edges are included if and only if both endpoint nodes are also included** in the same export. Edges to excluded nodes are dropped. This preserves graph coherence within the export archive.
+
+---
+
+### 22.3 Output Formats
+
+Two formats are supported in Phase 1. Additional formats are planned for later phases.
+
+#### Phase 1 — Supported
+
+| Format | Extension | Description | Phase |
+|--------|-----------|-------------|-------|
+| **Markdown** | `.md` | Each node is rendered as a Markdown document. Edges are expressed as `## Associations` sections with named links. Equivalent to the node's Graph View representation. | 1 |
+| **Plain text** | `.txt` | Each node is rendered as plain text. Edges are listed as indented `→ [relation] Title` lines after the node body. Suitable for viewing in any text editor. | 1 |
+| JSON (internal) | `.json` | Full `node.v1.json`-compliant archive with edges. Used internally for backup/restore and import. Always generated alongside the human-readable format. | 1 (internal) |
+| PDF | `.pdf` | Formatted multi-page document with table of contents, section headers per cluster, and graph diagram snapshot. | 2 |
+| HTML | `.html` | Self-contained single-page HTML with embedded CSS and an interactive node browser. | 2 |
+| CSV | `.csv` | Flat table of nodes; edges as a separate edge list file. Useful for spreadsheet analysis. | 3 |
+
+#### 22.3.1 Markdown Format — Structure
+
+The Markdown export produces a **single `.md` file per export**, structured as:
+
+```markdown
+# {Knowledge Base Name} — {Scope Label} Export
+> Exported: {ISO datetime} | Workspace: {ws_id} | Nodes: {count} | Edges: {count}
+
+---
+
+## {Cluster / Tag Group}
+
+### {node_title_en} | {node_title_zh}
+> ID: {node_id} | Type: {content_type} | Tags: {tag1}, {tag2}
+
+{body_en}
+
+---
+**Associations:**
+- → [depends_on] {linked_node_title} (`{linked_node_id}`)
+- → [extends] {linked_node_title} (`{linked_node_id}`)
+
+---
+```
+
+Nodes are grouped by their primary tag (or by cluster if the workspace uses cluster metadata). Within each group, nodes are ordered by traversal count descending (most-referenced first).
+
+#### 22.3.2 Plain Text Format — Structure
+
+```
+=== {Knowledge Base Name} — {Scope Label} Export ===
+Exported: {ISO datetime} | Workspace: {ws_id}
+
+[{node_id}] {node_title_en}
+Type: {content_type} | Tags: {tag1}, {tag2}
+
+{body_en}
+
+Associations:
+  → depends_on: {linked_node_title} [{linked_node_id}]
+  → extends:    {linked_node_title} [{linked_node_id}]
+
+────────────────────────────────────────
+```
+
+#### 22.3.3 Archive Structure
+
+The export is packaged as a **`.memtrace` archive** (a ZIP file with a `.memtrace` extension) containing:
+
+```
+export_{ws_id}_{timestamp}.memtrace
+├── manifest.json          ← metadata: scope, format, timestamps, versions
+├── nodes.json             ← all exported nodes in node.v1.json format
+├── edges.json             ← all exported edges in edge.v1.json format
+├── export.md              ← Markdown render (if requested)
+├── export.txt             ← Plain text render (if requested)
+└── source_documents/      ← (optional) source file attachments, if --include-sources
+    └── {node_id}.{ext}
+```
+
+`manifest.json` schema:
+```json
+{
+  "memtrace_version": "1.0",
+  "exported_at": "<ISO datetime>",
+  "workspace_id": "ws_abc123",
+  "workspace_name": { "zh-TW": "...", "en": "..." },
+  "scope": "full | user-manual | business-logic | functional-spec | custom",
+  "filters": [],
+  "node_count": 42,
+  "edge_count": 87,
+  "formats": ["json", "markdown"],
+  "exported_by": "usr_abc123"
+}
+```
+
+---
+
+### 22.4 Export Access Control
+
+| Role | Export permission |
+|------|------------------|
+| `viewer` | May export nodes they have read access to (node-level `visibility` filter applies) |
+| `editor` | Same as viewer |
+| `admin` | May export entire workspace including `team`-visibility nodes |
+
+Practical implications:
+- A `viewer` exporting a `public` KB with `--type functional-spec` receives only nodes whose effective access allows reads for their role.
+- `private`-visibility nodes are **never** included in exports for non-owner users, regardless of export scope.
+- Source document nodes (`content_type = 'source_document'`) require explicit `--include-sources` flag and admin role.
+
+---
+
+### 22.5 Export Job Tracking
+
+For large workspaces, export is an **asynchronous background job**. The API returns a job ID immediately; the client polls for completion.
+
+```sql
+CREATE TABLE kb_exports (
+  id              TEXT PRIMARY KEY,           -- export_<hex8>
+  workspace_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  requested_by    TEXT NOT NULL REFERENCES users(id),
+  scope           TEXT NOT NULL,              -- 'full' | 'user-manual' | 'business-logic' | 'functional-spec' | 'custom'
+  filters         JSONB NOT NULL DEFAULT '[]',
+  formats         TEXT[] NOT NULL,            -- ['json', 'markdown', 'txt']
+  include_archived BOOLEAN NOT NULL DEFAULT false,
+  include_sources  BOOLEAN NOT NULL DEFAULT false,
+  status          TEXT NOT NULL DEFAULT 'pending'
+                  CHECK (status IN ('pending','running','done','failed')),
+  node_count      INTEGER,
+  edge_count      INTEGER,
+  download_url    TEXT,                       -- pre-signed URL, valid 1 hour
+  error_detail    TEXT,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  completed_at    TIMESTAMPTZ
+);
+```
+
+**API:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/workspaces/{ws_id}/exports` | Start an export job |
+| `GET` | `/api/v1/workspaces/{ws_id}/exports/{export_id}` | Poll job status and get download URL |
+| `GET` | `/api/v1/workspaces/{ws_id}/exports` | List previous export jobs (last 30 days) |
+
+Request body for `POST /exports`:
+```json
+{
+  "scope": "user-manual | business-logic | functional-spec | custom | full",
+  "filters": [
+    { "key": "tag", "value": "auth" },
+    { "key": "type", "value": "procedural" }
+  ],
+  "formats": ["markdown", "json"],
+  "include_archived": false,
+  "include_sources": false
+}
+```
+
+Polling response (status `done`):
+```json
+{
+  "id": "export_abc123",
+  "status": "done",
+  "node_count": 42,
+  "edge_count": 87,
+  "download_url": "https://...",   <-- pre-signed, valid 1 hour
+  "completed_at": "2026-04-13T04:00:00Z"
+}
+```
+
+---
+
+### 22.6 Import
+
+#### 22.6.1 Behavior
+
+- Import accepts a `.memtrace` archive (from §22.3.3) or a raw `nodes.json` / `edges.json` pair.
+- Import is **additive**: existing nodes in the target workspace are never overwritten or deleted.
+- Each imported node receives a **new `id`** in the target workspace (same as the copy-node behavior, §11.4).
+- `provenance.copied_from` is set to the original node ID and source workspace from `manifest.json`.
+- Edges are re-linked to the new node IDs within the import batch. Edges referencing nodes not present in the import archive are dropped.
+- The importing user must have **admin role** in the target workspace.
+
+#### 22.6.2 Conflict Resolution
+
+Before committing, the import job runs the same logical conflict detection as §17.4 against the target workspace. Conflicts are surfaced in a **pre-import review screen** rather than applied blindly:
+
+```
+Import Preview (42 nodes, 87 edges)
+  ✓ 38 nodes — clean
+  ⚠  4 nodes — potential duplicates detected
+    [View details]  [Skip duplicates]  [Import anyway]
+```
+
+The user can choose to skip duplicate-flagged nodes, import all nodes regardless of conflicts (conflicts will be flagged post-import per §17.4), or cancel the import.
+
+#### 22.6.3 API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/workspaces/{ws_id}/imports` | Start an import job (multipart: archive file) |
+| `GET` | `/api/v1/workspaces/{ws_id}/imports/{import_id}` | Poll status |
+| `POST` | `/api/v1/workspaces/{ws_id}/imports/{import_id}/confirm` | Confirm after preview |
+
+Request for `POST /imports`:
+```http
+Content-Type: multipart/form-data
+
+file=<.memtrace archive>
+conflict_strategy=skip_duplicates | import_all   (default: skip_duplicates)
+```
+
+#### 22.6.4 Trust on Import
+
+Imported nodes carry their original trust scores as a snapshot (same as §11.4.2). Votes and verifications in the target workspace do not affect scores in the source and vice versa.
+
+#### 22.6.5 Visibility on Import
+
+All imported nodes default to `private` visibility in the target workspace, regardless of their visibility in the source (same as §11.4.3). The admin may bulk-update visibility after import.
+
+---
+
+### 22.7 CLI Interface
+
+```bash
+# Full workspace export (JSON + Markdown)
+memtrace export --workspace ws_abc123 --format markdown,json
+
+# Export by scope
+memtrace export --workspace ws_abc123 --type user-manual --format markdown
+memtrace export --workspace ws_abc123 --type business-logic --format txt
+memtrace export --workspace ws_abc123 --type functional-spec --format markdown,json
+
+# User-defined filter
+memtrace export --workspace ws_abc123 \
+  --filter tag:auth --filter type:procedural \
+  --format markdown
+
+# Semantic filter (requires AI provider)
+memtrace export --workspace ws_abc123 \
+  --filter semantic:"how does trust scoring work" \
+  --format txt
+
+# Include archived nodes
+memtrace export --workspace ws_abc123 --include-archived --format json
+
+# Import
+memtrace import --workspace ws_xyz789 --file export_ws_abc123_20260413.memtrace
+memtrace import --workspace ws_xyz789 --file export_ws_abc123_20260413.memtrace \
+  --conflict-strategy import_all
+```
+
+The CLI polls the job status automatically and downloads the archive to the current directory on completion:
+```
+✓ Export complete — 42 nodes, 87 edges
+  Saved: ./export_ws_abc123_20260413T040000Z.memtrace
+```
+
+---
+
+### 22.8 UI — Export Panel
+
+Accessible from **Workspace Settings → Export**.
+
+#### Layout
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Export Knowledge Base                               │
+│                                                      │
+│  Scope:                                              │
+│  ○ Full workspace                                    │
+│  ○ User Manual                                       │
+│  ○ Business Logic                                    │
+│  ○ Functional Spec                                   │
+│  ○ Custom filter                                     │
+│    [+ Tag]  [+ Type]  [+ Node]  [+ Keyword]          │
+│                                                      │
+│  Format:  ☑ Markdown  ☑ Plain text  ☐ JSON only      │
+│                                                      │
+│  Options:                                            │
+│  ☐ Include archived nodes                            │
+│  ☐ Include source files  (admin only)                │
+│                                                      │
+│  Preview: ~42 nodes, ~87 edges                       │
+│                                                      │
+│  [Cancel]                        [Export Now →]      │
+└──────────────────────────────────────────────────────┘
+```
+
+- The **Preview** count updates live as the user adjusts scope and filters.
+- On "Export Now", a progress indicator is shown. When complete, the browser downloads the `.memtrace` archive automatically.
+- Previous exports are listed with their scope, format, and download link (valid 1 hour after generation).
+
+---
+
+### 22.9 Scope Matching — Implementation Reference
+
+Scope matching is implemented as a server-side SQL query. The following shows the filter composition for each built-in scope:
+
+```sql
+-- user-manual scope
+WHERE workspace_id = :ws_id
+  AND status = 'active'
+  AND content_type != 'source_document'
+  AND (
+    tags && ARRAY['how-to','tutorial','guide','usage','onboarding','walkthrough']
+    OR content_type = 'procedural'
+  )
+
+-- business-logic scope
+WHERE workspace_id = :ws_id
+  AND status = 'active'
+  AND content_type != 'source_document'
+  AND tags && ARRAY['rule','policy','constraint','decision','business-logic','domain']
+
+-- functional-spec scope
+WHERE workspace_id = :ws_id
+  AND status = 'active'
+  AND content_type != 'source_document'
+  AND (
+    tags && ARRAY['spec','feature','requirement','acceptance','behaviour','api']
+    OR (content_type = 'factual' AND tags && ARRAY['spec','feature'])
+  )
+```
+
+Custom filter primitives are composed as additional `AND` clauses over the base `workspace_id + status` predicate.
+
+---
+
+### 22.10 Phase Roadmap
+
+| Phase | Scope | Formats | Notes |
+|-------|-------|---------|-------|
+| **1** | Full, user-manual, business-logic, functional-spec, custom | Markdown, plain text, JSON | Core export/import |
+| **2** | All Phase 1 scopes + graph-aware clustering | + PDF, HTML | PDF includes graph snapshot |
+| **3** | All Phase 2 + cross-workspace federated export | + CSV | Multi-workspace bundle export |
+
+---
+
+## 23. Knowledge Base Protection Mechanisms
+
+### 23.1 Design Goals
+
+The protection mechanisms defined in this section are designed to prevent **knowledge theft** — the systematic unauthorized extraction of node content from a Knowledge Base — while preserving legitimate usability for authorized members and approved previews.
+
+Three attack surfaces are addressed:
+
+| Attack Surface | Threat | Mitigation |
+|----------------|--------|-----------|
+| **Graph Preview API** | Non-member harvests node content by repeated calls to graph and node endpoints | Server-side data stripping; opaque non-stable preview IDs; `Cache-Control: no-store` |
+| **Bulk enumeration** | Authenticated non-member or approved member calls node list API repeatedly to extract all content | Per-user, per-workspace rate limits; pagination caps; traversal logging |
+| **Credential sharing / API key leak** | API key is shared or leaked, allowing a third party to access the workspace | Key prefix masking; key rotation; per-key scope enforcement; last-used auditing |
+
+---
+
+### 23.2 Graph Preview Protection (`conditional_public`)
+
+This section expands on §12.8 with detailed enforcement rules.
+
+#### 23.2.1 What Is and Is Not Transmitted
+
+| Data Field | Non-member (preview) | Approved member |
+|------------|---------------------|-----------------|
+| Node position (`x`, `y`) | ✓ Transmitted | ✓ Transmitted |
+| Edge connectivity (`from`, `to`) | ✓ Transmitted | ✓ Transmitted |
+| Relation type (`depends_on`, etc.) | ✓ Transmitted | ✓ Transmitted |
+| `content_type` badge | ✓ Transmitted | ✓ Transmitted |
+| Node title (zh / en) | ✗ Omitted | ✓ Transmitted |
+| Node body (zh / en) | ✗ Omitted | ✓ Transmitted |
+| Tags | ✗ Omitted | ✓ Transmitted |
+| Real node `id` | ✗ Replaced with opaque preview ID | ✓ Transmitted |
+| `trust_score`, `author`, `signature` | ✗ Omitted | ✓ Transmitted |
+| `source_paragraph_ref` | ✗ Omitted | ✓ Transmitted |
+| Embedding vector | ✗ Never transmitted to any client | ✗ Never transmitted |
+
+#### 23.2.2 Opaque Preview ID Non-Stability
+
+Preview IDs (`node_preview_N`) are generated **per-request** using a deterministic but session-keyed hash:
+
+```python
+preview_id = hmac_sha256(
+    key  = SESSION_PREVIEW_SECRET + request.session_id,
+    data = real_node_id
+)[:12]  # truncated to 12 hex chars
+```
+
+- The same real node ID maps to a **different** preview ID in every new session.
+- A non-member cannot build a stable mapping between preview IDs and real node IDs across sessions.
+- `SESSION_PREVIEW_SECRET` is a server-side environment variable, never exposed.
+
+#### 23.2.3 Node Detail Endpoint Protection
+
+When a non-member (or unauthenticated user) calls any node-level endpoint on a `conditional_public` workspace:
+
+| Endpoint | Non-member response |
+|----------|---------------------|
+| `GET /workspaces/{ws_id}/nodes/{id}` | `HTTP 403 Forbidden` — node content not disclosed |
+| `GET /workspaces/{ws_id}/nodes` (list) | `HTTP 403 Forbidden` — list not accessible to non-members |
+| `GET /workspaces/{ws_id}/nodes/search` | `HTTP 403 Forbidden` — search not accessible to non-members |
+| `GET /workspaces/{ws_id}/graph` | `HTTP 200` — stripped preview payload (§12.8) |
+| `POST /workspaces/{ws_id}/chat` | `HTTP 403 Forbidden` — Q&A not accessible to non-members |
+
+The `HTTP 403` responses include **no information disclosure** about whether the requested node ID exists. The response body is always:
+```json
+{ "detail": "Access denied. Join this Knowledge Base to view node content." }
+```
+
+---
+
+### 23.3 Rate Limiting & Bulk Enumeration Prevention
+
+Rate limits are applied at three levels: **global** (per IP), **user** (per authenticated account), and **workspace** (per workspace per user).
+
+#### 23.3.1 Rate Limit Table
+
+| Endpoint Group | Limit | Window | Scope | Consequence |
+|----------------|-------|--------|-------|-------------|
+| Graph preview (`/graph?preview=true`) | 30 requests | 1 minute | Per IP + per workspace | `429 Too Many Requests` |
+| Node read (`GET /nodes/{id}`) | 120 requests | 1 minute | Per user per workspace | `429` |
+| Node list (`GET /nodes`) | 20 requests | 1 minute | Per user per workspace | `429` |
+| Search | 30 requests | 1 minute | Per user per workspace | `429` |
+| Join request submission | 3 requests | 1 hour | Per user per workspace | `429` |
+| Export job creation | 5 requests | 1 hour | Per user per workspace | `429` |
+| API key creation | 10 requests | 1 day | Per user | `429` |
+
+Rate limit state is tracked in Redis (or a DB-backed counter for Phase 1). `Retry-After` header is set on all `429` responses.
+
+#### 23.3.2 Traversal Anomaly Detection
+
+High-volume traversal activity (e.g. automated scraping via memtrace SDK or MCP) is detected by comparing a user's traversal rate against their workspace baseline:
+
+- If a user or API key records more than **500 node traversals in any 10-minute window** within the same workspace, the server transitions the key/session into a **soft-throttle** state: responses are still served but with a 1-second artificial delay per call.
+- If traversal rate exceeds **2000 in 10 minutes**, the key/session is **suspended for 1 hour** and the workspace admin is notified.
+- Thresholds are configurable via workspace settings (admin only).
+
+---
+
+### 23.4 Workspace-Level Access Audit Log
+
+All read and write accesses to a `conditional_public` or `restricted` workspace are logged in a dedicated audit table to support admin review and threat detection.
+
+```sql
+CREATE TABLE ws_access_log (
+  id              TEXT PRIMARY KEY,
+  workspace_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  actor_id        TEXT,                  -- NULL for unauthenticated requests
+  actor_type      TEXT NOT NULL          -- 'user' | 'api_key' | 'anonymous'
+                  CHECK (actor_type IN ('user','api_key','anonymous')),
+  endpoint        TEXT NOT NULL,         -- e.g. '/api/v1/workspaces/ws_abc/nodes'
+  method          TEXT NOT NULL,         -- GET | POST | PATCH | DELETE
+  preview_mode    BOOLEAN NOT NULL DEFAULT false,
+  status_code     INTEGER NOT NULL,
+  ip_address      INET,
+  user_agent      TEXT,
+  accessed_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_ws_access_ws   ON ws_access_log (workspace_id, accessed_at DESC);
+CREATE INDEX idx_ws_access_actor ON ws_access_log (actor_id, accessed_at DESC);
+```
+
+**Retention:** Audit logs are retained for **90 days** then purged.
+
+**Admin access:** Workspace admins may query their own workspace's audit log via:
+
+```
+GET /api/v1/workspaces/{ws_id}/audit-log
+  ?from=<ISO date>
+  &to=<ISO date>
+  &actor_type=anonymous|user|api_key
+  &preview_mode=true|false
+```
+
+This allows admins to identify suspicious patterns (e.g. high anonymous preview traffic, failed node access attempts) and take action such as disabling public discovery or issuing an alert.
+
+---
+
+### 23.5 API Key Protection
+
+API keys (§14.2) are subject to additional protection measures to prevent credential leakage from becoming a knowledge theft vector.
+
+#### 23.5.1 Key Masking
+
+- The full key value is shown **exactly once** at creation, then never again.
+- Only a **prefix** (`mt_live_xxxx`) is stored server-side as a hashed value (`bcrypt` or `SHA-256`).
+- The admin UI shows only the prefix for identification.
+
+#### 23.5.2 Key Scope Enforcement
+
+| Key Scope | Max nodes readable per request | List pagination cap |
+|-----------|-------------------------------|---------------------|
+| `kb:read` (viewer) | 1 per call | 50 per page, no cursor-less bulk fetch |
+| `kb:propose` (contributor) | 1 per call | 50 per page |
+| `kb:write` (admin) | 1 per call | 100 per page |
+
+A single API call cannot retrieve all nodes in a workspace in bulk. Clients must paginate. This limits the blast radius of a compromised key.
+
+#### 23.5.3 Key Rotation
+
+- Any admin may rotate an API key at any time: the old key is immediately invalidated and a new one is issued.
+- If a key has not been used in **90 days**, it is automatically **expired** and the owner is notified.
+- Key expiry can be configured per key at creation time (options: 30d, 90d, 1y, never).
+
+#### 23.5.4 Suspicious Activity on Keys
+
+If a key triggers the traversal anomaly thresholds (§23.3.2), it is suspended and the workspace owner is notified via email with:
+- Key prefix
+- Timestamp of suspension
+- Traversal count that triggered the threshold
+- Last-known IP and user agent
+
+---
+
+### 23.6 Content Fingerprinting (Future — Phase 2+)
+
+> **Not in scope for Phase 1.** Documented here as a planned protection layer.
+
+To detect if exported or preview-accessed content has been re-published without authorization, MemTrace may introduce **content fingerprinting**:
+
+- Each node body is embedded with an invisible watermark (zero-width Unicode characters or whitespace steganography) that encodes the workspace ID, the requesting user ID, and a timestamp.
+- If watermarked content is detected in another system, the workspace admin can submit it to MemTrace for attribution analysis.
+- This does not prevent theft but provides forensic evidence for attribution.
+
+---
+
+### 23.7 Summary of Protection Layers by Tier
+
+| Protection Layer | `public` | `conditional_public` | `restricted` | `private` |
+|-----------------|---------|---------------------|-------------|----------|
+| Graph topology visible to non-members | ✓ | ✓ (preview only) | ✗ | ✗ |
+| Node content to non-members | ✓ | ✗ | ✗ | ✗ |
+| Real node IDs to non-members | ✓ | ✗ (opaque) | ✗ | ✗ |
+| Rate limiting on preview | ✓ | ✓ | N/A | N/A |
+| Access audit log | — | ✓ | ✓ | — |
+| Traversal anomaly detection | ✓ | ✓ | ✓ | ✓ |
+| API key scope enforcement | ✓ | ✓ | ✓ | ✓ |
+| Content fingerprinting | Phase 2+ | Phase 2+ | Phase 2+ | — |
