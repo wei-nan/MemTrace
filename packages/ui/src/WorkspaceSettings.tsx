@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users, Trash2, UserPlus, Clock } from 'lucide-react';
 import { workspaces, type Member, type Invite } from './api';
+import { useModal } from './components/ModalContext';
 
 export default function WorkspaceSettings({ wsId }: { wsId: string }) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
+  const { confirm, toast } = useModal();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -34,35 +36,54 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
       await workspaces.createInvite(wsId, { email: inviteEmail, role: inviteRole });
       setInviteEmail('');
       loadData();
+      toast({ message: zh ? '邀請已送出' : 'Invite sent', variant: 'success' });
     } catch (e: any) {
-      alert(e.message);
+      toast({ message: e.message, variant: 'error' });
     } finally { setSending(false); }
   };
 
   const handleDeleteInvite = async (id: string) => {
-    if (!confirm(zh ? '確定要撤回邀請？' : 'Revoke invite?')) return;
+    const ok = await confirm({
+      title: zh ? '撤回邀請' : 'Revoke Invite',
+      message: zh ? '確定要撤回此邀請？' : 'Revoke this invite?',
+      variant: 'warning',
+      confirmLabel: zh ? '撤回' : 'Revoke',
+    });
+    if (!ok) return;
     try {
       await workspaces.deleteInvite(id);
       loadData();
-    } catch (e: any) { alert(e.message); }
+      toast({ message: zh ? '邀請已撤回' : 'Invite revoked', variant: 'info' });
+    } catch (e: any) {
+      toast({ message: e.message, variant: 'error' });
+    }
   };
 
   const handleUpdateRole = async (userId: string, role: string) => {
     try {
-      // Need to add this specific method to api.ts if missing, but let's assume it's PUT /members/{id}
-      // Actually, I should check api.ts first. Wait, I'll just write the fetch here or use a generic if I didn't add it.
-      // I'll check api.ts now.
       await workspaces.updateMember(wsId, userId, role);
       loadData();
-    } catch (e: any) { alert(e.message); }
+      toast({ message: zh ? '角色已更新' : 'Role updated', variant: 'success' });
+    } catch (e: any) {
+      toast({ message: e.message, variant: 'error' });
+    }
   };
 
   const handleRemoveMember = async (userId: string) => {
-    if (!confirm(zh ? '確定要移除此成員？' : 'Remove this member?')) return;
+    const ok = await confirm({
+      title: zh ? '移除成員' : 'Remove Member',
+      message: zh ? '確定要移除此成員？移除後將失去工作區存取權。' : 'Remove this member? They will lose access to the workspace.',
+      variant: 'danger',
+      confirmLabel: zh ? '移除' : 'Remove',
+    });
+    if (!ok) return;
     try {
       await workspaces.removeMember(wsId, userId);
       loadData();
-    } catch (e: any) { alert(e.message); }
+      toast({ message: zh ? '成員已移除' : 'Member removed', variant: 'info' });
+    } catch (e: any) {
+      toast({ message: e.message, variant: 'error' });
+    }
   };
 
   return (

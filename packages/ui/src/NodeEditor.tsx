@@ -7,6 +7,7 @@ import {
   ChevronRight, Calendar, User, Shield, Type, Search,
 } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, type Node, type Edge } from './api';
+import { useModal } from './components/ModalContext';
 
 interface Props {
   wsId: string;
@@ -23,6 +24,7 @@ const RELATIONS     = ['depends_on', 'extends', 'related_to', 'contradicts'];
 
 export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode, sourceNodeId }: Props) {
   const { i18n } = useTranslation();
+  const { confirm, toast } = useModal();
   const isCreate = node === null;
   const [isEditing, setIsEditing] = useState(isCreate);
 
@@ -127,9 +129,20 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   };
 
   const handleDelete = async () => {
-    if (!node || !window.confirm(`Delete "${node.title_en}"?`)) return;
-    await nodesApi.delete(wsId, node.id);
-    onClose();
+    if (!node) return;
+    const ok = await confirm({
+      title: 'Delete Memory',
+      message: `Delete "${node.title_en}"? This action cannot be undone.`,
+      variant: 'danger',
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
+    try {
+      await nodesApi.delete(wsId, node.id);
+      onClose();
+    } catch (e: any) {
+      toast({ message: e.message, variant: 'error' });
+    }
   };
 
   const handleAddEdge = async () => {
@@ -144,7 +157,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
       setSearchQuery('');
       setSelectedTargetNode(null);
     } catch (e: any) {
-      alert(e.message);
+      toast({ message: e.message, variant: 'error' });
     } finally {
       setEdgeSaving(false);
     }

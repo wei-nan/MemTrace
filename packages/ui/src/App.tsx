@@ -1,24 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Network, PlusCircle, Search, Settings,
-  Globe, Layers, LogOut, ChevronDown,
+  Network, PlusCircle, Settings,
+  Globe, LogOut, ChevronDown,
   ChevronLeft, ChevronRight, X, Key, Coins, Trash2,
   Inbox, Users, Mail, Moon, Sun
 } from 'lucide-react';
 import './index.css';
 import AuthPage from './AuthPage';
-import GraphView from './GraphView';
-import GraphView3D from './GraphView3D';
+import GraphContainer from './GraphContainer';
 import NodeEditor from './NodeEditor';
 import ReviewQueue from './ReviewQueue';
 import IngestButton from './IngestButton';
 import OnboardingWizard from './OnboardingWizard';
 import WorkspaceSettings from './WorkspaceSettings';
 import { auth, workspaces, ai, type Workspace, type Node as ApiNode, type AIKey, type CreditStatus, type Onboarding } from './api';
+import { useModal } from './components/ModalContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean };
-type View = 'graph' | 'graph3d' | 'settings' | 'review' | 'ws_settings';
+type View = 'graph' | 'settings' | 'review' | 'ws_settings';
 
 // ── CreateWorkspaceModal ───────────────────────────────────────────────────────
 
@@ -162,9 +163,22 @@ function CreateWorkspaceModal({
 
 // ── SettingsPanel ──────────────────────────────────────────────────────────────
 
-function SettingsPanel() {
+function SettingsPanel({
+  user,
+  theme,
+  toggleTheme,
+  language,
+  switchLanguage,
+}: {
+  user: any;
+  theme: string;
+  toggleTheme: () => void;
+  language: string;
+  switchLanguage: () => void;
+}) {
   const { i18n } = useTranslation();
-  const zh = i18n.language === 'zh-TW';
+  const zh = language === 'zh-TW';
+  const { confirm, toast } = useModal();
 
   const [keys, setKeys] = useState<AIKey[]>([]);
   const [credits, setCredits] = useState<CreditStatus | null>(null);
@@ -202,10 +216,17 @@ function SettingsPanel() {
   };
 
   const handleDeleteKey = async (p: string) => {
-    if (!confirm(zh ? `確定要刪除 ${p} 的 API Key？` : `Delete ${p} API key?`)) return;
+    const ok = await confirm({
+      title: zh ? '刪除 API Key' : 'Delete API Key',
+      message: zh ? `確定要刪除 ${p} 的 API Key？` : `Delete ${p} API key?`,
+      variant: 'danger',
+      confirmLabel: zh ? '刪除' : 'Delete',
+    });
+    if (!ok) return;
     try {
       await ai.deleteKey(p);
       loadData();
+      toast({ message: zh ? 'API Key 已刪除' : 'API key deleted', variant: 'success' });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -218,7 +239,70 @@ function SettingsPanel() {
 
   return (
     <div style={{ padding: 40, maxWidth: 600, margin: '0 auto' }}>
-      <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '設定' : 'Settings'}</h2>
+      <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '系統設定' : 'Settings'}</h2>
+
+      {/* Preferences Section */}
+      <section style={{ marginBottom: 40 }}>
+        <h3 style={{ fontSize: 15, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Settings size={16} style={{ color: 'var(--color-primary)' }} />
+          {zh ? '偏好設定' : 'Preferences'}
+        </h3>
+        <div style={{
+          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+          borderRadius: 12, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 14 }}>{zh ? '外觀模式' : 'Theme Mode'}</span>
+            <button className="btn-secondary" onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px' }}>
+              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+              {theme === 'dark' ? (zh ? '亮色模式' : 'Light Mode') : (zh ? '暗色模式' : 'Dark Mode')}
+            </button>
+          </div>
+          <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 14 }}>{zh ? '語言' : 'Language'}</span>
+            <button className="btn-secondary" onClick={switchLanguage} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px' }}>
+              <Globe size={14} />
+              {zh ? 'Switch to English' : '切換至中文'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Account Status / Email Verification */}
+      {!user?.email_verified && (
+        <section style={{ marginBottom: 40 }}>
+          <h3 style={{ fontSize: 15, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Mail size={16} style={{ color: 'var(--color-warning)' }} />
+            {zh ? '帳號安全' : 'Account Security'}
+          </h3>
+          <div style={{
+            background: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning)',
+            borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 12
+          }}>
+            <div style={{ fontSize: 14, color: 'var(--color-warning)', fontWeight: 600 }}>
+              {zh ? '電子信箱尚未驗證' : 'Email Address Not Verified'}
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+              {zh ? '請驗證您的信箱以啟用完整功能，包括跨裝置同步與協作工具。' : 'Please verify your email to enable full features including sync and collaboration.'}
+            </p>
+            <button
+              className="btn-primary"
+              style={{ alignSelf: 'flex-start', background: 'var(--color-warning)', borderColor: 'var(--color-warning)', color: 'white' }}
+              onClick={async () => {
+                try {
+                  await auth.resendVerification();
+                  toast({ message: zh ? '驗證信已送出' : 'Verification email sent', variant: 'success' });
+                } catch (e: any) {
+                  toast({ message: e.message, variant: 'error' });
+                }
+              }}
+            >
+              {zh ? '立即發送驗證信' : 'Resend Verification Email'}
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Free Credits */}
       <section style={{ marginBottom: 40 }}>
@@ -340,6 +424,7 @@ function SettingsPanel() {
 
 export default function App() {
   const { i18n } = useTranslation();
+  const { toast } = useModal();
 
   // ── Theme Management ───────────────────────────────────────────────────
   const [theme, setTheme] = useState(() => localStorage.getItem('mt_theme') || 'dark');
@@ -470,6 +555,7 @@ export default function App() {
       {/* ── Onboarding Wizard ─────────────────────────────────────────── */}
       {onboarding && !onboarding.completed && (
         <OnboardingWizard 
+          user={user}
           state={onboarding} 
           onUpdate={handleUpdateOnboarding}
           onComplete={() => handleUpdateOnboarding({ completed: true })}
@@ -559,19 +645,11 @@ export default function App() {
         <nav style={{ flex: 1 }}>
           <div className={`nav-item ${currentView === 'graph' ? 'active' : ''}`} onClick={() => setCurrentView('graph')}>
             <Network size={18} />
-            {!sidebarCollapsed && <span className="nav-text">2D {zh ? '圖譜' : 'Graph'}</span>}
-          </div>
-          <div className={`nav-item ${currentView === 'graph3d' ? 'active' : ''}`} onClick={() => setCurrentView('graph3d')}>
-            <Layers size={18} />
-            {!sidebarCollapsed && <span className="nav-text">3D {zh ? '圖譜' : 'Graph'}</span>}
-          </div>
-          <div className="nav-item">
-            <Search size={18} />
-            {!sidebarCollapsed && <span className="nav-text">{zh ? '語言探索' : 'Explore'}</span>}
+            {!sidebarCollapsed && <span className="nav-text">{zh ? '知識庫圖譜' : 'Knowledge Graph'}</span>}
           </div>
 
           {!sidebarCollapsed && selectedWs && currentView !== 'settings' && (
-            <div className="nav-item" style={{ marginTop: 8, color: 'var(--color-primary)' }} onClick={() => setEditingNode(null)}>
+            <div className="nav-item" style={{ marginTop: 8, color: 'var(--color-primary)' }} onClick={() => { setCurrentView('graph'); setEditingNode(null); }}>
               <PlusCircle size={18} />
               <span className="nav-text">{zh ? '新增節點' : 'New Node'}</span>
             </div>
@@ -591,41 +669,7 @@ export default function App() {
           )}
         </nav>
 
-        {!sidebarCollapsed && selectedWs && (
-          <div style={{ padding: '4px 0 16px' }}>
-            <IngestButton wsId={selectedWs.id} onStarted={() => setCurrentView('review')} />
-          </div>
-        )}
-
         <div style={{ marginTop: 'auto' }}>
-          {!sidebarCollapsed && user && !user.email_verified && (
-            <div style={{
-              margin: '0 12px 12px', padding: '10px 12px', borderRadius: 8,
-              background: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning)',
-              display: 'flex', flexDirection: 'column', gap: 6
-            }}>
-              <div style={{ fontSize: 11, color: 'var(--color-warning)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Mail size={12} /> {zh ? '信箱未驗證' : 'Email Unverified'}
-              </div>
-              <button 
-                onClick={() => auth.resendVerification().then(() => alert(zh ? '已送出' : 'Sent!'))}
-                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: 10, cursor: 'pointer', textAlign: 'left', padding: 0 }}
-              >
-                {zh ? '重新發送驗證信' : 'Resend verification'}
-              </button>
-            </div>
-          )}
-
-          <div className="nav-item" onClick={toggleTheme}>
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            {!sidebarCollapsed && <span className="nav-text">{zh ? (theme === 'dark' ? '切換至亮色模式' : '切換至暗色模式') : (theme === 'dark' ? 'Switch to Light' : 'Switch to Dark')}</span>}
-          </div>
-
-          <div className="nav-item" onClick={switchLanguage}>
-            <Globe size={18} />
-            {!sidebarCollapsed && <span className="nav-text">{zh ? 'Switch to English' : '切換至中文'}</span>}
-          </div>
-
           {!sidebarCollapsed && user && (
             <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border-default)' }}>
               {user.display_name}
@@ -645,22 +689,24 @@ export default function App() {
 
       {/* ── Main Viewport ────────────────────────────────────────────────── */}
       <main className="view-port">
+        <ErrorBoundary>
         {currentView === 'graph' && (
-          <GraphView
+          <GraphContainer
             wsId={selectedWs?.id}
             reloadKey={graphVersion}
             onEditNode={node => setEditingNode(node)}
             onNewNode={() => setEditingNode(null)}
           />
         )}
-        {currentView === 'graph3d' && (
-          <GraphView3D
-            wsId={selectedWs?.id}
-            reloadKey={graphVersion}
-            onEditNode={node => setEditingNode(node)}
+        {currentView === 'settings' && (
+          <SettingsPanel 
+            user={user}
+            theme={theme} 
+            toggleTheme={toggleTheme} 
+            language={i18n.language} 
+            switchLanguage={switchLanguage} 
           />
         )}
-        {currentView === 'settings' && <SettingsPanel />}
         {currentView === 'review' && selectedWs && (
           <ReviewQueue wsId={selectedWs.id} onClose={() => setCurrentView('graph')} />
         )}
@@ -670,6 +716,7 @@ export default function App() {
              <WorkspaceSettings wsId={selectedWs.id} />
           </div>
         )}
+        </ErrorBoundary>
       </main>
 
       {/* ── Integrated Side Panel ────────────────────────────────────────── */}

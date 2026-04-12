@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   CheckCircle2, Mail, Database, FileUp, 
-  Settings2, Eye, PartyPopper, ChevronRight 
+  Settings2, Eye, PartyPopper, ChevronRight,
+  Upload, Loader2, AlertCircle, RefreshCw
 } from 'lucide-react';
-import { auth, type Onboarding } from './api';
+import { auth, workspaces, ai, ingest, type Onboarding, type ReviewItem } from './api';
+import { ReviewList } from './ReviewQueue';
 
 const STEPS = [
   { id: 'account', icon: CheckCircle2 },
@@ -17,10 +19,12 @@ const STEPS = [
 ];
 
 export default function OnboardingWizard({ 
+  user,
   state, 
   onUpdate,
   onComplete 
 }: { 
+  user: any,
   state: Onboarding, 
   onUpdate: (data: Partial<Onboarding>) => void,
   onComplete: () => void 
@@ -28,11 +32,23 @@ export default function OnboardingWizard({
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
   
-  // Current step calculation based on steps_done
   const [activeStepIdx, setActiveStepIdx] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // KB State
+  const [kbNameZh, setKbNameZh] = useState('');
+  const [kbNameEn, setKbNameEn] = useState('');
+  
+  // AI State
+  const [provider, setProvider] = useState<'openai' | 'anthropic'>('openai');
+  const [apiKey, setApiKey] = useState('');
+
+  // Review State
+  const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Basic logic: first step not in steps_done is active
     const idx = STEPS.findIndex(s => !state.steps_done.includes(s.id));
     setActiveStepIdx(idx === -1 ? STEPS.length - 1 : idx);
   }, [state.steps_done]);
@@ -40,133 +56,331 @@ export default function OnboardingWizard({
   const next = (stepId: string) => {
     const nextSteps = [...new Set([...state.steps_done, stepId])];
     onUpdate({ steps_done: nextSteps });
+    setError('');
+  };
+
+  const skip = (stepId: string) => {
+    const nextSteps = [...new Set([...state.steps_done, stepId])];
+    const nextSkipped = [...new Set([...state.steps_skipped, stepId])];
+    onUpdate({ steps_done: nextSteps, steps_skipped: nextSkipped });
+    setError('');
+  };
+
+  const handleCreateKb = async () => {
+    if (!kbNameZh.trim() || !kbNameEn.trim()) {
+      setError(zh ? '請填寫中英文名稱' : 'Please provide both names');
+      return;
+    }
+    setLoading(true);
+    try {
+      const ws = await workspaces.create({
+        name_zh: kbNameZh.trim(),
+        name_en: kbNameEn.trim(),
+        visibility: 'private',
+        kb_type: 'evergreen'
+      });
+      onUpdate({ first_kb_id: ws.id, steps_done: [...state.steps_done, 'kb'] });
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !state.first_kb_id) return;
+    setLoading(true);
+    setError('');
+    try {
+      await ingest.upload(state.first_kb_id, file);
+      setIsProcessing(true);
+      // Simulate processing time for AI
+      setTimeout(() => {
+        setIsProcessing(false);
+        next('ingest');
+      }, 3000);
+    } catch (e: any) {
+      setError(e.message);
+      setLoading(false);
+    }
+  };
+
+  const handleSaveAiKey = async () => {
+    if (apiKey.length < 10) {
+      setError(zh ? 'API Key 格式不正確' : 'Invalid API Key');
+      return;
+    }
+    setLoading(true);
+    try {
+      await ai.createKey({ provider, api_key: apiKey });
+      next('ai');
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderAccount = () => (
-    <div style={{ textAlign: 'center' }}>
-      <CheckCircle2 size={48} style={{ color: 'var(--color-success)', marginBottom: 16 }} />
-      <h3>{zh ? '帳號已建立' : 'Account Created'}</h3>
-      <p style={{ color: 'var(--text-muted)' }}>{zh ? '歡迎來到 MemTrace！您已經成功踏出第一步。' : 'Welcome to MemTrace! You have successfully taken the first step.'}</p>
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('account')}>
-        {zh ? '繼續' : 'Continue'} <ChevronRight size={16} />
+    <div className="onboard-card">
+      <div className="onboard-icon-success"><CheckCircle2 size={48} /></div>
+      <h3>{zh ? '帳號已準備就緒' : 'Account Ready'}</h3>
+      <p>{zh ? '歡迎來到 MemTrace！您的數據將被加密存儲並支持跨平台同步。' : 'Welcome to MemTrace! Your data is encrypted and synced across devices.'}</p>
+      <button className="btn-primary mt-32" onClick={() => next('account')}>
+        {zh ? '開始設定' : 'Start Setup'} <ChevronRight size={16} />
       </button>
     </div>
   );
 
   const renderEmail = () => (
-    <div style={{ textAlign: 'center' }}>
-      <Mail size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
-      <h3>{zh ? '驗證信箱' : 'Verify Email'}</h3>
-      <p style={{ color: 'var(--text-muted)' }}>{zh ? '我們已發送驗證連結至您的信箱，請查看。' : 'We sent a verification link to your email, please check.'}</p>
-      <button className="btn-secondary" style={{ marginTop: 12 }} onClick={() => auth.resendVerification()}>
-        {zh ? '重新發送' : 'Resend Email'}
-      </button>
-      <div style={{ marginTop: 24 }}>
-         <button className="btn-primary" onClick={() => next('email')}>
-           {zh ? '我已驗證 / 稍後再說' : 'I verified / Skip for now'}
-         </button>
+    <div className="onboard-card">
+      <div className="onboard-icon"><Mail size={48} /></div>
+      <h3>{zh ? '驗證您的電子信箱' : 'Verify Your Email'}</h3>
+      <p>{zh ? '為了安全起見，請點擊我們發送到您郵箱的連結。' : 'For security, please click the link we sent to your email.'}</p>
+      <div className="status-tag" style={{ background: user?.email_verified ? 'var(--color-success-subtle)' : 'var(--color-warning-subtle)', color: user?.email_verified ? 'var(--color-success)' : 'var(--color-warning)' }}>
+        {user?.email_verified ? (zh ? '已驗證' : 'Verified') : (zh ? '等待驗證中' : 'Awaiting Verification')}
+      </div>
+      <div className="flex-center mt-32 gap-12">
+        {!user?.email_verified && (
+          <button className="btn-secondary" onClick={() => auth.resendVerification()}>
+            <RefreshCw size={14} /> {zh ? '重新發送' : 'Resend'}
+          </button>
+        )}
+        <button className="btn-primary" onClick={() => next('email')}>
+          {user?.email_verified ? (zh ? '下一步' : 'Next') : (zh ? '稍後驗證' : 'Verify Later')}
+        </button>
       </div>
     </div>
   );
 
   const renderKb = () => (
-    <div style={{ textAlign: 'center' }}>
-      <Database size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
-      <h3>{zh ? '建立第一個知識庫' : 'Create First KB'}</h3>
-      <p style={{ color: 'var(--text-muted)' }}>{zh ? '知識庫是您的記憶容器。' : 'A knowledge base is a container for your memories.'}</p>
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('kb')}>
-        {zh ? '進入下一步' : 'Next Step'}
+    <div className="onboard-card">
+      <div className="onboard-icon"><Database size={48} /></div>
+      <h3>{zh ? '命名您的第一個知識庫' : 'Name Your First KB'}</h3>
+      <p>{zh ? '這將是您存放記憶的容器，之後可以隨時更改。' : 'This is where your memories will live. You can change this later.'}</p>
+      <div className="onboard-form mt-24">
+        <input 
+          className="mt-input" 
+          placeholder={zh ? '中文名稱 (如：規格書)' : 'Chinese Name'} 
+          value={kbNameZh} onChange={e => setKbNameZh(e.target.value)}
+        />
+        <input 
+          className="mt-input" 
+          placeholder={zh ? '英文名稱 (如：Specs)' : 'English Name'} 
+          value={kbNameEn} onChange={e => setKbNameEn(e.target.value)}
+        />
+      </div>
+      {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
+      <button className="btn-primary mt-24" onClick={handleCreateKb} disabled={loading}>
+        {loading ? <Loader2 className="animate-spin" /> : (zh ? '建立知識庫' : 'Create KB')}
       </button>
     </div>
   );
 
   const renderIngest = () => (
-    <div style={{ textAlign: 'center' }}>
-      <FileUp size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
-      <h3>{zh ? '匯入資料' : 'Ingest Data'}</h3>
-      <p style={{ color: 'var(--text-muted)' }}>{zh ? '您可以上傳文件讓 AI 自動為您建立知識節點。' : 'You can upload documents to let AI build knowledge nodes for you.'}</p>
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('ingest')}>
-        {zh ? '進入下一步' : 'Next Step'}
-      </button>
+    <div className="onboard-card">
+      <div className="onboard-icon">{isProcessing ? <RefreshCw className="animate-spin" size={48} /> : <FileUp size={48} />}</div>
+      <h3>{isProcessing ? (zh ? 'AI 正在解析文件...' : 'AI Analyzing File...') : (zh ? '匯入現有文件' : 'Ingest Existing File')}</h3>
+      <p>
+        {isProcessing 
+          ? (zh ? '這大約需要幾秒鐘，我們正在從文件中擷取有價值的知識節點。' : 'This takes a few seconds. We are extracting knowledge nodes from your file.')
+          : (zh ? '上傳 .md 或 .txt 檔案，讓 AI 幫您拆解成知識節點。' : 'Upload .md or .txt files; AI will break them into knowledge nodes.')}
+      </p>
+      {!isProcessing && (
+        <label className="onboard-upload mt-24">
+          <input type="file" accept=".md,.txt" onChange={handleUpload} hidden disabled={loading}/>
+          <Upload size={32} />
+          <span>{loading ? (zh ? '上傳中...' : 'Uploading...') : (zh ? '點擊或拖放檔案' : 'Click or Drag File')}</span>
+        </label>
+      )}
+      {isProcessing && (
+        <div className="mt-24">
+           <div className="progress-bar-indet" />
+        </div>
+      )}
+      <div className="flex-center mt-32 gap-12">
+        {!isProcessing && <button className="btn-ghost" onClick={() => skip('ingest')}>{zh ? '暫不匯入' : 'Skip'}</button>}
+      </div>
     </div>
   );
 
   const renderAi = () => (
-    <div style={{ textAlign: 'center' }}>
-      <Settings2 size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
-      <h3>{zh ? 'AI 設定' : 'AI Settings'}</h3>
-      <p style={{ color: 'var(--text-muted)' }}>{zh ? '若您有自己的 OpenAI/Claude Key，可以在此設定。' : 'Provide your own OpenAI/Claude key if you have one.'}</p>
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('ai')}>
-        {zh ? '進入下一步' : 'Next Step'}
-      </button>
+    <div className="onboard-card">
+      <div className="onboard-icon"><Settings2 size={48} /></div>
+      <h3>{zh ? '配置 AI 密鑰' : 'Configure AI Key'}</h3>
+      <p>{zh ? '為了獲得最佳的擷取效果，建議填入您個人的 API Key。' : 'For best extraction, we recommend using your personal API key.'}</p>
+      <div className="provider-selector mt-24">
+        <button className={provider === 'openai' ? 'active' : ''} onClick={() => setProvider('openai')}>OpenAI</button>
+        <button className={provider === 'anthropic' ? 'active' : ''} onClick={() => setProvider('anthropic')}>Anthropic</button>
+      </div>
+      <input 
+        type="password" className="mt-input mt-16" 
+        placeholder={provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
+        value={apiKey} onChange={e => setApiKey(e.target.value)}
+      />
+      {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
+      <div className="flex-center mt-32 gap-12">
+        <button className="btn-ghost" onClick={() => skip('ai')}>{zh ? '使用公共額度' : 'Skip (Use Credits)'}</button>
+        <button className="btn-primary" onClick={handleSaveAiKey} disabled={loading}>
+          {loading ? <Loader2 className="animate-spin" /> : (zh ? '儲存並完成' : 'Save & Finish')}
+        </button>
+      </div>
     </div>
   );
 
   const renderReview = () => (
-    <div style={{ textAlign: 'center' }}>
-      <Eye size={48} style={{ color: 'var(--color-primary)', marginBottom: 16 }} />
-      <h3>{zh ? '審核 AI 擷取內容' : 'Review AI Extractions'}</h3>
-      <p style={{ color: 'var(--text-muted)' }}>{zh ? '所有 AI 產生的內容都會進入審核佇列，確保品質。' : 'Everything AI generates goes to the review queue to ensure quality.'}</p>
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => next('review')}>
-        {zh ? '進入下一步' : 'Next Step'}
+    <div className="onboard-card" style={{ width: '800px', maxWidth: '95vw' }}>
+      <div className="onboard-icon"><Eye size={48} /></div>
+      <h3>{zh ? '審核 AI 擷取結果' : 'Review AI Extractions'}</h3>
+      <p className="mb-24">{zh ? '您可以編輯、接受或拒絕 AI 擷取的候選節點。' : 'You can edit, accept, or reject the knowledge nodes extracted by AI.'}</p>
+      
+      {state.first_kb_id && (
+        <div style={{ textAlign: 'left', marginBottom: 24 }}>
+          <ReviewList 
+            wsId={state.first_kb_id} 
+            compact 
+            onItemsLoaded={setReviewItems} 
+          />
+        </div>
+      )}
+
+      {reviewItems.length === 0 && (
+        <p style={{ opacity: 0.6, fontSize: 13 }}>{zh ? '目前暫無待審核節點，您可以直接繼續。' : 'No items to review, you can proceed.'}</p>
+      )}
+
+      <button className="btn-primary mt-24" onClick={() => next('review')}>
+        {zh ? '完成審核並繼續' : 'Finish Review & Continue'} <ChevronRight size={16} />
       </button>
     </div>
   );
 
   const renderDone = () => (
-    <div style={{ textAlign: 'center' }}>
-      <PartyPopper size={48} style={{ color: 'var(--color-warning)', marginBottom: 16 }} />
-      <h3>{zh ? '大功告成！' : 'All Set!'}</h3>
-      <p style={{ color: 'var(--text-muted)' }}>{zh ? '您已準備好開始構建您的數位大腦。' : 'You are ready to start building your digital brain.'}</p>
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={onComplete}>
-        {zh ? '開始使用 MemTrace' : 'Start using MemTrace'}
+    <div className="onboard-card">
+      <div className="onboard-icon-warn"><PartyPopper size={48} /></div>
+      <h3>{zh ? '一切準備就緒！' : 'You′re Ready!'}</h3>
+      <p>{zh ? '您已完成所有基礎設定，現在可以開始探索與串聯您的知識。' : 'You have completed the setup. Start exploring and connecting your knowledge.'}</p>
+      <button className="btn-primary mt-32" onClick={onComplete}>
+        {zh ? '進入我的 MemTrace' : 'Enter MemTrace'}
       </button>
     </div>
   );
 
   return (
-    <div className="onboarding-overlay" style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'var(--bg-base)', display: 'flex', flexDirection: 'column'
-    }}>
-      {/* Progress Header */}
-      <div style={{ padding: '32px 64px', borderBottom: '1px solid var(--border-default)', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', maxWidth: 800, width: '100%' }}>
-          {STEPS.map((step, i) => {
-             const Icon = step.icon;
-             const isDone = state.steps_done.includes(step.id);
-             const isActive = i === activeStepIdx;
-             return (
-               <div key={step.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                 <div style={{
-                   width: 32, height: 32, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                   background: isDone ? 'var(--color-success)' : isActive ? 'var(--color-primary)' : 'var(--bg-surface)',
-                   color: isDone || isActive ? 'white' : 'var(--text-muted)',
-                   transition: 'all 0.3s'
-                 }}>
-                   <Icon size={16} />
-                 </div>
-                 {i < STEPS.length - 1 && (
-                   <div style={{ position: 'absolute', height: 2, background: 'var(--border-default)', width: '100%' }} />
-                 )}
-               </div>
-             )
-          })}
+    <div className="onboarding-overlay">
+      <progress className="onboarding-progress" value={activeStepIdx + 1} max={STEPS.length} />
+      
+      <div className="onboarding-content">
+        <div className="onboarding-steps">
+          {STEPS.map((s, i) => (
+            <div key={s.id} className={`onboarding-step-dot ${i <= activeStepIdx ? 'done' : ''} ${i === activeStepIdx ? 'active' : ''}`}>
+               <s.icon size={14} />
+            </div>
+          ))}
+        </div>
+
+        <div className="onboarding-view">
+          {activeStepIdx === 0 && renderAccount()}
+          {activeStepIdx === 1 && renderEmail()}
+          {activeStepIdx === 2 && renderKb()}
+          {activeStepIdx === 3 && renderIngest()}
+          {activeStepIdx === 4 && renderAi()}
+          {activeStepIdx === 5 && renderReview()}
+          {activeStepIdx === 6 && renderDone()}
         </div>
       </div>
 
-      {/* Content Area */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-        <div style={{ maxWidth: 480, width: '100%', animation: 'fadeInUp 0.5s ease-out' }}>
-           {activeStepIdx === 0 && renderAccount()}
-           {activeStepIdx === 1 && renderEmail()}
-           {activeStepIdx === 2 && renderKb()}
-           {activeStepIdx === 3 && renderIngest()}
-           {activeStepIdx === 4 && renderAi()}
-           {activeStepIdx === 5 && renderReview()}
-           {activeStepIdx === 6 && renderDone()}
-        </div>
-      </div>
+      <style>{`
+        .onboarding-overlay {
+          position: fixed; inset: 0; z-index: 2000;
+          background: var(--bg-base);
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          animation: fadeIn 0.4s ease-out;
+        }
+        .onboarding-progress {
+          position: fixed; top: 0; left: 0; width: 100%; height: 4px;
+          appearance: none; border: none; background: transparent;
+        }
+        .onboarding-progress::-webkit-progress-bar { background: transparent; }
+        .onboarding-progress::-webkit-progress-value { background: var(--color-primary); transition: width 0.3s; }
+        
+        .onboarding-content {
+          max-width: 600px; width: 90%;
+          display: flex; flex-direction: column; align-items: center;
+          gap: 40px;
+        }
+        .onboarding-steps {
+          display: flex; gap: 12px;
+        }
+        .onboarding-step-dot {
+          width: 32px; height: 32px; border-radius: 16px;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--bg-surface); border: 1px solid var(--border-default);
+          color: var(--text-muted); transition: all 0.3s;
+        }
+        .onboarding-step-dot.done { background: var(--color-primary-subtle); color: var(--color-primary); border-color: var(--color-primary); }
+        .onboarding-step-dot.active { background: var(--color-primary); color: white; transform: scale(1.15); box-shadow: var(--shadow-md); }
+
+        .onboard-card {
+          background: var(--bg-surface); border: 1px solid var(--border-default);
+          padding: 48px; border-radius: 24px; text-align: center;
+          box-shadow: var(--shadow-xl);
+          animation: slideUp 0.5s ease-out;
+        }
+        .onboard-card h3 { font-size: 24px; margin-bottom: 12px; }
+        .onboard-card p { color: var(--text-muted); line-height: 1.6; max-width: 380px; margin: 0 auto; }
+        
+        .onboard-icon { color: var(--color-primary); margin-bottom: 24px; }
+        .onboard-icon-success { color: var(--color-success); margin-bottom: 24px; }
+        .onboard-icon-warn { color: var(--color-warning); margin-bottom: 24px; }
+
+        .onboard-form { display: flex; flex-direction: column; gap: 12px; }
+        .status-tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 16px; }
+        
+        .onboard-upload {
+          border: 2px dashed var(--border-default); border-radius: 16px; padding: 40px;
+          display: flex; flex-direction: column; align-items: center; gap: 16px;
+          cursor: pointer; transition: all 0.2s; color: var(--text-muted);
+        }
+        .onboard-upload:hover { border-color: var(--color-primary); background: var(--color-primary-subtle); color: var(--color-primary); }
+        
+        .provider-selector { display: flex; gap: 8px; justify-content: center; }
+        .provider-selector button {
+          padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-default);
+          background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+        }
+        .provider-selector button.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+        
+        .error-text { color: var(--color-error); font-size: 13px; display: flex; alignItems: center; gap: 6px; justify-content: center; }
+        
+        .mt-32 { margin-top: 32px; }
+        .mt-24 { margin-top: 24px; }
+        .mt-16 { margin-top: 16px; }
+        .flex-center { display: flex; align-items: center; justify-content: center; }
+        .gap-12 { gap: 12px; }
+        
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .progress-bar-indet {
+          width: 200px; height: 4px; background: var(--border-default); border-radius: 2px; position: relative; overflow: hidden;
+        }
+        .progress-bar-indet::after {
+          content: ""; position: absolute; left: -50%; width: 50%; height: 100%; background: var(--color-primary);
+          animation: slideIndet 1.5s infinite linear;
+        }
+        @keyframes slideIndet {
+          from { left: -50%; }
+          to { left: 100%; }
+        }
+        .mb-24 { margin-bottom: 24px; }
+      `}</style>
     </div>
   );
 }

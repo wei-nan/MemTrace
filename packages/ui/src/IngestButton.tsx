@@ -2,10 +2,12 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, Loader2 } from 'lucide-react';
 import { ingest } from './api';
+import { useModal } from './components/ModalContext';
 
 export default function IngestButton({ wsId, onStarted }: { wsId: string, onStarted: () => void }) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
+  const { toast } = useModal();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -16,10 +18,10 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
     setUploading(true);
     try {
       await ingest.upload(wsId, file);
-      alert(zh ? '文件已上傳，背景處理中…' : 'File uploaded, processing in background…');
+      toast({ message: zh ? '文件已上傳，背景處理中…' : 'File uploaded, processing in background…', variant: 'success' });
       onStarted();
     } catch (e: any) {
-      alert(e.message);
+      toast({ message: e.message, variant: 'error' });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
