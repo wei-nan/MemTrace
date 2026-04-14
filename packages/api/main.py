@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from core.database import db_cursor
 from core.email import send_workspace_deletion_notice
@@ -13,6 +14,7 @@ from routers.ai   import router as ai_router
 from routers.collaboration import router as collaboration_router
 from routers.review import router as review_router
 from routers.ingest import router as ingest_router
+from routers.exports import router as exports_router
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +149,7 @@ app.include_router(ai_router)
 app.include_router(collaboration_router)
 app.include_router(review_router)
 app.include_router(ingest_router)
+app.include_router(exports_router)
 
 
 @app.get("/")

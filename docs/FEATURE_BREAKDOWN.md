@@ -47,38 +47,35 @@
 
 ---
 
-## 3. 非同步知識庫匯出機制 (KB Export Engine)
+## 3. 非同步知識庫匯出機制 (KB Export Engine) (Completed)
 
 **目標**：背景打包完整的知識庫或部分節點成為 `.memtrace` 壓縮檔。
 
 ### 3.1 後端 (API/DB) 開發細項
-- [ ] **Schema Migration**
-  - 建立 `kb_exports` 資料表，包含 `id`, `workspace_id`, `status` ('pending', 'processing', 'completed', 'failed'), `download_url`, `created_at`。
-- [ ] **背景任務實作**
-  - **邏輯**：接收 Scope filter 條件，撈出目標 nodes 與雙方都在範圍內的 edges。解析內容生成 Markdown，並用 zipfile 寫成 `.memtrace` 壓縮檔。
-- [ ] **API Endpoint**
-  - `POST /workspaces/{ws_id}/exports`：觸發 FastAPI `BackgroundTasks`。
-  - `GET /workspaces/{ws_id}/exports/{export_id}`：檢查進度並取得檔案。
+- [x] **Schema Migration**
+  - **工作**：建立 `kb_exports` 資料表，追蹤進度與下載連結。
+- [x] **背景任務實作**
+  - **邏輯**：背景打包 nodes (Markdown), edges (JSON), workspace metadata 為 `.memtrace` ZIP。
+- [x] **API Endpoint**
+  - `POST /workspaces/{ws_id}/exports`：觸發任務。
+  - `GET /workspaces/{ws_id}/exports/{export_id}`：輪詢進度。
 
 ### 3.2 前端 (UI) 開發細項
-- [ ] **匯出操作面板**
-  - 提供勾選範圍 (全部、按 Tag 過濾、匯出格式是否包含 Markdown)。
-- [ ] **非同步輪詢機制**
-  - 展示 Loading UI，並使用 `setInterval` 定期呼叫確認匯出狀態。
+- [x] **匯出操作面板**
+  - 在 Workspace Settings 新增「資料匯出」分頁。
+- [x] **非同步輪詢機制**
+  - 實作每 5 秒輪詢。
 
 ---
 
-## 4. 跨庫關聯與 AI 面板 (KB Associations & Chat)
+## 4. 跨庫關聯與 AI 面板 (KB Associations & AI) (Completed)
 
 **目標**：讓知識庫之間產生連線，並允許向 AI 提問生成編修提案。
 
 ### 4.1 後端 (API) 開發細項
-- [ ] **Associations CRUD**
-  - 建立 `workspace_associations` 資料表操作 API。
-- [ ] **AI Chat Endpoint** (`POST /workspaces/{ws_id}/chat`)
-  - **Context 檢索**：做 Embedding 相似度檢索當前/關聯 WS 的節點。
-  - **提案識別 (`allow_edits`)**：解析回覆產生 Proposals，送進 `review_queue`。
+- [x] **Associations CRUD**：已建立 `workspace_associations` 資料表與 API。
+- [x] **AI Chat Endpoint**：實現跨庫檢索與優化提案解析。
 
 ### 4.2 前端 (UI) 開發細項
-- [ ] **獨立 AI 聊天模組**
-  - 獨立訊息氣泡面板與 Inline 提案卡片 (`ProposalCard`)。
+- [x] **AI 助手側邊面板**：支援對話與提案卡片展示。
+- [x] **館際關聯管理**：在工作區設定中提供 ID 綁定功能。

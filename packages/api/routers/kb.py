@@ -12,6 +12,7 @@ from models.kb import (
     EdgeCreate, EdgeResponse,
     RateEdgeRequest, TraverseEdgeRequest,
     WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate,
+    WorkspaceAssociationResponse,
     GraphPreviewResponse,
 )
 
@@ -174,6 +175,52 @@ def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get
         
         cur.execute(f"UPDATE workspaces SET {set_clause} WHERE id = %s RETURNING *", params)
         return cur.fetchone()
+
+
+# ── Associations ─────────────────────────────────────────────────────────────
+
+@router.get("/workspaces/{ws_id}/associations", response_model=list[WorkspaceAssociationResponse])
+def list_associations(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("""
+            SELECT a.*, w.name_en AS target_name_en, w.name_zh AS target_name_zh
+            FROM workspace_associations a
+            JOIN workspaces w ON a.target_ws_id = w.id
+            WHERE a.source_ws_id = %s
+        """, (ws_id,))
+        return cur.fetchall()
+
+@router.post("/workspaces/{ws_id}/associations/{target_ws_id}", response_model=WorkspaceAssociationResponse)
+def create_association(ws_id: str, target_ws_id: str, user: dict = Depends(get_current_user)):
+    if ws_id == target_ws_id:
+        raise HTTPException(status_code=400, detail="Cannot associate a workspace with itself")
+    
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user) # Must have access to source
+        _require_ws_access(cur, target_ws_id, user) # Must have access to target
+        
+        assoc_id = generate_id("asc")
+        cur.execute("""
+            INSERT INTO workspace_associations (id, source_ws_id, target_ws_id)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (source_ws_id, target_ws_id) DO UPDATE 
+               SET created_at = now()
+            RETURNING id, source_ws_id, target_ws_id, created_at
+        """, (assoc_id, ws_id, target_ws_id))
+        row = cur.fetchone()
+        
+        # Add names
+        cur.execute("SELECT name_en, name_zh FROM workspaces WHERE id = %s", (target_ws_id,))
+        names = cur.fetchone()
+        return {**dict(row), "target_name_en": names["name_en"], "target_name_zh": names["name_zh"]}
+
+@router.delete("/workspaces/{ws_id}/associations/{target_ws_id}", status_code=204)
+def delete_association(ws_id: str, target_ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("DELETE FROM workspace_associations WHERE source_ws_id = %s AND target_ws_id = %s", (ws_id, target_ws_id))
+
 
 @router.get("/workspaces/{ws_id}", response_model=WorkspaceResponse)
 def get_workspace(ws_id: str, user: dict = Depends(get_current_user_optional)):

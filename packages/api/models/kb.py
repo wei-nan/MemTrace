@@ -27,6 +27,15 @@ class WorkspaceResponse(BaseModel):
     updated_at: datetime
 
 
+class WorkspaceAssociationResponse(BaseModel):
+    id: str
+    source_ws_id: str
+    target_ws_id: str
+    target_name_en: str
+    target_name_zh: str
+    created_at: datetime
+
+
 # ── Node ──────────────────────────────────────────────────────────────────────
 
 class NodeCreate(BaseModel):

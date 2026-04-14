@@ -52,6 +52,14 @@ export const workspaces = {
   update: (wsId: string, data: Partial<{ name_zh: string; name_en: string; visibility: string }>) =>
     request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
   graphPreview: (wsId: string) => request<GraphPreview>("GET", `${BASE}/workspaces/${wsId}/graph-preview`),
+  
+  // Associations
+  listAssociations: (wsId: string) => 
+    request<WorkspaceAssociation[]>("GET", `${BASE}/workspaces/${wsId}/associations`),
+  createAssociation: (wsId: string, targetWsId: string) =>
+    request<WorkspaceAssociation>("POST", `${BASE}/workspaces/${wsId}/associations/${targetWsId}`),
+  deleteAssociation: (wsId: string, targetWsId: string) =>
+    request("DELETE", `${BASE}/workspaces/${wsId}/associations/${targetWsId}`),
   joinRequests: (wsId: string, status = "pending") => 
     request<JoinRequest[]>("GET", `${BASE}/workspaces/${wsId}/join-requests?status=${status}`),
   createJoinRequest: (wsId: string, message?: string) =>
@@ -60,6 +68,12 @@ export const workspaces = {
     request<JoinRequest>("POST", `${BASE}/workspaces/${wsId}/join-requests/${reqId}/approve`),
   rejectJoinRequest: (wsId: string, reqId: string) =>
     request<JoinRequest>("POST", `${BASE}/workspaces/${wsId}/join-requests/${reqId}/reject`),
+  createExport: (wsId: string, data: { include_markdown: boolean, tags?: string[] }) =>
+    request<KBExport>("POST", `${BASE}/workspaces/${wsId}/exports`, data),
+  listExports: (wsId: string) =>
+    request<KBExport[]>("GET", `${BASE}/workspaces/${wsId}/exports`),
+  getExport: (wsId: string, expId: string) =>
+    request<KBExport>("GET", `${BASE}/workspaces/${wsId}/exports/${expId}`),
 };
 
 // ── Nodes ─────────────────────────────────────────────────────────────────────
@@ -104,6 +118,9 @@ export const ai = {
   deleteKey: (provider: string) =>
     request("DELETE", `${BASE}/ai/keys/${provider}`),
   getCredits: () => request<CreditStatus>("GET", `${BASE}/ai/credits`),
+  extract: (data: any) => request<any>("POST", `${BASE}/ai/extract`, data),
+  restructure: (data: any) => request<any>("POST", `${BASE}/ai/restructure`, data),
+  chat: (data: any) => request<any>("POST", `${BASE}/ai/chat`, data),
 };
 
 export interface IngestionLog {
@@ -208,6 +225,15 @@ export interface JoinRequest {
   reviewed_at: string | null;
   reviewed_by: string | null;
 }
+export interface KBExport {
+  id: string;
+  workspace_id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  download_url?: string;
+  error_msg?: string;
+  created_at: string;
+  completed_at?: string;
+}
 export interface NodeCreatePayload {
   title_zh: string; title_en: string; content_type: string;
   content_format: string; body_zh: string; body_en: string;
@@ -216,4 +242,33 @@ export interface NodeCreatePayload {
 export interface EdgeCreatePayload {
   from_id: string; to_id: string; relation: string;
   weight: number; half_life_days: number;
+}
+
+export interface ChatRequest {
+  workspace_id: string;
+  message: string;
+  history?: { role: string; content: string }[];
+}
+
+export interface ChatResponse {
+  answer: string;
+  proposals: ProposedChange[];
+  source_nodes: any[];
+  tokens_used: number;
+}
+
+export interface WorkspaceAssociation {
+  id: string;
+  source_ws_id: string;
+  target_ws_id: string;
+  target_name_en: string;
+  target_name_zh: string;
+  created_at: string;
+}
+
+export interface ProposedChange {
+  operation: string;
+  target_node_ids: string[];
+  reason: string;
+  proposed: any;
 }

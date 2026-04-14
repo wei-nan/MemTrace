@@ -117,6 +117,19 @@ class RestructureResponse(BaseModel):
     tokens_used: int
     source:      str
 
+class ChatRequest(BaseModel):
+    workspace_id: str
+    message: str
+    history: Optional[list[dict]] = None
+    preferred_provider: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    answer: str
+    proposals: list[ProposedChange]
+    source_nodes: list[dict]
+    tokens_used: int
+    source: str
+
 
 # ── API Key management ─────────────────────────────────────────────────────────
 
@@ -341,3 +354,53 @@ async def restructure_nodes(
     record_usage(resolved, "restructure", tokens, body.workspace_id)
 
     return RestructureResponse(changes=changes, tokens_used=tokens, source=resolved.source)
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat_with_kb(
+    body: ChatRequest,
+    user: dict = Depends(get_current_user),
+):
+    try:
+        from core.ai import CHAT_SYSTEM
+        resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider)
+        embed_prov = resolve_provider(user["sub"], "embedding", body.preferred_provider)
+        vector, _ = await embed(embed_prov, body.message)
+        
+        with db_cursor() as cur:
+            cur.execute("SELECT target_ws_id FROM workspace_associations WHERE source_ws_id = %s", (body.workspace_id,))
+            target_ids = [body.workspace_id] + [r["target_ws_id"] for r in cur.fetchall()]
+            
+            cur.execute("""
+                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                       (1 - (embedding <=> %s::vector)) AS similarity
+                FROM memory_nodes
+                WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                ORDER BY similarity DESC LIMIT 10
+            """, (vector, target_ids))
+            source_nodes = cur.fetchall()
+
+        context_str = json.dumps([dict(n) for n in source_nodes], ensure_ascii=False, indent=2)
+        messages = [{"role": "system", "content": CHAT_SYSTEM}]
+        if body.history: messages.extend(body.history)
+        messages.append({"role": "user", "content": f"CONTEXT NODES:\n{context_str}\n\nUSER MESSAGE: {body.message}"})
+
+        raw, tokens = await chat_completion(resolved, messages)
+        proposals = []
+        answer = raw
+        if "```json" in raw:
+            parts = raw.split("```json")
+            answer = parts[0].strip()
+            json_part = parts[1].split("```")[0].strip()
+            try:
+                proposals = [ProposedChange(**p) for p in json.loads(json_part)]
+            except: pass
+        
+        record_usage(resolved, "extraction", tokens, body.workspace_id)
+        return ChatResponse(
+            answer=answer, proposals=proposals,
+            source_nodes=[dict(n) for n in source_nodes],
+            tokens_used=tokens, source=resolved.source
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

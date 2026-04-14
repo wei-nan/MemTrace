@@ -4,9 +4,10 @@ import {
   Network, PlusCircle, Settings,
   Globe, LogOut, ChevronDown,
   ChevronLeft, ChevronRight, X, Key, Coins, Trash2,
-  Inbox, Users, Mail, Moon, Sun
+  Inbox, Users, Mail, Moon, Sun, Brain, Sparkles
 } from 'lucide-react';
 import './index.css';
+import AiChatPanel from './components/AiChatPanel';
 import AuthPage from './AuthPage';
 import GraphContainer from './GraphContainer';
 import NodeEditor from './NodeEditor';
@@ -539,6 +540,7 @@ export default function App() {
   const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
   const [graphVersion, setGraphVersion] = useState(0);
   const [ingestRefreshKey, setIngestRefreshKey] = useState(0);
+  const [showChat, setShowChat] = useState(false);
 
   const handleNodeSaved = (saved: ApiNode) => {
     setEditingNode(saved);
@@ -779,6 +781,28 @@ export default function App() {
             sourceNodeId={sourceNodeId}
           />
         )}
+      </aside>
+
+      {/* ── AI Chat Toggle Button ─────────────────────────────────────────── */}
+      {selectedWs && currentView === 'graph' && (
+        <button 
+          onClick={() => setShowChat(!showChat)}
+          style={{ 
+            position: 'fixed', bottom: 32, right: editingNode === undefined ? 32 : 512,
+            width: 56, height: 56, borderRadius: 28, 
+            background: showChat ? 'var(--text-primary)' : 'var(--color-primary)',
+            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: 'var(--shadow-lg)', border: 'none', cursor: 'pointer', zIndex: 100,
+            transition: 'all 0.3s ease'
+          }}
+        >
+          {showChat ? <X size={24} /> : <Brain size={24} />}
+        </button>
+      )}
+
+      {/* ── Chat Side Panel ──────────────────────────────────────────────── */}
+      <aside className={`side-panel ${!showChat || currentView !== 'graph' ? 'hidden' : ''}`} style={{ zIndex: 90 }}>
+         {selectedWs && <AiChatPanel wsId={selectedWs.id} zh={zh} />}
       </aside>
     </div>
   );
