@@ -26,6 +26,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const { i18n } = useTranslation();
   const { confirm, toast } = useModal();
   const isCreate = node === null;
+  const isLockedViewer = !!node && !node.body_zh && !node.body_en;
   const [isEditing, setIsEditing] = useState(isCreate);
 
   const [titleZh, setTitleZh]         = useState(node?.title_zh ?? '');
@@ -116,11 +117,17 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
         visibility,
       };
-      const saved = node
+      const saved: any = node
         ? await nodesApi.update(wsId, node.id, payload)
         : await nodesApi.create(wsId, payload);
-      onSaved(saved);
-      setIsEditing(false);
+      
+      if (saved && saved.detail && !saved.id) {
+        toast({ message: saved.detail, variant: 'success' });
+        onClose();
+      } else {
+        onSaved(saved);
+        setIsEditing(false);
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -183,7 +190,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
           </h3>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {!isCreate && !isEditing && (
+          {!isCreate && !isEditing && !isLockedViewer && (
             <button className="nav-item" style={{ padding: 6, margin: 0 }} onClick={() => setIsEditing(true)}>
               <Edit3 size={18} />
             </button>
@@ -276,7 +283,15 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
             </div>
 
             <div className="markdown-body" style={{ background: 'var(--bg-surface)', padding: 20, borderRadius: 12, border: '1px solid var(--border-default)', lineHeight: 1.6 }}>
-              <ReactMarkdown>{currentBody || '*No content available in this language.*'}</ReactMarkdown>
+              {isLockedViewer ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)' }}>
+                  <Shield size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                  <div style={{ fontWeight: 500, fontSize: '1.05rem', color: 'var(--text-default)' }}>Content Restricted</div>
+                  <div style={{ fontSize: '0.9rem', marginTop: 4 }}>This memory's details are reserved for Editors and Admins.</div>
+                </div>
+              ) : (
+                <ReactMarkdown>{currentBody || '*No content available in this language.*'}</ReactMarkdown>
+              )}
             </div>
 
             {/* ── Associations ─────────────────────────────────────────────── */}
@@ -358,6 +373,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               </div>
 
               {/* ── Add new association ───────────────────────────────────── */}
+              {!isLockedViewer && (
               <div style={{ marginTop: 16 }}>
                 <label className="form-label" style={{ marginBottom: 6 }}>Link to node</label>
 
@@ -438,6 +454,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                   </button>
                 </div>
               </div>
+              )}
             </div>
           </div>
         )}

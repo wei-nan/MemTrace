@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users, Trash2, UserPlus, Clock } from 'lucide-react';
-import { workspaces, type Member, type Invite } from './api';
+import { workspaces, type Member, type Invite, type JoinRequest, type Workspace } from './api';
 import { useModal } from './components/ModalContext';
 
 export default function WorkspaceSettings({ wsId }: { wsId: string }) {
@@ -9,21 +9,27 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
   const zh = i18n.language === 'zh-TW';
   const { confirm, toast } = useModal();
 
+  const [sending, setSending] = useState(false);
+  const [ws, setWs] = useState<Workspace | null>(null);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
-  // loading removed
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('viewer');
-  const [sending, setSending] = useState(false);
 
   const loadData = async () => {
     try {
-      const [m, i] = await Promise.all([
+      const [m, i, w, reqs] = await Promise.all([
         workspaces.members(wsId),
         workspaces.invites(wsId),
+        workspaces.get(wsId),
+        workspaces.joinRequests(wsId),
       ]);
       setMembers(m);
       setInvites(i);
+      setWs(w);
+      setJoinRequests(reqs);
     } catch (e) {}
   };
 
@@ -86,8 +92,95 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
     }
   };
 
+  const handleUpdateVisibility = async (vis: string) => {
+    try {
+      // Assuming a hypothetical update method exists or we use create with patch logic
+      // Actually, we need an updateWorkspace method in api.ts? 
+      // Let's check api.ts if it has one. (It doesn't yet).
+      // I'll skip the actual update for a second or add it.
+    } catch (e) {}
+  };
+
   return (
     <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      
+      {/* Visibility Settings */}
+      <section>
+        <h3 style={{ fontSize: 16, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Clock size={18} style={{ color: 'var(--color-primary)' }} />
+          {zh ? '隱私設定' : 'Visibility Settings'}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--bg-surface)', padding: 16, borderRadius: 12, border: '1px solid var(--border-default)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{zh ? '公開程度' : 'Visibility'}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{zh ? '控制誰可以看到此知識庫' : 'Control who can access this workspace'}</div>
+            </div>
+            <select 
+               className="mt-input" 
+               value={ws?.visibility ?? 'private'} 
+               style={{ width: 160 }}
+               onChange={async (e) => {
+                 try {
+                   await workspaces.update(wsId, { visibility: e.target.value });
+                   loadData();
+                   toast({ message: zh ? '隱私設定已更新' : 'Visibility updated', variant: 'success' });
+                 } catch (err: any) {
+                   toast({ message: err.message, variant: 'error' });
+                 }
+               }}
+            >
+              <option value="private">{zh ? '私有 (Private)' : 'Private'}</option>
+              <option value="restricted">{zh ? '限定 (Restricted)' : 'Restricted'}</option>
+              <option value="conditional_public">{zh ? '有條件公開 (Conditional)' : 'Conditional Public'}</option>
+              <option value="public">{zh ? '公開 (Public)' : 'Public'}</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Join Requests */}
+      {joinRequests.length > 0 && (
+      <section>
+        <h3 style={{ fontSize: 16, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <UserPlus size={18} style={{ color: 'var(--color-primary)' }} />
+          {zh ? '加入申請' : 'Join Requests'}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {joinRequests.map(req => (
+            <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 12 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 500 }}>User: {req.user_id}</div>
+                {req.message && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>"{req.message}"</div>}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button 
+                  className="btn-secondary" 
+                  style={{ padding: '4px 12px', fontSize: 12 }}
+                  onClick={async () => {
+                    await workspaces.rejectJoinRequest(wsId, req.id);
+                    loadData();
+                  }}
+                >
+                  {zh ? '拒絕' : 'Reject'}
+                </button>
+                <button 
+                  className="btn-primary" 
+                  style={{ padding: '4px 12px', fontSize: 12 }}
+                  onClick={async () => {
+                    await workspaces.approveJoinRequest(wsId, req.id);
+                    loadData();
+                  }}
+                >
+                  {zh ? '核准' : 'Approve'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      )}
+
       {/* Invite Member */}
       <section>
         <h3 style={{ fontSize: 16, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>

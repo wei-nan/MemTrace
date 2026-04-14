@@ -10,15 +10,15 @@ from core.security import compute_signature, generate_id
 from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable, AIQuotaExceeded
 from models.kb import (
     EdgeCreate, EdgeResponse,
-    NodeCreate, NodeResponse, NodeUpdate,
     RateEdgeRequest, TraverseEdgeRequest,
-    WorkspaceCreate, WorkspaceResponse,
+    WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate,
+    GraphPreviewResponse,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["knowledge-base"])
 
 VALID_RELATIONS = {"depends_on", "extends", "related_to", "contradicts"}
-VALID_KB_VIS    = {"public", "restricted", "private"}
+VALID_KB_VIS    = {"public", "restricted", "private", "conditional_public"}
 VALID_NODE_VIS  = {"public", "team", "private"}
 VALID_CONTENT_T = {"factual", "procedural", "preference", "context"}
 VALID_FORMAT    = {"plain", "markdown"}
@@ -54,10 +54,24 @@ def _require_ws_access(cur, ws_id: str, user: Optional[dict], write: bool = Fals
         member = cur.fetchone()
         if not member:
             raise HTTPException(status_code=403, detail="Access denied")
-        if write and member["role"] != "editor":
-            raise HTTPException(status_code=403, detail="Editor role required")
+        if write and member["role"] not in ("editor", "admin"):
+            raise HTTPException(status_code=403, detail="Editor or Admin role required")
 
     return ws
+
+def _get_effective_role(cur, ws_id: str, owner_id: str, user_id: Optional[str]) -> Optional[str]:
+    if not user_id: return None
+    if user_id == owner_id: return "admin"
+    cur.execute("SELECT role FROM workspace_members WHERE workspace_id = %s AND user_id = %s", (ws_id, user_id))
+    m = cur.fetchone()
+    return m["role"] if m else None
+
+def _strip_body_if_viewer(node_row: dict, role: Optional[str]):
+    # If the user is not editor/admin, they are acting as a viewer or public guest
+    if role not in ("editor", "admin"):
+        node_row["body_zh"] = ""
+        node_row["body_en"] = ""
+    return node_row
 
 
 # ── Workspaces ────────────────────────────────────────────────────────────────
@@ -69,7 +83,7 @@ def list_workspaces(user: dict = Depends(get_current_user)):
             SELECT * FROM workspaces
             WHERE owner_id = %s
                OR id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
-               OR visibility = 'public'
+               OR visibility IN ('public', 'conditional_public')
             ORDER BY updated_at DESC
         """, (user["sub"], user["sub"]))
         return cur.fetchall()
@@ -95,6 +109,72 @@ def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_use
         return cur.fetchone()
 
 
+@router.get("/workspaces/{ws_id}/graph-preview", response_model=GraphPreviewResponse)
+def get_graph_preview(ws_id: str):
+    """
+    Publicly accessible de-identified graph preview for 'conditional_public' workspaces.
+    """
+    with db_cursor() as cur:
+        cur.execute("SELECT visibility FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        
+        if ws["visibility"] not in ("conditional_public", "public"):
+            raise HTTPException(status_code=403, detail="Graph preview only available for public/conditional_public workspaces")
+
+        # Fetch nodes and edges
+        cur.execute("SELECT id, content_type FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+        nodes = cur.fetchall()
+        cur.execute("SELECT from_id, to_id, relation FROM edges WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+        edges = cur.fetchall()
+
+        # Mapping original IDs to anonymous preview IDs
+        id_map = {node["id"]: f"p_node_{i}" for i, node in enumerate(nodes)}
+
+        node_previews = [
+            {"preview_id": id_map[n["id"]], "content_type": n["content_type"]}
+            for n in nodes
+        ]
+        
+        edge_previews = [
+            {
+                "from_preview_id": id_map[e["from_id"]],
+                "to_preview_id": id_map[e["to_id"]],
+                "relation": e["relation"]
+            }
+            for e in edges
+            if e["from_id"] in id_map and e["to_id"] in id_map
+        ]
+
+        return {"nodes": node_previews, "edges": edge_previews}
+
+
+
+@router.patch("/workspaces/{ws_id}", response_model=WorkspaceResponse)
+def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        # Check if user is owner
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        if ws["owner_id"] != user["sub"]:
+            raise HTTPException(status_code=403, detail="Only workspace owner can update settings")
+
+        updates = body.dict(exclude_unset=True)
+        if not updates:
+            return ws
+
+        if "visibility" in updates and updates["visibility"] not in VALID_KB_VIS:
+            raise HTTPException(status_code=400, detail="Invalid visibility")
+
+        set_clause = ", ".join(f"{k} = %s" for k in updates.keys())
+        params = list(updates.values()) + [ws_id]
+        
+        cur.execute(f"UPDATE workspaces SET {set_clause} WHERE id = %s RETURNING *", params)
+        return cur.fetchone()
+
 @router.get("/workspaces/{ws_id}", response_model=WorkspaceResponse)
 def get_workspace(ws_id: str, user: dict = Depends(get_current_user_optional)):
     with db_cursor() as cur:
@@ -117,7 +197,7 @@ def list_nodes(
     user: dict = Depends(get_current_user_optional),
 ):
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
+        ws = _require_ws_access(cur, ws_id, user)
         filters = ["workspace_id = %s"]
         params: list = [ws_id]
         if status != "all":
@@ -141,7 +221,11 @@ def list_nodes(
             f"SELECT * FROM memory_nodes WHERE {where} ORDER BY created_at DESC LIMIT %s OFFSET %s",
             params,
         )
-        return cur.fetchall()
+        nodes = cur.fetchall()
+        
+        # Determine effective role for content stripping
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
+        return [_strip_body_if_viewer(n, role) for n in nodes]
 
 async def _bg_embed_node(ws_id: str, node_id: str, text: str, user_id: str):
     try:
@@ -182,7 +266,7 @@ async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: d
 @router.get("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
 def get_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user_optional)):
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
+        ws = _require_ws_access(cur, ws_id, user)
         cur.execute(
             "SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s",
             (node_id, ws_id),
@@ -190,7 +274,9 @@ def get_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user_opt
         node = cur.fetchone()
         if not node:
             raise HTTPException(status_code=404, detail="Node not found")
-        return node
+            
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
+        return _strip_body_if_viewer(node, role)
 
 
 @router.post("/workspaces/{ws_id}/nodes", response_model=NodeResponse, status_code=201)
@@ -212,7 +298,34 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
     node_id = generate_id("mem")
 
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        ws     = _require_ws_access(cur, ws_id, user, write=True)
+        role   = _get_effective_role(cur, ws_id, ws["owner_id"], author)
+        
+        if role == "editor":
+            review_id = generate_id("rev")
+            # Construct suggested node data
+            suggested_node = {
+                "id": node_id,
+                "workspace_id": ws_id,
+                "title_zh": body.title_zh,
+                "title_en": body.title_en,
+                "content_type": body.content_type,
+                "content_format": body.content_format,
+                "body_zh": body.body_zh,
+                "body_en": body.body_en,
+                "tags": body.tags,
+                "visibility": body.visibility,
+                "author": author,
+                "signature": sig,
+                "source_type": "human"
+            }
+            cur.execute("""
+                INSERT INTO review_queue (id, workspace_id, node_data, source_info, status)
+                VALUES (%s, %s, %s, %s, 'pending')
+            """, (review_id, ws_id, json.dumps(suggested_node), f"Proposed new node by {author}"))
+            
+            raise HTTPException(status_code=202, detail="Your new node has been submitted for review")
+
         cur.execute("""
             INSERT INTO memory_nodes (
                 id, workspace_id,
@@ -226,6 +339,9 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
         """, (
             node_id, ws_id,
             body.title_zh, body.title_en,
+            body.content_type, body.content_format,
+            body.body_zh, body.body_en,
+            body.tags, body.visibility,
             author, sig,
             body.copied_from_node, body.copied_from_ws
         ))
@@ -270,6 +386,23 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, user: dict = Depends
 
         set_clause = ", ".join(f"{k} = %s" for k in updates)
         params     = list(updates.values()) + [node_id, ws_id]
+
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role == "editor":
+            # Redirect to review queue
+            review_id = generate_id("rev")
+            # We want to store the "target updated state" in review queue
+            suggested_node = dict(existing) | updates
+            # Remove DB internal fields before storing in suggested_node if necessary
+            # For simplicity, we just store the whole thing
+            cur.execute("""
+                INSERT INTO review_queue (id, workspace_id, node_data, source_info, status)
+                VALUES (%s, %s, %s, %s, 'pending')
+            """, (review_id, ws_id, json.dumps(suggested_node), f"Proposed edit by {user['sub']} for {node_id}"))
+            
+            # Return existing node but maybe with a flag? or just raise 202
+            raise HTTPException(status_code=202, detail="Your changes have been submitted for review")
+
         cur.execute(
             f"UPDATE memory_nodes SET {set_clause} WHERE id = %s AND workspace_id = %s RETURNING *",
             params,

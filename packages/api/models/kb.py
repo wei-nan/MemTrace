@@ -121,3 +121,26 @@ class TraverseEdgeRequest(BaseModel):
 class RateEdgeRequest(BaseModel):
     rating: int    # 1–5
     note: Optional[str] = None
+# ── Graph Preview ─────────────────────────────────────────────────────────────
+
+class NodePreview(BaseModel):
+    preview_id: str
+    content_type: str
+
+class EdgePreview(BaseModel):
+    from_preview_id: str
+    to_preview_id: str
+    relation: str
+
+class GraphPreviewResponse(BaseModel):
+    nodes: list[NodePreview]
+    edges: list[EdgePreview]
+
+class WorkspaceUpdate(BaseModel):
+    name_zh: Optional[str] = None
+    name_en: Optional[str] = None
+    visibility: Optional[str] = None
+    kb_type: Optional[Literal["evergreen", "ephemeral"]] = None
+    archive_window_days: Optional[int] = None
+    min_traversals: Optional[int] = None
+

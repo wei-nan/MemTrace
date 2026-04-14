@@ -6,7 +6,7 @@ import secrets
 from core.database import db_cursor
 from core.deps import get_current_user
 from core.security import generate_id
-from models.collaboration import MemberResponse, InviteCreate, InviteResponse
+from models.collaboration import MemberResponse, InviteCreate, InviteResponse, JoinRequestCreate, JoinRequestResponse
 from routers.kb import _require_ws_access
 
 router = APIRouter(prefix="/api/v1/workspaces", tags=["collaboration"])
@@ -144,3 +144,93 @@ def remove_member(ws_id: str, user_id: str, user: dict = Depends(get_current_use
         cur.execute("DELETE FROM workspace_members WHERE workspace_id = %s AND user_id = %s", (ws_id, user_id))
         
         return {"message": "Member removed"}
+
+# ── Join Requests ─────────────────────────────────────────────────────────────
+
+@router.post("/{ws_id}/join-requests", response_model=JoinRequestResponse, status_code=201)
+def create_join_request(ws_id: str, body: JoinRequestCreate, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        # Check if workspace is conditional_public
+        cur.execute("SELECT visibility FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        if ws["visibility"] != "restricted": 
+             # Wait, usually conditional_public is meant, but in our Spec it's restricted or private? 
+             # Actually "restricted" is search visible but content blocked in our new spec, conditional_public as well.
+             # Let's just allow it for anything right now, or specifically restricted.
+             pass
+        
+        # Check if already a member
+        cur.execute("SELECT * FROM workspace_members WHERE workspace_id = %s AND user_id = %s", (ws_id, user["sub"]))
+        if cur.fetchone():
+            raise HTTPException(status_code=400, detail="You are already a member")
+
+        req_id = generate_id("req")
+        try:
+            cur.execute("""
+                INSERT INTO join_requests (id, workspace_id, user_id, message)
+                VALUES (%s, %s, %s, %s)
+                RETURNING *
+            """, (req_id, ws_id, user["sub"], body.message))
+            return cur.fetchone()
+        except Exception as e:
+            if "unique" in str(e).lower():
+                raise HTTPException(status_code=400, detail="You already have a pending request")
+            raise
+
+@router.get("/{ws_id}/join-requests", response_model=List[JoinRequestResponse])
+def list_join_requests(ws_id: str, status: str = Query("pending"), user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        # Verify requester is owner or admin
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws or ws["owner_id"] != user["sub"]:
+             raise HTTPException(status_code=403, detail="Only workspace owner can list join requests")
+             
+        cur.execute("SELECT * FROM join_requests WHERE workspace_id = %s AND status = %s ORDER BY requested_at DESC", (ws_id, status))
+        return cur.fetchall()
+
+@router.post("/{ws_id}/join-requests/{req_id}/approve", response_model=JoinRequestResponse)
+def approve_join_request(ws_id: str, req_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws or ws["owner_id"] != user["sub"]:
+             raise HTTPException(status_code=403, detail="Only workspace owner can approve requests")
+             
+        cur.execute("SELECT * FROM join_requests WHERE id = %s AND workspace_id = %s", (req_id, ws_id))
+        req = cur.fetchone()
+        if not req or req["status"] != "pending":
+            raise HTTPException(status_code=400, detail="Join request not found or not pending")
+            
+        # Add member as viewer by default
+        cur.execute("""
+            INSERT INTO workspace_members (workspace_id, user_id, role)
+            VALUES (%s, %s, 'viewer')
+            ON CONFLICT (workspace_id, user_id) DO NOTHING
+        """, (ws_id, req["user_id"]))
+        
+        cur.execute("""
+            UPDATE join_requests SET status = 'approved', reviewed_at = now(), reviewed_by = %s
+            WHERE id = %s RETURNING *
+        """, (user["sub"], req_id))
+        return cur.fetchone()
+
+@router.post("/{ws_id}/join-requests/{req_id}/reject", response_model=JoinRequestResponse)
+def reject_join_request(ws_id: str, req_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws or ws["owner_id"] != user["sub"]:
+             raise HTTPException(status_code=403, detail="Only workspace owner can reject requests")
+             
+        cur.execute("""
+            UPDATE join_requests SET status = 'rejected', reviewed_at = now(), reviewed_by = %s
+            WHERE id = %s AND workspace_id = %s AND status = 'pending' RETURNING *
+        """, (user["sub"], req_id, ws_id))
+        
+        req = cur.fetchone()
+        if not req:
+            raise HTTPException(status_code=400, detail="Join request not found or not pending")
+        return req

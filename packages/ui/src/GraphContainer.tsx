@@ -38,6 +38,8 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
   const [graphMode, setGraphMode]   = useState<GraphMode>('2d');
+  const [isPreview, setIsPreview]   = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
 
   // ── Search state ──────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery]   = useState('');
@@ -56,7 +58,31 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
       setApiNodes(rawNodes);
       setApiEdges(rawEdges);
     } catch (e: any) {
-      setError(e.message);
+      if (e.message.includes('403') || e.message.includes('401')) {
+        try {
+          const preview = await workspaces.graphPreview(wsId);
+          setApiNodes(preview.nodes.map(n => ({
+             id: n.preview_id,
+             title_en: 'Restricted Node',
+             title_zh: '受限節點',
+             content_type: n.content_type,
+             trust_score: 0.5,
+             tags: [],
+          } as any)));
+          setApiEdges(preview.edges.map(e => ({
+            id: Math.random().toString(),
+            from_id: e.from_preview_id,
+            to_id: e.to_preview_id,
+            relation: e.relation
+          } as any)));
+          setIsPreview(true);
+        } catch (previewErr: any) {
+          setError(e.message);
+        }
+      } else {
+        setError(e.message);
+      }
+
     } finally {
       setLoading(false);
     }
@@ -97,7 +123,39 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 40px)', width: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: 'calc(100vh - 40px)', width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      
+      {/* ── Preview Mode Banner ────────────────────────────────────────── */}
+      {isPreview && (
+        <div style={{
+          background: 'var(--color-primary)', color: 'white',
+          padding: '10px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)', zIndex: 10,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Sparkles size={18} />
+            <span style={{ fontSize: 14, fontWeight: 500 }}>
+              {zh ? '您正在預覽有條件公開的圖譜結構' : 'You are previewing a conditional public graph structure'}
+            </span>
+          </div>
+          <button 
+            className="btn-primary" 
+            style={{ padding: '6px 16px', background: 'white', color: 'var(--color-primary)', border: 'none' }}
+            disabled={requestSent}
+            onClick={async () => {
+              try {
+                await workspaces.createJoinRequest(wsId);
+                setRequestSent(true);
+                alert(zh ? '申請已送出' : 'Join request sent');
+              } catch (e: any) {
+                alert(e.message);
+              }
+            }}
+          >
+            {requestSent ? (zh ? '申請待審核' : 'Request Pending') : (zh ? '申請加入以查看細節' : 'Request to Join')}
+          </button>
+        </div>
+      )}
 
       {/* ── Shared header — always visible regardless of 2D/3D mode ────────── */}
       <header
@@ -177,10 +235,12 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
           </button>
 
           {/* ── New Node ────────────────────────────────────────────────── */}
+          {!isPreview && (
           <button className="btn-primary" onClick={onNewNode} style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}>
             <PlusCircle size={15} />
             {zh ? '新增節點' : 'New Node'}
           </button>
+          )}
         </div>
       </header>
 

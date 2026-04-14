@@ -49,6 +49,17 @@ export const workspaces = {
     request("PUT", `${BASE}/workspaces/${wsId}/members/${userId}`, { role }),
   removeMember: (wsId: string, userId: string) =>
     request("DELETE", `${BASE}/workspaces/${wsId}/members/${userId}`),
+  update: (wsId: string, data: Partial<{ name_zh: string; name_en: string; visibility: string }>) =>
+    request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
+  graphPreview: (wsId: string) => request<GraphPreview>("GET", `${BASE}/workspaces/${wsId}/graph-preview`),
+  joinRequests: (wsId: string, status = "pending") => 
+    request<JoinRequest[]>("GET", `${BASE}/workspaces/${wsId}/join-requests?status=${status}`),
+  createJoinRequest: (wsId: string, message?: string) =>
+    request<JoinRequest>("POST", `${BASE}/workspaces/${wsId}/join-requests`, { message }),
+  approveJoinRequest: (wsId: string, reqId: string) =>
+    request<JoinRequest>("POST", `${BASE}/workspaces/${wsId}/join-requests/${reqId}/approve`),
+  rejectJoinRequest: (wsId: string, reqId: string) =>
+    request<JoinRequest>("POST", `${BASE}/workspaces/${wsId}/join-requests/${reqId}/reject`),
 };
 
 // ── Nodes ─────────────────────────────────────────────────────────────────────
@@ -182,6 +193,20 @@ export interface Edge {
   relation: string; weight: number; co_access_count: number;
   traversal_count: number; rating_avg: number | null; rating_count: number;
   last_co_accessed: string;
+}
+export interface GraphPreview {
+  nodes: { preview_id: string; content_type: string }[];
+  edges: { from_preview_id: string; to_preview_id: string; relation: string }[];
+}
+export interface JoinRequest {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  message: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  requested_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
 }
 export interface NodeCreatePayload {
   title_zh: string; title_en: string; content_type: string;

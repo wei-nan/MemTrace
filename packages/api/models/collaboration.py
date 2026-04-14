@@ -23,3 +23,16 @@ class InviteResponse(BaseModel):
     created_at: datetime
     expires_at: datetime
     accepted_at: Optional[datetime]
+
+class JoinRequestCreate(BaseModel):
+    message: Optional[str] = None
+
+class JoinRequestResponse(BaseModel):
+    id: str
+    workspace_id: str
+    user_id: str
+    message: Optional[str]
+    status: Literal["pending", "approved", "rejected"]
+    requested_at: datetime
+    reviewed_at: Optional[datetime]
+    reviewed_by: Optional[str]
