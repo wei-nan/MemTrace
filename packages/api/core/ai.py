@@ -183,6 +183,71 @@ class AnthropicProvider(AIProvider):
         return data["content"][0]["text"], tokens
 
 
+# ── Built-in: Google Gemini ──────────────────────────────────────────────────
+
+class GeminiProvider(AIProvider):
+    name                    = "gemini"
+    default_chat_model      = "gemini-1.5-flash"
+    default_embedding_model = "text-embedding-004"
+
+    async def chat(self, api_key, model, messages, max_tokens, temperature):
+        # Gemini v1beta supports system_instruction separately
+        system = next((m["content"] for m in messages if m["role"] == "system"), "")
+        contents = []
+        for m in messages:
+            if m["role"] == "system": continue
+            # Gemini roles: "user", "model" (instead of "assistant")
+            role = "user" if m["role"] == "user" else "model"
+            contents.append({
+                "role": role,
+                "parts": [{"text": m["content"]}]
+            })
+
+        body = {
+            "contents": contents,
+            "generationConfig": {
+                "maxOutputTokens": max_tokens,
+                "temperature": temperature,
+            }
+        }
+        if system:
+            body["system_instruction"] = {"parts": [{"text": system}]}
+
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+                json=body
+            )
+        
+        if not resp.is_success:
+            raise AIProviderError(f"Gemini {resp.status_code}: {resp.text[:400]}")
+        
+        data = resp.json()
+        try:
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+            # Gemini doesn't return usage in a simple way in all versions, 
+            # but usually it's in usageMetadata
+            usage = data.get("usageMetadata", {})
+            tokens = usage.get("totalTokenCount", 0)
+            return text, tokens
+        except (KeyError, IndexError):
+            raise AIProviderError(f"Gemini unexpected response: {data}")
+
+    async def embed(self, api_key, model, text):
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent?key={api_key}",
+                json={
+                    "model": f"models/{model}",
+                    "content": {"parts": [{"text": text}]}
+                }
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"Gemini embed {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        return data["embedding"]["values"], 0 # Gemini embedding usage unknown
+
+
 # ── Provider Registry ─────────────────────────────────────────────────────────
 #
 # Add your provider instance here to make it available to the system.
@@ -197,6 +262,7 @@ class AnthropicProvider(AIProvider):
 PROVIDER_REGISTRY: dict[str, AIProvider] = {
     "openai":    OpenAIProvider(),
     "anthropic": AnthropicProvider(),
+    "gemini":    GeminiProvider(),
 }
 
 # ── Encryption ────────────────────────────────────────────────────────────────

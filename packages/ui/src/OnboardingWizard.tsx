@@ -41,7 +41,7 @@ export default function OnboardingWizard({
   const [kbNameEn, setKbNameEn] = useState('');
   
   // AI State
-  const [provider, setProvider] = useState<'openai' | 'anthropic'>('openai');
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
   const [apiKey, setApiKey] = useState('');
 
   // Review State
@@ -274,10 +274,11 @@ export default function OnboardingWizard({
       <div className="provider-selector mt-24">
         <button className={provider === 'openai' ? 'active' : ''} onClick={() => setProvider('openai')}>OpenAI</button>
         <button className={provider === 'anthropic' ? 'active' : ''} onClick={() => setProvider('anthropic')}>Anthropic</button>
+        <button className={provider === 'gemini' ? 'active' : ''} onClick={() => setProvider('gemini')}>Gemini</button>
       </div>
       <input 
         type="password" className="mt-input mt-16" 
-        placeholder={provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
+        placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
         value={apiKey} onChange={e => setApiKey(e.target.value)}
       />
       {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}

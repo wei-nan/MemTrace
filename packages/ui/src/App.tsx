@@ -184,7 +184,7 @@ function SettingsPanel({
 
   const [keys, setKeys] = useState<AIKey[]>([]);
   const [credits, setCredits] = useState<CreditStatus | null>(null);
-  const [provider, setProvider] = useState<'openai' | 'anthropic'>('openai');
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
   const [apiKey, setApiKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -237,6 +237,7 @@ function SettingsPanel({
   const providers = [
     { value: 'openai', label: 'OpenAI' },
     { value: 'anthropic', label: 'Anthropic (Claude)' },
+    { value: 'gemini', label: 'Google Gemini' },
   ] as const;
 
   return (
@@ -406,7 +407,7 @@ function SettingsPanel({
           <input
             className="mt-input"
             type="password"
-            placeholder={provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
+            placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
