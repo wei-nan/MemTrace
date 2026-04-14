@@ -8,7 +8,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Search, Sparkles, Network, Layers, PlusCircle } from 'lucide-react';
-import { nodes as nodesApi, edges as edgesApi, type Node as ApiNode, type Edge as ApiEdge } from './api';
+import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
 
@@ -61,15 +61,15 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
       if (e.message.includes('403') || e.message.includes('401')) {
         try {
           const preview = await workspaces.graphPreview(wsId);
-          setApiNodes(preview.nodes.map(n => ({
+          setApiNodes(preview.nodes.map((n: any) => ({
              id: n.preview_id,
-             title_en: 'Restricted Node',
-             title_zh: '受限節點',
+             title_en: '***',
+             title_zh: '***',
              content_type: n.content_type,
              trust_score: 0.5,
              tags: [],
           } as any)));
-          setApiEdges(preview.edges.map(e => ({
+          setApiEdges(preview.edges.map((e: any) => ({
             id: Math.random().toString(),
             from_id: e.from_preview_id,
             to_id: e.to_preview_id,

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, User, Brain, ExternalLink, PlusCircle } from 'lucide-react';
 import { ai, type ChatResponse, type ProposedChange } from '../api';
 import ReactMarkdown from 'react-markdown';

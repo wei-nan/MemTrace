@@ -7,8 +7,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from core.database import db_cursor
-from core.auth import get_current_user
-from core.utils import generate_id
+from core.deps import get_current_user
+from core.security import generate_id
 from models.exports import KBExportRequest, KBExportResponse
 from routers.kb import _require_ws_access
 

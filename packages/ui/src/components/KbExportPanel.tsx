@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Download, FileText, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { workspaces, type KBExport } from '../api';
 
 export default function KbExportPanel({ wsId, zh }: { wsId: string; zh: boolean }) {
   const [exports, setExports] = useState<KBExport[]>([]);
-  const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [includeMarkdown, setIncludeMarkdown] = useState(true);
 

@@ -9,6 +9,7 @@ from core.deps import get_current_user, get_current_user_optional
 from core.security import compute_signature, generate_id
 from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable, AIQuotaExceeded
 from models.kb import (
+    NodeCreate, NodeResponse, NodeUpdate,
     EdgeCreate, EdgeResponse,
     RateEdgeRequest, TraverseEdgeRequest,
     WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate,

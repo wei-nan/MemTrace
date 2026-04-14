@@ -98,14 +98,6 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
     }
   };
 
-  const handleUpdateVisibility = async (vis: string) => {
-    try {
-      // Assuming a hypothetical update method exists or we use create with patch logic
-      // Actually, we need an updateWorkspace method in api.ts? 
-      // Let's check api.ts if it has one. (It doesn't yet).
-      // I'll skip the actual update for a second or add it.
-    } catch (e) {}
-  };
 
   return (
     <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 24 }}>

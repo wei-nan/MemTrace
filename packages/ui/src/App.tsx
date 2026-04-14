@@ -4,7 +4,7 @@ import {
   Network, PlusCircle, Settings,
   Globe, LogOut, ChevronDown,
   ChevronLeft, ChevronRight, X, Key, Coins, Trash2,
-  Inbox, Users, Mail, Moon, Sun, Brain, Sparkles
+  Inbox, Users, Mail, Moon, Sun, Brain
 } from 'lucide-react';
 import './index.css';
 import AiChatPanel from './components/AiChatPanel';
