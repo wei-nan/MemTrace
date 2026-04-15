@@ -121,6 +121,7 @@ export const ai = {
   extract: (data: any) => request<any>("POST", `${BASE}/ai/extract`, data),
   restructure: (data: any) => request<any>("POST", `${BASE}/ai/restructure`, data),
   chat: (data: any) => request<any>("POST", `${BASE}/ai/chat`, data),
+  listModels: (provider: string) => request<ModelInfo[]>("GET", `${BASE}/ai/models/${provider}`),
 };
 
 export interface IngestionLog {
@@ -170,9 +171,13 @@ export interface AIKey {
   id: string; provider: string; key_hint: string;
   created_at: string; last_used_at: string | null;
 }
+export interface ModelInfo {
+  id: string;
+  display_name: string;
+}
 export interface CreditStatus {
   free_limit: number; free_used: number; free_remaining: number;
-  has_own_key: { openai: boolean; anthropic: boolean };
+  has_own_key: { openai: boolean; anthropic: boolean; gemini: boolean };
 }
 export interface Workspace {
   id: string; name_zh: string; name_en: string; visibility: string;

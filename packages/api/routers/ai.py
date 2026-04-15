@@ -59,7 +59,7 @@ class CreditStatusResponse(BaseModel):
     free_limit:     int
     free_used:      int
     free_remaining: int
-    has_own_key:    dict[str, bool]   # {"openai": True, "anthropic": False}
+    has_own_key:    dict[str, bool]   # {"openai": True, "anthropic": False, "gemini": False}
 
 
 class ExtractionRequest(BaseModel):
@@ -68,6 +68,7 @@ class ExtractionRequest(BaseModel):
     kb_type:       Literal["evergreen", "ephemeral"] = "evergreen"
     existing_titles: list[str] = Field(default_factory=list, max_length=100)
     preferred_provider: Optional[str] = None
+    preferred_model: Optional[str] = None
 
 
 class ExtractedNode(BaseModel):
@@ -91,6 +92,7 @@ class EmbedRequest(BaseModel):
     workspace_id: str
     node_id:     Optional[str] = None
     preferred_provider: Optional[str] = None
+    preferred_model: Optional[str] = None
 
 
 class EmbedResponse(BaseModel):
@@ -103,6 +105,7 @@ class RestructureRequest(BaseModel):
     node_ids:    list[str] = Field(min_length=1, max_length=20)
     workspace_id: str
     preferred_provider: Optional[str] = None
+    preferred_model: Optional[str] = None
 
 
 class ProposedChange(BaseModel):
@@ -122,6 +125,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[list[dict]] = None
     preferred_provider: Optional[str] = None
+    preferred_model: Optional[str] = None
 
 class ChatResponse(BaseModel):
     answer: str
@@ -189,6 +193,21 @@ def delete_ai_key(
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="No key found for this provider")
 
+@router.get("/models/{provider}")
+async def list_models(
+    provider: str,
+    user: dict = Depends(get_current_user),
+):
+    try:
+        resolved = resolve_provider(user["sub"], "extraction", provider)
+        return await resolved.provider.list_models(resolved.api_key)
+    except Exception as e:
+        # Fallback to static list if resolve fails (e.g. no key configured)
+        impl = PROVIDER_REGISTRY.get(provider)
+        if impl:
+            return impl.get_known_models()
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 # ── Credit status ──────────────────────────────────────────────────────────────
 
@@ -214,6 +233,7 @@ def get_credit_status(user: dict = Depends(get_current_user)):
         has_own_key={
             "openai":    "openai"    in own_keys,
             "anthropic": "anthropic" in own_keys,
+            "gemini":    "gemini"    in own_keys,
         },
     )
 
@@ -226,7 +246,7 @@ async def extract_nodes(
     user: dict = Depends(get_current_user),
 ):
     try:
-        resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider)
+        resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
     except AIQuotaExceeded as e:
         raise HTTPException(status_code=402, detail=str(e))
     except AIProviderUnavailable as e:
@@ -279,7 +299,7 @@ async def embed_text(
     user: dict = Depends(get_current_user),
 ):
     try:
-        resolved = resolve_provider(user["sub"], "embedding", body.preferred_provider)
+        resolved = resolve_provider(user["sub"], "embedding", body.preferred_provider, body.preferred_model)
     except AIQuotaExceeded as e:
         raise HTTPException(status_code=402, detail=str(e))
     except AIProviderUnavailable as e:
@@ -306,7 +326,7 @@ async def restructure_nodes(
         raise HTTPException(status_code=400, detail="Maximum 20 nodes per restructure request")
 
     try:
-        resolved = resolve_provider(user["sub"], "restructure", body.preferred_provider)
+        resolved = resolve_provider(user["sub"], "restructure", body.preferred_provider, body.preferred_model)
     except AIQuotaExceeded as e:
         raise HTTPException(status_code=402, detail=str(e))
     except AIProviderUnavailable as e:
@@ -363,8 +383,8 @@ async def chat_with_kb(
 ):
     try:
         from core.ai import CHAT_SYSTEM
-        resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider)
-        embed_prov = resolve_provider(user["sub"], "embedding", body.preferred_provider)
+        resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
+        embed_prov = resolve_provider(user["sub"], "embedding", body.preferred_provider, body.preferred_model)
         vector, _ = await embed(embed_prov, body.message)
         
         with db_cursor() as cur:

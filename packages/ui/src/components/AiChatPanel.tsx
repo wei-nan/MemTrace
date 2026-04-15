@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, Brain, ExternalLink, PlusCircle } from 'lucide-react';
-import { ai, type ChatResponse, type ProposedChange } from '../api';
+import { Send, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle } from 'lucide-react';
+import { ai, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus } from '../api';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -13,7 +13,36 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
+  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [credits, setCredits] = useState<CreditStatus | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const c = await ai.getCredits();
+        setCredits(c);
+      } catch (e) {
+        console.error("Failed to fetch credits", e);
+      }
+    };
+    fetchCredits();
+  }, [provider]);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const list = await ai.listModels(provider);
+        setModels(list);
+        if (list.length > 0) setSelectedModel(list[0].id);
+      } catch (e) {
+        console.error("Failed to fetch models", e);
+      }
+    };
+    fetchModels();
+  }, [provider]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -31,7 +60,13 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
 
     try {
       const history = messages.map(m => ({ role: m.role, content: m.content }));
-      const res = await ai.chat({ workspace_id: wsId, message: input, history });
+      const res = await ai.chat({ 
+        workspace_id: wsId, 
+        message: input, 
+        history,
+        preferred_provider: provider,
+        preferred_model: selectedModel
+      });
       
       const assistantMsg: Message = { 
         role: 'assistant', 
@@ -49,11 +84,41 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-surface)' }}>
       {/* Header */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10 }}>
         <Sparkles size={18} style={{ color: 'var(--color-primary)' }} />
         <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
           {zh ? 'AI 助手' : 'AI Assistant'}
         </h3>
+      </div>
+
+      {/* Selector Bar */}
+      <div style={{ 
+        padding: '6px 16px', background: 'var(--bg-app)', borderBottom: '1px solid var(--border-default)', 
+        display: 'flex', gap: 8, overflowX: 'auto', alignItems: 'center'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <Settings2 size={14} style={{ opacity: 0.6 }} />
+          <select 
+            value={provider} 
+            onChange={e => setProvider(e.target.value as any)}
+            style={{ fontSize: 11, padding: '2px 4px', borderRadius: 4, border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', fontWeight: 600 }}
+          >
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic</option>
+            <option value="gemini">Gemini</option>
+          </select>
+        </div>
+        <div style={{ width: 1, height: 16, background: 'var(--border-default)' }} />
+        <select 
+          value={selectedModel} 
+          onChange={e => setSelectedModel(e.target.value)}
+          style={{ fontSize: 11, padding: '2px 4px', borderRadius: 4, border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', flex: 1, minWidth: 100 }}
+        >
+          {models.map(m => (
+            <option key={m.id} value={m.id}>{m.display_name}</option>
+          ))}
+          {models.length === 0 && <option value="">Loading...</option>}
+        </select>
       </div>
 
       {/* Messages List */}
@@ -126,21 +191,58 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
       </div>
 
       {/* Input Area */}
-      <div style={{ padding: '20px', borderTop: '1px solid var(--border-default)' }}>
+      <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
+        {credits && !credits.has_own_key[provider] && (
+          <div style={{ 
+            marginBottom: 12, padding: '8px 12px', borderRadius: 8, 
+            background: 'var(--color-primary-subtle)', border: '1px solid var(--color-primary)',
+            fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-default)'
+          }}>
+            <AlertCircle size={14} style={{ color: 'var(--color-primary)' }} />
+            <span>
+              {zh 
+                ? `您尚未設定 ${provider.toUpperCase()} 的 API Key，將會扣除系統點數。` 
+                : `No API key for ${provider.toUpperCase()}, using managed credits.`}
+              <button 
+                onClick={() => alert("Navigate to Settings to add key")}
+                style={{ marginLeft: 6, fontWeight: 700, background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {zh ? '去設定' : 'Add Key'}
+              </button>
+            </span>
+          </div>
+        )}
+        
+        {credits && !credits.has_own_key[provider] && credits.free_remaining <= 0 && (
+          <div style={{ 
+            marginBottom: 12, padding: '12px', borderRadius: 8, 
+            background: '#fee2e2', border: '1px solid #ef4444',
+            fontSize: 12, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 8
+          }}>
+            <AlertCircle size={14} />
+            <b>{zh ? '點數已耗盡，請提供 API Key 以繼續使用。' : 'Credits exhausted, please add an API key.'}</b>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 10, background: 'var(--bg-app)', padding: '8px 12px', borderRadius: 24, border: '1px solid var(--border-default)' }}>
           <input 
             style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text-default)', fontSize: 14, paddingLeft: 8 }}
             placeholder={zh ? '輸入訊息...' : 'Type a message...'}
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && input.trim() && !loading) {
+                const canSend = !credits || credits.has_own_key[provider] || credits.free_remaining > 0;
+                if (canSend) handleSend();
+              }
+            }}
           />
           <button 
             onClick={handleSend}
-            disabled={!input.trim() || loading}
+            disabled={!input.trim() || loading || (credits ? (!credits.has_own_key[provider] && credits.free_remaining <= 0) : false)}
             style={{ 
               width: 32, height: 32, borderRadius: 16, border: 'none',
-              background: input.trim() ? 'var(--color-primary)' : 'var(--border-default)',
+              background: (input.trim() && !loading && (!credits || credits.has_own_key[provider] || credits.free_remaining > 0)) ? 'var(--color-primary)' : 'var(--border-default)',
               color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
             }}
           >

@@ -72,6 +72,19 @@ class AIProvider(ABC):
     default_embedding_model: str
 
     @abstractmethod
+    def get_known_models(self) -> list[dict]:
+        """Return a static list of known models for this provider."""
+
+    @abstractmethod
+    async def list_models(self, api_key: str) -> list[dict]:
+        """
+        List available models for this provider.
+
+        Returns:
+            list of models with 'id' and 'display_name'.
+        """
+
+    @abstractmethod
     async def chat(
         self,
         api_key: str,
@@ -137,6 +150,33 @@ class OpenAIProvider(AIProvider):
         data = resp.json()
         return data["choices"][0]["message"]["content"], data["usage"]["total_tokens"]
 
+    def get_known_models(self) -> list[dict]:
+        return [
+            {"id": "gpt-4o", "display_name": "GPT-4o"},
+            {"id": "gpt-4o-mini", "display_name": "GPT-4o Mini"},
+            {"id": "gpt-4-turbo", "display_name": "GPT-4 Turbo"},
+            {"id": "gpt-3.5-turbo", "display_name": "GPT-3.5 Turbo"},
+            {"id": "o1-preview", "display_name": "o1 Preview"},
+            {"id": "o1-mini", "display_name": "o1 Mini"},
+        ]
+
+    async def list_models(self, api_key: str) -> list[dict]:
+        if not api_key:
+            return self.get_known_models()
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"{self._base_url}/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+            )
+        if not resp.is_success:
+            return self.get_known_models()
+        data = resp.json()
+        return [
+            {"id": m["id"], "display_name": m["id"]}
+            for m in data["data"]
+            if "gpt" in m["id"] or "o1" in m["id"]
+        ]
+
     async def embed(self, api_key, model, text):
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(
@@ -156,6 +196,33 @@ class AnthropicProvider(AIProvider):
     name                    = "anthropic"
     default_chat_model      = "claude-3-haiku-20240307"
     default_embedding_model = ""  # Anthropic does not offer a native embedding API
+
+    def get_known_models(self) -> list[dict]:
+        return [
+            {"id": "claude-3-5-sonnet-20240620", "display_name": "Claude 3.5 Sonnet"},
+            {"id": "claude-3-opus-20240229", "display_name": "Claude 3 Opus"},
+            {"id": "claude-3-sonnet-20240229", "display_name": "Claude 3 Sonnet"},
+            {"id": "claude-3-haiku-20240307", "display_name": "Claude 3 Haiku"},
+        ]
+
+    async def list_models(self, api_key: str) -> list[dict]:
+        if not api_key:
+            return self.get_known_models()
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://api.anthropic.com/v1/models",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+            )
+        if not resp.is_success:
+            return self.get_known_models()
+        data = resp.json()
+        return [
+            {"id": m["id"], "display_name": m.get("display_name", m["id"])}
+            for m in data["data"]
+        ]
 
     async def chat(self, api_key, model, messages, max_tokens, temperature):
         system = next((m["content"] for m in messages if m["role"] == "system"), "")
@@ -189,6 +256,32 @@ class GeminiProvider(AIProvider):
     name                    = "gemini"
     default_chat_model      = "gemini-1.5-flash"
     default_embedding_model = "text-embedding-004"
+
+    def get_known_models(self) -> list[dict]:
+        return [
+            {"id": "gemini-1.5-flash", "display_name": "Gemini 1.5 Flash"},
+            {"id": "gemini-1.5-pro", "display_name": "Gemini 1.5 Pro"},
+            {"id": "gemini-1.0-pro", "display_name": "Gemini 1.0 Pro"},
+        ]
+
+    async def list_models(self, api_key: str) -> list[dict]:
+        if not api_key:
+            return self.get_known_models()
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+            )
+        if not resp.is_success:
+            return self.get_known_models()
+        data = resp.json()
+        return [
+            {
+                "id": m["name"].replace("models/", ""),
+                "display_name": m.get("displayName", m["name"])
+            }
+            for m in data["models"]
+            if "generateContent" in m.get("supportedGenerationMethods", [])
+        ]
 
     async def chat(self, api_key, model, messages, max_tokens, temperature):
         # Gemini v1beta supports system_instruction separately
@@ -295,6 +388,7 @@ def resolve_provider(
     user_id: str,
     feature: Feature,
     preferred_provider: Optional[str] = None,
+    preferred_model: Optional[str] = None,
 ) -> ResolvedProvider:
     """
     Determine which provider + key to use.
@@ -322,7 +416,7 @@ def resolve_provider(
                 raise AIProviderUnavailable(
                     f"Provider '{provider_id}' is not installed on this server."
                 )
-            model = (
+            model = preferred_model or (
                 impl.default_embedding_model
                 if feature == "embedding"
                 else impl.default_chat_model
@@ -358,7 +452,7 @@ def resolve_provider(
                 "Add your own API key in Settings → AI Provider."
             )
 
-        model = (
+        model = preferred_model or (
             impl.default_embedding_model
             if feature == "embedding"
             else impl.default_chat_model
