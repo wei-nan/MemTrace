@@ -9,15 +9,17 @@
     "type": "factual",
     "format": "markdown",
     "body": {
-      "zh-TW": "每個 Memory Node 必須標記一種 Content Type，代表其知識的性質：\n\n| Type | 說明 | 例子 |\n|------|------|------|\n| `factual` | 陳述性事實 | 「pgvector 支援 cosine similarity」 |\n| `procedural` | 步驟流程 | 「如何設定 Google OAuth」 |\n| `preference` | 偏好或決策 | 「我們選擇 bcrypt 而非 argon2」 |\n| `context` | 背景脈絡 | 「這個專案採用雙語設計的原因」 |\n\nContent Type 影響搜尋過濾與 AI 萃取時的分類決策。",
-      "en": "Every Memory Node must be tagged with a Content Type describing the nature of its knowledge:\n\n| Type | Description | Example |\n|------|-------------|--------|\n| `factual` | Declarative facts | \"pgvector supports cosine similarity\" |\n| `procedural` | Step-by-step process | \"How to configure Google OAuth\" |\n| `preference` | Preferences or decisions | \"We chose bcrypt over argon2\" |\n| `context` | Background context | \"Why this project uses bilingual design\" |\n\nContent Type influences search filtering and AI extraction classification decisions."
+      "zh-TW": "每個 Memory Node 必須標記一種 Content Type：\n\n| Type | 說明 | 例子 |\n|------|------|------|\n| `factual` | 陳述性事實 | 「pgvector 支援 cosine similarity」 |\n| `procedural` | 步驟流程 | 「如何設定 Google OAuth」 |\n| `preference` | 偏好或決策 | 「我們選擇 bcrypt 而非 argon2」 |\n| `context` | 背景脈絡 | 「這個專案採用雙語設計的原因」 |\n| `source_document` | 攝入時保留的原始文件（§20）| 一個會議錄音逐字稿、一份 PDF 全文 |\n\n**`source_document` 特性**：由 `ingest` 流程自動建立，body 為文件全文或逐字稿，預設從 Graph View / 搜尋 / Q&A context 中**排除**。萃取出的節點透過 `source_doc_node_id` + `source_paragraph_ref` 反向連結到原始段落。\n\nContent Type 影響：搜尋過濾、AI 萃取分類、預設 decay half-life（ephemeral 工作區）、Export Scope 配對（`procedural` → user-manual，`factual` → functional-spec 等）。"
+,
+      "en": "Every Memory Node must be tagged with a Content Type:\n\n| Type | Description | Example |\n|------|-------------|---------|\n| `factual` | Declarative facts | \"pgvector supports cosine similarity\" |\n| `procedural` | Step-by-step process | \"How to configure Google OAuth\" |\n| `preference` | Preferences or decisions | \"We chose bcrypt over argon2\" |\n| `context` | Background context | \"Why this project uses bilingual design\" |\n| `source_document` | Original document retained at ingestion (§20) | A meeting transcript, a full PDF |\n\n**`source_document` characteristics**: Created automatically by the `ingest` flow; body holds the full text or transcript. **Excluded by default** from Graph View / search / Q&A context. Extracted nodes link back to the original passage via `source_doc_node_id` + `source_paragraph_ref`.\n\nContent Type affects: search filtering, AI extraction classification, default decay half-life (ephemeral workspaces), and Export Scope matching (`procedural` → user-manual, `factual` → functional-spec, etc.)."
     }
   },
-  "tags": ["data-model", "schema", "content-type"],
+  "tags": ["data-model", "schema", "content-type", "source-document"],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-04-11T00:00:00Z",
+    "updated_at": "2026-04-16T00:00:00Z",
     "signature": "f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1",
     "source_type": "human"
   },

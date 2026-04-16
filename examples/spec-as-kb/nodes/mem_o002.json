@@ -9,15 +9,17 @@
     "type": "procedural",
     "format": "plain",
     "body": {
-      "zh-TW": "執行 `memtrace init` 啟動終端機互動式精靈，分三步：① 認證（輸入 token 或跳過離線使用） → ② AI Provider 設定（選供應商並輸入 API Key，可 Enter 跳過） → ③ 完成（顯示 next steps）。設定寫入 ~/.memtrace/config.json，立即設定 chmod 600。重複執行時，詢問要更新哪個項目（AI 設定 / 重新認證 / 退出），不自動覆寫現有設定。",
-      "en": "Running `memtrace init` launches an interactive terminal wizard with three steps: ① Authentication (enter token or skip for offline use) → ② AI provider setup (choose provider and enter API key, or press Enter to skip) → ③ Done (display next steps). Config written to ~/.memtrace/config.json with chmod 600 immediately. Re-running prompts which setting to update (AI config / re-authenticate / exit) — existing values are not overwritten unless the user selects the relevant option."
+      "zh-TW": "執行 `memtrace init` 啟動終端機互動式精靈，五步：\n\n① 認證：登入既有帳號 / 建立新帳號 / 使用 Google OAuth（會開啟瀏覽器）\n② 建立第一個知識庫：英文名稱 + 可見性（private / restricted / public，預設 private）\n③ 選擇 KB 類型：evergreen（長效型，預設）或 ephemeral（短效型）— **建立後不可變更**\n④ AI Provider 設定（可 Enter 跳過）：選擇 openai / anthropic 並輸入 API Key（自動測試連線）\n⑤ 匯入文件（可 Enter 跳過）：輸入檔案路徑或 URL\n\n設定寫入 `~/.memtrace/config.json`，立即 `chmod 600`。\n\n重複執行：詢問要更新 AI provider / 切換預設工作區 / 重新認證 / 退出，不自動覆寫現有設定。"
+,
+      "en": "Running `memtrace init` launches an interactive terminal wizard with five steps:\n\n① Authentication: log in to existing account / create new account / use Google OAuth (opens browser)\n② Create first Knowledge Base: English name + visibility (private / restricted / public, default private)\n③ Choose KB type: evergreen (default) or ephemeral — **immutable after creation**\n④ AI provider setup (press Enter to skip): choose openai / anthropic and enter API key (auto-tests connection)\n⑤ Import document (press Enter to skip): provide file path or URL\n\nConfig written to `~/.memtrace/config.json` with `chmod 600` immediately.\n\nRe-running: prompts which setting to update — AI provider / switch default workspace / re-authenticate / exit. Existing values are not overwritten unless explicitly selected."
     }
   },
-  "tags": ["onboarding", "cli", "init", "setup"],
+  "tags": ["onboarding", "cli", "init", "setup", "kb-type"],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-04-11T00:00:00Z",
+    "updated_at": "2026-04-16T00:00:00Z",
     "signature": "e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9",
     "source_type": "human"
   },

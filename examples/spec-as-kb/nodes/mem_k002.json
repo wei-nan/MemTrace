@@ -2,28 +2,30 @@
   "id": "mem_k002",
   "schema_version": "1.0",
   "title": {
-    "zh-TW": "知識庫共享層級：三種可見性",
-    "en": "Knowledge Base sharing levels: three visibility modes"
+    "zh-TW": "知識庫共享層級：四種可見性",
+    "en": "Knowledge Base sharing levels: four visibility tiers"
   },
   "content": {
     "type": "factual",
     "format": "markdown",
     "body": {
-      "zh-TW": "| 層級 | 識別碼 | 說明 |\n|------|--------|------|\n| 全公開 | `public` | 任何人（含未登入）皆可探索與閱讀 |\n| 限定公開 | `restricted` | 不可被公開探索；持邀請連結或被授權者才能存取 |\n| 私人 | `private` | 僅限擁有者，完全不對外可見 |\n\n`restricted` 知識庫透過時限邀請連結（token + expires_at）或直接加入成員管理存取。成員角色分 `viewer`（唯讀）與 `editor`（可編輯）。降級（如 public → private）立即生效，現有邀請連結同步撤銷。",
-      "en": "| Level | Identifier | Description |\n|-------|------------|-------------|\n| Public | `public` | Anyone, including unauthenticated users, can discover and read |\n| Restricted | `restricted` | Not publicly discoverable; only accessible via invite link or explicit grant |\n| Private | `private` | Owner only; completely hidden from all others |\n\n`restricted` Knowledge Bases are managed via time-limited invite links (token + expires_at) or direct member grants. Member roles: `viewer` (read-only) and `editor` (can write). Downgrading (e.g. public → private) takes effect immediately and revokes all existing invite links."
+      "zh-TW": "| 層級 | 識別碼 | 說明 |\n|------|--------|------|\n| 全公開 | `public` | 任何人（含未登入）皆可探索與閱讀 `public` 節點 |\n| 有條件公開 | `conditional_public` | 任何人皆可看到圖譜結構（拓撲），但節點內容隱藏；可向管理員提交加入申請 |\n| 限制公開 | `restricted` | 知識庫對非成員不可見，必須由 admin 明確邀請才能加入 |\n| 私有 | `private` | 僅擁有者可見，無法發出邀請 |\n\n**重要**：visibility 在建立時設定後**不可變更**（immutable）。任何 `PATCH /workspaces/{ws_id}` 含 `visibility` 欄位的請求一律回 `400 Immutable field: visibility`。建立時 UI 必須清楚顯示四個層級，使用者必須明確確認。\n\n節點層級的 visibility（public / team / private）獨立於知識庫層級，最終存取權取兩者較嚴格的一方。"
+,
+      "en": "| Tier | Identifier | Description |\n|------|------------|-------------|\n| Public | `public` | Anyone (incl. unauthenticated) can discover and read `public` nodes |\n| Conditional Public | `conditional_public` | Anyone can see graph topology, but node content is hidden; users may submit a join request to admins |\n| Restricted | `restricted` | KB is invisible to non-members; entry requires explicit admin invitation |\n| Private | `private` | Owner-only; invitations cannot be issued |\n\n**Important**: visibility is **immutable** after creation. Any `PATCH /workspaces/{ws_id}` containing `visibility` is rejected with `400 Immutable field: visibility`. The creation UI must show all four tiers clearly with inline descriptions and require explicit user confirmation.\n\nNode-level visibility (`public` / `team` / `private`) is independent of KB-level visibility — effective access is the more restrictive of the two."
     }
   },
-  "tags": ["knowledge-base", "sharing", "visibility", "access-control"],
+  "tags": ["knowledge-base", "sharing", "visibility", "access-control", "four-tier"],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-04-11T00:00:00Z",
+    "updated_at": "2026-04-16T00:00:00Z",
     "signature": "b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
     "votes": { "up": 0, "down": 0, "verifications": 0 }
   },
   "traversal": { "count": 0, "unique_traversers": 0 }

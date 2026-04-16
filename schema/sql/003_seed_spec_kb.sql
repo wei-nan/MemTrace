@@ -22,8 +22,40 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_a001','1.0','ws_spec0001','AI Provider 與 API Key 自管','AI provider and self-managed API keys','procedural','plain',
-   'MemTrace 不自營 AI 推論服務。所有 AI 功能由使用者選擇的第三方供應商提供（OpenAI 或 Anthropic）。API Key 儲存於本地：CLI 存於 ~/.memtrace/config.json（chmod 600），UI 存於 localStorage。Key 不傳送至任何 MemTrace 伺服器。未設定 Key 時 AI 功能停用，提示前往設定。Key 無效或配額耗盡時攝入流程中止，顯示原始錯誤訊息。未來商業模式可能提供 MemTrace 代管額度（免費層 + 付費方案），架構上需透過 provider interface 抽象以便日後切換。','MemTrace does not operate its own AI inference service. All AI features are powered by the user''s chosen third-party provider (OpenAI or Anthropic). API keys are stored locally: CLI in ~/.memtrace/config.json (chmod 600), UI in localStorage. Keys are never sent to any MemTrace server. If no key is configured, AI features are disabled with a prompt to configure one. On invalid key or quota exhaustion, the ingestion step aborts and the raw error is shown. Future: a managed credit model (free tier + paid) may be introduced; the architecture must abstract the AI call path via a provider interface to allow switching without changing extraction logic.',ARRAY['ai', 'api-key', 'provider', 'security']::text[],'public',
+  ('mem_a001','1.0','ws_spec0001','AI Provider 與 API Key 自管','AI provider and self-managed API keys','procedural','markdown',
+   'MemTrace 不自營 AI 推論服務。所有 AI 功能由使用者選擇的第三方供應商提供。
+
+**官方支援的 Provider**：
+
+| Provider | 識別碼 | 預設 Chat 模型 | Embedding 模型 | 維度 |
+|----------|--------|---------------|---------------|------|
+| OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` | 1536 |
+| Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` | 1024 |
+| Google Gemini | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | 768 |
+
+**Embedding 維度限制**：每個工作區的 embedding 維度在建立時固定（`workspaces.embedding_provider` + `embedding_dim`），**不可變更**。不同 provider 產生的向量維度不同，無法跨 provider 比較 cosine similarity。
+
+**API Key 儲存**：CLI 存於 `~/.memtrace/config.json`（chmod 600），UI 存於 localStorage 或加密寫入 `user_ai_keys`。Key **永不**傳送至 MemTrace 伺服器以外的任何地方。
+
+**社群 Provider**：透過 `packages/api/core/ai.py` 的 `AIProvider` Protocol 可加入新 provider（Mistral、Cohere、Ollama、vLLM 等）。實作後在 `PROVIDER_REGISTRY` 註冊即可，不需修改 router 或資料庫 schema。
+
+**未來商業模式**：可能提供 MemTrace 代管額度（免費層 + 付費方案）；架構透過 provider interface 抽象，日後切換不影響上層邏輯。','MemTrace does not operate its own AI inference service. All AI features are powered by the user''s chosen third-party provider.
+
+**Officially supported providers**:
+
+| Provider | Identifier | Default chat model | Embedding model | Dim |
+|----------|------------|--------------------|-----------------|-----|
+| OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` | 1536 |
+| Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` | 1024 |
+| Google Gemini | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | 768 |
+
+**Embedding dimension constraint**: Each workspace fixes its embedding dimension at creation time (`workspaces.embedding_provider` + `embedding_dim`) and it is **immutable**. Different providers produce vectors of different dimensions; nodes embedded with different models cannot be compared via cosine similarity.
+
+**API key storage**: CLI in `~/.memtrace/config.json` (chmod 600); UI in localStorage or encrypted in `user_ai_keys`. Keys are **never** transmitted to any MemTrace server.
+
+**Community providers**: Add new providers via the `AIProvider` Protocol in `packages/api/core/ai.py` (Mistral, Cohere, Ollama, vLLM, etc.). Implement and register in `PROVIDER_REGISTRY` — no router or schema changes needed.
+
+**Future business model**: a managed credit option (free tier + paid) may be introduced. The provider interface abstraction lets this swap in without touching extraction logic.',ARRAY['ai', 'api-key', 'provider', 'security', 'gemini', 'embedding']::text[],'public',
    'memtrace-spec','2026-04-11T00:00:00Z','d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7','human',
    0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
@@ -150,26 +182,46 @@ VALUES
    'Memory Node 是 MemTrace 中知識的最小單位。每個節點捕捉**一個**想法，包含：
 
 - **雙語標題與內文**（zh-TW + en），各自獨立
-- **Content Type**：factual / procedural / preference / context
-- **Format**：plain（純文字）或 markdown
+- **Content Type**：`factual` / `procedural` / `preference` / `context` / `source_document`
+- **Format**：`plain` 或 `markdown`
 - **Tags**：字串陣列，用於分類與搜尋
-- **Visibility**：public / team / private
-- **Provenance**：作者、建立時間、SHA-256 簽章
+- **Visibility**：`public` / `team` / `private`
+- **Provenance**：作者、建立時間、SHA-256 簽章、source_type
 - **Trust**：四維度信任分數
 - **Traversal**：走訪計數與不重複訪客數
+- **Status**：`active` / `archived`（archived 從預設視圖隱藏，不刪除）
+
+**並行寫入相關欄位**（§17）：
+- `version` — 樂觀鎖整數，每次 UPDATE 自動 +1；PATCH 必須帶 `X-Node-Version` header
+- `conflict_status` — `flagged` / `resolved`，由衝突檢測寫入
+- `conflict_detail` — JSONB，記錄衝突類型與相關節點
+
+**來源文件追溯欄位**（§20）：
+- `source_doc_node_id` — 指向 `source_document` 類型節點，用於追溯萃取來源
+- `source_paragraph_ref` — 字串，標記在原文件中的段落位置（如 `page:3, para:2` 或 `00:14:32-00:15:01`）
 
 節點 ID 格式：`mem_<hex8>`，例如 `mem_a1b2c3d4`。','A Memory Node is the atomic unit of knowledge in MemTrace. Each node captures **one** idea and contains:
 
 - **Bilingual title + body** (zh-TW + en), independently authored
-- **Content Type**: factual / procedural / preference / context
-- **Format**: plain (raw text) or markdown
+- **Content Type**: `factual` / `procedural` / `preference` / `context` / `source_document`
+- **Format**: `plain` or `markdown`
 - **Tags**: string array for classification and search
-- **Visibility**: public / team / private
-- **Provenance**: author, creation timestamp, SHA-256 signature
+- **Visibility**: `public` / `team` / `private`
+- **Provenance**: author, creation timestamp, SHA-256 signature, source_type
 - **Trust**: four-dimension trust score
 - **Traversal**: visit count and unique visitor count
+- **Status**: `active` / `archived` (archived nodes are hidden from default views, not deleted)
 
-Node ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`.',ARRAY['data-model', 'schema', 'core']::text[],'public',
+**Concurrency fields** (§17):
+- `version` — optimistic-lock integer, auto-incremented on every UPDATE; PATCH must include `X-Node-Version` header
+- `conflict_status` — `flagged` / `resolved`, set by the conflict detection job
+- `conflict_detail` — JSONB, records conflict type and related node
+
+**Source-document traceability fields** (§20):
+- `source_doc_node_id` — references a `source_document`-type node for extraction traceability
+- `source_paragraph_ref` — string marking the original location (e.g. `page:3, para:2` or `00:14:32-00:15:01`)
+
+Node ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`.',ARRAY['data-model', 'schema', 'core', 'version', 'conflict']::text[],'public',
    'memtrace-spec','2026-04-11T00:00:00Z','d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5','human',
    0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
@@ -221,7 +273,7 @@ INSERT INTO memory_nodes
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
   ('mem_d003','1.0','ws_spec0001','Content Type：節點的知識性質','Content Type: the nature of knowledge in a node','factual','markdown',
-   '每個 Memory Node 必須標記一種 Content Type，代表其知識的性質：
+   '每個 Memory Node 必須標記一種 Content Type：
 
 | Type | 說明 | 例子 |
 |------|------|------|
@@ -229,17 +281,23 @@ VALUES
 | `procedural` | 步驟流程 | 「如何設定 Google OAuth」 |
 | `preference` | 偏好或決策 | 「我們選擇 bcrypt 而非 argon2」 |
 | `context` | 背景脈絡 | 「這個專案採用雙語設計的原因」 |
+| `source_document` | 攝入時保留的原始文件（§20）| 一個會議錄音逐字稿、一份 PDF 全文 |
 
-Content Type 影響搜尋過濾與 AI 萃取時的分類決策。','Every Memory Node must be tagged with a Content Type describing the nature of its knowledge:
+**`source_document` 特性**：由 `ingest` 流程自動建立，body 為文件全文或逐字稿，預設從 Graph View / 搜尋 / Q&A context 中**排除**。萃取出的節點透過 `source_doc_node_id` + `source_paragraph_ref` 反向連結到原始段落。
+
+Content Type 影響：搜尋過濾、AI 萃取分類、預設 decay half-life（ephemeral 工作區）、Export Scope 配對（`procedural` → user-manual，`factual` → functional-spec 等）。','Every Memory Node must be tagged with a Content Type:
 
 | Type | Description | Example |
-|------|-------------|--------|
+|------|-------------|---------|
 | `factual` | Declarative facts | "pgvector supports cosine similarity" |
 | `procedural` | Step-by-step process | "How to configure Google OAuth" |
 | `preference` | Preferences or decisions | "We chose bcrypt over argon2" |
 | `context` | Background context | "Why this project uses bilingual design" |
+| `source_document` | Original document retained at ingestion (§20) | A meeting transcript, a full PDF |
 
-Content Type influences search filtering and AI extraction classification decisions.',ARRAY['data-model', 'schema', 'content-type']::text[],'public',
+**`source_document` characteristics**: Created automatically by the `ingest` flow; body holds the full text or transcript. **Excluded by default** from Graph View / search / Q&A context. Extracted nodes link back to the original passage via `source_doc_node_id` + `source_paragraph_ref`.
+
+Content Type affects: search filtering, AI extraction classification, default decay half-life (ephemeral workspaces), and Export Scope matching (`procedural` → user-manual, `factual` → functional-spec, etc.).',ARRAY['data-model', 'schema', 'content-type', 'source-document']::text[],'public',
    'memtrace-spec','2026-04-11T00:00:00Z','f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1','human',
    0.95,0.95,1.0,0.9,0.9,
    0,0,0,0,0)
@@ -329,25 +387,45 @@ INSERT INTO memory_nodes
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
   ('mem_g001','1.0','ws_spec0001','Decay：Edge 權重的自然衰減','Decay: natural weight reduction on edges','factual','markdown',
-   'Edge 的 weight 隨時間依以下公式衰減：
+   'Edge 權重隨時間依以下公式衰減（v1）：
 
 ```
 weight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)
 ```
 
-- `half_life_days` 預設 30 天，可各別設定
-- 當 weight < `min_weight`（預設 0.1），Edge 標記為 stale 或自動移除
-- 衰減每日由 `apply_edge_decay()` SQL 函式執行
-- Decay 的目的是讓圖保持誠實：沒人使用的連結自然消退','Edge weight decays over time according to:
+**核心原則**：**Decay 塑造注意力，不塑造存在**。沒有東西因 decay 而被刪除。
+
+**Edge 狀態轉換**：當 `weight < min_weight`（預設 0.1），Edge 進入 `faded` 狀態：
+- 從預設 Graph View 與 traversal 結果隱藏
+- 仍存於資料庫（`status = ''faded''`），可由原作者或 admin 還原
+- API 加 `include_faded=true` 仍可查詢
+
+**節點層級**：
+- `evergreen` 工作區：節點本身依「觀察期內走訪計數」歸檔（§7.3），不受時間衰減
+- `ephemeral` 工作區：當所有相連 Edge 皆 faded，節點自動 archived
+
+**Pinned 例外**：`pinned: true` 的節點與 Edge 完全豁免於衰減與計數歸檔。
+
+衰減觸發：每日由 `apply_edge_decay()` SQL 函式執行（鏡射 `packages/core/src/decay.ts`）。','Edge weight decays over time according to (v1):
 
 ```
 weight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)
 ```
 
-- `half_life_days` defaults to 30 days, configurable per edge
-- When weight < `min_weight` (default 0.1), the edge is marked stale or auto-removed
-- Decay is applied daily by the `apply_edge_decay()` SQL function
-- The purpose of decay is to keep the graph honest: unused connections fade naturally',ARRAY['graph-mechanics', 'decay', 'weight']::text[],'public',
+**Core principle**: **Decay shapes attention, not existence.** Nothing is deleted by decay alone.
+
+**Edge state transition**: When `weight < min_weight` (default 0.1), the edge transitions to `faded`:
+- Hidden from default Graph View and traversal results
+- Still stored in the database (`status = ''faded''`); restorable by the original author or admin
+- Queryable via API with `include_faded=true`
+
+**Node level**:
+- `evergreen` workspace: nodes are archived based on traversal count within an observation window (§7.3), not time-based
+- `ephemeral` workspace: when all connected edges are faded, the node is auto-archived
+
+**Pinned exemption**: Nodes and edges with `pinned: true` are fully exempt from both time-decay and traversal-count archiving.
+
+Trigger: daily by the `apply_edge_decay()` SQL function (mirrors `packages/core/src/decay.ts`).',ARRAY['graph-mechanics', 'decay', 'weight', 'faded', 'archive']::text[],'public',
    'memtrace-spec','2026-04-11T00:00:00Z','d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6','human',
    0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
@@ -637,22 +715,28 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_k002','1.0','ws_spec0001','知識庫共享層級：三種可見性','Knowledge Base sharing levels: three visibility modes','factual','markdown',
+  ('mem_k002','1.0','ws_spec0001','知識庫共享層級：四種可見性','Knowledge Base sharing levels: four visibility tiers','factual','markdown',
    '| 層級 | 識別碼 | 說明 |
 |------|--------|------|
-| 全公開 | `public` | 任何人（含未登入）皆可探索與閱讀 |
-| 限定公開 | `restricted` | 不可被公開探索；持邀請連結或被授權者才能存取 |
-| 私人 | `private` | 僅限擁有者，完全不對外可見 |
+| 全公開 | `public` | 任何人（含未登入）皆可探索與閱讀 `public` 節點 |
+| 有條件公開 | `conditional_public` | 任何人皆可看到圖譜結構（拓撲），但節點內容隱藏；可向管理員提交加入申請 |
+| 限制公開 | `restricted` | 知識庫對非成員不可見，必須由 admin 明確邀請才能加入 |
+| 私有 | `private` | 僅擁有者可見，無法發出邀請 |
 
-`restricted` 知識庫透過時限邀請連結（token + expires_at）或直接加入成員管理存取。成員角色分 `viewer`（唯讀）與 `editor`（可編輯）。降級（如 public → private）立即生效，現有邀請連結同步撤銷。','| Level | Identifier | Description |
-|-------|------------|-------------|
-| Public | `public` | Anyone, including unauthenticated users, can discover and read |
-| Restricted | `restricted` | Not publicly discoverable; only accessible via invite link or explicit grant |
-| Private | `private` | Owner only; completely hidden from all others |
+**重要**：visibility 在建立時設定後**不可變更**（immutable）。任何 `PATCH /workspaces/{ws_id}` 含 `visibility` 欄位的請求一律回 `400 Immutable field: visibility`。建立時 UI 必須清楚顯示四個層級，使用者必須明確確認。
 
-`restricted` Knowledge Bases are managed via time-limited invite links (token + expires_at) or direct member grants. Member roles: `viewer` (read-only) and `editor` (can write). Downgrading (e.g. public → private) takes effect immediately and revokes all existing invite links.',ARRAY['knowledge-base', 'sharing', 'visibility', 'access-control']::text[],'public',
+節點層級的 visibility（public / team / private）獨立於知識庫層級，最終存取權取兩者較嚴格的一方。','| Tier | Identifier | Description |
+|------|------------|-------------|
+| Public | `public` | Anyone (incl. unauthenticated) can discover and read `public` nodes |
+| Conditional Public | `conditional_public` | Anyone can see graph topology, but node content is hidden; users may submit a join request to admins |
+| Restricted | `restricted` | KB is invisible to non-members; entry requires explicit admin invitation |
+| Private | `private` | Owner-only; invitations cannot be issued |
+
+**Important**: visibility is **immutable** after creation. Any `PATCH /workspaces/{ws_id}` containing `visibility` is rejected with `400 Immutable field: visibility`. The creation UI must show all four tiers clearly with inline descriptions and require explicit user confirmation.
+
+Node-level visibility (`public` / `team` / `private`) is independent of KB-level visibility — effective access is the more restrictive of the two.',ARRAY['knowledge-base', 'sharing', 'visibility', 'access-control', 'four-tier']::text[],'public',
    'memtrace-spec','2026-04-11T00:00:00Z','b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5','human',
-   0.95,0.95,1.0,0.9,0.9,
+   0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title_zh=EXCLUDED.title_zh, title_en=EXCLUDED.title_en,
@@ -740,7 +824,29 @@ INSERT INTO memory_nodes
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
   ('mem_o001','1.0','ws_spec0001','初次使用引導：Web UI 精靈','First-run onboarding: web UI wizard','procedural','plain',
-   '首次登入後自動顯示，完成後永久不再彈出（可從 Settings → Getting Started 重新開啟）。七步流程：① 建立帳號（Google OAuth 或 Email） → ② 驗證 Email（OAuth 使用者跳過） → ③ 命名第一個知識庫（名稱 + 可見性） → ④ 選擇起點（空白 或 上傳文件） → ⑤ AI Provider 設定（可跳過，文件路徑才出現） → ⑥ Review 萃取候選節點（至少接受一個） → ⑦ 完成（提供三個捷徑：手動新增節點、邀請成員、連接 AI 工具）。進度以 steps_done[] 與 steps_skipped[] 追蹤於伺服器端，可中斷後恢復。','Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Seven-step flow: ① Create account (Google OAuth or email) → ② Verify email (skipped for OAuth) → ③ Name first Knowledge Base (name + visibility) → ④ Choose starting point (blank or upload document) → ⑤ AI provider setup (skippable, shown only on document path) → ⑥ Review extracted candidate nodes (at least one must be accepted) → ⑦ Done (three shortcuts: add first node, invite someone, connect AI tool). Progress tracked server-side via steps_done[] and steps_skipped[]; resumable after interruption.',ARRAY['onboarding', 'ui', 'wizard', 'ux']::text[],'public',
+   '首次登入後自動顯示，完成後永久不再彈出（可從 Settings → Getting Started 重新開啟）。八步流程：
+
+① 建立帳號（Google OAuth 或 Email + Password）
+② 驗證 Email（Google OAuth 跳過）
+③ 命名第一個知識庫（雙語名稱 + 可見性，預設 private）
+④ 選擇知識庫類型：Evergreen（長效型，預設）或 Ephemeral（短效型）— **建立後不可變更**
+⑤ 選擇起點：空白 或 上傳文件（.md/.txt/.pdf/.docx）
+⑥ AI Provider 設定（僅文件路徑顯示，可跳過）
+⑦ Review 萃取候選節點（至少接受一個才能繼續）
+⑧ 完成（顯示三個捷徑：手動新增節點、邀請成員、連接 AI 工具）
+
+進度以伺服器端的 `onboarding` 物件追蹤（`steps_done[]` + `steps_skipped[]`），中斷後可從上次未完成步驟恢復。`completed: true` 後永遠不再自動顯示。','Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Eight-step flow:
+
+① Create account (Google OAuth or Email + Password)
+② Verify email (skipped for Google OAuth)
+③ Name first Knowledge Base (bilingual name + visibility, default private)
+④ Choose Knowledge Base Type: Evergreen (default) or Ephemeral — **immutable after creation**
+⑤ Choose starting point: blank or upload document (.md/.txt/.pdf/.docx)
+⑥ AI provider setup (shown only on document path, skippable)
+⑦ Review extracted candidate nodes (at least one must be accepted to advance)
+⑧ Done (three shortcuts: add first node, invite someone, connect AI tool)
+
+Progress tracked server-side via the `onboarding` object (`steps_done[]` + `steps_skipped[]`); resumes from the last incomplete step after interruption. Once `completed: true`, the wizard is never shown automatically again.',ARRAY['onboarding', 'ui', 'wizard', 'ux', 'kb-type']::text[],'public',
    'memtrace-spec','2026-04-11T00:00:00Z','d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8','human',
    0.95,0.95,1.0,0.9,0.9,
    0,0,0,0,0)
@@ -758,7 +864,27 @@ INSERT INTO memory_nodes
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
   ('mem_o002','1.0','ws_spec0001','初次使用引導：CLI memtrace init','First-run onboarding: CLI memtrace init','procedural','plain',
-   '執行 `memtrace init` 啟動終端機互動式精靈，分三步：① 認證（輸入 token 或跳過離線使用） → ② AI Provider 設定（選供應商並輸入 API Key，可 Enter 跳過） → ③ 完成（顯示 next steps）。設定寫入 ~/.memtrace/config.json，立即設定 chmod 600。重複執行時，詢問要更新哪個項目（AI 設定 / 重新認證 / 退出），不自動覆寫現有設定。','Running `memtrace init` launches an interactive terminal wizard with three steps: ① Authentication (enter token or skip for offline use) → ② AI provider setup (choose provider and enter API key, or press Enter to skip) → ③ Done (display next steps). Config written to ~/.memtrace/config.json with chmod 600 immediately. Re-running prompts which setting to update (AI config / re-authenticate / exit) — existing values are not overwritten unless the user selects the relevant option.',ARRAY['onboarding', 'cli', 'init', 'setup']::text[],'public',
+   '執行 `memtrace init` 啟動終端機互動式精靈，五步：
+
+① 認證：登入既有帳號 / 建立新帳號 / 使用 Google OAuth（會開啟瀏覽器）
+② 建立第一個知識庫：英文名稱 + 可見性（private / restricted / public，預設 private）
+③ 選擇 KB 類型：evergreen（長效型，預設）或 ephemeral（短效型）— **建立後不可變更**
+④ AI Provider 設定（可 Enter 跳過）：選擇 openai / anthropic 並輸入 API Key（自動測試連線）
+⑤ 匯入文件（可 Enter 跳過）：輸入檔案路徑或 URL
+
+設定寫入 `~/.memtrace/config.json`，立即 `chmod 600`。
+
+重複執行：詢問要更新 AI provider / 切換預設工作區 / 重新認證 / 退出，不自動覆寫現有設定。','Running `memtrace init` launches an interactive terminal wizard with five steps:
+
+① Authentication: log in to existing account / create new account / use Google OAuth (opens browser)
+② Create first Knowledge Base: English name + visibility (private / restricted / public, default private)
+③ Choose KB type: evergreen (default) or ephemeral — **immutable after creation**
+④ AI provider setup (press Enter to skip): choose openai / anthropic and enter API key (auto-tests connection)
+⑤ Import document (press Enter to skip): provide file path or URL
+
+Config written to `~/.memtrace/config.json` with `chmod 600` immediately.
+
+Re-running: prompts which setting to update — AI provider / switch default workspace / re-authenticate / exit. Existing values are not overwritten unless explicitly selected.',ARRAY['onboarding', 'cli', 'init', 'setup', 'kb-type']::text[],'public',
    'memtrace-spec','2026-04-11T00:00:00Z','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
    0.95,0.95,1.0,0.9,0.9,
    0,0,0,0,0)

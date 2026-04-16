@@ -9,15 +9,16 @@
     "type": "factual",
     "format": "markdown",
     "body": {
-      "zh-TW": "Edge 的 weight 隨時間依以下公式衰減：\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n- `half_life_days` 預設 30 天，可各別設定\n- 當 weight < `min_weight`（預設 0.1），Edge 標記為 stale 或自動移除\n- 衰減每日由 `apply_edge_decay()` SQL 函式執行\n- Decay 的目的是讓圖保持誠實：沒人使用的連結自然消退",
-      "en": "Edge weight decays over time according to:\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n- `half_life_days` defaults to 30 days, configurable per edge\n- When weight < `min_weight` (default 0.1), the edge is marked stale or auto-removed\n- Decay is applied daily by the `apply_edge_decay()` SQL function\n- The purpose of decay is to keep the graph honest: unused connections fade naturally"
+      "zh-TW": "Edge 權重隨時間依以下公式衰減（v1）：\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n**核心原則**：**Decay 塑造注意力，不塑造存在**。沒有東西因 decay 而被刪除。\n\n**Edge 狀態轉換**：當 `weight < min_weight`（預設 0.1），Edge 進入 `faded` 狀態：\n- 從預設 Graph View 與 traversal 結果隱藏\n- 仍存於資料庫（`status = 'faded'`），可由原作者或 admin 還原\n- API 加 `include_faded=true` 仍可查詢\n\n**節點層級**：\n- `evergreen` 工作區：節點本身依「觀察期內走訪計數」歸檔（§7.3），不受時間衰減\n- `ephemeral` 工作區：當所有相連 Edge 皆 faded，節點自動 archived\n\n**Pinned 例外**：`pinned: true` 的節點與 Edge 完全豁免於衰減與計數歸檔。\n\n衰減觸發：每日由 `apply_edge_decay()` SQL 函式執行（鏡射 `packages/core/src/decay.ts`）。",
+      "en": "Edge weight decays over time according to (v1):\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n**Core principle**: **Decay shapes attention, not existence.** Nothing is deleted by decay alone.\n\n**Edge state transition**: When `weight < min_weight` (default 0.1), the edge transitions to `faded`:\n- Hidden from default Graph View and traversal results\n- Still stored in the database (`status = 'faded'`); restorable by the original author or admin\n- Queryable via API with `include_faded=true`\n\n**Node level**:\n- `evergreen` workspace: nodes are archived based on traversal count within an observation window (§7.3), not time-based\n- `ephemeral` workspace: when all connected edges are faded, the node is auto-archived\n\n**Pinned exemption**: Nodes and edges with `pinned: true` are fully exempt from both time-decay and traversal-count archiving.\n\nTrigger: daily by the `apply_edge_decay()` SQL function (mirrors `packages/core/src/decay.ts`)."
     }
   },
-  "tags": ["graph-mechanics", "decay", "weight"],
+  "tags": ["graph-mechanics", "decay", "weight", "faded", "archive"],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-04-11T00:00:00Z",
+    "updated_at": "2026-04-16T00:00:00Z",
     "signature": "d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6",
     "source_type": "human"
   },
