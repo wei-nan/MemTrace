@@ -286,40 +286,6 @@ The assistant should call `search_nodes` and return the answer from `mem_d002` w
 
 ---
 
-## Roadmap
-
-### Phase 1 — Foundation (CLI + Core)
-- [x] Memory Node + Edge JSON Schema with validation
-- [x] Decay engine (`packages/core/src/decay.ts`)
-- [ ] CLI: `memtrace init`, `new`, `link`, `ingest`, `push`, `pull`, `copy-node`
-- [ ] Local store (`~/.memtrace/`)
-- [ ] `memtrace init` onboarding wizard
-
-### Phase 2 — API & UI
-- [x] PostgreSQL 17 + pgvector — schema, Docker, SQL decay functions
-- [x] React UI scaffold with i18n (zh-TW / en)
-- [x] Graph visualisation (ReactFlow + 3D force graph)
-- [ ] Auth — email + password, Google OAuth
-- [ ] REST API (CRUD, search, decay, traversal, rating)
-- [ ] Memory editor (plain text + Markdown, live preview)
-- [ ] Knowledge Base sharing (public / restricted / private)
-- [ ] API key management
-- [ ] Onboarding wizard (web)
-
-### Phase 3 — AI & Ingestion
-- [ ] Document ingestion (Markdown, PDF, Word)
-- [ ] AI-driven node extraction with Review Queue
-- [ ] User-supplied AI provider API key (OpenAI / Anthropic)
-- [ ] Managed credit model (future)
-
-### Phase 4 — MCP & Federation
-- [ ] MCP server (stdio + HTTP+SSE)
-- [ ] `traverse_edge` and `rate_path` tools for AI agents
-- [ ] Cross-workspace node copy
-- [ ] Subscribe to remote Knowledge Bases
-
----
-
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.

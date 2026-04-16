@@ -3,10 +3,9 @@ AI provider abstraction layer.
 
 Priority order for every call:
   1. User-supplied key (stored encrypted in user_ai_keys)
-  2. Managed free-tier credits (up to FREE_TOKEN_LIMIT per month)
-  3. Raise AIProviderUnavailable if neither is available
+  2. Raise AIProviderUnavailable if no key is available
 
-All token usage is recorded in ai_credit_ledger regardless of source.
+All token usage is recorded in ai_credit_ledger for auditing.
 
 ─── Adding a new provider ────────────────────────────────────────────────────
 1. Subclass AIProvider (or implement the Protocol).
@@ -38,15 +37,12 @@ Feature = Literal["extraction", "embedding", "restructure"]
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-FREE_TOKEN_LIMIT: int = getattr(settings, "ai_free_token_limit", 50_000)
+# Token limits are no longer managed by MemTrace. Users must supply their own keys.
 
 # ── Exceptions ────────────────────────────────────────────────────────────────
 
 class AIProviderUnavailable(Exception):
-    """No API key and no free quota available."""
-
-class AIQuotaExceeded(Exception):
-    """User has exhausted their free monthly quota."""
+    """No API key configured for the requested provider."""
 
 class AIProviderError(Exception):
     """Upstream provider returned an error."""
@@ -380,7 +376,7 @@ class ResolvedProvider:
     provider:   AIProvider
     api_key:    str
     model:      str
-    source:     Literal["user_key", "managed"]
+    source:     Literal["workspace_key", "account_key"]
     user_id:    str
 
 
@@ -392,14 +388,12 @@ def resolve_provider(
 ) -> ResolvedProvider:
     """
     Determine which provider + key to use.
-
     Resolution order:
       1. User-supplied key (any provider, or preferred_provider if specified)
-      2. Managed free-tier credits via server key
-      3. AIQuotaExceeded / AIProviderUnavailable
+      2. AIProviderUnavailable
     """
     with db_cursor() as cur:
-        # ── 1. User-supplied key ───────────────────────────────────────────
+        # User-supplied key
         query = "SELECT provider, key_enc FROM user_ai_keys WHERE user_id = %s"
         params: list = [user_id]
         if preferred_provider:
@@ -409,49 +403,19 @@ def resolve_provider(
         cur.execute(query, params)
         row = cur.fetchone()
 
-        if row:
-            provider_id: str = row["provider"]
-            impl = PROVIDER_REGISTRY.get(provider_id)
-            if not impl:
-                raise AIProviderUnavailable(
-                    f"Provider '{provider_id}' is not installed on this server."
-                )
-            model = preferred_model or (
-                impl.default_embedding_model
-                if feature == "embedding"
-                else impl.default_chat_model
-            )
-            return ResolvedProvider(
-                provider=impl,
-                api_key=decrypt_api_key(row["key_enc"]),
-                model=model,
-                source="user_key",
-                user_id=user_id,
-            )
-
-        # ── 2. Managed free credits ────────────────────────────────────────
-        cur.execute(
-            "SELECT ai_free_tokens_remaining(%s, %s) AS remaining",
-            (user_id, FREE_TOKEN_LIMIT),
-        )
-        remaining = cur.fetchone()["remaining"]
-
-        if remaining <= 0:
-            raise AIQuotaExceeded(
-                f"Free tier limit of {FREE_TOKEN_LIMIT:,} tokens/month reached. "
-                "Add your own API key in Settings → AI Provider to continue."
-            )
-
-        managed_id: str = preferred_provider or "openai"
-        managed_key = getattr(settings, f"{managed_id}_api_key", "")
-        impl = PROVIDER_REGISTRY.get(managed_id)
-
-        if not impl or not managed_key:
+        if not row:
             raise AIProviderUnavailable(
-                "No AI provider is configured on this server. "
+                "No AI provider key is configured for this account. "
                 "Add your own API key in Settings → AI Provider."
             )
 
+        provider_id: str = row["provider"]
+        impl = PROVIDER_REGISTRY.get(provider_id)
+        if not impl:
+            raise AIProviderUnavailable(
+                f"Provider '{provider_id}' is not installed on this server."
+            )
+        
         model = preferred_model or (
             impl.default_embedding_model
             if feature == "embedding"
@@ -459,9 +423,9 @@ def resolve_provider(
         )
         return ResolvedProvider(
             provider=impl,
-            api_key=managed_key,
+            api_key=decrypt_api_key(row["key_enc"]),
             model=model,
-            source="managed",
+            source="account_key",  # Defaulting to account_key for now as workspace-level keys are separate in SPEC
             user_id=user_id,
         )
 
@@ -492,17 +456,11 @@ def record_usage(
                 node_id,
             ),
         )
-        if resolved.source == "managed":
-            cur.execute(
-                "SELECT ai_deduct_free_tokens(%s, %s)",
-                (resolved.user_id, tokens_used),
-            )
-        if resolved.source == "user_key":
-            cur.execute(
-                "UPDATE user_ai_keys SET last_used_at = now() "
-                "WHERE user_id = %s AND provider = %s",
-                (resolved.user_id, resolved.provider.name),
-            )
+        cur.execute(
+            "UPDATE user_ai_keys SET last_used_at = now() "
+            "WHERE user_id = %s AND provider = %s",
+            (resolved.user_id, resolved.provider.name),
+        )
 
 # ── Convenience wrappers (called by routers) ──────────────────────────────────
 

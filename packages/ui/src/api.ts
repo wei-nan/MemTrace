@@ -176,7 +176,6 @@ export interface ModelInfo {
   display_name: string;
 }
 export interface CreditStatus {
-  free_limit: number; free_used: number; free_remaining: number;
   has_own_key: { openai: boolean; anthropic: boolean; gemini: boolean };
 }
 export interface Workspace {

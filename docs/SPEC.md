@@ -511,27 +511,6 @@ Register the implementation in `PROVIDER_REGISTRY` at the bottom of `core/ai.py`
 
 > **Embedding dimension note**: Different models produce vectors of different dimensions. A workspace's embedding dimension is fixed at creation time based on the provider chosen. Nodes embedded with different models cannot be compared by cosine similarity. Contributors adding embedding-capable providers must document the output dimension of their model.
 
-#### 11.2.4 Managed Credits
-
-MemTrace may introduce a **managed credit model** as a future monetization path. Under this model:
-
-- MemTrace proxies AI calls through its own backend so users no longer need to supply a personal API key.
-- A free tier provides a monthly token allowance per account (currently 50 000 tokens/month).
-- Paid tiers offer higher limits, priority throughput, or access to more capable models.
-
-**Architectural requirement:** The AI call path is already abstracted behind the provider interface so switching between user-supplied keys and managed credits requires no changes to extraction or editor logic — only the credential resolution layer changes.
-
-#### 11.2.3 Managed Credits (Future)
-
-> **Future consideration — not in scope for Phase 1 or Phase 2.**
-
-MemTrace may introduce a **managed credit model** as a future monetization path. Under this model:
-
-- MemTrace proxies AI calls through its own backend, so users no longer need to supply a personal API key.
-- A free tier provides a monthly credit allowance per account.
-- Paid tiers offer higher credit limits, priority throughput, or access to more capable models.
-
-**Architectural requirement (current phases):** The AI call path must be abstracted behind a provider interface so that switching between user-supplied keys and MemTrace-managed credits requires no changes to the extraction or editor logic — only the credential resolution layer changes.
 
 #### 11.2.5 Config Schema (CLI)
 
@@ -1644,8 +1623,7 @@ All three features use the same provider resolution order:
 
 1. **Workspace-level key** — if the user has configured an API key for this workspace.
 2. **Account-level key** — if no workspace key is set, fall back to the user's account-level key.
-3. **Managed credits** (future, §11.2.3) — if neither is present and managed credits are enabled.
-4. **Disabled** — if no key is available, the AI feature button is greyed out with a tooltip prompting the user to configure a provider in Settings.
+3. **Disabled** — if no key is available, the AI feature button is greyed out with a tooltip prompting the user to configure a provider in Settings.
 
 ---
 
@@ -2161,7 +2139,7 @@ They are accessible via:
 
 ### 21.1 Requirement
 
-**All AI calls — regardless of key type (user-supplied, free tier, or future managed credits) — must be logged.** The log is the authoritative record for billing, debugging, and policy enforcement.
+**All AI calls — regardless of whether they use a workspace-level or account-level key — must be logged.** The log is the authoritative record for billing, debugging, and policy enforcement.
 
 ### 21.2 Log Schema
 
@@ -2170,7 +2148,7 @@ CREATE TABLE ai_usage_log (
   id              TEXT PRIMARY KEY,
   user_id         TEXT NOT NULL REFERENCES users(id),
   key_source      TEXT NOT NULL
-                  CHECK (key_source IN ('user_key', 'free_tier', 'managed')),
+                  CHECK (key_source IN ('workspace_key', 'account_key')),
   provider        TEXT NOT NULL,        -- 'openai' | 'anthropic' | 'gemini' | ...
   model           TEXT NOT NULL,        -- e.g. 'gpt-4o-mini', 'gemini-2.0-flash'
   feature         TEXT NOT NULL
@@ -2196,7 +2174,7 @@ CREATE INDEX idx_ai_usage_provider ON ai_usage_log (provider, called_at DESC);
 
 | Field | Notes |
 |-------|-------|
-| `key_source` | `user_key` = user-supplied key; `free_tier` = managed free allowance; `managed` = future paid tier |
+| `key_source` | `workspace_key` = key configured for this workspace; `account_key` = user's global account key |
 | `feature` | Which AI capability triggered the call |
 | `tokens_input` / `tokens_output` | Reported by provider; used for quota accounting |
 | `latency_ms` | Provider call wall time; useful for SLO monitoring |

@@ -16,7 +16,6 @@ from pydantic import BaseModel, Field
 from core.ai import (
     AIProviderError,
     AIProviderUnavailable,
-    AIQuotaExceeded,
     PROVIDER_REGISTRY,
     Feature,
     chat_completion,
@@ -24,7 +23,6 @@ from core.ai import (
     encrypt_api_key,
     record_usage,
     resolve_provider,
-    FREE_TOKEN_LIMIT,
     EXTRACTION_SYSTEM,
     RESTRUCTURE_SYSTEM,
     strip_fences,
@@ -56,9 +54,6 @@ class AIKeyResponse(BaseModel):
 
 
 class CreditStatusResponse(BaseModel):
-    free_limit:     int
-    free_used:      int
-    free_remaining: int
     has_own_key:    dict[str, bool]   # {"openai": True, "anthropic": False, "gemini": False}
 
 
@@ -84,7 +79,7 @@ class ExtractedNode(BaseModel):
 class ExtractionResponse(BaseModel):
     nodes:       list[ExtractedNode]
     tokens_used: int
-    source:      str   # "user_key" | "managed"
+    source:      str   # "workspace_key" | "account_key"
 
 
 class EmbedRequest(BaseModel):
@@ -215,21 +210,12 @@ async def list_models(
 def get_credit_status(user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
         cur.execute(
-            "SELECT ai_free_tokens_remaining(%s, %s) AS remaining",
-            (user["sub"], FREE_TOKEN_LIMIT),
-        )
-        remaining = cur.fetchone()["remaining"]
-
-        cur.execute(
             "SELECT provider FROM user_ai_keys WHERE user_id = %s",
             (user["sub"],),
         )
         own_keys = {row["provider"] for row in cur.fetchall()}
 
     return CreditStatusResponse(
-        free_limit=FREE_TOKEN_LIMIT,
-        free_used=FREE_TOKEN_LIMIT - remaining,
-        free_remaining=remaining,
         has_own_key={
             "openai":    "openai"    in own_keys,
             "anthropic": "anthropic" in own_keys,
@@ -247,8 +233,6 @@ async def extract_nodes(
 ):
     try:
         resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
-    except AIQuotaExceeded as e:
-        raise HTTPException(status_code=402, detail=str(e))
     except AIProviderUnavailable as e:
         raise HTTPException(status_code=503, detail=str(e))
 
@@ -300,8 +284,6 @@ async def embed_text(
 ):
     try:
         resolved = resolve_provider(user["sub"], "embedding", body.preferred_provider, body.preferred_model)
-    except AIQuotaExceeded as e:
-        raise HTTPException(status_code=402, detail=str(e))
     except AIProviderUnavailable as e:
         raise HTTPException(status_code=503, detail=str(e))
 
@@ -327,8 +309,6 @@ async def restructure_nodes(
 
     try:
         resolved = resolve_provider(user["sub"], "restructure", body.preferred_provider, body.preferred_model)
-    except AIQuotaExceeded as e:
-        raise HTTPException(status_code=402, detail=str(e))
     except AIProviderUnavailable as e:
         raise HTTPException(status_code=503, detail=str(e))
 

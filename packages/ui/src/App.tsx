@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Network, PlusCircle, Settings,
   Globe, LogOut, ChevronDown,
-  ChevronLeft, ChevronRight, X, Key, Coins, Trash2,
+  ChevronLeft, ChevronRight, X, Key, Trash2,
   Inbox, Users, Mail, Moon, Sun, Brain
 } from 'lucide-react';
 import './index.css';
@@ -16,7 +16,7 @@ import IngestButton from './IngestButton';
 import IngestionHistory from './IngestionHistory';
 import OnboardingWizard from './OnboardingWizard';
 import WorkspaceSettings from './WorkspaceSettings';
-import { auth, workspaces, ai, type Workspace, type Node as ApiNode, type AIKey, type CreditStatus, type Onboarding } from './api';
+import { auth, workspaces, ai, type Workspace, type Node as ApiNode, type AIKey, type Onboarding } from './api';
 import { useModal } from './components/ModalContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -183,7 +183,6 @@ function SettingsPanel({
   const { confirm, toast } = useModal();
 
   const [keys, setKeys] = useState<AIKey[]>([]);
-  const [credits, setCredits] = useState<CreditStatus | null>(null);
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
   const [apiKey, setApiKey] = useState('');
   const [saving, setSaving] = useState(false);
@@ -192,7 +191,6 @@ function SettingsPanel({
 
   const loadData = () => {
     ai.listKeys().then(setKeys).catch(() => {});
-    ai.getCredits().then(setCredits).catch(() => {});
   };
 
   useEffect(() => { loadData(); }, []);
@@ -307,44 +305,6 @@ function SettingsPanel({
         </section>
       )}
 
-      {/* Free Credits */}
-      <section style={{ marginBottom: 40 }}>
-        <h3 style={{ fontSize: 15, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Coins size={16} style={{ color: 'var(--color-primary)' }} />
-          {zh ? '免費 AI 額度' : 'Free AI Credits'}
-        </h3>
-        {credits ? (
-          <div style={{
-            background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
-            borderRadius: 12, padding: 20,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                {zh ? '本月已用' : 'Used this month'}
-              </span>
-              <span style={{ fontSize: 13 }}>
-                {credits.free_used.toLocaleString()} / {credits.free_limit.toLocaleString()} tokens
-              </span>
-            </div>
-            <div style={{ height: 6, background: 'var(--border-subtle)', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{
-                height: '100%', borderRadius: 3,
-                background: 'var(--color-primary)',
-                width: `${Math.min(100, (credits.free_used / credits.free_limit) * 100)}%`,
-                transition: 'width 0.4s',
-              }} />
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
-              {credits.free_remaining.toLocaleString()} {zh ? 'tokens 剩餘' : 'tokens remaining'}
-            </div>
-          </div>
-        ) : (
-          <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-            {zh ? '載入中…' : 'Loading…'}
-          </div>
-        )}
-      </section>
-
       {/* API Keys */}
       <section style={{ marginBottom: 40 }}>
         <h3 style={{ fontSize: 15, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -353,8 +313,8 @@ function SettingsPanel({
         </h3>
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
           {zh
-            ? '提供自己的 API Key 可超越免費額度限制，Key 使用 AES-256 加密儲存。'
-            : 'Add your own key to bypass the free tier limit. Keys are stored AES-256 encrypted.'}
+            ? '請提供自己的 AI Provider API Key 以啟用節點提取、語意搜尋與 AI 助手功能。'
+            : 'Please provide your own AI provider API key to enable extraction, semantic search, and AI assistant.'}
         </p>
 
         {/* Existing keys */}

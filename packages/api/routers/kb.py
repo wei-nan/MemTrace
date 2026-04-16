@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status, Background
 from core.database import db_cursor
 from core.deps import get_current_user, get_current_user_optional
 from core.security import compute_signature, generate_id
-from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable, AIQuotaExceeded
+from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable
 from models.kb import (
     NodeCreate, NodeResponse, NodeUpdate,
     EdgeCreate, EdgeResponse,
@@ -305,7 +305,7 @@ async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: d
                 LIMIT %s
             """, (vector, ws_id, limit))
             return cur.fetchall()
-    except (AIProviderUnavailable, AIQuotaExceeded) as e:
+    except AIProviderUnavailable as e:
         raise HTTPException(status_code=402, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Embedding error: {str(e)}")

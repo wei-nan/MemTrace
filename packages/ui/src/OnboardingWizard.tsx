@@ -270,7 +270,7 @@ export default function OnboardingWizard({
     <div className="onboard-card">
       <div className="onboard-icon"><Settings2 size={48} /></div>
       <h3>{zh ? '配置 AI 密鑰' : 'Configure AI Key'}</h3>
-      <p>{zh ? '為了獲得最佳的擷取效果，建議填入您個人的 API Key。' : 'For best extraction, we recommend using your personal API key.'}</p>
+      <p>{zh ? '為了啟用自動擷取功能，您必須填入個人 API Key。' : 'To enable automatic extraction, you must provide your own API key.'}</p>
       <div className="provider-selector mt-24">
         <button className={provider === 'openai' ? 'active' : ''} onClick={() => setProvider('openai')}>OpenAI</button>
         <button className={provider === 'anthropic' ? 'active' : ''} onClick={() => setProvider('anthropic')}>Anthropic</button>

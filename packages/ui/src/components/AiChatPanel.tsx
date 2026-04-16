@@ -13,7 +13,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai' as any);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [credits, setCredits] = useState<CreditStatus | null>(null);
@@ -24,6 +24,13 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
       try {
         const c = await ai.getCredits();
         setCredits(c);
+        
+        // Auto-switch provider if current one has no key
+        if (c && !c.has_own_key[provider]) {
+           const firstAvailable = (Object.keys(c.has_own_key) as Array<keyof typeof c.has_own_key>)
+             .find(k => c.has_own_key[k]);
+           if (firstAvailable) setProvider(firstAvailable);
+        }
       } catch (e) {
         console.error("Failed to fetch credits", e);
       }
@@ -103,9 +110,15 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             onChange={e => setProvider(e.target.value as any)}
             style={{ fontSize: 11, padding: '2px 4px', borderRadius: 4, border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', fontWeight: 600 }}
           >
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
-            <option value="gemini">Gemini</option>
+            <option value="openai" disabled={credits ? !credits.has_own_key.openai : false}>
+              OpenAI {credits && !credits.has_own_key.openai ? (zh ? '(未設定)' : '(No Key)') : ''}
+            </option>
+            <option value="anthropic" disabled={credits ? !credits.has_own_key.anthropic : false}>
+              Anthropic {credits && !credits.has_own_key.anthropic ? (zh ? '(未設定)' : '(No Key)') : ''}
+            </option>
+            <option value="gemini" disabled={credits ? !credits.has_own_key.gemini : false}>
+              Gemini {credits && !credits.has_own_key.gemini ? (zh ? '(未設定)' : '(No Key)') : ''}
+            </option>
           </select>
         </div>
         <div style={{ width: 1, height: 16, background: 'var(--border-default)' }} />
@@ -194,33 +207,22 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
       <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
         {credits && !credits.has_own_key[provider] && (
           <div style={{ 
-            marginBottom: 12, padding: '8px 12px', borderRadius: 8, 
-            background: 'var(--color-primary-subtle)', border: '1px solid var(--color-primary)',
-            fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-default)'
-          }}>
-            <AlertCircle size={14} style={{ color: 'var(--color-primary)' }} />
-            <span>
-              {zh 
-                ? `您尚未設定 ${provider.toUpperCase()} 的 API Key，將會扣除系統點數。` 
-                : `No API key for ${provider.toUpperCase()}, using managed credits.`}
-              <button 
-                onClick={() => alert("Navigate to Settings to add key")}
-                style={{ marginLeft: 6, fontWeight: 700, background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                {zh ? '去設定' : 'Add Key'}
-              </button>
-            </span>
-          </div>
-        )}
-        
-        {credits && !credits.has_own_key[provider] && credits.free_remaining <= 0 && (
-          <div style={{ 
             marginBottom: 12, padding: '12px', borderRadius: 8, 
             background: '#fee2e2', border: '1px solid #ef4444',
             fontSize: 12, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 8
           }}>
             <AlertCircle size={14} />
-            <b>{zh ? '點數已耗盡，請提供 API Key 以繼續使用。' : 'Credits exhausted, please add an API key.'}</b>
+            <b>
+              {zh 
+                ? `您尚未設定 ${provider.toUpperCase()} 的 API Key。` 
+                : `No API key configured for ${provider.toUpperCase()}.`}
+            </b>
+            <button 
+              onClick={() => alert("Navigate to Settings to add key")}
+              style={{ marginLeft: 'auto', fontWeight: 700, background: 'none', border: 'none', color: '#b91c1c', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              {zh ? '去設定' : 'Add Key'}
+            </button>
           </div>
         )}
 
@@ -232,17 +234,17 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter' && input.trim() && !loading) {
-                const canSend = !credits || credits.has_own_key[provider] || credits.free_remaining > 0;
+                const canSend = !credits || credits.has_own_key[provider];
                 if (canSend) handleSend();
               }
             }}
           />
           <button 
             onClick={handleSend}
-            disabled={!input.trim() || loading || (credits ? (!credits.has_own_key[provider] && credits.free_remaining <= 0) : false)}
+            disabled={!input.trim() || loading || (credits ? !credits.has_own_key[provider] : false)}
             style={{ 
               width: 32, height: 32, borderRadius: 16, border: 'none',
-              background: (input.trim() && !loading && (!credits || credits.has_own_key[provider] || credits.free_remaining > 0)) ? 'var(--color-primary)' : 'var(--border-default)',
+              background: (input.trim() && !loading && (!credits || credits.has_own_key[provider])) ? 'var(--color-primary)' : 'var(--border-default)',
               color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
             }}
           >

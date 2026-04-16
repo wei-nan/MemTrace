@@ -10,14 +10,6 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     google_redirect_uri: str = "http://localhost:8000/auth/google/callback"
 
-    # Managed AI credits — server-level keys used when user has no own key
-    openai_api_key:    str = ""
-    anthropic_api_key: str = ""
-    gemini_api_key:    str = ""
-
-    # Free tier token limit per user per month (default 50 000)
-    ai_free_token_limit: int = 50_000
-
     # ── Email ──────────────────────────────────────────────────────────────────
     # Provider: "resend" (default) | "smtp" | "disabled"
     email_provider:   str = "disabled"
