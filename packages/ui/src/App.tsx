@@ -349,20 +349,27 @@ function SettingsPanel({
           borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 12,
         }}>
           <div style={{ display: 'flex', gap: 10 }}>
-            {providers.map(p => (
-              <button
-                key={p.value}
-                onClick={() => setProvider(p.value)}
-                style={{
-                  padding: '6px 14px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
-                  border: `1px solid ${provider === p.value ? 'var(--color-primary)' : 'var(--border-default)'}`,
-                  background: provider === p.value ? 'var(--color-primary-subtle)' : 'transparent',
-                  color: provider === p.value ? 'var(--color-primary)' : 'var(--text-muted)',
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+            {providers.map(p => {
+              const isActive = provider === p.value;
+              const brandColor = `var(--ai-${p.value})`;
+              const brandBg = `var(--ai-${p.value}-subtle)`;
+              return (
+                <button
+                  key={p.value}
+                  onClick={() => setProvider(p.value)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+                    border: `1px solid ${isActive ? brandColor : 'var(--border-default)'}`,
+                    background: isActive ? brandBg : 'transparent',
+                    color: isActive ? brandColor : 'var(--text-muted)',
+                    transition: 'all 0.2s',
+                    fontWeight: isActive ? 600 : 400,
+                  }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
           <input
             className="mt-input"

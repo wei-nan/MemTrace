@@ -272,9 +272,27 @@ export default function OnboardingWizard({
       <h3>{zh ? '配置 AI 密鑰' : 'Configure AI Key'}</h3>
       <p>{zh ? '為了啟用自動擷取功能，您必須填入個人 API Key。' : 'To enable automatic extraction, you must provide your own API key.'}</p>
       <div className="provider-selector mt-24">
-        <button className={provider === 'openai' ? 'active' : ''} onClick={() => setProvider('openai')}>OpenAI</button>
-        <button className={provider === 'anthropic' ? 'active' : ''} onClick={() => setProvider('anthropic')}>Anthropic</button>
-        <button className={provider === 'gemini' ? 'active' : ''} onClick={() => setProvider('gemini')}>Gemini</button>
+        <button 
+          className={provider === 'openai' ? 'active' : ''} 
+          onClick={() => setProvider('openai')}
+          style={provider === 'openai' ? { background: 'var(--ai-openai-subtle)', color: 'var(--ai-openai)', borderColor: 'var(--ai-openai)' } : {}}
+        >
+          OpenAI
+        </button>
+        <button 
+          className={provider === 'anthropic' ? 'active' : ''} 
+          onClick={() => setProvider('anthropic')}
+          style={provider === 'anthropic' ? { background: 'var(--ai-anthropic-subtle)', color: 'var(--ai-anthropic)', borderColor: 'var(--ai-anthropic)' } : {}}
+        >
+          Anthropic
+        </button>
+        <button 
+          className={provider === 'gemini' ? 'active' : ''} 
+          onClick={() => setProvider('gemini')}
+          style={provider === 'gemini' ? { background: 'var(--ai-gemini-subtle)', color: 'var(--ai-gemini)', borderColor: 'var(--ai-gemini)' } : {}}
+        >
+          Gemini
+        </button>
       </div>
       <input 
         type="password" className="mt-input mt-16" 

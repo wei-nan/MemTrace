@@ -100,7 +100,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
 
       {/* Selector Bar */}
       <div style={{ 
-        padding: '6px 16px', background: 'var(--bg-app)', borderBottom: '1px solid var(--border-default)', 
+        padding: '8px 16px', background: 'var(--bg-base)', borderBottom: '1px solid var(--border-default)', 
         display: 'flex', gap: 8, overflowX: 'auto', alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -108,15 +108,21 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
           <select 
             value={provider} 
             onChange={e => setProvider(e.target.value as any)}
-            style={{ fontSize: 11, padding: '2px 4px', borderRadius: 4, border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', fontWeight: 600 }}
+            style={{ 
+              fontSize: 11, padding: '3px 6px', borderRadius: 6, 
+              border: `1px solid var(--ai-${provider})`, 
+              background: `var(--ai-${provider}-subtle)`, 
+              color: `var(--ai-${provider})`,
+              fontWeight: 700, outline: 'none', cursor: 'pointer'
+            }}
           >
-            <option value="openai" disabled={credits ? !credits.has_own_key.openai : false}>
+            <option value="openai" disabled={credits ? !credits.has_own_key.openai : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
               OpenAI {credits && !credits.has_own_key.openai ? (zh ? '(未設定)' : '(No Key)') : ''}
             </option>
-            <option value="anthropic" disabled={credits ? !credits.has_own_key.anthropic : false}>
+            <option value="anthropic" disabled={credits ? !credits.has_own_key.anthropic : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
               Anthropic {credits && !credits.has_own_key.anthropic ? (zh ? '(未設定)' : '(No Key)') : ''}
             </option>
-            <option value="gemini" disabled={credits ? !credits.has_own_key.gemini : false}>
+            <option value="gemini" disabled={credits ? !credits.has_own_key.gemini : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
               Gemini {credits && !credits.has_own_key.gemini ? (zh ? '(未設定)' : '(No Key)') : ''}
             </option>
           </select>
@@ -125,10 +131,16 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
         <select 
           value={selectedModel} 
           onChange={e => setSelectedModel(e.target.value)}
-          style={{ fontSize: 11, padding: '2px 4px', borderRadius: 4, border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', flex: 1, minWidth: 100 }}
+          style={{ 
+            fontSize: 11, padding: '3px 6px', borderRadius: 6, 
+            border: '1px solid var(--border-default)', 
+            background: 'var(--bg-surface)', 
+            color: 'var(--text-secondary)',
+            flex: 1, minWidth: 100, outline: 'none', cursor: 'pointer'
+          }}
         >
           {models.map(m => (
-            <option key={m.id} value={m.id}>{m.display_name}</option>
+            <option key={m.id} value={m.id} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>{m.display_name}</option>
           ))}
           {models.length === 0 && <option value="">Loading...</option>}
         </select>
@@ -156,9 +168,9 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             <div style={{ maxWidth: '85%' }}>
               <div style={{ 
                 padding: '12px 16px', borderRadius: 16, fontSize: 14, lineHeight: 1.5,
-                background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-app)',
-                color: m.role === 'user' ? 'white' : 'var(--text-default)',
-                border: m.role === 'assistant' ? '1px solid var(--border-subtle)' : 'none'
+                background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-base)',
+                color: m.role === 'user' ? 'white' : 'var(--text-primary)',
+                border: m.role === 'assistant' ? '1px solid var(--border-default)' : 'none'
               }}>
                 <ReactMarkdown>{m.content}</ReactMarkdown>
                 
@@ -208,8 +220,8 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
         {credits && !credits.has_own_key[provider] && (
           <div style={{ 
             marginBottom: 12, padding: '12px', borderRadius: 8, 
-            background: '#fee2e2', border: '1px solid #ef4444',
-            fontSize: 12, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 8
+            background: 'var(--color-error-subtle)', border: '1px solid var(--color-error)',
+            fontSize: 12, color: 'var(--color-error)', display: 'flex', alignItems: 'center', gap: 8
           }}>
             <AlertCircle size={14} />
             <b>
@@ -218,8 +230,11 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
                 : `No API key configured for ${provider.toUpperCase()}.`}
             </b>
             <button 
-              onClick={() => alert("Navigate to Settings to add key")}
-              style={{ marginLeft: 'auto', fontWeight: 700, background: 'none', border: 'none', color: '#b91c1c', cursor: 'pointer', textDecoration: 'underline' }}
+              onClick={() => {
+                // In a real app we'd navigate, here we just show the user where it is
+                alert(zh ? "請前往「系統設定」加入 Key" : "Please go to System Settings to add your key");
+              }}
+              style={{ marginLeft: 'auto', fontWeight: 700, background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', textDecoration: 'underline' }}
             >
               {zh ? '去設定' : 'Add Key'}
             </button>
