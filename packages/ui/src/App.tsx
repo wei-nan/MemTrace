@@ -620,34 +620,59 @@ export default function App() {
             {!sidebarCollapsed && <span className="nav-text">{zh ? '知識庫圖譜' : 'Knowledge Graph'}</span>}
           </div>
 
-          {!sidebarCollapsed && selectedWs && currentView !== 'settings' && (
-            <div className="nav-item" style={{ marginTop: 8, color: 'var(--color-primary)' }} onClick={() => { setCurrentView('graph'); setEditingNode(null); }}>
+          {selectedWs && currentView !== 'settings' && (
+            <div
+              className="nav-item"
+              style={{ marginTop: 8, color: 'var(--color-primary)' }}
+              title={sidebarCollapsed ? (zh ? '新增節點' : 'New Node') : undefined}
+              onClick={() => { setCurrentView('graph'); setEditingNode(null); }}
+            >
               <PlusCircle size={18} />
-              <span className="nav-text">{zh ? '新增節點' : 'New Node'}</span>
+              {!sidebarCollapsed && <span className="nav-text">{zh ? '新增節點' : 'New Node'}</span>}
             </div>
           )}
 
-          {!sidebarCollapsed && selectedWs && (
-            <div className={`nav-item ${currentView === 'review' ? 'active' : ''}`} style={{ marginTop: 4 }} onClick={() => setCurrentView('review')}>
+          {selectedWs && (
+            <div
+              className={`nav-item ${currentView === 'review' ? 'active' : ''}`}
+              style={{ marginTop: 4 }}
+              title={sidebarCollapsed ? (zh ? '審核佇列' : 'Review Queue') : undefined}
+              onClick={() => setCurrentView('review')}
+            >
               <Inbox size={18} />
-              <span className="nav-text">{zh ? '審核佇列' : 'Review Queue'}</span>
+              {!sidebarCollapsed && <span className="nav-text">{zh ? '審核佇列' : 'Review Queue'}</span>}
             </div>
           )}
-          {!sidebarCollapsed && selectedWs && (
-            <div className={`nav-item ${currentView === 'ws_settings' ? 'active' : ''}`} style={{ marginTop: 4 }} onClick={() => setCurrentView('ws_settings')}>
+          {selectedWs && (
+            <div
+              className={`nav-item ${currentView === 'ws_settings' ? 'active' : ''}`}
+              style={{ marginTop: 4 }}
+              title={sidebarCollapsed ? (zh ? '成員管理' : 'Workspace Members') : undefined}
+              onClick={() => setCurrentView('ws_settings')}
+            >
               <Users size={18} />
-              <span className="nav-text">{zh ? '成員管理' : 'Workspace Members'}</span>
+              {!sidebarCollapsed && <span className="nav-text">{zh ? '成員管理' : 'Workspace Members'}</span>}
             </div>
           )}
-          {!sidebarCollapsed && selectedWs && (
-            <div className={`nav-item ${currentView === 'ingest' ? 'active' : ''}`} style={{ marginTop: 4 }} onClick={() => setCurrentView('ingest')}>
+          {selectedWs && (
+            <div
+              className={`nav-item ${currentView === 'ingest' ? 'active' : ''}`}
+              style={{ marginTop: 4 }}
+              title={sidebarCollapsed ? (zh ? '匯入文件' : 'Ingest File') : undefined}
+              onClick={() => setCurrentView('ingest')}
+            >
               <Mail size={18} />
-              <span className="nav-text">{zh ? '匯入文件' : 'Ingest File'}</span>
+              {!sidebarCollapsed && <span className="nav-text">{zh ? '匯入文件' : 'Ingest File'}</span>}
             </div>
           )}
         </nav>
 
         <div style={{ marginTop: 'auto' }}>
+          {sidebarCollapsed && user && (
+            <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border-default)' }}>
+              {user.display_name[0]}
+            </div>
+          )}
           {!sidebarCollapsed && user && (
             <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border-default)' }}>
               {user.display_name}
@@ -753,24 +778,43 @@ export default function App() {
 
       {/* ── AI Chat Toggle Button ─────────────────────────────────────────── */}
       {selectedWs && currentView === 'graph' && (
-        <button 
-          onClick={() => setShowChat(!showChat)}
-          style={{ 
-            position: 'fixed', bottom: 32, right: editingNode === undefined ? 32 : 512,
-            width: 56, height: 56, borderRadius: 28, 
-            background: showChat ? 'var(--text-primary)' : 'var(--color-primary)',
-            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: 'var(--shadow-lg)', border: 'none', cursor: 'pointer', zIndex: 100,
-            transition: 'all 0.3s ease'
+        <button
+          onClick={() => setShowChat(true)}
+          className={`ai-fab ${showChat ? 'hidden' : ''}`}
+          title={zh ? '開啟 AI 助手' : 'Open AI Assistant'}
+          style={{
+            // Shift left when the node editor panel is open so the FAB doesn't
+            // sit on top of the editor; otherwise stay at the viewport edge.
+            right: editingNode !== undefined ? 482 : 32,
           }}
         >
-          {showChat ? <X size={24} /> : <Brain size={24} />}
+          <Brain size={24} />
         </button>
       )}
 
       {/* ── Chat Side Panel ──────────────────────────────────────────────── */}
-      <aside className={`side-panel ${!showChat || currentView !== 'graph' ? 'hidden' : ''}`} style={{ zIndex: 90 }}>
-         {selectedWs && <AiChatPanel wsId={selectedWs.id} zh={zh} />}
+      <aside 
+        className={`side-panel ${(!showChat || currentView !== 'graph') ? 'hidden' : ''}`} 
+        style={{ zIndex: 90, overflow: 'visible' }}
+      >
+         {/* Content Wrapper for Clipping */}
+         <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative', borderLeft: (showChat && currentView === 'graph') ? '1px solid var(--border-default)' : 'none' }}>
+            <div style={{ width: 450, height: '100%' }}>
+               {selectedWs && <AiChatPanel wsId={selectedWs.id} zh={zh} />}
+            </div>
+         </div>
+
+         {/* Close Handle — only when panel is open; FAB handles opening when closed */}
+         {selectedWs && currentView === 'graph' && showChat && (
+           <div
+             className="panel-handle"
+             onClick={() => setShowChat(false)}
+             style={{ background: 'var(--bg-surface)' }}
+             title={zh ? '收合 AI 助手' : 'Collapse AI Assistant'}
+           >
+             <ChevronRight size={14} />
+           </div>
+         )}
       </aside>
     </div>
   );
