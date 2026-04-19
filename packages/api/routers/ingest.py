@@ -38,13 +38,14 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         raw, tokens = await chat_completion(resolved, messages)
         nodes_data = json.loads(strip_fences(raw))
 
+        review_ids = []
         with db_cursor(commit=True) as cur:
             for n in nodes_data:
                 edges = n.pop("suggested_edges", [])
                 target = _find_similar_node(cur, ws_id, n)
                 change_type = "update" if target else "create"
                 target_node_id = target["id"] if target else None
-                _propose_change(
+                rid = _propose_change(
                     cur,
                     ws_id,
                     change_type,
@@ -61,6 +62,11 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                     suggested_edges=edges,
                     source_info=f"ingest: {filename}",
                 )
+                review_ids.append(rid)
+
+        from core.ai_review import run_ai_review_for_item
+        for rid in review_ids:
+            await run_ai_review_for_item(rid)
 
         record_usage(resolved, "extraction", tokens, ws_id)
         with db_cursor(commit=True) as cur:

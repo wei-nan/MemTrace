@@ -144,6 +144,9 @@ MemTrace exposes its knowledge base to AI coding tools via the **Model Context P
 | `get_node` | Retrieve a specific node by ID |
 | `traverse` | Walk the graph from a node up to N hops |
 | `list_by_tag` | List all nodes matching a tag |
+| `list_workspaces` | List all accessible workspaces (requires `MEMTRACE_TOKEN`) |
+
+> **Note:** All node tools accept an optional `workspace_id` parameter to query a specific KB. If omitted, they use the `MEMTRACE_WS` default.
 
 ### Step 1 — Build the MCP Server
 
@@ -169,8 +172,14 @@ All three tools use the same `mcpServers` JSON format. Adjust the env vars to po
 | Env Var | Default | Description |
 |---------|---------|-------------|
 | `MEMTRACE_API` | `http://localhost:8000/api/v1` | API base URL |
-| `MEMTRACE_WS` | `ws_spec0001` | Workspace ID to query |
+| `MEMTRACE_WS` | `ws_spec0001` | Default Workspace ID to query |
 | `MEMTRACE_LANG` | `zh-TW` | Response language (`zh-TW` or `en`) |
+| `MEMTRACE_TOKEN` | (empty) | API JWT/Token required to access private workspaces and `list_workspaces` tool |
+
+### Usage Scenarios
+1. **Single Workspace (Simplest)**: Just set `MEMTRACE_WS` in your environment and omit the `workspace_id` parameter when using tools. The tools will default to this workspace.
+2. **Multiple Workspaces (Known IDs)**: Set `MEMTRACE_WS` to your primary workspace. When querying other accessible workspaces, explicitly pass their ID via the `workspace_id` parameter present on all node tools.
+3. **Multiple Workspaces (Unknown IDs)**: Assure `MEMTRACE_TOKEN` is set. The AI agent can first call the `list_workspaces` tool to discover available knowledge bases and their metadata, then use the returned IDs to construct queries with `workspace_id`.
 
 ---
 
@@ -188,7 +197,8 @@ A project-level `.mcp.json` is already included in the repo root. Claude Code pi
       "env": {
         "MEMTRACE_API": "http://localhost:8000/api/v1",
         "MEMTRACE_WS": "ws_spec0001",
-        "MEMTRACE_LANG": "zh-TW"
+        "MEMTRACE_LANG": "zh-TW",
+        "MEMTRACE_TOKEN": "<your_api_token_here>"
       }
     }
   }
@@ -213,7 +223,8 @@ Create `.cursor/mcp.json` in the project root (project-scoped) or `~/.cursor/mcp
       "env": {
         "MEMTRACE_API": "http://localhost:8000/api/v1",
         "MEMTRACE_WS": "ws_spec0001",
-        "MEMTRACE_LANG": "zh-TW"
+        "MEMTRACE_LANG": "zh-TW",
+        "MEMTRACE_TOKEN": "<your_api_token_here>"
       }
     }
   }
@@ -242,7 +253,8 @@ Add to the global config file:
       "env": {
         "MEMTRACE_API": "http://localhost:8000/api/v1",
         "MEMTRACE_WS": "ws_spec0001",
-        "MEMTRACE_LANG": "zh-TW"
+        "MEMTRACE_LANG": "zh-TW",
+        "MEMTRACE_TOKEN": "<your_api_token_here>"
       }
     }
   }

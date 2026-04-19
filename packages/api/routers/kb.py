@@ -538,7 +538,7 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         proposer_id = user["sub"]
         if role == "editor":
-            _propose_change(
+            review_id = _propose_change(
                 cur,
                 ws_id,
                 "create",
@@ -549,6 +549,8 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
                 {"source": "node_editor"},
                 source_info=f"Proposed new node by {proposer_id}",
             )
+            from core.ai_review import run_ai_review_for_item
+            background_tasks.add_task(run_ai_review_for_item, review_id)
             raise HTTPException(status_code=202, detail="Your new node has been submitted for review")
 
         node = _create_node_in_db(cur, ws_id, payload | {"author": proposer_id, "source_type": "human"})
@@ -558,7 +560,7 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
 
 
 @router.patch("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
-def update_node(ws_id: str, node_id: str, body: NodeUpdate, user: dict = Depends(get_current_user)):
+def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     updates = body.model_dump(exclude_none=True)
     with db_cursor(commit=True) as cur:
         ws = _require_ws_access(cur, ws_id, user, write=True)
@@ -570,7 +572,7 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, user: dict = Depends
             return existing
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role == "editor":
-            _propose_change(
+            review_id = _propose_change(
                 cur,
                 ws_id,
                 "update",
@@ -581,6 +583,8 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, user: dict = Depends
                 {"source": "node_editor"},
                 source_info=f"Proposed edit by {user['sub']} for {node_id}",
             )
+            from core.ai_review import run_ai_review_for_item
+            background_tasks.add_task(run_ai_review_for_item, review_id)
             raise HTTPException(status_code=202, detail="Your changes have been submitted for review")
 
         node = _update_node_in_db(cur, ws_id, node_id, updates, user["sub"])
@@ -589,12 +593,12 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, user: dict = Depends
 
 
 @router.delete("/workspaces/{ws_id}/nodes/{node_id}", status_code=204)
-def delete_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+def delete_node(ws_id: str, node_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         ws = _require_ws_access(cur, ws_id, user, write=True)
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role == "editor":
-            _propose_change(
+            review_id = _propose_change(
                 cur,
                 ws_id,
                 "delete",
@@ -605,6 +609,8 @@ def delete_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)
                 {"source": "node_editor"},
                 source_info=f"Proposed delete by {user['sub']} for {node_id}",
             )
+            from core.ai_review import run_ai_review_for_item
+            background_tasks.add_task(run_ai_review_for_item, review_id)
             return
         _delete_node_in_db(cur, ws_id, node_id)
 
@@ -651,7 +657,7 @@ def diff_node_revisions(ws_id: str, node_id: str, rev_a: int, rev_b: int, user: 
 
 
 @router.post("/workspaces/{ws_id}/nodes/{node_id}/revisions/{revision_no}/restore")
-def restore_node_revision(ws_id: str, node_id: str, revision_no: int, user: dict = Depends(get_current_user)):
+def restore_node_revision(ws_id: str, node_id: str, revision_no: int, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         ws = _require_ws_access(cur, ws_id, user, write=True)
         cur.execute("SELECT snapshot FROM node_revisions WHERE workspace_id = %s AND node_id = %s AND revision_no = %s", (ws_id, node_id, revision_no))
@@ -659,15 +665,13 @@ def restore_node_revision(ws_id: str, node_id: str, revision_no: int, user: dict
         if not row:
             raise HTTPException(status_code=404, detail="Revision not found")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
-        if role == "editor":
-            review_id = _propose_change(
-                cur, ws_id, "update", node_id, row["snapshot"], "human", user["sub"], {"source": "restore", "revision_no": revision_no},
-                source_info=f"Restore node {node_id} from revision {revision_no}"
-            )
-            return {"review_id": review_id, "status": "pending_review"}
-        node = _update_node_in_db(cur, ws_id, node_id, row["snapshot"], user["sub"])
-        _write_node_revision(cur, node["id"], ws_id, _node_row_to_snapshot(node), node["signature"], "human", user["sub"], None)
-        return {"status": "restored", "node_id": node_id}
+        review_id = _propose_change(
+            cur, ws_id, "update", node_id, row["snapshot"], "human", user["sub"], {"source": "restore", "revision_no": revision_no},
+            source_info=f"Restore node {node_id} from revision {revision_no}"
+        )
+        from core.ai_review import run_ai_review_for_item
+        background_tasks.add_task(run_ai_review_for_item, review_id)
+        return {"review_id": review_id, "status": "pending_review"}
 
 
 @router.get("/workspaces/{ws_id}/edges", response_model=list[EdgeResponse])
