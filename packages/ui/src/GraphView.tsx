@@ -67,7 +67,23 @@ export default function GraphView({ apiNodes, apiEdges, relationColors, onEditNo
       )),
     [],
   );
-  const onNodeDoubleClick = useCallback((_: React.MouseEvent, rfNode: Node) => {
+  const zh = i18n.language === 'zh-TW';
+
+  // ── Space key → pan mode (Consistency with 3D) ─────────────────────────────
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+        setIsSpacePressed(true); e.preventDefault();
+      }
+    };
+    const up = (e: KeyboardEvent) => { if (e.code === 'Space') setIsSpacePressed(false); };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
+  }, []);
+
+  const onNodeClick = useCallback((_: React.MouseEvent, rfNode: Node) => {
     const apiNode = apiNodes.find(n => n.id === rfNode.id);
     if (apiNode && onEditNode) onEditNode(apiNode);
   }, [apiNodes, onEditNode]);
@@ -81,12 +97,25 @@ export default function GraphView({ apiNodes, apiEdges, relationColors, onEditNo
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeDoubleClick={onNodeDoubleClick}
+          onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
+          panOnDrag={isSpacePressed}
+          selectionOnDrag={!isSpacePressed}
           fitView
         >
           <Background color="var(--border-default)" gap={20} size={1} />
-          <Controls style={{ background: 'var(--bg-surface)', fill: 'var(--text-primary)' }} />
+          
+          {/* Controls hint (EXACT match with 3D copy) */}
+          <div style={{
+            position: 'absolute', bottom: 14, left: 16,
+            color: 'var(--text-muted)', fontSize: 11, opacity: 0.5,
+            pointerEvents: 'none', lineHeight: 1.7, zIndex: 10
+          }}>
+            {zh 
+              ? '左鍵旋轉 · Space+拖曳平移 · 滾輪縮放 · 點擊開啟節點' 
+              : 'Left-click rotate · Space+drag pan · Scroll zoom · Click to open node'}
+          </div>
+
           <MiniMap
             style={{ background: 'var(--bg-surface)' }}
             nodeColor={() => 'var(--color-primary)'}

@@ -454,6 +454,7 @@ h1, h2, h3, h4, h5, h6 {
 .panel-handle {
   position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
   width: 20px; height: 60px; background: var(--bg-surface); 
+  min-width: 0; 
   border: 1px solid var(--border-default);
   border-radius: 10px; display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: var(--text-muted); transition: all 0.2s;
