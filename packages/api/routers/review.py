@@ -1,55 +1,132 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List
-from datetime import datetime, timezone
+from __future__ import annotations
+
+from typing import List, Optional
 import json
 
+from fastapi import APIRouter, Depends, HTTPException
+
+from core.ai_review import DEFAULT_AI_REVIEW_PROMPT, require_owner, run_ai_review_for_item
 from core.database import db_cursor
-from core.deps import get_current_user
+from core.diff import build_node_diff
 from core.security import generate_id
-from models.review import ReviewQueueResponse, ReviewUpdate
-from models.kb import NodeCreate, NodeResponse
-from routers.kb import _require_ws_access, create_node, create_edge, EdgeCreate
+from core.deps import get_current_user
+from models.kb import NodeResponse
+from models.review import (
+    AIReviewerCreate,
+    AIReviewerResponse,
+    AIReviewerUpdate,
+    ReviewQueueResponse,
+    ReviewUpdate,
+)
+from routers.kb import (
+    _create_node_in_db,
+    _delete_node_in_db,
+    _get_effective_role,
+    _node_row_to_snapshot,
+    _require_ws_access,
+    _strip_body_if_viewer,
+    _update_node_in_db,
+    _write_node_revision,
+)
 
 router = APIRouter(prefix="/api/v1/workspaces", tags=["review"])
+
+
+def _strip_review_for_role(item: dict, role: Optional[str]) -> dict:
+    item = dict(item)
+    item["can_review"] = role in ("editor", "admin")
+    if role in ("editor", "admin"):
+        return item
+    node_data = dict(item.get("node_data") or {})
+    before = dict(item.get("before_snapshot") or {}) if item.get("before_snapshot") else None
+    for target in [node_data, before]:
+        if target is None:
+            continue
+        target["body_zh"] = ""
+        target["body_en"] = ""
+    diff_summary = dict(item.get("diff_summary") or {})
+    fields = dict(diff_summary.get("fields") or {})
+    for body_field in ("body_zh", "body_en"):
+        if body_field in fields:
+            fields[body_field] = {
+                "type": "text",
+                "before": "",
+                "after": "",
+                "line_diff": [{"op": "keep", "text": "[redacted for viewer]"}],
+            }
+    diff_summary["fields"] = fields
+    item["node_data"] = node_data
+    item["before_snapshot"] = before
+    item["diff_summary"] = diff_summary
+    return item
+
+
+def _apply_review_item(cur, item: dict):
+    ws_id = item["workspace_id"]
+    change_type = item["change_type"]
+    node_data = item["node_data"] or {}
+    if change_type == "create":
+        node = _create_node_in_db(cur, ws_id, node_data)
+    elif change_type == "update":
+        target_node_id = item["target_node_id"]
+        if not target_node_id:
+            raise HTTPException(status_code=400, detail="Update review missing target node")
+        node = _update_node_in_db(cur, ws_id, target_node_id, node_data, node_data.get("author") or item.get("proposer_id") or "system")
+    elif change_type == "delete":
+        target_node_id = item["target_node_id"]
+        if not target_node_id:
+            raise HTTPException(status_code=400, detail="Delete review missing target node")
+        deleted = _delete_node_in_db(cur, ws_id, target_node_id)
+        return None, deleted
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported change type")
+    return node, None
+
 
 @router.get("/{ws_id}/review-queue", response_model=List[ReviewQueueResponse])
 def list_review_queue(ws_id: str, status: str = "pending", user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
+        ws = _require_ws_access(cur, ws_id, user)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         cur.execute(
-            "SELECT * FROM review_queue WHERE workspace_id = %s AND status = %s ORDER BY created_at ASC",
-            (ws_id, status)
+            """
+            SELECT * FROM review_queue
+            WHERE workspace_id = %s AND status = %s
+            ORDER BY created_at ASC
+            """,
+            (ws_id, status),
         )
-        return cur.fetchall()
+        return [_strip_review_for_role(row, role) for row in cur.fetchall()]
+
 
 @router.patch("/review-queue/{id}", response_model=ReviewQueueResponse)
 def update_review_item(id: str, body: ReviewUpdate, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        cur.execute("SELECT workspace_id FROM review_queue WHERE id = %s", (id,))
+        cur.execute("SELECT * FROM review_queue WHERE id = %s", (id,))
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Review item not found")
-        
         _require_ws_access(cur, row["workspace_id"], user, write=True)
-        
-        updates = []
-        params = []
+        updates = {}
         if body.node_data is not None:
-            updates.append("node_data = %s")
-            params.append(json.dumps(body.node_data))
+            merged_node = body.node_data
+            updates["node_data"] = json.dumps(merged_node, ensure_ascii=False)
+            updates["diff_summary"] = json.dumps(build_node_diff(row["before_snapshot"], merged_node, row["change_type"]), ensure_ascii=False)
         if body.suggested_edges is not None:
-            updates.append("suggested_edges = %s")
-            params.append(json.dumps(body.suggested_edges))
-            
+            updates["suggested_edges"] = json.dumps(body.suggested_edges, ensure_ascii=False)
+        if body.review_notes is not None:
+            updates["review_notes"] = body.review_notes
         if not updates:
-            cur.execute("SELECT * FROM review_queue WHERE id = %s", (id,))
-            return cur.fetchone()
-            
-        params.append(id)
-        cur.execute(f"UPDATE review_queue SET {', '.join(updates)} WHERE id = %s RETURNING *", params)
-        return cur.fetchone()
+            row["can_review"] = True
+            return row
+        set_clause = ", ".join(f"{k} = %s" for k in updates)
+        cur.execute(f"UPDATE review_queue SET {set_clause} WHERE id = %s RETURNING *", list(updates.values()) + [id])
+        updated = cur.fetchone()
+        updated["can_review"] = True
+        return updated
 
-@router.post("/review-queue/{id}/accept", response_model=NodeResponse)
+
+@router.post("/review-queue/{id}/accept", response_model=Optional[NodeResponse])
 def accept_review_item(id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT * FROM review_queue WHERE id = %s", (id,))
@@ -58,110 +135,143 @@ def accept_review_item(id: str, user: dict = Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="Review item not found")
         if item["status"] != "pending":
             raise HTTPException(status_code=400, detail=f"Item is already {item['status']}")
-            
-        ws_id = item["workspace_id"]
-        _require_ws_access(cur, ws_id, user, write=True)
-        
-        # Convert JSON node_data to NodeCreate
-        node_data = item["node_data"]
-        # In actual implementation, we'd call the logic of create_node directly to avoid redundant checks
-        # But for now, let's just do the INSERT
-        
-        # Re-verify the node_data matches expected structure
-        node_create = NodeCreate(**node_data)
-        
-        # We need a hack here because create_node is a decorated function that expects a Request or similar dependencies if we call it as a function
-        # Better to refactor create_node logic into a library function. 
-        # For Phase B, I'll just write the internal logic here or hope I can call it.
-        
-        # Actually, let's just do the DB insert ourselves to be safe and clean.
-        from routers.kb import compute_signature, generate_id as gen_id
-        
-        author = user["sub"]
-        title   = {"zh-TW": node_create.title_zh, "en": node_create.title_en}
-        content = {"type": node_create.content_type, "format": node_create.content_format,
-                   "body": {"zh-TW": node_create.body_zh, "en": node_create.body_en}}
-        sig = compute_signature(title, content, node_create.tags, author)
-        node_id = gen_id("mem")
-        
-        cur.execute("""
-            INSERT INTO memory_nodes (
-                id, workspace_id, title_zh, title_en,
-                content_type, content_format, body_zh, body_en,
-                tags, visibility, author, signature, source_type
-            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'ai')
-            RETURNING *
-        """, (
-            node_id, ws_id,
-            node_create.title_zh, node_create.title_en,
-            node_create.content_type, node_create.content_format, node_create.body_zh, node_create.body_en,
-            node_create.tags, node_create.visibility,
-            author, sig
-        ))
-        new_node = cur.fetchone()
-        
-        # Handle edges
-        for edge in item["suggested_edges"]:
-            to_id = edge.get("to_node_id")
-            if not to_id: continue # skip relative index edges for now in this simple implementation
-            
-            edge_id = gen_id("edge")
-            cur.execute("""
-                INSERT INTO edges (id, workspace_id, from_id, to_id, relation)
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT DO NOTHING
-            """, (edge_id, ws_id, node_id, to_id, edge["relation"]))
-
-        # Mark as accepted
+        _require_ws_access(cur, item["workspace_id"], user, write=True)
+        node, deleted = _apply_review_item(cur, item)
+        if node:
+            _write_node_revision(
+                cur,
+                node["id"],
+                item["workspace_id"],
+                _node_row_to_snapshot(node),
+                node["signature"],
+                item["proposer_type"],
+                item["proposer_id"],
+                id,
+            )
         cur.execute(
-            "UPDATE review_queue SET status = 'accepted', reviewed_at = now(), reviewer_id = %s WHERE id = %s",
-            (user["sub"], id)
+            "UPDATE review_queue SET status = 'accepted', reviewer_type = 'human', reviewer_id = %s, reviewed_at = now() WHERE id = %s",
+            (user["sub"], id),
         )
-        
-        return new_node
+        return node
+
 
 @router.post("/review-queue/{id}/reject")
 def reject_review_item(id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        cur.execute("SELECT workspace_id FROM review_queue WHERE id = %s", (id,))
+        cur.execute("SELECT workspace_id, status FROM review_queue WHERE id = %s", (id,))
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Review item not found")
-            
         _require_ws_access(cur, row["workspace_id"], user, write=True)
-        
+        if row["status"] != "pending":
+            raise HTTPException(status_code=400, detail=f"Item is already {row['status']}")
         cur.execute(
-            "UPDATE review_queue SET status = 'rejected', reviewed_at = now(), reviewer_id = %s WHERE id = %s",
-            (user["sub"], id)
+            "UPDATE review_queue SET status = 'rejected', reviewer_type = 'human', reviewer_id = %s, reviewed_at = now() WHERE id = %s",
+            (user["sub"], id),
         )
         return {"message": "Rejected"}
+
 
 @router.post("/{ws_id}/review-queue/accept-all")
 def accept_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, write=True)
         cur.execute("SELECT id FROM review_queue WHERE workspace_id = %s AND status = 'pending'", (ws_id,))
-        ids = [r["id"] for r in cur.fetchall()]
-        
-        results = []
-        for rid in ids:
-            try:
-                # We reuse the logic by calling the accept function internally or refactoring
-                # For simplicity here, let's just loop and call the accept logic
-                # (Ideally refactor to a internal function)
-                res = accept_review_item(rid, user)
-                results.append(res)
-            except Exception:
-                continue
-        return {"accepted_count": len(results)}
+        ids = [row["id"] for row in cur.fetchall()]
+    count = 0
+    for rid in ids:
+        try:
+            accept_review_item(rid, user)
+            count += 1
+        except Exception:
+            continue
+    return {"accepted_count": count}
+
 
 @router.post("/{ws_id}/review-queue/reject-all")
 def reject_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, write=True)
         cur.execute(
-            "UPDATE review_queue SET status = 'rejected', reviewed_at = now(), reviewer_id = %s "
-            "WHERE workspace_id = %s AND status = 'pending'",
-            (user["sub"], ws_id)
+            "UPDATE review_queue SET status = 'rejected', reviewer_type = 'human', reviewer_id = %s, reviewed_at = now() WHERE workspace_id = %s AND status = 'pending'",
+            (user["sub"], ws_id),
         )
         return {"message": "All pending items rejected"}
+
+
+@router.post("/{ws_id}/review-queue/ai-prescreen")
+async def run_ai_prescreen(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, write=True)
+        cur.execute("SELECT id FROM review_queue WHERE workspace_id = %s AND status = 'pending' ORDER BY created_at ASC", (ws_id,))
+        ids = [row["id"] for row in cur.fetchall()]
+    processed = 0
+    for review_id in ids:
+        result = await run_ai_review_for_item(review_id)
+        if result is not None:
+            processed += 1
+    return {"processed_count": processed}
+
+
+@router.get("/{ws_id}/ai-reviewers", response_model=List[AIReviewerResponse])
+def list_ai_reviewers(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        require_owner(cur, ws_id, user)
+        cur.execute("SELECT * FROM ai_reviewers WHERE workspace_id = %s ORDER BY created_at ASC", (ws_id,))
+        return cur.fetchall()
+
+
+@router.post("/{ws_id}/ai-reviewers", response_model=AIReviewerResponse, status_code=201)
+def create_ai_reviewer(ws_id: str, body: AIReviewerCreate, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        require_owner(cur, ws_id, user)
+        reviewer_id = generate_id("airev")
+        cur.execute(
+            """
+            INSERT INTO ai_reviewers (
+                id, workspace_id, name, provider, model, system_prompt,
+                auto_accept_threshold, auto_reject_threshold, enabled
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+            """,
+            (
+                reviewer_id,
+                ws_id,
+                body.name,
+                body.provider,
+                body.model,
+                body.system_prompt or DEFAULT_AI_REVIEW_PROMPT,
+                body.auto_accept_threshold,
+                body.auto_reject_threshold,
+                body.enabled,
+            ),
+        )
+        return cur.fetchone()
+
+
+@router.patch("/{ws_id}/ai-reviewers/{id}", response_model=AIReviewerResponse)
+def update_ai_reviewer(ws_id: str, id: str, body: AIReviewerUpdate, user: dict = Depends(get_current_user)):
+    updates = body.model_dump(exclude_none=True)
+    with db_cursor(commit=True) as cur:
+        require_owner(cur, ws_id, user)
+        if not updates:
+            cur.execute("SELECT * FROM ai_reviewers WHERE workspace_id = %s AND id = %s", (ws_id, id))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="AI reviewer not found")
+            return row
+        set_clause = ", ".join(f"{k} = %s" for k in updates)
+        cur.execute(f"UPDATE ai_reviewers SET {set_clause} WHERE workspace_id = %s AND id = %s RETURNING *", list(updates.values()) + [ws_id, id])
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="AI reviewer not found")
+        return row
+
+
+@router.delete("/{ws_id}/ai-reviewers/{id}", status_code=204)
+def delete_ai_reviewer(ws_id: str, id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        require_owner(cur, ws_id, user)
+        cur.execute("DELETE FROM ai_reviewers WHERE workspace_id = %s AND id = %s", (ws_id, id))
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="AI reviewer not found")
