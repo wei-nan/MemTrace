@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional, Union
 import json
 from collections import defaultdict, deque
 
@@ -129,7 +129,7 @@ def _validate_node_payload(data: dict):
         raise HTTPException(status_code=400, detail="At least one body language field must be non-empty")
 
 
-def _node_row_to_snapshot(row: dict | None) -> dict | None:
+def _node_row_to_snapshot(row: Optional[dict]) -> Optional[dict]:
     if not row:
         return None
     return {field: (list(row[field]) if field == "tags" and row.get(field) is not None else row.get(field)) for field in NODE_EDITABLE_FIELDS}
@@ -1132,7 +1132,7 @@ def _actor_has_traversed_node(cur, node_id: str, actor_id: str) -> bool:
 @router.post("/internal/mcp-log", status_code=204)
 def log_mcp_query(
     body: dict,
-    authorization: str | None = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
 ):
     if not settings.internal_service_token:
         raise HTTPException(status_code=503, detail="Internal logging token is not configured")
@@ -1240,7 +1240,7 @@ def get_workspace_analytics(ws_id: str, user: dict = Depends(get_current_user_op
             for node in sorted(nodes, key=lambda item: item["traversal_count"], reverse=True)[:5]
         ]
 
-        kb_type_metrics: dict[str, float | int] = {}
+        kb_type_metrics: dict[str, Union[float, int]] = {}
         if ws["kb_type"] == "evergreen":
             components = 0
             visited: set[str] = set()
@@ -1394,128 +1394,6 @@ def restore_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user
         )
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Node not found or not archived")
-
-
-# ─── A1: KB Analytics ──────────────────────────────────────────────────────────
-
-@router.get("/workspaces/{ws_id}/analytics")
-def get_analytics(ws_id: str, user: dict = Depends(get_current_user_optional)):
-    with db_cursor() as cur:
-        ws = _require_ws_access(cur, ws_id, user)
-        kb_type = ws.get("kb_type", "evergreen")
-
-        cur.execute("""
-            SELECT
-                COUNT(*) FILTER (WHERE status='active')                         AS total_nodes,
-                (SELECT COUNT(*) FROM edges WHERE workspace_id = %s AND status='active') AS active_edges,
-                COUNT(*) FILTER (WHERE status='active' AND NOT EXISTS (
-                    SELECT 1 FROM edges e WHERE e.status='active'
-                      AND (e.from_id=memory_nodes.id OR e.to_id=memory_nodes.id)
-                ))                                                               AS orphan_node_count,
-                AVG(trust_score) FILTER (WHERE status='active')                 AS avg_trust_score,
-                (SELECT COUNT(*) FROM traversal_log tl
-                    JOIN memory_nodes mn ON mn.id = tl.node_id
-                    WHERE mn.workspace_id = %s
-                      AND tl.traversed_at >= NOW() - INTERVAL '30 days')        AS monthly_traversal_count
-            FROM memory_nodes WHERE workspace_id = %s
-        """, (ws_id, ws_id, ws_id))
-        base = dict(cur.fetchone())
-
-        cur.execute("""
-            SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status='faded') AS faded
-            FROM edges WHERE workspace_id = %s
-        """, (ws_id,))
-        edge_row = cur.fetchone()
-        total_edges = edge_row["total"] or 0
-        faded_edges = edge_row["faded"] or 0
-        base["faded_edge_ratio"] = round(faded_edges / total_edges, 4) if total_edges else 0.0
-        base["avg_trust_score"] = round(float(base["avg_trust_score"] or 0), 4)
-
-        # Top 5 most traversed nodes
-        cur.execute("""
-            SELECT id, title_zh, title_en, traversal_count FROM memory_nodes
-            WHERE workspace_id = %s AND status='active'
-            ORDER BY traversal_count DESC LIMIT 5
-        """, (ws_id,))
-        base["top_nodes"] = [{"id": r["id"], "title": r["title_zh"] or r["title_en"], "traversal_count": r["traversal_count"]} for r in cur.fetchall()]
-
-        # KB-type specific metrics
-        if kb_type == "evergreen":
-            cur.execute("""
-                SELECT COALESCE(AVG(ec.cnt), 0) AS avg_edges_per_node
-                FROM (
-                    SELECT COUNT(*) AS cnt FROM edges
-                    WHERE workspace_id = %s AND status='active'
-                    GROUP BY from_id
-                ) ec
-            """, (ws_id,))
-            base["kb_type_metrics"] = {"avg_edges_per_node": round(float(cur.fetchone()["avg_edges_per_node"]), 2)}
-        elif kb_type == "operational":
-            cur.execute("""
-                SELECT
-                    COUNT(*) FILTER (WHERE traversal_count=0)::float / NULLIF(COUNT(*), 0) AS never_traversed_ratio
-                FROM memory_nodes WHERE workspace_id=%s AND status='active'
-            """, (ws_id,))
-            base["kb_type_metrics"] = {"never_traversed_ratio": round(float(cur.fetchone()["never_traversed_ratio"] or 0), 4)}
-        else:
-            base["kb_type_metrics"] = {}
-
-        return base
-
-
-# ─── A2: Token Efficiency ──────────────────────────────────────────────────────
-
-class McpLogRequest(BaseModel):
-    tool_name: str
-    query_text: Optional[str] = None
-    result_node_count: int = 0
-    estimated_tokens: int = 0
-
-
-@router.post("/internal/mcp-log", status_code=204)
-def log_mcp_query(ws_id: str, body: McpLogRequest, user: dict = Depends(get_current_user)):
-    """A2: Internal endpoint to record MCP tool invocations."""
-    with db_cursor(commit=True) as cur:
-        from core.security import generate_id
-        log_id = generate_id("mcp")
-        cur.execute(
-            """
-            INSERT INTO mcp_query_logs (id, workspace_id, tool_name, query_text, result_node_count, estimated_tokens)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (log_id, ws_id, body.tool_name, body.query_text, body.result_node_count, body.estimated_tokens),
-        )
-
-
-@router.get("/workspaces/{ws_id}/analytics/token-efficiency")
-def get_token_efficiency(ws_id: str, user: dict = Depends(get_current_user_optional)):
-    with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
-        cur.execute("""
-            SELECT
-                COALESCE(AVG(estimated_tokens), 0)  AS avg_tokens_per_query,
-                COUNT(*)                             AS monthly_query_count
-            FROM mcp_query_logs
-            WHERE workspace_id = %s AND created_at >= NOW() - INTERVAL '30 days'
-        """, (ws_id,))
-        row = cur.fetchone()
-
-        cur.execute("""
-            SELECT COALESCE(SUM(LENGTH(body_zh) + LENGTH(body_en)), 0) AS total_chars
-            FROM memory_nodes WHERE workspace_id = %s AND status='active'
-        """, (ws_id,))
-        total_chars = cur.fetchone()["total_chars"] or 0
-        full_doc_tokens = total_chars // 4
-
-        avg = float(row["avg_tokens_per_query"] or 0)
-        savings = 1 - (avg / full_doc_tokens) if full_doc_tokens > 0 else 0.0
-
-        return {
-            "avg_tokens_per_query": round(avg, 1),
-            "estimated_full_doc_tokens": full_doc_tokens,
-            "savings_ratio": round(max(0.0, savings), 4),
-            "monthly_query_count": row["monthly_query_count"],
-        }
 
 
 # ─── A3: Node Health Scores ────────────────────────────────────────────────────

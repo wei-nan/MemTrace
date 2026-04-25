@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 import json
-
+from typing import List, Optional, Tuple
 from core.ai import EXTRACTION_SYSTEM, AIProviderUnavailable, AIProviderError, chat_completion, record_usage, resolve_provider, strip_fences, PROVIDER_REGISTRY
 from core.database import db_cursor
 from core.security import generate_id
@@ -97,7 +97,7 @@ def _extract_objects_partial(text: str) -> list[dict]:
     """
     objects: list[dict] = []
     depth = 0
-    start: int | None = None
+    start: Optional[int] = None
     in_string = False
     escape_next = False
 
@@ -131,7 +131,7 @@ def _extract_objects_partial(text: str) -> list[dict]:
     return objects
 
 
-async def _safe_parse_nodes(raw: str, resolved, filename: str) -> tuple[list[dict], int]:
+async def _safe_parse_nodes(raw: str, resolved, filename: str) -> Tuple[list[dict], int]:
     """
     Parse the LLM response as a JSON node array.
     Strategy (each pass only runs if the previous one yielded nothing):
@@ -357,7 +357,7 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
             # try the next available provider automatically.
             chunk_resolved = resolved
             raw, tokens = None, 0
-            chunk_error: Exception | None = None
+            chunk_error: Optional[Exception] = None
             for attempt in range(2):   # at most 2 attempts (primary + one fallback)
                 try:
                     raw, tokens = await chat_completion(chunk_resolved, messages)

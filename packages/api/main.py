@@ -7,8 +7,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from core.backup import get_backup_config, run_backup_and_update_status
 from core.database import db_cursor
 from core.email import send_workspace_deletion_notice
+from core.csrf import CsrfMiddleware
+from routers.admin import router as admin_router
 from routers.auth import router as auth_router
 from routers.kb   import router as kb_router
 from routers.ai   import router as ai_router
@@ -25,6 +28,7 @@ logger = logging.getLogger(__name__)
 DECAY_INTERVAL_SECONDS = 86400  # 24 hours
 EPHEMERAL_DECAY_INTERVAL_SECONDS = 3600  # 1 hour (D4)
 CLEANUP_INTERVAL_SECONDS = 86400  # 24 hours
+BACKUP_CHECK_INTERVAL_SECONDS = 3600  # re-check every hour
 
 
 async def _decay_loop():
@@ -177,17 +181,43 @@ def _run_deletion_notifications() -> None:
     logger.info("Deletion notification cycle complete (purged=%d)", len(to_purge))
 
 
+async def _backup_loop():
+    """Check backup schedule every hour and run pg_dump when interval has elapsed."""
+    while True:
+        await asyncio.sleep(BACKUP_CHECK_INTERVAL_SECONDS)
+        try:
+            config = get_backup_config()
+            if not config.get("enabled"):
+                continue
+            interval_seconds = int(config.get("interval_hours", 24)) * 3600
+            last_at = config.get("last_backup_at")
+            if last_at:
+                from datetime import datetime, timezone
+                last_dt = datetime.fromisoformat(last_at)
+                if last_dt.tzinfo is None:
+                    last_dt = last_dt.replace(tzinfo=timezone.utc)
+                elapsed = (datetime.now(timezone.utc) - last_dt).total_seconds()
+                if elapsed < interval_seconds:
+                    continue
+            db_url = os.environ.get("DATABASE_URL", "")
+            keep_count = int(config.get("keep_count", 7))
+            await asyncio.to_thread(run_backup_and_update_status, config["path"], db_url, keep_count)
+        except Exception as exc:
+            logger.warning("Backup loop error: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     decay_task         = asyncio.create_task(_decay_loop())
     ephemeral_task     = asyncio.create_task(_ephemeral_decay_loop())   # D4
     deletion_task      = asyncio.create_task(_deletion_notification_loop())
     cleanup_task       = asyncio.create_task(_cleanup_loop())            # G4
-    logger.info("Background schedulers started (decay + ephemeral decay + deletion notifications + cleanup)")
+    backup_task        = asyncio.create_task(_backup_loop())
+    logger.info("Background schedulers started (decay + ephemeral decay + deletion notifications + cleanup + backup)")
     try:
         yield
     finally:
-        for t in (decay_task, ephemeral_task, deletion_task, cleanup_task):
+        for t in (decay_task, ephemeral_task, deletion_task, cleanup_task, backup_task):
             t.cancel()
             try:
                 await t
@@ -211,6 +241,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(CsrfMiddleware)
+
+app.include_router(admin_router)
 app.include_router(auth_router)
 app.include_router(kb_router)
 app.include_router(ai_router)

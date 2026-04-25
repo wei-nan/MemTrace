@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 import json
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import HTTPException
 
@@ -41,7 +39,7 @@ def _parse_ai_review_response(raw: str) -> dict[str, Any]:
     }
 
 
-async def run_ai_review_for_item(review_id: str) -> dict[str, Any] | None:
+async def run_ai_review_for_item(review_id: str) -> Optional[dict[str, Any]]:
     with db_cursor() as cur:
         cur.execute("SELECT * FROM review_queue WHERE id = %s", (review_id,))
         item = cur.fetchone()

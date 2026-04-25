@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from difflib import ndiff
-from typing import Any
+from typing import Any, Optional
 
 
 NODE_DIFF_FIELDS = [
@@ -16,7 +14,7 @@ NODE_DIFF_FIELDS = [
 ]
 
 
-def _normalize_snapshot(snapshot: dict[str, Any] | None) -> dict[str, Any]:
+def _normalize_snapshot(snapshot: Optional[dict[str, Any]]) -> dict[str, Any]:
     data = snapshot or {}
     return {
         "title_zh": data.get("title_zh", ""),
@@ -45,8 +43,8 @@ def _line_diff(before: str, after: str) -> list[dict[str, str]]:
 
 
 def build_node_diff(
-    before_snapshot: dict[str, Any] | None,
-    after_snapshot: dict[str, Any] | None,
+    before_snapshot: Optional[dict[str, Any]],
+    after_snapshot: Optional[dict[str, Any]],
     change_type: str,
 ) -> dict[str, Any]:
     before = _normalize_snapshot(before_snapshot)

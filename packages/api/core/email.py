@@ -193,7 +193,7 @@ If you didn't request this, you can safely ignore this email — your password w
     return _BASE.format(content=content, footer=_FOOTER_DEFAULT)
 
 
-def _tpl_ws_deletion_warning(ws_name: str, days_left: int, restore_url: str | None) -> str:
+def _tpl_ws_deletion_warning(ws_name: str, days_left: int, restore_url: Optional[str]) -> str:
     urgency = "⚠️ 緊急：" if days_left <= 5 else ""
     restore_block = ""
     if restore_url:
