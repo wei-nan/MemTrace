@@ -1,0 +1,1625 @@
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import List, Literal, Optional
+import json
+from collections import defaultdict, deque
+
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+from core.database import db_cursor
+from core.config import settings
+from core.deps import get_current_user, get_current_user_optional, RequireScope
+from core.diff import build_node_diff
+from core.security import compute_signature, generate_id
+from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable
+from models.kb import (
+    EdgeCreate,
+    EdgeResponse,
+    GraphPreviewResponse,
+    NodeCreate,
+    NodeResponse,
+    NodeUpdate,
+    RateEdgeRequest,
+    TraverseEdgeRequest,
+    ValidityConfirmationResponse,
+    WorkspaceAssociationResponse,
+    WorkspaceCreate,
+    WorkspaceResponse,
+    WorkspaceUpdate,
+    TableViewResponse,
+    WorkspacePurgeResponse,
+)
+from models.review import NodeRevisionMetaResponse, NodeRevisionResponse
+
+router = APIRouter(prefix="/api/v1", tags=["knowledge-base"])
+
+VALID_RELATIONS = {"depends_on", "extends", "related_to", "contradicts"}
+VALID_KB_VIS = {"public", "restricted", "private", "conditional_public"}
+VALID_NODE_VIS = {"public", "team", "private"}
+VALID_CONTENT_T = {"factual", "procedural", "preference", "context"}
+VALID_FORMAT = {"plain", "markdown"}
+NODE_EDITABLE_FIELDS = [
+    "title_zh",
+    "title_en",
+    "content_type",
+    "content_format",
+    "body_zh",
+    "body_en",
+    "tags",
+    "visibility",
+]
+
+
+def _require_ws_access(cur, ws_id: str, user: Optional[dict], write: bool = False, required_scope: Optional[str] = None):
+    # API key scope validation
+    if user and "api_key_id" in user and required_scope:
+        scopes = user.get("scopes") or []
+        if "*" not in scopes and required_scope not in scopes:
+            raise HTTPException(status_code=403, detail={"error": "insufficient_scope", "required": required_scope})
+
+    cur.execute("SELECT visibility, owner_id, kb_type FROM workspaces WHERE id = %s", (ws_id,))
+    ws = cur.fetchone()
+    if not ws:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    vis = ws["visibility"]
+    user_id = user["sub"] if user else None
+
+    if user_id == ws["owner_id"]:
+        return ws
+
+    if vis == "private":
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if vis == "public" and not write:
+        return ws
+
+    if vis == "restricted" or write:
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        cur.execute(
+            "SELECT role FROM workspace_members WHERE workspace_id = %s AND user_id = %s",
+            (ws_id, user_id),
+        )
+        member = cur.fetchone()
+        if not member:
+            raise HTTPException(status_code=403, detail="Access denied")
+        if write and member["role"] not in ("editor", "admin"):
+            raise HTTPException(status_code=403, detail="Editor or Admin role required")
+
+    return ws
+
+
+def _get_effective_role(cur, ws_id: str, owner_id: str, user_id: Optional[str]) -> Optional[str]:
+    if not user_id:
+        return None
+    if user_id == owner_id:
+        return "admin"
+    cur.execute(
+        "SELECT role FROM workspace_members WHERE workspace_id = %s AND user_id = %s",
+        (ws_id, user_id),
+    )
+    row = cur.fetchone()
+    return row["role"] if row else None
+
+
+def _strip_body_if_viewer(node_row: dict, role: Optional[str]):
+    node_row = dict(node_row)
+    node_row["content_stripped"] = False
+    if role not in ("editor", "admin"):
+        node_row["body_zh"] = None
+        node_row["body_en"] = None
+        node_row["content_stripped"] = True
+    return node_row
+
+
+def _validate_node_payload(data: dict):
+    if data.get("content_type") not in VALID_CONTENT_T:
+        raise HTTPException(status_code=400, detail="Invalid content_type")
+    if data.get("content_format") not in VALID_FORMAT:
+        raise HTTPException(status_code=400, detail="Invalid content_format")
+    if data.get("visibility") not in VALID_NODE_VIS:
+        raise HTTPException(status_code=400, detail="Invalid visibility")
+    if not (data.get("title_zh") or data.get("title_en")):
+        raise HTTPException(status_code=400, detail="At least one title language field must be non-empty")
+    if not (data.get("body_zh") or data.get("body_en")):
+        raise HTTPException(status_code=400, detail="At least one body language field must be non-empty")
+
+
+def _node_row_to_snapshot(row: dict | None) -> dict | None:
+    if not row:
+        return None
+    return {field: (list(row[field]) if field == "tags" and row.get(field) is not None else row.get(field)) for field in NODE_EDITABLE_FIELDS}
+
+
+def _prepare_node_data(data: dict, author: str, source_type: str = "human") -> dict:
+    payload = {field: data.get(field) for field in NODE_EDITABLE_FIELDS}
+    payload["tags"] = list(payload.get("tags") or [])
+    _validate_node_payload(payload)
+    payload["author"] = data.get("author") or author
+    payload["source_type"] = data.get("source_type") or source_type
+    payload["signature"] = compute_signature(
+        {"zh-TW": payload["title_zh"], "en": payload["title_en"]},
+        {
+            "type": payload["content_type"],
+            "format": payload["content_format"],
+            "body": {"zh-TW": payload["body_zh"], "en": payload["body_en"]},
+        },
+        payload["tags"],
+        payload["author"],
+    )
+    return payload
+
+
+def _create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
+    payload = _prepare_node_data(node_data, node_data["author"], node_data.get("source_type", "human"))
+    node_id = node_data.get("id") or generate_id("mem")
+    cur.execute(
+        """
+        INSERT INTO memory_nodes (
+            id, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en,
+            tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        RETURNING *
+        """,
+        (
+            node_id,
+            ws_id,
+            payload["title_zh"],
+            payload["title_en"],
+            payload["content_type"],
+            payload["content_format"],
+            payload["body_zh"],
+            payload["body_en"],
+            payload["tags"],
+            payload["visibility"],
+            payload["author"],
+            payload["signature"],
+            payload["source_type"],
+            node_data.get("copied_from_node"),
+            node_data.get("copied_from_ws"),
+        ),
+    )
+    return cur.fetchone()
+
+
+def _update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: str) -> dict:
+    cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+    existing = cur.fetchone()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Node not found")
+
+    merged = {**dict(existing), **{field: node_data.get(field, existing.get(field)) for field in NODE_EDITABLE_FIELDS}}
+    payload = _prepare_node_data(merged, actor_id, merged.get("source_type", "human"))
+    cur.execute(
+        """
+        UPDATE memory_nodes
+        SET title_zh = %s, title_en = %s, content_type = %s, content_format = %s,
+            body_zh = %s, body_en = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s
+        WHERE id = %s AND workspace_id = %s
+        RETURNING *
+        """,
+        (
+            payload["title_zh"],
+            payload["title_en"],
+            payload["content_type"],
+            payload["content_format"],
+            payload["body_zh"],
+            payload["body_en"],
+            payload["tags"],
+            payload["visibility"],
+            payload["signature"],
+            datetime.now(timezone.utc),
+            node_id,
+            ws_id,
+        ),
+    )
+    return cur.fetchone()
+
+
+def _delete_node_in_db(cur, ws_id: str, node_id: str):
+    cur.execute("DELETE FROM memory_nodes WHERE id = %s AND workspace_id = %s RETURNING *", (node_id, ws_id))
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Node not found")
+    return row
+
+
+def _write_node_revision(
+    cur,
+    node_id: str,
+    workspace_id: str,
+    snapshot: dict,
+    signature: str,
+    proposer_type: str,
+    proposer_id: Optional[str],
+    review_id: Optional[str],
+):
+    cur.execute("SELECT COALESCE(MAX(revision_no), 0) AS max_rev FROM node_revisions WHERE node_id = %s", (node_id,))
+    revision_no = int(cur.fetchone()["max_rev"]) + 1
+    cur.execute(
+        """
+        INSERT INTO node_revisions (id, node_id, workspace_id, revision_no, snapshot, signature, proposer_type, proposer_id, review_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            generate_id("nrev"),
+            node_id,
+            workspace_id,
+            revision_no,
+            json.dumps(snapshot, ensure_ascii=False),
+            signature,
+            proposer_type,
+            proposer_id,
+            review_id,
+        ),
+    )
+    cur.execute(
+        """
+        DELETE FROM node_revisions
+        WHERE id IN (
+          SELECT id FROM node_revisions
+          WHERE node_id = %s
+          ORDER BY revision_no DESC
+          OFFSET 10
+        )
+        """,
+        (node_id,),
+    )
+
+
+def _propose_change(
+    cur,
+    ws_id: str,
+    change_type: Literal["create", "update", "delete"],
+    target_node_id: Optional[str],
+    node_data: Optional[dict],
+    proposer_type: Literal["human", "ai"],
+    proposer_id: Optional[str],
+    proposer_meta: Optional[dict] = None,
+    suggested_edges: Optional[list[dict]] = None,
+    source_info: Optional[str] = None,
+    confidence_score: Optional[float] = None,
+) -> str:
+    before_snapshot = None
+    after_snapshot = None
+
+    if target_node_id:
+        cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (target_node_id, ws_id))
+        existing = cur.fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Target node not found")
+        before_snapshot = _node_row_to_snapshot(existing)
+
+    if change_type != "delete":
+        payload = dict(node_data or {})
+        if change_type == "update" and before_snapshot:
+            payload = {**before_snapshot, **payload}
+        payload["tags"] = list(payload.get("tags") or [])
+        after_snapshot = _prepare_node_data(payload, payload.get("author") or proposer_id or "system", payload.get("source_type", proposer_type))
+        after_snapshot = {field: after_snapshot[field] for field in NODE_EDITABLE_FIELDS} | {
+            "author": payload.get("author") or proposer_id,
+            "source_type": payload.get("source_type", proposer_type),
+            "signature": after_snapshot["signature"],
+            "copied_from_node": payload.get("copied_from_node"),
+            "copied_from_ws": payload.get("copied_from_ws"),
+        }
+
+    diff_summary = build_node_diff(before_snapshot, after_snapshot, change_type)
+    review_id = generate_id("rev")
+    cur.execute(
+        """
+        INSERT INTO review_queue (
+            id, workspace_id, change_type, target_node_id, before_snapshot, node_data, diff_summary,
+            suggested_edges, status, source_info, proposer_type, proposer_id, proposer_meta, confidence_score
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s)
+        """,
+        (
+            review_id,
+            ws_id,
+            change_type,
+            target_node_id,
+            json.dumps(before_snapshot, ensure_ascii=False) if before_snapshot is not None else None,
+            json.dumps(after_snapshot or {}, ensure_ascii=False),
+            json.dumps(diff_summary, ensure_ascii=False),
+            json.dumps(suggested_edges or [], ensure_ascii=False),
+            source_info,
+            proposer_type,
+            proposer_id,
+            json.dumps(proposer_meta or {}, ensure_ascii=False) if proposer_meta is not None else None,
+            confidence_score,
+        ),
+    )
+    return review_id
+
+
+async def _bg_embed_node(ws_id: str, node_id: str, text: str, user_id: str):
+    try:
+        resolved = resolve_provider(user_id, "embedding")
+        vector, tokens = await embed(resolved, text)
+        with db_cursor(commit=True) as cur:
+            cur.execute("UPDATE memory_nodes SET embedding = %s WHERE id = %s AND workspace_id = %s", (vector, node_id, ws_id))
+        record_usage(resolved, "embedding", tokens, ws_id, node_id)
+    except Exception as exc:
+        print(f"BG Embedding failed for node {node_id}: {exc}")
+
+
+@router.get("/workspaces", response_model=list[WorkspaceResponse])
+def list_workspaces(search: Optional[str] = Query(None), user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        filters = [
+            """
+            (
+                owner_id = %s
+                OR id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
+                OR visibility IN ('public', 'conditional_public')
+            )
+            """
+        ]
+        params: list = [user["sub"], user["sub"]]
+        if search:
+            filters.append("(name_zh ILIKE %s OR name_en ILIKE %s)")
+            like = f"%{search}%"
+            params.extend([like, like])
+        cur.execute(
+            f"""
+            SELECT * FROM workspaces
+            WHERE {' AND '.join(filters)}
+            ORDER BY updated_at DESC
+            """,
+            params,
+        )
+        return cur.fetchall()
+
+
+@router.post("/workspaces", response_model=WorkspaceResponse, status_code=201)
+def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_user)):
+    if body.visibility not in VALID_KB_VIS:
+        raise HTTPException(status_code=400, detail="Invalid visibility")
+    ws_id = generate_id("ws")
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            INSERT INTO workspaces (
+                id, name_zh, name_en, visibility, kb_type, owner_id, archive_window_days, min_traversals
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+            """,
+            (ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, user["sub"], body.archive_window_days, body.min_traversals),
+        )
+        return cur.fetchone()
+
+
+@router.get("/workspaces/{ws_id}/graph-preview", response_model=GraphPreviewResponse)
+def get_graph_preview(ws_id: str):
+    with db_cursor() as cur:
+        cur.execute("SELECT visibility FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        if ws["visibility"] not in ("conditional_public", "public"):
+            raise HTTPException(status_code=403, detail="Graph preview only available for public/conditional_public workspaces")
+        cur.execute("SELECT id, content_type FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+        nodes = cur.fetchall()
+        cur.execute("SELECT from_id, to_id, relation FROM edges WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+        edges = cur.fetchall()
+        id_map = {node["id"]: f"p_node_{i}" for i, node in enumerate(nodes)}
+        return {
+            "nodes": [{"preview_id": id_map[n["id"]], "content_type": n["content_type"]} for n in nodes],
+            "edges": [
+                {"from_preview_id": id_map[e["from_id"]], "to_preview_id": id_map[e["to_id"]], "relation": e["relation"]}
+                for e in edges
+                if e["from_id"] in id_map and e["to_id"] in id_map
+            ],
+        }
+
+
+@router.patch("/workspaces/{ws_id}", response_model=WorkspaceResponse)
+def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT * FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        if ws["owner_id"] != user["sub"]:
+            raise HTTPException(status_code=403, detail="Only workspace owner can update settings")
+        updates = body.dict(exclude_unset=True)
+        if not updates:
+            return ws
+        if "visibility" in updates and updates["visibility"] not in VALID_KB_VIS:
+            raise HTTPException(status_code=400, detail="Invalid visibility")
+        set_clause = ", ".join(f"{k} = %s" for k in updates)
+        cur.execute(f"UPDATE workspaces SET {set_clause} WHERE id = %s RETURNING *", list(updates.values()) + [ws_id])
+        return cur.fetchone()
+
+
+@router.get("/workspaces/{ws_id}/associations", response_model=list[WorkspaceAssociationResponse])
+def list_associations(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            """
+            SELECT a.*, w.name_en AS target_name_en, w.name_zh AS target_name_zh
+            FROM workspace_associations a
+            JOIN workspaces w ON a.target_ws_id = w.id
+            WHERE a.source_ws_id = %s
+            """,
+            (ws_id,),
+        )
+        return cur.fetchall()
+
+
+@router.post("/workspaces/{ws_id}/associations/{target_ws_id}", response_model=WorkspaceAssociationResponse)
+def create_association(ws_id: str, target_ws_id: str, user: dict = Depends(get_current_user)):
+    if ws_id == target_ws_id:
+        raise HTTPException(status_code=400, detail="Cannot associate a workspace with itself")
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user)
+        _require_ws_access(cur, target_ws_id, user)
+        assoc_id = generate_id("asc")
+        cur.execute(
+            """
+            INSERT INTO workspace_associations (id, source_ws_id, target_ws_id)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (source_ws_id, target_ws_id) DO UPDATE SET created_at = now()
+            RETURNING id, source_ws_id, target_ws_id, created_at
+            """,
+            (assoc_id, ws_id, target_ws_id),
+        )
+        row = cur.fetchone()
+        cur.execute("SELECT name_en, name_zh FROM workspaces WHERE id = %s", (target_ws_id,))
+        names = cur.fetchone()
+        return {**dict(row), "target_name_en": names["name_en"], "target_name_zh": names["name_zh"]}
+
+
+@router.delete("/workspaces/{ws_id}/associations/{target_ws_id}", status_code=204)
+def delete_association(ws_id: str, target_ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("DELETE FROM workspace_associations WHERE source_ws_id = %s AND target_ws_id = %s", (ws_id, target_ws_id))
+
+
+@router.delete("/workspaces/{ws_id}/purge", response_model=WorkspacePurgeResponse)
+def purge_workspace(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        if ws["owner_id"] != user["sub"]:
+            raise HTTPException(status_code=403, detail="Only workspace owner can purge it")
+        cur.execute("DELETE FROM edges WHERE workspace_id = %s", (ws_id,))
+        ec = cur.rowcount
+        cur.execute("DELETE FROM memory_nodes WHERE workspace_id = %s", (ws_id,))
+        nc = cur.rowcount
+        cur.execute("DELETE FROM review_queue WHERE workspace_id = %s", (ws_id,))
+        cur.execute("DELETE FROM node_revisions WHERE workspace_id = %s", (ws_id,))
+        cur.execute("DELETE FROM ingest_jobs WHERE workspace_id = %s", (ws_id,))
+        return {"deleted_nodes_count": nc, "deleted_edges_count": ec}
+
+
+@router.get("/workspaces/{ws_id}", response_model=WorkspaceResponse)
+def get_workspace(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("SELECT * FROM workspaces WHERE id = %s", (ws_id,))
+        return cur.fetchone()
+
+
+@router.get("/workspaces/{ws_id}/nodes", response_model=list[NodeResponse])
+def list_nodes(
+    ws_id: str,
+    q: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+    content_type: Optional[str] = Query(None),
+    limit: int = Query(50, le=200),
+    offset: int = Query(0),
+    status: str = Query("active"),
+    filter: Optional[str] = Query(None, description="orphan | faded | never_traversed"),
+    include_source: bool = Query(False, description="Include source_document nodes"),
+    user: dict = Depends(get_current_user_optional),
+):
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user)
+        filters = ["workspace_id = %s"]
+        params: list = [ws_id]
+
+        # A4: Special filter modes override the status filter
+        if filter == "orphan":
+            filters.append(
+                "NOT EXISTS ("
+                "SELECT 1 FROM edges e "
+                "WHERE e.status = 'active' AND (e.from_id = memory_nodes.id OR e.to_id = memory_nodes.id)"
+                ")"
+            )
+        elif filter == "faded":
+            # Nodes where every connected active/faded edge is faded (no active edges)
+            filters.append(
+                "NOT EXISTS ("
+                "SELECT 1 FROM edges e "
+                "WHERE e.status = 'active' AND (e.from_id = memory_nodes.id OR e.to_id = memory_nodes.id)"
+                ") AND EXISTS ("
+                "SELECT 1 FROM edges e2 "
+                "WHERE e2.status = 'faded' AND (e2.from_id = memory_nodes.id OR e2.to_id = memory_nodes.id)"
+                ")"
+            )
+        elif filter == "never_traversed":
+            filters.append("traversal_count = 0")
+        else:
+            if status != "all":
+                filters.append("status = %s")
+                params.append(status)
+
+        if q:
+            filters.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)")
+            like = f"%{q}%"
+            params += [like, like, like, like]
+        if tag:
+            filters.append("%s = ANY(tags)")
+            params.append(tag)
+        if content_type:
+            filters.append("content_type = %s")
+            params.append(content_type)
+        # C4: exclude source_document nodes by default
+        if not include_source and not content_type:
+            filters.append("content_type != 'source_document'")
+        params += [limit, offset]
+        cur.execute(f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
+        return [_strip_body_if_viewer(row, role) for row in cur.fetchall()]
+
+
+@router.get("/workspaces/{ws_id}/table-view", response_model=TableViewResponse)
+def get_table_view(
+    ws_id: str, 
+    q: Optional[str] = Query(None),
+    limit: int = Query(50, le=200), 
+    offset: int = Query(0), 
+    user: dict = Depends(get_current_user_optional)
+):
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user)
+        filters = ["workspace_id = %s", "status = 'active'", "content_type != 'source_document'"]
+        params = [ws_id]
+        if q:
+            filters.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)")
+            like = f"%{q}%"
+            params += [like, like, like, like]
+        
+        cur.execute(f"SELECT COUNT(*) FROM memory_nodes WHERE {' AND '.join(filters)}", params)
+        total = cur.fetchone()["count"]
+        
+        params_list = list(params) + [limit, offset]
+        cur.execute(f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params_list)
+        rows = cur.fetchall()
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
+        nodes = [_strip_body_if_viewer(row, role) for row in rows]
+        return {"nodes": nodes, "total_count": total}
+
+
+@router.get("/workspaces/{ws_id}/nodes-search", response_model=List[NodeResponse])
+def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        role = _require_ws_access(cur, ws_id, user)
+        like_query = f"%{query}%"
+        cur.execute(
+            """
+            SELECT * FROM memory_nodes
+            WHERE workspace_id = %s
+              AND (title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)
+            ORDER BY updated_at DESC, created_at DESC
+            LIMIT %s
+            """,
+            (ws_id, like_query, like_query, like_query, like_query, limit),
+        )
+        return [_strip_body_if_viewer(row, role) for row in cur.fetchall()]
+
+
+@router.post("/workspaces/{ws_id}/nodes/search-semantic", response_model=List[NodeResponse])
+async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: dict = Depends(get_current_user)):
+    try:
+        resolved = resolve_provider(user["sub"], "embedding")
+        vector, tokens = await embed(resolved, query)
+        record_usage(resolved, "embedding", tokens, ws_id)
+        with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user)
+            cur.execute(
+                """
+                SELECT *, (1 - (embedding <=> %s::vector)) AS similarity
+                FROM memory_nodes
+                WHERE workspace_id = %s AND embedding IS NOT NULL
+                ORDER BY similarity DESC
+                LIMIT %s
+                """,
+                (vector, ws_id, limit),
+            )
+            return cur.fetchall()
+    except AIProviderUnavailable as exc:
+        raise HTTPException(status_code=402, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Embedding error: {exc}")
+
+
+@router.get("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
+def get_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user)
+        cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+        node = cur.fetchone()
+        if not node:
+            raise HTTPException(status_code=404, detail="Node not found")
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
+        return _strip_body_if_viewer(node, role)
+
+
+@router.post("/workspaces/{ws_id}/nodes", response_model=NodeResponse, status_code=201)
+def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    payload = body.model_dump()
+    _validate_node_payload(payload)
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        
+        # D1: Verify source workspace access if copying
+        if payload.get("copied_from_ws"):
+            _require_ws_access(cur, payload["copied_from_ws"], user) # At least viewer access
+            
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        proposer_id = user["sub"]
+        if role == "editor":
+            review_id = _propose_change(
+                cur,
+                ws_id,
+                "create",
+                None,
+                payload | {"author": proposer_id, "source_type": payload.get("source_type", "human")},
+                payload.get("source_type", "human"),
+                proposer_id,
+                {"source": "node_editor"},
+                suggested_edges=payload.get("suggested_edges", []),
+                source_info=f"Proposed new node by {proposer_id}",
+            )
+            from core.ai_review import run_ai_review_for_item
+            background_tasks.add_task(run_ai_review_for_item, review_id)
+            return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your new node has been submitted for review"})
+
+        node = _create_node_in_db(cur, ws_id, payload | {"author": proposer_id, "source_type": payload.get("source_type", "human")})
+        _write_node_revision(cur, node["id"], ws_id, _node_row_to_snapshot(node), node["signature"], payload.get("source_type", "human"), proposer_id, None)
+        background_tasks.add_task(_bg_embed_node, ws_id, node["id"], f"{node['title_zh']}\n{node['title_en']}\n{node['body_zh']}\n{node['body_en']}", user["sub"])
+        return node
+
+
+@router.patch("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
+def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    updates = body.model_dump(exclude_none=True)
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+        existing = cur.fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Node not found")
+        if not updates:
+            return existing
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role == "editor":
+            review_id = _propose_change(
+                cur,
+                ws_id,
+                "update",
+                node_id,
+                updates,
+                updates.get("source_type", "human"),
+                user["sub"],
+                {"source": "node_editor"},
+                suggested_edges=updates.get("suggested_edges", []),
+                source_info=f"Proposed edit by {user['sub']} for {node_id}",
+            )
+            from core.ai_review import run_ai_review_for_item
+            background_tasks.add_task(run_ai_review_for_item, review_id)
+            return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your changes have been submitted for review"})
+
+        node = _update_node_in_db(cur, ws_id, node_id, updates, user["sub"])
+        _write_node_revision(cur, node["id"], ws_id, _node_row_to_snapshot(node), node["signature"], updates.get("source_type", "human"), user["sub"], None)
+        # A5: Reset dim_freshness to 1.0 and recompute trust_score on content update
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET
+                dim_freshness = 1.0,
+                trust_score = (
+                    dim_accuracy   * 0.30 +
+                    1.0            * 0.25 +
+                    dim_utility    * 0.25 +
+                    dim_author_rep * 0.20
+                )
+            WHERE id = %s AND workspace_id = %s
+            """,
+            (node_id, ws_id),
+        )
+        return node
+
+
+@router.delete("/workspaces/{ws_id}/nodes/{node_id}", status_code=204)
+def delete_node(ws_id: str, node_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role == "editor":
+            review_id = _propose_change(
+                cur,
+                ws_id,
+                "delete",
+                node_id,
+                None,
+                "human",
+                user["sub"],
+                {"source": "node_editor"},
+                source_info=f"Proposed delete by {user['sub']} for {node_id}",
+            )
+            from core.ai_review import run_ai_review_for_item
+            background_tasks.add_task(run_ai_review_for_item, review_id)
+            return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your changes have been submitted for review"})
+        _delete_node_in_db(cur, ws_id, node_id)
+
+
+@router.get("/workspaces/{ws_id}/nodes/{node_id}/revisions", response_model=list[NodeRevisionMetaResponse])
+def list_node_revisions(ws_id: str, node_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            """
+            SELECT id, node_id, workspace_id, revision_no, signature, proposer_type, proposer_id, review_id, created_at
+            FROM node_revisions
+            WHERE workspace_id = %s AND node_id = %s
+            ORDER BY revision_no DESC
+            """,
+            (ws_id, node_id),
+        )
+        return cur.fetchall()
+
+
+@router.get("/workspaces/{ws_id}/nodes/{node_id}/revisions/{revision_no}", response_model=NodeRevisionResponse)
+def get_node_revision(ws_id: str, node_id: str, revision_no: int, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("SELECT * FROM node_revisions WHERE workspace_id = %s AND node_id = %s AND revision_no = %s", (ws_id, node_id, revision_no))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Revision not found")
+        return row
+
+
+@router.get("/workspaces/{ws_id}/nodes/{node_id}/revisions/{rev_a}/diff/{rev_b}")
+def diff_node_revisions(ws_id: str, node_id: str, rev_a: int, rev_b: int, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            "SELECT revision_no, snapshot FROM node_revisions WHERE workspace_id = %s AND node_id = %s AND revision_no IN (%s, %s)",
+            (ws_id, node_id, rev_a, rev_b),
+        )
+        rows = {row["revision_no"]: row["snapshot"] for row in cur.fetchall()}
+        if rev_a not in rows or rev_b not in rows:
+            raise HTTPException(status_code=404, detail="Revision not found")
+        return build_node_diff(rows[rev_a], rows[rev_b], "update")
+
+
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/revisions/{revision_no}/restore")
+def restore_node_revision(ws_id: str, node_id: str, revision_no: int, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        cur.execute("SELECT snapshot FROM node_revisions WHERE workspace_id = %s AND node_id = %s AND revision_no = %s", (ws_id, node_id, revision_no))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Revision not found")
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        review_id = _propose_change(
+            cur, ws_id, "update", node_id, row["snapshot"], "human", user["sub"], {"source": "restore", "revision_no": revision_no},
+            source_info=f"Restore node {node_id} from revision {revision_no}"
+        )
+        from core.ai_review import run_ai_review_for_item
+        background_tasks.add_task(run_ai_review_for_item, review_id)
+        return {"review_id": review_id, "status": "pending_review"}
+
+
+@router.get("/workspaces/{ws_id}/edges", response_model=list[EdgeResponse])
+def list_edges(ws_id: str, node_id: Optional[str] = Query(None), user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        if node_id:
+            cur.execute(
+                """
+                SELECT *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
+                FROM edges
+                WHERE workspace_id = %s AND (from_id = %s OR to_id = %s)
+                ORDER BY weight DESC
+                """,
+                (ws_id, node_id, node_id),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
+                FROM edges WHERE workspace_id = %s AND status = 'active' ORDER BY weight DESC
+                """,
+                (ws_id,),
+            )
+        return cur.fetchall()
+
+
+@router.post("/workspaces/{ws_id}/edges/connect-orphans")
+async def connect_orphans(ws_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    """Use AI to suggest and create edges for orphan nodes (nodes with no edges)."""
+    from core.ai import chat_completion, AIProviderUnavailable, AIProviderError, strip_fences
+    from routers.ingest import _resolve_with_fallback
+
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, write=True)
+
+        # Collect orphan nodes (only nodes with NO active edges)
+        cur.execute("""
+            SELECT id, title_en, title_zh, body_en, tags, content_type
+            FROM memory_nodes
+            WHERE workspace_id = %s AND status = 'active'
+              AND content_type != 'source_document'
+              AND NOT EXISTS (
+                SELECT 1 FROM edges e
+                WHERE e.workspace_id = %s
+                  AND (e.from_id = memory_nodes.id OR e.to_id = memory_nodes.id)
+                  AND e.status = 'active'
+              )
+            ORDER BY created_at ASC
+        """, (ws_id, ws_id))
+        orphans = cur.fetchall()
+
+        if not orphans:
+            return {"message": "No orphan nodes found", "edges_created": 0, "orphan_count": 0}
+
+        # Collect anchor nodes (most connected, for AI context)
+        cur.execute("""
+            SELECT n.id, n.title_en, n.content_type, n.tags,
+                   COUNT(e.id) as edge_count
+            FROM memory_nodes n
+            JOIN edges e ON e.workspace_id = n.workspace_id
+              AND (e.from_id = n.id OR e.to_id = n.id)
+            WHERE n.workspace_id = %s AND n.status = 'active'
+              AND n.content_type != 'source_document'
+            GROUP BY n.id, n.title_en, n.content_type, n.tags
+            ORDER BY edge_count DESC
+            LIMIT 40
+        """, (ws_id,))
+        anchors = cur.fetchall()
+
+    try:
+        resolved = _resolve_with_fallback(user["sub"], "extraction")
+    except AIProviderUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    background_tasks.add_task(
+        _run_connect_orphans, ws_id, orphans, anchors, resolved
+    )
+    return {
+        "message": f"Auto-connecting {len(orphans)} orphan nodes in background",
+        "orphan_count": len(orphans),
+    }
+
+
+CONNECT_SYSTEM = (
+    "You suggest semantic edges in a knowledge graph. "
+    "Given a list of ORPHAN nodes and ANCHOR nodes, your goal is to connect orphans to anchors or other orphans. "
+    "Relations: depends_on, extends, related_to, contradicts. "
+    "RULES:\n"
+    "1. Use EXACT titles from the provided lists for 'from_title' and 'to_title'.\n"
+    "2. Output ONLY a raw JSON array of objects.\n"
+    "3. Format: [{\"from_title\":\"...\",\"to_title\":\"...\",\"relation\":\"...\"}].\n"
+    "4. No markdown, no fences, no explanations."
+)
+
+
+async def _run_connect_orphans(ws_id: str, orphans: list, anchors: list, resolved):
+    from core.ai import chat_completion, strip_fences
+    from routers.ingest import _extract_objects_partial
+    import json
+
+    # Keep prompt short: top 20 anchors, truncated titles
+    anchor_titles = [a['title_en'][:60] for a in anchors[:20] if a['title_en']]
+    anchor_text = "\n".join(f"- {t}" for t in anchor_titles)
+
+    BATCH = 3  # smaller batch = shorter prompt = reliable output
+    total_created = 0
+
+    # Pre-fetch title→id map once
+    title_to_id: dict[str, str] = {}
+    with db_cursor() as cur:
+        cur.execute(
+            "SELECT id, title_en FROM memory_nodes WHERE workspace_id = %s AND status = 'active'",
+            (ws_id,)
+        )
+        for row in cur.fetchall():
+            if row["title_en"]:
+                title_to_id[row["title_en"].strip().lower()] = row["id"]
+
+    for i in range(0, len(orphans), BATCH):
+        batch = orphans[i:i + BATCH]
+        orphan_items = []
+        for o in batch:
+            orphan_items.append(
+                f"TITLE: {o['title_en'][:60]}\n"
+                f"TYPE: {o['content_type']}\n"
+                f"CONTEXT: {(o['body_en'] or '')[:60]}\n"
+            )
+        orphan_text = "\n---\n".join(orphan_items)
+
+        prompt = (
+            f"AVAILABLE ANCHOR TITLES:\n{anchor_text}\n\n"
+            f"ORPHAN NODES TO CONNECT:\n{orphan_text}\n\n"
+            "Generate edges connecting these orphans to anchors or other orphans. "
+            "Use ONLY the exact titles listed above."
+        )
+        try:
+            messages = [
+                {"role": "system", "content": CONNECT_SYSTEM},
+                {"role": "user", "content": prompt},
+            ]
+            raw, _ = await chat_completion(resolved, messages, max_tokens=2048, temperature=0.1)
+            print(f"[connect-orphans] batch {i//BATCH} raw ({len(raw)} chars): {raw[:400]}")
+            raw = strip_fences(raw)
+            if not raw:
+                continue
+
+            suggestions = _extract_objects_partial(raw)
+            if not suggestions:
+                try:
+                    parsed = json.loads(raw)
+                    suggestions = parsed if isinstance(parsed, list) else [parsed]
+                    suggestions = [s for s in suggestions if isinstance(s, dict)]
+                except json.JSONDecodeError:
+                    pass
+            if not suggestions:
+                print(f"[connect-orphans] batch {i//BATCH}: no suggestions parsed from: {raw[:80]}")
+                continue
+        except Exception as exc:
+            print(f"[connect-orphans] batch {i//BATCH} AI error: {exc}")
+            continue
+
+        with db_cursor(commit=True) as cur:
+            for s in suggestions:
+                from_title = (s.get("from_title") or "").strip().lower()
+                to_title   = (s.get("to_title") or "").strip().lower()
+                relation   = s.get("relation", "related_to")
+                if relation not in ("depends_on", "extends", "related_to", "contradicts"):
+                    relation = "related_to"
+                
+                from_id = title_to_id.get(from_title)
+                to_id   = title_to_id.get(to_title)
+                
+                if not from_id or not to_id or from_id == to_id:
+                    continue
+
+                cur.execute(
+                    "SELECT 1 FROM edges WHERE workspace_id=%s AND "
+                    "((from_id=%s AND to_id=%s) OR (from_id=%s AND to_id=%s)) LIMIT 1",
+                    (ws_id, from_id, to_id, to_id, from_id)
+                )
+                if cur.fetchone():
+                    continue
+                cur.execute(
+                    "INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status) "
+                    "VALUES (%s, %s, %s, %s, %s, 1.0, 'active')",
+                    (generate_id("edge"), ws_id, from_id, to_id, relation)
+                )
+                total_created += 1
+
+    print(f"[connect-orphans] ws={ws_id} created {total_created} edges for {len(orphans)} orphans")
+
+
+@router.post("/workspaces/{ws_id}/edges", response_model=EdgeResponse, status_code=201)
+def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_user)):
+    if body.relation not in VALID_RELATIONS:
+        raise HTTPException(status_code=400, detail="Invalid relation type")
+    if body.from_id == body.to_id:
+        raise HTTPException(status_code=400, detail="Cannot link a node to itself")
+    if not (0.1 <= body.weight <= 1.0):
+        raise HTTPException(status_code=400, detail="Weight must be between 0.1 and 1.0")
+    edge_id = generate_id("edge")
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True)
+        for nid in (body.from_id, body.to_id):
+            cur.execute("SELECT id FROM memory_nodes WHERE id = %s AND workspace_id = %s", (nid, ws_id))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail=f"Node not found: {nid}")
+        if body.half_life_days == 30:
+            cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (body.from_id,))
+            row = cur.fetchone()
+            if row:
+                body.half_life_days = {"factual": 365, "procedural": 90, "preference": 30, "context": 14}.get(row["content_type"], 30)
+        try:
+            cur.execute(
+                """
+                INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, half_life_days, pinned)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
+                """,
+                (edge_id, ws_id, body.from_id, body.to_id, body.relation, body.weight, body.half_life_days, body.pinned),
+            )
+            return cur.fetchone()
+        except Exception as exc:
+            if "unique_edge" in str(exc):
+                raise HTTPException(status_code=409, detail="Edge with this relation already exists")
+            raise
+
+
+@router.post("/nodes/{node_id}/traverse", status_code=204)
+def traverse_node(node_id: str, user: dict = Depends(RequireScope("node:traverse"))):
+    """A5: After traverse, auto-update dim_utility and recompute trust_score."""
+    with db_cursor(commit=True) as cur:
+        is_new = not _actor_has_traversed_node(cur, node_id, user["sub"])
+        cur.execute("INSERT INTO traversal_log (node_id, actor_id) VALUES (%s, %s)", (node_id, user["sub"]))
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET traversal_count = traversal_count + 1,
+                unique_traverser_count = unique_traverser_count + %s
+            WHERE id = %s
+            """,
+            (1 if is_new else 0, node_id),
+        )
+        # A5: Auto-update dim_utility and recompute composite trust_score
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET
+                dim_utility = LEAST(1.0, (traversal_count)::float / 100.0),
+                trust_score = (
+                    dim_accuracy   * 0.30 +
+                    dim_freshness  * 0.25 +
+                    LEAST(1.0, (traversal_count)::float / 100.0) * 0.25 +
+                    dim_author_rep * 0.20
+                )
+            WHERE id = %s
+            """,
+            (node_id,),
+        )
+
+
+@router.post(
+    "/workspaces/{ws_id}/nodes/{node_id}/confirm-validity",
+    response_model=ValidityConfirmationResponse,
+)
+def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True)
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET validity_confirmed_at = now(), validity_confirmed_by = %s
+            WHERE id = %s AND workspace_id = %s
+            RETURNING validity_confirmed_at, validity_confirmed_by
+            """,
+            (user["sub"], node_id, ws_id),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Node not found")
+        return {"confirmed_at": row["validity_confirmed_at"], "confirmed_by": row["validity_confirmed_by"]}
+
+
+@router.post("/edges/{edge_id}/traverse", status_code=204)
+def traverse_edge(edge_id: str, body: TraverseEdgeRequest, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT from_id, to_id FROM edges WHERE id = %s", (edge_id,))
+        edge = cur.fetchone()
+        if not edge:
+            raise HTTPException(status_code=404, detail="Edge not found")
+        cur.execute("SELECT record_traversal(%s, %s, NULL, %s)", (edge_id, user["sub"], body.note))
+
+
+@router.post("/edges/{edge_id}/rate", status_code=204)
+def rate_edge(edge_id: str, body: RateEdgeRequest, user: dict = Depends(RequireScope("node:rate"))):
+    if not (1 <= body.rating <= 5):
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT id FROM edges WHERE id = %s", (edge_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Edge not found")
+        cur.execute("SELECT record_traversal(%s, %s, %s, %s)", (edge_id, user["sub"], body.rating, body.note))
+
+
+def _actor_has_traversed_node(cur, node_id: str, actor_id: str) -> bool:
+    cur.execute("SELECT 1 FROM traversal_log WHERE node_id = %s AND actor_id = %s", (node_id, actor_id))
+    return bool(cur.fetchone())
+
+
+@router.post("/internal/mcp-log", status_code=204)
+def log_mcp_query(
+    body: dict,
+    authorization: str | None = Header(default=None),
+):
+    if not settings.internal_service_token:
+        raise HTTPException(status_code=503, detail="Internal logging token is not configured")
+    if authorization != f"Bearer {settings.internal_service_token}":
+        raise HTTPException(status_code=403, detail="Invalid internal service token")
+    if not body.get("workspace_id") or not body.get("tool_name"):
+        raise HTTPException(status_code=400, detail="workspace_id and tool_name are required")
+
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            INSERT INTO mcp_query_logs (
+                id, workspace_id, tool_name, query_text, result_node_count, estimated_tokens
+            ) VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (
+                generate_id("mcp"),
+                body["workspace_id"],
+                body["tool_name"],
+                body.get("query_text"),
+                int(body.get("result_node_count") or 0),
+                int(body.get("estimated_tokens") or 0),
+            ),
+        )
+
+
+@router.get("/workspaces/{ws_id}/analytics")
+def get_workspace_analytics(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            """
+            SELECT id, title_zh, title_en, trust_score, traversal_count
+            FROM memory_nodes
+            WHERE workspace_id = %s AND status = 'active'
+            ORDER BY created_at DESC
+            """,
+            (ws_id,),
+        )
+        nodes = [dict(row) for row in cur.fetchall()]
+        cur.execute(
+            """
+            SELECT from_id, to_id, status, last_co_accessed
+            FROM edges
+            WHERE workspace_id = %s
+            """,
+            (ws_id,),
+        )
+        edges = [dict(row) for row in cur.fetchall()]
+        active_edges = [edge for edge in edges if edge["status"] == "active"]
+
+        node_ids = {node["id"] for node in nodes}
+        adjacency: dict[str, set[str]] = defaultdict(set)
+        touched_nodes: set[str] = set()
+        for edge in active_edges:
+            if edge["from_id"] in node_ids and edge["to_id"] in node_ids:
+                adjacency[edge["from_id"]].add(edge["to_id"])
+                adjacency[edge["to_id"]].add(edge["from_id"])
+                touched_nodes.add(edge["from_id"])
+                touched_nodes.add(edge["to_id"])
+
+        orphan_node_count = sum(1 for node in nodes if node["id"] not in touched_nodes)
+        avg_trust_score = (
+            float(sum(float(node["trust_score"]) for node in nodes) / len(nodes))
+            if nodes else 0.0
+        )
+        faded_edge_ratio = float((len(edges) - len(active_edges)) / len(edges)) if edges else 0.0
+
+        cur.execute(
+            """
+            SELECT DATE(traversed_at) AS day, COUNT(*) AS count
+            FROM traversal_log
+            WHERE traversed_at >= now() - INTERVAL '30 days'
+              AND (
+                node_id IN (
+                  SELECT id FROM memory_nodes WHERE workspace_id = %s
+                )
+                OR edge_id IN (
+                  SELECT id FROM edges WHERE workspace_id = %s
+                )
+              )
+            GROUP BY DATE(traversed_at)
+            ORDER BY day ASC
+            """,
+            (ws_id, ws_id),
+        )
+        trend_rows = cur.fetchall()
+        trend_map = {row["day"].isoformat(): int(row["count"]) for row in trend_rows}
+
+        traversal_trend = []
+        monthly_traversal_count = 0
+        cur.execute("SELECT CURRENT_DATE - offs AS day FROM generate_series(29, 0, -1) AS offs")
+        for row in cur.fetchall():
+            day_key = row["day"].isoformat()
+            count = trend_map.get(day_key, 0)
+            monthly_traversal_count += count
+            traversal_trend.append({"date": day_key, "count": count})
+
+        top_nodes = [
+            {
+                "id": node["id"],
+                "title": node["title_zh"] or node["title_en"],
+                "traversal_count": node["traversal_count"],
+            }
+            for node in sorted(nodes, key=lambda item: item["traversal_count"], reverse=True)[:5]
+        ]
+
+        kb_type_metrics: dict[str, float | int] = {}
+        if ws["kb_type"] == "evergreen":
+            components = 0
+            visited: set[str] = set()
+            for node_id in touched_nodes:
+                if node_id in visited:
+                    continue
+                queue = deque([node_id])
+                visited.add(node_id)
+                size = 0
+                while queue:
+                    current = queue.popleft()
+                    size += 1
+                    for neighbor in adjacency[current]:
+                        if neighbor not in visited:
+                            visited.add(neighbor)
+                            queue.append(neighbor)
+                if size > 1:
+                    components += 1
+            kb_type_metrics = {
+                "avg_edges_per_node": float(len(active_edges) / len(nodes)) if nodes else 0.0,
+                "isolated_subgraph_count": components,
+            }
+        else:
+            never_traversed_ratio = float(sum(1 for node in nodes if node["traversal_count"] == 0) / len(nodes)) if nodes else 0.0
+            traversed_edges = [edge for edge in edges if edge.get("last_co_accessed")]
+            avg_days_between_traversals = 0.0
+            if traversed_edges:
+                total_days = 0.0
+                for edge in traversed_edges:
+                    total_days += max(0.0, (datetime.now(timezone.utc) - edge["last_co_accessed"]).total_seconds() / 86400.0)
+                avg_days_between_traversals = total_days / len(traversed_edges)
+            kb_type_metrics = {
+                "never_traversed_ratio": never_traversed_ratio,
+                "avg_days_between_traversals": avg_days_between_traversals,
+            }
+
+        return {
+            "total_nodes": len(nodes),
+            "active_edges": len(active_edges),
+            "orphan_node_count": orphan_node_count,
+            "avg_trust_score": avg_trust_score,
+            "faded_edge_ratio": faded_edge_ratio,
+            "monthly_traversal_count": monthly_traversal_count,
+            "top_nodes": top_nodes,
+            "kb_type": ws["kb_type"],
+            "kb_type_metrics": kb_type_metrics,
+            "traversal_trend": traversal_trend,
+        }
+
+
+@router.get("/workspaces/{ws_id}/analytics/token-efficiency")
+def get_workspace_token_efficiency(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            """
+            SELECT
+                COALESCE(AVG(estimated_tokens), 0) AS avg_tokens_per_query,
+                COUNT(*) AS monthly_query_count
+            FROM mcp_query_logs
+            WHERE workspace_id = %s
+              AND created_at >= now() - INTERVAL '30 days'
+            """,
+            (ws_id,),
+        )
+        query_stats = cur.fetchone()
+        cur.execute(
+            """
+            SELECT COALESCE(SUM(LENGTH(COALESCE(body_zh, '')) + LENGTH(COALESCE(body_en, ''))), 0) AS total_chars
+            FROM memory_nodes
+            WHERE workspace_id = %s AND status = 'active'
+            """,
+            (ws_id,),
+        )
+        total_chars = int(cur.fetchone()["total_chars"] or 0)
+        estimated_full_doc_tokens = total_chars // 4
+        avg_tokens_per_query = float(query_stats["avg_tokens_per_query"] or 0)
+        savings_ratio = 0.0
+        if estimated_full_doc_tokens > 0:
+            savings_ratio = max(0.0, min(1.0, 1 - (avg_tokens_per_query / estimated_full_doc_tokens)))
+        return {
+            "avg_tokens_per_query": round(avg_tokens_per_query, 2),
+            "estimated_full_doc_tokens": estimated_full_doc_tokens,
+            "savings_ratio": round(savings_ratio, 4),
+            "monthly_query_count": int(query_stats["monthly_query_count"] or 0),
+        }
+
+
+# ─── A4 / D4: Archive & Restore ───────────────────────────────────────────────
+
+class TableViewRequest(BaseModel):
+    q: str
+
+
+class BulkArchiveRequest(BaseModel):
+    node_ids: List[str]
+
+
+class BulkArchiveResponse(BaseModel):
+    archived_count: int
+
+
+@router.post("/workspaces/{ws_id}/nodes/bulk-archive", response_model=BulkArchiveResponse)
+def bulk_archive_nodes(ws_id: str, body: BulkArchiveRequest, user: dict = Depends(get_current_user)):
+    """A4: Batch-archive a list of nodes (editor/admin only)."""
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role not in ("editor", "admin"):
+            raise HTTPException(status_code=403, detail="Editor or Admin role required")
+        if not body.node_ids:
+            return {"archived_count": 0}
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET status = 'archived', archived_at = NOW()
+            WHERE id = ANY(%s) AND workspace_id = %s AND status != 'archived'
+            """,
+            (body.node_ids, ws_id),
+        )
+        return {"archived_count": cur.rowcount}
+
+
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/archive", status_code=204)
+def archive_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+    """D4: Archive a single node."""
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role not in ("editor", "admin"):
+            raise HTTPException(status_code=403, detail="Editor or Admin role required")
+        cur.execute(
+            "UPDATE memory_nodes SET status = 'archived', archived_at = NOW() WHERE id = %s AND workspace_id = %s RETURNING id",
+            (node_id, ws_id),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Node not found")
+
+
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/restore", status_code=204)
+def restore_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+    """D4: Restore a previously archived node."""
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role not in ("editor", "admin"):
+            raise HTTPException(status_code=403, detail="Editor or Admin role required")
+        cur.execute(
+            "UPDATE memory_nodes SET status = 'active', archived_at = NULL WHERE id = %s AND workspace_id = %s RETURNING id",
+            (node_id, ws_id),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Node not found or not archived")
+
+
+# ─── A1: KB Analytics ──────────────────────────────────────────────────────────
+
+@router.get("/workspaces/{ws_id}/analytics")
+def get_analytics(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user)
+        kb_type = ws.get("kb_type", "evergreen")
+
+        cur.execute("""
+            SELECT
+                COUNT(*) FILTER (WHERE status='active')                         AS total_nodes,
+                (SELECT COUNT(*) FROM edges WHERE workspace_id = %s AND status='active') AS active_edges,
+                COUNT(*) FILTER (WHERE status='active' AND NOT EXISTS (
+                    SELECT 1 FROM edges e WHERE e.status='active'
+                      AND (e.from_id=memory_nodes.id OR e.to_id=memory_nodes.id)
+                ))                                                               AS orphan_node_count,
+                AVG(trust_score) FILTER (WHERE status='active')                 AS avg_trust_score,
+                (SELECT COUNT(*) FROM traversal_log tl
+                    JOIN memory_nodes mn ON mn.id = tl.node_id
+                    WHERE mn.workspace_id = %s
+                      AND tl.traversed_at >= NOW() - INTERVAL '30 days')        AS monthly_traversal_count
+            FROM memory_nodes WHERE workspace_id = %s
+        """, (ws_id, ws_id, ws_id))
+        base = dict(cur.fetchone())
+
+        cur.execute("""
+            SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status='faded') AS faded
+            FROM edges WHERE workspace_id = %s
+        """, (ws_id,))
+        edge_row = cur.fetchone()
+        total_edges = edge_row["total"] or 0
+        faded_edges = edge_row["faded"] or 0
+        base["faded_edge_ratio"] = round(faded_edges / total_edges, 4) if total_edges else 0.0
+        base["avg_trust_score"] = round(float(base["avg_trust_score"] or 0), 4)
+
+        # Top 5 most traversed nodes
+        cur.execute("""
+            SELECT id, title_zh, title_en, traversal_count FROM memory_nodes
+            WHERE workspace_id = %s AND status='active'
+            ORDER BY traversal_count DESC LIMIT 5
+        """, (ws_id,))
+        base["top_nodes"] = [{"id": r["id"], "title": r["title_zh"] or r["title_en"], "traversal_count": r["traversal_count"]} for r in cur.fetchall()]
+
+        # KB-type specific metrics
+        if kb_type == "evergreen":
+            cur.execute("""
+                SELECT COALESCE(AVG(ec.cnt), 0) AS avg_edges_per_node
+                FROM (
+                    SELECT COUNT(*) AS cnt FROM edges
+                    WHERE workspace_id = %s AND status='active'
+                    GROUP BY from_id
+                ) ec
+            """, (ws_id,))
+            base["kb_type_metrics"] = {"avg_edges_per_node": round(float(cur.fetchone()["avg_edges_per_node"]), 2)}
+        elif kb_type == "operational":
+            cur.execute("""
+                SELECT
+                    COUNT(*) FILTER (WHERE traversal_count=0)::float / NULLIF(COUNT(*), 0) AS never_traversed_ratio
+                FROM memory_nodes WHERE workspace_id=%s AND status='active'
+            """, (ws_id,))
+            base["kb_type_metrics"] = {"never_traversed_ratio": round(float(cur.fetchone()["never_traversed_ratio"] or 0), 4)}
+        else:
+            base["kb_type_metrics"] = {}
+
+        return base
+
+
+# ─── A2: Token Efficiency ──────────────────────────────────────────────────────
+
+class McpLogRequest(BaseModel):
+    tool_name: str
+    query_text: Optional[str] = None
+    result_node_count: int = 0
+    estimated_tokens: int = 0
+
+
+@router.post("/internal/mcp-log", status_code=204)
+def log_mcp_query(ws_id: str, body: McpLogRequest, user: dict = Depends(get_current_user)):
+    """A2: Internal endpoint to record MCP tool invocations."""
+    with db_cursor(commit=True) as cur:
+        from core.security import generate_id
+        log_id = generate_id("mcp")
+        cur.execute(
+            """
+            INSERT INTO mcp_query_logs (id, workspace_id, tool_name, query_text, result_node_count, estimated_tokens)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (log_id, ws_id, body.tool_name, body.query_text, body.result_node_count, body.estimated_tokens),
+        )
+
+
+@router.get("/workspaces/{ws_id}/analytics/token-efficiency")
+def get_token_efficiency(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("""
+            SELECT
+                COALESCE(AVG(estimated_tokens), 0)  AS avg_tokens_per_query,
+                COUNT(*)                             AS monthly_query_count
+            FROM mcp_query_logs
+            WHERE workspace_id = %s AND created_at >= NOW() - INTERVAL '30 days'
+        """, (ws_id,))
+        row = cur.fetchone()
+
+        cur.execute("""
+            SELECT COALESCE(SUM(LENGTH(body_zh) + LENGTH(body_en)), 0) AS total_chars
+            FROM memory_nodes WHERE workspace_id = %s AND status='active'
+        """, (ws_id,))
+        total_chars = cur.fetchone()["total_chars"] or 0
+        full_doc_tokens = total_chars // 4
+
+        avg = float(row["avg_tokens_per_query"] or 0)
+        savings = 1 - (avg / full_doc_tokens) if full_doc_tokens > 0 else 0.0
+
+        return {
+            "avg_tokens_per_query": round(avg, 1),
+            "estimated_full_doc_tokens": full_doc_tokens,
+            "savings_ratio": round(max(0.0, savings), 4),
+            "monthly_query_count": row["monthly_query_count"],
+        }
+
+
+# ─── A3: Node Health Scores ────────────────────────────────────────────────────
+
+@router.get("/workspaces/{ws_id}/nodes/health-scores")
+def get_health_scores(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user)
+        kb_type = ws.get("kb_type", "evergreen")
+
+        cur.execute("SELECT id FROM memory_nodes WHERE workspace_id=%s AND status='active'", (ws_id,))
+        node_ids = [r["id"] for r in cur.fetchall()]
+
+        results = []
+        for nid in node_ids:
+            if kb_type == "evergreen":
+                cur.execute("SELECT COUNT(*) AS cnt FROM edges WHERE status='active' AND (from_id=%s OR to_id=%s)", (nid, nid))
+                edge_count = cur.fetchone()["cnt"]
+                score = min(1.0, edge_count / 5)
+                reason = f"{edge_count} active edges"
+            else:
+                cur.execute("SELECT MAX(traversed_at) FROM traversal_log WHERE node_id=%s", (nid,))
+                last_t = cur.fetchone()["max"]
+                if last_t is None:
+                    days_since = 999
+                else:
+                    from datetime import datetime, timezone
+                    days_since = (datetime.now(timezone.utc) - last_t).days
+                score = max(0.0, 1.0 - days_since / 180)
+                reason = f"{days_since} days since last traversal"
+
+            if score >= 0.6:
+                label = "healthy"
+            elif score >= 0.3:
+                label = "warning"
+            else:
+                label = "critical"
+
+            results.append({"node_id": nid, "score": round(score, 4), "label": label, "reason": reason})
+
+        return results
+
+
+# ─── A6: Manual Validity Stamp ────────────────────────────────────────────────
+
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/confirm-validity")
+def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+    """A6: Manually confirm a node is still valid."""
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role not in ("editor", "admin"):
+            raise HTTPException(status_code=403, detail="Editor or Admin role required")
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET validity_confirmed_at = NOW(), validity_confirmed_by = %s
+            WHERE id = %s AND workspace_id = %s
+            RETURNING validity_confirmed_at, validity_confirmed_by
+            """,
+            (user["sub"], node_id, ws_id),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Node not found")
+        return {"confirmed_at": row["validity_confirmed_at"], "confirmed_by": row["validity_confirmed_by"]}
+
+
+# ─── B1: viewer body stripping on GET single node ─────────────────────────────
+# (handled via _strip_body_if_viewer already in the existing get_node endpoint)
+
+
+# ─── D3 / D1: Workspace search for cross-KB operations ───────────────────────
+
+@router.get("/workspaces")
+def list_workspaces_search(
+    search: Optional[str] = Query(None),
+    user: dict = Depends(get_current_user_optional),
+):
+    """D3: List workspaces visible to current user, optionally filtered by name."""
+    with db_cursor() as cur:
+        user_id = user["sub"] if user else None
+        if search:
+            like = f"%{search}%"
+            cur.execute(
+                """
+                SELECT id, name_zh, name_en, visibility, kb_type FROM workspaces
+                WHERE (visibility = 'public'
+                    OR owner_id = %s
+                    OR id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s))
+                  AND (name_zh ILIKE %s OR name_en ILIKE %s)
+                ORDER BY name_en
+                """,
+                (user_id, user_id, like, like),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT id, name_zh, name_en, visibility, kb_type FROM workspaces
+                WHERE visibility = 'public'
+                    OR owner_id = %s
+                    OR id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
+                ORDER BY name_en
+                """,
+                (user_id, user_id),
+            )
+        return cur.fetchall()

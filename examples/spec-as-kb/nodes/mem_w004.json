@@ -1,0 +1,24 @@
+{
+  "id": "mem_w004",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "開發實作順序",
+    "en": "Development Implementation Order"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MemTrace 建議開發順序（由底層向上）：\n\n1. **core** — 核心型別、decay、ID/簽章\n2. **SQL schema** — 001_init.sql，建立資料表\n3. **api/core** — config、database、security、deps\n4. **api/routers/auth** — register、login、JWT\n5. **api/routers/kb** — workspace、node、edge CRUD + traversal\n6. **cli** — init、new、link、list、export、import、copy-node\n7. **Seed** — 匯入 spec-as-kb 以驗證 API 讀寫（`scripts/seed_spec_kb.py`）\n8. **ui/api.ts** — TypeScript API client\n9. **ui/AuthPage** — 登入 / 註冊\n10. **ui/NodeEditor** — 節點編輯器（含 edge panel、節點搜尋）\n11. **ui/GraphView** — 2D 關係圖，雙擊開啟 NodeEditor\n12. **ui/App** — 串接 auth、workspace selector、側邊欄\n13. **MCP server** — `packages/mcp/`，目前實作 4 個唯讀工具（search_nodes、get_node、traverse、list_by_tag），透過 `.mcp.json` 註冊給 Claude Code\n\n**當前進度：1–13 步已完成（MCP 唯讀端點）**\n\n**後續優先事項**：\n- 權限模型（viewer / contributor / admin 角色實作、contributor 提案流程）\n- 工作區軟刪除（status 欄位、30 天清理排程）\n- 對話式問答 API（`/chat` endpoint + chat_sessions / chat_messages 資料表）\n- AI 匯入流程（`routers/ai.py` 實作）\n- Copy Node API\n- 語意搜尋端點\n- 工作區邀請連結 API",
+      "en": "Recommended build order for MemTrace (bottom-up):\n\n1. **core** — types, decay, ID/signature\n2. **SQL schema** — 001_init.sql, create all tables\n3. **api/core** — config, database, security, deps\n4. **api/routers/auth** — register, login, JWT\n5. **api/routers/kb** — workspace, node, edge CRUD + traversal\n6. **cli** — init, new, link, list, export, import, copy-node\n7. **Seed** — load spec-as-kb to validate API reads/writes (`scripts/seed_spec_kb.py`)\n8. **ui/api.ts** — TypeScript API client\n9. **ui/AuthPage** — login / register\n10. **ui/NodeEditor** — node editor with edge panel and node search\n11. **ui/GraphView** — 2D graph, double-click to open NodeEditor\n12. **ui/App** — wire auth, workspace selector, side panel\n13. **MCP server** — `packages/mcp/`, currently implements 4 read-only tools (search_nodes, get_node, traverse, list_by_tag); registered to Claude Code via `.mcp.json`\n\n**Current status: phases 1–13 complete (MCP read-only)**\n\n**Next priorities**:\n- Permission model (viewer / contributor / admin role enforcement, contributor proposal flow)\n- Workspace soft-delete (status column, 30-day purge scheduler)\n- Conversational Q&A API (/chat endpoint + chat_sessions / chat_messages tables)\n- AI ingestion pipeline (complete `routers/ai.py`)\n- Copy Node API\n- Semantic search endpoint\n- Workspace invite link API"
+    }
+  },
+  "tags": ["dev", "workflow", "procedural"],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2026-04-11T00:00:00Z",
+    "source_type": "human"
+  }
+}

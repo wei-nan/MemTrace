@@ -1,0 +1,20 @@
+name: Weekly Decay Calculation
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  decay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - name: Run Decay Engine
+        run: |
+          echo "Simulating decay engine run..."
+          # node packages/cli/dist/index.js decay 

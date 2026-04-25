@@ -1,0 +1,152 @@
+[
+  {
+    "id": "Q01",
+    "category": "factual_lookup",
+    "difficulty": "easy",
+    "question_en": "What is the default half-life in days for each content type (factual, procedural, preference, context)?",
+    "question_zh": "每種節點類型（factual、procedural、preference、context）的預設 half_life_days 各是多少？",
+    "expected_nodes": ["mem_d002"],
+    "ground_truth": "factual=365, procedural=90, preference=30, context=14",
+    "spec_section": "§7.1"
+  },
+  {
+    "id": "Q02",
+    "category": "factual_lookup",
+    "difficulty": "easy",
+    "question_en": "What are the four trust score dimensions and what do they measure?",
+    "question_zh": "Trust Score 的四個維度是什麼？各自衡量什麼？",
+    "expected_nodes": ["mem_d004"],
+    "ground_truth": "accuracy, freshness, utility, author_rep",
+    "spec_section": "§5.1"
+  },
+  {
+    "id": "Q03",
+    "category": "factual_lookup",
+    "difficulty": "easy",
+    "question_en": "What MCP tools are currently implemented in MemTrace?",
+    "question_zh": "MemTrace 目前實作了哪些 MCP 工具？",
+    "expected_nodes": ["mem_i003"],
+    "ground_truth": "search_nodes, get_node, traverse, list_by_tag",
+    "spec_section": "§4.3"
+  },
+  {
+    "id": "Q04",
+    "category": "factual_lookup",
+    "difficulty": "easy",
+    "question_en": "What is the co-access boost formula and what does co_access_count mean?",
+    "question_zh": "Co-access boost 的公式是什麼？co_access_count 代表什麼？",
+    "expected_nodes": ["mem_d003"],
+    "ground_truth": "boost = base_boost * (1 - current_weight), records simultaneous traversal",
+    "spec_section": "§7.2"
+  },
+  {
+    "id": "Q05",
+    "category": "factual_lookup",
+    "difficulty": "easy",
+    "question_en": "What are the valid edge relation types in MemTrace?",
+    "question_zh": "MemTrace 中邊（edge）的合法 relation 類型有哪些？",
+    "expected_nodes": ["mem_k002"],
+    "ground_truth": "depends_on, extends, related_to, contradicts",
+    "spec_section": "§3.2"
+  },
+  {
+    "id": "Q06",
+    "category": "procedural",
+    "difficulty": "medium",
+    "question_en": "What are the exact steps to set up the local development environment from scratch?",
+    "question_zh": "從零開始架設本地開發環境的完整步驟是什麼？",
+    "expected_nodes": ["mem_w002"],
+    "ground_truth": "Node.js 20+, Python 3.9+, PostgreSQL 17+pgvector, set DATABASE_URL in repo root .env, uvicorn on port 8000, vite dev",
+    "spec_section": "workflow"
+  },
+  {
+    "id": "Q07",
+    "category": "procedural",
+    "difficulty": "medium",
+    "question_en": "How do I seed the spec knowledge base and verify it succeeded?",
+    "question_zh": "如何執行 Seed 載入規格知識庫？如何驗證成功？",
+    "expected_nodes": ["mem_w003"],
+    "ground_truth": "cd packages/api && python ../../scripts/seed_spec_kb.py; verify: curl .../ws_spec0001/nodes | jq length == 27",
+    "spec_section": "workflow"
+  },
+  {
+    "id": "Q08",
+    "category": "procedural",
+    "difficulty": "medium",
+    "question_en": "What is the recommended build order for MemTrace from bottom to top?",
+    "question_zh": "MemTrace 的建議開發實作順序（從底層到上層）是什麼？",
+    "expected_nodes": ["mem_w004"],
+    "ground_truth": "core → SQL schema → api/core → auth → kb routers → cli → seed → ui/api.ts → AuthPage → NodeEditor → GraphView → App → MCP",
+    "spec_section": "workflow"
+  },
+  {
+    "id": "Q09",
+    "category": "multi_hop",
+    "difficulty": "hard",
+    "question_en": "What happens to an edge over time if it is never traversed, and what prevents it from disappearing entirely?",
+    "question_zh": "一條邊如果長期沒有被 traversal，會發生什麼事？什麼機制阻止它完全消失？",
+    "expected_nodes": ["mem_d002", "mem_d003"],
+    "ground_truth": "weight decays by half-life formula; min_weight floor prevents it reaching 0; pinned=true skips decay entirely",
+    "spec_section": "§7.1, §7.2"
+  },
+  {
+    "id": "Q10",
+    "category": "multi_hop",
+    "difficulty": "hard",
+    "question_en": "What is the full AI ingestion pipeline: from file upload to a node appearing in the knowledge graph?",
+    "question_zh": "AI 攝入的完整流程是什麼？從上傳文件到節點出現在知識圖中的每一步？",
+    "expected_nodes": ["mem_a002", "mem_a003", "mem_a001"],
+    "ground_truth": "ingest file → parser → AI extraction → review_queue → human accept/edit/reject → write to memory_nodes → embed vector",
+    "spec_section": "§4.2"
+  },
+  {
+    "id": "Q11",
+    "category": "multi_hop",
+    "difficulty": "hard",
+    "question_en": "How does MemTrace authenticate users and what security measures protect the auth system?",
+    "question_zh": "MemTrace 如何驗證使用者身份？auth 系統有哪些安全保護措施？",
+    "expected_nodes": ["mem_i001"],
+    "ground_truth": "email+password (bcrypt), Google OAuth, JWT 7-day, email verification, 5-failure lockout 15min, HaveIBeenPwned check",
+    "spec_section": "§4.1"
+  },
+  {
+    "id": "Q12",
+    "category": "multi_hop",
+    "difficulty": "hard",
+    "question_en": "What is the relationship between node decay, archiving, and workspace type (evergreen vs ephemeral)?",
+    "question_zh": "節點 decay、歸檔機制，以及工作區類型（evergreen vs ephemeral）三者之間的關係是什麼？",
+    "expected_nodes": ["mem_g003", "mem_d002"],
+    "ground_truth": "ephemeral KB has aggressive decay; evergreen is persistent; archiving triggers when traversal_count < threshold; kb_type affects half_life_days defaults",
+    "spec_section": "§7.3"
+  },
+  {
+    "id": "Q13",
+    "category": "cross_reference",
+    "difficulty": "hard",
+    "question_en": "What database tables and columns are required to implement the edge decay system end-to-end?",
+    "question_zh": "實作邊 decay 系統需要哪些資料表與欄位？",
+    "expected_nodes": ["mem_d002", "mem_k002"],
+    "ground_truth": "edges: weight, half_life_days, min_weight, pinned, co_access_count, last_co_accessed; apply_edge_decay() SQL function",
+    "spec_section": "§7.1"
+  },
+  {
+    "id": "Q14",
+    "category": "cross_reference",
+    "difficulty": "hard",
+    "question_en": "What are all the planned but not yet implemented features in MemTrace?",
+    "question_zh": "MemTrace 規劃中但尚未實作的功能有哪些？",
+    "expected_nodes": ["mem_i003", "mem_w004"],
+    "ground_truth": "MCP write tools, Resources, HTTP+SSE, Copy Node API, Semantic search, Workspace invite API, AI ingestion pipeline completion",
+    "spec_section": "multiple"
+  },
+  {
+    "id": "Q15",
+    "category": "architecture",
+    "difficulty": "medium",
+    "question_en": "What environment variables must be set for the MCP server and what are their defaults?",
+    "question_zh": "MCP server 需要設定哪些環境變數？預設值各是什麼？",
+    "expected_nodes": ["mem_i003"],
+    "ground_truth": "MEMTRACE_API=http://localhost:8000/api/v1, MEMTRACE_WS=ws_spec0001, MEMTRACE_LANG=zh-TW",
+    "spec_section": "§4.3"
+  }
+]

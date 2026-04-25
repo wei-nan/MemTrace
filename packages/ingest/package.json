@@ -1,0 +1,6 @@
+{
+  "name": "@memtrace/ingest",
+  "version": "1.0.0",
+  "description": "MemTrace ingestion pipeline",
+  "private": true
+}

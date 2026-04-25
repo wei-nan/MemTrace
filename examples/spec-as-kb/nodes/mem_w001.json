@@ -1,0 +1,23 @@
+{
+  "id": "mem_w001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "專案套件結構",
+    "en": "Project Package Structure"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理四個套件：\n\n| 套件 | 路徑 | 語言 | 角色 |\n|------|------|------|------|\n| core | packages/core | TypeScript | 共用型別、decay 計算、ID/簽章產生器 |\n| api | packages/api | Python/FastAPI | REST API、資料庫存取、OAuth |\n| ui | packages/ui | React/Vite | 網頁前端 |\n| cli | packages/cli | TypeScript | 本地 CLI 工具 |\n\n`core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。",
+      "en": "MemTrace uses an npm workspaces monorepo. The root `package.json` manages four packages:\n\n| Package | Path | Language | Role |\n|---------|------|----------|------|\n| core | packages/core | TypeScript | Shared types, decay logic, ID/signature generator |\n| api | packages/api | Python/FastAPI | REST API, database access, OAuth |\n| ui | packages/ui | React/Vite | Web frontend |\n| cli | packages/cli | TypeScript | Local CLI tool |\n\n`core` is consumed by `cli`. `api` is independent of the TS workspace."
+    }
+  },
+  "tags": ["dev", "architecture", "monorepo"],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_system01",
+    "created_at": "2025-01-01T00:00:00Z",
+    "source_type": "human"
+  }
+}

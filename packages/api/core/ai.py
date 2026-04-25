@@ -1,0 +1,604 @@
+"""
+AI provider abstraction layer.
+
+Priority order for every call:
+  1. User-supplied key (stored encrypted in user_ai_keys)
+  2. Raise AIProviderUnavailable if no key is available
+
+All token usage is recorded in ai_credit_ledger for auditing.
+
+─── Adding a new provider ────────────────────────────────────────────────────
+1. Subclass AIProvider (or implement the Protocol).
+2. Set `name`, `default_chat_model`, `default_embedding_model`.
+3. Implement `chat()` and `embed()`.
+4. Register the instance in PROVIDER_REGISTRY at the bottom of this file.
+
+That's it. No changes to routers, models, or the database schema are needed.
+─────────────────────────────────────────────────────────────────────────────
+"""
+
+from __future__ import annotations
+
+import base64
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Literal, Optional
+
+import httpx
+from cryptography.fernet import Fernet, InvalidToken
+
+from core.config import settings
+from core.database import db_cursor
+from core.security import generate_id
+
+# ── Types ─────────────────────────────────────────────────────────────────────
+
+Feature = Literal["extraction", "embedding", "restructure"]
+
+# ── Constants ─────────────────────────────────────────────────────────────────
+
+# Token limits are no longer managed by MemTrace. Users must supply their own keys.
+
+# ── Exceptions ────────────────────────────────────────────────────────────────
+
+class AIProviderUnavailable(Exception):
+    """No API key configured for the requested provider."""
+
+class AIProviderError(Exception):
+    """Upstream provider returned an error."""
+
+# ── Provider Protocol ─────────────────────────────────────────────────────────
+
+class AIProvider(ABC):
+    """
+    Base class for all AI providers.
+
+    Implementors must set the three class-level attributes and override
+    `chat()` and `embed()`. See module docstring for full instructions.
+    """
+
+    #: Identifier stored in the database (e.g. "openai"). Must be unique.
+    name: str
+
+    #: Default model used for extraction and restructure calls.
+    default_chat_model: str
+
+    #: Default model used for embedding calls.
+    #: Set to "" if the provider does not support embeddings.
+    default_embedding_model: str
+
+    @abstractmethod
+    def get_known_models(self) -> list[dict]:
+        """Return a static list of known models for this provider."""
+
+    @abstractmethod
+    async def list_models(self, api_key: str) -> list[dict]:
+        """
+        List available models for this provider.
+
+        Returns:
+            list of models with 'id' and 'display_name'.
+        """
+
+    @abstractmethod
+    async def chat(
+        self,
+        api_key: str,
+        model: str,
+        messages: list[dict],
+        max_tokens: int,
+        temperature: float,
+    ) -> tuple[str, int]:
+        """
+        Call the chat/completion endpoint.
+
+        Returns:
+            (response_text, tokens_used)
+            tokens_used should be prompt + completion tokens.
+        """
+
+    async def embed(
+        self,
+        api_key: str,
+        model: str,
+        text: str,
+    ) -> tuple[list[float], int]:
+        """
+        Generate an embedding vector.
+
+        Returns:
+            (vector, tokens_used)
+
+        Override this method to support semantic search.
+        Default raises AIProviderError (embedding not supported).
+        """
+        raise AIProviderError(
+            f"Provider '{self.name}' does not support embeddings. "
+            "Choose a provider with embedding support for semantic search."
+        )
+
+
+# ── Built-in: OpenAI ──────────────────────────────────────────────────────────
+
+class OpenAIProvider(AIProvider):
+    name                    = "openai"
+    default_chat_model      = "gpt-4o-mini"
+    default_embedding_model = "text-embedding-3-small"
+    # embedding output dimension: 1536
+
+    def __init__(self, base_url: str = "https://api.openai.com/v1"):
+        self._base_url = base_url.rstrip("/")
+
+    async def chat(self, api_key, model, messages, max_tokens, temperature):
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(
+                f"{self._base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"OpenAI {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        return data["choices"][0]["message"]["content"], data["usage"]["total_tokens"]
+
+    def get_known_models(self) -> list[dict]:
+        return [
+            {"id": "gpt-4o", "display_name": "GPT-4o"},
+            {"id": "gpt-4o-mini", "display_name": "GPT-4o Mini"},
+            {"id": "gpt-4-turbo", "display_name": "GPT-4 Turbo"},
+            {"id": "gpt-3.5-turbo", "display_name": "GPT-3.5 Turbo"},
+            {"id": "o1-preview", "display_name": "o1 Preview"},
+            {"id": "o1-mini", "display_name": "o1 Mini"},
+        ]
+
+    async def list_models(self, api_key: str) -> list[dict]:
+        if not api_key:
+            return self.get_known_models()
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"{self._base_url}/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+            )
+        if not resp.is_success:
+            return self.get_known_models()
+        data = resp.json()
+        return [
+            {"id": m["id"], "display_name": m["id"]}
+            for m in data["data"]
+            if "gpt" in m["id"] or "o1" in m["id"]
+        ]
+
+    async def embed(self, api_key, model, text):
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"{self._base_url}/embeddings",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={"model": model, "input": text},
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"OpenAI embed {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        return data["data"][0]["embedding"], data["usage"]["total_tokens"]
+
+
+# ── Built-in: Anthropic ───────────────────────────────────────────────────────
+
+class AnthropicProvider(AIProvider):
+    name                    = "anthropic"
+    default_chat_model      = "claude-haiku-4-5-20251001"
+    default_embedding_model = ""  # Anthropic does not offer a native embedding API
+
+    def get_known_models(self) -> list[dict]:
+        return [
+            {"id": "claude-opus-4-7",              "display_name": "Claude Opus 4.7"},
+            {"id": "claude-sonnet-4-6",             "display_name": "Claude Sonnet 4.6"},
+            {"id": "claude-haiku-4-5-20251001",     "display_name": "Claude Haiku 4.5"},
+            {"id": "claude-opus-4-20250514",        "display_name": "Claude Opus 4"},
+            {"id": "claude-sonnet-4-20250514",      "display_name": "Claude Sonnet 4"},
+            {"id": "claude-3-5-sonnet-20241022",    "display_name": "Claude 3.5 Sonnet"},
+            {"id": "claude-3-5-haiku-20241022",     "display_name": "Claude 3.5 Haiku"},
+        ]
+
+    async def list_models(self, api_key: str) -> list[dict]:
+        if not api_key:
+            return self.get_known_models()
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://api.anthropic.com/v1/models",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+            )
+        if not resp.is_success:
+            return self.get_known_models()
+        data = resp.json()
+        return [
+            {"id": m["id"], "display_name": m.get("display_name", m["id"])}
+            for m in data["data"]
+        ]
+
+    async def chat(self, api_key, model, messages, max_tokens, temperature):
+        system = next((m["content"] for m in messages if m["role"] == "system"), "")
+        user_messages = [m for m in messages if m["role"] != "system"]
+
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+                json={
+                    "model": model,
+                    "system": system,
+                    "messages": user_messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"Anthropic {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        tokens = data["usage"]["input_tokens"] + data["usage"]["output_tokens"]
+        return data["content"][0]["text"], tokens
+
+
+# ── Built-in: Google Gemini ──────────────────────────────────────────────────
+
+class GeminiProvider(AIProvider):
+    name                    = "gemini"
+    default_chat_model      = "gemini-2.5-flash"
+    default_embedding_model = "text-embedding-004"
+
+    def get_known_models(self) -> list[dict]:
+        return [
+            {"id": "gemini-2.5-flash-preview-05-20", "display_name": "Gemini 2.5 Flash"},
+            {"id": "gemini-2.5-pro-preview-05-06",   "display_name": "Gemini 2.5 Pro"},
+            {"id": "gemini-2.0-flash",               "display_name": "Gemini 2.0 Flash"},
+            {"id": "gemini-1.5-flash",               "display_name": "Gemini 1.5 Flash"},
+            {"id": "gemini-1.5-pro",                 "display_name": "Gemini 1.5 Pro"},
+        ]
+
+    async def list_models(self, api_key: str) -> list[dict]:
+        if not api_key:
+            return self.get_known_models()
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+            )
+        if not resp.is_success:
+            return self.get_known_models()
+        data = resp.json()
+        return [
+            {
+                "id": m["name"].replace("models/", ""),
+                "display_name": m.get("displayName", m["name"])
+            }
+            for m in data["models"]
+            if "generateContent" in m.get("supportedGenerationMethods", [])
+        ]
+
+    async def chat(self, api_key, model, messages, max_tokens, temperature):
+        # Gemini v1beta supports system_instruction separately
+        system = next((m["content"] for m in messages if m["role"] == "system"), "")
+        contents = []
+        for m in messages:
+            if m["role"] == "system": continue
+            # Gemini roles: "user", "model" (instead of "assistant")
+            role = "user" if m["role"] == "user" else "model"
+            contents.append({
+                "role": role,
+                "parts": [{"text": m["content"]}]
+            })
+
+        body = {
+            "contents": contents,
+            "generationConfig": {
+                "maxOutputTokens": max_tokens,
+                "temperature": temperature,
+            }
+        }
+        if system:
+            body["system_instruction"] = {"parts": [{"text": system}]}
+
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+                json=body
+            )
+        
+        if not resp.is_success:
+            raise AIProviderError(f"Gemini {resp.status_code}: {resp.text[:400]}")
+        
+        data = resp.json()
+        try:
+            candidate = data["candidates"][0]
+            finish = candidate.get("finishReason", "")
+            if finish not in ("STOP", "MAX_TOKENS", ""):
+                raise AIProviderError(f"Gemini finishReason={finish}: {candidate}")
+            text = candidate["content"]["parts"][0].get("text", "")
+            usage = data.get("usageMetadata", {})
+            tokens = usage.get("totalTokenCount", 0)
+            return text, tokens
+        except AIProviderError:
+            raise
+        except (KeyError, IndexError) as e:
+            raise AIProviderError(f"Gemini unexpected response ({e}): {data}")
+
+    async def embed(self, api_key, model, text):
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent?key={api_key}",
+                json={
+                    "model": f"models/{model}",
+                    "content": {"parts": [{"text": text}]}
+                }
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"Gemini embed {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        return data["embedding"]["values"], 0 # Gemini embedding usage unknown
+
+
+# ── Provider Registry ─────────────────────────────────────────────────────────
+#
+# Add your provider instance here to make it available to the system.
+# Key = provider identifier (must match the `name` attribute).
+#
+# Example (community-contributed Gemini provider):
+#
+#   from providers.gemini import GeminiProvider
+#   PROVIDER_REGISTRY["gemini"] = GeminiProvider()
+#
+
+PROVIDER_REGISTRY: dict[str, AIProvider] = {
+    "openai":    OpenAIProvider(),
+    "anthropic": AnthropicProvider(),
+    "gemini":    GeminiProvider(),
+}
+
+# ── Encryption ────────────────────────────────────────────────────────────────
+
+def _fernet() -> Fernet:
+    raw = settings.secret_key.encode()[:32].ljust(32, b"0")
+    return Fernet(base64.urlsafe_b64encode(raw))
+
+def encrypt_api_key(raw_key: str) -> str:
+    return _fernet().encrypt(raw_key.encode()).decode()
+
+def decrypt_api_key(enc: str) -> str:
+    try:
+        return _fernet().decrypt(enc.encode()).decode()
+    except InvalidToken:
+        raise ValueError("Failed to decrypt API key — server key may have changed.")
+
+# ── Resolution ────────────────────────────────────────────────────────────────
+
+@dataclass
+class ResolvedProvider:
+    provider:   AIProvider
+    api_key:    str
+    model:      str
+    source:     Literal["workspace_key", "account_key"]
+    user_id:    str
+
+
+def resolve_provider(
+    user_id: str,
+    feature: Feature,
+    preferred_provider: Optional[str] = None,
+    preferred_model: Optional[str] = None,
+) -> ResolvedProvider:
+    """
+    Determine which provider + key to use.
+    Resolution order:
+      1. User-supplied key (any provider, or preferred_provider if specified)
+      2. AIProviderUnavailable
+    """
+    with db_cursor() as cur:
+        # User-supplied key
+        query = "SELECT provider, key_enc FROM user_ai_keys WHERE user_id = %s"
+        params: list = [user_id]
+        if preferred_provider:
+            query += " AND provider = %s"
+            params.append(preferred_provider)
+        query += " ORDER BY last_used_at DESC NULLS LAST LIMIT 1"
+        cur.execute(query, params)
+        row = cur.fetchone()
+
+        if not row:
+            raise AIProviderUnavailable(
+                "No AI provider key is configured for this account. "
+                "Add your own API key in Settings → AI Provider."
+            )
+
+        provider_id: str = row["provider"]
+        impl = PROVIDER_REGISTRY.get(provider_id)
+        if not impl:
+            raise AIProviderUnavailable(
+                f"Provider '{provider_id}' is not installed on this server."
+            )
+        
+        model = preferred_model or (
+            impl.default_embedding_model
+            if feature == "embedding"
+            else impl.default_chat_model
+        )
+        return ResolvedProvider(
+            provider=impl,
+            api_key=decrypt_api_key(row["key_enc"]),
+            model=model,
+            source="account_key",  # Defaulting to account_key for now as workspace-level keys are separate in SPEC
+            user_id=user_id,
+        )
+
+# ── Usage recording ───────────────────────────────────────────────────────────
+
+def record_usage(
+    resolved: ResolvedProvider,
+    feature: Feature,
+    tokens_used: int,
+    workspace_id: Optional[str] = None,
+    node_id: Optional[str] = None,
+) -> None:
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            INSERT INTO ai_credit_ledger
+              (id, user_id, feature, provider, model, tokens_used, workspace_id, node_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                generate_id("ledger"),
+                resolved.user_id,
+                feature,
+                resolved.provider.name,
+                resolved.model,
+                tokens_used,
+                workspace_id,
+                node_id,
+            ),
+        )
+        cur.execute(
+            "UPDATE user_ai_keys SET last_used_at = now() "
+            "WHERE user_id = %s AND provider = %s",
+            (resolved.user_id, resolved.provider.name),
+        )
+
+# ── Convenience wrappers (called by routers) ──────────────────────────────────
+
+async def chat_completion(
+    resolved: ResolvedProvider,
+    messages: list[dict],
+    max_tokens: int = 4096,
+    temperature: float = 0.2,
+) -> tuple[str, int]:
+    return await resolved.provider.chat(
+        resolved.api_key, resolved.model, messages, max_tokens, temperature
+    )
+
+async def embed(
+    resolved: ResolvedProvider,
+    text: str,
+) -> tuple[list[float], int]:
+    return await resolved.provider.embed(resolved.api_key, resolved.model, text)
+
+# ── AI Prompts ────────────────────────────────────────────────────────────────
+
+EXTRACTION_SYSTEM = """\
+You are a knowledge graph extraction assistant. Your goal is to convert source \
+material into the smallest possible set of atomic Memory Nodes connected by the \
+richest possible set of typed edges.
+
+Rules:
+- A node must contain exactly one idea. If a segment contains two ideas, split them.
+- Every node must have at least one suggested_edge to another node in the output, \
+  unless it is the only node produced.
+- The body must not repeat information already in the title.
+- Keep bodies concise — the minimum text needed to be self-contained.
+- Prefer specific edge types (depends_on > extends > related_to > contradicts).
+- Cross-segment edges are encouraged.
+- title_zh and body_zh MUST use Traditional Chinese (繁體中文). Never use Simplified Chinese. \
+  Use 節點 not 节点, 圖 not 图, 規則 not 规则, 關聯 not 关联, 時間 not 时间, 邊 not 边, \
+  設定 not 设定, 實作 not 实现, 連結 not 连接, 語言 not 语言.
+
+The design goal: a human or AI agent must be able to reach any answer by \
+following the shortest possible path through the graph.
+
+CRITICAL JSON FORMATTING RULES — failure to follow these will break the output:
+- Return ONLY a raw JSON array — no markdown fences, no prose before or after.
+- Every string value must be on one line (no literal newlines inside strings). \
+  Use \\n for line breaks within a string value.
+- Escape ALL double-quotes inside string values as \\".
+- Escape ALL backslashes inside string values as \\\\.
+- Never embed raw code blocks or JSON snippets inside string values; \
+  paraphrase them in plain language instead.
+- If you are unsure whether a character needs escaping, escape it.
+
+Output a JSON array of nodes. Each node:
+{
+  "title_zh": "...",
+  "title_en": "...",
+  "content_type": "factual|procedural|preference|context",
+  "body_zh": "...",
+  "body_en": "...",
+  "tags": ["..."],
+  "suggested_edges": [{"to_index": 1, "relation": "depends_on"}],
+  "source_segment": "brief paraphrase of the source passage (not a verbatim copy)",
+  "confidence_score": 0.95
+}
+Return ONLY the JSON array, no markdown fences."""
+
+
+RESTRUCTURE_SYSTEM = """\
+You are a knowledge graph editor. Evaluate a set of Memory Nodes against the \
+Node Minimization Principle:
+
+1. Does any node contain more than one discrete idea? If yes → Split.
+2. Are any two nodes not meaningfully distinct when separated? → Merge.
+3. Are related nodes missing a typed edge? → Suggest edges.
+4. Is any node title vague or too long? → Retitle.
+5. Is the content_type wrong? → Reclassify.
+6. Does any body restate its title or contain excess content? → Trim body.
+
+The measure of a good proposal: can a human or AI reach any answer faster \
+after your changes?
+
+Output a JSON array of proposed changes:
+[{
+  "operation": "split|merge|retitle|reclassify|suggest_edges|trim_body",
+  "target_node_ids": ["mem_xxx"],
+  "reason": "one sentence",
+  "proposed": { ... }
+}]
+If no changes are needed, return [].
+Return ONLY the JSON array."""
+
+# ── Utility ────────────────────────────────────────────────────────────────────
+
+def strip_fences(text: str) -> str:
+    """Extract JSON content from text that might contain markdown fences or conversational filler."""
+    import re
+    
+    # First, try to find content between ```json and ```
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+    if match:
+        return match.group(1).strip()
+    
+    # If no fences, find the outermost [ ] or { }
+    match = re.search(r"(\[[\s\S]*\]|\{[\s\S]*\})", text)
+    if match:
+        return match.group(1).strip()
+    
+    return text.strip()
+CHAT_SYSTEM = """\
+You are the MemTrace AI Assistant. You help users navigate and curate their \
+knowledge graph.
+
+CONTEXT:
+You will be provided with a list of relevant Memory Nodes as context. Use \
+these to answer the user's question accurately.
+
+PROPOSALS:
+If you identify inaccuracies, redundancies, or missing connections in the \
+provided nodes, you SHOULD suggest edits. 
+Your response must be in two parts:
+1. A natural language answer.
+2. A JSON block containing [PROPOSALS] if any.
+
+Proposal JSON format (same as restructure):
+[{
+  "operation": "split|merge|retitle|reclassify|suggest_edges|trim_body|update_content",
+  "target_node_ids": ["mem_xxx"],
+  "reason": "...",
+  "proposed": { ... }
+}]
+
+Return only the text answer followed by the JSON block in ```json ... ``` fences.
+If no proposals are needed, do not include the JSON block."""

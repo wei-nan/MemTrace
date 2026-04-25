@@ -1,0 +1,30 @@
+{
+  "id": "mem_i001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "使用者認證：Email 與密碼",
+    "en": "User authentication: email and password"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "MemTrace 採用 Email + Password 認證路徑。安全措施包括：bcrypt 雜湊（cost ≥ 12）、密碼政策（8–128 字元、大小寫+數字、HaveIBeenPwned 洩漏檢查）、email 驗證信（24 小時效期）、失敗 5 次鎖定 15 分鐘。登入後核發 JWT Session（7 天），透過 Authorization: Bearer 標頭傳遞，登出以 blocklist 立即失效。目前不支援第三方 OAuth 登入，以簡化認證表面並減少外部依賴。",
+      "en": "MemTrace uses Email + Password authentication. Security measures include: bcrypt hash (cost ≥ 12), password policy (8–128 chars, upper+lower+digit, HaveIBeenPwned check), verification email (24h expiry), and 5-failure lockout for 15 minutes. Upon login, a JWT session (7 days) is issued and passed via the Authorization: Bearer header. Logout is handled via an immediate blocklist. Third-party OAuth is currently not supported to simplify the authentication surface and reduce external dependencies."
+    }
+  },
+  "tags": ["auth", "security", "jwt", "password-policy"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MemTrace Memory Node Schema v1",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the memory node. E.g. mem_abc123"
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"]
+    },
+    "title": {
+      "type": "object",
+      "properties": {
+        "zh-TW": { "type": "string" },
+        "en": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": ["en", "zh-TW"]
+    },
+    "content": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["factual", "procedural", "preference", "context"]
+        },
+        "format": {
+          "type": "string",
+          "enum": ["plain", "markdown"],
+          "default": "plain",
+          "description": "Input format of the body content. 'plain' stores raw text; 'markdown' stores Markdown source rendered in read view."
+        },
+        "body": {
+          "type": "object",
+          "properties": {
+            "zh-TW": { "type": "string" },
+            "en": { "type": "string" }
+          },
+          "additionalProperties": false,
+          "required": ["en", "zh-TW"]
+        }
+      },
+      "required": ["type", "format", "body"]
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["public", "team", "private"]
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "signature": { "type": "string" },
+        "source_type": {
+          "type": "string",
+          "enum": ["human", "ai_generated", "ai_verified"]
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the most recent edit. Absent on nodes that have never been edited after creation."
+        },
+        "source_document": {
+          "type": "string",
+          "description": "Filename or SHA-256 of the source document this node was extracted from. Present only on AI-extracted nodes."
+        },
+        "extraction_model": {
+          "type": "string",
+          "description": "Identifier of the AI model used during extraction. Present only on AI-extracted nodes."
+        },
+        "copied_from": {
+          "type": "object",
+          "description": "Traceability reference when this node was copied from another Knowledge Base.",
+          "properties": {
+            "node_id": { "type": "string" },
+            "workspace_id": { "type": "string" }
+          },
+          "required": ["node_id", "workspace_id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["author", "created_at", "signature", "source_type"]
+    },
+    "trust": {
+      "type": "object",
+      "properties": {
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "dimensions": {
+          "type": "object",
+          "properties": {
+            "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+            "freshness": { "type": "number", "minimum": 0, "maximum": 1 },
+            "utility": { "type": "number", "minimum": 0, "maximum": 1 },
+            "author_rep": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "required": ["accuracy", "freshness", "utility", "author_rep"]
+        },
+        "votes": {
+          "type": "object",
+          "properties": {
+            "up": { "type": "integer", "minimum": 0 },
+            "down": { "type": "integer", "minimum": 0 },
+            "verifications": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["up", "down", "verifications"]
+        }
+      },
+      "required": ["score", "dimensions", "votes"]
+    },
+    "traversal": {
+      "type": "object",
+      "description": "Tracks how many actors have visited this node and via which paths.",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of traversal events recorded on this node."
+        },
+        "unique_traversers": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of distinct users or service principals that have traversed this node."
+        }
+      },
+      "required": ["count", "unique_traversers"]
+    }
+  },
+  "required": [
+    "id",
+    "schema_version",
+    "title",
+    "content",
+    "tags",
+    "visibility",
+    "provenance",
+    "trust",
+    "traversal"
+  ],
+  "additionalProperties": false
+}

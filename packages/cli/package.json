@@ -1,0 +1,23 @@
+{
+  "name": "@memtrace/cli",
+  "version": "1.0.0",
+  "description": "MemTrace CLI Tool",
+  "bin": {
+    "mem": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@memtrace/core": "*",
+    "commander": "^11.0.0",
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/inquirer": "^8.2.6"
+  }
+}

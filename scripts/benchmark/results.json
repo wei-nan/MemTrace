@@ -1,0 +1,297 @@
+{
+  "generated_at": "2026-04-11T13:35:50.017092+00:00",
+  "spec_tokens": 17686,
+  "api_base": "http://localhost:8000/api/v1",
+  "workspace_id": "ws_spec0001",
+  "summary": {
+    "avg_kb_tokens": 2227.7,
+    "avg_efficiency_x": 10.55,
+    "avg_token_savings_pct": 87.4,
+    "avg_coverage_pct": 100.0,
+    "full_coverage_count": 15,
+    "total_questions": 15,
+    "avg_latency_ms": 710.8,
+    "all_thresholds_pass": true
+  },
+  "questions": [
+    {
+      "question_id": "Q01",
+      "category": "factual_lookup",
+      "difficulty": "easy",
+      "spec_tokens": 17686,
+      "kb_tokens": 853,
+      "efficiency_x": 20.7,
+      "token_savings_pct": 95.2,
+      "coverage": 1.0,
+      "latency_ms": 10055.7,
+      "nodes_fetched": [
+        "mem_d002"
+      ],
+      "expected_nodes": [
+        "mem_d002"
+      ]
+    },
+    {
+      "question_id": "Q02",
+      "category": "factual_lookup",
+      "difficulty": "easy",
+      "spec_tokens": 17686,
+      "kb_tokens": 958,
+      "efficiency_x": 18.5,
+      "token_savings_pct": 94.6,
+      "coverage": 1.0,
+      "latency_ms": 39.2,
+      "nodes_fetched": [
+        "mem_d004"
+      ],
+      "expected_nodes": [
+        "mem_d004"
+      ]
+    },
+    {
+      "question_id": "Q03",
+      "category": "factual_lookup",
+      "difficulty": "easy",
+      "spec_tokens": 17686,
+      "kb_tokens": 1443,
+      "efficiency_x": 12.3,
+      "token_savings_pct": 91.8,
+      "coverage": 1.0,
+      "latency_ms": 43.6,
+      "nodes_fetched": [
+        "mem_i003"
+      ],
+      "expected_nodes": [
+        "mem_i003"
+      ]
+    },
+    {
+      "question_id": "Q04",
+      "category": "factual_lookup",
+      "difficulty": "easy",
+      "spec_tokens": 17686,
+      "kb_tokens": 4915,
+      "efficiency_x": 3.6,
+      "token_savings_pct": 72.2,
+      "coverage": 1.0,
+      "latency_ms": 40.9,
+      "nodes_fetched": [
+        "mem_d002",
+        "mem_i003",
+        "mem_g003",
+        "mem_g002",
+        "mem_d003"
+      ],
+      "expected_nodes": [
+        "mem_d003"
+      ]
+    },
+    {
+      "question_id": "Q05",
+      "category": "factual_lookup",
+      "difficulty": "easy",
+      "spec_tokens": 17686,
+      "kb_tokens": 1978,
+      "efficiency_x": 8.9,
+      "token_savings_pct": 88.8,
+      "coverage": 1.0,
+      "latency_ms": 39.1,
+      "nodes_fetched": [
+        "mem_g003",
+        "mem_k002"
+      ],
+      "expected_nodes": [
+        "mem_k002"
+      ]
+    },
+    {
+      "question_id": "Q06",
+      "category": "procedural",
+      "difficulty": "medium",
+      "spec_tokens": 17686,
+      "kb_tokens": 1223,
+      "efficiency_x": 14.5,
+      "token_savings_pct": 93.1,
+      "coverage": 1.0,
+      "latency_ms": 27.7,
+      "nodes_fetched": [
+        "mem_w002"
+      ],
+      "expected_nodes": [
+        "mem_w002"
+      ]
+    },
+    {
+      "question_id": "Q07",
+      "category": "procedural",
+      "difficulty": "medium",
+      "spec_tokens": 17686,
+      "kb_tokens": 5240,
+      "efficiency_x": 3.4,
+      "token_savings_pct": 70.4,
+      "coverage": 1.0,
+      "latency_ms": 40.3,
+      "nodes_fetched": [
+        "mem_w003",
+        "mem_k001",
+        "mem_k003",
+        "mem_a003",
+        "mem_k002",
+        "mem_d005"
+      ],
+      "expected_nodes": [
+        "mem_w003"
+      ]
+    },
+    {
+      "question_id": "Q08",
+      "category": "procedural",
+      "difficulty": "medium",
+      "spec_tokens": 17686,
+      "kb_tokens": 1378,
+      "efficiency_x": 12.8,
+      "token_savings_pct": 92.2,
+      "coverage": 1.0,
+      "latency_ms": 28.7,
+      "nodes_fetched": [
+        "mem_w004"
+      ],
+      "expected_nodes": [
+        "mem_w004"
+      ]
+    },
+    {
+      "question_id": "Q09",
+      "category": "multi_hop",
+      "difficulty": "hard",
+      "spec_tokens": 17686,
+      "kb_tokens": 2481,
+      "efficiency_x": 7.1,
+      "token_savings_pct": 86.0,
+      "coverage": 1.0,
+      "latency_ms": 51.9,
+      "nodes_fetched": [
+        "mem_g001",
+        "mem_d002",
+        "mem_d003"
+      ],
+      "expected_nodes": [
+        "mem_d002",
+        "mem_d003"
+      ]
+    },
+    {
+      "question_id": "Q10",
+      "category": "multi_hop",
+      "difficulty": "hard",
+      "spec_tokens": 17686,
+      "kb_tokens": 2804,
+      "efficiency_x": 6.3,
+      "token_savings_pct": 84.1,
+      "coverage": 1.0,
+      "latency_ms": 61.8,
+      "nodes_fetched": [
+        "mem_a001",
+        "mem_a003",
+        "mem_a002"
+      ],
+      "expected_nodes": [
+        "mem_a002",
+        "mem_a003",
+        "mem_a001"
+      ]
+    },
+    {
+      "question_id": "Q11",
+      "category": "multi_hop",
+      "difficulty": "hard",
+      "spec_tokens": 17686,
+      "kb_tokens": 978,
+      "efficiency_x": 18.1,
+      "token_savings_pct": 94.5,
+      "coverage": 1.0,
+      "latency_ms": 39.6,
+      "nodes_fetched": [
+        "mem_i001"
+      ],
+      "expected_nodes": [
+        "mem_i001"
+      ]
+    },
+    {
+      "question_id": "Q12",
+      "category": "multi_hop",
+      "difficulty": "hard",
+      "spec_tokens": 17686,
+      "kb_tokens": 1839,
+      "efficiency_x": 9.6,
+      "token_savings_pct": 89.6,
+      "coverage": 1.0,
+      "latency_ms": 54.2,
+      "nodes_fetched": [
+        "mem_g003",
+        "mem_d002"
+      ],
+      "expected_nodes": [
+        "mem_g003",
+        "mem_d002"
+      ]
+    },
+    {
+      "question_id": "Q13",
+      "category": "cross_reference",
+      "difficulty": "hard",
+      "spec_tokens": 17686,
+      "kb_tokens": 1843,
+      "efficiency_x": 9.6,
+      "token_savings_pct": 89.6,
+      "coverage": 1.0,
+      "latency_ms": 57.7,
+      "nodes_fetched": [
+        "mem_d002",
+        "mem_k002"
+      ],
+      "expected_nodes": [
+        "mem_d002",
+        "mem_k002"
+      ]
+    },
+    {
+      "question_id": "Q14",
+      "category": "cross_reference",
+      "difficulty": "hard",
+      "spec_tokens": 17686,
+      "kb_tokens": 2819,
+      "efficiency_x": 6.3,
+      "token_savings_pct": 84.1,
+      "coverage": 1.0,
+      "latency_ms": 51.6,
+      "nodes_fetched": [
+        "mem_w004",
+        "mem_i003"
+      ],
+      "expected_nodes": [
+        "mem_i003",
+        "mem_w004"
+      ]
+    },
+    {
+      "question_id": "Q15",
+      "category": "architecture",
+      "difficulty": "medium",
+      "spec_tokens": 17686,
+      "kb_tokens": 2664,
+      "efficiency_x": 6.6,
+      "token_savings_pct": 84.9,
+      "coverage": 1.0,
+      "latency_ms": 29.8,
+      "nodes_fetched": [
+        "mem_i003",
+        "mem_w002"
+      ],
+      "expected_nodes": [
+        "mem_i003"
+      ]
+    }
+  ]
+}

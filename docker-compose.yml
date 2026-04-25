@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: memtrace-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - memtrace_pgdata:/var/lib/postgresql/data
+      - ./schema/sql:/docker-entrypoint-initdb.d:ro   # auto-run on first init
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./packages/api
+      dockerfile: Dockerfile
+    container_name: memtrace-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./packages/api/data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ui:
+    build:
+      context: ./packages/ui
+      dockerfile: Dockerfile
+    container_name: memtrace-ui
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  mcp:
+    build:
+      context: ./packages/mcp
+      dockerfile: Dockerfile
+    container_name: memtrace-mcp
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MEMTRACE_API: http://api:8000/api/v1
+      MCP_TRANSPORT: sse
+      MCP_PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  memtrace_pgdata:
+    driver: local

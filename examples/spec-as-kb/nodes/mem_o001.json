@@ -1,0 +1,31 @@
+{
+  "id": "mem_o001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "初次使用引導：Web UI 精靈",
+    "en": "First-run onboarding: web UI wizard"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "首次登入後自動顯示，完成後永久不再彈出（可從 Settings → Getting Started 重新開啟）。八步流程：\n\n① 建立帳號（Email + Password）\n② 驗證 Email\n③ 命名第一個知識庫（雙語名稱 + 可見性，預設 private）\n④ 選擇知識庫類型：Evergreen（長效型，預設）或 Ephemeral（短效型）— **建立後不可變更**\n⑤ 選擇起點：空白 或 上傳文件（.md/.txt/.pdf/.docx）\n⑥ AI Provider 設定（僅文件路徑顯示，可跳過）\n⑦ Review 萃取候選節點（至少接受一個才能繼續）\n⑧ 完成（顯示三個捷徑：手動新增節點、邀請成員、連接 AI 工具）\n\n進度以伺服器端的 `onboarding` 物件追蹤（`steps_done[]` + `steps_skipped[]`），中斷後可從上次未完成步驟恢復。`completed: true` 後永遠不再自動顯示。",
+      "en": "Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Eight-step flow:\n\n① Create account (Email + Password)\n② Verify email\n③ Name first Knowledge Base (bilingual name + visibility, default private)\n④ Choose Knowledge Base Type: Evergreen (default) or Ephemeral — **immutable after creation**\n⑤ Choose starting point: blank or upload document (.md/.txt/.pdf/.docx)\n⑥ AI provider setup (shown only on document path, skippable)\n⑦ Review extracted candidate nodes (at least one must be accepted to advance)\n⑧ Done (three shortcuts: add first node, invite someone, connect AI tool)\n\nProgress tracked server-side via the `onboarding` object (`steps_done[]` + `steps_skipped[]`); resumes from the last incomplete step after interruption. Once `completed: true`, the wizard is never shown automatically again."
+    }
+  },
+  "tags": ["onboarding", "ui", "wizard", "ux", "kb-type"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "updated_at": "2026-04-16T00:00:00Z",
+    "signature": "d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

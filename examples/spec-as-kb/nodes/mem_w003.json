@@ -1,0 +1,24 @@
+{
+  "id": "mem_w003",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Seed 載入 Spec KB",
+    "en": "Seeding the Spec Knowledge Base"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "## 執行 Seed\n```bash\ncd D:/Workspace/MemTrace/packages/api\npython ../../scripts/seed_spec_kb.py\n```\n\nScript 會自動偵測 `system@memtrace.local` 的系統使用者 ID（目前為 `system`），建立工作區 `ws_spec0001`，並以 upsert（ON CONFLICT DO UPDATE）寫入所有節點與邊。\n\n## 驗證\n```bash\ncurl http://localhost:8000/api/v1/workspaces/ws_spec0001/nodes | jq length\n# 期望：27\n```\n\n## 注意事項\n- `.env` 位於 **repo 根目錄**（非 `packages/api/`）\n- 需在 `packages/api` venv 下執行，確保 psycopg2 可用\n- 重複執行安全：upsert 不會重複建立，但會以 JSON 內容覆寫現有節點",
+      "en": "## Run Seed\n```bash\ncd D:/Workspace/MemTrace/packages/api\npython ../../scripts/seed_spec_kb.py\n```\n\nThe script auto-detects the system user ID for `system@memtrace.local` (currently `system`), creates workspace `ws_spec0001`, and upserts all nodes and edges (ON CONFLICT DO UPDATE).\n\n## Verify\n```bash\ncurl http://localhost:8000/api/v1/workspaces/ws_spec0001/nodes | jq length\n# Expected: 27\n```\n\n## Notes\n- `.env` lives in the **repo root** (not `packages/api/`)\n- Run inside the `packages/api` venv so psycopg2 is available\n- Safe to re-run: upsert won't duplicate, but will overwrite existing node content with JSON"
+    }
+  },
+  "tags": ["dev", "seed", "procedural"],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2026-04-11T00:00:00Z",
+    "source_type": "human"
+  }
+}

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MemTrace Canvas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0f172a; font-family: ui-monospace, SFMono-Regular, monospace; overflow: hidden; }
+#root { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+.node-card { position: absolute; width: 224px; background: #1e293b; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,.5); user-select: none; }
+.badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+.tag   { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #334155; color: #94a3b8; }
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 5px; font-size: 12px; font-family: inherit; cursor: pointer; border: none; transition: background .15s; }
+.btn-primary { background: #3b82f6; color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-slate  { background: #334155; color: #e2e8f0; }
+.btn-slate:hover  { background: #475569; }
+.btn-active { background: #2563eb; color: #fff; }
+.btn-ghost  { background: transparent; color: #94a3b8; }
+.btn-ghost:hover  { color: #fff; }
+.btn-danger { background: transparent; color: #f87171; }
+.btn-danger:hover { background: #450a0a; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.dialog { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 20px; min-width: 340px; max-width: 520px; width: 90vw; }
+.dialog h2 { color: #f1f5f9; font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+.form-label { display: block; color: #94a3b8; font-size: 11px; margin-bottom: 4px; }
+.form-input { width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 5px; color: #f1f5f9; font-size: 13px; padding: 6px 10px; font-family: inherit; outline: none; }
+.form-input:focus { border-color: #3b82f6; }
+.form-select { width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 5px; color: #f1f5f9; font-size: 13px; padding: 6px 10px; font-family: inherit; outline: none; }
+.form-textarea { width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 5px; color: #f1f5f9; font-size: 12px; padding: 6px 10px; font-family: ui-monospace,monospace; resize: vertical; min-height: 120px; outline: none; }
+.form-textarea:focus { border-color: #3b82f6; }
+.preview-box { min-height: 120px; background: #1e293b; border: 1px solid #475569; border-radius: 5px; color: #e2e8f0; font-size: 13px; padding: 8px 12px; }
+.preview-box pre { background: #0f172a; padding: 6px 8px; border-radius: 4px; font-size: 11px; overflow-x: auto; margin: 4px 0; }
+.preview-box code { background: #334155; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+.edge-panel { position: fixed; bottom: 24px; right: 24px; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 14px; width: 200px; z-index: 50; }
+.relation-btn { width: 100%; text-align: left; padding: 8px 12px; border-radius: 5px; font-size: 13px; font-family: inherit; cursor: pointer; border: 1px solid #475569; background: #1e293b; color: #cbd5e1; transition: background .1s; margin-bottom: 6px; }
+.relation-btn.selected { background: #1d4ed8; border-color: #3b82f6; color: #fff; }
+.relation-btn:hover:not(.selected) { background: #334155; }
+.toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #0f172a; border-bottom: 1px solid #1e293b; flex-shrink: 0; }
+.divider { width: 1px; height: 20px; background: #1e293b; margin: 0 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(function() {
+var TYPE_BORDER = { factual:'#3b82f6', procedural:'#22c55e', preference:'#a855f7', context:'#f97316' };
+var TYPE_BADGE  = { factual:'background:#1e3a5f;color:#93c5fd', procedural:'background:#14532d;color:#86efac', preference:'background:#3b0764;color:#d8b4fe', context:'background:#431407;color:#fdba74' };
+var RELATION_LABEL = { depends_on:'depends on', extends:'extends', related_to:'related to', contradicts:'contradicts' };
+
+var nodes = [
+  { id:'mem_001', title:'GKE Scheduled Scaling', body:'Use `bitnami/kubectl` CronJob to scale up during business hours and down after.\n\n```bash\nkubectl scale deployment/app --replicas=3\n```', contentType:'procedural', tags:['gcp','kubernetes','gke'], visibility:'public', trustScore:0.87, x:120, y:160 },
+  { id:'mem_002', title:'Kubernetes Cost Optimization', body:'Prefer **spot/preemptible** nodes for batch workloads. Use VPA for right-sizing and HPA for traffic-based scaling.', contentType:'factual', tags:['kubernetes','cost','gcp'], visibility:'team', trustScore:0.92, x:440, y:80 },
+  { id:'mem_003', title:'Team Prefers GitOps', body:'All infra changes go through **ArgoCD** pull requests. Direct `kubectl apply` is discouraged except in emergencies.', contentType:'preference', tags:['gitops','argocd'], visibility:'team', trustScore:0.78, x:440, y:300 }
+];
+var edges = [
+  { id:'edge_001', fromId:'mem_001', toId:'mem_002', relation:'related_to', weight:0.75, coAccessCount:8 },
+  { id:'edge_002', fromId:'mem_001', toId:'mem_003', relation:'depends_on', weight:0.6, coAccessCount:3 }
+];
+
+var pan = { x:0, y:0 }, zoom = 1;
+var isPanning = false, panOrigin = { x:0, y:0 };
+var draggingNode = null;
+var linkMode = false, linkSource = null;
+var pendingEdge = null, pendingRelation = 'related_to';
+var selectedEdge = null;
+var nodeDialog = null;
+var idCtr = Date.now();
+
+function uid(p) { return p + '_' + (++idCtr).toString(36); }
+
+function esc(t) {
+  return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderMd(t) {
+  return String(t||'')
+    .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br/>');
+}
+
+function nodeCenter(id) {
+  var n = nodes.find(function(n){ return n.id === id; });
+  if (!n) return { x:0, y:0 };
+  return { x: n.x + 112, y: n.y + 52 };
+}
+
+var root = document.getElementById('root');
+
+function render() {
+  root.innerHTML = '';
+
+  // Toolbar
+  var tb = document.createElement('div');
+  tb.className = 'toolbar';
+
+  var logo = document.createElement('span');
+  logo.textContent = 'MemTrace';
+  logo.style.cssText = 'color:#e2e8f0;font-weight:700;font-size:14px;letter-spacing:-.5px';
+  tb.appendChild(logo);
+
+  var div1 = document.createElement('div'); div1.className = 'divider'; tb.appendChild(div1);
+
+  var addBtn = makeBtn('+ Node', 'btn btn-slate', function() { openNodeDialog({ mode:'add' }); });
+  tb.appendChild(addBtn);
+
+  var linkLabel = linkMode ? (linkSource ? 'Pick target\u2026' : 'Pick source\u2026') : '\u26d3 Link';
+  var linkBtn = makeBtn(linkLabel, 'btn ' + (linkMode ? 'btn-active' : 'btn-slate'), function() { linkMode=!linkMode; linkSource=null; render(); });
+  tb.appendChild(linkBtn);
+
+  if (linkMode) {
+    var cancelLink = makeBtn('Cancel', 'btn btn-ghost', function() { linkMode=false; linkSource=null; render(); });
+    tb.appendChild(cancelLink);
+  }
+
+  var right = document.createElement('div');
+  right.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:12px';
+  var counter = document.createElement('span');
+  counter.textContent = nodes.length + ' nodes \u00b7 ' + edges.length + ' edges';
+  counter.style.cssText = 'color:#475569;font-size:11px';
+  right.appendChild(counter);
+  var clearBtn = makeBtn('Clear', 'btn btn-ghost', function() {
+    if (confirm('Clear all nodes and edges?')) { nodes=[]; edges=[]; render(); }
+  });
+  right.appendChild(clearBtn);
+  tb.appendChild(right);
+  root.appendChild(tb);
+
+  // Canvas
+  var area = document.createElement('div');
+  area.id = 'canvas-area';
+  area.style.cssText = 'flex:1;position:relative;overflow:hidden;cursor:grab';
+
+  var world = document.createElement('div');
+  world.id = 'world';
+  world.style.cssText = 'position:absolute;width:2400px;height:1600px;transform:translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+');transform-origin:0 0';
+
+  // SVG
+  var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('style','position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none');
+  svg.innerHTML = '<defs>' +
+    '<marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="#475569"/></marker>' +
+    '<marker id="arr-sel" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L0,7 L7,3.5 z" fill="#60a5fa"/></marker>' +
+    '</defs>';
+
+  edges.forEach(function(edge) {
+    var f = nodeCenter(edge.fromId), t = nodeCenter(edge.toId);
+    var mx = (f.x+t.x)/2, my = (f.y+t.y)/2;
+    var sel = selectedEdge && selectedEdge.id === edge.id;
+    var sw = 1 + edge.weight * 4;
+    var g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('style','pointer-events:all;cursor:pointer');
+    var dash = edge.relation === 'contradicts' ? 'stroke-dasharray="6 3"' : '';
+    g.innerHTML =
+      '<line x1="'+f.x+'" y1="'+f.y+'" x2="'+t.x+'" y2="'+t.y+'" stroke="transparent" stroke-width="14"/>' +
+      '<line x1="'+f.x+'" y1="'+f.y+'" x2="'+t.x+'" y2="'+t.y+'" stroke="'+(sel?'#60a5fa':'#475569')+'" stroke-width="'+sw+'" '+dash+' marker-end="'+(sel?'url(#arr-sel)':'url(#arr)')+'"/>' +
+      '<rect x="'+(mx-40)+'" y="'+(my-10)+'" width="80" height="19" rx="4" fill="#0f172a" opacity="0.92"/>' +
+      '<text x="'+mx+'" y="'+(my+4)+'" text-anchor="middle" fill="'+(sel?'#93c5fd':'#94a3b8')+'" font-size="10" font-family="ui-monospace,monospace">'+RELATION_LABEL[edge.relation]+'</text>';
+    (function(e){ g.addEventListener('click', function(ev) { ev.stopPropagation(); selectedEdge = (selectedEdge && selectedEdge.id===e.id) ? null : e; nodeDialog=null; render(); }); })(edge);
+    svg.appendChild(g);
+  });
+  world.appendChild(svg);
+
+  // Nodes
+  nodes.forEach(function(node) {
+    var card = document.createElement('div');
+    card.className = 'node-card';
+    card.style.cssText = 'left:'+node.x+'px;top:'+node.y+'px;border-left:4px solid '+TYPE_BORDER[node.contentType]+';cursor:'+(linkMode?'crosshair':'grab')+(linkSource===node.id?';outline:2px solid #60a5fa;outline-offset:2px':'');
+    var tagsHtml = node.tags.slice(0,3).map(function(t){ return '<span class="tag">'+esc(t)+'</span>'; }).join('');
+    card.innerHTML =
+      '<div style="padding:12px">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:6px">' +
+          '<p style="color:#f1f5f9;font-size:13px;font-weight:600;line-height:1.3;flex:1">'+esc(node.title)+'</p>' +
+          '<button class="del-node" style="background:none;border:none;color:#475569;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:1px" title="Delete">\u2715</button>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">' +
+          '<span class="badge" style="'+TYPE_BADGE[node.contentType]+'">'+node.contentType+'</span>' +
+          tagsHtml +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:10px">' +
+          '<span style="color:#475569">'+node.visibility+'</span>' +
+          '<span style="color:#64748b">trust '+node.trustScore.toFixed(2)+'</span>' +
+        '</div>' +
+      '</div>';
+    (function(n) {
+      card.addEventListener('mousedown', function(e) { e.stopPropagation(); if(linkMode) return; draggingNode={ id:n.id, mx:e.clientX, my:e.clientY }; });
+      card.addEventListener('click', function(e) { e.stopPropagation(); onNodeClick(n); });
+      card.querySelector('.del-node').addEventListener('click', function(e) { e.stopPropagation(); deleteNode(n.id); });
+    })(node);
+    world.appendChild(card);
+  });
+
+  area.appendChild(world);
+
+  if (nodes.length === 0) {
+    var hint = document.createElement('div');
+    hint.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none';
+    hint.innerHTML = '<span style="color:#1e3a5f;font-size:13px">Click &quot;+ Node&quot; to add your first memory</span>';
+    area.appendChild(hint);
+  }
+
+  if (linkMode) {
+    var lh = document.createElement('div');
+    lh.style.cssText = 'position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid #1d4ed8;color:#93c5fd;font-size:11px;padding:6px 18px;border-radius:99px;pointer-events:none;z-index:10';
+    lh.textContent = linkSource ? 'Now click the target node' : 'Click the source node';
+    area.appendChild(lh);
+  }
+
+  var zh = document.createElement('div');
+  zh.style.cssText = 'position:absolute;bottom:16px;right:16px;color:#1e3a5f;font-size:10px;pointer-events:none';
+  zh.textContent = 'scroll to zoom \u00b7 drag to pan';
+  area.appendChild(zh);
+
+  // Canvas event listeners
+  area.addEventListener('mousedown', function(e) {
+    if (e.target.closest('.node-card')) return;
+    isPanning = true;
+    area.style.cursor = 'grabbing';
+    panOrigin = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  });
+  area.addEventListener('mousemove', function(e) {
+    if (isPanning) {
+      pan.x = e.clientX - panOrigin.x;
+      pan.y = e.clientY - panOrigin.y;
+      world.style.transform = 'translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
+    }
+    if (draggingNode) {
+      var dx = (e.clientX - draggingNode.mx)/zoom;
+      var dy = (e.clientY - draggingNode.my)/zoom;
+      draggingNode.mx = e.clientX; draggingNode.my = e.clientY;
+      var n = nodes.find(function(n){ return n.id===draggingNode.id; });
+      if (n) { n.x += dx; n.y += dy; }
+      world.style.transform = 'translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
+      // Move card
+      var cards = world.querySelectorAll('.node-card');
+      cards.forEach(function(card, i) { card.style.left=nodes[i].x+'px'; card.style.top=nodes[i].y+'px'; });
+      // Update SVG edges
+      updateSVGEdges(svg);
+    }
+  });
+  area.addEventListener('mouseup', function() { isPanning=false; draggingNode=null; area.style.cursor='grab'; });
+  area.addEventListener('mouseleave', function() { isPanning=false; draggingNode=null; area.style.cursor='grab'; });
+  area.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    zoom = Math.min(2.5, Math.max(0.25, zoom - e.deltaY*0.001));
+    world.style.transform = 'translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
+  }, { passive:false });
+  area.addEventListener('click', function() { selectedEdge=null; removeEdgePanel(); });
+
+  root.appendChild(area);
+
+  renderEdgePanel();
+  renderNodeDialog();
+  renderPendingEdgeDialog();
+}
+
+function updateSVGEdges(svg) {
+  var gs = svg.querySelectorAll('g');
+  edges.forEach(function(edge, i) {
+    var g = gs[i]; if (!g) return;
+    var f = nodeCenter(edge.fromId), t = nodeCenter(edge.toId);
+    var mx = (f.x+t.x)/2, my = (f.y+t.y)/2;
+    var lines = g.querySelectorAll('line');
+    lines.forEach(function(l){ l.setAttribute('x1',f.x); l.setAttribute('y1',f.y); l.setAttribute('x2',t.x); l.setAttribute('y2',t.y); });
+    var rect = g.querySelector('rect'); if(rect){ rect.setAttribute('x',mx-40); rect.setAttribute('y',my-10); }
+    var text = g.querySelector('text'); if(text){ text.setAttribute('x',mx); text.setAttribute('y',my+4); }
+  });
+}
+
+function removeEdgePanel() { var p=document.getElementById('edge-panel'); if(p) p.remove(); }
+
+function renderEdgePanel() {
+  removeEdgePanel();
+  if (!selectedEdge) return;
+  var e = selectedEdge;
+  var panel = document.createElement('div');
+  panel.id = 'edge-panel'; panel.className = 'edge-panel';
+  panel.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+      '<span style="color:#e2e8f0;font-size:12px;font-weight:700">Edge</span>' +
+      '<button id="close-ep" style="background:none;border:none;color:#475569;cursor:pointer;font-size:14px">\u2715</button>' +
+    '</div>' +
+    '<div style="font-size:11px;display:flex;flex-direction:column;gap:5px">' +
+      '<div style="display:flex;justify-content:space-between"><span style="color:#64748b">relation</span><span style="color:#e2e8f0">'+e.relation.replace('_',' ')+'</span></div>' +
+      '<div style="display:flex;justify-content:space-between"><span style="color:#64748b">weight</span><span style="color:#e2e8f0">'+e.weight.toFixed(2)+'</span></div>' +
+      '<div style="display:flex;justify-content:space-between"><span style="color:#64748b">co-accesses</span><span style="color:#e2e8f0">'+e.coAccessCount+'</span></div>' +
+    '</div>' +
+    '<button id="del-edge-btn" class="btn btn-danger" style="width:100%;margin-top:10px;justify-content:center">Delete Edge</button>';
+  document.body.appendChild(panel);
+  document.getElementById('close-ep').onclick = function() { selectedEdge=null; removeEdgePanel(); };
+  document.getElementById('del-edge-btn').onclick = function() {
+    edges = edges.filter(function(x){ return x.id!==e.id; });
+    selectedEdge=null; render();
+  };
+}
+
+function renderNodeDialog() {
+  var existing = document.getElementById('node-overlay'); if(existing) existing.remove();
+  if (!nodeDialog) return;
+  var node = nodeDialog.node || {};
+  var ov = document.createElement('div'); ov.id='node-overlay'; ov.className='overlay';
+  ov.addEventListener('click', function(e){ if(e.target===ov){ nodeDialog=null; render(); } });
+  var d = document.createElement('div'); d.className='dialog';
+
+  var typeOpts = ['factual','procedural','preference','context'].map(function(t){
+    return '<option value="'+t+'"'+(node.contentType===t?' selected':'')+'>'+t+'</option>';
+  }).join('');
+  var visOpts = ['public','team','private'].map(function(v){
+    return '<option value="'+v+'"'+(node.visibility===v?' selected':'')+'>'+v+'</option>';
+  }).join('');
+
+  d.innerHTML =
+    '<h2>'+(nodeDialog.mode==='add'?'New Memory Node':'Edit Node')+'</h2>' +
+    '<div style="margin-bottom:12px"><label class="form-label">Title</label><input id="f-title" class="form-input" placeholder="Memory title..." value="'+esc(node.title||'')+'"/></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+      '<div><label class="form-label">Type</label><select id="f-type" class="form-select">'+typeOpts+'</select></div>' +
+      '<div><label class="form-label">Visibility</label><select id="f-vis" class="form-select">'+visOpts+'</select></div>' +
+    '</div>' +
+    '<div style="margin-bottom:12px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+        '<label class="form-label" style="margin:0">Content (Markdown)</label>' +
+        '<button id="toggle-prev" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:11px;font-family:inherit">\ud83d\udc41 Preview</button>' +
+      '</div>' +
+      '<textarea id="f-body" class="form-textarea" placeholder="Write in Markdown...">'+esc(node.body||'')+'</textarea>' +
+      '<div id="f-preview" class="preview-box" style="display:none"></div>' +
+    '</div>' +
+    '<div style="margin-bottom:16px"><label class="form-label">Tags (comma-separated)</label><input id="f-tags" class="form-input" placeholder="k8s, gcp, infra" value="'+esc((node.tags||[]).join(', '))+'"/></div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button id="save-node" class="btn btn-primary" style="flex:1;justify-content:center">Save</button>' +
+      '<button id="cancel-node" class="btn btn-ghost">Cancel</button>' +
+    '</div>' +
+    (nodeDialog.mode==='edit' ? '<button id="del-node-btn" class="btn btn-danger" style="width:100%;margin-top:8px;justify-content:center">Delete Node</button>' : '');
+
+  ov.appendChild(d); document.body.appendChild(ov);
+
+  var showPreview = false;
+  d.querySelector('#toggle-prev').onclick = function() {
+    showPreview = !showPreview;
+    d.querySelector('#f-body').style.display = showPreview ? 'none' : '';
+    var prev = d.querySelector('#f-preview');
+    prev.style.display = showPreview ? '' : 'none';
+    if (showPreview) prev.innerHTML = renderMd(d.querySelector('#f-body').value);
+    d.querySelector('#toggle-prev').textContent = showPreview ? '\u270f\ufe0f Edit' : '\ud83d\udc41 Preview';
+  };
+  d.querySelector('#cancel-node').onclick = function() { nodeDialog=null; render(); };
+  d.querySelector('#save-node').onclick = function() {
+    var title = d.querySelector('#f-title').value.trim() || 'Untitled';
+    var body  = d.querySelector('#f-body').value;
+    var contentType = d.querySelector('#f-type').value;
+    var visibility  = d.querySelector('#f-vis').value;
+    var tags = d.querySelector('#f-tags').value.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+    if (nodeDialog.mode === 'add') {
+      nodes.push({ id:uid('mem'), title:title, body:body, contentType:contentType, tags:tags, visibility:visibility, trustScore:1.0, x:180+Math.random()*300, y:120+Math.random()*220 });
+    } else {
+      var n = nodes.find(function(n){ return n.id===nodeDialog.node.id; });
+      if (n) { n.title=title; n.body=body; n.contentType=contentType; n.tags=tags; n.visibility=visibility; }
+    }
+    nodeDialog=null; render();
+  };
+  if (nodeDialog.mode==='edit') {
+    d.querySelector('#del-node-btn').onclick = function() { deleteNode(nodeDialog.node.id); };
+  }
+}
+
+function renderPendingEdgeDialog() {
+  var existing = document.getElementById('pending-overlay'); if(existing) existing.remove();
+  if (!pendingEdge) return;
+  var ov = document.createElement('div'); ov.id='pending-overlay'; ov.className='overlay';
+  ov.addEventListener('click', function(e){ if(e.target===ov){ pendingEdge=null; render(); } });
+  var d = document.createElement('div'); d.className='dialog'; d.style.maxWidth='300px';
+  d.innerHTML = '<h2>Choose Relation Type</h2>';
+  ['depends_on','extends','related_to','contradicts'].forEach(function(r) {
+    var btn = document.createElement('button');
+    btn.className = 'relation-btn' + (r===pendingRelation ? ' selected' : '');
+    btn.textContent = r.replace('_',' ');
+    btn.onclick = function() { pendingRelation=r; renderPendingEdgeDialog(); };
+    d.appendChild(btn);
+  });
+  var confirm = document.createElement('button');
+  confirm.className = 'btn btn-primary'; confirm.style.cssText='width:100%;justify-content:center;margin-top:4px';
+  confirm.textContent = 'Create Edge';
+  confirm.onclick = function() {
+    var exists = edges.some(function(e){ return (e.fromId===pendingEdge.fromId&&e.toId===pendingEdge.toId)||(e.fromId===pendingEdge.toId&&e.toId===pendingEdge.fromId); });
+    if (!exists) edges.push({ id:uid('edge'), fromId:pendingEdge.fromId, toId:pendingEdge.toId, relation:pendingRelation, weight:1.0, coAccessCount:0 });
+    pendingEdge=null; linkMode=false; render();
+  };
+  d.appendChild(confirm);
+  ov.appendChild(d); document.body.appendChild(ov);
+}
+
+function openNodeDialog(opts) { selectedEdge=null; nodeDialog=opts; render(); }
+
+function deleteNode(id) {
+  nodes = nodes.filter(function(n){ return n.id!==id; });
+  edges = edges.filter(function(e){ return e.fromId!==id&&e.toId!==id; });
+  nodeDialog=null; render();
+}
+
+function onNodeClick(node) {
+  if (linkMode) {
+    if (!linkSource) { linkSource=node.id; render(); }
+    else if (linkSource!==node.id) { pendingEdge={ fromId:linkSource, toId:node.id }; linkSource=null; render(); }
+    return;
+  }
+  selectedEdge=null; nodeDialog={ mode:'edit', node:node }; render();
+}
+
+function makeBtn(text, cls, onclick) {
+  var b = document.createElement('button');
+  b.textContent = text; b.className = cls; b.onclick = onclick; return b;
+}
+
+render();
+})();
+</script>
+</body>
+</html>

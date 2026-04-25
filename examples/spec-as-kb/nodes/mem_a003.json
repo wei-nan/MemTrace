@@ -1,0 +1,30 @@
+{
+  "id": "mem_a003",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Review Queue：人工審核 AI 萃取結果",
+    "en": "Review Queue: human review of AI-extracted candidates"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": {
+      "zh-TW": "AI 萃取的候選節點不自動進入知識庫，必須通過人工審核。三種操作：Accept（接受原樣）、Edit then Accept（修改後接受）、Reject（捨棄）。支援批次操作（Accept all / Reject all）。至少需接受一個節點才能關閉審核步驟。審核完成後，被接受的節點以正確的 source_type 寫入知識庫，被拒絕的候選永久丟棄。這是 MemTrace 確保 AI 生成內容不污染知識庫的核心機制。",
+      "en": "AI-extracted candidate nodes do not enter the Knowledge Base automatically — they must pass human review. Three actions: Accept (as-is), Edit then Accept (modify before committing), Reject (discard). Bulk operations (Accept all / Reject all) are supported. At least one node must be accepted before the review step can be closed. After review, accepted nodes are written with the correct source_type; rejected candidates are permanently discarded. This is MemTrace's core mechanism for preventing AI-generated content from polluting the Knowledge Base."
+    }
+  },
+  "tags": ["ai", "review-queue", "quality-control", "ingestion"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

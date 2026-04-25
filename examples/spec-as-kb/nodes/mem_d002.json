@@ -1,0 +1,30 @@
+{
+  "id": "mem_d002",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Edge：有向有型的關係",
+    "en": "Edge: a typed, directed relationship"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "Edge 連接兩個 Memory Node，方向為 `from → to`。每條 Edge 包含：\n\n- **Relation type**：depends_on / extends / related_to / contradicts\n- **Weight**：0–1，反映關係強度；由 decay 與 co-access boost 動態更新\n- **Co-access count**：被共同存取的次數\n- **Decay 參數**：half_life_days（預設 30）、min_weight（預設 0.1）\n- **Traversal**：走訪次數、平均評分（1–5）、評分人數\n\nEdge ID 格式：`edge_<hex8>`。同一對節點間相同 relation type 的 Edge 不重複。",
+      "en": "An Edge connects two Memory Nodes with direction `from → to`. Each edge contains:\n\n- **Relation type**: depends_on / extends / related_to / contradicts\n- **Weight**: 0–1, reflecting relationship strength; dynamically updated by decay and co-access boost\n- **Co-access count**: how many times accessed together\n- **Decay parameters**: half_life_days (default 30), min_weight (default 0.1)\n- **Traversal**: visit count, average rating (1–5), rating count\n\nEdge ID format: `edge_<hex8>`. Duplicate edges (same from, to, relation) are rejected."
+    }
+  },
+  "tags": ["data-model", "schema", "graph", "core"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

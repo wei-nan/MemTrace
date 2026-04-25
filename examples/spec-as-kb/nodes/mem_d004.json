@@ -1,0 +1,30 @@
+{
+  "id": "mem_d004",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Trust 系統：信任如何被計算",
+    "en": "Trust system: how trust is calculated"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "每個 Memory Node 帶有一個 0–1 的綜合信任分數，由四個維度合成：\n\n| 維度 | 說明 | 建立時預設 |\n|------|------|----------|\n| `accuracy` | 事實正確性 | 0.5 |\n| `freshness` | 時效性 | 1.0 |\n| `utility` | 實用程度 | 0.5 |\n| `author_rep` | 作者信譽 | 0.5 |\n\n信任分數隨社群投票（up/down）與驗證次數持續更新。內容以 SHA-256 簽章防偽，每次儲存重新計算。Trust score < 0.3 的節點標記警告；< 0.1 的節點從公開索引移除。",
+      "en": "Every Memory Node carries a composite trust score (0–1) derived from four dimensions:\n\n| Dimension | Description | Default at creation |\n|-----------|-------------|--------------------|\n| `accuracy` | Factual correctness | 0.5 |\n| `freshness` | Timeliness | 1.0 |\n| `utility` | Practical usefulness | 0.5 |\n| `author_rep` | Author reputation | 0.5 |\n\nTrust scores are updated continuously by community votes (up/down) and verification counts. Content is SHA-256 signed on every save. Nodes with score < 0.3 are flagged; nodes < 0.1 are removed from the public index."
+    }
+  },
+  "tags": ["data-model", "trust", "anti-forgery"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00Z",
+    "signature": "a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}
