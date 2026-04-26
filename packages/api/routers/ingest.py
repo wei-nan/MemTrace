@@ -470,7 +470,7 @@ async def ingest_file(
     user: dict = Depends(get_current_user),
 ):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         job_id = generate_id("ing")
         cur.execute(
             """
@@ -521,7 +521,7 @@ async def ingest_url(
 ):
     url = payload.url
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         job_id = generate_id("ing")
         cur.execute(
             """

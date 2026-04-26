@@ -179,7 +179,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
           {Object.entries(data.kb_type_metrics).map(([key, value]) => (
             <div key={key} style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{key}</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t(`analytics.metrics.${key}`, { defaultValue: key })}</div>
               <div style={{ fontSize: 20, fontWeight: 700 }}>
                 {key.includes("ratio") ? formatPercent(value) : Number(value).toFixed(key.includes("avg_days") ? 1 : 2).replace(".00", "")}
               </div>

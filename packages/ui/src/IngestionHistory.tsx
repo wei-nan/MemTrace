@@ -10,7 +10,7 @@ function ChunkProgress({ done, total }: { done: number; total: number }) {
   return (
     <div style={{ marginTop: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
-        <span>區塊 {done} / {total}</span>
+        <span>{done} / {total}</span>
         <span>{pct}%</span>
       </div>
       <div style={{ height: 4, borderRadius: 99, background: 'var(--border-default)', overflow: 'hidden' }}>
@@ -30,7 +30,7 @@ function ChunkProgress({ done, total }: { done: number; total: number }) {
 
 // ── Server-side notice (shown once) ─────────────────────────────────────────
 
-function ServerSideNotice({ zh }: { zh: boolean }) {
+function ServerSideNotice({ t }: { t: any }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 10,
@@ -40,9 +40,7 @@ function ServerSideNotice({ zh }: { zh: boolean }) {
     }}>
       <ServerCrash size={14} style={{ marginTop: 1, flexShrink: 0, color: 'var(--color-primary)' }} />
       <span>
-        {zh
-          ? '攝入作業在伺服器後台執行，離開此頁面不會中斷。您可隨時回來查看進度。'
-          : 'Ingestion runs on the server — leaving this page will not interrupt it. Come back anytime to check progress.'}
+        {t('ingest.server_notice')}
       </span>
     </div>
   );
@@ -50,7 +48,7 @@ function ServerSideNotice({ zh }: { zh: boolean }) {
 
 // ── Single log row ──────────────────────────────────────────────────────────
 
-function LogRow({ log, zh, onGoToReview }: { log: IngestionLog; zh: boolean; onGoToReview: () => void }) {
+function LogRow({ log, t, onGoToReview }: { log: IngestionLog; t: any; onGoToReview: () => void }) {
   const isMultiChunk = (log.chunks_total ?? 1) > 1;
 
   return (
@@ -85,11 +83,11 @@ function LogRow({ log, zh, onGoToReview }: { log: IngestionLog; zh: boolean; onG
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
               {log.status === 'processing' && (
                 isMultiChunk
-                  ? (zh ? `AI 分塊分析中，請稍候…` : `AI analysing chunks, please wait…`)
-                  : (zh ? 'AI 正在分析並提取知識點…' : 'AI is analysing and extracting nodes…')
+                  ? t('ingest.processing_chunks')
+                  : t('ingest.processing_single')
               )}
-              {log.status === 'completed' && (zh ? '已產出建議節點，等待審核' : 'Suggestions generated, pending review')}
-              {log.status === 'failed'    && (log.error_msg || (zh ? '解析失敗' : 'Analysis failed'))}
+              {log.status === 'completed' && t('ingest.completed')}
+              {log.status === 'failed'    && (log.error_msg || t('ingest.failed'))}
             </div>
 
             {/* Progress bar — only when multi-chunk & still processing */}
@@ -106,7 +104,7 @@ function LogRow({ log, zh, onGoToReview }: { log: IngestionLog; zh: boolean; onG
             onClick={onGoToReview}
             style={{ padding: '6px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}
           >
-            {zh ? '前往審核' : 'Review'}
+            {t('ingest.review_btn')}
             <ExternalLink size={12} />
           </button>
         )}
@@ -126,8 +124,7 @@ export default function IngestionHistory({
   onGoToReview: () => void;
   refreshKey: number;
 }) {
-  const { i18n } = useTranslation();
-  const zh = i18n.language === 'zh-TW';
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<IngestionLog[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -165,14 +162,14 @@ export default function IngestionHistory({
     <div style={{ marginTop: 40, textAlign: 'left' }}>
       <h3 style={{ fontSize: 16, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
         <Clock size={16} />
-        {zh ? '最近匯入紀錄' : 'Recent Ingestions'}
+        {t('ingest.recent')}
       </h3>
 
-      {hasProcessing && <ServerSideNotice zh={zh} />}
+      {hasProcessing && <ServerSideNotice t={t} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {logs.map(log => (
-          <LogRow key={log.id} log={log} zh={zh} onGoToReview={onGoToReview} />
+          <LogRow key={log.id} log={log} t={t} onGoToReview={onGoToReview} />
         ))}
       </div>
     </div>

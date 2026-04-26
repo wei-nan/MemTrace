@@ -728,6 +728,17 @@ relation 語意：
       },
     },
     {
+      name: "list_empty_nodes",
+      description: "列出工作區中 body 為空（中英文均缺）的節點，供 AI 發現並補充內容使用。",
+      inputSchema: {
+        type: "object" as const,
+        properties: {
+          limit: { type: "number", description: "最多回傳幾個（預設 10）" },
+          workspace_id: { type: "string", description: "Target workspace ID (omit to use server default)" },
+        },
+      },
+    },
+    {
       name: "get_schema",
       description: "取得 MemTrace 節點與邊的完整規格、有效值列表與建立最佳實踐。不確定欄位格式時請先呼叫此工具。",
       inputSchema: {
@@ -793,6 +804,20 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "list_workspaces":
         text = await listWorkspaces(Number(args?.limit ?? 20));
         break;
+      case "list_empty_nodes": {
+        const wsId = args?.workspace_id ? String(args.workspace_id) : WS_ID;
+        const limit = Number(args?.limit ?? 10);
+        const nodes = await apiFetch<ApiNode[]>(
+          `/workspaces/${wsId}/nodes?filter=empty_body&limit=${limit}`
+        );
+        await logMcpQuery({ workspace_id: wsId, tool_name: "list_empty_nodes", result_node_count: nodes.length, estimated_tokens: estimateNodeTokens(nodes) });
+        if (nodes.length === 0) {
+          text = "No empty-body nodes found in this workspace.";
+        } else {
+          text = [`**${nodes.length}** node(s) with empty body:\n`, ...nodes.map(n => renderNode(n, false))].join("\n\n");
+        }
+        break;
+      }
       case "get_schema": {
         const topic = args?.topic ?? "all";
         if (topic === "node") text = NODE_GUIDE;
@@ -878,21 +903,28 @@ const transportMode = process.env.MCP_TRANSPORT ?? "stdio";
 if (transportMode === "sse") {
   const app = express();
   const port = Number(process.env.MCP_PORT) || 3001;
-  let sseTransport: SSEServerTransport | null = null;
+  const sessions = new Map<string, SSEServerTransport>();
 
   app.get("/sse", async (_req: Request, res: Response) => {
-    console.log("New SSE connection");
-    sseTransport = new SSEServerTransport("/messages", res);
-    await server.connect(sseTransport);
+    const sessionId = crypto.randomUUID();
+    console.log(`New SSE connection: ${sessionId}`);
+    const transport = new SSEServerTransport(`/messages?sessionId=${sessionId}`, res);
+    sessions.set(sessionId, transport);
+    res.on("close", () => {
+      sessions.delete(sessionId);
+      console.log(`SSE session closed: ${sessionId}`);
+    });
+    await server.connect(transport);
   });
 
   app.post("/messages", async (req: Request, res: Response) => {
-    console.log("Received message");
-    if (sseTransport) {
-      await sseTransport.handlePostMessage(req, res);
-    } else {
-      res.status(400).send("No active SSE session");
+    const sessionId = req.query.sessionId as string;
+    const transport = sessions.get(sessionId);
+    if (!transport) {
+      res.status(400).send("Session not found or expired");
+      return;
     }
+    await transport.handlePostMessage(req, res);
   });
 
   app.listen(port, () => {

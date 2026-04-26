@@ -410,6 +410,7 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
                   <span style="opacity:0.5;font-size:10px">${edges} ${zh ? '關聯' : 'edges'}</span>
                 </div>
                 ${isExpired ? `<div style="color:#eab308;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '有效性已過期' : 'Validity Expired'}</div>` : ''}
+                ${(!n.body_zh && !n.body_en) ? `<div style="color:#ef4444;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '內容為空' : 'Empty Body'}</div>` : ''}
               </div>`;
             }}
             nodeThreeObject={nodeThreeObject}

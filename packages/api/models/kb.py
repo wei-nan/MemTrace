@@ -25,6 +25,7 @@ class WorkspaceResponse(BaseModel):
     min_traversals: int
     created_at: datetime
     updated_at: datetime
+    my_role: Optional[str] = None  # effective role of the requesting user: 'admin'|'editor'|'viewer'|None
 
 
 class WorkspaceAssociationResponse(BaseModel):

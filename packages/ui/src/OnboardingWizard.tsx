@@ -4,7 +4,7 @@ import {
   CheckCircle2, Mail, Database, FileUp, 
   Settings2, PartyPopper, ChevronRight,
   Upload, Loader2, AlertCircle, RefreshCw,
-  Languages
+  Languages, GitMerge, Key
 } from 'lucide-react';
 import { auth, workspaces, ai, ingest, type Onboarding } from './api';
 
@@ -165,6 +165,25 @@ export default function OnboardingWizard({
           繁體中文
         </button>
       </div>
+
+      {/* Concept Explanation */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginTop: 32, textAlign: "left" }}>
+        <div style={{ background: "var(--bg-elevated)", padding: 16, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+          <div style={{ color: "var(--color-primary)", marginBottom: 8 }}><Database size={20} /></div>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t('onboarding.concept_node_title')}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t('onboarding.concept_node_desc')}</div>
+        </div>
+        <div style={{ background: "var(--bg-elevated)", padding: 16, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+          <div style={{ color: "var(--color-primary)", marginBottom: 8 }}><GitMerge size={20} /></div>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t('onboarding.concept_edge_title')}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t('onboarding.concept_edge_desc')}</div>
+        </div>
+        <div style={{ background: "var(--bg-elevated)", padding: 16, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+          <div style={{ color: "var(--color-primary)", marginBottom: 8 }}><CheckCircle2 size={20} /></div>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t('onboarding.concept_trust_title')}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t('onboarding.concept_trust_desc')}</div>
+        </div>
+      </div>
       <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('welcome')}>
         {zh ? '下一步' : 'Next Step'} <ChevronRight size={16} />
       </button>
@@ -174,10 +193,10 @@ export default function OnboardingWizard({
   const renderAccount = () => (
     <div className="onboard-card">
       <div className="onboard-icon-success"><CheckCircle2 size={48} /></div>
-      <h3>{zh ? '帳號已準備就緒' : 'Account Ready'}</h3>
-      <p>{zh ? '歡迎來到 MemTrace！您的數據將被加密存儲並支持跨平台同步。' : 'Welcome to MemTrace! Your data is encrypted and synced across devices.'}</p>
+      <h3>{t('onboarding.account_ready')}</h3>
+      <p>{t('onboarding.account_subtitle')}</p>
       <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('account')}>
-        {zh ? '開始設定' : 'Start Setup'} <ChevronRight size={16} />
+        {t('onboarding.start_setup')} <ChevronRight size={16} />
       </button>
     </div>
   );
@@ -315,7 +334,42 @@ export default function OnboardingWizard({
       <div className="onboard-icon-warn"><PartyPopper size={48} /></div>
       <h3>{t('onboarding.ready_title')}</h3>
       <p>{t('onboarding.ready_subtitle')}</p>
-      <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={onComplete}>
+
+      {/* Example KB hint */}
+      <div style={{
+        marginTop: 28, padding: '14px 18px', borderRadius: 12,
+        background: 'var(--color-primary-subtle)', border: '1px solid var(--color-primary)',
+        textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: 12,
+      }}>
+        <Database size={20} style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 2 }} />
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-primary)', marginBottom: 4 }}>
+            {t('onboarding.spec_kb_title')}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            {t('onboarding.spec_kb_desc')}
+          </div>
+        </div>
+      </div>
+
+      {/* API Key Guidance */}
+      <div style={{
+        marginTop: 16, padding: '14px 18px', borderRadius: 12,
+        background: 'var(--bg-elevated)', border: '1px solid var(--border-default)',
+        textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: 12,
+      }}>
+        <Key size={20} style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 2 }} />
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>
+            {t('onboarding.api_key_guide_title')}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            {t('onboarding.api_key_guide_desc')}
+          </div>
+        </div>
+      </div>
+
+      <button className="btn-primary mt-32" style={{ display: 'block', margin: '24px auto 0' }} onClick={onComplete}>
         {t('onboarding.enter_app')}
       </button>
     </div>

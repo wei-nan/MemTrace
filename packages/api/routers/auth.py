@@ -202,13 +202,10 @@ def me(current_user: dict = Depends(get_current_user)):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        cur.execute(
-            "SELECT provider FROM oauth_identities WHERE user_id = %s",
-            (user["id"],)
-        )
-        providers = [r["provider"] for r in cur.fetchall()]
         if user.get("password_hash"):
-            providers.append("password")
+            providers = ["password"]
+        else:
+            providers = []
 
     return UserResponse(
         id=user["id"],

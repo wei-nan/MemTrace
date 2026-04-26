@@ -11,6 +11,24 @@ from pydantic import BaseModel
 
 from core.database import db_cursor
 from core.config import settings
+
+
+def _is_postgres() -> bool:
+    return settings.database_url.startswith("postgresql")
+
+
+def _apply_text_search(filters: list, params: list, q: str) -> None:
+    """Add full-text search conditions. Uses tsvector on PostgreSQL, LIKE on SQLite."""
+    if _is_postgres():
+        for token in q.split():
+            filters.append("search_vector @@ plainto_tsquery('simple', %s)")
+            params.append(token)
+    else:
+        like = f"%{q}%"
+        filters.append(
+            "(title_zh LIKE %s OR title_en LIKE %s OR body_zh LIKE %s OR body_en LIKE %s)"
+        )
+        params += [like, like, like, like]
 from core.deps import get_current_user, get_current_user_optional, RequireScope
 from core.diff import build_node_diff
 from core.security import compute_signature, generate_id
@@ -54,11 +72,17 @@ NODE_EDITABLE_FIELDS = [
 
 
 def _require_ws_access(cur, ws_id: str, user: Optional[dict], write: bool = False, required_scope: Optional[str] = None):
-    # API key scope validation
-    if user and "api_key_id" in user and required_scope:
-        scopes = user.get("scopes") or []
-        if "*" not in scopes and required_scope not in scopes:
-            raise HTTPException(status_code=403, detail={"error": "insufficient_scope", "required": required_scope})
+    # API key scope and workspace validation
+    if user and "api_key_id" in user:
+        # Check workspace scoping
+        ak_ws_id = user.get("workspace_id")
+        if ak_ws_id and ak_ws_id != ws_id:
+            raise HTTPException(status_code=403, detail="API key is restricted to another workspace")
+            
+        if required_scope:
+            scopes = user.get("scopes") or []
+            if "*" not in scopes and required_scope not in scopes:
+                raise HTTPException(status_code=403, detail={"error": "insufficient_scope", "required": required_scope})
 
     cur.execute("SELECT visibility, owner_id, kb_type FROM workspaces WHERE id = %s", (ws_id,))
     ws = cur.fetchone()
@@ -110,6 +134,9 @@ def _strip_body_if_viewer(node_row: dict, role: Optional[str]):
     node_row = dict(node_row)
     node_row["content_stripped"] = False
     if role not in ("editor", "admin"):
+        # Plan A: public nodes retain body even for non-members
+        if node_row.get("visibility") == "public":
+            return node_row
         node_row["body_zh"] = None
         node_row["body_en"] = None
         node_row["content_stripped"] = True
@@ -347,30 +374,83 @@ async def _bg_embed_node(ws_id: str, node_id: str, text: str, user_id: str):
         print(f"BG Embedding failed for node {node_id}: {exc}")
 
 
+def _bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
+    """After a node is created, find semantically similar nodes and propose edges via review_queue."""
+    import time
+    # Wait briefly for the embedding background task to likely finish
+    time.sleep(3)
+    try:
+        with db_cursor() as cur:
+            cur.execute("SELECT embedding FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+            row = cur.fetchone()
+            if not row or row["embedding"] is None:
+                return
+
+        with db_cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, (1 - (embedding <=> %s::vector)) AS sim
+                FROM memory_nodes
+                WHERE workspace_id = %s AND id != %s
+                  AND embedding IS NOT NULL AND status = 'active'
+                  AND content_type != 'source_document'
+                ORDER BY sim DESC
+                LIMIT 5
+                """,
+                (row["embedding"], ws_id, node_id),
+            )
+            candidates = [r for r in cur.fetchall() if r["sim"] > 0.70]
+
+        if not candidates:
+            return
+
+        with db_cursor(commit=True) as cur:
+            for c in candidates:
+                try:
+                    _propose_change(
+                        cur, ws_id, "create_edge", None,
+                        {"from_id": node_id, "to_id": c["id"],
+                         "relation": "related_to", "weight": round(float(c["sim"]), 2)},
+                        "ai", user_id,
+                        {"source": "auto_edge_suggestion"},
+                        source_info=f"Auto-suggested edge (similarity={c['sim']:.2f})",
+                    )
+                except Exception:
+                    pass  # Skip if duplicate or other constraint
+    except Exception as exc:
+        print(f"BG Edge suggestion failed for node {node_id}: {exc}")
+
+
 @router.get("/workspaces", response_model=list[WorkspaceResponse])
 def list_workspaces(search: Optional[str] = Query(None), user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
+        uid = user["sub"]
         filters = [
             """
             (
-                owner_id = %s
-                OR id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
-                OR visibility IN ('public', 'conditional_public')
+                w.owner_id = %s
+                OR w.id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
+                OR w.visibility IN ('public', 'conditional_public')
             )
             """
         ]
-        params: list = [user["sub"], user["sub"]]
+        params: list = [uid, uid]
         if search:
-            filters.append("(name_zh ILIKE %s OR name_en ILIKE %s)")
+            filters.append("(w.name_zh ILIKE %s OR w.name_en ILIKE %s)")
             like = f"%{search}%"
             params.extend([like, like])
         cur.execute(
             f"""
-            SELECT * FROM workspaces
+            SELECT w.*,
+                   CASE WHEN w.owner_id = %s THEN 'admin'
+                        ELSE wm.role::text
+                   END AS my_role
+            FROM workspaces w
+            LEFT JOIN workspace_members wm ON wm.workspace_id = w.id AND wm.user_id = %s
             WHERE {' AND '.join(filters)}
-            ORDER BY updated_at DESC
+            ORDER BY w.updated_at DESC
             """,
-            params,
+            [uid, uid] + params,
         )
         return cur.fetchall()
 
@@ -392,6 +472,38 @@ def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_use
             (ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, user["sub"], body.archive_window_days, body.min_traversals),
         )
         return cur.fetchone()
+
+
+@router.get("/workspaces/{ws_id}/decay-stats")
+def get_decay_stats(ws_id: str, user: dict = Depends(get_current_user)):
+    """Admin-only: return decay job status and edge weight distribution for a workspace."""
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role not in ("admin",):
+            raise HTTPException(status_code=403, detail="Admin only")
+
+        cur.execute("SELECT value FROM system_state WHERE key = 'last_decay_at'")
+        state_row = cur.fetchone()
+        last_decay_at = state_row["value"] if state_row else None
+
+        cur.execute(
+            "SELECT COUNT(*) FROM edges WHERE workspace_id = %s AND status = 'faded'",
+            (ws_id,),
+        )
+        faded_count = cur.fetchone()["count"]
+
+        cur.execute(
+            "SELECT COUNT(*) FROM edges WHERE workspace_id = %s AND status = 'active' AND weight < 0.2",
+            (ws_id,),
+        )
+        low_weight_count = cur.fetchone()["count"]
+
+    return {
+        "last_decay_at": last_decay_at,
+        "faded_edge_count": faded_count,
+        "low_weight_edge_count": low_weight_count,
+    }
 
 
 @router.get("/workspaces/{ws_id}/graph-preview", response_model=GraphPreviewResponse)
@@ -546,15 +658,17 @@ def list_nodes(
             )
         elif filter == "never_traversed":
             filters.append("traversal_count = 0")
+        elif filter == "empty_body":
+            filters.append(
+                "(body_zh IS NULL OR body_zh = '') AND (body_en IS NULL OR body_en = '')"
+            )
         else:
             if status != "all":
                 filters.append("status = %s")
                 params.append(status)
 
         if q:
-            filters.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)")
-            like = f"%{q}%"
-            params += [like, like, like, like]
+            _apply_text_search(filters, params, q)
         if tag:
             filters.append("%s = ANY(tags)")
             params.append(tag)
@@ -566,14 +680,18 @@ def list_nodes(
             filters.append("content_type != 'source_document'")
         params += [limit, offset]
         cur.execute(f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params)
+        rows = cur.fetchall()  # fetchall BEFORE any further cur.execute calls
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
-        return [_strip_body_if_viewer(row, role) for row in cur.fetchall()]
+        return [_strip_body_if_viewer(row, role) for row in rows]
 
 
 @router.get("/workspaces/{ws_id}/table-view", response_model=TableViewResponse)
 def get_table_view(
     ws_id: str, 
     q: Optional[str] = Query(None),
+    filter: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query("created_at"),
+    order: Optional[str] = Query("desc"),
     limit: int = Query(50, le=200), 
     offset: int = Query(0), 
     user: dict = Depends(get_current_user_optional)
@@ -583,15 +701,27 @@ def get_table_view(
         filters = ["workspace_id = %s", "status = 'active'", "content_type != 'source_document'"]
         params = [ws_id]
         if q:
-            filters.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)")
-            like = f"%{q}%"
-            params += [like, like, like, like]
+            _apply_text_search(filters, params, q)
         
+        if filter == "orphan":
+            filters.append("NOT EXISTS (SELECT 1 FROM edges WHERE (from_id = memory_nodes.id OR to_id = memory_nodes.id) AND status = 'active')")
+
         cur.execute(f"SELECT COUNT(*) FROM memory_nodes WHERE {' AND '.join(filters)}", params)
         total = cur.fetchone()["count"]
         
+        # Sort logic
+        sort_col = "created_at"
+        if sort_by in ("title", "title_en", "title_zh"):
+            sort_col = "title_en" # Fallback
+        elif sort_by == "content_type":
+            sort_col = "content_type"
+        elif sort_by == "trust_score":
+            sort_col = "trust_score"
+        
+        sort_order = "DESC" if order.lower() == "desc" else "ASC"
+        
         params_list = list(params) + [limit, offset]
-        cur.execute(f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params_list)
+        cur.execute(f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY {sort_col} {sort_order} LIMIT %s OFFSET %s", params_list)
         rows = cur.fetchall()
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
         nodes = [_strip_body_if_viewer(row, role) for row in rows]
@@ -599,21 +729,20 @@ def get_table_view(
 
 
 @router.get("/workspaces/{ws_id}/nodes-search", response_model=List[NodeResponse])
-def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dict = Depends(get_current_user)):
+def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dict = Depends(get_current_user_optional)):
     with db_cursor() as cur:
-        role = _require_ws_access(cur, ws_id, user)
-        like_query = f"%{query}%"
+        ws = _require_ws_access(cur, ws_id, user)
+        filters = ["workspace_id = %s", "status = 'active'"]
+        params: list = [ws_id]
+        _apply_text_search(filters, params, query)
+        params.append(limit)
         cur.execute(
-            """
-            SELECT * FROM memory_nodes
-            WHERE workspace_id = %s
-              AND (title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s OR body_en ILIKE %s)
-            ORDER BY updated_at DESC, created_at DESC
-            LIMIT %s
-            """,
-            (ws_id, like_query, like_query, like_query, like_query, limit),
+            f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY updated_at DESC, created_at DESC LIMIT %s",
+            params,
         )
-        return [_strip_body_if_viewer(row, role) for row in cur.fetchall()]
+        rows = cur.fetchall()  # fetchall before _get_effective_role to avoid cursor reuse
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
+        return [_strip_body_if_viewer(row, role) for row in rows]
 
 
 @router.post("/workspaces/{ws_id}/nodes/search-semantic", response_model=List[NodeResponse])
@@ -639,6 +768,127 @@ async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: d
         raise HTTPException(status_code=402, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Embedding error: {exc}")
+
+
+@router.get("/workspaces/{ws_id}/nodes/health")
+def get_nodes_health(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    """Return content quality stats for a workspace (viewer+ role required)."""
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            """
+            SELECT
+              COUNT(*) FILTER (WHERE status = 'active')                                       AS total,
+              COUNT(*) FILTER (WHERE status = 'active'
+                                 AND (body_zh IS NULL OR body_zh = '')
+                                 AND (body_en IS NULL OR body_en = ''))                        AS empty_body,
+              COUNT(*) FILTER (WHERE status = 'active'
+                                 AND (
+                                   ((body_zh IS NULL OR body_zh = '') AND (body_en IS NOT NULL AND body_en != ''))
+                                   OR
+                                   ((body_en IS NULL OR body_en = '') AND (body_zh IS NOT NULL AND body_zh != ''))
+                                 ))                                                            AS single_language_only,
+              COUNT(*) FILTER (WHERE status = 'active' AND trust_score < 0.3)                 AS low_trust,
+              COUNT(*) FILTER (WHERE status = 'active' AND embedding IS NULL)                 AS no_embedding
+            FROM memory_nodes
+            WHERE workspace_id = %s
+            """,
+            (ws_id,),
+        )
+        row = cur.fetchone()
+        # Orphan count: active nodes with no active edges
+        cur.execute(
+            """
+            SELECT COUNT(*) FROM memory_nodes
+            WHERE workspace_id = %s AND status = 'active'
+              AND NOT EXISTS (
+                SELECT 1 FROM edges e
+                WHERE e.status = 'active'
+                  AND (e.from_id = memory_nodes.id OR e.to_id = memory_nodes.id)
+              )
+            """,
+            (ws_id,),
+        )
+        orphan_row = cur.fetchone()
+        return {
+            "total":               row["total"],
+            "empty_body":          row["empty_body"],
+            "single_language_only": row["single_language_only"],
+            "no_edges":            orphan_row["count"],
+            "low_trust":           row["low_trust"],
+            "no_embedding":        row["no_embedding"],
+        }
+
+
+@router.post("/workspaces/{ws_id}/nodes/backfill-embeddings")
+async def backfill_embeddings(ws_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    """Admin-only: queue embedding computation for all nodes missing embeddings."""
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role not in ("admin",):
+            raise HTTPException(status_code=403, detail="Admin only")
+        cur.execute(
+            "SELECT id, title_zh, title_en, body_zh, body_en FROM memory_nodes "
+            "WHERE workspace_id = %s AND embedding IS NULL AND status = 'active'",
+            (ws_id,),
+        )
+        rows = cur.fetchall()
+    for row in rows:
+        text = " ".join(filter(None, [row["title_zh"], row["title_en"], row["body_zh"], row["body_en"]]))
+        background_tasks.add_task(_bg_embed_node, ws_id, row["id"], text, user["sub"])
+    return {"queued": len(rows)}
+
+
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/suggest-edges")
+def suggest_edges_for_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+    """Admin-only: manually trigger edge suggestions for a specific node."""
+    with db_cursor() as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+        if role not in ("admin",):
+            raise HTTPException(status_code=403, detail="Admin only")
+        cur.execute("SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Node not found")
+
+    # Run synchronously (small operation) and count proposals created
+    proposed = 0
+    try:
+        with db_cursor() as cur:
+            cur.execute("SELECT embedding FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+            row = cur.fetchone()
+        if row and row["embedding"] is not None:
+            with db_cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, (1 - (embedding <=> %s::vector)) AS sim
+                    FROM memory_nodes
+                    WHERE workspace_id = %s AND id != %s
+                      AND embedding IS NOT NULL AND status = 'active'
+                      AND content_type != 'source_document'
+                    ORDER BY sim DESC LIMIT 5
+                    """,
+                    (row["embedding"], ws_id, node_id),
+                )
+                candidates = [r for r in cur.fetchall() if r["sim"] > 0.70]
+            with db_cursor(commit=True) as cur:
+                for c in candidates:
+                    try:
+                        _propose_change(
+                            cur, ws_id, "create_edge", None,
+                            {"from_id": node_id, "to_id": c["id"],
+                             "relation": "related_to", "weight": round(float(c["sim"]), 2)},
+                            "ai", user["sub"],
+                            {"source": "manual_edge_suggestion"},
+                            source_info=f"Manual edge suggestion (similarity={c['sim']:.2f})",
+                        )
+                        proposed += 1
+                    except Exception:
+                        pass
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Edge suggestion failed: {exc}")
+    return {"proposed": proposed}
 
 
 @router.get("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
@@ -686,6 +936,7 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
         node = _create_node_in_db(cur, ws_id, payload | {"author": proposer_id, "source_type": payload.get("source_type", "human")})
         _write_node_revision(cur, node["id"], ws_id, _node_row_to_snapshot(node), node["signature"], payload.get("source_type", "human"), proposer_id, None)
         background_tasks.add_task(_bg_embed_node, ws_id, node["id"], f"{node['title_zh']}\n{node['title_en']}\n{node['body_zh']}\n{node['body_en']}", user["sub"])
+        background_tasks.add_task(_bg_suggest_edges, ws_id, node["id"], user["sub"])
         return node
 
 
@@ -1501,3 +1752,41 @@ def list_workspaces_search(
                 (user_id, user_id),
             )
         return cur.fetchall()
+
+
+@router.get("/workspaces/{ws_id}/nodes/health")
+def get_kb_health(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            """
+            SELECT
+              COUNT(*) FILTER (WHERE status = 'active') AS total,
+              COUNT(*) FILTER (WHERE status = 'active' AND (body_zh IS NULL OR body_zh = '')
+                                                       AND (body_en IS NULL OR body_en = '')) AS empty_body,
+              COUNT(*) FILTER (WHERE status = 'active' AND trust_score < 0.3) AS low_trust,
+              COUNT(*) FILTER (WHERE status = 'active' AND embedding IS NULL) AS no_embedding
+            FROM memory_nodes WHERE workspace_id = %s
+            """,
+            (ws_id,)
+        )
+        row = cur.fetchone()
+        
+        # Orphan nodes
+        cur.execute(
+            """
+            SELECT COUNT(*) AS no_edges FROM memory_nodes n
+            WHERE n.workspace_id = %s AND n.status = 'active'
+              AND NOT EXISTS (SELECT 1 FROM edges e WHERE e.from_id = n.id OR e.to_id = n.id)
+            """,
+            (ws_id,)
+        )
+        orphan_count = cur.fetchone()["no_edges"]
+        
+        return {
+            "total": row["total"],
+            "empty_body": row["empty_body"],
+            "low_trust": row["low_trust"],
+            "no_embedding": row["no_embedding"],
+            "no_edges": orphan_count
+        }

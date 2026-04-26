@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -38,6 +39,14 @@ async def _decay_loop():
             with db_cursor(commit=True) as cur:
                 cur.execute("SELECT apply_edge_decay()")
                 cur.execute("SELECT apply_node_archiving()")  # D4
+                cur.execute(
+                    """
+                    INSERT INTO system_state (key, value, updated_at)
+                    VALUES ('last_decay_at', %s, now())
+                    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+                    """,
+                    (datetime.now(timezone.utc).isoformat(),),
+                )
             logger.info("Decay and archiving applied successfully")
         except Exception as exc:
             logger.warning("Edge decay skipped: %s", exc)
@@ -206,8 +215,39 @@ async def _backup_loop():
             logger.warning("Backup loop error: %s", exc)
 
 
+def _run_migrations():
+    """Apply pending SQL migrations (PostgreSQL only; skipped for SQLite)."""
+    from core.config import settings
+    if not settings.database_url.startswith("postgresql"):
+        return
+    import pathlib
+    migrations_dir = pathlib.Path(__file__).parent / "migrations"
+    if not migrations_dir.exists():
+        return
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+              filename TEXT PRIMARY KEY,
+              applied_at TIMESTAMPTZ DEFAULT now()
+            )
+            """
+        )
+        for sql_file in sorted(migrations_dir.glob("*.sql")):
+            cur.execute("SELECT 1 FROM schema_migrations WHERE filename = %s", (sql_file.name,))
+            if cur.fetchone():
+                continue
+            cur.execute(sql_file.read_text(encoding="utf-8"))
+            cur.execute("INSERT INTO schema_migrations (filename) VALUES (%s)", (sql_file.name,))
+            logger.info("Migration applied: %s", sql_file.name)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    try:
+        _run_migrations()
+    except Exception as exc:
+        logger.warning("Migration skipped: %s", exc)
     decay_task         = asyncio.create_task(_decay_loop())
     ephemeral_task     = asyncio.create_task(_ephemeral_decay_loop())   # D4
     deletion_task      = asyncio.create_task(_deletion_notification_loop())

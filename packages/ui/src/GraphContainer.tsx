@@ -7,12 +7,13 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge } from 'lucide-react';
+import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
+import TableView from './TableView';
 
-type GraphMode = '2d' | '3d';
+type GraphMode = '2d' | '3d' | 'table';
 
 const RELATION_COLORS: Record<string, string> = {
   depends_on:  'var(--color-primary)',
@@ -26,9 +27,10 @@ interface Props {
   reloadKey?: number;
   onEditNode: (node: ApiNode) => void;
   onNewNode: () => void;
+  userId?: string;
 }
 
-export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode }: Props) {
+export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode, userId }: Props) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
 
@@ -48,6 +50,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
   // ── Search state ──────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery]   = useState('');
   const [searchMode, setSearchMode]     = useState<'keyword' | 'semantic'>('keyword');
+  const [orphanFilter, setOrphanFilter] = useState<string | undefined>(undefined);
 
   // ── Load all data ─────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -140,6 +143,8 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
       ? `Error: ${error}`
       : `${apiNodes.length} ${zh ? '節點' : 'nodes'} · ${apiEdges.length} ${zh ? '連結' : 'edges'}`;
 
+  const orphanCount = apiNodes.filter(n => !apiEdges.some(e => e.from_id === n.id || e.to_id === n.id)).length;
+
   if (!wsId) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 15 }}>
@@ -190,7 +195,25 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
       >
         <div>
           <h1 className="page-title">{zh ? '知識庫圖譜' : 'Knowledge Graph'}</h1>
-          <p className="page-subtitle">{subtitle}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <p className="page-subtitle" style={{ marginBottom: 0 }}>{subtitle}</p>
+            {orphanCount > 0 && (
+              <div 
+                onClick={() => {
+                  setOrphanFilter('orphan');
+                  setGraphMode('table');
+                }}
+                style={{ 
+                  fontSize: 11, padding: '2px 8px', borderRadius: 12, 
+                  background: 'var(--color-warning-subtle)', color: 'var(--color-warning)', 
+                  cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4
+                }}
+              >
+                <TriangleAlert size={10} />
+                {orphanCount} {zh ? '個孤立節點' : 'Orphans'}
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -200,7 +223,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
             background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
             borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-sm)',
           }}>
-            {(['2d', '3d'] as GraphMode[]).map(mode => (
+            {(['2d', '3d', 'table'] as GraphMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => setGraphMode(mode)}
@@ -213,7 +236,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
                   display: 'flex', alignItems: 'center', gap: 5,
                 }}
               >
-                {mode === '2d' ? <Network size={12} /> : <Layers size={12} />}
+                {mode === '2d' ? <Network size={12} /> : mode === '3d' ? <Layers size={12} /> : <Table2 size={12} />}
                 {mode.toUpperCase()}
               </button>
             ))}
@@ -310,7 +333,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
             kbType={workspace?.kb_type}
             isPreview={isPreview}
           />
-        ) : (
+        ) : graphMode === '3d' ? (
           <GraphView3D
             apiNodes={apiNodes}
             apiEdges={apiEdges}
@@ -319,6 +342,13 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode 
             healthMode={healthMode}
             healthScores={healthScores}
             isPreview={isPreview}
+          />
+        ) : (
+          <TableView 
+            wsId={wsId} 
+            onEditNode={onEditNode} 
+            isAdmin={workspace?.owner_id === userId}
+            initialFilter={orphanFilter}
           />
         )}
       </div>

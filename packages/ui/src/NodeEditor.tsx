@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
-import { Archive, Calendar, CheckCircle2, Copy, Edit3, History, Link as LinkIcon, RotateCcw, Save, Shield, Trash2, TriangleAlert, User, X } from "lucide-react";
-import { edges as edgesApi, nodes as nodesApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta } from "./api";
+import { Archive, Bot, Calendar, CheckCircle2, Copy, Edit3, History, Link as LinkIcon, RotateCcw, Save, Shield, Trash2, TriangleAlert, User, X } from "lucide-react";
+import { ai as aiApi, edges as edgesApi, nodes as nodesApi, review as reviewApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta, type ReviewItem } from "./api";
 import DiffPreviewModal from "./components/DiffPreviewModal";
 import { useModal } from "./components/ModalContext";
 
@@ -117,6 +117,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const [validityConfirmedBy, setValidityConfirmedBy] = useState<string | null>(node?.validity_confirmed_by ?? null);
   const [confirmingValidity, setConfirmingValidity] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [suggestedReviewItems, setSuggestedReviewItems] = useState<ReviewItem[]>([]);
   const isArchived = node?.status === 'archived';
 
   useEffect(() => {
@@ -144,6 +146,19 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     } else {
       setNodeEdges([]);
       setRevisions([]);
+    }
+    // Fetch suggested edges from review queue
+    if (node?.id) {
+      reviewApi.list(wsId).then(items => {
+        const suggested = items.filter(item => 
+          item.change_type === "create_edge" && 
+          item.status === "pending" &&
+          (item.node_data?.from_id === node.id || item.node_data?.to_id === node.id)
+        );
+        setSuggestedReviewItems(suggested);
+      }).catch(() => {});
+    } else {
+      setSuggestedReviewItems([]);
     }
   }, [wsId, node, isCreate]);
 
@@ -199,6 +214,51 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
       toast({ message: e instanceof Error ? e.message : String(e), variant: 'error' });
     } finally {
       setArchiving(false);
+    }
+  };
+
+  const handleAIComplete = async () => {
+    if (!titleEn && !titleZh) {
+      toast({ message: "Please provide a title first", variant: "warning" });
+      return;
+    }
+    setCompleting(true);
+    try {
+      const prompt = `Based on the title "${titleEn || titleZh}", please generate a concise knowledge node content (around 100-200 words) in both English and Chinese. 
+      Format the output as a JSON object: {"body_en": "...", "body_zh": "..."}.
+      Do not include any other text or markdown fences.`;
+      
+      const res = await aiApi.chat({ workspace_id: wsId, message: prompt });
+      const data = JSON.parse(res.answer.replace(/```json|```/g, "").trim());
+      if (data.body_en) setBodyEn(data.body_en);
+      if (data.body_zh) setBodyZh(data.body_zh);
+      toast({ message: "Content generated", variant: "success" });
+    } catch (e) {
+      toast({ message: "AI completion failed: " + String(e), variant: "error" });
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  const handleAcceptReview = async (id: string) => {
+    try {
+      await reviewApi.accept(id);
+      setSuggestedReviewItems(prev => prev.filter(item => item.id !== id));
+      toast({ message: "Edge accepted", variant: "success" });
+      // Refresh edges
+      if (node?.id) edgesApi.list(wsId, node.id).then(setNodeEdges).catch(() => {});
+    } catch (e) {
+      toast({ message: String(e), variant: "error" });
+    }
+  };
+
+  const handleRejectReview = async (id: string) => {
+    try {
+      await reviewApi.reject(id);
+      setSuggestedReviewItems(prev => prev.filter(item => item.id !== id));
+      toast({ message: "Edge rejected", variant: "success" });
+    } catch (e) {
+      toast({ message: String(e), variant: "error" });
     }
   };
 
@@ -377,6 +437,14 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <label className="form-label" style={{ margin: 0 }}>{t("node.content")}</label>
                 <div style={{ display: "flex", gap: 8 }}>
+                  <button 
+                    className="tag" 
+                    onClick={handleAIComplete} 
+                    disabled={completing}
+                    style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <Bot size={12} /> {completing ? "..." : t('node.ai_complete')}
+                  </button>
                   <button className={`tag ${displayLang === "en" ? "tag-active" : ""}`} onClick={() => setDisplayLang("en")}>{t("node.lang_en")}</button>
                   <button className={`tag ${displayLang === "zh" ? "tag-active" : ""}`} onClick={() => setDisplayLang("zh")}>{t("node.lang_zh")}</button>
                 </div>
@@ -426,8 +494,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                     </div>
                     <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
                       {validityConfirmedAt
-                        ? `最後確認：${new Date(validityConfirmedAt).toLocaleDateString()} by ${validityConfirmedBy}`
-                        : "尚未確認有效"}
+                        ? t('node.validity_last_confirmed', { date: new Date(validityConfirmedAt).toLocaleDateString(), user: validityConfirmedBy })
+                        : t('node.validity_unconfirmed')}
                     </div>
                   </div>
                   {!isViewerLocked && (
@@ -438,7 +506,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 </div>
                 {!validityConfirmedAt && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-muted)", fontSize: 12 }}>
-                    <TriangleAlert size={14} /> 建議在內容已人工確認後補上有效性標記。
+                    <TriangleAlert size={14} /> {t('node.validity_suggest_label')}
                   </div>
                 )}
               </div>
@@ -451,7 +519,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
             <div className="markdown-body" style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 12, border: "1px solid var(--border-default)" }}>
               {isViewerLocked ? (
-                <div style={{ color: "var(--text-muted)" }}>詳細內容僅限編輯者或管理員存取。</div>
+                <div style={{ color: "var(--text-muted)" }}>{t('node.private_locked')}</div>
               ) : (
                 <ReactMarkdown>{displayLang === "zh" ? node?.body_zh || "" : node?.body_en || ""}</ReactMarkdown>
               )}
@@ -501,6 +569,30 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 })}
                 {!nodeEdges.length && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("node.no_associations")}</div>}
               </div>
+
+              {/* AI Suggested Edges */}
+              {suggestedReviewItems.length > 0 && (
+                <div style={{ marginTop: 12, background: "rgba(124, 58, 237, 0.05)", border: "1px dashed var(--color-primary)", borderRadius: 12, padding: 14 }}>
+                  <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 10, color: "var(--color-primary)" }}>
+                    <Bot size={16} /> {t('node.suggested_by_ai')}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {suggestedReviewItems.map(item => {
+                      const otherId = item.node_data.from_id === node?.id ? item.node_data.to_id : item.node_data.from_id;
+                      const otherNode = allNodes.find(n => n.id === otherId);
+                      return (
+                        <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "var(--bg-surface)", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                          <span style={{ fontSize: 13 }}>{otherNode ? otherNode.title_en : otherId} ({item.node_data.relation})</span>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button className="btn-primary" style={{ padding: "4px 8px", fontSize: 11 }} onClick={() => handleAcceptReview(item.id)}>{t('node.accept')}</button>
+                            <button className="btn-secondary" style={{ padding: "4px 8px", fontSize: 11 }} onClick={() => handleRejectReview(item.id)}>{t('node.skip')}</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {!isViewerLocked && node && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 8, marginTop: 12 }}>

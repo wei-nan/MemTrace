@@ -7,8 +7,7 @@ import IngestButton from './IngestButton';
 import IngestionHistory from './IngestionHistory';
 
 export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoToReview: () => void }) {
-  const { i18n } = useTranslation();
-  const zh = i18n.language === 'zh-TW';
+  const { t } = useTranslation();
   const { toast } = useModal();
   
   const [tab, setTab] = useState<'file' | 'url'>('file');
@@ -23,7 +22,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
     setUrlLoading(true);
     try {
       await ingest.url(wsId, url);
-      toast({ message: zh ? '已提交 URL，背景攝入中…' : 'URL submitted, ingesting in background…', variant: 'success' });
+      toast({ message: t('ingest.url_success'), variant: 'success' });
       setUrl('');
       setRefreshKey(prev => prev + 1);
     } catch (e: any) {
@@ -37,9 +36,9 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
     <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <header style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>{zh ? '攝入知識內容' : 'Ingest Knowledge'}</h2>
+          <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>{t('ingest.title')}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
-            {zh ? '透過上傳檔案或提供網址，讓 AI 自動提取結構化知識。' : 'Provide files or URLs to let AI automatically extract structured knowledge.'}
+            {t('ingest.desc')}
           </p>
         </header>
 
@@ -60,7 +59,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
             }}
           >
             <Mail size={16} />
-            {zh ? '檔案上傳' : 'File Upload'}
+            {t('ingest.tab_file')}
           </button>
           <button 
             onClick={() => setTab('url')}
@@ -73,7 +72,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
             }}
           >
             <Globe size={16} />
-            {zh ? '網頁網址' : 'Website URL'}
+            {t('ingest.tab_url')}
           </button>
         </div>
 
@@ -85,7 +84,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
                 onStarted={() => setRefreshKey(prev => prev + 1)} 
               />
               <div style={{ marginTop: 24, fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-                {zh ? '支援 .md, .txt 格式，單一檔案上限 10MB' : 'Supports .md, .txt formats, max 10MB per file'}
+                {t('ingest.file_support')}
               </div>
             </div>
           ) : (
@@ -96,18 +95,18 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
                   <input 
                     className="mt-input"
                     style={{ paddingLeft: 48, height: 48 }}
-                    placeholder="https://example.com/article"
+                    placeholder={t('ingest.url_ph')}
                     value={url}
                     onChange={e => setUrl(e.target.value)}
                     disabled={urlLoading}
                   />
                 </div>
                 <button className="btn-primary" style={{ height: 48, width: '100%' }} disabled={urlLoading || !url.trim()}>
-                  {urlLoading ? <Loader2 size={18} className="animate-spin" /> : (zh ? '開始攝入' : 'Start Ingesting')}
+                  {urlLoading ? <Loader2 size={18} className="animate-spin" /> : t('ingest.start_ingest')}
                 </button>
               </form>
               <div style={{ marginTop: 24, fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-                {zh ? '系統會自動抓取網頁主要內文並進行分析' : 'The system will automatically extract and analyze the main content'}
+                {t('ingest.web_auto_extract')}
               </div>
             </div>
           )}
@@ -120,11 +119,11 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
         />
 
         <div style={{ marginTop: 60, padding: 24, background: 'var(--bg-elevated)', borderRadius: 16, border: '1px solid var(--border-subtle)' }}>
-          <h4 style={{ fontSize: 14, marginBottom: 12, fontWeight: 700 }}>{zh ? '攝入說明' : 'Ingestion Tips'}</h4>
+          <h4 style={{ fontSize: 14, marginBottom: 12, fontWeight: 700 }}>{t('ingest.tips_title')}</h4>
           <ul style={{ fontSize: 13, color: 'var(--text-secondary)', paddingLeft: 20, lineHeight: 1.8, margin: 0 }}>
-            <li>{zh ? '系統解析完成後會產生建議節點，您可以在「審核佇列」中確認。' : 'AI generated suggestions will appear in the Review Queue.'}</li>
-            <li>{zh ? '目前攝入的內容將暫時以私有狀態儲存，審核後才正式加入圖譜。' : 'Ingested content is stored privately until reviewed and merged.'}</li>
-            <li>{zh ? '大型文件可能需要 1-2 分鐘處理時間。' : 'Large documents may take 1-2 minutes to process.'}</li>
+            <li>{t('ingest.tip_1')}</li>
+            <li>{t('ingest.tip_2')}</li>
+            <li>{t('ingest.tip_3')}</li>
           </ul>
         </div>
       </div>

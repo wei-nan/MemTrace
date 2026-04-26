@@ -84,6 +84,19 @@ export const workspaces = {
   },
   analytics: (wsId: string) => request<WorkspaceAnalytics>("GET", `${BASE}/workspaces/${wsId}/analytics`),
   tokenEfficiency: (wsId: string) => request<TokenEfficiency>("GET", `${BASE}/workspaces/${wsId}/analytics/token-efficiency`),
+  tableView: (wsId: string, params: { q?: string; filter?: string; limit?: number; offset?: number; sort_by?: string; order?: 'asc' | 'desc' }) => {
+    const qs = new URLSearchParams(params as any).toString();
+    return request<{ nodes: Node[]; total_count: number }>("GET", `${BASE}/workspaces/${wsId}/table-view?${qs}`);
+  },
+  listApiKeys: (wsId: string) => request<PersonalApiKey[]>("GET", `${BASE}/workspaces/${wsId}/api-keys`),
+  createApiKey: (wsId: string, data: { name: string; scope: string }) =>
+    request<PersonalApiKeyCreateResponse>("POST", `${BASE}/workspaces/${wsId}/api-keys`, { ...data, scopes: [data.scope] }),
+  rotateApiKey: (wsId: string, keyId: string) =>
+    request<PersonalApiKeyCreateResponse>("POST", `${BASE}/workspaces/${wsId}/api-keys/${keyId}/rotate`),
+  revokeApiKey: (wsId: string, keyId: string) =>
+    request("DELETE", `${BASE}/workspaces/${wsId}/api-keys/${keyId}`),
+  getDecayStats: (wsId: string) => request<any>("GET", `${BASE}/workspaces/${wsId}/decay-stats`),
+  getHealthReport: (wsId: string) => request<any>("GET", `${BASE}/workspaces/${wsId}/nodes/health`),
 };
 
 export const nodes = {
@@ -115,8 +128,12 @@ export const nodes = {
     request<void>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/restore`),
   bulkArchive: (wsId: string, nodeIds: string[]) =>
     request<{ archived_count: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/bulk-archive`, { node_ids: nodeIds }),
+  bulkDelete: (wsId: string, nodeIds: string[]) =>
+    request<{ deleted_count: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/bulk-delete`, { node_ids: nodeIds }),
   healthScores: (wsId: string) =>
     request<NodeHealthScore[]>("GET", `${BASE}/workspaces/${wsId}/nodes/health-scores`),
+  suggestEdges: (wsId: string, nodeId: string) =>
+    request<any[]>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/suggest-edges`),
 };
 
 export const edges = {
@@ -233,6 +250,7 @@ export interface Workspace {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  my_role: "admin" | "editor" | "viewer" | null;
 }
 
 export interface Node {
@@ -346,10 +364,10 @@ export interface ReviewItem {
   id: string;
   workspace_id: string;
   can_review: boolean;
-  change_type: "create" | "update" | "delete";
+  change_type: "create" | "update" | "delete" | "create_edge";
   target_node_id?: string | null;
   before_snapshot?: Partial<NodeCreatePayload> | null;
-  node_data: Partial<NodeCreatePayload> & Record<string, unknown>;
+  node_data: (Partial<NodeCreatePayload> & { from_id?: string; to_id?: string; relation?: string }) | any;
   diff_summary: DiffSummary;
   suggested_edges: unknown[];
   status: string;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Copy, ExternalLink, Key, Link2, RefreshCw, Search, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
-import { aiReviewers, users, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
+import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
+import { aiReviewers, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import KbExportPanel from "./components/KbExportPanel";
@@ -18,6 +18,7 @@ function SectionCard({ children }: { children: React.ReactNode }) {
 }
 
 function AIReviewerSettings({ wsId }: { wsId: string }) {
+  const { t } = useTranslation();
   const { toast } = useModal();
   const [items, setItems] = useState<AIReviewer[]>([]);
   const [form, setForm] = useState<AIReviewerPayload>({
@@ -56,9 +57,9 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <SectionCard>
-        <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> Create AI Reviewer</h3>
+        <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> {t('ws_settings.create_reviewer_title')}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-          <input className="mt-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name" />
+          <input className="mt-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('ws_settings.members')} />
           <input className="mt-input" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })} placeholder="Provider" />
           <input className="mt-input" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="Model" />
         </div>
@@ -72,7 +73,7 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
           </label>
         </div>
         <div style={{ marginTop: 12 }}>
-          <button className="btn-primary" onClick={save}>Create Reviewer</button>
+          <button className="btn-primary" onClick={save}>{t('ws_settings.create')}</button>
         </div>
       </SectionCard>
 
@@ -90,7 +91,7 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
               <button className="btn-secondary" onClick={async () => {
                 await aiReviewers.update(wsId, item.id, { enabled: !item.enabled });
                 await load();
-              }}>{item.enabled ? "Disable" : "Enable"}</button>
+              }}>{item.enabled ? t('common.disable') : t('common.enable')}</button>
               <button className="btn-secondary" onClick={async () => {
                 await aiReviewers.delete(wsId, item.id);
                 await load();
@@ -98,23 +99,26 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
             </div>
           </div>
         ))}
-        {!items.length && <div style={{ color: "var(--text-muted)" }}>No AI reviewers configured yet.</div>}
+        {!items.length && <div style={{ color: "var(--text-muted)" }}>{t('ws_settings.no_reviewers')}</div>}
       </section>
     </div>
   );
 }
 
 function APIKeysSettings({ wsId }: { wsId: string }) {
+  const { t, i18n } = useTranslation();
+  const zh = i18n.language === 'zh-TW';
   const { confirm, toast, alert } = useModal();
   const [keys, setKeys] = useState<PersonalApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [newKeyName, setNewKeyName] = useState("");
+  const [newKeyScope, setNewKeyScope] = useState("kb:read");
 
   const load = async () => {
     setLoading(true);
     try {
-      const all = await users.apiKeys.list();
-      setKeys(all.filter(k => !k.workspace_id || k.workspace_id === wsId));
+      const all = await workspaces.listApiKeys(wsId);
+      setKeys(all);
     } catch (e) {
       toast({ message: String(e), variant: "error" });
     } finally {
@@ -127,19 +131,19 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   const handleCreate = async () => {
     if (!newKeyName.trim()) return;
     try {
-      const res = await users.apiKeys.create({ name: newKeyName, scopes: ["read", "write"], workspace_id: wsId });
+      const res = await workspaces.createApiKey(wsId, { name: newKeyName, scope: newKeyScope });
       setNewKeyName("");
       await load();
       alert({
-        title: "New API Key Created",
+        title: t('ws_settings.new_key_title'),
         message: (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <p>Please copy your new API key now. You won't be able to see it again!</p>
+            <p>{t('ws_settings.new_key_msg')}</p>
             <div style={{ display: "flex", gap: 8 }}>
               <input className="mt-input" readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
               <button className="btn-secondary" onClick={() => {
                 navigator.clipboard.writeText(res.key);
-                toast({ message: "Key copied", variant: "success" });
+                toast({ message: t('common.copied'), variant: "success" });
               }}><Copy size={16} /></button>
             </div>
           </div>
@@ -151,21 +155,21 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   };
 
   const handleRotate = async (id: string) => {
-    const ok = await confirm({ title: "Rotate API Key", message: "This will revoke the current key and generate a new one. Continue?", variant: "warning", confirmLabel: "Rotate" });
+    const ok = await confirm({ title: t('ws_settings.rotate_key_title'), message: t('ws_settings.rotate_key_msg'), variant: "warning", confirmLabel: t('common.rotate') });
     if (!ok) return;
     try {
-      const res = await users.apiKeys.rotate(id);
+      const res = await workspaces.rotateApiKey(wsId, id);
       await load();
       alert({
-        title: "API Key Rotated",
+        title: t('ws_settings.rotated_key_title'),
         message: (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <p>Your new API key is shown below. Update your clients immediately!</p>
+            <p>{t('ws_settings.rotated_key_msg')}</p>
             <div style={{ display: "flex", gap: 8 }}>
               <input className="mt-input" readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
               <button className="btn-secondary" onClick={() => {
                 navigator.clipboard.writeText(res.key);
-                toast({ message: "Key copied", variant: "success" });
+                toast({ message: t('common.copied'), variant: "success" });
               }}><Copy size={16} /></button>
             </div>
           </div>
@@ -177,12 +181,12 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   };
 
   const handleRevoke = async (id: string) => {
-    const ok = await confirm({ title: "Revoke API Key", message: "Are you sure? This action cannot be undone.", variant: "danger", confirmLabel: "Revoke" });
+    const ok = await confirm({ title: t('ws_settings.revoke_key_title'), message: t('ws_settings.revoke_key_msg'), variant: "danger", confirmLabel: t('common.revoke') });
     if (!ok) return;
     try {
-      await users.apiKeys.revoke(id);
+      await workspaces.revokeApiKey(wsId, id);
       await load();
-      toast({ message: "API key revoked", variant: "success" });
+      toast({ message: t('ws_settings.revoke'), variant: "success" });
     } catch (e) {
       toast({ message: String(e), variant: "error" });
     }
@@ -191,10 +195,18 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <SectionCard>
-        <h3 style={{ margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Key size={18} /> Manage API Keys</h3>
-        <div style={{ display: "flex", gap: 10 }}>
-          <input className="mt-input" placeholder="Key name (e.g. My Script)" value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ flex: 1 }} />
-          <button className="btn-primary" onClick={handleCreate}>Generate Key</button>
+        <h3 style={{ margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Key size={18} /> {t('ws_settings.service_tokens')}</h3>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+          {zh ? "服務 Token 用於自動化任務，如 API 攝入或外部整合。" : "Service tokens are used for automated tasks like API ingestion or external integrations."}
+        </p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <input className="mt-input" placeholder={zh ? "名稱 (例: Ingestion Bot)" : "Key name (e.g. Ingestion Bot)"} value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ flex: 2, minWidth: 200 }} />
+          <select className="mt-input" value={newKeyScope} onChange={e => setNewKeyScope(e.target.value)} style={{ flex: 1, minWidth: 140 }}>
+            <option value="kb:read">kb:read</option>
+            <option value="kb:propose">kb:propose</option>
+            <option value="kb:write">kb:write</option>
+          </select>
+          <button className="btn-primary" onClick={handleCreate}>{zh ? "產生 Token" : "Generate Token"}</button>
         </div>
       </SectionCard>
 
@@ -203,22 +215,24 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
           <div key={k.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12, padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center", opacity: k.revoked_at ? 0.6 : 1 }}>
             <div>
               <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                {k.name} {k.revoked_at && <span className="tag" style={{ color: "var(--color-error)" }}>Revoked</span>}
+                {k.name} 
+                <span className="tag" style={{ color: "var(--color-primary)", background: "var(--color-primary-subtle)" }}>{k.scopes.join(', ')}</span>
+                {k.revoked_at && <span className="tag" style={{ color: "var(--color-error)" }}>Revoked</span>}
               </div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 4 }}>{k.prefix}********************</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
-                Created: {new Date(k.created_at).toLocaleDateString()} · Last used: {k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : "Never"}
+                Created: {new Date(k.created_at).toLocaleDateString()} · Last used: {k.last_used_at ? new Date(k.last_used_at).toLocaleString() : "Never"}
               </div>
             </div>
             {!k.revoked_at && (
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn-secondary" onClick={() => handleRotate(k.id)} title="Rotate Key"><RefreshCw size={14} /></button>
+                <button className="btn-secondary" onClick={() => handleRotate(k.id)} title="Rotate Token"><RefreshCw size={14} /></button>
                 <button className="btn-secondary" onClick={() => handleRevoke(k.id)}><Trash2 size={14} /></button>
               </div>
             )}
           </div>
         ))}
-        {!loading && keys.length === 0 && <div style={{ color: "var(--text-muted)", textAlign: "center", padding: 20 }}>No API keys for this workspace.</div>}
+        {!loading && keys.length === 0 && <div style={{ color: "var(--text-muted)", textAlign: "center", padding: 20 }}>{t('ws_settings.noRequests')}</div>}
       </div>
     </div>
   );
@@ -227,7 +241,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
 type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys";
 type AccessTab = "members" | "invites" | "requests";
 
-export default function WorkspaceSettings({ wsId }: { wsId: string }) {
+export default function WorkspaceSettings({ wsId, userId }: { wsId: string; userId?: string }) {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
   const { confirm, toast } = useModal();
@@ -247,6 +261,8 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
   const [nameZh, setNameZh] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [decayStats, setDecayStats] = useState<any>(null);
+  const [healthReport, setHealthReport] = useState<any>(null);
 
   const loadData = async () => {
     try {
@@ -264,6 +280,13 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
       setNameEn(w.name_en);
       setJoinRequests(reqs);
       setAssociations(as);
+
+      // Fetch admin-only decay stats if we are the owner
+      if (w.owner_id === userId) {
+        workspaces.getDecayStats(wsId).then(setDecayStats).catch(() => {});
+      }
+      // Fetch health report
+      workspaces.getHealthReport(wsId).then(setHealthReport).catch(() => {});
     } catch {
       // Keep current UI state if some fetch fails.
     }
@@ -318,7 +341,9 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
         <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
         <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
         <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.aiReviewers')}</button>
-        <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
+        {ws?.owner_id === userId && (
+          <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
+        )}
       </div>
 
       {tab === "general" ? (
@@ -354,34 +379,98 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
           <SectionCard>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontWeight: 600 }}>{t('ws_settings.visibility')}</div>
+                <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                  {t('ws_settings.visibility')}
+                  <div className="info-tooltip-wrapper">
+                    <Info size={14} style={{ color: "var(--color-primary)", cursor: "help" }} />
+                    <div className="info-tooltip">
+                      <div style={{ marginBottom: 12, fontWeight: 700, fontSize: 14 }}>{t('ws_settings.visibility_guide')}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div><b>{t('ws_settings.vis_private')}</b>: {t('ws_settings.vis_private_desc')}</div>
+                        <div><b>{t('ws_settings.vis_restricted')}</b>: {t('ws_settings.vis_restricted_desc')}</div>
+                        <div><b>{t('ws_settings.vis_conditional_public')}</b>: {t('ws_settings.vis_conditional_public_desc')}</div>
+                        <div><b>{t('ws_settings.vis_public')}</b>: {t('ws_settings.vis_public_desc')}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t('ws_settings.visibilityDesc')}</div>
               </div>
               <select className="mt-input" value={ws?.visibility ?? "private"} style={{ width: 180 }} onChange={async (e) => {
                 try {
                   await workspaces.update(wsId, { visibility: e.target.value });
                   await loadData();
-                  toast({ message: "Visibility updated", variant: "success" });
+                  toast({ message: t('ws_settings.vis_updated'), variant: "success" });
                 } catch (err) {
                   toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
                 }
               }}>
-                <option value="private">Private</option>
-                <option value="restricted">Restricted</option>
-                <option value="conditional_public">Conditional Public</option>
-                <option value="public">Public</option>
+                <option value="private">{t('ws_settings.vis_private')}</option>
+                <option value="restricted">{t('ws_settings.vis_restricted')}</option>
+                <option value="conditional_public">{t('ws_settings.vis_conditional_public')}</option>
+                <option value="public">{t('ws_settings.vis_public')}</option>
               </select>
             </div>
           </SectionCard>
+
+          {/* P6 - Decay Status */}
+          {decayStats && (
+            <SectionCard>
+              <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Clock size={18} /> {t('ws_settings.edge_decay_status')}</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                <div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t('ws_settings.last_decay_run')}</div>
+                  <div style={{ fontWeight: 600 }}>{decayStats.last_decay_at ? new Date(decayStats.last_decay_at).toLocaleString() : (zh ? "從未執行" : "Never")}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t('ws_settings.faded_edges')}</div>
+                  <div style={{ fontWeight: 600 }}>{decayStats.faded_edge_count ?? 0}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t('ws_settings.low_weight_edges')}</div>
+                  <div style={{ fontWeight: 600, color: decayStats.low_weight_edge_count > 0 ? "var(--color-warning)" : undefined }}>{decayStats.low_weight_edge_count ?? 0}</div>
+                </div>
+              </div>
+            </SectionCard>
+          )}
+
+          {/* P3 - Health Report */}
+          {healthReport && (
+            <SectionCard>
+              <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><ShieldAlert size={18} /> {t('ws_settings.health_report')}</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
+                  <span>{t('ws_settings.total_nodes')}</span>
+                  <span style={{ fontWeight: 600 }}>{healthReport.total}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
+                  <span>{t('ws_settings.empty_body')}</span>
+                  <span className="tag" style={{ background: healthReport.empty_body > 0 ? "var(--color-error-subtle)" : "var(--color-success-subtle)", color: healthReport.empty_body > 0 ? "var(--color-error)" : "var(--color-success)" }}>{healthReport.empty_body}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
+                  <span>{t('ws_settings.low_trust')}</span>
+                  <span className="tag" style={{ background: healthReport.low_trust > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: healthReport.low_trust > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.low_trust}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
+                  <span>{t('ws_settings.orphan_nodes')}</span>
+                  <span className="tag" style={{ background: healthReport.no_edges > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: healthReport.no_edges > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.no_edges}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
+                  <span>{t('ws_settings.no_embedding')}</span>
+                  <span className="tag" style={{ background: (healthReport.no_embedding ?? 0) > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: (healthReport.no_embedding ?? 0) > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.no_embedding ?? 0}</span>
+                </div>
+              </div>
+            </SectionCard>
+          )}
         </div>
       ) : tab === "assoc" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <SectionCard>
-            <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><ExternalLink size={18} style={{ color: "var(--color-primary)" }} /> Add KB Association</h3>
+            <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><ExternalLink size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.add_assoc_title')}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ position: "relative" }}>
                 <Search size={15} style={{ position: "absolute", left: 12, top: 12, color: "var(--text-muted)" }} />
-                <input className="mt-input" placeholder="Search workspace name" value={workspaceSearch} onChange={(e) => setWorkspaceSearch(e.target.value)} style={{ paddingLeft: 36 }} />
+                <input className="mt-input" placeholder={t('ws_settings.searchWs')} value={workspaceSearch} onChange={(e) => setWorkspaceSearch(e.target.value)} style={{ paddingLeft: 36 }} />
               </div>
               {workspaceResults.length > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -400,13 +489,13 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
                             setWorkspaceSearch("");
                             setWorkspaceResults([]);
                             await loadData();
-                            toast({ message: "Association created", variant: "success" });
+                            toast({ message: t('ws_settings.assoc_created'), variant: "success" });
                           } catch (e) {
                             toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
                           }
                         }}
                       >
-                        {associationIds.has(result.id) ? "Added" : "Associate"}
+                        {associationIds.has(result.id) ? t('ws_settings.added') : t('ws_settings.associate')}
                       </button>
                     </div>
                   ))}
@@ -428,7 +517,7 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
                 }}><Trash2 size={16} /></button>
               </div>
             ))}
-            {!associations.length && <div style={{ color: "var(--text-muted)" }}>No linked knowledge bases yet.</div>}
+            {!associations.length && <div style={{ color: "var(--text-muted)" }}>{t('ws_settings.no_assoc_found')}</div>}
           </section>
         </div>
       ) : tab === "export" ? (
@@ -443,7 +532,7 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
 
           {accessTab === "members" && (
             <section>
-              <h3 style={{ fontSize: 16, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><Users size={18} style={{ color: "var(--color-primary)" }} /> Workspace Members</h3>
+              <h3 style={{ fontSize: 16, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><Users size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.ws_members')}</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {members.map((member) => (
                   <div key={member.user_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12 }}>
@@ -491,28 +580,28 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
           {accessTab === "invites" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <SectionCard>
-                <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Link2 size={18} style={{ color: "var(--color-primary)" }} /> Create Invite Link</h3>
+                <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Link2 size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.create_invite_link')}</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10 }}>
                   <select className="mt-input" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
                     <option value="viewer">Viewer</option>
                     <option value="editor">Editor</option>
                   </select>
                   <select className="mt-input" value={inviteDays} onChange={(e) => setInviteDays(Number(e.target.value))}>
-                    <option value={3}>3 days</option>
-                    <option value={7}>7 days</option>
-                    <option value={30}>30 days</option>
+                    <option value={3}>{zh ? "3 天" : "3 days"}</option>
+                    <option value={7}>{zh ? "7 天" : "7 days"}</option>
+                    <option value={30}>{zh ? "30 天" : "30 days"}</option>
                   </select>
                   <button className="btn-primary" onClick={async () => {
                     try {
                       const invite = await workspaces.createInvite(wsId, { role: inviteRole, expires_in_days: inviteDays });
                       setLatestInvite(invite);
                       await loadData();
-                      toast({ message: "Invite link created", variant: "success" });
+                      toast({ message: t('ws_settings.invites'), variant: "success" });
                     } catch (e) {
                       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
                     }
                   }}>
-                    Generate
+                    {zh ? "產生" : "Generate"}
                   </button>
                 </div>
                 {latestInvite?.invite_url && (
@@ -520,7 +609,7 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
                     <input className="mt-input" readOnly value={latestInvite.invite_url} style={{ flex: 1 }} />
                     <button className="btn-secondary" onClick={async () => {
                       await navigator.clipboard.writeText(latestInvite.invite_url ?? "");
-                      toast({ message: "Invite link copied", variant: "success" });
+                      toast({ message: t('common.copied'), variant: "success" });
                     }}>
                       <Copy size={15} />
                     </button>
@@ -533,19 +622,19 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
                   <div key={invite.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", borderRadius: 10 }}>
                     <div>
                       <div style={{ fontWeight: 600 }}>{invite.role}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Expires {new Date(invite.expires_at).toLocaleString()}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{zh ? "到期時間 " : "Expires "}{new Date(invite.expires_at).toLocaleString()}</div>
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                       {invite.invite_url && (
                         <button className="btn-secondary" onClick={async () => {
                           await navigator.clipboard.writeText(invite.invite_url ?? "");
-                          toast({ message: "Invite link copied", variant: "success" });
+                          toast({ message: t('common.copied'), variant: "success" });
                         }}>
                           <Copy size={14} />
                         </button>
                       )}
                       <button className="btn-secondary" onClick={async () => {
-                        const ok = await confirm({ title: "Revoke invite", message: "Revoke this invite link?", variant: "warning", confirmLabel: "Revoke" });
+                        const ok = await confirm({ title: t('ws_settings.revoke'), message: zh ? "確定要撤銷此邀請連結嗎？" : "Revoke this invite link?", variant: "warning", confirmLabel: t('ws_settings.revoke') });
                         if (!ok) return;
                         await workspaces.deleteInvite(invite.id);
                         await loadData();
@@ -555,14 +644,14 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
                     </div>
                   </div>
                 ))}
-                {!invites.length && <div style={{ color: "var(--text-muted)" }}>No active invite links.</div>}
+                {!invites.length && <div style={{ color: "var(--text-muted)" }}>{t('ws_settings.no_invites_found')}</div>}
               </section>
             </div>
           )}
 
           {accessTab === "requests" && (
             <section>
-              <h3 style={{ fontSize: 16, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><UserPlus size={18} style={{ color: "var(--color-primary)" }} /> Join Requests</h3>
+              <h3 style={{ fontSize: 16, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><UserPlus size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.join_requests')}</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {joinRequests.map((req) => (
                   <div key={req.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12 }}>
@@ -572,12 +661,12 @@ export default function WorkspaceSettings({ wsId }: { wsId: string }) {
                       {req.message && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>{req.message}</div>}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button className="btn-secondary" onClick={async () => { await workspaces.rejectJoinRequest(wsId, req.id); await loadData(); }}>Reject</button>
-                      <button className="btn-primary" onClick={async () => { await workspaces.approveJoinRequest(wsId, req.id); await loadData(); }}>Approve</button>
+                      <button className="btn-secondary" onClick={async () => { await workspaces.rejectJoinRequest(wsId, req.id); await loadData(); }}>{t('common.reject')}</button>
+                      <button className="btn-primary" onClick={async () => { await workspaces.approveJoinRequest(wsId, req.id); await loadData(); }}>{t('common.approve')}</button>
                     </div>
                   </div>
                 ))}
-                {!joinRequests.length && <div style={{ color: "var(--text-muted)" }}>No pending join requests.</div>}
+                {!joinRequests.length && <div style={{ color: "var(--text-muted)" }}>{t('ws_settings.no_requests_found')}</div>}
               </div>
             </section>
           )}

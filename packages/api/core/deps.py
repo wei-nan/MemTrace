@@ -36,7 +36,8 @@ def get_current_user(
                 (ip, row["id"])
             )
         return {"sub": row["user_id"], "email": row["email"],
-                "scopes": row["scopes"], "api_key_id": row["id"]}
+                "scopes": row["scopes"], "api_key_id": row["id"],
+                "workspace_id": row["workspace_id"]}
 
     payload = decode_token(token)
     if not payload:

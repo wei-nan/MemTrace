@@ -30,6 +30,9 @@ const MemoryNode = ({ data }: { data: any }) => {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{data.title || t('node.title_detail')}</strong>
+        {data.isEmpty && (
+          <span className="tag" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', fontSize: '0.6rem', border: '1px solid rgba(239,68,68,0.2)' }}>EMPTY</span>
+        )}
       </div>
       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
         {t('node.type_label')}: {t(`content_type.${data.type}`, { defaultValue: data.type || 'factual' })}

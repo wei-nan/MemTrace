@@ -5,8 +5,7 @@ import { ingest } from './api';
 import { useModal } from './components/ModalContext';
 
 export default function IngestButton({ wsId, onStarted }: { wsId: string, onStarted: () => void }) {
-  const { i18n } = useTranslation();
-  const zh = i18n.language === 'zh-TW';
+  const { t } = useTranslation();
   const { toast } = useModal();
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -17,7 +16,7 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (ext !== 'txt' && ext !== 'md') {
       toast({ 
-        message: zh ? '僅支援 .txt 與 .md 檔案' : 'Only .txt and .md files are supported', 
+        message: t('ingest.file_support_err'), 
         variant: 'error' 
       });
       return;
@@ -27,7 +26,7 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
     try {
       await ingest.upload(wsId, file);
       toast({ 
-        message: zh ? '文件已上傳，背景處理中…' : 'File uploaded, processing in background…', 
+        message: t('ingest.file_success'), 
         variant: 'success' 
       });
       onStarted();
@@ -89,13 +88,13 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
       <div className="ingest-text">
         <div className="main-text">
           {uploading 
-            ? (zh ? '正在上傳文件...' : 'Uploading file...') 
-            : (zh ? '攝入新文件' : 'Ingest New File')}
+            ? t('ingest.uploading') 
+            : t('ingest.btn_new')}
         </div>
         <div className="sub-text">
           {isDragging 
-            ? (zh ? '放開以開始解析' : 'Drop to start analyzing') 
-            : (zh ? '點擊或將檔案拖移至此' : 'Click or drag file here')}
+            ? t('ingest.drop_analyzing') 
+            : t('ingest.click_or_drag')}
         </div>
       </div>
 

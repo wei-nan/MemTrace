@@ -17,6 +17,7 @@ import OnboardingWizard from './OnboardingWizard';
 import WorkspaceSettings from './WorkspaceSettings';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import NodeHealthManager from './NodeHealthManager';
+import ResetPasswordPage from './ResetPasswordPage';
 import { auth, workspaces, ai, users, system, type Workspace, type Node as ApiNode, type AIKey, type Onboarding, type PersonalApiKey, type BackupConfig } from './api';
 import { useModal } from './components/ModalContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -742,6 +743,9 @@ export default function App() {
   const [showCreateWs, setShowCreateWs] = useState(false);
   const wsMenuRef = useRef<HTMLDivElement>(null);
 
+  // True when the current user has write access to the selected workspace
+  const canWrite = !!(selectedWs && selectedWs.my_role && ['admin', 'editor'].includes(selectedWs.my_role));
+
   useEffect(() => {
     if (!authenticated) return;
     workspaces.list().then(list => {
@@ -784,7 +788,25 @@ export default function App() {
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const resetToken = params.get('reset_token') || params.get('token');
+
   if (!authenticated) {
+    if (resetToken && (window.location.pathname === '/reset-password' || params.has('reset_token'))) {
+      return (
+        <ResetPasswordPage 
+          token={resetToken} 
+          onSuccess={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('reset_token');
+            url.searchParams.delete('token');
+            window.history.replaceState({}, '', url.pathname === '/reset-password' ? '/' : url.toString());
+            // No need to force reload, just re-rendering App will pick up the change
+            setGraphVersion(v => v + 1); // Trigger re-render
+          }} 
+        />
+      );
+    }
     return <AuthPage onAuthenticated={() => setAuthenticated(true)} />;
   }
 
@@ -846,7 +868,8 @@ export default function App() {
                 background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                 borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-lg)',
               }}>
-                {wsList.map(ws => (
+                {/* My workspaces */}
+                {wsList.filter(ws => ws.visibility !== 'public' && ws.visibility !== 'conditional_public').map(ws => (
                   <div
                     key={ws.id}
                     onClick={() => { setSelectedWs(ws); setWsMenuOpen(false); }}
@@ -861,6 +884,31 @@ export default function App() {
                     <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 6 }}>{ws.kb_type}</span>
                   </div>
                 ))}
+                {/* Public / example workspaces */}
+                {wsList.some(ws => ws.visibility === 'public' || ws.visibility === 'conditional_public') && (
+                  <>
+                    <div style={{ padding: '6px 14px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', textTransform: 'uppercase' }}>
+                      {zh ? '公開知識庫' : 'Public'}
+                    </div>
+                    {wsList.filter(ws => ws.visibility === 'public' || ws.visibility === 'conditional_public').map(ws => (
+                      <div
+                        key={ws.id}
+                        onClick={() => { setSelectedWs(ws); setWsMenuOpen(false); }}
+                        style={{
+                          padding: '9px 14px', cursor: 'pointer', fontSize: 13,
+                          background: selectedWs?.id === ws.id ? 'var(--color-primary-subtle)' : 'transparent',
+                          color: selectedWs?.id === ws.id ? 'var(--color-primary)' : 'var(--text-primary)',
+                          transition: 'all 0.15s',
+                          display: 'flex', alignItems: 'center', gap: 6,
+                        }}
+                      >
+                        <Globe size={11} style={{ opacity: 0.5, flexShrink: 0 }} />
+                        {zh ? ws.name_zh : ws.name_en}
+                        <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 'auto' }}>{ws.kb_type}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
                 {/* New workspace button */}
                 <div
                   onClick={() => { setWsMenuOpen(false); setShowCreateWs(true); }}
@@ -885,7 +933,7 @@ export default function App() {
             {!sidebarCollapsed && <span className="nav-text">{t('sidebar.graph')}</span>}
           </div>
 
-          {selectedWs && currentView !== 'settings' && (
+          {selectedWs && canWrite && currentView !== 'settings' && (
             <div
               className="nav-item"
               style={{ marginTop: 8, color: 'var(--color-primary)' }}
@@ -908,7 +956,7 @@ export default function App() {
               {!sidebarCollapsed && <span className="nav-text">{t('sidebar.analytics')}</span>}
             </div>
           )}
-          {selectedWs && (
+          {selectedWs && canWrite && (
             <div
               className={`nav-item ${currentView === 'review' ? 'active' : ''}`}
               style={{ marginTop: 4 }}
@@ -919,7 +967,7 @@ export default function App() {
               {!sidebarCollapsed && <span className="nav-text">{t('sidebar.review')}</span>}
             </div>
           )}
-          {selectedWs && (
+          {selectedWs && canWrite && (
             <div
               className={`nav-item ${currentView === 'ws_settings' ? 'active' : ''}`}
               style={{ marginTop: 4 }}
@@ -930,7 +978,7 @@ export default function App() {
               {!sidebarCollapsed && <span className="nav-text">{t('sidebar.ws_settings')}</span>}
             </div>
           )}
-          {selectedWs && (
+          {selectedWs && canWrite && (
             <div
               className={`nav-item ${currentView === 'ingest' ? 'active' : ''}`}
               style={{ marginTop: 4 }}
@@ -972,6 +1020,7 @@ export default function App() {
         {currentView === 'graph' && (
           <GraphContainer
             wsId={selectedWs?.id}
+            userId={user?.id}
             reloadKey={graphVersion}
             onEditNode={node => setEditingNode(node)}
             onNewNode={() => setEditingNode(null)}
@@ -1011,7 +1060,7 @@ export default function App() {
           <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
              <div style={{ maxWidth: 800, margin: '0 auto' }}>
                 <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '工作區設定' : 'Workspace Settings'}</h2>
-                <WorkspaceSettings wsId={selectedWs.id} />
+                <WorkspaceSettings wsId={selectedWs.id} userId={user?.id} />
              </div>
           </div>
         )}

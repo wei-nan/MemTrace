@@ -53,6 +53,7 @@ export default function GraphView({ apiNodes, apiEdges, relationColors, onEditNo
           title: isPreview ? (zh ? '受保護的節點' : 'Protected Node') : (i18n.language === 'zh-TW' ? n.title_zh : n.title_en),
           type: isPreview ? 'hidden' : n.content_type,
           tags: isPreview ? [] : n.tags,
+          isEmpty: !isPreview && !n.body_zh && !n.body_en,
           healthColor: !isPreview && healthMode && health ? HEALTH_COLORS[health.label] : (isPreview ? '#94a3b8' : undefined),
           healthTooltip: !isPreview && healthMode && health ? `Health ${(health.score * 100).toFixed(0)}% · ${health.reason}` : undefined,
           validityExpired: !isPreview && isExpired,
