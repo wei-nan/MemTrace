@@ -1,16 +1,149 @@
 const BASE = "/api/v1";
 
-function authHeaders(): HeadersInit {
+function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("mt_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(path, {
-    method,
-    headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+/** Read the double-submit CSRF cookie set by the server on every GET response. */
+function getCsrfToken(): string {
+  const match = document.cookie.match(/(?:^|;\s*)mt_csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+/** Build headers for a mutating request (POST / PUT / PATCH / DELETE). */
+function writeHeaders(): Record<string, string> {
+  const csrf = getCsrfToken();
+  return csrf ? { "X-CSRF-Token": csrf } : {};
+}
+
+// ─── Cross-tab token refresh coordination ────────────────────────────────────
+//
+// When two tabs both fire 401 simultaneously they must NOT both call
+// /auth/refresh — refresh tokens are single-use, so one would succeed and
+// the other would invalidate it before the first tab uses it.
+//
+// Strategy:
+//   1. In-tab: a Promise singleton (_refreshing) coalesces parallel callers.
+//   2. Cross-tab: BroadcastChannel("mt-auth") tells other tabs when a fresh
+//      access token has been obtained, so they pick it up from localStorage
+//      instead of racing to the network.
+//   3. Cross-tab fallback: a `storage` event listener catches token changes
+//      in browsers that don't expose BroadcastChannel.
+
+const _bcSupported = typeof BroadcastChannel !== "undefined";
+const _bc: BroadcastChannel | null = _bcSupported ? new BroadcastChannel("mt-auth") : null;
+
+let _refreshing: Promise<string | null> | null = null;
+
+/** Notify other tabs that we just minted a fresh access token. */
+function _broadcastTokenRefreshed(token: string): void {
+  try { _bc?.postMessage({ type: "token-refreshed", token, ts: Date.now() }); } catch {}
+}
+
+/** Notify other tabs that the session is dead. */
+function _broadcastSessionExpired(): void {
+  try { _bc?.postMessage({ type: "session-expired", ts: Date.now() }); } catch {}
+}
+
+// Listen for refresh events from other tabs
+if (_bc) {
+  _bc.addEventListener("message", (ev) => {
+    if (!ev.data || typeof ev.data !== "object") return;
+    if (ev.data.type === "token-refreshed" && typeof ev.data.token === "string") {
+      // Another tab refreshed — adopt their new token without making a network call
+      localStorage.setItem("mt_token", ev.data.token);
+    } else if (ev.data.type === "session-expired") {
+      localStorage.removeItem("mt_token");
+      window.dispatchEvent(new CustomEvent("mt:session-expired"));
+    }
   });
+}
+
+// Storage-event fallback for browsers without BroadcastChannel
+window.addEventListener("storage", (ev) => {
+  if (ev.key === "mt_token" && ev.newValue === null) {
+    window.dispatchEvent(new CustomEvent("mt:session-expired"));
+  }
+});
+
+/** Call /auth/refresh using the httpOnly refresh cookie. Returns the new access token or null. */
+async function _doRefresh(): Promise<string | null> {
+  try {
+    const res = await fetch("/auth/refresh", {
+      method: "POST",
+      credentials: "include",          // send the httpOnly mt_refresh cookie
+      headers: { ...writeHeaders() },  // CSRF token still required (will be exempted server-side)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.access_token) {
+      localStorage.setItem("mt_token", data.access_token);
+      _broadcastTokenRefreshed(data.access_token);
+      return data.access_token;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Refresh the access token once.  Coalesces concurrent callers in this tab,
+ * and cooperates with other tabs via BroadcastChannel.
+ *
+ * Quick-check optimization: if another tab refreshed within the last 2 s,
+ * adopt their token from localStorage instead of hitting the network.
+ */
+async function refreshAccessToken(): Promise<string | null> {
+  // If a refresh is already running in this tab, wait for it
+  if (_refreshing) return _refreshing;
+
+  _refreshing = (async () => {
+    // Quick check: maybe another tab just refreshed
+    const stored = localStorage.getItem("mt_token");
+    // (caller's stale token check happens at the call-site; we always try to refresh here)
+    const fresh = await _doRefresh();
+    return fresh ?? stored;  // fall back to whatever's in storage
+  })();
+
+  try {
+    return await _refreshing;
+  } finally {
+    _refreshing = null;
+  }
+}
+
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const isMutating = !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+
+  const doFetch = (accessToken?: string) =>
+    fetch(path, {
+      method,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : authHeaders()),
+        ...(isMutating ? writeHeaders() : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+
+  let res = await doFetch();
+
+  // On 401, attempt one silent token refresh then retry
+  if (res.status === 401 && path !== "/auth/refresh" && path !== "/auth/login") {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      res = await doFetch(newToken);
+    } else {
+      // Refresh failed — clear session and notify both this tab and any others
+      localStorage.removeItem("mt_token");
+      _broadcastSessionExpired();
+      window.dispatchEvent(new CustomEvent("mt:session-expired"));
+    }
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail ?? `HTTP ${res.status}`);
@@ -25,6 +158,8 @@ export const auth = {
   login: (data: { email: string; password: string }) =>
     request<{ access_token: string }>("POST", "/auth/login", data),
   logout: () => request("POST", "/auth/logout"),
+  /** Manually trigger a token refresh (normally handled automatically by request()). */
+  refresh: () => refreshAccessToken(),
   me: () => request<{ id: string; display_name: string; email: string; email_verified: boolean }>("GET", "/auth/me"),
   verifyEmail: (token: string) => request("POST", `/auth/verify-email/${token}`),
   resendVerification: () => request("POST", "/auth/resend-verification-email"),
@@ -75,7 +210,7 @@ export const workspaces = {
     formData.append('conflict_mode', conflictMode);
     return fetch(`${BASE}/workspaces/${wsId}/imports`, {
       method: 'POST',
-      headers: { ...authHeaders() },
+      headers: { ...authHeaders(), ...writeHeaders() },
       body: formData,
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail ?? res.statusText);
@@ -180,7 +315,7 @@ export const ingest = {
     formData.append("file", file);
     return fetch(`${BASE}/workspaces/${wsId}/ingest`, {
       method: "POST",
-      headers: { ...authHeaders() },
+      headers: { ...authHeaders(), ...writeHeaders() },
       body: formData,
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail ?? res.statusText);

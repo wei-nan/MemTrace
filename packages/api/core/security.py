@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import hashlib
+import hmac
 import logging
 import secrets
 
@@ -60,7 +61,7 @@ def check_password_policy(password: str) -> Optional[str]:
 
 def create_access_token(user_id: str, email: str, display_name: str) -> str:
     jti = secrets.token_hex(16)
-    expire = datetime.now(timezone.utc) + timedelta(days=settings.access_token_expire_days)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
     payload = {
         "sub": user_id,
         "email": email,
@@ -77,6 +78,26 @@ def decode_token(token: str) -> Optional[dict]:
         return jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
     except JWTError:
         return None
+
+
+# ── Refresh tokens ─────────────────────────────────────────────────────────────
+
+def generate_refresh_token() -> tuple[str, str]:
+    """
+    Create a new opaque refresh token.
+
+    Returns (raw_token, token_hash) where:
+    - raw_token  → sent to the client as an httpOnly cookie (one-time, never stored plaintext)
+    - token_hash → stored in the DB for lookup and revocation
+    """
+    raw = secrets.token_urlsafe(48)   # 48 bytes → 64-char base64url string
+    h = hashlib.sha256(raw.encode()).hexdigest()
+    return raw, h
+
+
+def hash_refresh_token(raw: str) -> str:
+    """Re-derive the stored hash from a raw refresh token string."""
+    return hashlib.sha256(raw.encode()).hexdigest()
 
 
 # ── ID generation ─────────────────────────────────────────────────────────────

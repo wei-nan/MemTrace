@@ -10,7 +10,7 @@ from core.backup import (
     set_backup_config,
     validate_path,
 )
-from core.deps import get_current_user
+from core.deps import require_system_admin
 
 router = APIRouter(prefix="/api/v1/system", tags=["admin"])
 
@@ -33,14 +33,14 @@ class BackupConfigUpdate(BaseModel):
 
 
 @router.get("/backup-config", response_model=BackupConfig)
-def get_backup_config_endpoint(user: dict = Depends(get_current_user)):
+def get_backup_config_endpoint(user: dict = Depends(require_system_admin)):
     return get_backup_config()
 
 
 @router.patch("/backup-config", response_model=BackupConfig)
 def update_backup_config_endpoint(
     data: BackupConfigUpdate,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_system_admin),
 ):
     updates = data.model_dump(exclude_none=True)
     if "path" in updates:
@@ -58,7 +58,7 @@ def update_backup_config_endpoint(
 @router.post("/backup/run", status_code=202)
 def trigger_backup(
     background_tasks: BackgroundTasks,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_system_admin),
 ):
     config = get_backup_config()
     db_url = os.environ.get("DATABASE_URL", "")

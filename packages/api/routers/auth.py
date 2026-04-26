@@ -3,8 +3,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from core.config import settings
 from core.database import db_cursor
@@ -16,7 +16,9 @@ from core.security import (
     create_access_token,
     decode_token,
     generate_id,
+    generate_refresh_token,
     hash_password,
+    hash_refresh_token,
     verify_password,
 )
 from models.auth import (
@@ -28,6 +30,27 @@ from models.auth import (
     UserResponse,
 )
 from fastapi.security import HTTPAuthorizationCredentials
+
+_REFRESH_COOKIE = "mt_refresh"
+_COOKIE_SECURE  = settings.app_url.startswith("https://")
+
+
+def _set_refresh_cookie(response: Response, raw_token: str) -> None:
+    """Plant the refresh-token httpOnly cookie."""
+    response.set_cookie(
+        key=_REFRESH_COOKIE,
+        value=raw_token,
+        httponly=True,                  # JS cannot read this cookie
+        samesite="lax",
+        secure=_COOKIE_SECURE,
+        path="/auth/refresh",           # Only sent to the refresh endpoint
+        max_age=settings.refresh_token_expire_days * 86400,
+    )
+
+
+def _clear_refresh_cookie(response: Response) -> None:
+    """Remove the refresh-token cookie on logout."""
+    response.delete_cookie(key=_REFRESH_COOKIE, path="/auth/refresh")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -64,8 +87,20 @@ def register(body: RegisterRequest):
         )
         send_verification_email(body.email, verify_token)
 
-    token = create_access_token(user_id, body.email, body.display_name)
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(user_id, body.email, body.display_name)
+    raw_refresh, refresh_hash = generate_refresh_token()
+    refresh_expires = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "INSERT INTO refresh_tokens (token_hash, user_id, expires_at) VALUES (%s, %s, %s)",
+            (refresh_hash, user_id, refresh_expires),
+        )
+    response = JSONResponse(
+        content={"access_token": access_token, "token_type": "bearer"},
+        status_code=201,
+    )
+    _set_refresh_cookie(response, raw_refresh)
+    return response
 
 
 # ─── Login ────────────────────────────────────────────────────────────────────
@@ -111,38 +146,112 @@ def login(body: LoginRequest):
             (user["id"],)
         )
 
-    token = create_access_token(user["id"], body.email, user["display_name"])
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(user["id"], body.email, user["display_name"])
+
+    # Issue a refresh token and store its hash in the DB
+    raw_refresh, refresh_hash = generate_refresh_token()
+    refresh_expires = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            INSERT INTO refresh_tokens (token_hash, user_id, expires_at)
+            VALUES (%s, %s, %s)
+            """,
+            (refresh_hash, user["id"], refresh_expires),
+        )
+
+    response = JSONResponse(
+        content={"access_token": access_token, "token_type": "bearer"},
+        status_code=200,
+    )
+    _set_refresh_cookie(response, raw_refresh)
+    return response
 
 
 # ─── Logout ───────────────────────────────────────────────────────────────────
 
 @router.post("/logout", status_code=204)
 def logout(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(bearer),
     _user: dict = Depends(get_current_user),
 ):
+    # Blocklist the current JWT
     payload = decode_token(credentials.credentials)
     if payload and payload.get("jti"):
         with db_cursor(commit=True) as cur:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO session_blocklist (jti, expires_at)
                 VALUES (%s, %s)
                 ON CONFLICT (jti) DO NOTHING
-            """, (payload["jti"], datetime.fromtimestamp(payload["exp"], tz=timezone.utc)))
+                """,
+                (payload["jti"], datetime.fromtimestamp(payload["exp"], tz=timezone.utc)),
+            )
+
+    # Revoke the refresh token stored in the httpOnly cookie
+    raw_refresh = request.cookies.get(_REFRESH_COOKIE)
+    if raw_refresh:
+        token_hash = hash_refresh_token(raw_refresh)
+        with db_cursor(commit=True) as cur:
+            cur.execute(
+                "UPDATE refresh_tokens SET revoked_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+
+    response = Response(status_code=204)
+    _clear_refresh_cookie(response)
+    return response
 
 
 # ─── Refresh ──────────────────────────────────────────────────────────────────
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh(credentials: HTTPAuthorizationCredentials = Depends(bearer)):
-    if not credentials:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    payload = decode_token(credentials.credentials)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    token = create_access_token(payload["sub"], payload["email"], payload["display_name"])
-    return TokenResponse(access_token=token)
+def refresh(request: Request):
+    """
+    Exchange a valid refresh-token cookie for a new short-lived access token.
+    The refresh token is rotated on every successful call (one-time-use pattern).
+    """
+    raw_refresh = request.cookies.get(_REFRESH_COOKIE)
+    if not raw_refresh:
+        raise HTTPException(status_code=401, detail="No refresh token")
+
+    token_hash = hash_refresh_token(raw_refresh)
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            SELECT rt.user_id, rt.expires_at, u.email, u.display_name
+            FROM refresh_tokens rt
+            JOIN users u ON u.id = rt.user_id
+            WHERE rt.token_hash = %s
+              AND rt.revoked_at IS NULL
+              AND rt.expires_at > now()
+            """,
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+        # Rotate: revoke old token and issue a new one
+        cur.execute(
+            "UPDATE refresh_tokens SET revoked_at = now() WHERE token_hash = %s",
+            (token_hash,),
+        )
+        raw_new, new_hash = generate_refresh_token()
+        new_expires = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+        cur.execute(
+            "INSERT INTO refresh_tokens (token_hash, user_id, expires_at) VALUES (%s, %s, %s)",
+            (new_hash, row["user_id"], new_expires),
+        )
+
+    access_token = create_access_token(row["user_id"], row["email"], row["display_name"])
+    response = JSONResponse(
+        content={"access_token": access_token, "token_type": "bearer"},
+        status_code=200,
+    )
+    _set_refresh_cookie(response, raw_new)
+    return response
 
 
 # ─── Forgot password ──────────────────────────────────────────────────────────

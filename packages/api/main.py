@@ -12,6 +12,9 @@ from core.backup import get_backup_config, run_backup_and_update_status
 from core.database import db_cursor
 from core.email import send_workspace_deletion_notice
 from core.csrf import CsrfMiddleware
+from core.ratelimit import RateLimitMiddleware
+from core.audit import AuditLogMiddleware, audit_writer_loop
+from core.security_headers import SecurityHeadersMiddleware
 from routers.admin import router as admin_router
 from routers.auth import router as auth_router
 from routers.kb   import router as kb_router
@@ -106,9 +109,46 @@ async def _cleanup_loop():
                         "DELETE FROM kb_exports WHERE id = ANY(%s)",
                         ([e["id"] for e in old_exports],),
                     )
-            logger.info("Daily cleanup complete (expired invites, old logs/exports)")
+                # P2-3: Auto-revoke API keys inactive for 90 days.
+                # A key is "inactive" if it has never been used and was created
+                # ≥ 90 days ago, OR was last used ≥ 90 days ago.
+                cur.execute(
+                    """
+                    UPDATE api_keys
+                    SET revoked_at = now()
+                    WHERE revoked_at IS NULL
+                      AND (
+                            (last_used_at IS NULL AND created_at < now() - INTERVAL '90 days')
+                         OR (last_used_at IS NOT NULL AND last_used_at < now() - INTERVAL '90 days')
+                          )
+                    RETURNING id, user_id, name
+                    """
+                )
+                revoked_keys = cur.fetchall()
+                if revoked_keys:
+                    logger.info(
+                        "Auto-revoked %d inactive API key(s): %s",
+                        len(revoked_keys),
+                        [r["id"] for r in revoked_keys],
+                    )
+            logger.info("Daily cleanup complete (expired invites, old logs/exports, inactive API keys)")
         except Exception as exc:
             logger.warning("Cleanup loop error: %s", exc)
+
+        # Purge access-log separately so a missing table/function never breaks
+        # the main cleanup transaction (table created by migration 003).
+        try:
+            with db_cursor(commit=True) as cur:
+                cur.execute("SELECT purge_old_access_logs()")
+        except Exception:
+            pass  # function not yet created — migration pending
+
+        # Purge expired/revoked refresh tokens (migration 004).
+        try:
+            with db_cursor(commit=True) as cur:
+                cur.execute("SELECT purge_old_refresh_tokens()")
+        except Exception:
+            pass  # function not yet created — migration pending
 
 
 
@@ -248,16 +288,38 @@ async def lifespan(app: FastAPI):
         _run_migrations()
     except Exception as exc:
         logger.warning("Migration skipped: %s", exc)
+
+    # ── Startup security checks ────────────────────────────────────────────────
+    try:
+        backup_cfg = get_backup_config()
+        if not backup_cfg.get("enabled"):
+            logger.critical(
+                "⚠️  SECURITY WARNING: Automated backup is DISABLED. "
+                "Enable it via PATCH /api/v1/system/backup-config or the admin panel."
+            )
+    except Exception:
+        pass  # DB might not be ready yet; backup loop will log its own errors
+
+    # Warn loudly if no system admin is configured — admin endpoints will all 403.
+    from core.config import settings as _s
+    if not (_s.admin_emails or "").strip():
+        logger.critical(
+            "⚠️  SECURITY WARNING: ADMIN_EMAILS is not set. "
+            "All /api/v1/system/* endpoints will deny access until you set "
+            "ADMIN_EMAILS=user@example.com in your .env file."
+        )
+
     decay_task         = asyncio.create_task(_decay_loop())
     ephemeral_task     = asyncio.create_task(_ephemeral_decay_loop())   # D4
     deletion_task      = asyncio.create_task(_deletion_notification_loop())
     cleanup_task       = asyncio.create_task(_cleanup_loop())            # G4
     backup_task        = asyncio.create_task(_backup_loop())
-    logger.info("Background schedulers started (decay + ephemeral decay + deletion notifications + cleanup + backup)")
+    audit_task         = asyncio.create_task(audit_writer_loop())        # P1-2 batched audit writer
+    logger.info("Background schedulers started (decay + ephemeral decay + deletion notifications + cleanup + backup + audit)")
     try:
         yield
     finally:
-        for t in (decay_task, ephemeral_task, deletion_task, cleanup_task, backup_task):
+        for t in (decay_task, ephemeral_task, deletion_task, cleanup_task, backup_task, audit_task):
             t.cancel()
             try:
                 await t
@@ -281,7 +343,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(CsrfMiddleware)
+# Middleware execution order in Starlette: LAST added = FIRST executed.
+# Desired order: RateLimit → SecurityHeaders → AuditLog → CSRF → route
+app.add_middleware(CsrfMiddleware)           # 4th: validates CSRF token
+app.add_middleware(AuditLogMiddleware)       # 3rd: records every API call
+app.add_middleware(SecurityHeadersMiddleware)  # 2nd: adds security headers
+app.add_middleware(RateLimitMiddleware)      # 1st: blocks before doing anything else
 
 app.include_router(admin_router)
 app.include_router(auth_router)

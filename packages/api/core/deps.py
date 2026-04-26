@@ -1,11 +1,20 @@
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import hashlib
+import logging
 
 from .security import decode_token
 from .database import db_cursor
+from .config import settings
+
+logger = logging.getLogger(__name__)
 
 bearer = HTTPBearer(auto_error=False)
+
+
+def _admin_email_set() -> set[str]:
+    """Parse settings.admin_emails (comma-separated) into a normalized set."""
+    return {e.strip().lower() for e in (settings.admin_emails or "").split(",") if e.strip()}
 
 
 def get_current_user(
@@ -80,3 +89,38 @@ def get_current_user_optional(
 
     payload = decode_token(token)
     return payload
+
+
+def require_system_admin(user: dict = Depends(get_current_user)) -> dict:
+    """
+    Dependency that gates an endpoint behind a system-admin check.
+
+    A user is considered admin if their email (case-insensitive) appears in
+    the ADMIN_EMAILS env var (comma-separated).
+
+    Reject API keys outright — admin actions must come from a verified
+    interactive session, not a stored credential.
+    """
+    if "api_key_id" in user:
+        raise HTTPException(
+            status_code=403,
+            detail="System admin operations cannot be performed with an API key",
+        )
+
+    admin_emails = _admin_email_set()
+    if not admin_emails:
+        # No admin emails configured → lock down completely (fail closed)
+        logger.critical(
+            "SECURITY: ADMIN_EMAILS is not set — all admin endpoints are denied. "
+            "Set ADMIN_EMAILS=user@example.com in your .env to enable admin operations."
+        )
+        raise HTTPException(
+            status_code=403,
+            detail="System admin not configured. Set ADMIN_EMAILS in environment.",
+        )
+
+    email = (user.get("email") or "").lower()
+    if email not in admin_emails:
+        raise HTTPException(status_code=403, detail="System admin access required")
+
+    return user

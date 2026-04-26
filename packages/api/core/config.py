@@ -1,9 +1,30 @@
+import os
+import logging
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
+
+# Known weak / default keys that must never be used in production
+_WEAK_KEYS = {
+    "1234567890abcdef1234567890abcdef",
+    "changeme",
+    "secret",
+    "your-secret-key",
+    "supersecretkey",
+}
 
 
 class Settings(BaseSettings):
     database_url: str
     secret_key: str
+    # Short-lived access token (default 60 min).
+    # Set ACCESS_TOKEN_EXPIRE_MINUTES in .env to override.
+    access_token_expire_minutes: int = 60
+    # Long-lived refresh token (default 30 days, stored server-side).
+    refresh_token_expire_days: int = 30
+    # Kept for backward compatibility; ignored when access_token_expire_minutes is set.
     access_token_expire_days: int = 7
 
     # ── Email ──────────────────────────────────────────────────────────────────
@@ -21,9 +42,36 @@ class Settings(BaseSettings):
     app_url:          str = "http://localhost:5173"
     internal_service_token: str = ""
 
+    # ── System admin (comma-separated emails) ─────────────────────────────────
+    # Users whose email matches one of these are treated as system administrators.
+    # Required for backup configuration and other privileged operations.
+    admin_emails: str = ""
+
     class Config:
         env_file = "../../.env"
         extra = "ignore"
+
+    @model_validator(mode="after")
+    def _validate_secret_key(self) -> "Settings":
+        key = self.secret_key
+        is_weak = key in _WEAK_KEYS or len(key) < 32
+
+        if is_weak:
+            # Allow bypass only when explicitly opted-in (dev convenience)
+            if os.environ.get("ALLOW_WEAK_SECRET_KEY") == "1":
+                logger.warning(
+                    "⚠️  SECRET_KEY is weak or a known default. "
+                    "This is permitted because ALLOW_WEAK_SECRET_KEY=1 is set, "
+                    "but MUST NOT be used in production."
+                )
+            else:
+                raise ValueError(
+                    "SECRET_KEY is too short or is a known insecure default. "
+                    "Set a strong random value (≥ 32 characters) in your .env file. "
+                    "Generate one with:  python -c \"import secrets; print(secrets.token_hex(32))\"\n"
+                    "To bypass in local development only, set ALLOW_WEAK_SECRET_KEY=1."
+                )
+        return self
 
 
 settings = Settings()

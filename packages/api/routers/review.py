@@ -106,7 +106,7 @@ def update_review_item(id: str, body: ReviewUpdate, user: dict = Depends(get_cur
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Review item not found")
-        _require_ws_access(cur, row["workspace_id"], user, write=True)
+        _require_ws_access(cur, row["workspace_id"], user, write=True, required_scope="kb:write")
         updates = {}
         if body.node_data is not None:
             merged_node = body.node_data
@@ -183,7 +183,7 @@ def accept_review_item(id: str, user: dict = Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="Review item not found")
         if item["status"] != "pending":
             raise HTTPException(status_code=400, detail=f"Item is already {item['status']}")
-        _require_ws_access(cur, item["workspace_id"], user, write=True)
+        _require_ws_access(cur, item["workspace_id"], user, write=True, required_scope="kb:write")
         node, deleted = _apply_review_item(cur, item)
         if node:
             _write_node_revision(
@@ -232,7 +232,7 @@ def reject_review_item(id: str, user: dict = Depends(get_current_user)):
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Review item not found")
-        _require_ws_access(cur, row["workspace_id"], user, write=True)
+        _require_ws_access(cur, row["workspace_id"], user, write=True, required_scope="kb:write")
         if row["status"] != "pending":
             raise HTTPException(status_code=400, detail=f"Item is already {row['status']}")
         cur.execute(
@@ -245,7 +245,7 @@ def reject_review_item(id: str, user: dict = Depends(get_current_user)):
 @router.post("/{ws_id}/review-queue/accept-all")
 def accept_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         cur.execute("SELECT id FROM review_queue WHERE workspace_id = %s AND status = 'pending'", (ws_id,))
         ids = [row["id"] for row in cur.fetchall()]
     count = 0
@@ -261,7 +261,7 @@ def accept_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
 @router.post("/{ws_id}/review-queue/reject-all")
 def reject_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         cur.execute(
             "UPDATE review_queue SET status = 'rejected', reviewer_type = 'human', reviewer_id = %s, reviewed_at = now() WHERE workspace_id = %s AND status = 'pending'",
             (user["sub"], ws_id),
@@ -272,7 +272,7 @@ def reject_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
 @router.post("/{ws_id}/review-queue/ai-prescreen")
 async def run_ai_prescreen(ws_id: str, user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         cur.execute("SELECT id FROM review_queue WHERE workspace_id = %s AND status = 'pending' ORDER BY created_at ASC", (ws_id,))
         ids = [row["id"] for row in cur.fetchall()]
     processed = 0
@@ -373,7 +373,7 @@ def get_reviewer_profile(ws_id: str, user: dict = Depends(get_current_user)):
 @router.put("/{ws_id}/reviewer-profiles", response_model=ReviewerProfile)
 def update_reviewer_profile(ws_id: str, body: ReviewerProfile, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         cur.execute("SELECT settings FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()
         settings = ws.get("settings") or {}

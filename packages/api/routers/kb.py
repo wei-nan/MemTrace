@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any, List, Literal, Optional, Union
+import hashlib
+import hmac
 import json
 from collections import defaultdict, deque
 
@@ -11,6 +13,22 @@ from pydantic import BaseModel
 
 from core.database import db_cursor
 from core.config import settings
+
+
+def _preview_id(node_id: str) -> str:
+    """Derive an opaque, non-enumerable preview ID via HMAC-SHA256.
+
+    Using the server's SECRET_KEY as the HMAC key means:
+    - IDs are non-guessable without the key.
+    - The same node always maps to the same preview_id (stable for graph rendering).
+    - Sequential node IDs do NOT produce sequential preview_ids.
+    """
+    digest = hmac.new(
+        settings.secret_key.encode(),
+        node_id.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return "p_" + digest[:20]
 
 
 def _is_postgres() -> bool:
@@ -30,6 +48,7 @@ def _apply_text_search(filters: list, params: list, q: str) -> None:
         )
         params += [like, like, like, like]
 from core.deps import get_current_user, get_current_user_optional, RequireScope
+from core.ratelimit import TraversalGuard
 from core.diff import build_node_diff
 from core.security import compute_signature, generate_id
 from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable
@@ -519,7 +538,7 @@ def get_graph_preview(ws_id: str):
         nodes = cur.fetchall()
         cur.execute("SELECT from_id, to_id, relation FROM edges WHERE workspace_id = %s AND status = 'active'", (ws_id,))
         edges = cur.fetchall()
-        id_map = {node["id"]: f"p_node_{i}" for i, node in enumerate(nodes)}
+        id_map = {node["id"]: _preview_id(node["id"]) for node in nodes}
         return {
             "nodes": [{"preview_id": id_map[n["id"]], "content_type": n["content_type"]} for n in nodes],
             "edges": [
@@ -598,7 +617,7 @@ def delete_association(ws_id: str, target_ws_id: str, user: dict = Depends(get_c
 @router.delete("/workspaces/{ws_id}/purge", response_model=WorkspacePurgeResponse)
 def purge_workspace(ws_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         if ws["owner_id"] != user["sub"]:
             raise HTTPException(status_code=403, detail="Only workspace owner can purge it")
         cur.execute("DELETE FROM edges WHERE workspace_id = %s", (ws_id,))
@@ -824,7 +843,7 @@ def get_nodes_health(ws_id: str, user: dict = Depends(get_current_user_optional)
 async def backfill_embeddings(ws_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     """Admin-only: queue embedding computation for all nodes missing embeddings."""
     with db_cursor() as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role not in ("admin",):
             raise HTTPException(status_code=403, detail="Admin only")
@@ -844,7 +863,7 @@ async def backfill_embeddings(ws_id: str, background_tasks: BackgroundTasks, use
 def suggest_edges_for_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
     """Admin-only: manually trigger edge suggestions for a specific node."""
     with db_cursor() as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role not in ("admin",):
             raise HTTPException(status_code=403, detail="Admin only")
@@ -908,7 +927,7 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
     payload = body.model_dump()
     _validate_node_payload(payload)
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         
         # D1: Verify source workspace access if copying
         if payload.get("copied_from_ws"):
@@ -944,7 +963,7 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
 def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     updates = body.model_dump(exclude_none=True)
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
         existing = cur.fetchone()
         if not existing:
@@ -993,7 +1012,7 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: Ba
 @router.delete("/workspaces/{ws_id}/nodes/{node_id}", status_code=204)
 def delete_node(ws_id: str, node_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role == "editor":
             review_id = _propose_change(
@@ -1057,7 +1076,7 @@ def diff_node_revisions(ws_id: str, node_id: str, rev_a: int, rev_b: int, user: 
 @router.post("/workspaces/{ws_id}/nodes/{node_id}/revisions/{revision_no}/restore")
 def restore_node_revision(ws_id: str, node_id: str, revision_no: int, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         cur.execute("SELECT snapshot FROM node_revisions WHERE workspace_id = %s AND node_id = %s AND revision_no = %s", (ws_id, node_id, revision_no))
         row = cur.fetchone()
         if not row:
@@ -1104,7 +1123,7 @@ async def connect_orphans(ws_id: str, background_tasks: BackgroundTasks, user: d
     from routers.ingest import _resolve_with_fallback
 
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
 
         # Collect orphan nodes (only nodes with NO active edges)
         cur.execute("""
@@ -1273,7 +1292,7 @@ def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_u
         raise HTTPException(status_code=400, detail="Weight must be between 0.1 and 1.0")
     edge_id = generate_id("edge")
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         for nid in (body.from_id, body.to_id):
             cur.execute("SELECT id FROM memory_nodes WHERE id = %s AND workspace_id = %s", (nid, ws_id))
             if not cur.fetchone():
@@ -1302,7 +1321,15 @@ def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_u
 @router.post("/nodes/{node_id}/traverse", status_code=204)
 def traverse_node(node_id: str, user: dict = Depends(RequireScope("node:traverse"))):
     """A5: After traverse, auto-update dim_utility and recompute trust_score."""
+    TraversalGuard.check(user["sub"])  # anomaly detection: 500/10m soft, 2000/10m hard-suspend
     with db_cursor(commit=True) as cur:
+        # Verify the caller actually has access to this node's workspace
+        cur.execute("SELECT workspace_id FROM memory_nodes WHERE id = %s", (node_id,))
+        node_row = cur.fetchone()
+        if not node_row:
+            raise HTTPException(status_code=404, detail="Node not found")
+        _require_ws_access(cur, node_row["workspace_id"], user)
+
         is_new = not _actor_has_traversed_node(cur, node_id, user["sub"])
         cur.execute("INSERT INTO traversal_log (node_id, actor_id) VALUES (%s, %s)", (node_id, user["sub"]))
         cur.execute(
@@ -1338,7 +1365,7 @@ def traverse_node(node_id: str, user: dict = Depends(RequireScope("node:traverse
 )
 def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True)
+        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         cur.execute(
             """
             UPDATE memory_nodes
@@ -1356,11 +1383,14 @@ def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_cur
 
 @router.post("/edges/{edge_id}/traverse", status_code=204)
 def traverse_edge(edge_id: str, body: TraverseEdgeRequest, user: dict = Depends(get_current_user)):
+    TraversalGuard.check(user["sub"])  # anomaly detection: 500/10m soft, 2000/10m hard-suspend
     with db_cursor(commit=True) as cur:
-        cur.execute("SELECT from_id, to_id FROM edges WHERE id = %s", (edge_id,))
+        cur.execute("SELECT from_id, to_id, workspace_id FROM edges WHERE id = %s", (edge_id,))
         edge = cur.fetchone()
         if not edge:
             raise HTTPException(status_code=404, detail="Edge not found")
+        # Verify the caller has read access to this edge's workspace
+        _require_ws_access(cur, edge["workspace_id"], user)
         cur.execute("SELECT record_traversal(%s, %s, NULL, %s)", (edge_id, user["sub"], body.note))
 
 
@@ -1369,9 +1399,13 @@ def rate_edge(edge_id: str, body: RateEdgeRequest, user: dict = Depends(RequireS
     if not (1 <= body.rating <= 5):
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
     with db_cursor(commit=True) as cur:
-        cur.execute("SELECT id FROM edges WHERE id = %s", (edge_id,))
-        if not cur.fetchone():
+        cur.execute("SELECT workspace_id FROM edges WHERE id = %s", (edge_id,))
+        edge_row = cur.fetchone()
+        if not edge_row:
             raise HTTPException(status_code=404, detail="Edge not found")
+        # Rating affects trust scores → require workspace access (read sufficient,
+        # since editor/admin already covered by RequireScope's API-key gating)
+        _require_ws_access(cur, edge_row["workspace_id"], user)
         cur.execute("SELECT record_traversal(%s, %s, %s, %s)", (edge_id, user["sub"], body.rating, body.note))
 
 
@@ -1598,7 +1632,7 @@ class BulkArchiveResponse(BaseModel):
 def bulk_archive_nodes(ws_id: str, body: BulkArchiveRequest, user: dict = Depends(get_current_user)):
     """A4: Batch-archive a list of nodes (editor/admin only)."""
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role not in ("editor", "admin"):
             raise HTTPException(status_code=403, detail="Editor or Admin role required")
@@ -1619,7 +1653,7 @@ def bulk_archive_nodes(ws_id: str, body: BulkArchiveRequest, user: dict = Depend
 def archive_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
     """D4: Archive a single node."""
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role not in ("editor", "admin"):
             raise HTTPException(status_code=403, detail="Editor or Admin role required")
@@ -1635,7 +1669,7 @@ def archive_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user
 def restore_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
     """D4: Restore a previously archived node."""
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role not in ("editor", "admin"):
             raise HTTPException(status_code=403, detail="Editor or Admin role required")
@@ -1694,7 +1728,7 @@ def get_health_scores(ws_id: str, user: dict = Depends(get_current_user_optional
 def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
     """A6: Manually confirm a node is still valid."""
     with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True)
+        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
         if role not in ("editor", "admin"):
             raise HTTPException(status_code=403, detail="Editor or Admin role required")

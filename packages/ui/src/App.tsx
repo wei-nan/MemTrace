@@ -712,12 +712,25 @@ export default function App() {
       auth.me()
         .then(u => setUser(u))
         .catch(() => { localStorage.removeItem('mt_token'); setAuthenticated(false); });
-      
+
       auth.getOnboarding()
         .then(o => setOnboarding(o))
         .catch(() => {});
     }
   }, [authenticated]);
+
+  // Listen for silent-refresh failures from api.ts — force re-login
+  useEffect(() => {
+    const onExpired = () => {
+      localStorage.removeItem('mt_token');
+      setAuthenticated(false);
+      setUser(null);
+      setSelectedWs(null);
+      setWsList([]);
+    };
+    window.addEventListener('mt:session-expired', onExpired);
+    return () => window.removeEventListener('mt:session-expired', onExpired);
+  }, []);
 
   const handleUpdateOnboarding = async (data: Partial<Onboarding>) => {
     if (!onboarding) return;
