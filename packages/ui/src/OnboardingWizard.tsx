@@ -149,21 +149,16 @@ export default function OnboardingWizard({
       <div className="onboard-icon"><Languages size={48} /></div>
       <h3 style={{ fontFamily: 'Outfit, sans-serif' }}>{t('onboarding.welcome_title')}</h3>
       <p>{t('onboarding.welcome_subtitle')}</p>
-      <div className="flex-center mt-32 gap-12">
-        <button 
-          className={`btn-secondary ${i18n.language === 'en' ? 'active' : ''}`} 
-          onClick={() => i18n.changeLanguage('en')}
-          style={i18n.language === 'en' ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' } : {}}
+      <div className="flex-center mt-32">
+        <select 
+          className="mt-input"
+          style={{ width: 200, textAlign: 'center' }}
+          value={i18n.language}
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
         >
-          English
-        </button>
-        <button 
-          className={`btn-secondary ${i18n.language === 'zh-TW' ? 'active' : ''}`} 
-          onClick={() => i18n.changeLanguage('zh-TW')}
-          style={i18n.language === 'zh-TW' ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' } : {}}
-        >
-          繁體中文
-        </button>
+          <option value="zh-TW">繁體中文</option>
+          <option value="en">English</option>
+        </select>
       </div>
 
       {/* Concept Explanation */}

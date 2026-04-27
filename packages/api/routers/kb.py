@@ -74,7 +74,7 @@ from models.review import NodeRevisionMetaResponse, NodeRevisionResponse
 router = APIRouter(prefix="/api/v1", tags=["knowledge-base"])
 
 VALID_RELATIONS = {"depends_on", "extends", "related_to", "contradicts"}
-VALID_KB_VIS = {"public", "restricted", "private", "conditional_public"}
+VALID_KB_VIS = {"public", "restricted", "private"}
 VALID_NODE_VIS = {"public", "team", "private"}
 VALID_CONTENT_T = {"factual", "procedural", "preference", "context"}
 VALID_FORMAT = {"plain", "markdown"}
@@ -441,23 +441,34 @@ def _bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
 
 
 @router.get("/workspaces", response_model=list[WorkspaceResponse])
-def list_workspaces(search: Optional[str] = Query(None), user: dict = Depends(get_current_user)):
+def list_workspaces(search: Optional[str] = Query(None), user: Optional[dict] = Depends(get_current_user_optional)):
     with db_cursor() as cur:
-        uid = user["sub"]
-        filters = [
-            """
-            (
-                w.owner_id = %s
-                OR w.id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
-                OR w.visibility IN ('public', 'conditional_public')
-            )
-            """
-        ]
-        params: list = [uid, uid]
+        uid = user["sub"] if user else None
+        
+        if uid:
+            # Authenticated user
+            filters = [
+                """
+                (
+                    w.owner_id = %s
+                    OR w.id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
+                    OR w.visibility = 'public'
+                )
+                """
+            ]
+            params = [uid, uid]
+            query_params = [uid, uid] + params
+        else:
+            # Anonymous user
+            filters = ["w.visibility = 'public'"]
+            params = []
+            query_params = [None, None]
+
         if search:
             filters.append("(w.name_zh ILIKE %s OR w.name_en ILIKE %s)")
             like = f"%{search}%"
-            params.extend([like, like])
+            query_params.extend([like, like])
+
         cur.execute(
             f"""
             SELECT w.*,
@@ -469,9 +480,11 @@ def list_workspaces(search: Optional[str] = Query(None), user: dict = Depends(ge
             WHERE {' AND '.join(filters)}
             ORDER BY w.updated_at DESC
             """,
-            [uid, uid] + params,
+            query_params,
         )
         return cur.fetchall()
+
+
 
 
 @router.post("/workspaces", response_model=WorkspaceResponse, status_code=201)
@@ -532,7 +545,7 @@ def get_graph_preview(ws_id: str):
         ws = cur.fetchone()
         if not ws:
             raise HTTPException(status_code=404, detail="Workspace not found")
-        if ws["visibility"] not in ("conditional_public", "public"):
+        if ws["visibility"] not in ("public",):
             raise HTTPException(status_code=403, detail="Graph preview only available for public/conditional_public workspaces")
         cur.execute("SELECT id, content_type FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
         nodes = cur.fetchall()

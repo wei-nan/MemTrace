@@ -323,7 +323,7 @@ function SettingsPanel({
   theme: string;
   toggleTheme: () => void;
   language: string;
-  switchLanguage: () => void;
+  switchLanguage: (lang: string) => void;
 }) {
   const { t, i18n } = useTranslation();
   const zh = language === 'zh-TW';
@@ -452,10 +452,15 @@ function SettingsPanel({
           <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 14 }}>{t('ws_settings.language')}</span>
-            <button className="btn-secondary" onClick={switchLanguage} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px' }}>
-              <Globe size={14} />
-              {i18n.language === 'zh-TW' ? 'Switch to English' : '切換至中文'}
-            </button>
+            <select
+              className="mt-input"
+              style={{ width: 140, padding: '4px 10px' }}
+              value={i18n.language}
+              onChange={(e) => switchLanguage(e.target.value)}
+            >
+              <option value="zh-TW">繁體中文</option>
+              <option value="en">English</option>
+            </select>
           </div>
         </div>
       </section>
@@ -681,8 +686,7 @@ export default function App() {
   };
 
   // ── Language ──────────────────────────────────────────────────────────────
-  const switchLanguage = () => {
-    const next = i18n.language === 'zh-TW' ? 'en' : 'zh-TW';
+  const switchLanguage = (next: string) => {
     i18n.changeLanguage(next);
     localStorage.setItem('mt_lang', next);
   };

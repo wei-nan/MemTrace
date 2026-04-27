@@ -11,6 +11,7 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+.env.sim
 
 # Build outputs
 dist/
@@ -41,7 +42,7 @@ desktop.ini
 .mcp.json
 
 # Documentation
-docs/
+docs/dev/
 
 # Data & Storage
 packages/api/data/
@@ -49,3 +50,6 @@ packages/api/data/
 # Temporary files
 scratch/
 backups/
+
+
+docker-compose.sim.yml
