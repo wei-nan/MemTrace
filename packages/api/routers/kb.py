@@ -274,6 +274,32 @@ def _delete_node_in_db(cur, ws_id: str, node_id: str):
     return row
 
 
+def _create_edges_directly(cur, ws_id: str, from_id: str, suggested_edges: list[dict]):
+    if not suggested_edges:
+        return
+    for edge in suggested_edges:
+        to_id = edge.get("to_id")
+        relation = edge.get("relation")
+        weight = edge.get("weight", 1.0)
+        if not to_id or not relation or relation not in VALID_RELATIONS or from_id == to_id:
+            continue
+        # Verify target node exists in same workspace
+        cur.execute("SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s", (to_id, ws_id))
+        if not cur.fetchone():
+            continue
+        # Check for existing edge to avoid unique constraint error
+        cur.execute(
+            "SELECT 1 FROM edges WHERE workspace_id=%s AND from_id=%s AND to_id=%s AND relation=%s",
+            (ws_id, from_id, to_id, relation)
+        )
+        if cur.fetchone():
+            continue
+        cur.execute(
+            "INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight) VALUES (%s, %s, %s, %s, %s, %s)",
+            (generate_id("edge"), ws_id, from_id, to_id, relation, weight)
+        )
+
+
 def _write_node_revision(
     cur,
     node_id: str,
@@ -966,6 +992,7 @@ def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks,
             return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your new node has been submitted for review"})
 
         node = _create_node_in_db(cur, ws_id, payload | {"author": proposer_id, "source_type": payload.get("source_type", "human")})
+        _create_edges_directly(cur, ws_id, node["id"], payload.get("suggested_edges", []))
         _write_node_revision(cur, node["id"], ws_id, _node_row_to_snapshot(node), node["signature"], payload.get("source_type", "human"), proposer_id, None)
         background_tasks.add_task(_bg_embed_node, ws_id, node["id"], f"{node['title_zh']}\n{node['title_en']}\n{node['body_zh']}\n{node['body_en']}", user["sub"])
         background_tasks.add_task(_bg_suggest_edges, ws_id, node["id"], user["sub"])
@@ -1002,6 +1029,7 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: Ba
             return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your changes have been submitted for review"})
 
         node = _update_node_in_db(cur, ws_id, node_id, updates, user["sub"])
+        _create_edges_directly(cur, ws_id, node_id, updates.get("suggested_edges", []))
         _write_node_revision(cur, node["id"], ws_id, _node_row_to_snapshot(node), node["signature"], updates.get("source_type", "human"), user["sub"], None)
         # A5: Reset dim_freshness to 1.0 and recompute trust_score on content update
         cur.execute(
