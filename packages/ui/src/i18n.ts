@@ -283,6 +283,7 @@ const resources = {
         concept_trust_desc: '多維度評估：正確性、新鮮度與效用。',
         spec_kb_title: 'MemTrace 規格知識庫（範例）',
         spec_kb_desc: '這是一個公開的範例知識庫，收錄了 MemTrace 的完整規格文件。進入應用後可在工作區選單中的「公開知識庫」找到它。',
+        open_spec_kb: '前往規格知識庫',
         api_key_guide_title: '建立寫入 API 金鑰',
         api_key_guide_desc: '如果您打算使用 MCP 或 Ingestion 工具，請在進入應用後前往「設定」建立一個具備 kb:write 權限的金鑰。'
       },
@@ -698,6 +699,7 @@ const resources = {
         concept_trust_desc: 'Dimensions: Accuracy, Freshness, and Utility.',
         spec_kb_title: 'MemTrace Spec KB (Example)',
         spec_kb_desc: 'A public example KB containing full MemTrace spec docs. Find it under "Public" in the workspace selector after entering the app.',
+        open_spec_kb: 'Open Spec KB',
         api_key_guide_title: 'Create a Write API Key',
         api_key_guide_desc: 'If you plan to use MCP or Ingestion tools, go to "Settings" after entering to create a key with "kb:write" scope.'
       },

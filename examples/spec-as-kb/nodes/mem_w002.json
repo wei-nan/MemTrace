@@ -9,16 +9,15 @@
     "type": "procedural",
     "format": "markdown",
     "body": {
-      "zh-TW": "## 前置需求\n- Node.js 20+\n- Python **3.9+**（注意：MCP SDK 需要 3.10+，但 MemTrace API 本身 3.9 可執行）\n- PostgreSQL 17（含 pgvector extension）\n\n## 資料庫初始化\n```bash\npsql -U postgres -c \"CREATE DATABASE memtrace;\"\npsql -U postgres -d memtrace -f schema/sql/001_init.sql\n```\n\n## 環境變數（**repo 根目錄** `.env`）\n```\nDATABASE_URL=postgresql://memtrace:password@127.0.0.1:5432/memtrace\nSECRET_KEY=<random-32-chars>\n```\n\n## 啟動服務\n```bash\n# 安裝 TS 相依性（含 MCP 套件）\nnpm install\n\n# 安裝 Python 相依性\ncd packages/api && pip install -r requirements.txt\n\n# 終端機 1：FastAPI（含 decay 排程器）\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 終端機 2：Vite 前端（proxy 預設指向 localhost:8000）\ncd packages/ui && npm run dev\n\n# MCP server（供 Claude Code 使用）\n# 透過 .mcp.json 自動啟動，或手動：\nnode packages/mcp/dist/index.js\n```\n\n## Docker（一鍵啟動 DB）\n```bash\ndocker compose up -d   # 啟動 PostgreSQL\n```",
-      "en": "## Prerequisites\n- Node.js 20+\n- Python **3.9+** (note: MCP SDK requires 3.10+, but MemTrace API itself runs on 3.9)\n- PostgreSQL 17 (with pgvector extension)\n\n## Database Init\n```bash\npsql -U postgres -c \"CREATE DATABASE memtrace;\"\npsql -U postgres -d memtrace -f schema/sql/001_init.sql\n```\n\n## Environment Variables (**repo root** `.env`)\n```\nDATABASE_URL=postgresql://memtrace:password@127.0.0.1:5432/memtrace\nSECRET_KEY=<random-32-chars>\n```\n\n## Start Services\n```bash\n# Install TS dependencies (includes MCP package)\nnpm install\n\n# Install Python dependencies\ncd packages/api && pip install -r requirements.txt\n\n# Terminal 1: FastAPI (includes decay scheduler)\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# Terminal 2: Vite frontend (proxy pre-configured to localhost:8000)\ncd packages/ui && npm run dev\n\n# MCP server (used by Claude Code)\n# Auto-started via .mcp.json, or manually:\nnode packages/mcp/dist/index.js\n```\n\n## Docker (one-command DB)\n```bash\ndocker compose up -d   # starts PostgreSQL\n```"
+      "zh-TW": "## 前置需求\n- Node.js 20 LTS+\n- Python **3.11+**\n- Docker Desktop（啟動 PostgreSQL 17 + pgvector）\n\n## 啟動開發環境\n```bash\n# 1. 複製環境設定\ncp .env.example .env  # 填入 POSTGRES_PASSWORD 與 SECRET_KEY\n\n# 2. 安裝 Node 相依\nnpm install\n\n# 3. 安裝 Python 相依\ncd packages/api && python -m venv venv\nsource venv/bin/activate  # macOS/Linux\npip install -r requirements.txt && cd ../...\n\n# 4. 啟動資料庫（首次自動執行所有 schema/sql/*.sql）\ndocker compose up -d\n\n# 5. 啟動 API\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 6. 啟動 UI（另一個終端機）\ncd packages/ui && npm run dev\n```\n\nAPI：http://localhost:8000 / UI：http://localhost:5173",
+      "en": "## Prerequisites\n- Node.js 20 LTS+\n- Python **3.11+**\n- Docker Desktop (runs PostgreSQL 17 + pgvector)\n\n## Start the Dev Environment\n```bash\n# 1. Copy env config\ncp .env.example .env  # fill in POSTGRES_PASSWORD and SECRET_KEY\n\n# 2. Install Node dependencies\nnpm install\n\n# 3. Install Python dependencies\ncd packages/api && python -m venv venv\nsource venv/bin/activate\npip install -r requirements.txt && cd ../...\n\n# 4. Start the database (auto-applies all schema/sql/*.sql on first run)\ndocker compose up -d\n\n# 5. Start the API\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 6. Start the UI (separate terminal)\ncd packages/ui && npm run dev\n```\n\nAPI: http://localhost:8000 / UI: http://localhost:5173"
     }
   },
   "tags": ["dev", "setup", "database", "procedural"],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2025-01-01T00:00:00Z",
-    "updated_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-28T00:00:00Z",
     "source_type": "human"
   }
 }

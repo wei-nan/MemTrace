@@ -18,16 +18,18 @@ const STEPS = [
   { id: 'done', icon: PartyPopper },
 ];
 
-export default function OnboardingWizard({ 
+export default function OnboardingWizard({
   user,
-  state, 
+  state,
   onUpdate,
-  onComplete 
-}: { 
+  onComplete,
+  onOpenSpecKb,
+}: {
   user: any,
-  state: Onboarding, 
+  state: Onboarding,
   onUpdate: (data: Partial<Onboarding>) => void,
-  onComplete: () => void 
+  onComplete: () => void,
+  onOpenSpecKb?: () => void, 
 }) {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
@@ -337,13 +339,25 @@ export default function OnboardingWizard({
         textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: 12,
       }}>
         <Database size={20} style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 2 }} />
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-primary)', marginBottom: 4 }}>
             {t('onboarding.spec_kb_title')}
           </div>
           <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             {t('onboarding.spec_kb_desc')}
           </div>
+          {onOpenSpecKb && (
+            <button
+              style={{
+                marginTop: 10, padding: '5px 14px', borderRadius: 8,
+                background: 'var(--color-primary)', color: '#fff',
+                border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              }}
+              onClick={() => { onComplete(); onOpenSpecKb(); }}
+            >
+              {t('onboarding.open_spec_kb')} →
+            </button>
+          )}
         </div>
       </div>
 

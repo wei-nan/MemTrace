@@ -1,99 +1,74 @@
 INSERT INTO users (id, display_name, email, email_verified, onboarding) VALUES ('system', 'System', 'system@memtrace.local', true, '{"completed": true}'::jsonb) ON CONFLICT DO NOTHING;
 ALTER TYPE source_type ADD VALUE IF NOT EXISTS 'ai';
-INSERT INTO public.workspaces (id, schema_version, name_zh, name_en, visibility, kb_type, owner_id, archive_window_days, min_traversals, created_at, updated_at, settings) VALUES ('ws_spec0001', '1.0', 'MemTrace 規格知識庫', 'public', 'public', 'evergreen', 'system', 90, 1, '2026-04-12 00:00:21.378267+00', '2026-04-26 02:08:37.266982+00', '{}');
+INSERT INTO public.workspaces (id, schema_version, name_zh, name_en, visibility, kb_type, owner_id, archive_window_days, min_traversals, created_at, updated_at, settings) VALUES ('ws_spec0001', '1.0', 'MemTrace 規格知識庫', 'MemTrace Spec Knowledge Base', 'public', 'evergreen', 'system', 90, 1, '2026-04-12 00:00:21.378267+00', '2026-04-26 02:08:37.266982+00', '{}');
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_5e541a9d', '1.0', 'ws_spec0001', 'Markdown 模式下的即時預覽', 'Live Preview in Markdown Mode', 'factual', 'markdown', '蝺刻摩?典`markdown`璅∪?銝???靘??祕??閬賡?踴?The editor must provide a live preview panel when in `markdown` mode.', '蝺刻摩?典`markdown`璅∪?銝???靘??祕??閬賡?踴?The editor must provide a live preview panel when in `markdown` mode.', '{editor,markdown,preview}', 'public', 'system', '2026-04-24 11:25:39.463663+00', NULL, 'cd53c9cd3540a9cc3d0e9462e2fb041b0f9775acd9c1c20a372955a4aa590bce', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_f7cbeb5e', '1.0', 'ws_spec0001', '來源文件：SPEC.md', 'Source: SPEC.md', 'source_document', 'plain', '', '', '{}', 'public', 'system', '2026-04-24 11:16:37.210116+00', NULL, 'source', 'human', NULL, NULL, NULL, NULL, 0.500, 0.500, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, 'SPEC.md');
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_44f68c0d', '1.0', 'ws_spec0001', '來源文件：SPEC.md', 'Source: SPEC.md', 'source_document', 'plain', '', '', '{}', 'public', 'system', '2026-04-24 06:12:04.328722+00', NULL, 'source', 'human', NULL, NULL, NULL, NULL, 0.500, 0.500, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, 'SPEC.md');
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_4afa80ea', '1.0', 'ws_spec0001', '來源文件：SPEC.md', 'Source: SPEC.md', 'source_document', 'plain', '', '', '{}', 'public', 'system', '2026-04-24 08:56:48.052833+00', NULL, 'source', 'human', NULL, NULL, NULL, NULL, 0.500, 0.500, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, 'SPEC.md');
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_fa38a6ab', '1.0', 'ws_spec0001', '', 'Test', 'factual', 'plain', '', 'body', '{}', 'public', 'system', '2026-04-19 23:43:42.769467+00', NULL, 'bd8e10d26fa5263e2a3b95ae0277d800796967b52532c077dea6b138c43e8ec8', 'human', NULL, NULL, NULL, NULL, 0.508, 0.500, 1.000, 0.030, 0.500, 0, 0, 0, 3, 1, 'archived', NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_5f13436f', '1.0', 'ws_spec0001', '', 'MCP Node A', 'factual', 'plain', '', 'Node A body.', '{mcp}', 'public', 'system', '2026-04-19 23:45:19.479221+00', NULL, 'cad8ee8660e9e939cb2799f2d492ec43be9c2f9b69c38fd19ec7e9a0163e0c2c', 'human', NULL, NULL, NULL, NULL, 0.505, 0.500, 1.000, 0.020, 0.500, 0, 0, 0, 2, 2, 'archived', '2026-04-25 16:05:37.723116+00', NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_2698efe6', '1.0', 'ws_spec0001', 'POST /edges/{edge_id}/traverse 請求體', 'POST /edges/{edge_id}/traverse Request Body', 'factual', 'markdown', '請求體包含一個 `actor_id` (例如 `usr_abc123` 或 `apikey_abc123`) 以及一個可選的 `note` 欄位。', 'The request body includes an `actor_id` (e.g., `usr_abc123` or `apikey_abc123`) and an optional `note` field.', '{api,request-body,traversal}', 'public', 'system', '2026-04-24 11:25:40.220298+00', NULL, '8da827ee692a2b067d6b98da026c3001d951a76bece032cb35ba88cef2a09dda', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_f9211ac0', '1.0', 'ws_spec0001', '', 'T2 AI Node', 'procedural', 'markdown', '', 'AI created.', '{mcp,ai}', 'public', 'system', '2026-04-19 23:49:25.70791+00', NULL, '262673d353d431f76df5071561002c88587a3ccfb8b25df4b4e5a8c8b5fbdad7', 'ai', NULL, NULL, NULL, NULL, 0.503, 0.500, 1.000, 0.010, 0.500, 0, 0, 0, 1, 1, 'archived', '2026-04-24 13:08:36.703422+00', NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w002', '1.0', 'ws_spec0001', '本地開發環境啟動', 'Local Development Stack Setup', 'procedural', 'markdown', '## 前置需求
-- Node.js 20+
-- Python **3.9+**（注意：MCP SDK 需要 3.10+，但 MemTrace API 本身 3.9 可執行）
-- PostgreSQL 17（含 pgvector extension）
+- Node.js 20 LTS+
+- Python **3.11+**
+- Docker Desktop（啟動 PostgreSQL 17 + pgvector）
 
-## 資料庫初始化
+## 啟動開發環境
 ```bash
-psql -U postgres -c "CREATE DATABASE memtrace;"
-psql -U postgres -d memtrace -f schema/sql/001_init.sql
-```
+# 1. 複製環境設定
+cp .env.example .env  # 填入 POSTGRES_PASSWORD 與 SECRET_KEY
 
-## 環境變數（**repo 根目錄** `.env`）
-```
-DATABASE_URL=postgresql://memtrace:password@127.0.0.1:5432/memtrace
-SECRET_KEY=<random-32-chars>
-```
-
-## 啟動服務
-```bash
-# 安裝 TS 相依性（含 MCP 套件）
+# 2. 安裝 Node 相依
 npm install
 
-# 安裝 Python 相依性
-cd packages/api && pip install -r requirements.txt
+# 3. 安裝 Python 相依
+cd packages/api && python -m venv venv
+source venv/bin/activate  # macOS/Linux
+pip install -r requirements.txt && cd ../..
 
-# 終端機 1：FastAPI（含 decay 排程器）
+# 4. 啟動資料庫（首次自動執行所有 schema/sql/*.sql）
+docker compose up -d
+
+# 5. 啟動 API
 cd packages/api && uvicorn main:app --reload --port 8000
 
-# 終端機 2：Vite 前端（proxy 預設指向 localhost:8000）
+# 6. 啟動 UI（另一個終端機）
 cd packages/ui && npm run dev
-
-# MCP server（供 Claude Code 使用）
-# 透過 .mcp.json 自動啟動，或手動：
-node packages/mcp/dist/index.js
 ```
 
-## Docker（一鍵啟動 DB）
+API：http://localhost:8000 / UI：http://localhost:5173', '## Prerequisites
+- Node.js 20 LTS+
+- Python **3.11+**
+- Docker Desktop (runs PostgreSQL 17 + pgvector)
+
+## Start the Dev Environment
 ```bash
-docker compose up -d   # 啟動 PostgreSQL
-```', '## Prerequisites
-- Node.js 20+
-- Python **3.9+** (note: MCP SDK requires 3.10+, but MemTrace API itself runs on 3.9)
-- PostgreSQL 17 (with pgvector extension)
+# 1. Copy env config
+cp .env.example .env  # fill in POSTGRES_PASSWORD and SECRET_KEY
 
-## Database Init
-```bash
-psql -U postgres -c "CREATE DATABASE memtrace;"
-psql -U postgres -d memtrace -f schema/sql/001_init.sql
-```
-
-## Environment Variables (**repo root** `.env`)
-```
-DATABASE_URL=postgresql://memtrace:password@127.0.0.1:5432/memtrace
-SECRET_KEY=<random-32-chars>
-```
-
-## Start Services
-```bash
-# Install TS dependencies (includes MCP package)
+# 2. Install Node dependencies
 npm install
 
-# Install Python dependencies
-cd packages/api && pip install -r requirements.txt
+# 3. Install Python dependencies
+cd packages/api && python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt && cd ../..
 
-# Terminal 1: FastAPI (includes decay scheduler)
+# 4. Start the database (auto-applies all schema/sql/*.sql on first run)
+docker compose up -d
+
+# 5. Start the API
 cd packages/api && uvicorn main:app --reload --port 8000
 
-# Terminal 2: Vite frontend (proxy pre-configured to localhost:8000)
+# 6. Start the UI (separate terminal)
 cd packages/ui && npm run dev
-
-# MCP server (used by Claude Code)
-# Auto-started via .mcp.json, or manually:
-node packages/mcp/dist/index.js
 ```
 
-## Docker (one-command DB)
-```bash
-docker compose up -d   # starts PostgreSQL
-```', '{dev,setup,database,procedural}', 'public', 'system', '2025-01-01 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.800, 0.800, 1.000, 0.800, 0.800, 0, 0, 0, 0, 0, 'archived', '2026-04-25 04:04:22.072193+00', NULL, NULL, NULL, NULL);
+API: http://localhost:8000 / UI: http://localhost:5173', '{dev,setup,database,procedural}', 'public', 'system', '2026-04-28 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.900, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_d003', '1.0', 'ws_spec0001', 'Content Type：節點的知識性質', 'Content Type: the nature of knowledge in a node', 'factual', 'markdown', '每個 Memory Node 必須標記一種 Content Type：
 
 | Type | 說明 | 例子 |
 |------|------|------|
 | `factual` | 陳述性事實 | 「pgvector 支援 cosine similarity」 |
-| `procedural` | 步驟流程 | 「如何設定 Google OAuth」 |
+| `procedural` | 步驟流程 | 「如何設定 Docker Compose 開發環境」 |
 | `preference` | 偏好或決策 | 「我們選擇 bcrypt 而非 argon2」 |
 | `context` | 背景脈絡 | 「這個專案採用雙語設計的原因」 |
 | `source_document` | 攝入時保留的原始文件（§20）| 一個會議錄音逐字稿、一份 PDF 全文 |
@@ -105,7 +80,7 @@ Content Type 影響：搜尋過濾、AI 萃取分類、預設 decay half-life（
 | Type | Description | Example |
 |------|-------------|---------|
 | `factual` | Declarative facts | "pgvector supports cosine similarity" |
-| `procedural` | Step-by-step process | "How to configure Google OAuth" |
+| `procedural` | Step-by-step process | "How to set up a Docker Compose dev environment" |
 | `preference` | Preferences or decisions | "We chose bcrypt over argon2" |
 | `context` | Background context | "Why this project uses bilingual design" |
 | `source_document` | Original document retained at ingestion (§20) | A meeting transcript, a full PDF |
@@ -1958,41 +1933,35 @@ INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, tit
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_a9dee7ad', '1.0', 'ws_spec0001', 'AI 編輯限制：僅限當前工作區節點', 'AI蝺刻摩?嚗?極雿?蝭暺?AI Edit Restriction: Current Workspace Nodes', 'factual', 'markdown', '當 allow_edits: true 時，AI 只能對當前工作區中的節點提出編輯建議。', '??`allow_edits: true` ??AI?芾撠?極雿?銝剔?蝭暺??箇楊頛臬遣霅啜?When `allow_edits: true`, AI may only propose edits to nodes within the current workspace.', '{}', 'public', 'system', '2026-04-24 11:25:40.697058+00', NULL, 'e7bf10d2741911fda9174cec1c320fb1aa084b441af68b4ccf38eb16825802f4', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_d1d90285', '1.0', 'ws_spec0001', 'API Key 權限範圍：kb:propose', 'API Key Scope: kb:propose', 'factual', 'markdown', '具有 kb:propose 權限範圍的 API Key 授予貢獻者（contributor）角色的能力，包括所有讀取權限以及提交建議的能力。', '`kb:propose` 蝭???API ???鞎Ｙ???脰???????迂?舀???鈭斗?霅啁??賢???An API key with the `kb:propose` scope grants contributor role capabilities, including all read access and the ability to submit proposals.', '{api-key,scope,contributor,proposal}', 'public', 'system', '2026-04-24 11:25:40.620555+00', NULL, '676665976061e64f48291d081a2edea8a4ae9b7eafef376b42fd6438a6a74965', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_565d7142', '1.0', 'ws_spec0001', '記憶節點新增來源文件參考欄位', '閮擃?暺憓??辣撘??Memory Nodes Add Source Document Reference Columns', 'factual', 'markdown', '為了將萃取節點連結到其來源段落，memory_nodes 表中新增了 source_doc_node_id（引用來源文件節點 ID）和 source_paragraph_ref（段落級參考）欄位。', '?箔?撠???蝭暺??嗆?畾菔?韏瑚?嚗memory_nodes` 銵其葉?啣?鈭?`source_doc_node_id` (撘皞?隞嗥?暺D) ??`source_paragraph_ref` (畾菔蝝撘) ??To link extracted nodes to their source passages, `source_doc_node_id` (referencing the source document node ID) and `source_paragraph_ref` (paragraph-level reference) columns are added to the `memory_nodes` table.', '{來源,文件}', 'public', 'system', '2026-04-24 11:25:40.793451+00', NULL, '4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w003', '1.0', 'ws_spec0001', 'Seed 載入 Spec KB', 'Seeding the Spec Knowledge Base', 'procedural', 'markdown', '## 執行 Seed
-```bash
-cd D:/Workspace/MemTrace/packages/api
-python ../../scripts/seed_spec_kb.py
-```
+INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w003', '1.0', 'ws_spec0001', 'Spec KB 初始化說明', 'Spec KB Initialization', 'procedural', 'markdown', '## Spec KB 是如何建立的？
+規格知識庫（`ws_spec0001`）由 `schema/sql/099_seed_spec_kb.sql` 自動建立。
 
-Script 會自動偵測 `system@memtrace.local` 的系統使用者 ID（目前為 `system`），建立工作區 `ws_spec0001`，並以 upsert（ON CONFLICT DO UPDATE）寫入所有節點與邊。
+`docker compose up` 時，PostgreSQL init 機制依序執行 `schema/sql/` 下所有 `*.sql`，`099_seed_spec_kb.sql` 最後執行，建立工作區、寫入 30 個節點與對應邊。
 
 ## 驗證
 ```bash
-curl http://localhost:8000/api/v1/workspaces/ws_spec0001/nodes | jq length
-# 期望：27
+docker exec -it memtrace-db psql -U memtrace -d memtrace \n  -c "SELECT COUNT(*) FROM memory_nodes WHERE workspace_id=''ws_spec0001'' AND status=''active'';" 
+# 預期：30
 ```
 
-## 注意事項
-- `.env` 位於 **repo 根目錄**（非 `packages/api/`）
-- 需在 `packages/api` venv 下執行，確保 psycopg2 可用
-- 重複執行安全：upsert 不會重複建立，但會以 JSON 內容覆寫現有節點', '## Run Seed
+## 重置 Spec KB
 ```bash
-cd D:/Workspace/MemTrace/packages/api
-python ../../scripts/seed_spec_kb.py
-```
+docker compose down -v && docker compose up -d
+```', '## How is the Spec KB created?
+The Spec Knowledge Base (`ws_spec0001`) is created automatically by `schema/sql/099_seed_spec_kb.sql`.
 
-The script auto-detects the system user ID for `system@memtrace.local` (currently `system`), creates workspace `ws_spec0001`, and upserts all nodes and edges (ON CONFLICT DO UPDATE).
+When you run `docker compose up`, PostgreSQL''s init mechanism executes all `*.sql` files under `schema/sql/` in order. `099_seed_spec_kb.sql` runs last, creating the workspace and inserting 30 nodes and their edges.
 
 ## Verify
 ```bash
-curl http://localhost:8000/api/v1/workspaces/ws_spec0001/nodes | jq length
-# Expected: 27
+docker exec -it memtrace-db psql -U memtrace -d memtrace \n  -c "SELECT COUNT(*) FROM memory_nodes WHERE workspace_id=''ws_spec0001'' AND status=''active'';" 
+# Expected: 30
 ```
 
-## Notes
-- `.env` lives in the **repo root** (not `packages/api/`)
-- Run inside the `packages/api` venv so psycopg2 is available
-- Safe to re-run: upsert won''t duplicate, but will overwrite existing node content with JSON', '{dev,seed,procedural}', 'public', 'system', '2025-01-01 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.800, 0.800, 1.000, 0.800, 0.800, 0, 0, 0, 0, 0, 'archived', '2026-04-12 01:32:23.010402+00', NULL, NULL, NULL, NULL);
+## Reset Spec KB
+```bash
+docker compose down -v && docker compose up -d
+```', '{dev,seed,procedural}', 'public', 'system', '2026-04-28 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.900, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_d692bb11', '1.0', 'ws_spec0001', 'README/使用文件更新：多庫、已知 ID 使用情境', 'README/Usage Document Update: Multiple Workspaces, Known ID Scenario', 'procedural', 'markdown', 'README 和使用文件已更新，說明多庫、已知 ID 使用情境：將 `MEMTRACE_WS` 設定為最常用工作區，並在查詢其他工作區時，每次呼叫工具都帶上 `workspace_id` 參數。', 'The README and usage documentation have been updated to describe the multiple workspaces, known ID scenario: set `MEMTRACE_WS` to the most frequently used workspace, and when querying other workspaces, include the `workspace_id` parameter with each tool call.', '{文件,使用情境,工作區}', 'public', 'system', '2026-04-26 00:29:47.118808+00', NULL, '9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_d001', '1.0', 'ws_spec0001', 'Memory Node：知識的最小單位', 'Memory Node: the atomic unit of knowledge', 'factual', 'markdown', 'Memory Node 是 MemTrace 中知識的最小單位。每個節點捕捉**一個**想法，包含：
 
@@ -2048,77 +2017,73 @@ INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, tit
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_e568aa35', '1.0', 'ws_spec0001', '來源文件：SPEC.md', 'Source: SPEC.md', 'source_document', 'plain', '', '', '{}', 'public', 'system', '2026-04-24 10:43:07.301122+00', NULL, 'source', 'human', NULL, NULL, NULL, NULL, 0.500, 0.500, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, 'SPEC.md');
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_9d419d24', '1.0', 'ws_spec0001', '記憶節點表', 'Memory Nodes Table', 'factual', 'markdown', '數據庫中的 `memory_nodes` 表存儲所有記憶節點的數據。', 'The `memory_nodes` table in the database stores data for all memory nodes.', '{database,schema,memory_nodes}', 'public', 'system', '2026-04-24 11:25:38.834888+00', NULL, '6d5d61fadf3d71c95c9a3003ed98545b06907cc17eaf4fb39604b234efd3aec2', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_1b50a9b1', '1.0', 'ws_spec0001', '記憶節點編輯器欄位', 'Memory Node Editor Fields', 'factual', 'markdown', '撱箇?/蝺刻摩銵典?湧鈭???雿?雿輻?‵撖怒?The creation/edit form exposes several fields for user input.', '撱箇?/蝺刻摩銵典?湧鈭???雿?雿輻?‵撖怒?The creation/edit form exposes several fields for user input.', '{editor,fields,memory-node}', 'public', 'system', '2026-04-24 11:25:39.497376+00', NULL, 'b20effdba67a36c189fcc02d6a494aa870056bd4e8a4f6b878040a55275100d1', 'ai', NULL, NULL, NULL, NULL, 0.593, 0.800, 1.000, 0.010, 0.500, 0, 0, 0, 1, 1, 'active', NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w001', '1.0', 'ws_spec0001', '專案套件結構', 'Project Package Structure', 'factual', 'markdown', 'MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理四個套件：
+INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w001', '1.0', 'ws_spec0001', '專案套件結構', 'Project Package Structure', 'factual', 'markdown', 'MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理六個套件：
 
 | 套件 | 路徑 | 語言 | 角色 |
 |------|------|------|------|
 | core | packages/core | TypeScript | 共用型別、decay 計算、ID/簽章產生器 |
-| api | packages/api | Python/FastAPI | REST API、資料庫存取、OAuth |
+| api | packages/api | Python/FastAPI | REST API、資料庫存取、AI 抽象層 |
 | ui | packages/ui | React/Vite | 網頁前端 |
 | cli | packages/cli | TypeScript | 本地 CLI 工具 |
+| mcp | packages/mcp | TypeScript | MCP server（stdio + SSE 傳輸） |
+| ingest | packages/ingest | TypeScript | 文件攝入 pipeline |
 
-`core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。', 'MemTrace uses an npm workspaces monorepo. The root `package.json` manages four packages:
+`core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。', 'MemTrace uses an npm workspaces monorepo. The root `package.json` manages six packages:
 
 | Package | Path | Language | Role |
 |---------|------|----------|------|
 | core | packages/core | TypeScript | Shared types, decay logic, ID/signature generator |
-| api | packages/api | Python/FastAPI | REST API, database access, OAuth |
+| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer |
 | ui | packages/ui | React/Vite | Web frontend |
 | cli | packages/cli | TypeScript | Local CLI tool |
+| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transports) |
+| ingest | packages/ingest | TypeScript | Document ingestion pipeline |
 
-`core` is consumed by `cli`. `api` is independent of the TS workspace.', '{dev,architecture,monorepo}', 'public', 'usr_system01', '2025-01-01 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.800, 0.800, 1.000, 0.800, 0.800, 0, 0, 0, 0, 0, 'archived', '2026-04-12 01:32:23.010402+00', NULL, NULL, NULL, NULL);
+`core` is consumed by `cli`. `api` is independent of the TS workspace.', '{dev,architecture,monorepo}', 'public', 'system', '2026-04-28 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.900, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_40a90101', '1.0', 'ws_spec0001', '', 'T1 Only EN', 'factual', 'plain', '', 'T1 body.', '{mcp}', 'public', 'system', '2026-04-19 23:49:25.009858+00', NULL, 'e823782ce4597e9a20a7d79a73aa27f8b5f3c3c94f6780c293b81f992172f3cc', 'human', NULL, NULL, NULL, NULL, 0.503, 0.500, 1.000, 0.010, 0.500, 0, 0, 0, 1, 1, 'archived', '2026-04-24 13:08:11.382839+00', NULL, NULL, NULL, NULL);
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w004', '1.0', 'ws_spec0001', '開發實作順序', 'Development Implementation Order', 'procedural', 'markdown', 'MemTrace 建議開發順序（由底層向上）：
+INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w004', '1.0', 'ws_spec0001', '開發實作順序與現況', 'Development Progress & Status', 'procedural', 'markdown', '## 完成進度（Phase 1–3）
 
-1. **core** — 核心型別、decay、ID/簽章
-2. **SQL schema** — 001_init.sql，建立資料表
-3. **api/core** — config、database、security、deps
-4. **api/routers/auth** — register、login、JWT
-5. **api/routers/kb** — workspace、node、edge CRUD + traversal
-6. **cli** — init、new、link、list、export、import、copy-node
-7. **Seed** — 匯入 spec-as-kb 以驗證 API 讀寫（`scripts/seed_spec_kb.py`）
-8. **ui/api.ts** — TypeScript API client
-9. **ui/AuthPage** — 登入 / 註冊
-10. **ui/NodeEditor** — 節點編輯器（含 edge panel、節點搜尋）
-11. **ui/GraphView** — 2D 關係圖，雙擊開啟 NodeEditor
-12. **ui/App** — 串接 auth、workspace selector、側邊欄
-13. **MCP server** — `packages/mcp/`，目前實作 4 個唯讀工具（search_nodes、get_node、traverse、list_by_tag），透過 `.mcp.json` 註冊給 Claude Code
+| 層 | 狀態 |
+|----|------|
+| core（型別/decay/簽章）| ✅ |
+| SQL schema（001_init + 24 migrations）| ✅ |
+| api/core（database/security/AI 抽象）| ✅ |
+| api/routers/auth（登入/JWT/密碼重設）| ✅ |
+| api/routers/kb（workspace/node/edge/roles）| ✅ |
+| api/routers/ingest（PDF/Markdown 攝入）| ✅ |
+| mcp server（stdio+SSE/read+write tools）| ✅ |
+| ui（Auth/Onboarding/Graph 2D+3D/Table/Settings）| ✅ |
 
-**當前進度：1–13 步已完成（MCP 唯讀端點）**
+## Phase 4 規劃中
 
-**後續優先事項**：
-- 權限模型（viewer / contributor / admin 角色實作、contributor 提案流程）
-- 工作區軟刪除（status 欄位、30 天清理排程）
-- 對話式問答 API（`/chat` endpoint + chat_sessions / chat_messages 資料表）
-- AI 匯入流程（`routers/ai.py` 實作）
-- Copy Node API
-- 語意搜尋端點
-- 工作區邀請連結 API', 'Recommended build order for MemTrace (bottom-up):
+| 任務 | 目標 |
+|------|------|
+| P4-A | 知識庫健康儀表板 + Token 效率報告 |
+| P4-B | Spec-as-KB 升級為對外展示首頁 |
+| P4-C | MCP vote_trust 工具 |
+| P4-D | CLI/Core 殘留補完 |
+| P4-G | 自管 Ollama Provider |', '## Completed (Phase 1–3)
 
-1. **core** — types, decay, ID/signature
-2. **SQL schema** — 001_init.sql, create all tables
-3. **api/core** — config, database, security, deps
-4. **api/routers/auth** — register, login, JWT
-5. **api/routers/kb** — workspace, node, edge CRUD + traversal
-6. **cli** — init, new, link, list, export, import, copy-node
-7. **Seed** — load spec-as-kb to validate API reads/writes (`scripts/seed_spec_kb.py`)
-8. **ui/api.ts** — TypeScript API client
-9. **ui/AuthPage** — login / register
-10. **ui/NodeEditor** — node editor with edge panel and node search
-11. **ui/GraphView** — 2D graph, double-click to open NodeEditor
-12. **ui/App** — wire auth, workspace selector, side panel
-13. **MCP server** — `packages/mcp/`, currently implements 4 read-only tools (search_nodes, get_node, traverse, list_by_tag); registered to Claude Code via `.mcp.json`
+| Layer | Status |
+|-------|--------|
+| core (types/decay/signature) | ✅ |
+| SQL schema (001_init + 24 migrations) | ✅ |
+| api/core (database/security/AI abstraction) | ✅ |
+| api/routers/auth (login/JWT/password reset) | ✅ |
+| api/routers/kb (workspace/node/edge/roles) | ✅ |
+| api/routers/ingest (PDF/Markdown ingestion) | ✅ |
+| mcp server (stdio+SSE / read+write tools) | ✅ |
+| ui (Auth/Onboarding/Graph 2D+3D/Table/Settings) | ✅ |
 
-**Current status: phases 1–13 complete (MCP read-only)**
+## Phase 4 (in planning)
 
-**Next priorities**:
-- Permission model (viewer / contributor / admin role enforcement, contributor proposal flow)
-- Workspace soft-delete (status column, 30-day purge scheduler)
-- Conversational Q&A API (/chat endpoint + chat_sessions / chat_messages tables)
-- AI ingestion pipeline (complete `routers/ai.py`)
-- Copy Node API
-- Semantic search endpoint
-- Workspace invite link API', '{dev,workflow,procedural}', 'public', 'system', '2025-01-01 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.800, 0.800, 1.000, 0.800, 0.800, 0, 0, 0, 0, 0, 'archived', '2026-04-25 04:04:22.072193+00', NULL, NULL, NULL, NULL);
+| Task | Goal |
+|------|------|
+| P4-A | KB health dashboard + token efficiency |
+| P4-B | Spec-as-KB as public demo homepage |
+| P4-C | MCP vote_trust tool |
+| P4-D | CLI/Core residuals |
+| P4-G | Self-hosted Ollama provider |', '{dev,workflow,procedural}', 'public', 'system', '2026-04-28 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.900, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_d002', '1.0', 'ws_spec0001', 'Edge：有向有型的關係', 'Edge: a typed, directed relationship', 'factual', 'markdown', 'Edge 連接兩個 Memory Node，方向為 `from → to`。每條 Edge 包含：
 
 - **Relation type**：depends_on / extends / related_to / contradicts

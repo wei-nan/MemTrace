@@ -833,11 +833,23 @@ export default function App() {
     <div className="app-container">
       {/* ── Onboarding Wizard ─────────────────────────────────────────── */}
       {onboarding && !onboarding.completed && (
-        <OnboardingWizard 
+        <OnboardingWizard
           user={user}
-          state={onboarding} 
+          state={onboarding}
           onUpdate={handleUpdateOnboarding}
           onComplete={() => handleUpdateOnboarding({ completed: true })}
+          onOpenSpecKb={() => {
+            const specKb = wsList.find(ws => ws.id === 'ws_spec0001');
+            if (specKb) {
+              setSelectedWs(specKb);
+            } else {
+              workspaces.list().then(list => {
+                setWsList(list);
+                const found = list.find(ws => ws.id === 'ws_spec0001');
+                if (found) setSelectedWs(found);
+              }).catch(() => {});
+            }
+          }}
         />
       )}
 

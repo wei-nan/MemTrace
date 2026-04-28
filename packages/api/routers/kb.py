@@ -74,7 +74,7 @@ from models.review import NodeRevisionMetaResponse, NodeRevisionResponse
 router = APIRouter(prefix="/api/v1", tags=["knowledge-base"])
 
 VALID_RELATIONS = {"depends_on", "extends", "related_to", "contradicts"}
-VALID_KB_VIS = {"public", "restricted", "private"}
+VALID_KB_VIS = {"public", "conditional_public", "restricted", "private"}
 VALID_NODE_VIS = {"public", "team", "private"}
 VALID_CONTENT_T = {"factual", "procedural", "preference", "context"}
 VALID_FORMAT = {"plain", "markdown"}
