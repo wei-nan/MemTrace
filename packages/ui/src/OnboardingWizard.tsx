@@ -43,8 +43,11 @@ export default function OnboardingWizard({
   const [kbNameEn, setKbNameEn] = useState('');
   
   // AI State
-  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>('openai');
   const [apiKey, setApiKey] = useState('');
+  const [baseUrl, setBaseUrl] = useState('');
+  const [authMode, setAuthMode] = useState<'none' | 'bearer'>('none');
+  const [authToken, setAuthToken] = useState('');
 
   // Review State
   const [isProcessing, setIsProcessing] = useState(false);
@@ -137,7 +140,13 @@ export default function OnboardingWizard({
     }
     setLoading(true);
     try {
-      await ai.createKey({ provider, api_key: apiKey });
+      await ai.createKey({ 
+        provider, 
+        api_key: apiKey,
+        base_url: provider === 'ollama' ? baseUrl : undefined,
+        auth_mode: provider === 'ollama' ? authMode : undefined,
+        auth_token: provider === 'ollama' ? authToken : undefined,
+      });
       next('ai');
     } catch (e: any) {
       setError(e.message);
@@ -309,12 +318,53 @@ export default function OnboardingWizard({
         >
           Gemini
         </button>
+        <button 
+          className={provider === 'ollama' ? 'active' : ''} 
+          onClick={() => setProvider('ollama')}
+          style={provider === 'ollama' ? { background: 'var(--ai-ollama-subtle)', color: 'var(--ai-ollama)', borderColor: 'var(--ai-ollama)' } : {}}
+        >
+          Ollama
+        </button>
       </div>
-      <input 
-        type="password" className="mt-input mt-16" 
-        placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
-        value={apiKey} onChange={e => setApiKey(e.target.value)}
-      />
+      
+      {provider === 'ollama' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+          <input 
+            className="mt-input" 
+            placeholder="Base URL (e.g. http://localhost:11434)"
+            value={baseUrl} onChange={e => setBaseUrl(e.target.value)}
+          />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <select className="mt-input" style={{ flex: 1 }} value={authMode} onChange={e => setAuthMode(e.target.value as any)}>
+              <option value="none">No Auth</option>
+              <option value="bearer">Bearer Token</option>
+            </select>
+            {authMode === 'bearer' && (
+              <input 
+                type="password" className="mt-input" style={{ flex: 2 }}
+                placeholder="Token"
+                value={authToken} onChange={e => setAuthToken(e.target.value)}
+              />
+            )}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'left', padding: '0 4px' }}>
+            {zh 
+              ? "Embedding 維度對照：nomic-embed-text = 768｜mxbai-embed-large = 1024｜all-minilm = 384｜其他模型需手動填寫維度欄位。" 
+              : "Embedding dimensions: nomic-embed-text = 768 | mxbai-embed-large = 1024 | all-minilm = 384 | other models require manual input."}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--color-error)', marginTop: 4, textAlign: 'left', padding: '0 4px', fontWeight: 500 }}>
+            {zh
+              ? "⚠ 工作區建立後 embedding 維度將鎖定，無法更改。"
+              : "⚠ Embedding dimension is locked after workspace creation and cannot be changed."}
+          </div>
+        </div>
+      ) : (
+        <input 
+          type="password" className="mt-input mt-16" 
+          placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
+          value={apiKey} onChange={e => setApiKey(e.target.value)}
+        />
+      )}
       {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
       <div className="flex-center mt-32 gap-12">
         <button className="btn-ghost" onClick={() => skip('ai')}>{t('onboarding.skip')}</button>

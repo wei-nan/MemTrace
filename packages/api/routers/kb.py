@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from typing import Any, List, Literal, Optional, Union
 import hashlib
@@ -68,6 +69,10 @@ from models.kb import (
     WorkspaceUpdate,
     TableViewResponse,
     WorkspacePurgeResponse,
+    AnalyticsTopNode,
+    WorkspaceAnalyticsResponse,
+    TokenEfficiencyResponse,
+    VoteTrustRequest,
 )
 from models.review import NodeRevisionMetaResponse, NodeRevisionResponse
 
@@ -667,6 +672,63 @@ def purge_workspace(ws_id: str, user: dict = Depends(get_current_user)):
         cur.execute("DELETE FROM node_revisions WHERE workspace_id = %s", (ws_id,))
         cur.execute("DELETE FROM ingest_jobs WHERE workspace_id = %s", (ws_id,))
         return {"deleted_nodes_count": nc, "deleted_edges_count": ec}
+
+
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/vote-trust")
+def vote_trust(ws_id: str, node_id: str, body: VoteTrustRequest, user: dict = Depends(get_current_user)):
+    if not (1 <= body.accuracy <= 5 and 1 <= body.utility <= 5):
+        raise HTTPException(status_code=400, detail="Scores must be between 1 and 5")
+        
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user)
+        
+        # Insert or update vote
+        vote_id = generate_id("vote")
+        cur.execute(
+            """
+            INSERT INTO node_trust_votes (id, workspace_id, node_id, user_id, accuracy, utility)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (node_id, user_id) 
+            DO UPDATE SET accuracy = EXCLUDED.accuracy, utility = EXCLUDED.utility, created_at = NOW()
+            """,
+            (vote_id, ws_id, node_id, user["sub"], body.accuracy, body.utility)
+        )
+        
+        # Re-calculate dimensions and trust_score
+        cur.execute(
+            """
+            SELECT AVG(accuracy)::float / 5 as avg_acc, AVG(utility)::float / 5 as avg_util
+            FROM node_trust_votes
+            WHERE node_id = %s
+            """,
+            (node_id,)
+        )
+        stats = cur.fetchone()
+        avg_acc = stats["avg_acc"]
+        avg_util = stats["avg_util"]
+        
+        # Get existing freshness and author_rep
+        cur.execute("SELECT dim_freshness, dim_author_rep FROM memory_nodes WHERE id = %s", (node_id,))
+        node = cur.fetchone()
+        if not node:
+             raise HTTPException(status_code=404, detail="Node not found")
+             
+        freshness = float(node["dim_freshness"])
+        author_rep = float(node["dim_author_rep"])
+        
+        # trust_score = (accuracy * 0.4) + (utility * 0.25) + (freshness * 0.25) + (author_rep * 0.1)
+        trust_score = (avg_acc * 0.4) + (avg_util * 0.25) + (freshness * 0.25) + (author_rep * 0.1)
+        
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET dim_accuracy = %s, dim_utility = %s, trust_score = %s
+            WHERE id = %s
+            """,
+            (avg_acc, avg_util, trust_score, node_id)
+        )
+        
+    return {"status": "ok", "trust_score": trust_score}
 
 
 @router.get("/workspaces/{ws_id}", response_model=WorkspaceResponse)
@@ -1383,16 +1445,17 @@ def traverse_node(node_id: str, user: dict = Depends(RequireScope("node:traverse
             (1 if is_new else 0, node_id),
         )
         # A5: Auto-update dim_utility and recompute composite trust_score
+        # Weights: Accuracy 40%, Freshness 25%, Utility 25%, Author Rep 10%
         cur.execute(
             """
             UPDATE memory_nodes
             SET
                 dim_utility = LEAST(1.0, (traversal_count)::float / 100.0),
                 trust_score = (
-                    dim_accuracy   * 0.30 +
+                    dim_accuracy   * 0.40 +
                     dim_freshness  * 0.25 +
                     LEAST(1.0, (traversal_count)::float / 100.0) * 0.25 +
-                    dim_author_rep * 0.20
+                    dim_author_rep * 0.10
                 )
             WHERE id = %s
             """,
@@ -1407,19 +1470,44 @@ def traverse_node(node_id: str, user: dict = Depends(RequireScope("node:traverse
 def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+        
+        # Mark as confirmed
         cur.execute(
             """
             UPDATE memory_nodes
-            SET validity_confirmed_at = now(), validity_confirmed_by = %s
+            SET validity_confirmed_at = NOW(),
+                validity_confirmed_by = %s
             WHERE id = %s AND workspace_id = %s
-            RETURNING validity_confirmed_at, validity_confirmed_by
             """,
-            (user["sub"], node_id, ws_id),
+            (user["email"], node_id, ws_id)
         )
-        row = cur.fetchone()
-        if not row:
+        
+        # C-2: Auto-vote accuracy=1.0, utility=1.0 (utility might be high, but let's use current dim_utility)
+        # Actually, let's just update dim_accuracy to 1.0 and recompute.
+        cur.execute("SELECT dim_freshness, dim_utility, dim_author_rep FROM memory_nodes WHERE id = %s", (node_id,))
+        node = cur.fetchone()
+        if not node:
             raise HTTPException(status_code=404, detail="Node not found")
-        return {"confirmed_at": row["validity_confirmed_at"], "confirmed_by": row["validity_confirmed_by"]}
+            
+        freshness = float(node["dim_freshness"])
+        utility = float(node["dim_utility"])
+        author_rep = float(node["dim_author_rep"])
+        
+        # Accuracy 40%, Freshness 25%, Utility 25%, Author Rep 10%
+        # Confirmation mainly boosts accuracy to 1.0
+        new_accuracy = 1.0
+        trust_score = (new_accuracy * 0.4) + (freshness * 0.25) + (utility * 0.25) + (author_rep * 0.1)
+        
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET dim_accuracy = %s, trust_score = %s
+            WHERE id = %s
+            """,
+            (new_accuracy, trust_score, node_id)
+        )
+        
+        return {"confirmed_at": datetime.now(timezone.utc).isoformat(), "confirmed_by": user["email"]}
 
 
 @router.post("/edges/{edge_id}/traverse", status_code=204)
@@ -1765,27 +1853,6 @@ def get_health_scores(ws_id: str, user: dict = Depends(get_current_user_optional
 
 # ─── A6: Manual Validity Stamp ────────────────────────────────────────────────
 
-@router.post("/workspaces/{ws_id}/nodes/{node_id}/confirm-validity")
-def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
-    """A6: Manually confirm a node is still valid."""
-    with db_cursor(commit=True) as cur:
-        ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
-        role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
-        if role not in ("editor", "admin"):
-            raise HTTPException(status_code=403, detail="Editor or Admin role required")
-        cur.execute(
-            """
-            UPDATE memory_nodes
-            SET validity_confirmed_at = NOW(), validity_confirmed_by = %s
-            WHERE id = %s AND workspace_id = %s
-            RETURNING validity_confirmed_at, validity_confirmed_by
-            """,
-            (user["sub"], node_id, ws_id),
-        )
-        row = cur.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Node not found")
-        return {"confirmed_at": row["validity_confirmed_at"], "confirmed_by": row["validity_confirmed_by"]}
 
 
 # ─── B1: viewer body stripping on GET single node ─────────────────────────────
@@ -1794,74 +1861,5 @@ def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_cur
 
 # ─── D3 / D1: Workspace search for cross-KB operations ───────────────────────
 
-@router.get("/workspaces")
-def list_workspaces_search(
-    search: Optional[str] = Query(None),
-    user: dict = Depends(get_current_user_optional),
-):
-    """D3: List workspaces visible to current user, optionally filtered by name."""
-    with db_cursor() as cur:
-        user_id = user["sub"] if user else None
-        if search:
-            like = f"%{search}%"
-            cur.execute(
-                """
-                SELECT id, name_zh, name_en, visibility, kb_type FROM workspaces
-                WHERE (visibility = 'public'
-                    OR owner_id = %s
-                    OR id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s))
-                  AND (name_zh ILIKE %s OR name_en ILIKE %s)
-                ORDER BY name_en
-                """,
-                (user_id, user_id, like, like),
-            )
-        else:
-            cur.execute(
-                """
-                SELECT id, name_zh, name_en, visibility, kb_type FROM workspaces
-                WHERE visibility = 'public'
-                    OR owner_id = %s
-                    OR id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s)
-                ORDER BY name_en
-                """,
-                (user_id, user_id),
-            )
-        return cur.fetchall()
 
 
-@router.get("/workspaces/{ws_id}/nodes/health")
-def get_kb_health(ws_id: str, user: dict = Depends(get_current_user_optional)):
-    with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
-        cur.execute(
-            """
-            SELECT
-              COUNT(*) FILTER (WHERE status = 'active') AS total,
-              COUNT(*) FILTER (WHERE status = 'active' AND (body_zh IS NULL OR body_zh = '')
-                                                       AND (body_en IS NULL OR body_en = '')) AS empty_body,
-              COUNT(*) FILTER (WHERE status = 'active' AND trust_score < 0.3) AS low_trust,
-              COUNT(*) FILTER (WHERE status = 'active' AND embedding IS NULL) AS no_embedding
-            FROM memory_nodes WHERE workspace_id = %s
-            """,
-            (ws_id,)
-        )
-        row = cur.fetchone()
-        
-        # Orphan nodes
-        cur.execute(
-            """
-            SELECT COUNT(*) AS no_edges FROM memory_nodes n
-            WHERE n.workspace_id = %s AND n.status = 'active'
-              AND NOT EXISTS (SELECT 1 FROM edges e WHERE e.from_id = n.id OR e.to_id = n.id)
-            """,
-            (ws_id,)
-        )
-        orphan_count = cur.fetchone()["no_edges"]
-        
-        return {
-            "total": row["total"],
-            "empty_body": row["empty_body"],
-            "low_trust": row["low_trust"],
-            "no_embedding": row["no_embedding"],
-            "no_edges": orphan_count
-        }

@@ -342,6 +342,13 @@ The full template lives in `.env.example`. Required vs optional summary:
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | Server-level keys used when a user has no personal key. Leave blank to disable managed free tier — users must then bring their own keys via the UI. |
 | `AI_FREE_TOKEN_LIMIT` | Free token budget per user per month (default `50000`). |
 
+### Local AI (Ollama)
+
+MemTrace supports **Ollama** for local-first AI workflows. 
+- The API provides proxy endpoints (`/providers/ollama/test-connection` and `/providers/ollama/models`) to resolve CORS issues when the UI needs to talk to a local Ollama instance.
+- Configuration is stored in the `user_ai_keys` table (per-user).
+- See `docs/ollama-deployment.md` for full setup instructions.
+
 ### Email
 
 | Variable | Description |

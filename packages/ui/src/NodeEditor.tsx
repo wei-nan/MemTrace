@@ -119,6 +119,10 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const [archiving, setArchiving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [suggestedReviewItems, setSuggestedReviewItems] = useState<ReviewItem[]>([]);
+  const [isVoting, setIsVoting] = useState(false);
+  const [voteAccuracy, setVoteAccuracy] = useState(5);
+  const [voteUtility, setVoteUtility] = useState(5);
+  const [submittingVote, setSubmittingVote] = useState(false);
   const isArchived = node?.status === 'archived';
 
   useEffect(() => {
@@ -157,9 +161,10 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         );
         setSuggestedReviewItems(suggested);
       }).catch(() => {});
-    } else {
-      setSuggestedReviewItems([]);
     }
+    setIsVoting(false);
+    setVoteAccuracy(5);
+    setVoteUtility(5);
   }, [wsId, node, isCreate]);
 
   const payload = useMemo(() => buildPayload({ titleZh, titleEn, contentType, format, bodyZh, bodyEn, tags, visibility }), [titleZh, titleEn, contentType, format, bodyZh, bodyEn, tags, visibility]);
@@ -259,6 +264,21 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
       toast({ message: "Edge rejected", variant: "success" });
     } catch (e) {
       toast({ message: String(e), variant: "error" });
+    }
+  };
+
+  const handleVoteTrust = async () => {
+    if (!node) return;
+    setSubmittingVote(true);
+    try {
+      const res = await nodesApi.voteTrust(wsId, node.id, { accuracy: voteAccuracy, utility: voteUtility });
+      onSaved({ ...node, trust_score: res.trust_score, dim_accuracy: voteAccuracy / 5, dim_utility: voteUtility / 5 });
+      setIsVoting(false);
+      toast({ message: t("node.vote_submitted"), variant: "success" });
+    } catch (e) {
+      toast({ message: String(e), variant: "error" });
+    } finally {
+      setSubmittingVote(false);
     }
   };
 
@@ -527,16 +547,61 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
             {node && (
               <div style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 12, border: "1px solid var(--border-default)", display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ fontWeight: 600 }}>{t("node.trust_dimensions")}</div>
-                {trustDimensions.map((item) => (
-                  <div key={item.key} style={{ display: "grid", gridTemplateColumns: "120px 1fr 56px", gap: 12, alignItems: "center" }} title={item.help}>
-                    <div style={{ fontSize: 13 }}>{item.label}</div>
-                    <div style={{ height: 10, borderRadius: 999, background: "var(--border-subtle)", overflow: "hidden" }}>
-                      <div style={{ width: `${Math.max(0, Math.min(1, item.value)) * 100}%`, height: "100%", background: "linear-gradient(90deg, var(--color-primary), #34d399)" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontWeight: 600 }}>{t("node.trust_dimensions")}</div>
+                  {!isViewerLocked && (
+                    <button 
+                      className="btn-secondary" 
+                      style={{ padding: "4px 10px", fontSize: 12 }} 
+                      onClick={() => setIsVoting(!isVoting)}
+                    >
+                      {isVoting ? t("node.cancel_vote") : t("node.vote_trust")}
+                    </button>
+                  )}
+                </div>
+
+                {isVoting ? (
+                  <div style={{ padding: "10px 0", borderTop: "1px solid var(--border-subtle)", marginTop: 4, display: "flex", flexDirection: "column", gap: 14 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12, alignItems: "center" }}>
+                      <span style={{ fontSize: 13 }}>{t("node.accuracy")} (1-5)</span>
+                      <input 
+                        type="range" min="1" max="5" step="1" 
+                        value={voteAccuracy} 
+                        onChange={(e) => setVoteAccuracy(parseInt(e.target.value))} 
+                        style={{ accentColor: "var(--color-primary)" }}
+                      />
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "right" }}>{item.value.toFixed(2)}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12, alignItems: "center" }}>
+                      <span style={{ fontSize: 13 }}>{t("node.utility")} (1-5)</span>
+                      <input 
+                        type="range" min="1" max="5" step="1" 
+                        value={voteUtility} 
+                        onChange={(e) => setVoteUtility(parseInt(e.target.value))} 
+                        style={{ accentColor: "var(--color-primary)" }}
+                      />
+                    </div>
+                    <button 
+                      className="btn-primary" 
+                      onClick={handleVoteTrust} 
+                      disabled={submittingVote}
+                      style={{ marginTop: 4 }}
+                    >
+                      {submittingVote ? t("node.saving") : t("node.submit_vote")}
+                    </button>
                   </div>
-                ))}
+                ) : (
+                  <>
+                    {trustDimensions.map((item) => (
+                      <div key={item.key} style={{ display: "grid", gridTemplateColumns: "120px 1fr 56px", gap: 12, alignItems: "center" }} title={item.help}>
+                        <div style={{ fontSize: 13 }}>{item.label}</div>
+                        <div style={{ height: 10, borderRadius: 999, background: "var(--border-subtle)", overflow: "hidden" }}>
+                          <div style={{ width: `${Math.max(0, Math.min(1, item.value)) * 100}%`, height: "100%", background: "linear-gradient(90deg, var(--color-primary), #34d399)" }} />
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "right" }}>{item.value.toFixed(2)}</div>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             )}
 

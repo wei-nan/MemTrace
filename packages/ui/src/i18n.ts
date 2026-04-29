@@ -387,7 +387,13 @@ const resources = {
         accept: '接受',
         skip: '略過',
         empty_body_badge: '空',
-        empty_body_desc: '內容為空'
+        empty_body_desc: '內容為空',
+        vote_trust: '信任投票',
+        accuracy: '準確性',
+        utility: '實用性',
+        submit_vote: '提交評分',
+        cancel_vote: '取消',
+        vote_submitted: '評分已提交'
       },
       relation: {
         depends_on: '依賴',
@@ -798,12 +804,18 @@ const resources = {
         validity_last_confirmed: 'Last confirmed: {{date}} by {{user}}',
         validity_unconfirmed: 'Not yet confirmed valid',
         validity_suggest_label: 'Suggested to mark as valid once manually verified.',
-        private_locked: 'This node is private and only accessible to editors/admins.',
-        suggested_by_ai: 'Suggested by AI',
+        private_locked: 'This node is private content, accessible only to editors or admins.',
+        suggested_by_ai: 'AI Suggested Edges',
         accept: 'Accept',
         skip: 'Skip',
-        empty_body_badge: 'empty',
-        empty_body_desc: 'No body content'
+        empty_body_badge: 'Empty',
+        empty_body_desc: 'Content is empty',
+        vote_trust: 'Trust Vote',
+        accuracy: 'Accuracy',
+        utility: 'Utility',
+        submit_vote: 'Submit Rating',
+        cancel_vote: 'Cancel',
+        vote_submitted: 'Rating submitted'
       },
       relation: {
         depends_on: 'depends on',

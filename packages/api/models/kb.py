@@ -37,6 +37,11 @@ class WorkspaceAssociationResponse(BaseModel):
     created_at: datetime
 
 
+class WorkspacePurgeResponse(BaseModel):
+    deleted_nodes_count: int
+    deleted_edges_count: int
+
+
 # ── Node ──────────────────────────────────────────────────────────────────────
 
 class SuggestedEdge(BaseModel):
@@ -176,6 +181,33 @@ class TableViewResponse(BaseModel):
     nodes: list[NodeResponse]
     total_count: int
 
-class WorkspacePurgeResponse(BaseModel):
-    deleted_nodes_count: int
-    deleted_edges_count: int
+class AnalyticsTopNode(BaseModel):
+    id: str
+    title: str
+    traversal_count: int
+
+class TraversalTrendPoint(BaseModel):
+    date: str
+    count: int
+
+class WorkspaceAnalyticsResponse(BaseModel):
+    total_nodes: int
+    active_edges: int
+    orphan_node_count: int
+    avg_trust_score: float
+    faded_edge_ratio: float
+    monthly_traversal_count: int
+    kb_type: str
+    top_nodes: list[AnalyticsTopNode]
+    kb_type_metrics: dict[str, float] = {}
+    traversal_trend: list[TraversalTrendPoint] = []
+
+class TokenEfficiencyResponse(BaseModel):
+    avg_tokens_per_query: int
+    estimated_full_doc_tokens: int
+    savings_ratio: float
+    monthly_query_count: int
+
+class VoteTrustRequest(BaseModel):
+    accuracy: int
+    utility: int

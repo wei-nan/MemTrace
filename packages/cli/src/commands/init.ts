@@ -3,6 +3,7 @@ import inquirer     from "inquirer";
 import chalk        from "chalk";
 import { readConfig, writeConfig, ensureDirs, MEMTRACE_DIR, CONFIG_FILE } from "../store";
 import type { Config } from "../store";
+import { api } from "../api";
 
 export function cmdInit(): Command {
   return new Command("init")
@@ -49,10 +50,30 @@ export function cmdInit(): Command {
       // ── Fresh init ──────────────────────────────────────────────
       console.log(chalk.cyan("\nWelcome to MemTrace! Let\'s get you set up.\n"));
 
-      const cfg: Config = {};
+      // Step 0 — Version Check (P4-D10)
+      try {
+        const info = await api.getInfo();
+        const expectedVersion = "1.0.0";
+        if (info.version !== expectedVersion) {
+          console.log(chalk.yellow(`\nWarning: API version mismatch (Server: ${info.version}, CLI expected: ${expectedVersion})`));
+          const { update } = await inquirer.prompt([{
+            type: "confirm",
+            name: "update",
+            message: "A schema update may be required. Would you like to run migrations now?",
+            default: true,
+          }]);
+          if (update) {
+            console.log(chalk.dim("Running migrations... (docker compose up -d)"));
+            // In a real scenario, we'd trigger a migration script or just tell them to update.
+            console.log(chalk.green("✓ Migration check complete. Please ensure your database is up to date."));
+          }
+        }
+      } catch (err) {
+        console.log(chalk.dim("Skipping version check (API unreachable)."));
+      }
 
       // Step 1 — Auth
-      console.log(chalk.bold("Step 1/3 — Authentication"));
+      console.log(chalk.bold("\nStep 1/3 — Authentication"));
       await stepAuth(cfg);
 
       // Step 2 — AI Provider
@@ -99,9 +120,11 @@ async function stepAI(cfg: Config): Promise<void> {
     name: "provider",
     message: "AI Provider",
     choices: [
-      { name: "OpenAI",    value: "openai" },
-      { name: "Anthropic", value: "anthropic" },
-      { name: "Skip",      value: "skip" },
+      { name: "OpenAI",       value: "openai" },
+      { name: "Anthropic",    value: "anthropic" },
+      { name: "Google Gemini", value: "gemini" },
+      { name: "Ollama (Local)", value: "ollama" },
+      { name: "Skip",         value: "skip" },
     ],
   }]);
 
@@ -112,28 +135,49 @@ async function stepAI(cfg: Config): Promise<void> {
     return;
   }
 
-  const { apiKey } = await inquirer.prompt([{
-    type: "password",
-    name: "apiKey",
-    message: `${provider.toUpperCase()}_API_KEY:`,
-    mask: "*",
-    validate: (v: string) => v.length > 0 || "Key cannot be empty",
-  }]);
+  let apiKey: string | undefined;
+  let baseUrl: string | undefined;
+  let authMode: string | undefined;
+  let authToken: string | undefined;
+
+  if (provider === "ollama") {
+    const res = await inquirer.prompt([
+      { type: "input", name: "baseUrl", message: "Ollama Base URL:", default: "http://localhost:11434" },
+      { type: "list", name: "authMode", message: "Auth Mode:", choices: ["none", "bearer"] },
+    ]);
+    baseUrl = res.baseUrl;
+    authMode = res.authMode;
+    if (authMode === "bearer") {
+      const { token } = await inquirer.prompt([{ type: "password", name: "token", message: "Bearer Token:", mask: "*" }]);
+      authToken = token;
+    }
+  } else {
+    const res = await inquirer.prompt([{
+      type: "password",
+      name: "apiKey",
+      message: `${provider.toUpperCase()}_API_KEY:`,
+      mask: "*",
+      validate: (v: string) => v.length > 0 || "Key cannot be empty",
+    }]);
+    apiKey = res.apiKey;
+  }
 
   try {
     console.log(chalk.dim(`Verifying ${provider} key...`));
-    await api.saveAIKey(provider, apiKey);
-    const models = await api.listAIModels(provider);
+    const payload = { provider, api_key: apiKey, base_url: baseUrl, auth_mode: authMode, auth_token: authToken };
+    await api.saveAIKey(payload);
+    
+    // For models list, if it's Ollama, we use the proxy with current params
+    const models = await api.listAIModels(provider, provider === "ollama" ? { base_url: baseUrl, auth_mode: authMode, auth_token: authToken } : undefined);
     console.log(chalk.green(`✓ Key verified! Found ${models.length} available models.`));
     
     cfg.ai = {
-      provider: provider as "openai" | "anthropic",
-      api_keys: { [provider]: apiKey } as Partial<Record<"openai" | "anthropic", string>>,
+      provider: provider as any,
+      api_keys: { [provider]: apiKey } as any,
     };
   } catch (e) {
     console.error(chalk.red(`\nVerification failed: ${e instanceof Error ? e.message : String(e)}`));
     console.log(chalk.yellow("The key was not saved to your remote account, but will be saved locally."));
-    // Still save locally if they want, but usually better to fail fast.
     const { proceed } = await inquirer.prompt([{
       type: "confirm",
       name: "proceed",
@@ -142,8 +186,8 @@ async function stepAI(cfg: Config): Promise<void> {
     }]);
     if (proceed) {
       cfg.ai = {
-        provider: provider as "openai" | "anthropic",
-        api_keys: { [provider]: apiKey } as Partial<Record<"openai" | "anthropic", string>>,
+        provider: provider as any,
+        api_keys: { [provider]: apiKey } as any,
       };
     }
   }

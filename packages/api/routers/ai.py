@@ -38,7 +38,10 @@ router = APIRouter(prefix="/api/v1/ai", tags=["ai"])
 
 class AIKeyCreate(BaseModel):
     provider: str = Field(description="Provider identifier, must exist in PROVIDER_REGISTRY")
-    api_key:  str = Field(min_length=10, max_length=200)
+    api_key:  Optional[str] = Field(None, max_length=200)
+    base_url: Optional[str] = None
+    auth_mode: Optional[str] = "none"
+    auth_token: Optional[str] = None
 
     def validate_provider(self) -> None:
         if self.provider not in PROVIDER_REGISTRY:
@@ -140,6 +143,14 @@ class ChatFeedback(BaseModel):
     comment: Optional[str] = None
 
 
+class TestConnectionRequest(BaseModel):
+    provider: str
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    auth_mode: Optional[str] = "none"
+    auth_token: Optional[str] = None
+
+
 # -- API Key management ---------------------------------------------------------
 
 @router.get("/keys", response_model=list[AIKeyResponse])
@@ -158,22 +169,34 @@ def list_ai_keys(user: dict = Depends(get_current_user)):
 def create_ai_key(body: AIKeyCreate, user: dict = Depends(get_current_user)):
     try:
         body.validate_provider()
-        key_hint = body.api_key[-4:]
-        key_enc  = encrypt_api_key(body.api_key)
+        key_hint = body.api_key[-4:] if body.api_key else ""
+        key_enc  = encrypt_api_key(body.api_key) if body.api_key else None
         key_id   = generate_id("uak")
 
         with db_cursor(commit=True) as cur:
             cur.execute(
                 """
-                INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint, base_url, auth_mode, auth_token)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id, provider) DO UPDATE
                   SET key_enc = EXCLUDED.key_enc,
                       key_hint = EXCLUDED.key_hint,
+                      base_url = EXCLUDED.base_url,
+                      auth_mode = EXCLUDED.auth_mode,
+                      auth_token = EXCLUDED.auth_token,
                       last_used_at = NULL
                 RETURNING id, provider, key_hint, created_at, last_used_at
                 """,
-                (key_id, user["sub"], body.provider, key_enc, key_hint),
+                (
+                    key_id, 
+                    user["sub"], 
+                    body.provider, 
+                    key_enc, 
+                    key_hint,
+                    body.base_url,
+                    body.auth_mode,
+                    body.auth_token
+                ),
             )
             row = cur.fetchone()
             if not row:
@@ -205,13 +228,76 @@ async def list_models(
 ):
     try:
         resolved = resolve_provider(user["sub"], "extraction", provider)
-        return await resolved.provider.list_models(resolved.api_key)
+        return await resolved.provider.list_models(resolved)
     except Exception as e:
         # Fallback to static list if resolve fails (e.g. no key configured)
         impl = PROVIDER_REGISTRY.get(provider)
         if impl:
             return impl.get_known_models()
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/providers/{provider}/test-connection")
+async def test_provider_connection(
+    provider: str,
+    body: TestConnectionRequest,
+    user: dict = Depends(get_current_user),
+):
+    from core.ai import ResolvedProvider
+    impl = PROVIDER_REGISTRY.get(provider)
+    if not impl:
+        raise HTTPException(status_code=400, detail=f"Unknown provider {provider}")
+    
+    # Create a dummy ResolvedProvider for the call
+    resolved = ResolvedProvider(
+        provider=impl,
+        api_key=body.api_key or "",
+        model=impl.default_chat_model,
+        source="account_key",
+        user_id=user["sub"],
+        base_url=body.base_url,
+        auth_mode=body.auth_mode,
+        auth_token=body.auth_token,
+    )
+    
+    try:
+        # Simple chat call to test
+        messages = [{"role": "user", "content": "hi"}]
+        await impl.chat(resolved, messages, max_tokens=5, temperature=0.0)
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/providers/{provider}/models")
+async def proxy_list_models(
+    provider: str,
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+    auth_mode: Optional[str] = "none",
+    auth_token: Optional[str] = None,
+    user: dict = Depends(get_current_user),
+):
+    from core.ai import ResolvedProvider
+    impl = PROVIDER_REGISTRY.get(provider)
+    if not impl:
+        raise HTTPException(status_code=400, detail=f"Unknown provider {provider}")
+
+    resolved = ResolvedProvider(
+        provider=impl,
+        api_key=api_key or "",
+        model=impl.default_chat_model,
+        source="account_key",
+        user_id=user["sub"],
+        base_url=base_url,
+        auth_mode=auth_mode,
+        auth_token=auth_token,
+    )
+    
+    try:
+        return await impl.list_models(resolved)
+    except Exception as e:
+        return impl.get_known_models()
 
 
 # -- Credit status --------------------------------------------------------------

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
-import { aiReviewers, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
+import { ai, aiReviewers, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import KbExportPanel from "./components/KbExportPanel";
@@ -30,6 +30,34 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
     auto_reject_threshold: 0.1,
     enabled: true,
   });
+  const [models, setModels] = useState<any[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  const fetchModels = async (p: string) => {
+    setLoadingModels(true);
+    try {
+      const res = await ai.listModels(p);
+      setModels(res);
+      if (res.length > 0 && !res.find(m => m.id === form.model)) {
+        setForm(f => ({ ...f, model: res[0].id }));
+      }
+    } catch {
+      setModels([]);
+    } finally {
+      setLoadingModels(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchModels(form.provider);
+  }, [form.provider]);
+
+  const providers = [
+    { value: 'openai', label: 'OpenAI' },
+    { value: 'anthropic', label: 'Anthropic' },
+    { value: 'gemini', label: 'Gemini' },
+    { value: 'ollama', label: 'Ollama' },
+  ];
 
   const load = async () => {
     try {
@@ -58,10 +86,20 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <SectionCard>
         <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> {t('ws_settings.create_reviewer_title')}</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: 10 }}>
           <input className="mt-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('ws_settings.members')} />
-          <input className="mt-input" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })} placeholder="Provider" />
-          <input className="mt-input" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="Model" />
+          <select className="mt-input" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })}>
+            {providers.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+          </select>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <select className="mt-input" style={{ flex: 1 }} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })}>
+              {models.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
+              {!models.length && <option value={form.model}>{form.model}</option>}
+            </select>
+            <button className="btn-secondary" style={{ padding: '0 8px' }} onClick={() => fetchModels(form.provider)} title="Refresh models" disabled={loadingModels}>
+              <RefreshCw size={14} className={loadingModels ? "spin" : ""} />
+            </button>
+          </div>
         </div>
         <textarea className="mt-input" style={{ minHeight: 120, marginTop: 10 }} value={form.system_prompt} onChange={(e) => setForm({ ...form, system_prompt: e.target.value })} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, marginTop: 10 }}>

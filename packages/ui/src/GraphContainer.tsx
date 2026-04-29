@@ -7,7 +7,7 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert } from 'lucide-react';
+import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
@@ -185,6 +185,23 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
           >
             {requestSent ? (zh ? '申請待審核' : 'Request Pending') : (zh ? '申請加入以查看細節' : 'Request to Join')}
           </button>
+        </div>
+      )}
+
+      {/* ── Public Spec KB Banner ─────────────────────────────────────── */}
+      {wsId === 'ws_spec0001' && !isPreview && (
+        <div style={{
+          background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-default)',
+          color: 'var(--text-primary)', padding: '8px 40px', display: 'flex', alignItems: 'center', gap: 10,
+          fontSize: 13, fontWeight: 500, zIndex: 10
+        }}>
+          <Brain size={16} style={{ color: 'var(--color-primary)' }} />
+          <span>
+            {zh ? '📘 此為公開展示用知識庫' : '📘 This is a public demonstration knowledge base'}
+            <span style={{ marginLeft: 8, opacity: 0.7, fontWeight: 400 }}>
+              {zh ? '展示 MemTrace 的核心功能，可透過 MCP 直接探索' : 'Demonstrates core features; explore directly via MCP'}
+            </span>
+          </span>
         </div>
       )}
 

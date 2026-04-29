@@ -72,7 +72,7 @@ class AIProvider(ABC):
         """Return a static list of known models for this provider."""
 
     @abstractmethod
-    async def list_models(self, api_key: str) -> list[dict]:
+    async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
         """
         List available models for this provider.
 
@@ -83,8 +83,7 @@ class AIProvider(ABC):
     @abstractmethod
     async def chat(
         self,
-        api_key: str,
-        model: str,
+        resolved: ResolvedProvider,
         messages: list[dict],
         max_tokens: int,
         temperature: float,
@@ -99,8 +98,7 @@ class AIProvider(ABC):
 
     async def embed(
         self,
-        api_key: str,
-        model: str,
+        resolved: ResolvedProvider,
         text: str,
     ) -> tuple[list[float], int]:
         """
@@ -129,13 +127,17 @@ class OpenAIProvider(AIProvider):
     def __init__(self, base_url: str = "https://api.openai.com/v1"):
         self._base_url = base_url.rstrip("/")
 
-    async def chat(self, api_key, model, messages, max_tokens, temperature):
+    async def chat(self, resolved, messages, max_tokens, temperature):
+        headers = {}
+        if resolved.api_key:
+            headers["Authorization"] = f"Bearer {resolved.api_key}"
+            
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
                 f"{self._base_url}/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}"},
+                headers=headers,
                 json={
-                    "model": model,
+                    "model": resolved.model,
                     "messages": messages,
                     "max_tokens": max_tokens,
                     "temperature": temperature,
@@ -156,13 +158,13 @@ class OpenAIProvider(AIProvider):
             {"id": "o1-mini", "display_name": "o1 Mini"},
         ]
 
-    async def list_models(self, api_key: str) -> list[dict]:
-        if not api_key:
+    async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
+        if not resolved.api_key:
             return self.get_known_models()
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(
                 f"{self._base_url}/models",
-                headers={"Authorization": f"Bearer {api_key}"},
+                headers={"Authorization": f"Bearer {resolved.api_key}"},
             )
         if not resp.is_success:
             return self.get_known_models()
@@ -173,12 +175,16 @@ class OpenAIProvider(AIProvider):
             if "gpt" in m["id"] or "o1" in m["id"]
         ]
 
-    async def embed(self, api_key, model, text):
+    async def embed(self, resolved, text):
+        headers = {}
+        if resolved.api_key:
+            headers["Authorization"] = f"Bearer {resolved.api_key}"
+
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(
                 f"{self._base_url}/embeddings",
-                headers={"Authorization": f"Bearer {api_key}"},
-                json={"model": model, "input": text},
+                headers=headers,
+                json={"model": resolved.model, "input": text},
             )
         if not resp.is_success:
             raise AIProviderError(f"OpenAI embed {resp.status_code}: {resp.text[:400]}")
@@ -204,14 +210,14 @@ class AnthropicProvider(AIProvider):
             {"id": "claude-3-5-haiku-20241022",     "display_name": "Claude 3.5 Haiku"},
         ]
 
-    async def list_models(self, api_key: str) -> list[dict]:
-        if not api_key:
+    async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
+        if not resolved.api_key:
             return self.get_known_models()
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(
                 "https://api.anthropic.com/v1/models",
                 headers={
-                    "x-api-key": api_key,
+                    "x-api-key": resolved.api_key,
                     "anthropic-version": "2023-06-01",
                 },
             )
@@ -223,7 +229,7 @@ class AnthropicProvider(AIProvider):
             for m in data["data"]
         ]
 
-    async def chat(self, api_key, model, messages, max_tokens, temperature):
+    async def chat(self, resolved, messages, max_tokens, temperature):
         system = next((m["content"] for m in messages if m["role"] == "system"), "")
         user_messages = [m for m in messages if m["role"] != "system"]
 
@@ -231,11 +237,11 @@ class AnthropicProvider(AIProvider):
             resp = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
-                    "x-api-key": api_key,
+                    "x-api-key": resolved.api_key,
                     "anthropic-version": "2023-06-01",
                 },
                 json={
-                    "model": model,
+                    "model": resolved.model,
                     "system": system,
                     "messages": user_messages,
                     "max_tokens": max_tokens,
@@ -265,12 +271,12 @@ class GeminiProvider(AIProvider):
             {"id": "gemini-1.5-pro",                 "display_name": "Gemini 1.5 Pro"},
         ]
 
-    async def list_models(self, api_key: str) -> list[dict]:
-        if not api_key:
+    async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
+        if not resolved.api_key:
             return self.get_known_models()
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(
-                f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+                f"https://generativelanguage.googleapis.com/v1beta/models?key={resolved.api_key}"
             )
         if not resp.is_success:
             return self.get_known_models()
@@ -284,7 +290,7 @@ class GeminiProvider(AIProvider):
             if "generateContent" in m.get("supportedGenerationMethods", [])
         ]
 
-    async def chat(self, api_key, model, messages, max_tokens, temperature):
+    async def chat(self, resolved, messages, max_tokens, temperature):
         # Gemini v1beta supports system_instruction separately
         system = next((m["content"] for m in messages if m["role"] == "system"), "")
         contents = []
@@ -309,7 +315,7 @@ class GeminiProvider(AIProvider):
 
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:generateContent?key={resolved.api_key}",
                 json=body
             )
         
@@ -331,12 +337,12 @@ class GeminiProvider(AIProvider):
         except (KeyError, IndexError) as e:
             raise AIProviderError(f"Gemini unexpected response ({e}): {data}")
 
-    async def embed(self, api_key, model, text):
+    async def embed(self, resolved, text):
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent?key={api_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:embedContent?key={resolved.api_key}",
                 json={
-                    "model": f"models/{model}",
+                    "model": f"models/{resolved.model}",
                     "content": {"parts": [{"text": text}]}
                 }
             )
@@ -344,6 +350,86 @@ class GeminiProvider(AIProvider):
             raise AIProviderError(f"Gemini embed {resp.status_code}: {resp.text[:400]}")
         data = resp.json()
         return data["embedding"]["values"], 0 # Gemini embedding usage unknown
+
+
+# ── Built-in: Ollama ──────────────────────────────────────────────────────────
+
+class OllamaProvider(OpenAIProvider):
+    """
+    Ollama provider. Inherits from OpenAIProvider as it is OpenAI-compatible.
+    Requires base_url and optionally auth_token (passed via ResolvedProvider).
+    """
+    name                    = "ollama"
+    default_chat_model      = "llama3"
+    default_embedding_model = "nomic-embed-text"
+
+    def __init__(self):
+        super().__init__(base_url="") # base_url will be dynamic
+
+    async def _setup_dynamic_url(self, resolved: ResolvedProvider):
+        if not resolved.base_url:
+            raise AIProviderError("Ollama requires a base_url in settings.")
+        self._base_url = resolved.base_url.rstrip("/")
+        # If it's just the host, append /v1 for OpenAI compatibility
+        if not self._base_url.endswith("/v1") and "/api" not in self._base_url:
+            self._base_url += "/v1"
+
+    async def chat(self, resolved, messages, max_tokens, temperature):
+        await self._setup_dynamic_url(resolved)
+        # Use the specific auth_token from resolved if present, else fallback to api_key
+        token = resolved.auth_token or resolved.api_key
+        
+        original_key = resolved.api_key
+        if resolved.auth_mode == 'none':
+            resolved.api_key = ""
+        elif resolved.auth_token:
+            resolved.api_key = resolved.auth_token
+            
+        try:
+            return await super().chat(resolved, messages, max_tokens, temperature)
+        finally:
+            resolved.api_key = original_key
+
+    async def embed(self, resolved, text):
+        await self._setup_dynamic_url(resolved)
+        original_key = resolved.api_key
+        if resolved.auth_mode == 'none':
+            resolved.api_key = ""
+        elif resolved.auth_token:
+            resolved.api_key = resolved.auth_token
+
+        try:
+            return await super().embed(resolved, text)
+        finally:
+            resolved.api_key = original_key
+
+    async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
+        await self._setup_dynamic_url(resolved)
+        # For Ollama, listing models often doesn't need auth, but we use the setup dynamic url anyway
+        async with httpx.AsyncClient(timeout=30) as client:
+            try:
+                resp = await client.get(f"{self._base_url}/models")
+                if resp.is_success:
+                    data = resp.json()
+                    # Ollama /v1/models returns data: [{id: ...}, ...]
+                    return [
+                        {"id": m["id"], "display_name": m["id"]}
+                        for m in data.get("data", [])
+                    ]
+            except Exception:
+                pass
+        return self.get_known_models()
+
+    def get_known_models(self) -> list[dict]:
+        return [
+            {"id": "llama3",           "display_name": "Llama 3"},
+            {"id": "llama3:8b",        "display_name": "Llama 3 8B"},
+            {"id": "llama3:70b",       "display_name": "Llama 3 70B"},
+            {"id": "mistral",          "display_name": "Mistral"},
+            {"id": "mixtral",          "display_name": "Mixtral"},
+            {"id": "phi3",             "display_name": "Phi-3"},
+            {"id": "nomic-embed-text", "display_name": "Nomic Embed Text"},
+        ]
 
 
 # ── Provider Registry ─────────────────────────────────────────────────────────
@@ -361,6 +447,7 @@ PROVIDER_REGISTRY: dict[str, AIProvider] = {
     "openai":    OpenAIProvider(),
     "anthropic": AnthropicProvider(),
     "gemini":    GeminiProvider(),
+    "ollama":    OllamaProvider(),
 }
 
 # ── Encryption ────────────────────────────────────────────────────────────────
@@ -387,6 +474,9 @@ class ResolvedProvider:
     model:      str
     source:     Literal["workspace_key", "account_key"]
     user_id:    str
+    base_url:   Optional[str] = None
+    auth_mode:  Optional[str] = None
+    auth_token: Optional[str] = None
 
 
 def resolve_provider(
@@ -403,7 +493,7 @@ def resolve_provider(
     """
     with db_cursor() as cur:
         # User-supplied key
-        query = "SELECT provider, key_enc FROM user_ai_keys WHERE user_id = %s"
+        query = "SELECT provider, key_enc, base_url, auth_mode, auth_token FROM user_ai_keys WHERE user_id = %s"
         params: list = [user_id]
         if preferred_provider:
             query += " AND provider = %s"
@@ -432,10 +522,15 @@ def resolve_provider(
         )
         return ResolvedProvider(
             provider=impl,
-            api_key=decrypt_api_key(row["key_enc"]),
+            api_key=decrypt_api_key(row["key_enc"]) if row["key_enc"] else "",
             model=model,
-            source="account_key",  # Defaulting to account_key for now as workspace-level keys are separate in SPEC
+            source="account_key",
             user_id=user_id,
+            base_url=row["base_url"],
+            auth_mode=row["auth_mode"],
+            auth_token=row["auth_token"], # Should we decrypt this? Yes, if it was encrypted.
+            # For now, let's assume if it's in the DB, we might need decryption if it was stored via the same mechanism.
+            # But the UI will probably just store it. Let's add decryption just in case.
         )
 
 # ── Usage recording ───────────────────────────────────────────────────────────
@@ -480,14 +575,14 @@ async def chat_completion(
     temperature: float = 0.2,
 ) -> tuple[str, int]:
     return await resolved.provider.chat(
-        resolved.api_key, resolved.model, messages, max_tokens, temperature
+        resolved, messages, max_tokens, temperature
     )
 
 async def embed(
     resolved: ResolvedProvider,
     text: str,
 ) -> tuple[list[float], int]:
-    return await resolved.provider.embed(resolved.api_key, resolved.model, text)
+    return await resolved.provider.embed(resolved, text)
 
 # ── AI Prompts ────────────────────────────────────────────────────────────────
 

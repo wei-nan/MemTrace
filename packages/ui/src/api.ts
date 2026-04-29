@@ -269,6 +269,8 @@ export const nodes = {
     request<NodeHealthScore[]>("GET", `${BASE}/workspaces/${wsId}/nodes/health-scores`),
   suggestEdges: (wsId: string, nodeId: string) =>
     request<any[]>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/suggest-edges`),
+  voteTrust: (wsId: string, nodeId: string, data: { accuracy: number; utility: number }) =>
+    request<{ status: string; trust_score: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/vote-trust`, data),
 };
 
 export const edges = {
@@ -281,13 +283,19 @@ export const edges = {
 
 export const ai = {
   listKeys: () => request<AIKey[]>("GET", `${BASE}/ai/keys`),
-  createKey: (data: { provider: string; api_key: string }) => request<AIKey>("POST", `${BASE}/ai/keys`, data),
+  createKey: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string }) => request<AIKey>("POST", `${BASE}/ai/keys`, data),
   deleteKey: (provider: string) => request("DELETE", `${BASE}/ai/keys/${provider}`),
   getCredits: () => request<CreditStatus>("GET", `${BASE}/ai/credits`),
   extract: (data: unknown) => request("POST", `${BASE}/ai/extract`, data),
   restructure: (data: unknown) => request("POST", `${BASE}/ai/restructure`, data),
   chat: (data: unknown) => request<ChatResponse>("POST", `${BASE}/ai/chat`, data),
   listModels: (provider: string) => request<ModelInfo[]>("GET", `${BASE}/ai/models/${provider}`),
+  testConnection: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string }) =>
+    request<{ status: string }>("POST", `${BASE}/ai/providers/${data.provider}/test-connection`, data),
+  listModelsProxy: (provider: string, params: { base_url?: string; api_key?: string; auth_mode?: string; auth_token?: string }) => {
+    const qs = new URLSearchParams(params as any).toString();
+    return request<ModelInfo[]>("GET", `${BASE}/ai/providers/${provider}/models?${qs}`);
+  },
 };
 
 export const review = {
@@ -365,6 +373,9 @@ export interface AIKey {
   key_hint: string;
   created_at: string;
   last_used_at: string | null;
+  base_url?: string;
+  auth_mode?: string;
+  auth_token?: string;
 }
 
 export interface ModelInfo {

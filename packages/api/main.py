@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from core.backup import get_backup_config, run_backup_and_update_status
+from core.config import settings
 from core.database import db_cursor
 from core.email import send_workspace_deletion_notice
 from core.csrf import CsrfMiddleware
@@ -89,9 +90,10 @@ async def _cleanup_loop():
                 cur.execute(
                     "UPDATE workspace_invites SET status = 'expired' WHERE expires_at < NOW() AND status = 'pending'"
                 )
-                # G4: Weekly — delete ai_usage_log older than 90 days
+                # G4: Weekly — delete ai_credit_ledger older than retention limit
                 cur.execute(
-                    "DELETE FROM ai_usage_log WHERE created_at < NOW() - INTERVAL '90 days'"
+                    "DELETE FROM ai_credit_ledger WHERE created_at < NOW() - (%s * INTERVAL '1 month')",
+                    (settings.ai_usage_retention_months,)
                 )
                 # G4: Weekly — delete old completed kb_exports (30+ days) and their files
                 cur.execute(
@@ -107,8 +109,73 @@ async def _cleanup_loop():
                 if old_exports:
                     cur.execute(
                         "DELETE FROM kb_exports WHERE id = ANY(%s)",
-                        ([e["id"] for e in old_exports],),
+                        ([e["id"] for e in old_exports],)
                     )
+
+                # P4-D8: Monthly summary
+                now_dt = datetime.now()
+                # Aggregate current and previous month to ensure continuity
+                for m_offset in [0, 1]:
+                    target_month = (now_dt.replace(day=1) - timedelta(days=m_offset*28)).strftime("%Y-%m")
+                    cur.execute("""
+                        INSERT INTO ai_usage_summary (workspace_id, year_month, token_count)
+                        SELECT workspace_id, TO_CHAR(created_at, 'YYYY-MM') as ym, SUM(tokens_used)
+                        FROM ai_credit_ledger
+                        WHERE TO_CHAR(created_at, 'YYYY-MM') = %s
+                        GROUP BY workspace_id, ym
+                        ON CONFLICT (workspace_id, year_month) DO UPDATE 
+                        SET token_count = EXCLUDED.token_count, last_updated = now()
+                    """, (target_month,))
+
+                # P4-D8 part 2: Cleanup ledger (retention policy)
+                retention = settings.ai_usage_retention_months
+                cur.execute(
+                    "DELETE FROM ai_credit_ledger WHERE created_at < NOW() - (%s * INTERVAL '1 month')",
+                    (retention,)
+                )
+
+                # P4-D9: Apply Node Archiving
+                # Evergreen: Archive if no traversals in 90 days
+                cur.execute("""
+                    UPDATE memory_nodes
+                    SET status = 'archived', archived_at = now()
+                    FROM workspaces
+                    WHERE memory_nodes.workspace_id = workspaces.id
+                      AND workspaces.kb_type = 'evergreen'
+                      AND memory_nodes.status = 'active'
+                      AND memory_nodes.created_at < now() - interval '90 days'
+                      AND NOT EXISTS (
+                          SELECT 1 FROM traversal_log 
+                          WHERE traversal_log.node_id = memory_nodes.id 
+                            AND traversal_log.traversed_at > now() - interval '90 days'
+                      )
+                """)
+                
+                # Ephemeral: Archive if all edges faded OR 60 days without traversal
+                cur.execute("""
+                    UPDATE memory_nodes
+                    SET status = 'archived', archived_at = now()
+                    FROM workspaces
+                    WHERE memory_nodes.workspace_id = workspaces.id
+                      AND workspaces.kb_type = 'ephemeral'
+                      AND memory_nodes.status = 'active'
+                      AND (
+                          (
+                            memory_nodes.created_at < now() - interval '60 days' 
+                            AND NOT EXISTS (
+                                SELECT 1 FROM traversal_log 
+                                WHERE traversal_log.node_id = memory_nodes.id 
+                                  AND traversal_log.traversed_at > now() - interval '60 days'
+                            )
+                          )
+                          OR NOT EXISTS (
+                              SELECT 1 FROM edges 
+                              WHERE (edges.from_id = memory_nodes.id OR edges.to_id = memory_nodes.id)
+                                AND edges.status = 'active'
+                          )
+                      )
+                """)
+
                 # P2-3: Auto-revoke API keys inactive for 90 days.
                 # A key is "inactive" if it has never been used and was created
                 # ≥ 90 days ago, OR was last used ≥ 90 days ago.

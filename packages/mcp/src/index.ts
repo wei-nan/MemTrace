@@ -96,12 +96,15 @@ async function apiFetch<T>(path: string, options?: ApiFetchOptions): Promise<T> 
   return null as unknown as T;
 }
 
+const AVG_NODE_TOKENS = Number(process.env.MCP_AVG_NODE_TOKENS ?? "350");
+
 async function logMcpQuery(payload: {
   workspace_id: string;
   tool_name: string;
   query_text?: string;
   result_node_count: number;
   estimated_tokens: number;
+  provider?: string;
 }) {
   if (!INTERNAL_TOKEN) return;
   try {
@@ -118,9 +121,8 @@ async function logMcpQuery(payload: {
   }
 }
 
-function estimateNodeTokens(nodes: ApiNode[]) {
-  const totalChars = nodes.reduce((sum, node) => sum + (node.body_zh?.length ?? 0) + (node.body_en?.length ?? 0), 0);
-  return Math.floor(totalChars / 4);
+function estimateNodeTokens(count: number) {
+  return count * AVG_NODE_TOKENS;
 }
 
 function nodeTitle(n: ApiNode): string {
@@ -172,6 +174,7 @@ const NODE_GUIDE = `# MemTrace Node Schema
 2. **單一性**: 一個節點只記錄一個獨立的概念。
 3. **雙語化**: 盡量同時提供 中英文欄位，增加跨語言檢索能力。
 4. **關聯性**: 使用 \`suggested_edges\` 參數在建立時一併提議關聯。
+5. **品質回饋**: 讀取節點後，若發現資訊極具價值或有誤，應呼叫 \`vote_trust\` 調整信任分。
 `;
 
 const EDGE_GUIDE = `# MemTrace Edge Schema
@@ -310,6 +313,22 @@ async function confirmNodeValidity(nodeId: string, wsId: string = WS_ID): Promis
   return `Confirmed validity for ${nodeId}:\n${JSON.stringify(res)}`;
 }
 
+async function voteTrust(nodeId: string, accuracy: number, utility: number, wsId: string = WS_ID): Promise<string> {
+  if (!TOKEN) throw new Error("Write operations require MEMTRACE_TOKEN configuration.");
+  const payload = { accuracy, utility };
+  const res = await apiFetch<any>(`/workspaces/${wsId}/nodes/${nodeId}/vote-trust`, { method: "POST", body: payload });
+  
+  await logMcpQuery({
+    workspace_id: wsId,
+    tool_name: "vote_trust",
+    query_text: `${nodeId} acc:${accuracy} util:${utility}`,
+    result_node_count: 1,
+    estimated_tokens: 20,
+  });
+
+  return `Voted for node ${nodeId} successfully:\n${JSON.stringify(res)}`;
+}
+
 async function listReviewQueue(status: string = "pending", wsId: string = WS_ID): Promise<string> {
   const params = new URLSearchParams({ status });
   const items = await apiFetch<any[]>(`/workspaces/${wsId}/review-queue?${params}`);
@@ -341,7 +360,7 @@ async function searchNodes(query: string, limit = 8, wsId: string = WS_ID): Prom
     tool_name: "search_nodes",
     query_text: query,
     result_node_count: nodes.length,
-    estimated_tokens: estimateNodeTokens(nodes),
+    estimated_tokens: estimateNodeTokens(nodes.length),
   });
   if (nodes.length === 0) return `No nodes found for query: "${query}" in workspace ${wsId}`;
   return [
@@ -358,7 +377,7 @@ async function getNode(nodeId: string, wsId: string = WS_ID): Promise<string> {
       tool_name: "get_node",
       query_text: nodeId,
       result_node_count: 1,
-      estimated_tokens: estimateNodeTokens([n]),
+      estimated_tokens: estimateNodeTokens(1),
     });
     return renderNode(n, true);
   } catch {
@@ -402,7 +421,7 @@ async function traverse(nodeId: string, depth = 1, wsId: string = WS_ID): Promis
     tool_name: "traverse",
     query_text: nodeId,
     result_node_count: 1 + neighbours.length,
-    estimated_tokens: estimateNodeTokens([root, ...neighbours]),
+    estimated_tokens: estimateNodeTokens(1 + neighbours.length),
   });
 
   const neighbourMap = Object.fromEntries(neighbours.map((n) => [n.id, n]));
@@ -446,7 +465,7 @@ async function listByTag(tag: string, limit = 20, wsId: string = WS_ID): Promise
     tool_name: "list_by_tag",
     query_text: tag,
     result_node_count: nodes.length,
-    estimated_tokens: estimateNodeTokens(nodes),
+    estimated_tokens: estimateNodeTokens(nodes.length),
   });
   if (nodes.length === 0) return `No nodes found with tag: "${tag}" in workspace ${wsId}`;
   return [
@@ -517,7 +536,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: "get_node",
       description:
-        "Retrieve a specific MemTrace knowledge node by its ID (e.g. mem_d001, mem_p003). Returns full content and metadata.\nPass `workspace_id` to query a specific KB; omit to use the configured default (`MEMTRACE_WS`).",
+        "Retrieve a specific MemTrace knowledge node by its ID (e.g. mem_d001, mem_p003). Returns full content and metadata.\n" +
+        "讀取完節點後，若確認內容正確且有用，建議呼叫 `vote_trust` 或 `confirm_node_validity` 回饋品質訊號，以維持知識圖的活性。\n" +
+        "Pass `workspace_id` to query a specific KB; omit to use the configured default (`MEMTRACE_WS`).",
       inputSchema: {
         type: "object" as const,
         properties: {
@@ -530,7 +551,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: "traverse",
       description:
-        "Get a node and its direct associations (upstream/downstream). Useful for understanding how concepts relate to each other. Set depth=2 to also include full content of neighbour nodes.\nPass `workspace_id` to query a specific KB; omit to use the configured default (`MEMTRACE_WS`).",
+        "Get a node and its direct associations (upstream/downstream). Useful for understanding how concepts relate to each other. Set depth=2 to also include full content of neighbour nodes.\n" +
+        "讀取完節點後，若確認內容正確且有用，建議呼叫 `vote_trust` 或 `confirm_node_validity` 回饋品質訊號，以維持知識圖的活性。\n" +
+        "Pass `workspace_id` to query a specific KB; omit to use the configured default (`MEMTRACE_WS`).",
       inputSchema: {
         type: "object" as const,
         properties: {
@@ -707,6 +730,20 @@ relation 語意：
       }
     },
     {
+      name: "vote_trust",
+      description: "對記憶節點進行品質評分。Accuracy 代表內容準確度，Utility 代表內容實用度。評分將直接影響節點的信任分數 (Trust Score)。",
+      inputSchema: {
+        type: "object" as const,
+        properties: {
+          node_id: { type: "string", description: "Target node ID" },
+          accuracy: { type: "number", description: "1-5 分，準確度評分" },
+          utility: { type: "number", description: "1-5 分，實用度評分" },
+          workspace_id: { type: "string", description: "Target workspace ID" }
+        },
+        required: ["node_id", "accuracy", "utility"]
+      }
+    },
+    {
       name: "list_review_queue",
       description: "列出工作區中待審核的提案項目，可確認 AI 提案是否已進入佇列。",
       inputSchema: {
@@ -786,6 +823,9 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "confirm_node_validity":
         text = await confirmNodeValidity(String(args?.node_id ?? ""), wsId);
         break;
+      case "vote_trust":
+        text = await voteTrust(String(args?.node_id), Number(args?.accuracy), Number(args?.utility), wsId);
+        break;
       case "list_review_queue":
         text = await listReviewQueue(args?.status ? String(args.status) : "pending", wsId);
         break;
@@ -810,7 +850,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         const nodes = await apiFetch<ApiNode[]>(
           `/workspaces/${wsId}/nodes?filter=empty_body&limit=${limit}`
         );
-        await logMcpQuery({ workspace_id: wsId, tool_name: "list_empty_nodes", result_node_count: nodes.length, estimated_tokens: estimateNodeTokens(nodes) });
+        await logMcpQuery({ workspace_id: wsId, tool_name: "list_empty_nodes", result_node_count: nodes.length, estimated_tokens: estimateNodeTokens(nodes.length) });
         if (nodes.length === 0) {
           text = "No empty-body nodes found in this workspace.";
         } else {

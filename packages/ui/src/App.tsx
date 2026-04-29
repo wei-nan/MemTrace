@@ -335,11 +335,15 @@ function SettingsPanel({
   const [personalKeySaving, setPersonalKeySaving] = useState(false);
   const [personalKeyError, setPersonalKeyError] = useState('');
   const [newKey, setNewKey] = useState('');
-  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai');
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>('openai');
   const [apiKey, setApiKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [baseUrl, setBaseUrl] = useState('');
+  const [authMode, setAuthMode] = useState<'none' | 'bearer'>('none');
+  const [authToken, setAuthToken] = useState('');
+  const [testing, setTesting] = useState(false);
 
   const loadData = () => {
     ai.listKeys().then(setKeys).catch(() => {});
@@ -386,15 +390,25 @@ function SettingsPanel({
   };
 
   const handleSaveKey = async () => {
-    if (apiKey.length < 10) {
+    if (provider !== 'ollama' && apiKey.length < 10) {
       setError(zh ? 'API Key 太短' : 'API key too short');
+      return;
+    }
+    if (provider === 'ollama' && !baseUrl) {
+      setError(zh ? '請輸入 Base URL' : 'Base URL required');
       return;
     }
     setSaving(true);
     setError('');
     setSuccess('');
     try {
-      await ai.createKey({ provider, api_key: apiKey });
+      await ai.createKey({ 
+        provider, 
+        api_key: apiKey,
+        base_url: provider === 'ollama' ? baseUrl : undefined,
+        auth_mode: provider === 'ollama' ? authMode : undefined,
+        auth_token: provider === 'ollama' ? authToken : undefined,
+      });
       setApiKey('');
       setSuccess(zh ? '已儲存' : 'Saved');
       loadData();
@@ -402,6 +416,26 @@ function SettingsPanel({
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTesting(true);
+    setError('');
+    setSuccess('');
+    try {
+      await ai.testConnection({
+        provider,
+        api_key: apiKey,
+        base_url: baseUrl,
+        auth_mode: authMode,
+        auth_token: authToken,
+      });
+      setSuccess(zh ? '連線測試成功' : 'Connection test successful');
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -426,6 +460,7 @@ function SettingsPanel({
     { value: 'openai', label: 'OpenAI' },
     { value: 'anthropic', label: 'Anthropic (Claude)' },
     { value: 'gemini', label: 'Google Gemini' },
+    { value: 'ollama', label: 'Ollama' },
   ] as const;
 
   return (
@@ -632,7 +667,21 @@ function SettingsPanel({
               return (
                 <button
                   key={p.value}
-                  onClick={() => setProvider(p.value)}
+                  onClick={() => {
+                    setProvider(p.value);
+                    const existing = keys.find(k => k.provider === p.value);
+                    if (existing) {
+                      setBaseUrl(existing.base_url || '');
+                      setAuthMode((existing.auth_mode as any) || 'none');
+                      setAuthToken(existing.auth_token || '');
+                    } else {
+                      setBaseUrl('');
+                      setAuthMode('none');
+                      setAuthToken('');
+                    }
+                    setError('');
+                    setSuccess('');
+                  }}
                   style={{
                     padding: '6px 14px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
                     border: `1px solid ${isActive ? brandColor : 'var(--border-default)'}`,
@@ -647,19 +696,59 @@ function SettingsPanel({
               );
             })}
           </div>
-          <input
-            className="mt-input"
-            type="password"
-            placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
-          />
+          {provider === 'ollama' ? (
+            <>
+              <div>
+                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Base URL</label>
+                <input
+                  className="mt-input"
+                  placeholder="http://localhost:11434"
+                  value={baseUrl}
+                  onChange={e => setBaseUrl(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Auth Mode</label>
+                  <select className="mt-input" value={authMode} onChange={e => setAuthMode(e.target.value as any)}>
+                    <option value="none">None</option>
+                    <option value="bearer">Bearer Token</option>
+                  </select>
+                </div>
+                {authMode === 'bearer' && (
+                  <div style={{ flex: 2 }}>
+                    <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Auth Token</label>
+                    <input
+                      className="mt-input"
+                      type="password"
+                      placeholder="token..."
+                      value={authToken}
+                      onChange={e => setAuthToken(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <input
+              className="mt-input"
+              type="password"
+              placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
+            />
+          )}
           {error && <div style={{ color: 'var(--color-error)', fontSize: 12 }}>{error}</div>}
           {success && <div style={{ color: 'var(--color-success)', fontSize: 12 }}>{success}</div>}
-          <button className="btn-primary" onClick={handleSaveKey} disabled={saving} style={{ alignSelf: 'flex-start' }}>
-            {saving ? (zh ? '儲存中…' : 'Saving…') : (zh ? '儲存 API Key' : 'Save API Key')}
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn-primary" onClick={handleSaveKey} disabled={saving}>
+              {saving ? (zh ? '儲存中…' : 'Saving…') : (zh ? '儲存 API Key' : 'Save API Key')}
+            </button>
+            <button className="btn-secondary" onClick={handleTestConnection} disabled={testing}>
+              {testing ? (zh ? '測試中…' : 'Testing…') : (zh ? '測試連線' : 'Test Connection')}
+            </button>
+          </div>
         </div>
       </section>
     </div>
@@ -770,6 +859,16 @@ export default function App() {
       if (list.length > 0 && !selectedWs) setSelectedWs(list[0]);
     }).catch(() => {});
   }, [authenticated]);
+
+  // ── Dynamic Title ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (selectedWs) {
+      const name = i18n.language === 'zh-TW' ? selectedWs.name_zh : selectedWs.name_en;
+      document.title = `${name} - MemTrace`;
+    } else {
+      document.title = 'MemTrace';
+    }
+  }, [selectedWs, i18n.language]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -897,6 +996,42 @@ export default function App() {
                 background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                 borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-lg)',
               }}>
+                {/* Pinned: MemTrace Public Spec */}
+                {wsList.find(ws => ws.id === 'ws_spec0001') && (
+                  <div
+                    onClick={() => { 
+                      const spec = wsList.find(ws => ws.id === 'ws_spec0001');
+                      if (spec) {
+                        setSelectedWs(spec);
+                        setCurrentView('graph');
+                        setWsMenuOpen(false);
+                      }
+                    }}
+                    style={{
+                      padding: '12px 14px', cursor: 'pointer', fontSize: 13,
+                      background: selectedWs?.id === 'ws_spec0001' ? 'var(--color-primary-subtle)' : 'var(--bg-elevated)',
+                      borderBottom: '1px solid var(--border-default)',
+                      display: 'flex', alignItems: 'center', gap: 10,
+                    }}
+                  >
+                    <div style={{
+                      width: 28, height: 28, borderRadius: 6,
+                      background: 'var(--color-primary)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', color: 'white',
+                    }}>
+                      <Brain size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+                        {zh ? 'MemTrace 公開規格書' : 'MemTrace Public Spec'}
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                        {zh ? '核心文件與設計規範' : 'Core docs & design specs'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* My workspaces */}
                 {wsList.filter(ws => ws.visibility !== 'public' && ws.visibility !== 'conditional_public').map(ws => (
                   <div

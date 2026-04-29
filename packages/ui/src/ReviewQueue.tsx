@@ -191,7 +191,13 @@ function ReviewCard({
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
             <span className="tag tag-active">{item.change_type}</span>
-            <span className="tag">{item.proposer_type === "ai" ? <Bot size={12} /> : <User size={12} />} {proposerLabel}</span>
+            <span className="tag" style={{
+              background: item.proposer_type === "ai" ? "var(--ai-ollama-subtle)" : "var(--color-primary-subtle)",
+              color: item.proposer_type === "ai" ? "var(--ai-ollama)" : "var(--color-primary)",
+              borderColor: item.proposer_type === "ai" ? "var(--ai-ollama)" : "var(--color-primary)",
+            }}>
+              {item.proposer_type === "ai" ? <Bot size={12} /> : <User size={12} />} {proposerLabel}
+            </span>
             {item.ai_review && <span className="tag">{item.ai_review.decision} · {(item.ai_review.confidence * 100).toFixed(0)}%</span>}
           </div>
           <div style={{ fontSize: 18, fontWeight: 700 }}>{String(item.node_data.title_en ?? item.node_data.title_zh ?? "Untitled change")}</div>

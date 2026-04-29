@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Kept for backward compatibility; ignored when access_token_expire_minutes is set.
     access_token_expire_days: int = 7
 
+    # G4: AI usage retention (months)
+    ai_usage_retention_months: int = 6
+
     # ── Email ──────────────────────────────────────────────────────────────────
     # Provider: "resend" (default) | "smtp" | "disabled"
     email_provider:   str = "disabled"

@@ -428,6 +428,28 @@ Edge creation fields:
 - Permanently deleted nodes and their edges are removed from the database. This action is irreversible.
 - Permanent deletion should be reserved for nodes created in error (e.g. duplicate, test data), not for nodes that have simply become irrelevant over time — archiving is preferred for the latter case.
 
+### 9.4 Dynamic Page Title
+The browser tab title must dynamically reflect the active Knowledge Base to assist users in identifying their context within multi-tab environments.
+- **Behavior**: Whenever a Knowledge Base is selected or the UI language is changed, the `document.title` is updated.
+- **Format**: `{KB_NAME} - MemTrace`
+- **Language Sensitivity**: The `{KB_NAME}` part must match the current UI language preference (`name_zh` for Traditional Chinese, `name_en` for English).
+- **Default State**: If no Knowledge Base is selected (e.g., during onboarding or on the authentication page), the title defaults to `MemTrace`.
+
+### 9.5 Docker Deployment
+The MemTrace application stack is containerized for consistent deployment across environments using Docker and Docker Compose.
+
+- **Architecture**: The stack consists of four primary services:
+  - `db`: PostgreSQL 17 with `pgvector` extension for knowledge graph and vector storage.
+  - `api`: Python (FastAPI) backend service.
+  - `ui`: React (Vite) frontend service.
+  - `mcp`: Node.js MCP server for AI agent integration.
+- **Orchestration**: `docker-compose.yml` manages service dependencies, environment variables, and volumes for data persistence.
+- **Ports**:
+  - UI: `5173` (mapped from `80` in production image)
+  - API: `8000`
+  - MCP: `3001` (SSE mode)
+  - DB: `5432`
+
 ## 11. Document-Based Knowledge Base Bootstrapping
 
 ### 11.1 Starting a Knowledge Base from a Document
@@ -471,11 +493,14 @@ The following providers are supported in the official release:
 |----------|------------|----------------------|-----------------|---------------|
 | OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` | 1536 |
 | Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` | 1024 |
-| **Google Gemini** | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | **768** |
+| Google Gemini | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | 768 |
+| **Ollama** | `ollama` | `llama3` (variable) | `nomic-embed-text` | **Variable** |
 
 > **Embedding dimension note**: Different providers produce vectors of different dimensions. A workspace's embedding dimension is fixed at creation time based on the provider chosen (stored in `workspaces.embedding_provider` and `workspaces.embedding_dim`). Nodes embedded with different models cannot be compared by cosine similarity.
 
 The Gemini provider is implemented as a built-in `AIProvider` calling the Google Generative Language API. Users supply a personal Gemini API key (`AIza...`) via Settings → AI Provider, stored encrypted under `provider = 'gemini'` in `user_ai_keys`.
+
+The **Ollama** provider supports local-first AI. Unlike cloud providers, it requires a `base_url` (default `http://localhost:11434`) and supports multiple `auth_mode` settings (`None` or `Bearer`). These settings are stored alongside the provider identifier in `user_ai_keys`. The API provides proxy endpoints to facilitate connectivity testing from the browser without CORS restrictions.
 
 #### 11.2.3 Community-Contributed Providers
 

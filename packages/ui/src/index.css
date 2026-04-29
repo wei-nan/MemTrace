@@ -56,6 +56,8 @@
   --ai-anthropic-subtle: rgba(217, 119, 87, 0.15);
   --ai-gemini:           #8E75FF;
   --ai-gemini-subtle:    rgba(142, 117, 255, 0.15);
+  --ai-ollama:           #A855F7;
+  --ai-ollama-subtle:    rgba(168, 85, 247, 0.15);
 }
 
 :root[data-theme="light"] {
@@ -106,6 +108,8 @@
   --ai-anthropic-subtle: #FFF7ED;
   --ai-gemini:           #16a34a;
   --ai-gemini-subtle:    #F0FDF4;
+  --ai-ollama:           #7E22CE;
+  --ai-ollama-subtle:    #FAF5FF;
 }
 
 * {
@@ -528,4 +532,27 @@ h1, h2, h3, h4, h5, h6 {
 .info-tooltip b {
   color: var(--color-primary);
   font-weight: 600;
+}
+
+/* ── Badges ── */
+.badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-ai {
+  background: var(--ai-ollama-subtle);
+  color: var(--ai-ollama);
+  border: 1px solid var(--ai-ollama);
+}
+
+.badge-human {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
 }
