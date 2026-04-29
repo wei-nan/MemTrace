@@ -1,0 +1,29 @@
+{
+  "id": "mem_g004",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Trust Score：節點可信度四維評分",
+    "en": "Trust Score: four-dimension node credibility rating"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "每個節點有一個合成 `trust_score`（0–1），由四個維度加權計算：\n\n| 維度 | 欄位 | 權重 | 說明 |\n|------|------|------|------|\n| 準確度 | `dim_accuracy` | 40% | 內容是否正確無誤 |\n| 新鮮度 | `dim_freshness` | 25% | 資訊是否仍為最新 |\n| 實用度 | `dim_utility` | 25% | 對讀者是否有實際幫助 |\n| 作者聲譽 | `dim_author_rep` | 10% | 貢獻者的歷史可靠性 |\n\n```\ntrust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1\n```\n\n## 投票機制（vote_trust）\n\n評分以 **1–5 整數**提交（API 接受 accuracy 與 utility 兩個維度），後端取所有投票的平均值除以 5 換算為 0–1 浮點數後更新節點。\n\n**API**：`POST /workspaces/{ws_id}/nodes/{node_id}/vote-trust`\n```json\n{ \"accuracy\": 4, \"utility\": 5 }\n```\n\n**MCP Tool**：`vote_trust(node_id, accuracy, utility)`\n- AI agent 在讀取節點後，若認為內容正確且有用，應主動呼叫\n- 每位使用者對同一節點只能有一筆投票（ON CONFLICT DO UPDATE）\n- 投票記錄存於 `node_trust_votes` 表\n\n## confirm_node_validity\n\n`POST /workspaces/{ws_id}/nodes/{node_id}/confirm-validity` 可對節點進行一鍵確認：自動將 `dim_accuracy` 提升至 1.0 並重算 `trust_score`，同時更新 `validity_confirmed_at` 時間戳。等同於「我已人工核實此節點仍然正確」。\n\n## TypeScript 實作\n\n`packages/core/src/trust.ts` 提供 `computeTrustScore()` 與 `updateTrustScore()`，與 Python 端計算結果一致（誤差 < 0.01）。",
+      "en": "Each node carries a composite `trust_score` (0–1) computed from four weighted dimensions:\n\n| Dimension | Field | Weight | Meaning |\n|-----------|-------|--------|---------|\n| Accuracy | `dim_accuracy` | 40% | Whether the content is correct |\n| Freshness | `dim_freshness` | 25% | Whether the information is still current |\n| Utility | `dim_utility` | 25% | Whether the content is practically helpful |\n| Author Reputation | `dim_author_rep` | 10% | Historical reliability of the contributor |\n\n```\ntrust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1\n```\n\n## Voting mechanism (vote_trust)\n\nScores are submitted as **integers 1–5** (API accepts accuracy and utility). The backend averages all votes, divides by 5 to get a 0–1 float, then updates the node.\n\n**API**: `POST /workspaces/{ws_id}/nodes/{node_id}/vote-trust`\n```json\n{ \"accuracy\": 4, \"utility\": 5 }\n```\n\n**MCP Tool**: `vote_trust(node_id, accuracy, utility)`\n- AI agents should call this proactively after reading a node they find correct and useful\n- Each user has one vote per node (ON CONFLICT DO UPDATE)\n- Votes stored in the `node_trust_votes` table\n\n## confirm_node_validity\n\n`POST /workspaces/{ws_id}/nodes/{node_id}/confirm-validity` is a one-tap validity stamp: automatically raises `dim_accuracy` to 1.0, recomputes `trust_score`, and sets `validity_confirmed_at`. Equivalent to \"I have manually verified this node is still accurate.\"\n\n## TypeScript implementation\n\n`packages/core/src/trust.ts` exposes `computeTrustScore()` and `updateTrustScore()`, matching the Python-side result to within 0.01."
+    }
+  },
+  "tags": ["graph-mechanics", "trust", "vote", "quality", "mcp-tool", "credibility"],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-29T00:00:00Z",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

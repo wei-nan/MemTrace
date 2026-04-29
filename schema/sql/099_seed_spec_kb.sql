@@ -306,49 +306,49 @@ INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, tit
 
 `core` is consumed by `cli`. `api` is independent of the TS workspace.', '{dev,architecture,monorepo}', 'public', 'system', '2026-04-28 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.900, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_40a90101', '1.0', 'ws_spec0001', '', 'T1 Only EN', 'factual', 'plain', '', 'T1 body.', '{mcp}', 'public', 'system', '2026-04-19 23:49:25.009858+00', NULL, 'e823782ce4597e9a20a7d79a73aa27f8b5f3c3c94f6780c293b81f992172f3cc', 'human', NULL, NULL, NULL, NULL, 0.503, 0.500, 1.000, 0.010, 0.500, 0, 0, 0, 1, 1, 'archived', '2026-04-24 13:08:11.382839+00', NULL, NULL, NULL, NULL);
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w004', '1.0', 'ws_spec0001', '開發實作順序與現況', 'Development Progress & Status', 'procedural', 'markdown', '## 完成進度（Phase 1–3）
+INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_w004', '1.0', 'ws_spec0001', '開發實作順序與現況', 'Development Progress & Status', 'procedural', 'markdown', '## 完成進度（Phase 1–4）
 
 | 層 | 狀態 |
 |----|------|
-| core（型別/decay/簽章）| ✅ |
-| SQL schema（001_init + 24 migrations）| ✅ |
+| core（型別/decay/簽章/trust 計算）| ✅ |
+| SQL schema（001_init + 28 migrations）| ✅ |
 | api/core（database/security/AI 抽象）| ✅ |
 | api/routers/auth（登入/JWT/密碼重設）| ✅ |
 | api/routers/kb（workspace/node/edge/roles）| ✅ |
 | api/routers/ingest（PDF/Markdown 攝入）| ✅ |
-| mcp server（stdio+SSE/read+write tools）| ✅ |
-| ui（Auth/Onboarding/Graph 2D+3D/Table/Settings）| ✅ |
+| mcp server（stdio+SSE / read+write+vote_trust tools）| ✅ |
+| ui（Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics）| ✅ |
 
-## Phase 4 規劃中
+## Phase 4 完成項目
 
-| 任務 | 目標 |
-|------|------|
-| P4-A | 知識庫健康儀表板 + Token 效率報告 |
-| P4-B | Spec-as-KB 升級為對外展示首頁 |
-| P4-C | MCP vote_trust 工具 |
-| P4-D | CLI/Core 殘留補完 |
-| P4-G | 自管 Ollama Provider |', '## Completed (Phase 1–3)
+| 任務 | 目標 | 狀態 |
+|------|------|------|
+| P4-A | 知識庫健康儀表板 + Token 效率報告 | ✅ |
+| P4-B | Spec-as-KB 升級為對外展示首頁 | ✅ |
+| P4-C | MCP vote_trust 工具 + Trust 4 維投票 API | ✅ |
+| P4-D | CLI ingest/copy-node/init、Core contentTypeHalfLife/SHA-256、Scheduler jobs | ✅ |
+| P4-G | 自管 Ollama Provider（本機/LAN/Reverse Proxy）| ✅ |', '## Completed (Phase 1–4)
 
 | Layer | Status |
 |-------|--------|
-| core (types/decay/signature) | ✅ |
-| SQL schema (001_init + 24 migrations) | ✅ |
+| core (types/decay/signature/trust computation) | ✅ |
+| SQL schema (001_init + 28 migrations) | ✅ |
 | api/core (database/security/AI abstraction) | ✅ |
 | api/routers/auth (login/JWT/password reset) | ✅ |
 | api/routers/kb (workspace/node/edge/roles) | ✅ |
 | api/routers/ingest (PDF/Markdown ingestion) | ✅ |
-| mcp server (stdio+SSE / read+write tools) | ✅ |
-| ui (Auth/Onboarding/Graph 2D+3D/Table/Settings) | ✅ |
+| mcp server (stdio+SSE / read+write+vote_trust tools) | ✅ |
+| ui (Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics) | ✅ |
 
-## Phase 4 (in planning)
+## Phase 4 Completed Tasks
 
-| Task | Goal |
-|------|------|
-| P4-A | KB health dashboard + token efficiency |
-| P4-B | Spec-as-KB as public demo homepage |
-| P4-C | MCP vote_trust tool |
-| P4-D | CLI/Core residuals |
-| P4-G | Self-hosted Ollama provider |', '{dev,workflow,procedural}', 'public', 'system', '2026-04-28 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.900, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
+| Task | Goal | Status |
+|------|------|--------|
+| P4-A | KB health dashboard + token efficiency report | ✅ |
+| P4-B | Spec-as-KB upgraded to public demo homepage | ✅ |
+| P4-C | MCP vote_trust tool + 4-dimension trust vote API | ✅ |
+| P4-D | CLI ingest/copy-node/init, Core contentTypeHalfLife/SHA-256, Scheduler jobs | ✅ |
+| P4-G | Self-hosted Ollama provider (local/LAN/reverse proxy) | ✅ |', '{dev,workflow,procedural}', 'public', 'system', '2026-04-28 00:00:00+00', '2026-04-29 00:00:00+00', '', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_d002', '1.0', 'ws_spec0001', 'Edge：有向有型的關係', 'Edge: a typed, directed relationship', 'factual', 'markdown', 'Edge 連接兩個 Memory Node，方向為 `from → to`。每條 Edge 包含：
 
 - **Relation type**：depends_on / extends / related_to / contradicts
@@ -476,6 +476,73 @@ INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, tit
 | `contradicts` | Source conflicts with target | A''s conclusion conflicts with B |
 
 Choosing the correct relation type matters: it determines co-access boost strength and how AI agents interpret the relationship when traversing the graph.', '{graph-mechanics,relation-type,edge,schema}', 'public', 'memtrace-spec', '2026-04-11 00:00:00+00', NULL, 'f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_g004', '1.0', 'ws_spec0001', 'Trust Score：節點可信度四維評分', 'Trust Score: four-dimension node credibility rating', 'factual', 'markdown', '每個節點有一個合成 `trust_score`（0–1），由四個維度加權計算：
+
+| 維度 | 欄位 | 權重 | 說明 |
+|------|------|------|------|
+| 準確度 | `dim_accuracy` | 40% | 內容是否正確無誤 |
+| 新鮮度 | `dim_freshness` | 25% | 資訊是否仍為最新 |
+| 實用度 | `dim_utility` | 25% | 對讀者是否有實際幫助 |
+| 作者聲譽 | `dim_author_rep` | 10% | 貢獻者的歷史可靠性 |
+
+```
+trust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1
+```
+
+## 投票機制（vote_trust）
+
+評分以 **1–5 整數**提交（API 接受 accuracy 與 utility 兩個維度），後端取所有投票的平均值除以 5 換算為 0–1 浮點數後更新節點。
+
+**API**：`POST /workspaces/{ws_id}/nodes/{node_id}/vote-trust`
+```json
+{ "accuracy": 4, "utility": 5 }
+```
+
+**MCP Tool**：`vote_trust(node_id, accuracy, utility)`
+- AI agent 在讀取節點後，若認為內容正確且有用，應主動呼叫
+- 每位使用者對同一節點只能有一筆投票（ON CONFLICT DO UPDATE）
+- 投票記錄存於 `node_trust_votes` 表
+
+## confirm_node_validity
+
+`POST /workspaces/{ws_id}/nodes/{node_id}/confirm-validity` 可對節點進行一鍵確認：自動將 `dim_accuracy` 提升至 1.0 並重算 `trust_score`，同時更新 `validity_confirmed_at` 時間戳。等同於「我已人工核實此節點仍然正確」。
+
+## TypeScript 實作
+
+`packages/core/src/trust.ts` 提供 `computeTrustScore()` 與 `updateTrustScore()`，與 Python 端計算結果一致（誤差 < 0.01）。', 'Each node carries a composite `trust_score` (0–1) computed from four weighted dimensions:
+
+| Dimension | Field | Weight | Meaning |
+|-----------|-------|--------|---------|
+| Accuracy | `dim_accuracy` | 40% | Whether the content is correct |
+| Freshness | `dim_freshness` | 25% | Whether the information is still current |
+| Utility | `dim_utility` | 25% | Whether the content is practically helpful |
+| Author Reputation | `dim_author_rep` | 10% | Historical reliability of the contributor |
+
+```
+trust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1
+```
+
+## Voting mechanism (vote_trust)
+
+Scores are submitted as **integers 1–5** (API accepts accuracy and utility). The backend averages all votes, divides by 5 to get a 0–1 float, then updates the node.
+
+**API**: `POST /workspaces/{ws_id}/nodes/{node_id}/vote-trust`
+```json
+{ "accuracy": 4, "utility": 5 }
+```
+
+**MCP Tool**: `vote_trust(node_id, accuracy, utility)`
+- AI agents should call this proactively after reading a node they find correct and useful
+- Each user has one vote per node (ON CONFLICT DO UPDATE)
+- Votes stored in the `node_trust_votes` table
+
+## confirm_node_validity
+
+`POST /workspaces/{ws_id}/nodes/{node_id}/confirm-validity` is a one-tap validity stamp: automatically raises `dim_accuracy` to 1.0, recomputes `trust_score`, and sets `validity_confirmed_at`. Equivalent to "I have manually verified this node is still accurate."
+
+## TypeScript implementation
+
+`packages/core/src/trust.ts` exposes `computeTrustScore()` and `updateTrustScore()`, matching the Python-side result to within 0.01.', '{graph-mechanics,trust,vote,quality,mcp-tool,credibility}', 'public', 'system', '2026-04-29 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_i001', '1.0', 'ws_spec0001', '使用者認證：Email 與密碼', 'User authentication: email and password', 'procedural', 'plain', 'MemTrace 採用 Email + Password 認證路徑。安全措施包括：bcrypt 雜湊（cost ≥ 12）、密碼政策（8–128 字元、大小寫+數字、HaveIBeenPwned 洩漏檢查）、email 驗證信（24 小時效期）、失敗 5 次鎖定 15 分鐘。登入後核發 JWT Session（7 天），透過 Authorization: Bearer 標頭傳遞，登出以 blocklist 立即失效。目前不支援第三方 OAuth 登入，以簡化認證表面並減少外部依賴。', 'MemTrace uses Email + Password authentication. Security measures include: bcrypt hash (cost ≥ 12), password policy (8–128 chars, upper+lower+digit, HaveIBeenPwned check), verification email (24h expiry), and 5-failure lockout for 15 minutes. Upon login, a JWT session (7 days) is issued and passed via the Authorization: Bearer header. Logout is handled via an immediate blocklist. Third-party OAuth is currently not supported to simplify the authentication surface and reduce external dependencies.', '{auth,security,jwt,password-policy}', 'public', 'memtrace-spec', '2026-04-11 00:00:00+00', NULL, 'a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_a6a2a683', '1.0', 'ws_spec0001', '記憶節點 ID', 'Memory Node ID', 'factual', 'markdown', '`memory_nodes` 表中的 `id` 欄位是主鍵，類型為 TEXT，例如 `mem_abc123`。', 'The `id` column in the `memory_nodes` table is the primary key, of type TEXT, e.g., `mem_abc123`.', '{database,schema,memory_nodes,column}', 'public', 'system', '2026-04-24 11:25:38.856937+00', NULL, 'b9327bb4b77a1cdb973a11d5f37e2eea745b8d5da337fc61dc0c6f2f5bcc77b7', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_d07c29a1', '1.0', 'ws_spec0001', '更新時間欄位 (provenance.updated_at)', 'Updated At Field (`provenance.updated_at`)', 'factual', 'markdown', '`provenance.updated_at`甈???箏?銝莎??交????澆?嚗?銝敹????典?憪遣蝡?瘥活蝺刻摩??身摰?The `provenance.updated_at` field is an optional string (date-time format) that is set on every edit after initial creation.', '`provenance.updated_at`甈???箏?銝莎??交????澆?嚗?銝敹????典?憪遣蝡?瘥活蝺刻摩??身摰?The `provenance.updated_at` field is an optional string (date-time format) that is set on every edit after initial creation.', '{}', 'public', 'system', '2026-04-24 11:25:39.88639+00', NULL, 'fde73fc348c926db7350610cbd46f6cc5b253b7227e3720fad21e1ac55261d00', 'ai', NULL, NULL, NULL, NULL, 0.715, 0.800, 1.000, 0.500, 0.500, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
@@ -708,39 +775,124 @@ Grace period by KB type:
 Schema change:
 ALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT ''active'' CHECK (status IN (''active'',''pending_deletion'',''deleted'')), ADD COLUMN deleted_at TIMESTAMPTZ;', '{workspace,lifecycle,soft-delete,grace-period,deletion,restore}', 'public', 'system', '2026-04-12 00:00:00+00', NULL, 'e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.900, 0.900, 0, 0, 0, 4, 2, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_p002', '1.0', 'ws_spec0001', '為知識傳承而設計', 'Designed for knowledge inheritance', 'context', 'plain', 'MemTrace 為「非作者」設計。無論是剛加入的團隊成員、中途加入的協作者，還是在陌生情境中運作的 AI agent，都能從任何節點進入知識庫，沿著 Edge 找到所有相關內容，不需要原作者引導。每個節點設計上要自給自足到可以獨立閱讀，同時又透過 Edge 連結讓讀者可以自然深入探索。', 'MemTrace is designed for the reader who was not there when the knowledge was created. A new team member, a late collaborator, or an AI agent in an unfamiliar context — all can enter at any node and navigate by following edges, without needing the original author to guide them. Each node is self-contained enough to read in isolation, yet connected enough that following its edges leads naturally to everything related.', '{philosophy,core,design-principle,inheritance}', 'public', 'memtrace-spec', '2026-04-11 00:00:00+00', NULL, 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 1, 1, 'active', NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_a001', '1.0', 'ws_spec0001', 'AI Provider 與 API Key 自管', 'AI provider and self-managed API keys', 'procedural', 'markdown', 'MemTrace 不自營 AI 推論服務。所有 AI 功能由使用者選擇的第三方供應商提供。
+INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_a001', '1.0', 'ws_spec0001', 'AI Provider 與 API Key 自管', 'AI provider and self-managed API keys', 'procedural', 'markdown', 'MemTrace 不自營 AI 推論服務。所有 AI 功能由使用者選擇的供應商提供。
 
-**官方支援的 Provider**：
+**官方內建 Provider**：
 
 | Provider | 識別碼 | 預設 Chat 模型 | Embedding 模型 | 維度 |
 |----------|--------|---------------|---------------|------|
 | OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` | 1536 |
 | Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` | 1024 |
 | Google Gemini | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | 768 |
+| Ollama（自管）| `ollama` | `llama3`（可變）| `nomic-embed-text` | 可變 |
+
+**Ollama 特別說明**：不需 API Key，改填 `base_url`（預設 `http://localhost:11434`）。支援 `auth_mode: none`（本機）與 `bearer`（Reverse Proxy）兩種認證模式。Embedding 維度依所選模型決定（`nomic-embed-text`=768、`mxbai-embed-large`=1024），**建立工作區後不可更改**。詳見 `docs/ollama-deployment.md`。
 
 **Embedding 維度限制**：每個工作區的 embedding 維度在建立時固定（`workspaces.embedding_provider` + `embedding_dim`），**不可變更**。不同 provider 產生的向量維度不同，無法跨 provider 比較 cosine similarity。
 
-**API Key 儲存**：CLI 存於 `~/.memtrace/config.json`（chmod 600），UI 存於 localStorage 或加密寫入 `user_ai_keys`。Key **永不**傳送至 MemTrace 伺服器以外的任何地方。
+**API Key 儲存**：CLI 存於 `~/.memtrace/config.json`（chmod 600），UI 存於加密寫入 `user_ai_keys`（Ollama 另存 `base_url` 與 `auth_token`）。Key **永不**傳送至 MemTrace 伺服器以外的任何地方。
 
-**社群 Provider**：透過 `packages/api/core/ai.py` 的 `AIProvider` Protocol 可加入新 provider（Mistral、Cohere、Ollama、vLLM 等）。實作後在 `PROVIDER_REGISTRY` 註冊即可，不需修改 router 或資料庫 schema。
+**社群 Provider**：透過 `packages/api/core/ai.py` 的 `AIProvider` Protocol 可加入更多 provider（Mistral、Cohere、vLLM 等）。實作後在 `PROVIDER_REGISTRY` 註冊即可，不需修改 router 或資料庫 schema。
 
-**未來商業模式**：可能提供 MemTrace 代管額度（免費層 + 付費方案）；架構透過 provider interface 抽象，日後切換不影響上層邏輯。', 'MemTrace does not operate its own AI inference service. All AI features are powered by the user''s chosen third-party provider.
+**未來商業模式**：可能提供 MemTrace 代管額度（免費層 + 付費方案）；架構透過 provider interface 抽象，日後切換不影響上層邏輯。', 'MemTrace does not operate its own AI inference service. All AI features are powered by the user''s chosen provider.
 
-**Officially supported providers**:
+**Officially built-in providers**:
 
 | Provider | Identifier | Default chat model | Embedding model | Dim |
 |----------|------------|--------------------|-----------------|-----|
 | OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` | 1536 |
 | Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` | 1024 |
 | Google Gemini | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | 768 |
+| Ollama (self-hosted) | `ollama` | `llama3` (variable) | `nomic-embed-text` | Variable |
+
+**Ollama notes**: No API key required. Configure `base_url` (default `http://localhost:11434`) and `auth_mode`: `none` (local) or `bearer` (reverse proxy). Embedding dimension depends on the chosen model (`nomic-embed-text`=768, `mxbai-embed-large`=1024) and is **immutable after workspace creation**. See `docs/ollama-deployment.md`.
 
 **Embedding dimension constraint**: Each workspace fixes its embedding dimension at creation time (`workspaces.embedding_provider` + `embedding_dim`) and it is **immutable**. Different providers produce vectors of different dimensions; nodes embedded with different models cannot be compared via cosine similarity.
 
-**API key storage**: CLI in `~/.memtrace/config.json` (chmod 600); UI in localStorage or encrypted in `user_ai_keys`. Keys are **never** transmitted to any MemTrace server.
+**API key storage**: CLI in `~/.memtrace/config.json` (chmod 600); UI encrypted in `user_ai_keys` (Ollama also stores `base_url` and `auth_token`). Keys are **never** transmitted outside the MemTrace server.
 
-**Community providers**: Add new providers via the `AIProvider` Protocol in `packages/api/core/ai.py` (Mistral, Cohere, Ollama, vLLM, etc.). Implement and register in `PROVIDER_REGISTRY` — no router or schema changes needed.
+**Community providers**: Add more providers via the `AIProvider` Protocol in `packages/api/core/ai.py` (Mistral, Cohere, vLLM, etc.). Implement and register in `PROVIDER_REGISTRY` — no router or schema changes needed.
 
-**Future business model**: a managed credit option (free tier + paid) may be introduced. The provider interface abstraction lets this swap in without touching extraction logic.', '{ai,api-key,provider,security,gemini,embedding}', 'public', 'memtrace-spec', '2026-04-11 00:00:00+00', NULL, 'd6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
+**Future business model**: a managed credit option (free tier + paid) may be introduced. The provider interface abstraction lets this swap in without touching extraction logic.', '{ai,api-key,provider,security,gemini,ollama,embedding}', 'public', 'memtrace-spec', '2026-04-11 00:00:00+00', '2026-04-29 00:00:00+00', 'd6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_a005', '1.0', 'ws_spec0001', 'Analytics 儀表板與 Token 效率報告', 'Analytics dashboard and token efficiency report', 'procedural', 'markdown', '## KB 健康摘要
+
+`GET /workspaces/{ws_id}/analytics` 回傳以下欄位（30 日視窗）：
+
+| 欄位 | 說明 |
+|------|------|
+| `total_nodes` | 活躍節點總數 |
+| `active_edges` | weight > 0.3 的活躍邊數 |
+| `orphan_node_count` | 沒有任何活躍邊的孤立節點數 |
+| `avg_trust_score` | 工作區平均 trust_score |
+| `faded_edge_ratio` | faded 邊佔全部邊的比例 |
+| `monthly_traversal_count` | 近 30 日走訪總次數 |
+| `top_nodes` | 走訪次數最高的 5 個節點 |
+| `traversal_trend` | 逐日走訪折線資料（30 天） |
+| `kb_type_metrics` | KB 類型感知指標（見下）|
+
+**KB 類型感知指標**：
+- `evergreen`：`isolated_subgraph_count`（孤立子圖數）、`avg_edges_per_node`
+- `operational/ephemeral`：`never_traversed_ratio`、`avg_days_between_traversals`
+
+**警示邏輯（UI）**：
+- `evergreen` + `orphan_node_count > 0` → 橘色警示
+- 非 evergreen + `never_traversed_ratio > 0.3` → 黃色警示
+
+## Token 效率報告
+
+`GET /workspaces/{ws_id}/analytics/token-efficiency` 回傳：
+
+| 欄位 | 說明 |
+|------|------|
+| `avg_tokens_per_query` | 本月 MCP 呼叫平均回傳 token 數 |
+| `estimated_full_doc_tokens` | 全文讀取的估算 token 數（body 字元數 / 4）|
+| `savings_ratio` | `1 - avg_per_query / full_doc`（節省比例）|
+| `monthly_query_count` | 本月 MCP 呼叫次數 |
+
+資料來源：`mcp_query_logs` 表。每次 MCP read tool（search_nodes / traverse / get_node / list_by_tag / vote_trust）呼叫後非同步寫入一筆 log，記錄 `tool_name`、`result_node_count`、`estimated_tokens`、`provider`。
+
+## UI 元件
+
+`packages/ui/src/AnalyticsDashboard.tsx`：4 格指標卡片 + 30 日走訪折線圖 + Top Nodes 清單 + Token 效率區塊 + KB 類型指標格。透過 workspace 詳情頁的 Analytics 分頁開啟。', '## KB health summary
+
+`GET /workspaces/{ws_id}/analytics` returns the following (30-day window):
+
+| Field | Description |
+|-------|-------------|
+| `total_nodes` | Total active node count |
+| `active_edges` | Edges with weight > 0.3 |
+| `orphan_node_count` | Nodes with no active edges |
+| `avg_trust_score` | Workspace-wide average trust_score |
+| `faded_edge_ratio` | Ratio of faded edges to all edges |
+| `monthly_traversal_count` | Total traversals in the last 30 days |
+| `top_nodes` | Top-5 nodes by traversal count |
+| `traversal_trend` | Per-day traversal data (30 days) |
+| `kb_type_metrics` | KB-type-aware metrics (see below) |
+
+**KB-type-aware metrics**:
+- `evergreen`: `isolated_subgraph_count`, `avg_edges_per_node`
+- `operational/ephemeral`: `never_traversed_ratio`, `avg_days_between_traversals`
+
+**Alert logic (UI)**:
+- `evergreen` + `orphan_node_count > 0` → orange alert
+- non-evergreen + `never_traversed_ratio > 0.3` → yellow alert
+
+## Token efficiency report
+
+`GET /workspaces/{ws_id}/analytics/token-efficiency` returns:
+
+| Field | Description |
+|-------|-------------|
+| `avg_tokens_per_query` | Average tokens returned per MCP call this month |
+| `estimated_full_doc_tokens` | Estimated full-read tokens (body char count / 4) |
+| `savings_ratio` | `1 - avg_per_query / full_doc` |
+| `monthly_query_count` | MCP call count this month |
+
+Data source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / traverse / get_node / list_by_tag / vote_trust) writes one log entry asynchronously, recording `tool_name`, `result_node_count`, `estimated_tokens`, and `provider`.
+
+## UI component
+
+`packages/ui/src/AnalyticsDashboard.tsx`: 4-card metric grid + 30-day traversal sparkline + Top Nodes list + token efficiency block + KB-type metrics grid. Opened via the Analytics tab in the workspace detail view.', '{analytics,dashboard,token-efficiency,kb-health,mcp-logs,ui}', 'public', 'system', '2026-04-29 00:00:00+00', NULL, '', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_p001', '1.0', 'ws_spec0001', '知識透過連結而非積累', 'Knowledge through connection, not accumulation', 'context', 'plain', 'MemTrace 的核心前提：知識不需要存在於龐大的文件中。每個節點只捕捉一個想法，價值來自節點之間的連結網絡。節點本身輕量，但透過關聯性形成龐大的知識庫。知識庫的規模不是由單一節點的大小決定，而是由節點之間關係的密度與品質決定。', 'The core premise of MemTrace: knowledge does not need to live in large, monolithic documents. Each node captures one idea. Value emerges from the network of relationships between nodes. A node alone is lightweight; connected to others, it becomes part of a knowledge base whose scale is determined by the density and quality of its relationships, not the size of any single entry.', '{philosophy,core,design-principle}', 'public', 'memtrace-spec', '2026-04-11 00:00:00+00', NULL, 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', 'human', NULL, NULL, NULL, NULL, 0.950, 0.950, 1.000, 0.950, 0.900, 0, 0, 0, 0, 0, 'active', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.memory_nodes (id, schema_version, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en, tags, visibility, author, created_at, updated_at, signature, source_type, source_document, extraction_model, copied_from_node, copied_from_ws, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep, votes_up, votes_down, verifications, traversal_count, unique_traverser_count, status, archived_at, embedding, validity_confirmed_at, validity_confirmed_by, source_file) VALUES ('mem_a004', '1.0', 'ws_spec0001', '對話式問答（Conversational Q&A）', 'Conversational Q&A against the knowledge base', 'procedural', 'plain', 'viewer 以上角色可對知識庫進行自然語言問答。Q&A 為唯讀操作，不修改知識庫內容。
 
@@ -1098,3 +1250,8 @@ INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co
 INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_269859df', 'ws_spec0001', 'mem_7484cfc2', 'mem_4621ebb5', 'related_to', 1.00000, 0, '2026-04-26 00:29:47.140277+00', 30, 0.100, 'active', false, 0, 0.00, 0);
 INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_86ae45b8', 'ws_spec0001', 'mem_2c0de61a', 'mem_76d6491f', 'related_to', 1.00000, 0, '2026-04-26 00:29:47.16015+00', 30, 0.100, 'active', false, 0, 0.00, 0);
 INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_73f801b3', 'ws_spec0001', 'mem_87639252', 'mem_4621ebb5', 'related_to', 1.00000, 0, '2026-04-26 00:29:47.179895+00', 30, 0.100, 'active', false, 0, 0.00, 0);
+INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_g004_g001', 'ws_spec0001', 'mem_g004', 'mem_g001', 'extends', 1.00000, 0, '2026-04-29 00:00:00+00', 180, 0.100, 'active', false, 0, 0.00, 0);
+INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_g004_g002', 'ws_spec0001', 'mem_g004', 'mem_g002', 'related_to', 0.90000, 0, '2026-04-29 00:00:00+00', 180, 0.100, 'active', false, 0, 0.00, 0);
+INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_g004_a001', 'ws_spec0001', 'mem_g004', 'mem_a001', 'depends_on', 0.90000, 0, '2026-04-29 00:00:00+00', 180, 0.100, 'active', false, 0, 0.00, 0);
+INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_a005_a001', 'ws_spec0001', 'mem_a005', 'mem_a001', 'depends_on', 0.90000, 0, '2026-04-29 00:00:00+00', 180, 0.100, 'active', false, 0, 0.00, 0);
+INSERT INTO public.edges (id, workspace_id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, half_life_days, min_weight, status, pinned, traversal_count, rating_sum, rating_count) VALUES ('edge_a005_g004', 'ws_spec0001', 'mem_a005', 'mem_g004', 'related_to', 0.85000, 0, '2026-04-29 00:00:00+00', 180, 0.100, 'active', false, 0, 0.00, 0);

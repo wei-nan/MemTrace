@@ -9,8 +9,8 @@
     "type": "procedural",
     "format": "markdown",
     "body": {
-      "zh-TW": "## 完成進度（Phase 1–3）\n\n| 層 | 狀態 |\n|----|------|\n| core（型別/decay/簽章）| ✅ |\n| SQL schema（001_init + 24 migrations）| ✅ |\n| api/core（database/security/AI 抽象）| ✅ |\n| api/routers/auth（登入/JWT/密碼重設）| ✅ |\n| api/routers/kb（workspace/node/edge/roles）| ✅ |\n| api/routers/ingest（PDF/Markdown 攝入）| ✅ |\n| mcp server（stdio+SSE/read+write tools）| ✅ |\n| ui（Auth/Onboarding/Graph 2D+3D/Table/Settings）| ✅ |\n\n## Phase 4 規劃中\n\n| 任務 | 目標 |\n|------|------|\n| P4-A | 知識庫健康儀表板 + Token 效率報告 |\n| P4-B | Spec-as-KB 升級為對外展示首頁 |\n| P4-C | MCP vote_trust 工具 |\n| P4-D | CLI/Core 殘留補完 |\n| P4-G | 自管 Ollama Provider |",
-      "en": "## Completed (Phase 1–3)\n\n| Layer | Status |\n|-------|--------|\n| core (types/decay/signature) | ✅ |\n| SQL schema (001_init + 24 migrations) | ✅ |\n| api/core (database/security/AI abstraction) | ✅ |\n| api/routers/auth (login/JWT/password reset) | ✅ |\n| api/routers/kb (workspace/node/edge/roles) | ✅ |\n| api/routers/ingest (PDF/Markdown ingestion) | ✅ |\n| mcp server (stdio+SSE / read+write tools) | ✅ |\n| ui (Auth/Onboarding/Graph 2D+3D/Table/Settings) | ✅ |\n\n## Phase 4 (in planning)\n\n| Task | Goal |\n|------|------|\n| P4-A | KB health dashboard + token efficiency |\n| P4-B | Spec-as-KB as public demo homepage |\n| P4-C | MCP vote_trust tool |\n| P4-D | CLI/Core residuals |\n| P4-G | Self-hosted Ollama provider |"
+      "zh-TW": "## 完成進度（Phase 1–4）\n\n| 層 | 狀態 |\n|----|------|\n| core（型別/decay/簽章/trust 計算）| ✅ |\n| SQL schema（001_init + 28 migrations）| ✅ |\n| api/core（database/security/AI 抽象）| ✅ |\n| api/routers/auth（登入/JWT/密碼重設）| ✅ |\n| api/routers/kb（workspace/node/edge/roles）| ✅ |\n| api/routers/ingest（PDF/Markdown 攝入）| ✅ |\n| mcp server（stdio+SSE / read+write+vote_trust tools）| ✅ |\n| ui（Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics）| ✅ |\n\n## Phase 4 完成項目\n\n| 任務 | 目標 | 狀態 |\n|------|------|------|\n| P4-A | 知識庫健康儀表板 + Token 效率報告 | ✅ |\n| P4-B | Spec-as-KB 升級為對外展示首頁 | ✅ |\n| P4-C | MCP vote_trust 工具 + Trust 4 維投票 API | ✅ |\n| P4-D | CLI ingest/copy-node/init、Core contentTypeHalfLife/SHA-256、Scheduler jobs | ✅ |\n| P4-G | 自管 Ollama Provider（本機/LAN/Reverse Proxy）| ✅ |",
+      "en": "## Completed (Phase 1–4)\n\n| Layer | Status |\n|-------|--------|\n| core (types/decay/signature/trust computation) | ✅ |\n| SQL schema (001_init + 28 migrations) | ✅ |\n| api/core (database/security/AI abstraction) | ✅ |\n| api/routers/auth (login/JWT/password reset) | ✅ |\n| api/routers/kb (workspace/node/edge/roles) | ✅ |\n| api/routers/ingest (PDF/Markdown ingestion) | ✅ |\n| mcp server (stdio+SSE / read+write+vote_trust tools) | ✅ |\n| ui (Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics) | ✅ |\n\n## Phase 4 Completed Tasks\n\n| Task | Goal | Status |\n|------|------|--------|\n| P4-A | KB health dashboard + token efficiency report | ✅ |\n| P4-B | Spec-as-KB upgraded to public demo homepage | ✅ |\n| P4-C | MCP vote_trust tool + 4-dimension trust vote API | ✅ |\n| P4-D | CLI ingest/copy-node/init, Core contentTypeHalfLife/SHA-256, Scheduler jobs | ✅ |\n| P4-G | Self-hosted Ollama provider (local/LAN/reverse proxy) | ✅ |"
     }
   },
   "tags": ["dev", "workflow", "procedural"],
@@ -18,6 +18,7 @@
   "provenance": {
     "author": "system",
     "created_at": "2026-04-28T00:00:00Z",
+    "updated_at": "2026-04-29T00:00:00Z",
     "source_type": "human"
   }
 }

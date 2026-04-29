@@ -1,0 +1,29 @@
+{
+  "id": "mem_a005",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Analytics 儀表板與 Token 效率報告",
+    "en": "Analytics dashboard and token efficiency report"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "## KB 健康摘要\n\n`GET /workspaces/{ws_id}/analytics` 回傳以下欄位（30 日視窗）：\n\n| 欄位 | 說明 |\n|------|------|\n| `total_nodes` | 活躍節點總數 |\n| `active_edges` | weight > 0.3 的活躍邊數 |\n| `orphan_node_count` | 沒有任何活躍邊的孤立節點數 |\n| `avg_trust_score` | 工作區平均 trust_score |\n| `faded_edge_ratio` | faded 邊佔全部邊的比例 |\n| `monthly_traversal_count` | 近 30 日走訪總次數 |\n| `top_nodes` | 走訪次數最高的 5 個節點 |\n| `traversal_trend` | 逐日走訪折線資料（30 天） |\n| `kb_type_metrics` | KB 類型感知指標（見下）|\n\n**KB 類型感知指標**：\n- `evergreen`：`isolated_subgraph_count`（孤立子圖數）、`avg_edges_per_node`\n- `operational/ephemeral`：`never_traversed_ratio`、`avg_days_between_traversals`\n\n**警示邏輯（UI）**：\n- `evergreen` + `orphan_node_count > 0` → 橘色警示\n- 非 evergreen + `never_traversed_ratio > 0.3` → 黃色警示\n\n## Token 效率報告\n\n`GET /workspaces/{ws_id}/analytics/token-efficiency` 回傳：\n\n| 欄位 | 說明 |\n|------|------|\n| `avg_tokens_per_query` | 本月 MCP 呼叫平均回傳 token 數 |\n| `estimated_full_doc_tokens` | 全文讀取的估算 token 數（body 字元數 / 4）|\n| `savings_ratio` | `1 - avg_per_query / full_doc`（節省比例）|\n| `monthly_query_count` | 本月 MCP 呼叫次數 |\n\n資料來源：`mcp_query_logs` 表。每次 MCP read tool（search_nodes / traverse / get_node / list_by_tag / vote_trust）呼叫後非同步寫入一筆 log，記錄 `tool_name`、`result_node_count`、`estimated_tokens`、`provider`。\n\n## UI 元件\n\n`packages/ui/src/AnalyticsDashboard.tsx`：4 格指標卡片 + 30 日走訪折線圖 + Top Nodes 清單 + Token 效率區塊 + KB 類型指標格。透過 workspace 詳情頁的 Analytics 分頁開啟。",
+      "en": "## KB health summary\n\n`GET /workspaces/{ws_id}/analytics` returns the following (30-day window):\n\n| Field | Description |\n|-------|-------------|\n| `total_nodes` | Total active node count |\n| `active_edges` | Edges with weight > 0.3 |\n| `orphan_node_count` | Nodes with no active edges |\n| `avg_trust_score` | Workspace-wide average trust_score |\n| `faded_edge_ratio` | Ratio of faded edges to all edges |\n| `monthly_traversal_count` | Total traversals in the last 30 days |\n| `top_nodes` | Top-5 nodes by traversal count |\n| `traversal_trend` | Per-day traversal data (30 days) |\n| `kb_type_metrics` | KB-type-aware metrics (see below) |\n\n**KB-type-aware metrics**:\n- `evergreen`: `isolated_subgraph_count`, `avg_edges_per_node`\n- `operational/ephemeral`: `never_traversed_ratio`, `avg_days_between_traversals`\n\n**Alert logic (UI)**:\n- `evergreen` + `orphan_node_count > 0` → orange alert\n- non-evergreen + `never_traversed_ratio > 0.3` → yellow alert\n\n## Token efficiency report\n\n`GET /workspaces/{ws_id}/analytics/token-efficiency` returns:\n\n| Field | Description |\n|-------|-------------|\n| `avg_tokens_per_query` | Average tokens returned per MCP call this month |\n| `estimated_full_doc_tokens` | Estimated full-read tokens (body char count / 4) |\n| `savings_ratio` | `1 - avg_per_query / full_doc` |\n| `monthly_query_count` | MCP call count this month |\n\nData source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / traverse / get_node / list_by_tag / vote_trust) writes one log entry asynchronously, recording `tool_name`, `result_node_count`, `estimated_tokens`, and `provider`.\n\n## UI component\n\n`packages/ui/src/AnalyticsDashboard.tsx`: 4-card metric grid + 30-day traversal sparkline + Top Nodes list + token efficiency block + KB-type metrics grid. Opened via the Analytics tab in the workspace detail view."
+    }
+  },
+  "tags": ["analytics", "dashboard", "token-efficiency", "kb-health", "mcp-logs", "ui"],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-29T00:00:00Z",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}
