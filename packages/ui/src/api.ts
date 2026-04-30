@@ -152,6 +152,65 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return res.json();
 }
 
+async function requestStream(path: string, body: unknown, onChunk: (data: any) => void): Promise<void> {
+  const doFetch = (accessToken?: string) =>
+    fetch(path, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : authHeaders()),
+        ...writeHeaders(),
+      },
+      body: JSON.stringify(body),
+    });
+
+  let res = await doFetch();
+
+  if (res.status === 401) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      res = await doFetch(newToken);
+    } else {
+      localStorage.removeItem("mt_token");
+      _broadcastSessionExpired();
+      window.dispatchEvent(new CustomEvent("mt:session-expired"));
+    }
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail ?? `HTTP ${res.status}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) return;
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            onChunk(JSON.parse(line));
+          } catch (e) {
+            console.error("Failed to parse stream chunk", e);
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 export const auth = {
   register: (data: { display_name: string; email: string; password: string }) =>
     request<{ access_token: string }>("POST", "/auth/register", data),
@@ -199,6 +258,8 @@ export const workspaces = {
     request<WorkspaceCloneJob>("POST", `${BASE}/workspaces/${wsId}/fork`, data),
   cancelCloneJob: (jobId: string) =>
     request("POST", `${BASE}/clone-jobs/${jobId}/cancel`),
+  reembedAll: (wsId: string) =>
+    request<{ queued: number }>("POST", `${BASE}/workspaces/${wsId}/reembed-all`),
   getCloneStatus: (wsId: string) =>
     request<WorkspaceCloneJob | null>("GET", `${BASE}/workspaces/${wsId}/clone-status`),
   graphPreview: (wsId: string) => request<GraphPreview>("GET", `${BASE}/workspaces/${wsId}/graph-preview`),
@@ -304,6 +365,7 @@ export const ai = {
   extract: (data: unknown) => request("POST", `${BASE}/ai/extract`, data),
   restructure: (data: unknown) => request("POST", `${BASE}/ai/restructure`, data),
   chat: (data: unknown) => request<ChatResponse>("POST", `${BASE}/ai/chat`, data),
+  chatStream: (data: unknown, onChunk: (data: any) => void) => requestStream(`${BASE}/ai/chat-stream`, data, onChunk),
   listModels: (provider: string) => request<ModelInfo[]>("GET", `${BASE}/ai/models/${provider}`),
   testConnection: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string; model?: string }) =>
     request<{ status: string }>("POST", `${BASE}/ai/providers/${data.provider}/test-connection`, data),
@@ -405,7 +467,7 @@ export interface ModelInfo {
 }
 
 export interface CreditStatus {
-  has_own_key: { openai: boolean; anthropic: boolean; gemini: boolean };
+  has_own_key: { openai: boolean; anthropic: boolean; gemini: boolean; ollama: boolean };
 }
 
 export interface Workspace {

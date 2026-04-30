@@ -169,6 +169,45 @@ function SectionCard({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ReembedAllButton({ wsId, zh }: { wsId: string; zh: boolean }) {
+  const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [queued, setQueued] = useState<number | null>(null);
+
+  const handleClick = async () => {
+    setState('loading');
+    try {
+      const res = await workspaces.reembedAll(wsId);
+      setQueued(res.queued);
+      setState('done');
+    } catch {
+      setState('error');
+    }
+  };
+
+  if (state === 'done') {
+    return (
+      <span style={{ fontSize: 11, color: 'var(--color-success)' }}>
+        {zh ? `已排入 ${queued} 個節點` : `${queued} nodes queued`}
+      </span>
+    );
+  }
+  if (state === 'error') {
+    return <span style={{ fontSize: 11, color: 'var(--color-error)' }}>{zh ? '失敗，請重試' : 'Failed'}</span>;
+  }
+
+  return (
+    <button
+      className="btn-secondary"
+      style={{ fontSize: 11, padding: '2px 8px', height: 24, display: 'flex', alignItems: 'center', gap: 4 }}
+      onClick={handleClick}
+      disabled={state === 'loading'}
+    >
+      <RefreshCw size={11} className={state === 'loading' ? 'animate-spin' : ''} />
+      {zh ? '重新嵌入所有節點' : 'Re-embed All'}
+    </button>
+  );
+}
+
 function AIReviewerSettings({ wsId }: { wsId: string }) {
   const { t } = useTranslation();
   const { toast } = useModal();
@@ -703,9 +742,14 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                   <span>{t('ws_settings.orphan_nodes')}</span>
                   <span className="tag" style={{ background: healthReport.no_edges > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: healthReport.no_edges > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.no_edges}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
                   <span>{t('ws_settings.no_embedding')}</span>
-                  <span className="tag" style={{ background: (healthReport.no_embedding ?? 0) > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: (healthReport.no_embedding ?? 0) > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.no_embedding ?? 0}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className="tag" style={{ background: (healthReport.no_embedding ?? 0) > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: (healthReport.no_embedding ?? 0) > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.no_embedding ?? 0}</span>
+                    {(healthReport.no_embedding ?? 0) > 0 && ws?.owner_id === userId && (
+                      <ReembedAllButton wsId={ws!.id} zh={zh} />
+                    )}
+                  </div>
                 </div>
               </div>
             </SectionCard>

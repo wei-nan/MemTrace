@@ -28,9 +28,34 @@ from core.ai import (
     RESTRUCTURE_SYSTEM,
     strip_fences,
 )
+from core.config import settings
 from core.database import db_cursor
 from core.deps import get_current_user
 from core.security import generate_id
+
+# ---------------------------------------------------------------------------
+# Hybrid retrieval constants & helpers
+# ---------------------------------------------------------------------------
+_MIN_SIMILARITY = 0.25   # cosine similarity threshold for vector results
+_VECTOR_LIMIT   = 10     # max nodes from vector search
+_FALLBACK_LIMIT = 10     # max nodes from full-text / keyword fallback
+
+import re as _re
+
+def _extract_search_terms(text: str) -> list[str]:
+    """
+    Extract meaningful search terms for a LIKE-based fallback that handles
+    CJK text (Chinese / Japanese / Korean) and ASCII English.
+    """
+    # 1. CJK runs (Chinese, Japanese, Korean)
+    cjk_runs = _re.findall(r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', text)
+    # 2. English words (2+ chars)
+    eng_words = _re.findall(r'[A-Za-z0-9]{2,}', text)
+    
+    # Dedup and filter very common short particles if needed, but for now just take all
+    terms = list(dict.fromkeys(cjk_runs + eng_words))
+    terms.sort(key=len, reverse=True)
+    return terms[:8]
 
 router = APIRouter(prefix="/api/v1/ai", tags=["ai"])
 
@@ -60,7 +85,7 @@ class AIKeyResponse(BaseModel):
 
 
 class CreditStatusResponse(BaseModel):
-    has_own_key:    dict[str, bool]   # {"openai": True, "anthropic": False, "gemini": False}
+    has_own_key:    dict[str, bool]   # {"openai": True, "anthropic": False, "gemini": False, "ollama": True}
 
 
 class ExtractionRequest(BaseModel):
@@ -364,6 +389,7 @@ def get_credit_status(user: dict = Depends(get_current_user)):
             "openai":    "openai"    in own_keys,
             "anthropic": "anthropic" in own_keys,
             "gemini":    "gemini"    in own_keys,
+            "ollama":    "ollama"    in own_keys,
         },
     )
 
@@ -551,6 +577,172 @@ async def _archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str
         print(f"[qa-archiver] Failed to archive Q&A: {e}")
 
 
+@router.post("/chat-stream")
+async def chat_with_kb_stream(
+    body: ChatRequest,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(get_current_user),
+):
+    from core.ai import CHAT_SYSTEM, chat_stream, embed
+    from routers.kb import _propose_change
+    from fastapi.responses import StreamingResponse
+
+    async def event_generator():
+        try:
+            with db_cursor() as cur:
+                # P4.1: Fetch workspace's locked embedding model for retrieval
+                cur.execute("SELECT embedding_model FROM workspaces WHERE id = %s", (body.workspace_id,))
+                ws_row = cur.fetchone()
+                ws_embed_model = ws_row["embedding_model"] if ws_row else None
+
+                # D5: Association-aware search + cross_kb_ids
+                cur.execute("SELECT target_ws_id FROM workspace_associations WHERE source_ws_id = %s", (body.workspace_id,))
+                target_ids = {body.workspace_id} | {r["target_ws_id"] for r in cur.fetchall()}
+                if body.cross_kb_ids:
+                    target_ids |= set(body.cross_kb_ids)
+            
+            # Resolve chat provider.
+            resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
+
+            # --- Hybrid node retrieval ---
+            # Step 1: vector search (skip gracefully when no embedding provider)
+            source_nodes: list = []
+            try:
+                embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
+                vector, _ = await embed(embed_prov, body.message)
+                with db_cursor() as cur:
+                    cur.execute("""
+                        SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                               (1 - (embedding <=> %s::vector)) AS similarity
+                        FROM memory_nodes
+                        WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                          AND (1 - (embedding <=> %s::vector)) >= %s
+                        ORDER BY similarity DESC LIMIT %s
+                    """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
+                    source_nodes = list(cur.fetchall())
+                    print(f"[chat-stream] Vector search found {len(source_nodes)} nodes")
+            except Exception as _vec_err:
+                print(f"[chat-stream] Vector search skipped or failed: {_vec_err}")
+
+            # Step 2: keyword / full-text fallback when vector results are sparse
+            if len(source_nodes) < 3:
+                print(f"[chat-stream] Sparse results ({len(source_nodes)}), starting fallback...")
+                seen_ids = {n["id"] for n in source_nodes}
+                needed = _FALLBACK_LIMIT - len(source_nodes)
+                terms = _extract_search_terms(body.message)
+                print(f"[chat-stream] Extracted terms: {terms}")
+                try:
+                    with db_cursor() as cur:
+                        ft_nodes: list = []
+                        is_pg = settings.database_url.startswith("postgresql")
+
+                        # Combine FT search and ILIKE for robustness
+                        or_conds = ["search_vector @@ plainto_tsquery('simple', %s)"]
+                        params = [body.message[:200]]
+                        
+                        if terms:
+                            for t in terms:
+                                or_conds.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)")
+                                like_t = f"%{t}%"
+                                params += [like_t, like_t, like_t]
+                        
+                        sql = f"""
+                            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                                   0.0::{'float' if is_pg else 'real'} AS similarity
+                            FROM memory_nodes
+                            WHERE workspace_id = ANY(%s) AND status = 'active'
+                              AND ({" OR ".join(or_conds)})
+                            LIMIT %s
+                        """
+                        print(f"[chat-stream] Fallback SQL params: {[list(target_ids)] + params + [needed]}")
+                        cur.execute(sql, [list(target_ids)] + params + [needed])
+                        ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
+                        print(f"[chat-stream] Fallback found {len(ft_nodes)} additional nodes")
+
+                    source_nodes = source_nodes + ft_nodes
+                except Exception as _ft_err:
+                    print(f"[chat-stream] Full-text fallback failed: {_ft_err}")
+
+            # Send source nodes first
+            yield json.dumps({"type": "source_nodes", "nodes": [dict(n) for n in source_nodes]}) + "\n"
+
+            context_str = json.dumps([dict(n) for n in source_nodes], ensure_ascii=False, indent=2)
+            messages = [{"role": "system", "content": CHAT_SYSTEM}]
+            if body.history: messages.extend(body.history)
+            
+            edit_prompt = "\nYou ARE allowed to propose edits/additions. Format them as a JSON block at the end of your response." if body.allow_edits else ""
+            messages.append({"role": "user", "content": f"CONTEXT NODES:\n{context_str}\n\nUSER MESSAGE: {body.message}{edit_prompt}"})
+
+            full_answer = ""
+            total_tokens = 0
+            print(f"[chat-stream] Starting AI stream with provider {resolved.provider.name}...")
+            
+            async for chunk, tokens in chat_stream(resolved, messages):
+                if chunk:
+                    full_answer += chunk
+                    yield json.dumps({"type": "content", "delta": chunk}) + "\n"
+                if tokens > 0:
+                    total_tokens = tokens
+            print(f"[chat-stream] AI stream finished. Total tokens: {total_tokens}")
+
+            # Handle proposals after stream is done
+            proposals = []
+            final_answer = full_answer
+            if "```json" in full_answer:
+                parts = full_answer.split("```json")
+                final_answer = parts[0].strip()
+                json_part = parts[1].split("```")[0].strip()
+                try:
+                    raw_proposals = json.loads(json_part)
+                    if body.allow_edits:
+                        with db_cursor(commit=True) as cur:
+                            for p in raw_proposals:
+                                op = p.get("operation", "update")
+                                if op not in ("create", "update", "delete"):
+                                    op = "update"
+                                    
+                                rid = _propose_change(
+                                    cur,
+                                    body.workspace_id,
+                                    op,
+                                    p.get("target_node_ids", [None])[0],
+                                    p.get("proposed"),
+                                    "ai",
+                                    "chat_assistant",
+                                    proposer_meta={"source": "chat", "original_query": body.message},
+                                    source_info=f"AI Chat Proposal: {p.get('reason', 'No reason provided')}"
+                                )
+                                proposals.append({"review_queue_id": rid, "operation": op, "reason": p.get("reason")})
+                    else:
+                        proposals = raw_proposals
+                except Exception as e:
+                    print(f"Failed to parse or save chat proposals: {e}")
+
+            if proposals:
+                yield json.dumps({"type": "proposals", "proposals": proposals}) + "\n"
+            
+            # ACTIVE ARCHIVING
+            if len(body.message) > 10:
+                background_tasks.add_task(
+                    _archive_qa_to_kb,
+                    body.workspace_id,
+                    user["sub"],
+                    body.message,
+                    final_answer,
+                    [n["id"] for n in source_nodes]
+                )
+
+            record_usage(resolved, "extraction", total_tokens, body.workspace_id)
+            yield json.dumps({"type": "done", "tokens_used": total_tokens, "source": resolved.source}) + "\n"
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield json.dumps({"type": "error", "detail": str(e)}) + "\n"
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_kb(
     body: ChatRequest,
@@ -558,28 +750,90 @@ async def chat_with_kb(
     user: dict = Depends(get_current_user),
 ):
     try:
-        from core.ai import CHAT_SYSTEM
+        from core.ai import CHAT_SYSTEM, chat_completion, embed
         from routers.kb import _propose_change
 
-        resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
-        embed_prov = resolve_provider(user["sub"], "embedding", body.preferred_provider, body.preferred_model)
-        vector, _ = await embed(embed_prov, body.message)
-        
         with db_cursor() as cur:
-            # D5: Association-aware search + cross_kb_ids
+            cur.execute("SELECT embedding_model FROM workspaces WHERE id = %s", (body.workspace_id,))
+            ws_row = cur.fetchone()
+            ws_embed_model = ws_row["embedding_model"] if ws_row else None
+
             cur.execute("SELECT target_ws_id FROM workspace_associations WHERE source_ws_id = %s", (body.workspace_id,))
             target_ids = {body.workspace_id} | {r["target_ws_id"] for r in cur.fetchall()}
             if body.cross_kb_ids:
                 target_ids |= set(body.cross_kb_ids)
-            
-            cur.execute("""
-                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                       (1 - (embedding <=> %s::vector)) AS similarity
-                FROM memory_nodes
-                WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
-                ORDER BY similarity DESC LIMIT 10
-            """, (vector, list(target_ids)))
-            source_nodes = cur.fetchall()
+        
+        resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
+
+        # --- Hybrid node retrieval ---
+        # Step 1: vector search (skip gracefully when no embedding provider)
+        source_nodes: list = []
+        try:
+            embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
+            vector, _ = await embed(embed_prov, body.message)
+            with db_cursor() as cur:
+                cur.execute("""
+                    SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                           (1 - (embedding <=> %s::vector)) AS similarity
+                    FROM memory_nodes
+                    WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                      AND (1 - (embedding <=> %s::vector)) >= %s
+                    ORDER BY similarity DESC LIMIT %s
+                """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
+                source_nodes = list(cur.fetchall())
+        except Exception as _vec_err:
+            print(f"[chat] Vector search skipped: {_vec_err}")
+
+        # Step 2: keyword / full-text fallback when vector results are sparse
+        if len(source_nodes) < 3:
+            seen_ids = {n["id"] for n in source_nodes}
+            needed = _FALLBACK_LIMIT - len(source_nodes)
+            terms = _extract_search_terms(body.message)
+            try:
+                with db_cursor() as cur:
+                    ft_nodes: list = []
+                    is_pg = settings.database_url.startswith("postgresql")
+
+                    # 2a. PostgreSQL plainto_tsquery (good for English / ASCII)
+                    if is_pg:
+                        cur.execute("""
+                            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                                   0.0::float AS similarity
+                            FROM memory_nodes
+                            WHERE workspace_id = ANY(%s) AND status = 'active'
+                              AND search_vector @@ plainto_tsquery('simple', %s)
+                            LIMIT %s
+                        """, (list(target_ids), body.message[:200], needed))
+                        ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
+
+                    # 2b. CJK/keyword ILIKE fallback (handles Chinese & short queries)
+                    if len(ft_nodes) < needed and terms:
+                        still_need = needed - len(ft_nodes)
+                        ft_seen = seen_ids | {n["id"] for n in ft_nodes}
+                        conds = " OR ".join(
+                            "(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)"
+                            for _ in terms
+                        )
+                        ilike_params: list = []
+                        for t in terms:
+                            like_t = f"%{t}%"
+                            ilike_params += [like_t, like_t, like_t]
+                        cur.execute(
+                            f"""
+                            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                                   0.0::{'float' if is_pg else 'real'} AS similarity
+                            FROM memory_nodes
+                            WHERE workspace_id = ANY(%s) AND status = 'active'
+                              AND ({conds})
+                            LIMIT %s
+                            """,
+                            [list(target_ids)] + ilike_params + [still_need],
+                        )
+                        ft_nodes += [n for n in cur.fetchall() if n["id"] not in ft_seen]
+
+                source_nodes = source_nodes + ft_nodes
+            except Exception as _ft_err:
+                print(f"[chat] Full-text fallback failed: {_ft_err}")
 
         context_str = json.dumps([dict(n) for n in source_nodes], ensure_ascii=False, indent=2)
         messages = [{"role": "system", "content": CHAT_SYSTEM}]
@@ -623,7 +877,6 @@ async def chat_with_kb(
             except Exception as e:
                 print(f"Failed to parse or save chat proposals: {e}")
         
-        # ACTIVE ARCHIVING: Archive this Q&A in the background
         if len(body.message) > 10:
             background_tasks.add_task(
                 _archive_qa_to_kb,
@@ -646,6 +899,9 @@ async def chat_with_kb(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/chat/feedback", status_code=204)
 
 
 @router.post("/chat/feedback", status_code=204)

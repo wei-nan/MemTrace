@@ -96,6 +96,18 @@ class AIProvider(ABC):
             tokens_used should be prompt + completion tokens.
         """
 
+    @abstractmethod
+    async def stream_chat(
+        self,
+        resolved: ResolvedProvider,
+        messages: list[dict],
+        max_tokens: int,
+        temperature: float,
+    ):
+        """
+        Yields (chunk_text, tokens_used_if_known_or_zero).
+        """
+
     async def embed(
         self,
         resolved: ResolvedProvider,
@@ -147,6 +159,54 @@ class OpenAIProvider(AIProvider):
             raise AIProviderError(f"OpenAI {resp.status_code}: {resp.text[:400]}")
         data = resp.json()
         return data["choices"][0]["message"]["content"], data["usage"]["total_tokens"]
+
+    async def stream_chat(self, resolved, messages, max_tokens, temperature):
+        headers = {}
+        if resolved.api_key:
+            headers["Authorization"] = f"Bearer {resolved.api_key}"
+
+        payload = {
+            "model": resolved.model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stream": True,
+        }
+        # OpenAI & Ollama support usage in stream
+        if self.name == "openai" or self.name == "ollama":
+             payload["stream_options"] = {"include_usage": True}
+
+        async with httpx.AsyncClient(timeout=600) as client:
+            async with client.stream(
+                "POST",
+                f"{self._base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+            ) as resp:
+                if not resp.is_success:
+                    err_body = await resp.aread()
+                    print(f"[OpenAI-Stream] HTTP Error {resp.status_code}: {err_body.decode()}")
+                    raise AIProviderError(f"OpenAI Stream {resp.status_code}: {err_body.decode()[:400]}")
+                
+                print(f"[OpenAI-Stream] Connection established, reading lines...")
+                import json
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data: "): continue
+                    data_str = line[6:].strip()
+                    if data_str == "[DONE]": break
+                    try:
+                        chunk = json.loads(data_str)
+                        # Content chunk
+                        if "choices" in chunk and len(chunk["choices"]) > 0:
+                            delta = chunk["choices"][0].get("delta", {})
+                            content = delta.get("content")
+                            if content:
+                                yield content, 0
+                        # Usage chunk (usually at the end if stream_options was set)
+                        if "usage" in chunk and chunk["usage"]:
+                            yield "", chunk["usage"]["total_tokens"]
+                    except:
+                        continue
 
     def get_known_models(self) -> list[dict]:
         return [
@@ -254,6 +314,52 @@ class AnthropicProvider(AIProvider):
         tokens = data["usage"]["input_tokens"] + data["usage"]["output_tokens"]
         return data["content"][0]["text"], tokens
 
+    async def stream_chat(self, resolved, messages, max_tokens, temperature):
+        system = next((m["content"] for m in messages if m["role"] == "system"), "")
+        user_messages = [m for m in messages if m["role"] != "system"]
+
+        async with httpx.AsyncClient(timeout=300) as client:
+            async with client.stream(
+                "POST",
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": resolved.api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+                json={
+                    "model": resolved.model,
+                    "system": system,
+                    "messages": user_messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "stream": True,
+                },
+            ) as resp:
+                if not resp.is_success:
+                    err_body = await resp.aread()
+                    raise AIProviderError(f"Anthropic Stream {resp.status_code}: {err_body.decode()[:400]}")
+                
+                import json
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data: "): continue
+                    data_str = line[6:].strip()
+                    try:
+                        chunk = json.loads(data_str)
+                        ev_type = chunk.get("type")
+                        if ev_type == "content_block_delta":
+                            yield chunk["delta"].get("text", ""), 0
+                        elif ev_type == "message_stop":
+                            # Anthropic doesn't easily give tokens in stream without more complex parsing
+                            # but we can get it from message_start or message_delta
+                            pass
+                        elif ev_type == "message_delta":
+                            usage = chunk.get("usage", {})
+                            if "output_tokens" in usage:
+                                # This is partial usage
+                                yield "", usage.get("output_tokens", 0)
+                    except:
+                        continue
+
 
 # ── Built-in: Google Gemini ──────────────────────────────────────────────────
 
@@ -336,6 +442,51 @@ class GeminiProvider(AIProvider):
             raise
         except (KeyError, IndexError) as e:
             raise AIProviderError(f"Gemini unexpected response ({e}): {data}")
+
+    async def stream_chat(self, resolved, messages, max_tokens, temperature):
+        system = next((m["content"] for m in messages if m["role"] == "system"), "")
+        contents = []
+        for m in messages:
+            if m["role"] == "system": continue
+            role = "user" if m["role"] == "user" else "model"
+            contents.append({
+                "role": role,
+                "parts": [{"text": m["content"]}]
+            })
+
+        body = {
+            "contents": contents,
+            "generationConfig": {
+                "maxOutputTokens": max_tokens,
+                "temperature": temperature,
+            }
+        }
+        if system:
+            body["system_instruction"] = {"parts": [{"text": system}]}
+
+        async with httpx.AsyncClient(timeout=300) as client:
+            async with client.stream(
+                "POST",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:streamGenerateContent?alt=sse&key={resolved.api_key}",
+                json=body
+            ) as resp:
+                if not resp.is_success:
+                    err_body = await resp.aread()
+                    raise AIProviderError(f"Gemini Stream {resp.status_code}: {err_body.decode()[:400]}")
+                
+                import json
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data: "): continue
+                    data_str = line[6:].strip()
+                    try:
+                        chunk = json.loads(data_str)
+                        candidate = chunk["candidates"][0]
+                        text = candidate["content"]["parts"][0].get("text", "")
+                        usage = chunk.get("usageMetadata", {})
+                        tokens = usage.get("totalTokenCount", 0)
+                        yield text, tokens
+                    except:
+                        continue
 
     async def embed(self, resolved, text):
         async with httpx.AsyncClient(timeout=60) as client:
@@ -677,6 +828,17 @@ async def chat_completion(
         resolved, messages, max_tokens, temperature
     )
 
+async def chat_stream(
+    resolved: ResolvedProvider,
+    messages: list[dict],
+    max_tokens: int = 4096,
+    temperature: float = 0.2,
+):
+    async for chunk, tokens in resolved.provider.stream_chat(
+        resolved, messages, max_tokens, temperature
+    ):
+        yield chunk, tokens
+
 async def embed(
     resolved: ResolvedProvider,
     text: str,
@@ -778,6 +940,11 @@ knowledge graph.
 CONTEXT:
 You will be provided with a list of relevant Memory Nodes as context. Use \
 these to answer the user's question accurately.
+If the context list is empty or contains no relevant nodes, honestly inform \
+the user that no matching knowledge was found in the current workspace. \
+Suggest that they: (1) add more nodes covering the topic, or (2) run \
+"Re-embed All" in workspace settings so that existing nodes are fully indexed \
+for semantic search. Do NOT fabricate answers from memory when context is empty.
 
 PROPOSALS:
 If you identify inaccuracies, redundancies, or missing connections in the \

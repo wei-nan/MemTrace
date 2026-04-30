@@ -39,9 +39,30 @@ def _is_postgres() -> bool:
 def _apply_text_search(filters: list, params: list, q: str) -> None:
     """Add full-text search conditions. Uses tsvector on PostgreSQL, LIKE on SQLite."""
     if _is_postgres():
-        for token in q.split():
+        import re
+        # Extract CJK phrases and English words
+        cjk_runs = re.findall(r'[\u4e00-\u9fff]+', q)
+        eng_words = re.findall(r'[a-zA-Z0-9]{2,}', q)
+        terms = cjk_runs + eng_words
+        
+        if terms:
+            # Use a combination of full-text search and ILIKE for CJK support
+            or_conds = []
+            # 1. Standard full-text search for English/segmented parts
+            or_conds.append("search_vector @@ plainto_tsquery('simple', %s)")
+            params.append(q)
+            
+            # 2. ILIKE for each extracted term (especially CJK)
+            for t in terms:
+                or_conds.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)")
+                like_t = f"%{t}%"
+                params += [like_t, like_t, like_t]
+            
+            filters.append(f"({' OR '.join(or_conds)})")
+        else:
+            # Fallback if no specific terms extracted
             filters.append("search_vector @@ plainto_tsquery('simple', %s)")
-            params.append(token)
+            params.append(q)
     else:
         like = f"%{q}%"
         filters.append(
@@ -806,6 +827,49 @@ def cancel_clone_job(job_id: str, user: dict = Depends(get_current_user)):
             "UPDATE workspace_clone_jobs SET status = 'cancelling' WHERE id = %s",
             (job_id,),
         )
+
+
+# ── Re-embed all nodes ────────────────────────────────────────────────────────
+
+@router.post("/workspaces/{ws_id}/reembed-all", status_code=202)
+async def reembed_all_nodes(
+    ws_id: str,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Queue re-embedding for every active node in the workspace that currently
+    lacks an embedding vector.  Useful when the KB was imported without
+    embeddings, or when earlier embedding jobs failed.
+    """
+    with db_cursor() as cur:
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+    if not ws:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+    if ws["owner_id"] != user["sub"]:
+        raise HTTPException(status_code=403, detail="Only the workspace owner can trigger re-embedding")
+
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, title_zh, title_en, body_zh, body_en
+            FROM memory_nodes
+            WHERE workspace_id = %s AND embedding IS NULL AND status = 'active'
+            """,
+            (ws_id,),
+        )
+        nodes_to_embed = cur.fetchall()
+
+    count = len(nodes_to_embed)
+    for node in nodes_to_embed:
+        text = (
+            f"{node['title_zh']}\n{node['title_en']}\n"
+            f"{node['body_zh']}\n{node['body_en']}"
+        )
+        background_tasks.add_task(_bg_embed_node, ws_id, node["id"], text, user["sub"])
+
+    return {"queued": count}
 
 
 @router.get("/workspaces", response_model=list[WorkspaceResponse])

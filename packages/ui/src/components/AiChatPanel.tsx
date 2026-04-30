@@ -18,7 +18,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [allowEdits, setAllowEdits] = useState(false);
-  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai' as any);
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>('openai');
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [credits, setCredits] = useState<CreditStatus | null>(null);
@@ -67,28 +67,83 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
 
     const userMsg: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, userMsg]);
+    const msgIdx = messages.length + 1; // index of the assistant message we're about to add
     setInput('');
     setLoading(true);
 
     try {
       const history = messages.map(m => ({ role: m.role, content: m.content }));
-      const res = await ai.chat({
+      
+      // Add empty assistant message that we will populate
+      setMessages(prev => [...prev, { role: 'assistant', content: '', response: { answer: '', proposals: [], source_nodes: [], tokens_used: 0 } }]);
+
+      await ai.chatStream({
         workspace_id: wsId,
         message: input,
         history,
         allow_edits: allowEdits,
         preferred_provider: provider,
         preferred_model: selectedModel,
+      }, (chunk) => {
+        if (chunk.type === 'source_nodes') {
+          setMessages(prev => {
+            const next = [...prev];
+            if (next[msgIdx]) {
+              next[msgIdx] = {
+                ...next[msgIdx],
+                response: { ...next[msgIdx].response!, source_nodes: chunk.nodes }
+              };
+            }
+            return next;
+          });
+        } else if (chunk.type === 'content') {
+          setMessages(prev => {
+            const next = [...prev];
+            if (next[msgIdx]) {
+              next[msgIdx] = {
+                ...next[msgIdx],
+                content: next[msgIdx].content + chunk.delta
+              };
+            }
+            return next;
+          });
+        } else if (chunk.type === 'proposals') {
+          setMessages(prev => {
+            const next = [...prev];
+            if (next[msgIdx]) {
+              next[msgIdx] = {
+                ...next[msgIdx],
+                response: { ...next[msgIdx].response!, proposals: chunk.proposals }
+              };
+            }
+            return next;
+          });
+        } else if (chunk.type === 'done') {
+          setMessages(prev => {
+            const next = [...prev];
+            if (next[msgIdx]) {
+              next[msgIdx] = {
+                ...next[msgIdx],
+                response: { ...next[msgIdx].response!, tokens_used: chunk.tokens_used }
+              };
+            }
+            return next;
+          });
+        } else if (chunk.type === 'error') {
+          throw new Error(chunk.detail);
+        }
       });
 
-      const assistantMsg: Message = {
-        role: 'assistant',
-        content: res.answer,
-        response: res,
-      };
-      setMessages(prev => [...prev, assistantMsg]);
     } catch (e: any) {
-      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${e.message}` }]);
+      setMessages(prev => {
+        const next = [...prev];
+        if (next[msgIdx]) {
+          next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\nError: ${e.message}` };
+        } else {
+          next.push({ role: 'assistant', content: `Error: ${e.message}` });
+        }
+        return next;
+      });
     } finally {
       setLoading(false);
     }
@@ -170,6 +225,9 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             </option>
             <option value="gemini" disabled={credits ? !credits.has_own_key.gemini : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
               Gemini {credits && !credits.has_own_key.gemini ? (zh ? '(未設定)' : '(No Key)') : ''}
+            </option>
+            <option value="ollama" disabled={credits ? !credits.has_own_key.ollama : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
+              Ollama {credits && !credits.has_own_key.ollama ? (zh ? '(未設定)' : '(No Key)') : ''}
             </option>
           </select>
         </div>
@@ -269,6 +327,24 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
                   {m.response.source_nodes.length > 3 && (
                     <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>+{m.response.source_nodes.length - 3} more</div>
                   )}
+                </div>
+              )}
+
+              {/* Empty-context warning */}
+              {m.role === 'assistant' && m.response !== undefined && (m.response.source_nodes?.length ?? -1) === 0 && (
+                <div style={{
+                  marginTop: 8, padding: '6px 10px', borderRadius: 6,
+                  background: 'var(--color-warning-subtle, #fef3c7)',
+                  border: '1px solid var(--color-warning, #f59e0b)',
+                  fontSize: 11, color: 'var(--color-warning, #92400e)',
+                  display: 'flex', alignItems: 'flex-start', gap: 6,
+                }}>
+                  <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span>
+                    {zh
+                      ? '未找到相關節點，回答可能不夠準確。請確認節點已建立，或前往知識庫設定執行「重新嵌入所有節點」。'
+                      : 'No matching nodes found — answer may be inaccurate. Add more nodes or run "Re-embed All" in workspace settings.'}
+                  </span>
                 </div>
               )}
             </div>
