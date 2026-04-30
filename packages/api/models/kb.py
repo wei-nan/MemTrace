@@ -12,6 +12,7 @@ class WorkspaceCreate(BaseModel):
     kb_type: Literal["evergreen", "ephemeral"] = "evergreen"  # immutable after creation
     archive_window_days: int = 90
     min_traversals: int = 1
+    embedding_model: Optional[str] = None                # P4.1-E: user-chosen model; None = auto-resolve
 
 
 class WorkspaceResponse(BaseModel):
@@ -23,6 +24,8 @@ class WorkspaceResponse(BaseModel):
     owner_id: str
     archive_window_days: int
     min_traversals: int
+    embedding_model: str = "text-embedding-3-small"      # P4.1-A: locked at creation
+    embedding_dim: int = 1536                            # P4.1-A: locked at creation
     created_at: datetime
     updated_at: datetime
     my_role: Optional[str] = None  # effective role of the requesting user: 'admin'|'editor'|'viewer'|None
@@ -211,3 +214,31 @@ class TokenEfficiencyResponse(BaseModel):
 class VoteTrustRequest(BaseModel):
     accuracy: int
     utility: int
+
+
+class WorkspaceCloneRequest(BaseModel):
+    name_zh: Optional[str] = None
+    name_en: Optional[str] = None
+    new_embedding_model: Optional[str] = None
+    visibility: Optional[str] = None    # 'public' | 'private' | 'restricted'; None = 'private'
+
+
+class WorkspaceCloneJobResponse(BaseModel):
+    id: str
+    source_ws_id: str
+    target_ws_id: str
+    status: str
+    total_nodes: int
+    processed_nodes: int
+    is_fork: bool = False            # P4.1-F: True when triggered by a public KB fork
+    error_msg: Optional[str] = None
+    cancelled_at: Optional[datetime] = None   # P4.1-F: set when user cancels
+    created_at: datetime
+    updated_at: datetime
+
+
+class ForkWorkspaceRequest(BaseModel):
+    """P4.1-F: Fork a public workspace into the current user's account."""
+    name_zh: str
+    name_en: str
+    embedding_model: Optional[str] = None     # None = inherit source workspace model

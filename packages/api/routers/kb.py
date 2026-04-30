@@ -73,6 +73,9 @@ from models.kb import (
     WorkspaceAnalyticsResponse,
     TokenEfficiencyResponse,
     VoteTrustRequest,
+    WorkspaceCloneRequest,
+    WorkspaceCloneJobResponse,
+    ForkWorkspaceRequest,
 )
 from models.review import NodeRevisionMetaResponse, NodeRevisionResponse
 
@@ -122,7 +125,7 @@ def _require_ws_access(cur, ws_id: str, user: Optional[dict], write: bool = Fals
     if vis == "private":
         raise HTTPException(status_code=403, detail="Access denied")
 
-    if vis == "public" and not write:
+    if vis in ("public", "conditional_public") and not write:
         return ws
 
     if vis == "restricted" or write:
@@ -203,6 +206,28 @@ def _prepare_node_data(data: dict, author: str, source_type: str = "human") -> d
         payload["author"],
     )
     return payload
+
+
+_KNOWN_DIMS = {
+    "text-embedding-3-small": 1536,
+    "text-embedding-3-large": 3072,
+    "text-embedding-ada-002": 1536,
+    "text-embedding-004":     768,   # Gemini
+    "nomic-embed-text":       768,
+    "mxbai-embed-large":      1024,
+    "all-minilm":             384,
+    "bge-m3":                 1024,
+    "bge-large-en-v1.5":      1024,
+    "snowflake-arctic-embed":  1024,
+    "e5-mistral-7b-instruct":  4096,
+}
+
+def _get_embedding_dim(model: str) -> int:
+    lower = model.lower()
+    for known, dim in _KNOWN_DIMS.items():
+        if lower.startswith(known) or known in lower:
+            return dim
+    return 1536  # Safe default
 
 
 def _create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
@@ -414,8 +439,14 @@ def _propose_change(
 
 
 async def _bg_embed_node(ws_id: str, node_id: str, text: str, user_id: str):
+    # Fetch workspace-locked embedding model
+    with db_cursor() as cur:
+        cur.execute("SELECT embedding_model FROM workspaces WHERE id = %s", (ws_id,))
+        row = cur.fetchone()
+    ws_embedding_model = row["embedding_model"] if row else None
+
     try:
-        resolved = resolve_provider(user_id, "embedding")
+        resolved = resolve_provider(user_id, "embedding", preferred_model=ws_embedding_model)
         vector, tokens = await embed(resolved, text)
         with db_cursor(commit=True) as cur:
             cur.execute("UPDATE memory_nodes SET embedding = %s WHERE id = %s AND workspace_id = %s", (vector, node_id, ws_id))
@@ -471,6 +502,312 @@ def _bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
         print(f"BG Edge suggestion failed for node {node_id}: {exc}")
 
 
+async def _bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, user_id: str):
+    """
+    Background worker for cloning a workspace.
+    1. Copies nodes and edges.
+    2. Re-embeds nodes if the target workspace has a different model/dimension.
+    """
+    try:
+        # Update job to running
+        with db_cursor(commit=True) as cur:
+            cur.execute("UPDATE workspace_clone_jobs SET status = 'running' WHERE id = %s", (job_id,))
+
+        # Fetch workspace embedding locks
+        with db_cursor() as cur:
+            cur.execute("SELECT embedding_model, embedding_dim FROM workspaces WHERE id = %s", (source_ws_id,))
+            source_ws = cur.fetchone()
+            cur.execute("SELECT embedding_model, embedding_dim FROM workspaces WHERE id = %s", (target_ws_id,))
+            target_ws = cur.fetchone()
+
+        if not source_ws or not target_ws:
+            raise Exception("Source or target workspace not found")
+
+        needs_reembed = (source_ws["embedding_model"] != target_ws["embedding_model"] or 
+                         source_ws["embedding_dim"] != target_ws["embedding_dim"])
+
+        # Copy Nodes
+        node_map = {} # old_id -> new_id
+        with db_cursor() as cur:
+            cur.execute("SELECT * FROM memory_nodes WHERE workspace_id = %s", (source_ws_id,))
+            source_nodes = cur.fetchall()
+
+        with db_cursor(commit=True) as cur:
+            cur.execute("UPDATE workspace_clone_jobs SET total_nodes = %s WHERE id = %s", (len(source_nodes), job_id))
+
+        for i, node in enumerate(source_nodes):
+            # ── P4.1-F: Cancellation check ─────────────────────────────────────
+            # The user may call POST /clone-jobs/{job_id}/cancel which sets
+            # status='cancelling'.  We honour that before processing each node.
+            with db_cursor() as cur:
+                cur.execute("SELECT status FROM workspace_clone_jobs WHERE id = %s", (job_id,))
+                job_row = cur.fetchone()
+            if job_row and job_row["status"] == "cancelling":
+                with db_cursor(commit=True) as cur:
+                    cur.execute(
+                        "UPDATE workspace_clone_jobs SET status='cancelled', cancelled_at=now() WHERE id=%s",
+                        (job_id,)
+                    )
+                print(f"Clone job {job_id} was cancelled by user after {i} nodes.")
+                return
+            # ───────────────────────────────────────────────────────────────────
+
+            new_node_id = generate_id("mem")
+            node_map[node["id"]] = new_node_id
+
+            # Prepare new node data
+            # If re-embedding is needed, we insert with null embedding first
+            embedding = node["embedding"] if not needs_reembed else None
+
+            with db_cursor(commit=True) as cur:
+                cur.execute(
+                    """
+                    INSERT INTO memory_nodes (
+                        id, workspace_id, title_zh, title_en, content_type, content_format,
+                        body_zh, body_en, tags, visibility, author, trust_score,
+                        dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
+                        traversal_count, unique_traverser_count, created_at, updated_at,
+                        signature, source_type, status, archived_at, embedding,
+                        validity_confirmed_at, validity_confirmed_by
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (
+                        new_node_id, target_ws_id, node["title_zh"], node["title_en"],
+                        node["content_type"], node["content_format"], node["body_zh"],
+                        node["body_en"], node["tags"], node["visibility"], node["author"],
+                        node["trust_score"], node["dim_accuracy"], node["dim_freshness"],
+                        node["dim_utility"], node["dim_author_rep"], node["traversal_count"],
+                        node["unique_traverser_count"], node["created_at"], node["updated_at"],
+                        node["signature"], node["source_type"], node["status"],
+                        node["archived_at"], embedding, node["validity_confirmed_at"],
+                        node["validity_confirmed_by"]
+                    )
+                )
+
+            # Re-embed if necessary
+            if needs_reembed:
+                text = f"{node['title_zh']} {node['title_en']} {node['body_zh']} {node['body_en']}"
+                try:
+                    resolved = resolve_provider(user_id, "embedding", preferred_model=target_ws["embedding_model"])
+                    vector, tokens = await embed(resolved, text)
+                    with db_cursor(commit=True) as cur:
+                        cur.execute("UPDATE memory_nodes SET embedding = %s WHERE id = %s", (vector, new_node_id))
+                        record_usage(resolved, "embedding", tokens, workspace_id=target_ws_id, node_id=new_node_id)
+                except Exception as e:
+                    print(f"Clone re-embed failed for node {new_node_id}: {e}")
+
+            # Update progress
+            with db_cursor(commit=True) as cur:
+                cur.execute("UPDATE workspace_clone_jobs SET processed_nodes = %s WHERE id = %s", (i + 1, job_id))
+
+        # Copy Edges
+        with db_cursor() as cur:
+            cur.execute("SELECT * FROM edges WHERE workspace_id = %s", (source_ws_id,))
+            source_edges = cur.fetchall()
+
+        with db_cursor(commit=True) as cur:
+            for edge in source_edges:
+                # Only copy if both nodes were successfully mapped
+                new_from = node_map.get(edge["from_id"])
+                new_to   = node_map.get(edge["to_id"])
+                if not new_from or not new_to:
+                    continue
+
+                new_edge_id = generate_id("edge")
+                cur.execute(
+                    """
+                    INSERT INTO edges (
+                        id, workspace_id, from_id, to_id, relation, weight,
+                        co_access_count, last_co_accessed, half_life_days,
+                        min_weight, traversal_count, rating_sum, rating_count,
+                        status, pinned, created_at
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (
+                        new_edge_id, target_ws_id, new_from, new_to, edge["relation"],
+                        edge["weight"], edge["co_access_count"], edge["last_co_accessed"],
+                        edge["half_life_days"], edge["min_weight"], edge["traversal_count"],
+                        edge["rating_sum"], edge["rating_count"], edge["status"],
+                        edge["pinned"], edge["created_at"]
+                    )
+                )
+
+        # Mark job as completed
+        with db_cursor(commit=True) as cur:
+            cur.execute("UPDATE workspace_clone_jobs SET status = 'completed' WHERE id = %s", (job_id,))
+
+    except Exception as e:
+        print(f"Clone job {job_id} failed: {e}")
+        with db_cursor(commit=True) as cur:
+            cur.execute("UPDATE workspace_clone_jobs SET status = 'failed', error_msg = %s WHERE id = %s", (str(e), job_id))
+
+
+@router.post("/workspaces/{ws_id}/clone", response_model=WorkspaceCloneJobResponse)
+def clone_workspace(ws_id: str, body: WorkspaceCloneRequest, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    """
+    Start a background job to clone a workspace.
+    Creates a new target workspace first.
+    """
+    with db_cursor(commit=True) as cur:
+        # Check source workspace access
+        source = _require_ws_access(cur, ws_id, user)
+        
+        # Determine target workspace properties
+        name_zh = body.name_zh or f"{source['name_zh']} (副本)"
+        name_en = body.name_en or f"{source['name_en']} (Clone)"
+        
+        # New embedding model locking
+        new_model = body.new_embedding_model
+        if new_model:
+            new_dim = _get_embedding_dim(new_model)
+        else:
+            new_model = source["embedding_model"]
+            new_dim   = source["embedding_dim"]
+
+        # Visibility — default to private for clones
+        new_visibility = body.visibility if body.visibility in VALID_KB_VIS else "private"
+
+        # 1. Create target workspace
+        target_ws_id = generate_id("ws")
+        cur.execute(
+            """
+            INSERT INTO workspaces (
+                id, name_zh, name_en, visibility, kb_type, owner_id,
+                archive_window_days, min_traversals, embedding_model, embedding_dim
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                target_ws_id, name_zh, name_en, new_visibility, source["kb_type"],
+                user["sub"], source["archive_window_days"], source["min_traversals"],
+                new_model, new_dim
+            ),
+        )
+
+        # 2. Create clone job
+        job_id = generate_id("cln")
+        cur.execute(
+            """
+            INSERT INTO workspace_clone_jobs (id, source_ws_id, target_ws_id, status)
+            VALUES (%s, %s, %s, 'pending')
+            RETURNING *
+            """,
+            (job_id, ws_id, target_ws_id),
+        )
+        job = cur.fetchone()
+
+        background_tasks.add_task(_bg_clone_workspace, job_id, ws_id, target_ws_id, user["sub"])
+        return job
+
+
+@router.get("/workspaces/{ws_id}/clone-status", response_model=Optional[WorkspaceCloneJobResponse])
+def get_clone_status(ws_id: str, user: dict = Depends(get_current_user)):
+    """Return the most recent clone job for this workspace (as target)."""
+    with db_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM workspace_clone_jobs WHERE target_ws_id = %s ORDER BY created_at DESC LIMIT 1",
+            (ws_id,)
+        )
+        return cur.fetchone()
+
+
+# ── P4.1-F: Fork public workspace ─────────────────────────────────────────────
+
+@router.post("/workspaces/{ws_id}/fork", response_model=WorkspaceCloneJobResponse, status_code=202)
+def fork_workspace(
+    ws_id: str,
+    body: ForkWorkspaceRequest,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Fork any readable workspace (including public ones the user doesn't own).
+    Creates a private copy under the current user, then re-embeds all nodes
+    in the background using the chosen (or inherited) embedding model.
+    """
+    with db_cursor(commit=True) as cur:
+        # Only read access needed — public workspace anyone can fork
+        source = _require_ws_access(cur, ws_id, user, write=False)
+
+        # Determine embedding model for the new workspace
+        new_model = body.embedding_model or source["embedding_model"]
+        new_dim   = _get_embedding_dim(new_model)
+
+        # Create target workspace owned by the current user (always private)
+        target_ws_id = generate_id("ws")
+        cur.execute(
+            """
+            INSERT INTO workspaces (
+                id, name_zh, name_en, visibility, kb_type, owner_id,
+                archive_window_days, min_traversals, embedding_model, embedding_dim
+            )
+            VALUES (%s, %s, %s, 'private', %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                target_ws_id, body.name_zh, body.name_en,
+                source["kb_type"], user["sub"],
+                source["archive_window_days"], source["min_traversals"],
+                new_model, new_dim,
+            ),
+        )
+
+        # Create clone job with is_fork = TRUE
+        job_id = generate_id("cln")
+        cur.execute(
+            """
+            INSERT INTO workspace_clone_jobs
+              (id, source_ws_id, target_ws_id, status, is_fork)
+            VALUES (%s, %s, %s, 'pending', TRUE)
+            RETURNING *
+            """,
+            (job_id, ws_id, target_ws_id),
+        )
+        job = cur.fetchone()
+
+    background_tasks.add_task(_bg_clone_workspace, job_id, ws_id, target_ws_id, user["sub"])
+    return job
+
+
+@router.post("/clone-jobs/{job_id}/cancel", status_code=204)
+def cancel_clone_job(job_id: str, user: dict = Depends(get_current_user)):
+    """
+    Request cancellation of a running clone/fork job.
+    Sets status to 'cancelling'; the background worker will notice and stop,
+    then transition the status to 'cancelled'.
+    """
+    with db_cursor(commit=True) as cur:
+        # Verify the job exists and the caller owns the target workspace
+        cur.execute(
+            """
+            SELECT cj.id, cj.status, w.owner_id
+            FROM workspace_clone_jobs cj
+            JOIN workspaces w ON w.id = cj.target_ws_id
+            WHERE cj.id = %s
+            """,
+            (job_id,),
+        )
+        job = cur.fetchone()
+        if not job:
+            raise HTTPException(status_code=404, detail="Clone job not found")
+        if job["owner_id"] != user["sub"]:
+            raise HTTPException(status_code=403, detail="Only the target workspace owner can cancel this job")
+        if job["status"] not in ("pending", "running"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot cancel a job that is already '{job['status']}'",
+            )
+
+        cur.execute(
+            "UPDATE workspace_clone_jobs SET status = 'cancelling' WHERE id = %s",
+            (job_id,),
+        )
+
+
 @router.get("/workspaces", response_model=list[WorkspaceResponse])
 def list_workspaces(search: Optional[str] = Query(None), user: Optional[dict] = Depends(get_current_user_optional)):
     with db_cursor() as cur:
@@ -522,19 +859,40 @@ def list_workspaces(search: Optional[str] = Query(None), user: Optional[dict] = 
 def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_user)):
     if body.visibility not in VALID_KB_VIS:
         raise HTTPException(status_code=400, detail="Invalid visibility")
+    
+    # Resolve embedding model for locking.
+    # P4.1-E: if the caller explicitly chose a model, honour it; otherwise auto-resolve.
+    if body.embedding_model:
+        embedding_model = body.embedding_model
+        embedding_dim   = _get_embedding_dim(embedding_model)
+    else:
+        try:
+            resolved = resolve_provider(user["sub"], "embedding")
+            embedding_model = resolved.model
+            embedding_dim   = _get_embedding_dim(embedding_model)
+        except AIProviderUnavailable:
+            embedding_model = "text-embedding-3-small"
+            embedding_dim   = 1536
+
     ws_id = generate_id("ws")
     with db_cursor(commit=True) as cur:
         cur.execute(
             """
             INSERT INTO workspaces (
-                id, name_zh, name_en, visibility, kb_type, owner_id, archive_window_days, min_traversals
+                id, name_zh, name_en, visibility, kb_type, owner_id, 
+                archive_window_days, min_traversals, embedding_model, embedding_dim
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
-            (ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, user["sub"], body.archive_window_days, body.min_traversals),
+            (
+                ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, 
+                user["sub"], body.archive_window_days, body.min_traversals,
+                embedding_model, embedding_dim
+            ),
         )
-        return cur.fetchone()
+        res = cur.fetchone()
+        return {**dict(res), "my_role": "admin"}
 
 
 @router.get("/workspaces/{ws_id}/decay-stats")
@@ -576,7 +934,7 @@ def get_graph_preview(ws_id: str):
         ws = cur.fetchone()
         if not ws:
             raise HTTPException(status_code=404, detail="Workspace not found")
-        if ws["visibility"] not in ("public",):
+        if ws["visibility"] not in ("public", "conditional_public"):
             raise HTTPException(status_code=403, detail="Graph preview only available for public/conditional_public workspaces")
         cur.execute("SELECT id, content_type FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
         nodes = cur.fetchall()
@@ -656,6 +1014,19 @@ def delete_association(ws_id: str, target_ws_id: str, user: dict = Depends(get_c
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user)
         cur.execute("DELETE FROM workspace_associations WHERE source_ws_id = %s AND target_ws_id = %s", (ws_id, target_ws_id))
+
+
+@router.delete("/workspaces/{ws_id}", status_code=204)
+def delete_workspace(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        ws = _require_ws_access(cur, ws_id, user, write=True)
+        if ws["owner_id"] != user["sub"]:
+            raise HTTPException(
+                status_code=403,
+                detail="Only the workspace owner can delete it"
+            )
+        # CASCADE in the DB automatically clears all child tables
+        cur.execute("DELETE FROM workspaces WHERE id = %s", (ws_id,))
 
 
 @router.delete("/workspaces/{ws_id}/purge", response_model=WorkspacePurgeResponse)
@@ -867,12 +1238,17 @@ def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dic
 
 @router.post("/workspaces/{ws_id}/nodes/search-semantic", response_model=List[NodeResponse])
 async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute("SELECT embedding_model FROM workspaces WHERE id = %s", (ws_id,))
+        ws_row = cur.fetchone()
+    
+    ws_model = ws_row["embedding_model"] if ws_row else None
     try:
-        resolved = resolve_provider(user["sub"], "embedding")
+        resolved = resolve_provider(user["sub"], "embedding", preferred_model=ws_model)
         vector, tokens = await embed(resolved, query)
         record_usage(resolved, "embedding", tokens, ws_id)
         with db_cursor() as cur:
-            _require_ws_access(cur, ws_id, user)
             cur.execute(
                 """
                 SELECT *, (1 - (embedding <=> %s::vector)) AS similarity

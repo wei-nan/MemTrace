@@ -171,7 +171,13 @@ export const auth = {
 
 export const workspaces = {
   list: (search?: string) => request<Workspace[]>("GET", `${BASE}/workspaces${search ? `?search=${encodeURIComponent(search)}` : ""}`),
-  create: (data: { name_zh: string; name_en: string; visibility: string; kb_type: "evergreen" | "ephemeral" }) =>
+  create: (data: {
+    name_zh: string;
+    name_en: string;
+    visibility: string;
+    kb_type: "evergreen" | "ephemeral";
+    embedding_model?: string;   // P4.1-E: user-chosen model; omit = auto-resolve
+  }) =>
     request<Workspace>("POST", `${BASE}/workspaces`, data),
   get: (id: string) => request<Workspace>("GET", `${BASE}/workspaces/${id}`),
   members: (wsId: string) => request<Member[]>("GET", `${BASE}/workspaces/${wsId}/members`),
@@ -186,6 +192,15 @@ export const workspaces = {
     request("DELETE", `${BASE}/workspaces/${wsId}/members/${userId}`),
   update: (wsId: string, data: Partial<{ name_zh: string; name_en: string; visibility: string }>) =>
     request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
+  delete: (wsId: string) => request("DELETE", `${BASE}/workspaces/${wsId}`),
+  clone: (wsId: string, data: { name_zh?: string; name_en?: string; new_embedding_model?: string; visibility?: string }) =>
+    request<WorkspaceCloneJob>("POST", `${BASE}/workspaces/${wsId}/clone`, data),
+  fork: (wsId: string, data: { name_zh: string; name_en: string; embedding_model?: string }) =>
+    request<WorkspaceCloneJob>("POST", `${BASE}/workspaces/${wsId}/fork`, data),
+  cancelCloneJob: (jobId: string) =>
+    request("POST", `${BASE}/clone-jobs/${jobId}/cancel`),
+  getCloneStatus: (wsId: string) =>
+    request<WorkspaceCloneJob | null>("GET", `${BASE}/workspaces/${wsId}/clone-status`),
   graphPreview: (wsId: string) => request<GraphPreview>("GET", `${BASE}/workspaces/${wsId}/graph-preview`),
   listAssociations: (wsId: string) => request<WorkspaceAssociation[]>("GET", `${BASE}/workspaces/${wsId}/associations`),
   createAssociation: (wsId: string, targetWsId: string) =>
@@ -283,19 +298,20 @@ export const edges = {
 
 export const ai = {
   listKeys: () => request<AIKey[]>("GET", `${BASE}/ai/keys`),
-  createKey: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string }) => request<AIKey>("POST", `${BASE}/ai/keys`, data),
+  createKey: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string; default_chat_model?: string; default_embedding_model?: string }) => request<AIKey>("POST", `${BASE}/ai/keys`, data),
   deleteKey: (provider: string) => request("DELETE", `${BASE}/ai/keys/${provider}`),
   getCredits: () => request<CreditStatus>("GET", `${BASE}/ai/credits`),
   extract: (data: unknown) => request("POST", `${BASE}/ai/extract`, data),
   restructure: (data: unknown) => request("POST", `${BASE}/ai/restructure`, data),
   chat: (data: unknown) => request<ChatResponse>("POST", `${BASE}/ai/chat`, data),
   listModels: (provider: string) => request<ModelInfo[]>("GET", `${BASE}/ai/models/${provider}`),
-  testConnection: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string }) =>
+  testConnection: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string; model?: string }) =>
     request<{ status: string }>("POST", `${BASE}/ai/providers/${data.provider}/test-connection`, data),
   listModelsProxy: (provider: string, params: { base_url?: string; api_key?: string; auth_mode?: string; auth_token?: string }) => {
     const qs = new URLSearchParams(params as any).toString();
     return request<ModelInfo[]>("GET", `${BASE}/ai/providers/${provider}/models?${qs}`);
   },
+  getResolvedModel: (type: string) => request<{ provider: string; model: string }>("GET", `${BASE}/ai/resolved-models?type=${type}`),
 };
 
 export const review = {
@@ -376,11 +392,16 @@ export interface AIKey {
   base_url?: string;
   auth_mode?: string;
   auth_token?: string;
+  default_chat_model?: string;
+  default_embedding_model?: string;
 }
 
 export interface ModelInfo {
   id: string;
   display_name: string;
+  model_type?: 'chat' | 'embedding';
+  embedding_dim?: number;
+  needs_install?: boolean;
 }
 
 export interface CreditStatus {
@@ -397,6 +418,8 @@ export interface Workspace {
   created_at: string;
   updated_at: string;
   my_role: "admin" | "editor" | "viewer" | null;
+  embedding_model: string;
+  embedding_dim: number;
 }
 
 export interface Node {
@@ -715,3 +738,18 @@ export const system = {
     request<BackupConfig>("PATCH", `${BASE}/system/backup-config`, data),
   runBackup: () => request<{ message: string }>("POST", `${BASE}/system/backup/run`),
 };
+
+export interface WorkspaceCloneJob {
+  id: string;
+  source_ws_id: string;
+  target_ws_id: string;
+  /** pending → running → completed | failed; cancel path: running → cancelling → cancelled */
+  status: "pending" | "running" | "cancelling" | "cancelled" | "completed" | "failed";
+  total_nodes: number;
+  processed_nodes: number;
+  is_fork: boolean;          // true = triggered by public KB fork
+  error_msg?: string;
+  cancelled_at?: string;     // set when user successfully cancels
+  created_at: string;
+  updated_at: string;
+}

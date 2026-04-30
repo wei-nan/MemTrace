@@ -38,6 +38,7 @@ interface ConfirmProps {
   confirmLabel?: string;
   cancelLabel?: string;
   customElement?: ReactNode;
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -262,6 +263,7 @@ export function ConfirmModal({
   confirmLabel = '確認',
   cancelLabel  = '取消',
   customElement,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: ConfirmProps) {
@@ -333,7 +335,8 @@ export function ConfirmModal({
           bg={cfg.btnColor}
           hoverBg={cfg.btnHover}
           onClick={onConfirm}
-          autoFocus={variant !== 'danger'}  // don't auto-focus destructive action
+          disabled={confirmDisabled}
+          autoFocus={variant !== 'danger' && !confirmDisabled}  // don't auto-focus destructive or disabled action
         />
       </div>
     </ModalOverlay>
@@ -347,12 +350,14 @@ function ActionButton({
   bg,
   hoverBg,
   onClick,
+  disabled = false,
   autoFocus = false,
 }: {
   label: string;
   bg: string;
   hoverBg: string;
   onClick: () => void;
+  disabled?: boolean;
   autoFocus?: boolean;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -362,22 +367,24 @@ function ActionButton({
     <button
       ref={ref}
       onClick={onClick}
+      disabled={disabled}
       style={{
         padding:      '8px 18px',
-        background:   bg,
-        color:        '#fff',
+        background:   disabled ? 'var(--bg-elevated)' : bg,
+        color:        disabled ? 'var(--text-muted)' : '#fff',
         border:       'none',
         borderRadius: '8px',
         fontSize:     '14px',
         fontWeight:   600,
-        cursor:       'pointer',
+        cursor:       disabled ? 'not-allowed' : 'pointer',
         transition:   'background 0.12s, opacity 0.12s',
         outline:      'none',
+        opacity:      disabled ? 0.6 : 1,
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = hoverBg)}
-      onMouseLeave={e => (e.currentTarget.style.background = bg)}
-      onFocus={e     => (e.currentTarget.style.boxShadow = '0 0 0 3px var(--color-primary-subtle)')}
-      onBlur={e      => (e.currentTarget.style.boxShadow = 'none')}
+      onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = hoverBg; }}
+      onMouseLeave={e => { if (!disabled) e.currentTarget.style.background = bg; }}
+      onFocus={e     => { if (!disabled) e.currentTarget.style.boxShadow = '0 0 0 3px var(--color-primary-subtle)'; }}
+      onBlur={e      => { if (!disabled) e.currentTarget.style.boxShadow = 'none'; }}
     >
       {label}
     </button>

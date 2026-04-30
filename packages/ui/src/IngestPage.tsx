@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Globe, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { FileUp, Globe, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { ingest } from './api';
 import { useModal } from './components/ModalContext';
 import IngestButton from './IngestButton';
@@ -58,7 +58,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
               transition: 'all 0.2s'
             }}
           >
-            <Mail size={16} />
+            <FileUp size={16} />
             {t('ingest.tab_file')}
           </button>
           <button 

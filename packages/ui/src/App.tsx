@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import {
   Network, PlusCircle, Settings,
   Globe, LogOut, ChevronDown,
-  ChevronLeft, ChevronRight, X, Key, Trash2,
-  Inbox, Users, Mail, Moon, Sun, Brain, BarChart3, HardDrive,
+  ChevronLeft, ChevronRight, X, Key, Trash2, AlertTriangle, RefreshCw,
+  Inbox, Users, FileUp, Mail, Moon, Sun, Brain, BarChart3, HardDrive,
+  GitFork, XCircle,
 } from 'lucide-react';
 import './index.css';
 import AiChatPanel from './components/AiChatPanel';
@@ -18,7 +19,7 @@ import WorkspaceSettings from './WorkspaceSettings';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import NodeHealthManager from './NodeHealthManager';
 import ResetPasswordPage from './ResetPasswordPage';
-import { auth, workspaces, ai, users, system, type Workspace, type Node as ApiNode, type AIKey, type Onboarding, type PersonalApiKey, type BackupConfig } from './api';
+import { auth, workspaces, ai, users, system, type Workspace, type Node as ApiNode, type AIKey, type Onboarding, type PersonalApiKey, type BackupConfig, type WorkspaceCloneJob } from './api';
 import { useModal } from './components/ModalContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -27,6 +28,19 @@ type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_
 
 // ── CreateWorkspaceModal ───────────────────────────────────────────────────────
 
+// Known embedding models per provider (used when dynamic listing is unavailable)
+const KNOWN_EMBED_MODELS: Record<string, { id: string; dim: number }[]> = {
+  openai: [
+    { id: 'text-embedding-3-small', dim: 1536 },
+    { id: 'text-embedding-3-large', dim: 3072 },
+    { id: 'text-embedding-ada-002', dim: 1536 },
+  ],
+  gemini: [
+    { id: 'text-embedding-004', dim: 768 },
+  ],
+  anthropic: [],  // no embedding API
+};
+
 function CreateWorkspaceModal({
   onCreated,
   onClose,
@@ -34,13 +48,46 @@ function CreateWorkspaceModal({
   onCreated: (ws: Workspace) => void;
   onClose: () => void;
 }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
   const [nameZh, setNameZh] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [kbType, setKbType] = useState<'evergreen' | 'ephemeral'>('evergreen');
+  const [visibility, setVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [embedModels, setEmbedModels] = useState<{ id: string; dim: number }[]>([]);
+  const [selectedEmbedModel, setSelectedEmbedModel] = useState<string>('');
+
+  useEffect(() => {
+    // 1. Resolve which provider / model would be used automatically
+    ai.getResolvedModel('embedding').then(async resolved => {
+      const provider = resolved.provider?.toLowerCase() ?? '';
+      const autoModel = resolved.model ?? '';
+
+      // 2. Build model list based on provider
+      if (provider === 'ollama') {
+        try {
+          const all = await ai.listModels('ollama');
+          const embedOnly = all.filter(m => m.model_type === 'embedding');
+          const list = embedOnly.map(m => ({ id: m.id, dim: m.embedding_dim ?? 768 }));
+          setEmbedModels(list.length ? list : [{ id: autoModel, dim: 768 }]);
+        } catch {
+          setEmbedModels([{ id: autoModel, dim: 768 }]);
+        }
+      } else {
+        const knownList = KNOWN_EMBED_MODELS[provider] ?? [{ id: autoModel, dim: 1536 }];
+        setEmbedModels(knownList.length ? knownList : [{ id: autoModel, dim: 1536 }]);
+      }
+
+      // 3. Default selection = auto-resolved model
+      setSelectedEmbedModel(autoModel);
+    }).catch(() => {
+      // No AI provider configured; use safe default
+      setEmbedModels([{ id: 'text-embedding-3-small', dim: 1536 }]);
+      setSelectedEmbedModel('text-embedding-3-small');
+    });
+  }, []);
 
   const handleSubmit = async () => {
     if (!nameZh.trim() || !nameEn.trim()) {
@@ -53,8 +100,9 @@ function CreateWorkspaceModal({
       const ws = await workspaces.create({
         name_zh: nameZh.trim(),
         name_en: nameEn.trim(),
-        visibility: 'private',
+        visibility,
         kb_type: kbType,
+        embedding_model: selectedEmbedModel || undefined,
       });
       onCreated(ws);
     } catch (e: unknown) {
@@ -149,6 +197,55 @@ function CreateWorkspaceModal({
             </div>
           </div>
 
+          {/* Visibility toggle */}
+          <div>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+              {zh ? '可見度' : 'Visibility'}
+            </label>
+            <select
+              className="mt-input"
+              value={visibility}
+              onChange={e => setVisibility(e.target.value as any)}
+              style={{ width: '100%' }}
+            >
+              <option value="private">{t('ws_settings.vis_private')}</option>
+              <option value="restricted">{t('ws_settings.vis_restricted')}</option>
+              <option value="conditional_public">{t('ws_settings.vis_conditional_public')}</option>
+              <option value="public">{t('ws_settings.vis_public')}</option>
+            </select>
+            {visibility === 'public' && (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+                {zh ? '任何人（包含未登入用戶）均可瀏覽此知識庫。' : 'Anyone, including unauthenticated users, can browse this workspace.'}
+              </div>
+            )}
+          </div>
+
+          {/* P4.1-E: Embedding model selector */}
+          <div>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <Brain size={12} />
+              {zh ? '向量模型（建立後鎖定）' : 'Embedding Model (locked after creation)'}
+            </label>
+            {embedModels.length > 1 ? (
+              <select
+                className="mt-input"
+                value={selectedEmbedModel}
+                onChange={e => setSelectedEmbedModel(e.target.value)}
+                style={{ width: '100%' }}
+              >
+                {embedModels.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.id} ({m.dim}d)
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div style={{ background: 'var(--bg-elevated)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)', fontSize: 12 }}>
+                {selectedEmbedModel ? `${selectedEmbedModel} (${embedModels[0]?.dim ?? '?'}d)` : (zh ? '載入中…' : 'Loading…')}
+              </div>
+            )}
+          </div>
+
           {error && <div style={{ color: 'var(--color-error)', fontSize: 13 }}>{error}</div>}
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
@@ -157,6 +254,196 @@ function CreateWorkspaceModal({
             </button>
             <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
               {loading ? (zh ? '建立中…' : 'Creating…') : (zh ? '建立' : 'Create')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ForkWorkspaceModal ─────────────────────────────────────────────────────────
+
+function ForkWorkspaceModal({
+  sourceWs,
+  onForked,
+  onClose,
+}: {
+  sourceWs: Workspace;
+  onForked: (job: WorkspaceCloneJob, targetWs: Workspace) => void;
+  onClose: () => void;
+}) {
+  const { i18n } = useTranslation();
+  const zh = i18n.language === 'zh-TW';
+  const { toast } = useModal();
+  const [nameZh, setNameZh] = useState(`${sourceWs.name_zh} (Fork)`);
+  const [nameEn, setNameEn] = useState(`${sourceWs.name_en} (Fork)`);
+  const [embedModels, setEmbedModels] = useState<{ id: string; dim: number }[]>([]);
+  const [selectedEmbedModel, setSelectedEmbedModel] = useState<string>(sourceWs.embedding_model);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Build embed model list: auto-resolve + inherit from source
+    ai.getResolvedModel('embedding').then(async resolved => {
+      const provider = resolved.provider?.toLowerCase() ?? '';
+      if (provider === 'ollama') {
+        try {
+          const all = await ai.listModels('ollama');
+          const list = all
+            .filter(m => m.model_type === 'embedding')
+            .map(m => ({ id: m.id, dim: m.embedding_dim ?? 768 }));
+          // Ensure source model is in the list (even if not installed locally)
+          if (!list.find(m => m.id === sourceWs.embedding_model)) {
+            list.unshift({ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim });
+          }
+          setEmbedModels(list.length ? list : [{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
+        } catch {
+          setEmbedModels([{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
+        }
+      } else {
+        const knownList = KNOWN_EMBED_MODELS[provider] ?? [];
+        const combined = [...knownList];
+        if (!combined.find(m => m.id === sourceWs.embedding_model)) {
+          combined.unshift({ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim });
+        }
+        setEmbedModels(combined.length ? combined : [{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
+      }
+    }).catch(() => {
+      setEmbedModels([{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
+    });
+  }, [sourceWs.embedding_model, sourceWs.embedding_dim]);
+
+  const handleFork = async () => {
+    if (!nameZh.trim() || !nameEn.trim()) {
+      setError(zh ? '請填寫中英文名稱' : 'Both names are required');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const job = await workspaces.fork(sourceWs.id, {
+        name_zh: nameZh.trim(),
+        name_en: nameEn.trim(),
+        embedding_model: selectedEmbedModel || undefined,
+      });
+      // Fetch the newly created target workspace to pass to the parent
+      const allWs = await workspaces.list();
+      const targetWs = allWs.find(w => w.id === job.target_ws_id) ?? null;
+      toast({ message: zh ? `🍴 Fork 已啟動，正在背景搬移節點…` : `🍴 Fork started — migrating nodes in background…`, variant: 'info' });
+      if (targetWs) onForked(job, targetWs);
+      else onClose();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'var(--bg-overlay)', display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+      }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{
+        background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+        borderRadius: 16, padding: 32, width: 500, maxWidth: '90vw',
+        boxShadow: 'var(--shadow-lg)',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <GitFork size={20} color="var(--color-primary)" />
+            <h2 style={{ fontSize: 18 }}>{zh ? 'Fork 知識庫' : 'Fork Knowledge Base'}</h2>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Source info */}
+        <div style={{ background: 'var(--bg-elevated)', padding: '8px 14px', borderRadius: 8, marginBottom: 20, border: '1px solid var(--border-subtle)', fontSize: 12, color: 'var(--text-muted)' }}>
+          {zh ? '來源：' : 'Source: '}
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+            {zh ? sourceWs.name_zh : sourceWs.name_en}
+          </span>
+          {' '}
+          <span style={{ opacity: 0.6 }}>· {sourceWs.embedding_model} ({sourceWs.embedding_dim}d)</span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Names */}
+          <div>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+              {zh ? '新名稱（中文）' : 'New Name (Chinese)'}
+            </label>
+            <input className="mt-input" value={nameZh} onChange={e => setNameZh(e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+              {zh ? '新名稱（英文）' : 'New Name (English)'}
+            </label>
+            <input className="mt-input" value={nameEn} onChange={e => setNameEn(e.target.value)} />
+          </div>
+
+          {/* Embedding model */}
+          <div>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <Brain size={12} />
+              {zh ? '向量模型（建立後鎖定）' : 'Embedding Model (locked after creation)'}
+            </label>
+            {embedModels.length > 1 ? (
+              <select
+                className="mt-input"
+                value={selectedEmbedModel}
+                onChange={e => setSelectedEmbedModel(e.target.value)}
+                style={{ width: '100%' }}
+              >
+                {embedModels.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.id} ({m.dim}d)
+                    {m.id === sourceWs.embedding_model ? (zh ? ' ← 與來源相同' : ' ← same as source') : ''}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div style={{ background: 'var(--bg-elevated)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)', fontSize: 12 }}>
+                {selectedEmbedModel} ({sourceWs.embedding_dim}d)
+              </div>
+            )}
+            {selectedEmbedModel !== sourceWs.embedding_model && (
+              <div style={{ fontSize: 11, color: 'var(--color-warning, #D97706)', marginTop: 4 }}>
+                ⚠ {zh ? '選擇了不同的向量模型，Fork 後將重新計算所有節點的向量。' : 'Different model selected — all node embeddings will be recomputed.'}
+              </div>
+            )}
+          </div>
+
+          {/* Info notice */}
+          <div style={{ background: 'var(--bg-elevated)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            ℹ {zh
+              ? 'Fork 後將在背景搬移所有節點。搬移完成前語意搜尋不可用，但節點可正常瀏覽與編輯。可隨時取消。'
+              : 'Nodes will be migrated in the background. Semantic search is unavailable until migration completes, but nodes can be browsed and edited. You can cancel at any time.'}
+          </div>
+
+          {error && <div style={{ color: 'var(--color-error)', fontSize: 13 }}>{error}</div>}
+
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
+            <button className="btn-secondary" onClick={onClose} disabled={loading}>
+              {zh ? '取消' : 'Cancel'}
+            </button>
+            <button className="btn-primary" onClick={handleFork} disabled={loading || !nameZh.trim() || !nameEn.trim()}>
+              {loading
+                ? (zh ? 'Fork 中…' : 'Forking…')
+                : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <GitFork size={14} />
+                    {zh ? '開始 Fork' : 'Start Fork'}
+                  </span>
+                )}
             </button>
           </div>
         </div>
@@ -344,10 +631,47 @@ function SettingsPanel({
   const [authMode, setAuthMode] = useState<'none' | 'bearer'>('none');
   const [authToken, setAuthToken] = useState('');
   const [testing, setTesting] = useState(false);
+  const [ollamaModels, setOllamaModels] = useState<import('./api').ModelInfo[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
+  const [modelFetchSource, setModelFetchSource] = useState<'server' | 'fallback' | null>(null);
+  const [defaultChatModel, setDefaultChatModel] = useState('');
+  const [defaultEmbeddingModel, setDefaultEmbeddingModel] = useState('');
+
+  // Derived lists from fetched models
+  const chatModels = ollamaModels.filter(m => m.model_type !== 'embedding');
+  const embeddingModels = ollamaModels.filter(m => m.model_type === 'embedding');
+  const selectedEmbedDim = embeddingModels.find(m => m.id === defaultEmbeddingModel)?.embedding_dim ?? null;
 
   const loadData = () => {
     ai.listKeys().then(setKeys).catch(() => {});
     users.apiKeys.list().then(setPersonalKeys).catch(() => {});
+  };
+
+  const fetchOllamaModels = async (silent = false) => {
+    if (!baseUrl) {
+      if (!silent) setError(zh ? '請先輸入 Base URL' : 'Please enter Base URL first');
+      return;
+    }
+    setError('');
+    setFetchingModels(true);
+    setModelFetchSource(null);
+    try {
+      const ms = await ai.listModelsProxy('ollama', { base_url: baseUrl, auth_mode: authMode, auth_token: authToken });
+      setOllamaModels(ms);
+      // If backend appended fallback embedding models, all chat models are from server.
+      // If ALL models have no unique id outside known list AND none are marked needs_install = false,
+      // it's a pure fallback. Simplest heuristic: if any model lacks needs_install flag and isn't
+      // in the static known list, it came from the server.
+      const knownFallbackIds = new Set(['llama3','mistral','mixtral','phi3','phi4','gemma2','qwen2.5','deepseek-r1','nomic-embed-text','mxbai-embed-large','all-minilm','bge-m3','llama3:8b','llama3:70b','llama3.2']);
+      const chatFromServer = ms.filter((m: any) => m.model_type !== 'embedding');
+      const looksLiveFetch = chatFromServer.some((m: any) => !knownFallbackIds.has(m.id));
+      setModelFetchSource(looksLiveFetch ? 'server' : 'fallback');
+      if (!silent) toast({ message: zh ? '已取得模型列表' : 'Models fetched', variant: 'success' });
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setFetchingModels(false);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -374,16 +698,16 @@ function SettingsPanel({
 
   const handleRevokePersonalKey = async (id: string, name: string) => {
     const ok = await confirm({
-      title: zh ? '撤銷 API Key' : 'Revoke API Key',
-      message: zh ? `確定要撤銷 ${name} 嗎？此操作無法還原。` : `Revoke ${name}? This cannot be undone.`,
+      title: zh ? '刪除 API Key' : 'Delete API Key',
+      message: zh ? `確定要刪除 ${name} 嗎？此操作無法還原。` : `Delete ${name}? This cannot be undone.`,
       variant: 'danger',
-      confirmLabel: zh ? '撤銷' : 'Revoke',
+      confirmLabel: zh ? '刪除' : 'Delete',
     });
     if (!ok) return;
     try {
       await users.apiKeys.revoke(id);
       loadData();
-      toast({ message: zh ? '已撤銷' : 'Revoked', variant: 'success' });
+      toast({ message: zh ? '已刪除' : 'Deleted', variant: 'success' });
     } catch (e: any) {
       toast({ message: e.message, variant: 'error' });
     }
@@ -394,20 +718,32 @@ function SettingsPanel({
       setError(zh ? 'API Key 太短' : 'API key too short');
       return;
     }
-    if (provider === 'ollama' && !baseUrl) {
-      setError(zh ? '請輸入 Base URL' : 'Base URL required');
-      return;
+    if (provider === 'ollama') {
+      if (!baseUrl) {
+        setError(zh ? '請輸入 Base URL' : 'Base URL required');
+        return;
+      }
+      if (!defaultChatModel) {
+        setError(zh ? '請選擇預設對話模型' : 'Please select a default chat model');
+        return;
+      }
+      if (!defaultEmbeddingModel) {
+        setError(zh ? '請選擇預設向量模型' : 'Please select a default embedding model');
+        return;
+      }
     }
     setSaving(true);
     setError('');
     setSuccess('');
     try {
-      await ai.createKey({ 
-        provider, 
+      await ai.createKey({
+        provider,
         api_key: apiKey,
         base_url: provider === 'ollama' ? baseUrl : undefined,
         auth_mode: provider === 'ollama' ? authMode : undefined,
         auth_token: provider === 'ollama' ? authToken : undefined,
+        default_chat_model: provider === 'ollama' ? defaultChatModel : undefined,
+        default_embedding_model: provider === 'ollama' ? defaultEmbeddingModel : undefined,
       });
       setApiKey('');
       setSuccess(zh ? '已儲存' : 'Saved');
@@ -430,6 +766,9 @@ function SettingsPanel({
         base_url: baseUrl,
         auth_mode: authMode,
         auth_token: authToken,
+        // For Ollama, pass the selected chat model so the test doesn't use the
+        // hardcoded default "llama3" which may not be installed on the server.
+        model: provider === 'ollama' ? (defaultChatModel || undefined) : undefined,
       });
       setSuccess(zh ? '連線測試成功' : 'Connection test successful');
     } catch (e: any) {
@@ -554,24 +893,20 @@ function SettingsPanel({
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                 borderRadius: 8, padding: '10px 14px',
-                opacity: k.revoked_at ? 0.6 : 1,
               }}>
                 <div>
                   <span style={{ fontSize: 13, fontWeight: 500 }}>{k.name}</span>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 10 }}>
                     {k.prefix}••••••••••••
                   </span>
-                  {k.revoked_at && <span style={{ fontSize: 11, color: 'var(--color-error)', marginLeft: 8 }}>{zh ? '(已撤銷)' : '(Revoked)'}</span>}
                 </div>
-                {!k.revoked_at && (
-                  <button
-                    onClick={() => handleRevokePersonalKey(k.id, k.name)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    title={zh ? '撤銷' : 'Revoke'}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
+                <button
+                  onClick={() => handleRevokePersonalKey(k.id, k.name)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                  title={zh ? '刪除' : 'Delete'}
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
             ))}
           </div>
@@ -671,13 +1006,23 @@ function SettingsPanel({
                     setProvider(p.value);
                     const existing = keys.find(k => k.provider === p.value);
                     if (existing) {
-                      setBaseUrl(existing.base_url || '');
+                      const savedUrl = existing.base_url || '';
+                      setBaseUrl(savedUrl);
                       setAuthMode((existing.auth_mode as any) || 'none');
                       setAuthToken(existing.auth_token || '');
+                      setDefaultChatModel(existing.default_chat_model || '');
+                      setDefaultEmbeddingModel(existing.default_embedding_model || '');
+                      // Auto-fetch models when switching to a configured Ollama provider
+                      if (p.value === 'ollama' && savedUrl) {
+                        setTimeout(() => fetchOllamaModels(true), 0);
+                      }
                     } else {
                       setBaseUrl('');
                       setAuthMode('none');
                       setAuthToken('');
+                      setDefaultChatModel('');
+                      setDefaultEmbeddingModel('');
+                      setOllamaModels([]);
                     }
                     setError('');
                     setSuccess('');
@@ -698,26 +1043,27 @@ function SettingsPanel({
           </div>
           {provider === 'ollama' ? (
             <>
+              {/* ── Step 1: Connection ── */}
               <div>
                 <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Base URL</label>
                 <input
                   className="mt-input"
                   placeholder="http://localhost:11434"
                   value={baseUrl}
-                  onChange={e => setBaseUrl(e.target.value)}
+                  onChange={e => { setBaseUrl(e.target.value); setModelFetchSource(null); }}
                 />
               </div>
               <div style={{ display: 'flex', gap: 12 }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Auth Mode</label>
+                  <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{zh ? '認證模式' : 'Auth Mode'}</label>
                   <select className="mt-input" value={authMode} onChange={e => setAuthMode(e.target.value as any)}>
-                    <option value="none">None</option>
+                    <option value="none">{zh ? '無認證（本機）' : 'None (local)'}</option>
                     <option value="bearer">Bearer Token</option>
                   </select>
                 </div>
                 {authMode === 'bearer' && (
                   <div style={{ flex: 2 }}>
-                    <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Auth Token</label>
+                    <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Token</label>
                     <input
                       className="mt-input"
                       type="password"
@@ -725,6 +1071,99 @@ function SettingsPanel({
                       value={authToken}
                       onChange={e => setAuthToken(e.target.value)}
                     />
+                  </div>
+                )}
+              </div>
+
+              {/* ── Step 2: Fetch & pick models ── */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => fetchOllamaModels(false)}
+                  disabled={fetchingModels || !baseUrl}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  {fetchingModels
+                    ? (zh ? '取得中…' : 'Fetching…')
+                    : (zh ? '取得模型列表' : 'Fetch Models')}
+                </button>
+                {modelFetchSource === 'server' && (() => {
+                  const serverChatCount = chatModels.length;
+                  const needsInstallEmbeds = embeddingModels.filter(m => m.needs_install);
+                  const liveEmbedCount = embeddingModels.length - needsInstallEmbeds.length;
+                  return (
+                    <span style={{ fontSize: 11, color: 'var(--color-success)' }}>
+                      ✓ {zh
+                        ? `${serverChatCount} 個對話模型${liveEmbedCount > 0 ? `・${liveEmbedCount} 個向量模型` : ''}`
+                        : `${serverChatCount} chat model${serverChatCount !== 1 ? 's' : ''}${liveEmbedCount > 0 ? ` · ${liveEmbedCount} embedding` : ''}`}
+                      {needsInstallEmbeds.length > 0 && (
+                        <span style={{ color: 'var(--color-warning, #f59e0b)', marginLeft: 6 }}>
+                          · {zh ? `向量模型需另行安裝` : `embedding models need install`}
+                        </span>
+                      )}
+                    </span>
+                  );
+                })()}
+                {modelFetchSource === 'fallback' && (
+                  <span style={{ fontSize: 11, color: 'var(--color-warning, #f59e0b)' }}>
+                    ⚠ {zh ? '伺服器未回應，顯示預設清單' : 'Server unavailable — showing default list'}
+                  </span>
+                )}
+              </div>
+
+              {/* Chat model selector */}
+              <div>
+                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
+                  {zh ? '預設對話模型' : 'Default Chat Model'}
+                  {!defaultChatModel && ollamaModels.length > 0 && (
+                    <span style={{ color: 'var(--color-error)', marginLeft: 6 }}>*</span>
+                  )}
+                </label>
+                <select
+                  className="mt-input"
+                  value={defaultChatModel}
+                  onChange={e => setDefaultChatModel(e.target.value)}
+                  disabled={ollamaModels.length === 0}
+                >
+                  <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇對話模型 --' : '-- Select chat model --')}</option>
+                  {chatModels.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
+                  {/* Preserve previously saved value even if not in current list */}
+                  {defaultChatModel && !chatModels.find(m => m.id === defaultChatModel) && (
+                    <option value={defaultChatModel}>{defaultChatModel}</option>
+                  )}
+                </select>
+              </div>
+
+              {/* Embedding model selector */}
+              <div>
+                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
+                  {zh ? '預設向量模型' : 'Default Embedding Model'}
+                  {!defaultEmbeddingModel && ollamaModels.length > 0 && (
+                    <span style={{ color: 'var(--color-error)', marginLeft: 6 }}>*</span>
+                  )}
+                </label>
+                <select
+                  className="mt-input"
+                  value={defaultEmbeddingModel}
+                  onChange={e => setDefaultEmbeddingModel(e.target.value)}
+                  disabled={ollamaModels.length === 0}
+                >
+                  <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇向量模型 --' : '-- Select embedding model --')}</option>
+                  {embeddingModels.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {/* needs_install models already include "(需安裝)" in display_name from backend */}
+                      {m.needs_install
+                        ? m.display_name
+                        : `${m.display_name}${m.embedding_dim ? ` (${m.embedding_dim}d)` : ''}`}
+                    </option>
+                  ))}
+                  {defaultEmbeddingModel && !embeddingModels.find(m => m.id === defaultEmbeddingModel) && (
+                    <option value={defaultEmbeddingModel}>{defaultEmbeddingModel}</option>
+                  )}
+                </select>
+                {selectedEmbedDim && (
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    {zh ? `向量維度：${selectedEmbedDim}（工作區建立後鎖定）` : `Embedding dim: ${selectedEmbedDim} — locked after workspace creation`}
                   </div>
                 )}
               </div>
@@ -825,6 +1264,8 @@ export default function App() {
     return () => window.removeEventListener('mt:session-expired', onExpired);
   }, []);
 
+
+
   const handleUpdateOnboarding = async (data: Partial<Onboarding>) => {
     if (!onboarding) return;
     try {
@@ -847,10 +1288,29 @@ export default function App() {
   const [selectedWs, setSelectedWs] = useState<Workspace | null>(null);
   const [wsMenuOpen, setWsMenuOpen] = useState(false);
   const [showCreateWs, setShowCreateWs] = useState(false);
+  const [showForkWs, setShowForkWs] = useState<Workspace | null>(null); // P4.1-F: source workspace to fork
+  const [cancellingJob, setCancellingJob] = useState(false);
   const wsMenuRef = useRef<HTMLDivElement>(null);
 
   // True when the current user has write access to the selected workspace
-  const canWrite = !!(selectedWs && selectedWs.my_role && ['admin', 'editor'].includes(selectedWs.my_role));
+  const canWrite = !!(selectedWs && selectedWs.my_role && ['admin', 'editor', 'owner'].includes(selectedWs.my_role));
+
+  useEffect(() => {
+    const onDeleted = (e: any) => {
+      const deletedId = e.detail?.wsId;
+      if (!deletedId) return;
+      setWsList(prev => prev.filter(w => w.id !== deletedId));
+      setSelectedWs(prev => {
+        if (prev?.id === deletedId) return null;
+        return prev;
+      });
+      if (selectedWs?.id === deletedId) {
+        setCurrentView('graph');
+      }
+    };
+    window.addEventListener('workspace-deleted', onDeleted);
+    return () => window.removeEventListener('workspace-deleted', onDeleted);
+  }, [selectedWs]);
 
   useEffect(() => {
     if (!authenticated) return;
@@ -859,6 +1319,32 @@ export default function App() {
       if (list.length > 0 && !selectedWs) setSelectedWs(list[0]);
     }).catch(() => {});
   }, [authenticated]);
+
+  const [cloneJob, setCloneJob] = useState<WorkspaceCloneJob | null>(null);
+
+  useEffect(() => {
+    if (!selectedWs) {
+      setCloneJob(null);
+      return;
+    }
+    let timer: any;
+    const poll = async () => {
+      try {
+        const job = await workspaces.getCloneStatus(selectedWs.id);
+        setCloneJob(job);
+        // Keep polling while in a transient state
+        if (job && ['pending', 'running', 'cancelling'].includes(job.status)) {
+          timer = setTimeout(poll, 3000);
+        } else {
+          setCancellingJob(false);
+        }
+      } catch {
+        setCloneJob(null);
+      }
+    };
+    poll();
+    return () => clearTimeout(timer);
+  }, [selectedWs?.id]);
 
   // ── Dynamic Title ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -884,6 +1370,7 @@ export default function App() {
     setWsList(prev => [ws, ...prev]);
     setSelectedWs(ws);
     setShowCreateWs(false);
+    setCurrentView('ingest');
   };
 
   // ── Navigation ────────────────────────────────────────────────────────────
@@ -936,7 +1423,15 @@ export default function App() {
           user={user}
           state={onboarding}
           onUpdate={handleUpdateOnboarding}
-          onComplete={() => handleUpdateOnboarding({ completed: true })}
+          onComplete={async () => {
+            await handleUpdateOnboarding({ completed: true });
+            const list = await workspaces.list();
+            setWsList(list);
+            if (list.length > 0 && !selectedWs) {
+              setSelectedWs(list[0]);
+              setCurrentView('ingest');
+            }
+          }}
           onOpenSpecKb={() => {
             const specKb = wsList.find(ws => ws.id === 'ws_spec0001');
             if (specKb) {
@@ -957,6 +1452,21 @@ export default function App() {
         <CreateWorkspaceModal
           onCreated={handleWsCreated}
           onClose={() => setShowCreateWs(false)}
+        />
+      )}
+
+      {/* ── Fork Workspace Modal (P4.1-F) ────────────────────────────────── */}
+      {showForkWs && (
+        <ForkWorkspaceModal
+          sourceWs={showForkWs}
+          onForked={(job, targetWs) => {
+            setShowForkWs(null);
+            // Add the new forked workspace to the list and navigate to it
+            setWsList(prev => [targetWs, ...prev]);
+            setSelectedWs(targetWs);
+            setCloneJob(job);
+          }}
+          onClose={() => setShowForkWs(null)}
         />
       )}
 
@@ -1057,18 +1567,41 @@ export default function App() {
                     {wsList.filter(ws => ws.visibility === 'public' || ws.visibility === 'conditional_public').map(ws => (
                       <div
                         key={ws.id}
-                        onClick={() => { setSelectedWs(ws); setWsMenuOpen(false); }}
                         style={{
-                          padding: '9px 14px', cursor: 'pointer', fontSize: 13,
+                          padding: '7px 14px', cursor: 'pointer', fontSize: 13,
                           background: selectedWs?.id === ws.id ? 'var(--color-primary-subtle)' : 'transparent',
                           color: selectedWs?.id === ws.id ? 'var(--color-primary)' : 'var(--text-primary)',
                           transition: 'all 0.15s',
                           display: 'flex', alignItems: 'center', gap: 6,
                         }}
+                        onClick={() => { setSelectedWs(ws); setWsMenuOpen(false); }}
                       >
                         <Globe size={11} style={{ opacity: 0.5, flexShrink: 0 }} />
-                        {zh ? ws.name_zh : ws.name_en}
-                        <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 'auto' }}>{ws.kb_type}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {zh ? ws.name_zh : ws.name_en}
+                        </span>
+                        <span style={{ fontSize: 10, opacity: 0.6 }}>{ws.kb_type}</span>
+                        {/* P4.1-F: Fork button — only for public workspaces not owned by current user */}
+                        {user && ws.owner_id !== user.id && (
+                          <button
+                            title={zh ? 'Fork 此知識庫' : 'Fork this KB'}
+                            onClick={e => {
+                              e.stopPropagation();
+                              setWsMenuOpen(false);
+                              setShowForkWs(ws);
+                            }}
+                            style={{
+                              padding: '2px 6px', borderRadius: 6, fontSize: 10,
+                              border: '1px solid var(--border-default)',
+                              background: 'transparent', cursor: 'pointer',
+                              color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <GitFork size={10} />
+                            Fork
+                          </button>
+                        )}
                       </div>
                     ))}
                   </>
@@ -1088,6 +1621,92 @@ export default function App() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* P4.1-C/F: Clone / Fork progress panel */}
+        {!sidebarCollapsed && cloneJob && ['pending', 'running', 'cancelling', 'cancelled', 'failed'].includes(cloneJob.status) && (
+          <div style={{ padding: '0 12px 16px' }}>
+            <div style={{
+              padding: '10px 12px',
+              background: cloneJob.status === 'failed' ? 'var(--color-error-subtle)'
+                        : cloneJob.status === 'cancelled' ? 'var(--bg-elevated)'
+                        : 'var(--bg-elevated)',
+              borderRadius: 10,
+              border: `1px solid ${
+                cloneJob.status === 'failed' ? 'var(--color-error)' : 'var(--border-default)'
+              }`,
+            }}>
+              {/* Status row */}
+              <div style={{
+                fontSize: 11,
+                color: cloneJob.status === 'failed' ? 'var(--color-error)' : 'var(--text-muted)',
+                marginBottom: 6,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {cloneJob.status === 'failed' && <AlertTriangle size={12} />}
+                  {cloneJob.status === 'cancelled' && <XCircle size={12} />}
+                  {['pending', 'running', 'cancelling'].includes(cloneJob.status) && (
+                    <RefreshCw size={12} className="animate-spin-slow" />
+                  )}
+                  {cloneJob.status === 'failed'
+                    ? (zh ? `${cloneJob.is_fork ? 'Fork' : '複製'}失敗` : `${cloneJob.is_fork ? 'Fork' : 'Clone'} Failed`)
+                    : cloneJob.status === 'cancelled'
+                    ? (zh ? '已取消' : 'Cancelled')
+                    : cloneJob.status === 'cancelling'
+                    ? (zh ? '取消中…' : 'Cancelling…')
+                    : zh
+                    ? `${cloneJob.is_fork ? 'Fork' : '複製'}進行中…`
+                    : `${cloneJob.is_fork ? 'Fork' : 'Clone'} in progress…`}
+                </span>
+                {['pending', 'running'].includes(cloneJob.status) && cloneJob.total_nodes > 0 && (
+                  <span>{cloneJob.processed_nodes} / {cloneJob.total_nodes}</span>
+                )}
+              </div>
+
+              {/* Progress bar */}
+              {['pending', 'running'].includes(cloneJob.status) && (
+                <div style={{ height: 4, background: 'var(--border-default)', borderRadius: 2, overflow: 'hidden', marginBottom: 8 }}>
+                  <div style={{
+                    height: '100%',
+                    background: 'var(--color-primary)',
+                    width: `${Math.max(5, (cloneJob.processed_nodes / (cloneJob.total_nodes || 1)) * 100)}%`,
+                    transition: 'width 0.3s',
+                  }} />
+                </div>
+              )}
+
+              {/* Error message */}
+              {cloneJob.status === 'failed' && (
+                <div style={{ fontSize: 10, color: 'var(--color-error)', opacity: 0.8 }}>{cloneJob.error_msg}</div>
+              )}
+
+              {/* Cancel button (only for active jobs) */}
+              {['pending', 'running'].includes(cloneJob.status) && (
+                <button
+                  onClick={async () => {
+                    if (cancellingJob) return;
+                    setCancellingJob(true);
+                    try {
+                      await workspaces.cancelCloneJob(cloneJob.id);
+                    } catch {
+                      setCancellingJob(false);
+                    }
+                  }}
+                  disabled={cancellingJob}
+                  style={{
+                    marginTop: 4,
+                    fontSize: 11, padding: '2px 8px', borderRadius: 6,
+                    border: '1px solid var(--border-default)',
+                    background: 'transparent', cursor: cancellingJob ? 'default' : 'pointer',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  {cancellingJob ? (zh ? '取消中…' : 'Cancelling…') : (zh ? '取消' : 'Cancel')}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -1149,7 +1768,7 @@ export default function App() {
               title={sidebarCollapsed ? t('sidebar.ingest') : undefined}
               onClick={() => setCurrentView('ingest')}
             >
-              <Mail size={18} />
+              <FileUp size={18} />
               {!sidebarCollapsed && <span className="nav-text">{t('sidebar.ingest')}</span>}
             </div>
           )}
@@ -1188,6 +1807,7 @@ export default function App() {
             reloadKey={graphVersion}
             onEditNode={node => setEditingNode(node)}
             onNewNode={() => setEditingNode(null)}
+            onSwitchView={setCurrentView}
           />
         )}
         {currentView === 'analytics' && selectedWs && (

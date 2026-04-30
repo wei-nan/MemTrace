@@ -109,7 +109,11 @@ CREATE TABLE workspaces (
   min_traversals       INTEGER NOT NULL DEFAULT 1,
   
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  -- AI Model Locking (Phase 4.1)
+  embedding_model TEXT,
+  embedding_dim   INTEGER
 );
 
 CREATE TABLE workspace_members (
@@ -197,8 +201,8 @@ CREATE TABLE memory_nodes (
   status          node_status NOT NULL DEFAULT 'active',
   archived_at     TIMESTAMPTZ,
 
-  -- Semantic embedding (text-embedding-3-small = 1536 dims)
-  embedding       vector(1536)
+  -- Semantic embedding (Phase 4.1: dynamic vector size based on locked model)
+  embedding       vector
 );
 
 CREATE INDEX idx_nodes_workspace   ON memory_nodes (workspace_id);
@@ -206,8 +210,9 @@ CREATE INDEX idx_nodes_tags        ON memory_nodes USING GIN (tags);
 CREATE INDEX idx_nodes_visibility  ON memory_nodes (visibility);
 CREATE INDEX idx_nodes_author      ON memory_nodes (author);
 CREATE INDEX idx_nodes_trust_score ON memory_nodes (trust_score);
-CREATE INDEX idx_nodes_embedding   ON memory_nodes USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
+-- Note: Generic vector type (Phase 4.1) does not support HNSW/IVFFlat indexing.
+-- Sequential scan with workspace_id filtering is used for semantic search.
+
 
 -- ─── EDGES ────────────────────────────────────────────────────────
 
@@ -483,3 +488,23 @@ CREATE TABLE review_queue (
 
 CREATE INDEX idx_review_workspace ON review_queue (workspace_id);
 CREATE INDEX idx_review_status    ON review_queue (status);
+
+-- ─── WORKSPACE CLONE JOBS (Phase 4.1) ─────────────────────────────
+
+CREATE TABLE workspace_clone_jobs (
+    id              TEXT PRIMARY KEY,
+    source_ws_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    target_ws_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    status          TEXT NOT NULL DEFAULT 'pending', -- pending, running, completed, failed
+    total_nodes     INTEGER NOT NULL DEFAULT 0,
+    processed_nodes INTEGER NOT NULL DEFAULT 0,
+    error_msg       TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TRIGGER trg_update_clone_job_timestamp
+    BEFORE UPDATE ON workspace_clone_jobs
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+

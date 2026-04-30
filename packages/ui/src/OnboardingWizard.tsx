@@ -4,7 +4,7 @@ import {
   CheckCircle2, Mail, Database, FileUp, 
   Settings2, PartyPopper, ChevronRight,
   Upload, Loader2, AlertCircle, RefreshCw,
-  Languages, GitMerge, Key
+  Languages, GitMerge, Key, Brain
 } from 'lucide-react';
 import { auth, workspaces, ai, ingest, type Onboarding } from './api';
 
@@ -41,6 +41,7 @@ export default function OnboardingWizard({
   // KB State
   const [kbNameZh, setKbNameZh] = useState('');
   const [kbNameEn, setKbNameEn] = useState('');
+  const [kbVisibility, setKbVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
   
   // AI State
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>('openai');
@@ -48,6 +49,51 @@ export default function OnboardingWizard({
   const [baseUrl, setBaseUrl] = useState('');
   const [authMode, setAuthMode] = useState<'none' | 'bearer'>('none');
   const [authToken, setAuthToken] = useState('');
+  // Ollama model selection
+  const [ollamaModels, setOllamaModels] = useState<any[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
+  const [modelFetchSource, setModelFetchSource] = useState<'server' | 'fallback' | null>(null);
+  const [defaultChatModel, setDefaultChatModel] = useState('');
+  const [defaultEmbeddingModel, setDefaultEmbeddingModel] = useState('');
+  const chatModels = ollamaModels.filter((m: any) => m.model_type !== 'embedding');
+  const embeddingModels = ollamaModels.filter((m: any) => m.model_type === 'embedding');
+  const selectedEmbedDim = embeddingModels.find((m: any) => m.id === defaultEmbeddingModel)?.embedding_dim ?? null;
+
+
+  // P4.1-E: Embedding model selection for KB creation
+  const [kbEmbedModels, setKbEmbedModels] = useState<{ id: string; dim: number }[]>([]);
+  const [selectedKbEmbedModel, setSelectedKbEmbedModel] = useState<string>('');
+
+  const KNOWN_EMBED_MODELS_WIZ: Record<string, { id: string; dim: number }[]> = {
+    openai:  [{ id: 'text-embedding-3-small', dim: 1536 }, { id: 'text-embedding-3-large', dim: 3072 }, { id: 'text-embedding-ada-002', dim: 1536 }],
+    gemini:  [{ id: 'text-embedding-004', dim: 768 }],
+    anthropic: [],
+  };
+
+  useEffect(() => {
+    ai.getResolvedModel('embedding').then(async resolved => {
+      const provider = resolved.provider?.toLowerCase() ?? '';
+      const autoModel = resolved.model ?? '';
+
+      if (provider === 'ollama') {
+        try {
+          const all = await ai.listModels('ollama');
+          const list = all.filter((m: any) => m.model_type === 'embedding')
+                         .map((m: any) => ({ id: m.id, dim: m.embedding_dim ?? 768 }));
+          setKbEmbedModels(list.length ? list : [{ id: autoModel, dim: 768 }]);
+        } catch {
+          setKbEmbedModels([{ id: autoModel, dim: 768 }]);
+        }
+      } else {
+        const knownList = KNOWN_EMBED_MODELS_WIZ[provider] ?? [{ id: autoModel, dim: 1536 }];
+        setKbEmbedModels(knownList.length ? knownList : [{ id: autoModel, dim: 1536 }]);
+      }
+      setSelectedKbEmbedModel(autoModel);
+    }).catch(() => {
+      setKbEmbedModels([{ id: 'text-embedding-3-small', dim: 1536 }]);
+      setSelectedKbEmbedModel('text-embedding-3-small');
+    });
+  }, [state.steps_done]);
 
   // Review State
   const [isProcessing, setIsProcessing] = useState(false);
@@ -81,8 +127,9 @@ export default function OnboardingWizard({
       const ws = await workspaces.create({
         name_zh: kbNameZh.trim(),
         name_en: kbNameEn.trim(),
-        visibility: 'private',
-        kb_type: 'evergreen'
+        visibility: kbVisibility,
+        kb_type: 'evergreen',
+        embedding_model: selectedKbEmbedModel || undefined,  // P4.1-E
       });
       onUpdate({ first_kb_id: ws.id, steps_done: [...new Set([...state.steps_done, 'kb'])] });
     } catch (e: any) {
@@ -133,19 +180,48 @@ export default function OnboardingWizard({
     if (file) handleUpload(file);
   };
 
+  const fetchOllamaModelsOnboarding = async () => {
+    if (!baseUrl) {
+      setError(zh ? '請先輸入 Base URL' : 'Please enter Base URL first');
+      return;
+    }
+    setFetchingModels(true);
+    setModelFetchSource(null);
+    setError('');
+    try {
+      const ms = await ai.listModelsProxy('ollama', { base_url: baseUrl, auth_mode: authMode, auth_token: authToken });
+      setOllamaModels(ms);
+      const knownFallbackIds = new Set(['llama3','mistral','mixtral','phi3','phi4','gemma2','qwen2.5','deepseek-r1','nomic-embed-text','mxbai-embed-large','all-minilm','bge-m3','llama3:8b','llama3:70b','llama3.2']);
+      const chatFromServer = ms.filter((m: any) => m.model_type !== 'embedding');
+      const looksLive = chatFromServer.some((m: any) => !knownFallbackIds.has(m.id));
+      setModelFetchSource(looksLive ? 'server' : 'fallback');
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setFetchingModels(false);
+    }
+  };
+
   const handleSaveAiKey = async () => {
-    if (apiKey.length < 10) {
+    if (provider !== 'ollama' && apiKey.length < 10) {
       setError(t('onboarding.configure_ai'));
       return;
     }
+    if (provider === 'ollama') {
+      if (!baseUrl) { setError(zh ? '請輸入 Base URL' : 'Base URL required'); return; }
+      if (!defaultChatModel) { setError(zh ? '請選擇預設對話模型' : 'Please select a default chat model'); return; }
+      if (!defaultEmbeddingModel) { setError(zh ? '請選擇預設向量模型' : 'Please select a default embedding model'); return; }
+    }
     setLoading(true);
     try {
-      await ai.createKey({ 
-        provider, 
+      await ai.createKey({
+        provider,
         api_key: apiKey,
         base_url: provider === 'ollama' ? baseUrl : undefined,
         auth_mode: provider === 'ollama' ? authMode : undefined,
         auth_token: provider === 'ollama' ? authToken : undefined,
+        default_chat_model: provider === 'ollama' ? defaultChatModel : undefined,
+        default_embedding_model: provider === 'ollama' ? defaultEmbeddingModel : undefined,
       });
       next('ai');
     } catch (e: any) {
@@ -244,6 +320,55 @@ export default function OnboardingWizard({
           placeholder={t('onboarding.kb_name_en')} 
           value={kbNameEn} onChange={e => setKbNameEn(e.target.value)}
         />
+        
+        {/* Visibility toggle */}
+        <div style={{ textAlign: 'left' }}>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            {zh ? '可見度' : 'Visibility'}
+          </label>
+          <select
+            className="mt-input"
+            value={kbVisibility}
+            onChange={e => setKbVisibility(e.target.value as any)}
+            style={{ width: '100%' }}
+          >
+            <option value="private">{t('ws_settings.vis_private')}</option>
+            <option value="restricted">{t('ws_settings.vis_restricted')}</option>
+            <option value="conditional_public">{t('ws_settings.vis_conditional_public')}</option>
+            <option value="public">{t('ws_settings.vis_public')}</option>
+          </select>
+          {kbVisibility === 'public' && (
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+              {zh ? '任何人均可瀏覽此知識庫。' : 'Anyone can browse this workspace.'}
+            </div>
+          )}
+        </div>
+
+        {/* P4.1-E: Embedding model selector */}
+        <div style={{ textAlign: 'left' }}>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <Brain size={12} />
+            {zh ? '向量模型（建立後鎖定）' : 'Embedding Model (locked after creation)'}
+          </label>
+          {kbEmbedModels.length > 1 ? (
+            <select
+              className="mt-input"
+              value={selectedKbEmbedModel}
+              onChange={e => setSelectedKbEmbedModel(e.target.value)}
+              style={{ width: '100%' }}
+            >
+              {kbEmbedModels.map(m => (
+                <option key={m.id} value={m.id}>{m.id} ({m.dim}d)</option>
+              ))}
+            </select>
+          ) : (
+            <div style={{ background: 'var(--bg-elevated)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)', fontSize: 12 }}>
+              {selectedKbEmbedModel
+                ? `${selectedKbEmbedModel} (${kbEmbedModels[0]?.dim ?? '?'}d)`
+                : (zh ? '載入中…' : 'Loading…')}
+            </div>
+          )}
+        </div>
       </div>
       {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
       <div className="flex-center mt-32 gap-12">
@@ -329,33 +454,94 @@ export default function OnboardingWizard({
       
       {provider === 'ollama' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
-          <input 
-            className="mt-input" 
+          {/* ── Connection ── */}
+          <input
+            className="mt-input"
             placeholder="Base URL (e.g. http://localhost:11434)"
-            value={baseUrl} onChange={e => setBaseUrl(e.target.value)}
+            value={baseUrl} onChange={e => { setBaseUrl(e.target.value); setModelFetchSource(null); }}
           />
           <div style={{ display: 'flex', gap: 10 }}>
             <select className="mt-input" style={{ flex: 1 }} value={authMode} onChange={e => setAuthMode(e.target.value as any)}>
-              <option value="none">No Auth</option>
+              <option value="none">{zh ? '無認證（本機）' : 'No Auth (local)'}</option>
               <option value="bearer">Bearer Token</option>
             </select>
             {authMode === 'bearer' && (
-              <input 
+              <input
                 type="password" className="mt-input" style={{ flex: 2 }}
                 placeholder="Token"
                 value={authToken} onChange={e => setAuthToken(e.target.value)}
               />
             )}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'left', padding: '0 4px' }}>
-            {zh 
-              ? "Embedding 維度對照：nomic-embed-text = 768｜mxbai-embed-large = 1024｜all-minilm = 384｜其他模型需手動填寫維度欄位。" 
-              : "Embedding dimensions: nomic-embed-text = 768 | mxbai-embed-large = 1024 | all-minilm = 384 | other models require manual input."}
+
+          {/* ── Fetch models ── */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              className="btn-secondary"
+              onClick={fetchOllamaModelsOnboarding}
+              disabled={fetchingModels || !baseUrl}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              {fetchingModels ? (zh ? '取得中…' : 'Fetching…') : (zh ? '取得模型列表' : 'Fetch Models')}
+            </button>
+            {modelFetchSource === 'server' && (
+              <span style={{ fontSize: 11, color: 'var(--color-success)' }}>
+                ✓ {zh ? `${ollamaModels.length} 個模型` : `${ollamaModels.length} models from server`}
+              </span>
+            )}
+            {modelFetchSource === 'fallback' && (
+              <span style={{ fontSize: 11, color: 'var(--color-warning, #f59e0b)' }}>
+                ⚠ {zh ? '顯示預設清單' : 'Showing default list'}
+              </span>
+            )}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-error)', marginTop: 4, textAlign: 'left', padding: '0 4px', fontWeight: 500 }}>
-            {zh
-              ? "⚠ 工作區建立後 embedding 維度將鎖定，無法更改。"
-              : "⚠ Embedding dimension is locked after workspace creation and cannot be changed."}
+
+          {/* ── Chat model ── */}
+          <div>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
+              {zh ? '預設對話模型 *' : 'Default Chat Model *'}
+            </label>
+            <select
+              className="mt-input"
+              value={defaultChatModel}
+              onChange={e => setDefaultChatModel(e.target.value)}
+              disabled={ollamaModels.length === 0}
+            >
+              <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇對話模型 --' : '-- Select chat model --')}</option>
+              {chatModels.map((m: any) => <option key={m.id} value={m.id}>{m.display_name}</option>)}
+            </select>
+          </div>
+
+          {/* ── Embedding model ── */}
+          <div>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
+              {zh ? '預設向量模型 *' : 'Default Embedding Model *'}
+            </label>
+            <select
+              className="mt-input"
+              value={defaultEmbeddingModel}
+              onChange={e => setDefaultEmbeddingModel(e.target.value)}
+              disabled={ollamaModels.length === 0}
+            >
+              <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇向量模型 --' : '-- Select embedding model --')}</option>
+              {embeddingModels.map((m: any) => (
+                <option key={m.id} value={m.id}>
+                  {/* needs_install models already include "(需安裝)" in display_name from backend */}
+                  {m.needs_install
+                    ? m.display_name
+                    : `${m.display_name}${m.embedding_dim ? ` (${m.embedding_dim}d)` : ''}`}
+                </option>
+              ))}
+            </select>
+            {selectedEmbedDim ? (
+              <div style={{ fontSize: 11, color: 'var(--color-error)', marginTop: 4, fontWeight: 500 }}>
+                ⚠ {zh ? `向量維度 ${selectedEmbedDim}d — 工作區建立後鎖定，無法更改` : `Embedding dim ${selectedEmbedDim}d — locked after workspace creation`}
+              </div>
+            ) : (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                {zh ? '取得模型列表後可自動顯示向量維度' : 'Embedding dim will be shown after fetching models'}
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -400,7 +586,7 @@ export default function OnboardingWizard({
             <button
               style={{
                 marginTop: 10, padding: '5px 14px', borderRadius: 8,
-                background: 'var(--color-primary)', color: '#fff',
+                background: 'var(--color-primary)', color: 'var(--text-on-primary)',
                 border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
               }}
               onClick={() => { onComplete(); onOpenSpecKb(); }}
@@ -519,17 +705,10 @@ export default function OnboardingWizard({
           padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-default);
           background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s;
         }
-        .provider-selector button.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+        .provider-selector button.active { background: var(--color-primary); color: var(--text-on-primary); border-color: var(--color-primary); }
         
         .error-text { color: var(--color-error); font-size: 13px; display: flex; alignItems: center; gap: 6px; justify-content: center; }
         
-        .btn-ghost {
-          background: transparent; border: none;
-          color: var(--text-muted); cursor: pointer;
-          padding: 8px 16px; border-radius: 8px;
-          transition: all 0.2s; font-size: 14px;
-        }
-        .btn-ghost:hover { background: var(--bg-elevated); color: var(--text-primary); }
 
         .mt-32 { margin-top: 32px; }
         .mt-24 { margin-top: 24px; }

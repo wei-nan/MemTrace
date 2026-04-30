@@ -1,13 +1,165 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
+import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Brain } from "lucide-react";
 import { ai, aiReviewers, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
+import { ModalOverlay } from "./components/Modal";
 import KbExportPanel from "./components/KbExportPanel";
 
 const DEFAULT_AI_REVIEW_PROMPT = `You are an AI reviewer for a collaborative knowledge graph.
 Return JSON with decision, confidence, and reasoning.
 Accept only low-risk, well-supported changes.`;
+
+function DeleteWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onConfirm: () => void, onCancel: () => void }) {
+  const { i18n } = useTranslation();
+  const zh = i18n.language === 'zh-TW';
+  const [typedName, setTypedName] = useState("");
+  const expectedName = ws.name_zh || ws.name_en;
+  const isValid = typedName === expectedName;
+
+  return (
+    <ModalOverlay onClose={onCancel}>
+      <div style={{ padding: 24 }}>
+        <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
+          <div style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 10, background: "var(--color-error-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <AlertTriangle size={20} color="var(--color-error)" />
+          </div>
+          <div style={{ flex: 1, paddingTop: 8 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{zh ? "確認刪除工作區" : "Delete Workspace"}</h3>
+          </div>
+        </div>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 16 }}>
+          {zh ? "此操作不可復原。刪除後所有節點、邊、成員記錄將永久消失。" : "This action cannot be undone. All nodes, edges, and member records will be permanently deleted."}
+          <br />
+          {zh ? `請輸入工作區名稱「${expectedName}」以確認刪除：` : `Please type the workspace name "${expectedName}" to confirm:`}
+        </p>
+        <input
+          className="mt-input"
+          style={{ width: "100%", marginBottom: 24 }}
+          value={typedName}
+          onChange={e => setTypedName(e.target.value)}
+          placeholder={expectedName}
+          autoFocus
+        />
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button className="btn-secondary" onClick={onCancel}>{zh ? "取消" : "Cancel"}</button>
+          <button 
+            className="btn-primary" 
+            style={{ background: isValid ? "var(--color-error)" : "var(--bg-elevated)", color: isValid ? "#fff" : "var(--text-muted)", border: "none", cursor: isValid ? "pointer" : "not-allowed" }}
+            disabled={!isValid}
+            onClick={onConfirm}
+          >
+            {zh ? "確認刪除" : "Confirm Delete"}
+          </button>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
+
+function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onConfirm: (data: { name_zh?: string; name_en?: string; new_embedding_model?: string; visibility?: string }) => void, onCancel: () => void }) {
+  const { t, i18n } = useTranslation();
+  const zh = i18n.language === 'zh-TW';
+  const [nameZh, setNameZh] = useState(`${ws.name_zh} (副本)`);
+  const [nameEn, setNameEn] = useState(`${ws.name_en} (Clone)`);
+  const [selectedModel, setSelectedModel] = useState(ws.embedding_model);
+  const [visibility, setVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
+  const [models, setModels] = useState<any[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      setLoadingModels(true);
+      try {
+        const resolved = await ai.getResolvedModel('embedding');
+        const ms = await ai.listModels(resolved.provider);
+        setModels(ms.filter(m => m.model_type === 'embedding'));
+      } catch (e) {
+        console.error("Failed to fetch models", e);
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    fetchModels();
+  }, []);
+
+  const needsRebuild = selectedModel !== ws.embedding_model;
+
+  return (
+    <ModalOverlay onClose={onCancel}>
+      <div style={{ padding: 24 }}>
+        <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
+          <div style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Copy size={20} color="var(--color-primary)" />
+          </div>
+          <div style={{ flex: 1, paddingTop: 8 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{zh ? "複製工作區 (Clone & Rebuild)" : "Clone Workspace"}</h3>
+          </div>
+        </div>
+        
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
+          <div>
+            <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{zh ? "中文名稱" : "Chinese Name"}</label>
+            <input className="mt-input" style={{ width: "100%" }} value={nameZh} onChange={e => setNameZh(e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{zh ? "英文名稱" : "English Name"}</label>
+            <input className="mt-input" style={{ width: "100%" }} value={nameEn} onChange={e => setNameEn(e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{zh ? "向量模型 (Embedding Model)" : "Embedding Model"}</label>
+            <select 
+              className="mt-input" 
+              style={{ width: "100%" }} 
+              value={selectedModel} 
+              onChange={e => setSelectedModel(e.target.value)}
+              disabled={loadingModels}
+            >
+              <option value={ws.embedding_model}>{ws.embedding_model} ({zh ? "當前" : "Current"})</option>
+              {models.filter(m => m.id !== ws.embedding_model).map(m => (
+                <option key={m.id} value={m.id}>{m.display_name || m.id}</option>
+              ))}
+            </select>
+            {needsRebuild && (
+              <div style={{ marginTop: 8, fontSize: 11, color: "var(--color-warning)", display: "flex", alignItems: "center", gap: 4 }}>
+                <RefreshCw size={12} className="animate-spin-slow" />
+                {zh ? "更換模型後將自動執行全量 Re-embed (可能產生較多 Token 消耗)" : "Changing model will trigger a full Re-embed (may consume significant tokens)"}
+              </div>
+            )}
+          </div>
+
+          {/* Visibility */}
+          <div>
+            <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 8 }}>
+              {zh ? "可見度" : "Visibility"}
+            </label>
+            <select
+              className="mt-input"
+              value={visibility}
+              onChange={e => setVisibility(e.target.value as any)}
+              style={{ width: '100%' }}
+            >
+              <option value="private">{t('ws_settings.vis_private')}</option>
+              <option value="restricted">{t('ws_settings.vis_restricted')}</option>
+              <option value="conditional_public">{t('ws_settings.vis_conditional_public')}</option>
+              <option value="public">{t('ws_settings.vis_public')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button className="btn-secondary" onClick={onCancel}>{zh ? "取消" : "Cancel"}</button>
+          <button
+            className="btn-primary"
+            onClick={() => onConfirm({ name_zh: nameZh, name_en: nameEn, new_embedding_model: selectedModel, visibility })}
+          >
+            {zh ? "開始複製" : "Start Clone"}
+          </button>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
@@ -224,7 +376,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
     try {
       await workspaces.revokeApiKey(wsId, id);
       await load();
-      toast({ message: t('ws_settings.revoke'), variant: "success" });
+      toast({ message: zh ? "API 金鑰已刪除" : "API key deleted", variant: "success" });
     } catch (e) {
       toast({ message: String(e), variant: "error" });
     }
@@ -250,24 +402,21 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {keys.map(k => (
-          <div key={k.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12, padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center", opacity: k.revoked_at ? 0.6 : 1 }}>
+          <div key={k.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12, padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                 {k.name} 
                 <span className="tag" style={{ color: "var(--color-primary)", background: "var(--color-primary-subtle)" }}>{k.scopes.join(', ')}</span>
-                {k.revoked_at && <span className="tag" style={{ color: "var(--color-error)" }}>Revoked</span>}
               </div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 4 }}>{k.prefix}********************</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
                 Created: {new Date(k.created_at).toLocaleDateString()} · Last used: {k.last_used_at ? new Date(k.last_used_at).toLocaleString() : "Never"}
               </div>
             </div>
-            {!k.revoked_at && (
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn-secondary" onClick={() => handleRotate(k.id)} title="Rotate Token"><RefreshCw size={14} /></button>
-                <button className="btn-secondary" onClick={() => handleRevoke(k.id)}><Trash2 size={14} /></button>
-              </div>
-            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn-secondary" onClick={() => handleRotate(k.id)} title="Rotate Token"><RefreshCw size={14} /></button>
+              <button className="btn-secondary" onClick={() => handleRevoke(k.id)} title={zh ? "刪除" : "Delete"}><Trash2 size={14} /></button>
+            </div>
           </div>
         ))}
         {!loading && keys.length === 0 && <div style={{ color: "var(--text-muted)", textAlign: "center", padding: 20 }}>{t('ws_settings.noRequests')}</div>}
@@ -291,6 +440,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [inviteDays, setInviteDays] = useState(7);
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
   const [associations, setAssociations] = useState<WorkspaceAssociation[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCloneDialog, setShowCloneDialog] = useState(false);
   const [workspaceSearch, setWorkspaceSearch] = useState("");
   const [workspaceResults, setWorkspaceResults] = useState<Workspace[]>([]);
   const [tab, setTab] = useState<MainTab>("general");
@@ -451,6 +602,65 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
             </div>
           </SectionCard>
 
+          <SectionCard>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Brain size={20} color="var(--color-primary)" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "向量模型 (已鎖定)" : "Embedding Model (Locked)"}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  {ws?.embedding_model} ({ws?.embedding_dim}d)
+                </div>
+              </div>
+              <div className="info-tooltip-wrapper">
+                <Info size={14} style={{ color: "var(--text-muted)", cursor: "help" }} />
+                <div className="info-tooltip" style={{ width: 240 }}>
+                  {zh 
+                    ? "為確保知識圖譜語義一致，工作區建立後向量模型即鎖定，不可更改。更換模型需建立新工作區並匯入資料。" 
+                    : "To ensure semantic consistency, the embedding model is locked after workspace creation. To use a different model, create a new workspace and import your data."}
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Copy size={20} color="var(--color-primary)" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "複製此工作區" : "Clone this Workspace"}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  {zh ? "建立完整副本，可選擇不同的向量模型進行重新索引。" : "Create a full copy, optionally with a new embedding model for re-indexing."}
+                </div>
+              </div>
+              <button 
+                className="btn-secondary" 
+                style={{ height: 36 }}
+                onClick={() => setShowCloneDialog(true)}
+              >
+                {zh ? "立即複製" : "Clone Now"}
+              </button>
+            </div>
+          </SectionCard>
+
+          {showCloneDialog && ws && (
+            <CloneWorkspaceDialog 
+              ws={ws} 
+              onCancel={() => setShowCloneDialog(false)}
+              onConfirm={async (data) => {
+                setShowCloneDialog(false);
+                try {
+                  await workspaces.clone(wsId, data);
+                  toast({ message: zh ? "複製任務已啟動" : "Clone job started", variant: "success" });
+                } catch (err) {
+                  toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
+                }
+              }}
+            />
+          )}
+
           {/* P6 - Decay Status */}
           {decayStats && (
             <SectionCard>
@@ -499,6 +709,44 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 </div>
               </div>
             </SectionCard>
+          )}
+
+          {ws?.owner_id === userId && (
+            <SectionCard>
+              <h3 style={{ fontSize: 16, margin: "0 0 12px", color: "var(--color-error)", display: "flex", alignItems: "center", gap: 8 }}>
+                <ShieldAlert size={18} /> {zh ? "危險區域" : "Danger Zone"}
+              </h3>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+                {zh ? "刪除工作區後所有資料將永久消失且無法復原。" : "Deleting the workspace will permanently erase all data. This cannot be undone."}
+              </p>
+              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                <button 
+                  className="btn-secondary" 
+                  style={{ color: "var(--color-error)", borderColor: "var(--color-error-subtle)" }}
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  {zh ? "刪除工作區" : "Delete Workspace"}
+                </button>
+              </div>
+            </SectionCard>
+          )}
+
+          {showDeleteDialog && ws && (
+            <DeleteWorkspaceDialog 
+              ws={ws} 
+              onCancel={() => setShowDeleteDialog(false)} 
+              onConfirm={async () => {
+                setShowDeleteDialog(false);
+                try {
+                  await workspaces.delete(wsId);
+                  toast({ message: zh ? `工作區「${ws.name_zh || ws.name_en}」已刪除` : `Workspace "${ws.name_zh || ws.name_en}" deleted`, variant: "success" });
+                  // Trigger a global refresh or navigation - App.tsx should handle the state update
+                  window.dispatchEvent(new CustomEvent('workspace-deleted', { detail: { wsId } }));
+                } catch (e) {
+                  toast({ message: String(e), variant: "error" });
+                }
+              }} 
+            />
           )}
         </div>
       ) : tab === "assoc" ? (

@@ -264,7 +264,9 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `kb_type`       | ENUM          | `evergreen` / `ephemeral` — governs decay behaviour (§7.3)    |
 | `owner_id`      | TEXT FK       | → `users.id`                                                  |
 | `archive_window_days` | INTEGER | Observation window for traversal-count archiving (default 90) |
-| `min_traversals`| INTEGER       | Traversal threshold before archiving (evergreen only, default 1) |
+| `min_traversals`| INTEGER       | Min traversals to prevent archiving (default 10)              |
+| `embedding_model` | TEXT        | Locked embedding model for this workspace                     |
+| `embedding_dim`   | INTEGER     | Vector dimension of the locked model                          |
 | `created_at`    | TIMESTAMPTZ   |                                                               |
 | `updated_at`    | TIMESTAMPTZ   |                                                               |
 
@@ -297,8 +299,7 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `unique_traverser_count` | INTEGER | Distinct users or service principals that have traversed this node |
 | `status`       | ENUM              | active / archived; archived nodes are hidden from default views |
 | `archived_at`  | TIMESTAMPTZ       | Null unless status = 'archived'    |
-| `embedding`    | vector(1536)      | ivfflat index, cosine similarity   |
-
+| `embedding`    | vector            | Cosine similarity; Phase 4.1 uses dynamic dimensions (sequential scan with workspace filter) |
 **`edges`**
 
 | Column            | Type          | Notes                          |
@@ -317,6 +318,46 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `traversal_count` | INTEGER       | Total traversals recorded on this edge |
 | `rating_sum`      | NUMERIC(10,2) | Sum of all explicit path ratings (for average calculation) |
 | `rating_count`    | INTEGER       | Number of explicit ratings submitted |
+
+**`workspace_clone_jobs`**
+
+| Column            | Type          | Notes                          |
+|-------------------|---------------|--------------------------------|
+| `id`              | TEXT PK       | e.g. `cln_abc123`             |
+| `source_ws_id`    | TEXT FK       | → `workspaces.id`              |
+| `target_ws_id`    | TEXT FK       | → `workspaces.id`              |
+| `status`          | TEXT          | pending / running / completed / failed |
+| `total_nodes`     | INTEGER       |                                |
+| `processed_nodes` | INTEGER       |                                |
+| `error_msg`       | TEXT          |                                |
+| `created_at`      | TIMESTAMPTZ   |                                |
+| `updated_at`      | TIMESTAMPTZ   |                                |
+
+## 18. Workspace Management
+
+### 18.1 Clone & Rebuild
+
+To maintain semantic consistency, each workspace is locked to a specific embedding model and dimension at creation. The "Clone & Rebuild" feature allows users to migrate data between workspaces with different embedding models.
+
+1. **Mechanism**: A background job copies all nodes and edges from a source workspace to a newly created target workspace.
+2. **Re-embedding**: If the target workspace uses a different embedding model, the system sequentially re-embeds every node using the new model before marking the job as completed.
+3. **Tracking**: Progress is tracked via the `workspace_clone_jobs` table and displayed in the UI.
+
+**`user_ai_keys`**
+
+| Column          | Type          | Notes                                                         |
+|-----------------|---------------|---------------------------------------------------------------|
+| `id`            | TEXT PK       | e.g. `uak_abc123`                                             |
+| `user_id`       | TEXT FK       | → `users.id`                                                  |
+| `provider`      | ENUM          | `openai` / `anthropic` / `gemini` / `ollama`                  |
+| `key_enc`       | TEXT          | Encrypted API key (Null for Ollama unless using auth)        |
+| `key_hint`      | TEXT          | Partial key hint (e.g. `sk-...abcd`)                          |
+| `base_url`      | TEXT          | Custom endpoint (required for Ollama)                         |
+| `auth_mode`     | TEXT          | `none` / `bearer` (for Ollama)                                |
+| `auth_token`    | TEXT          | Encrypted bearer token (for Ollama)                           |
+| `default_chat_model` | TEXT     | Persisted user preference                                     |
+| `default_embedding_model`| TEXT | Persisted user preference                                     |
+| `created_at`    | TIMESTAMPTZ   |                                                               |
 
 #### SQL Functions
 - `apply_edge_decay()` — recalculates all edge weights; transitions edges to `faded` when weight drops below `min_weight`; never deletes rows; mirrors `packages/core/src/decay.ts`
@@ -500,7 +541,11 @@ The following providers are supported in the official release:
 
 The Gemini provider is implemented as a built-in `AIProvider` calling the Google Generative Language API. Users supply a personal Gemini API key (`AIza...`) via Settings → AI Provider, stored encrypted under `provider = 'gemini'` in `user_ai_keys`.
 
-The **Ollama** provider supports local-first AI. Unlike cloud providers, it requires a `base_url` (default `http://localhost:11434`) and supports multiple `auth_mode` settings (`None` or `Bearer`). These settings are stored alongside the provider identifier in `user_ai_keys`. The API provides proxy endpoints to facilitate connectivity testing from the browser without CORS restrictions.
+The **Ollama** provider supports local-first AI and third-party compatible endpoints. Key features include:
+- **Proxy Discovery**: To bypass CORS restrictions and facilitate setup from the browser, the API provides a `/v1/ai/models/proxy` endpoint that routes discovery requests through the backend.
+- **Dynamic Model Selection**: Upon successful connection, the UI automatically fetches available chat and embedding models from the local Ollama instance.
+- **Persistent Preferences**: User selections for default chat and embedding models are stored in the `user_ai_keys` table.
+- **Configuration**: Supports `base_url` (default `http://localhost:11434`), `auth_mode` (`none` / `bearer`), and `auth_token`.
 
 #### 11.2.3 Community-Contributed Providers
 
@@ -1293,8 +1338,9 @@ Two cards:
 Shown only if the user chose "Upload a document."
 
 - Explains that document extraction requires an AI provider API key (§11.2).
-- Provider selector (OpenAI / Anthropic) + API key input field.
-- "Test connection" button — makes a minimal API call to validate the key.
+- Provider selector (OpenAI / Anthropic / Gemini / Ollama) + API key / URL input fields.
+- **Dynamic Model Fetching (Ollama)**: Clicking "Fetch Models" validates the connection and populates dropdowns for chat and embedding model selection.
+- "Test connection" button — makes a minimal API call to validate the key or connectivity.
 - "Skip for now" — stores the document; extraction can be triggered later from the KB settings.
 
 ---

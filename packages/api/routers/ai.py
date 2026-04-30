@@ -42,6 +42,8 @@ class AIKeyCreate(BaseModel):
     base_url: Optional[str] = None
     auth_mode: Optional[str] = "none"
     auth_token: Optional[str] = None
+    default_chat_model: Optional[str] = None
+    default_embedding_model: Optional[str] = None
 
     def validate_provider(self) -> None:
         if self.provider not in PROVIDER_REGISTRY:
@@ -149,6 +151,7 @@ class TestConnectionRequest(BaseModel):
     base_url: Optional[str] = None
     auth_mode: Optional[str] = "none"
     auth_token: Optional[str] = None
+    model: Optional[str] = None  # override default_chat_model for Ollama test
 
 
 # -- API Key management ---------------------------------------------------------
@@ -176,14 +179,16 @@ def create_ai_key(body: AIKeyCreate, user: dict = Depends(get_current_user)):
         with db_cursor(commit=True) as cur:
             cur.execute(
                 """
-                INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint, base_url, auth_mode, auth_token)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint, base_url, auth_mode, auth_token, default_chat_model, default_embedding_model)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id, provider) DO UPDATE
                   SET key_enc = EXCLUDED.key_enc,
                       key_hint = EXCLUDED.key_hint,
                       base_url = EXCLUDED.base_url,
                       auth_mode = EXCLUDED.auth_mode,
                       auth_token = EXCLUDED.auth_token,
+                      default_chat_model = EXCLUDED.default_chat_model,
+                      default_embedding_model = EXCLUDED.default_embedding_model,
                       last_used_at = NULL
                 RETURNING id, provider, key_hint, created_at, last_used_at
                 """,
@@ -195,7 +200,9 @@ def create_ai_key(body: AIKeyCreate, user: dict = Depends(get_current_user)):
                     key_hint,
                     body.base_url,
                     body.auth_mode,
-                    body.auth_token
+                    body.auth_token,
+                    body.default_chat_model,
+                    body.default_embedding_model
                 ),
             )
             row = cur.fetchone()
@@ -249,10 +256,12 @@ async def test_provider_connection(
         raise HTTPException(status_code=400, detail=f"Unknown provider {provider}")
     
     # Create a dummy ResolvedProvider for the call
+    # Use caller-supplied model if given (important for Ollama where the installed
+    # model may differ from the hardcoded default "llama3")
     resolved = ResolvedProvider(
         provider=impl,
         api_key=body.api_key or "",
-        model=impl.default_chat_model,
+        model=body.model or impl.default_chat_model,
         source="account_key",
         user_id=user["sub"],
         base_url=body.base_url,
@@ -295,9 +304,48 @@ async def proxy_list_models(
     )
     
     try:
-        return await impl.list_models(resolved)
-    except Exception as e:
+        models = await impl.list_models(resolved)
+    except Exception:
         return impl.get_known_models()
+
+    # For Ollama: if the live server returned no embedding models, append the
+    # fallback embedding list so users can still pick one (they just need to pull it).
+    if provider == "ollama":
+        has_embed = any(m.get("model_type") == "embedding" for m in models)
+        if not has_embed:
+            fallback_embeds = [
+                m for m in impl.get_known_models()
+                if m.get("model_type") == "embedding"
+            ]
+            # Tag them so the UI can show "(需安裝)" hint
+            for m in fallback_embeds:
+                m["needs_install"] = True
+                m["display_name"] = m["display_name"] + "（需安裝）"
+            models = models + fallback_embeds
+
+    return models
+
+
+# -- Resolved model preview (for CreateWorkspaceModal) -------------------------
+
+@router.get("/resolved-models")
+def get_resolved_model(
+    type: str = "embedding",
+    user: dict = Depends(get_current_user),
+):
+    """
+    Preview which provider + model will be selected for the given feature.
+    Used by the UI to show 'embedding model to be locked' before workspace creation.
+    type: 'embedding' | 'chat' | 'extraction'
+    """
+    from core.ai import resolve_provider, AIProviderUnavailable
+    feature_map = {"embedding": "embedding", "chat": "chat", "extraction": "extraction"}
+    feature = feature_map.get(type, "embedding")
+    try:
+        resolved = resolve_provider(user["sub"], feature)
+        return {"provider": resolved.provider.name, "model": resolved.model}
+    except AIProviderUnavailable:
+        return {"provider": None, "model": None}
 
 
 # -- Credit status --------------------------------------------------------------

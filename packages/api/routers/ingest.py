@@ -533,7 +533,7 @@ async def ingest_url(
 
     async def fetch_and_process():
         try:
-            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
                 res = await client.get(url)
                 res.raise_for_status()
                 html = res.text

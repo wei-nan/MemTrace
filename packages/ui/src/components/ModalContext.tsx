@@ -43,6 +43,7 @@ interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?:  string;
   customElement?: ReactNode;
+  confirmDisabled?: boolean;
 }
 
 interface ToastOptions {
@@ -133,6 +134,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
           confirmLabel={confirmState.confirmLabel}
           cancelLabel={confirmState.cancelLabel}
           customElement={confirmState.customElement}
+          confirmDisabled={confirmState.confirmDisabled}
           onConfirm={() => handleConfirm(true)}
           onCancel={() => handleConfirm(false)}
         />

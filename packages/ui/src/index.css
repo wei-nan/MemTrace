@@ -74,7 +74,7 @@
   --text-secondary:  #374151;
   --text-muted:      #6B7280;
   --text-disabled:   #9CA3AF;
-  --text-on-primary: #0a2e18;
+  --text-on-primary: #FFFFFF;
 
   --color-primary:        #16a34a;
   --color-primary-hover:  #15803d;
@@ -194,6 +194,48 @@ h1, h2, h3, h4, h5, h6 {
 .btn-danger:hover {
   background: var(--color-error);
   color: white;
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 
 .btn-icon {
@@ -201,8 +243,8 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 8px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -212,6 +254,16 @@ h1, h2, h3, h4, h5, h6 {
 .btn-icon:hover {
   background: var(--bg-elevated);
   color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.spin {
+  animation: mt-spin 1s linear infinite;
+}
+
+@keyframes mt-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
       .mt-32 { margin-top: 32px; }
@@ -473,7 +525,7 @@ h1, h2, h3, h4, h5, h6 {
 .ai-fab {
   position: fixed; bottom: 32px; right: 32px;
   width: 56px; height: 56px; border-radius: 28px; 
-  background: var(--color-primary); color: white;
+  background: var(--color-primary); color: var(--text-on-primary);
   display: flex; align-items: center; justify-content: center;
   box-shadow: var(--shadow-lg); border: none; cursor: pointer; z-index: 100;
   transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);

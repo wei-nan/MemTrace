@@ -132,7 +132,7 @@ class OpenAIProvider(AIProvider):
         if resolved.api_key:
             headers["Authorization"] = f"Bearer {resolved.api_key}"
             
-        async with httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=600) as client:
             resp = await client.post(
                 f"{self._base_url}/chat/completions",
                 headers=headers,
@@ -161,7 +161,7 @@ class OpenAIProvider(AIProvider):
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
         if not resolved.api_key:
             return self.get_known_models()
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
                 f"{self._base_url}/models",
                 headers={"Authorization": f"Bearer {resolved.api_key}"},
@@ -180,7 +180,7 @@ class OpenAIProvider(AIProvider):
         if resolved.api_key:
             headers["Authorization"] = f"Bearer {resolved.api_key}"
 
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
                 f"{self._base_url}/embeddings",
                 headers=headers,
@@ -213,7 +213,7 @@ class AnthropicProvider(AIProvider):
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
         if not resolved.api_key:
             return self.get_known_models()
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
                 "https://api.anthropic.com/v1/models",
                 headers={
@@ -233,7 +233,7 @@ class AnthropicProvider(AIProvider):
         system = next((m["content"] for m in messages if m["role"] == "system"), "")
         user_messages = [m for m in messages if m["role"] != "system"]
 
-        async with httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=300) as client:
             resp = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
@@ -274,7 +274,7 @@ class GeminiProvider(AIProvider):
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
         if not resolved.api_key:
             return self.get_known_models()
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
                 f"https://generativelanguage.googleapis.com/v1beta/models?key={resolved.api_key}"
             )
@@ -313,7 +313,7 @@ class GeminiProvider(AIProvider):
         if system:
             body["system_instruction"] = {"parts": [{"text": system}]}
 
-        async with httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=300) as client:
             resp = await client.post(
                 f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:generateContent?key={resolved.api_key}",
                 json=body
@@ -338,7 +338,7 @@ class GeminiProvider(AIProvider):
             raise AIProviderError(f"Gemini unexpected response ({e}): {data}")
 
     async def embed(self, resolved, text):
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
                 f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:embedContent?key={resolved.api_key}",
                 json={
@@ -403,32 +403,88 @@ class OllamaProvider(OpenAIProvider):
         finally:
             resolved.api_key = original_key
 
+    # Known embedding dimensions for common models (used for auto-classification)
+    _EMBEDDING_DIMS: dict[str, int] = {
+        "nomic-embed-text":          768,
+        "mxbai-embed-large":        1024,
+        "all-minilm":                384,
+        "bge-m3":                   1024,
+        "bge-large-en-v1.5":        1024,
+        "snowflake-arctic-embed":   1024,
+        "e5-mistral-7b-instruct":   4096,
+    }
+
+    def _classify_model(self, model_id: str) -> dict:
+        """Return model_type and embedding_dim inferred from the model name."""
+        lower = model_id.lower()
+        # Check known embedding models first (exact prefix match)
+        for known, dim in self._EMBEDDING_DIMS.items():
+            if lower.startswith(known) or known in lower:
+                return {"model_type": "embedding", "embedding_dim": dim}
+        # Heuristic: names containing embed / minilm / bge / e5 are likely embedding models
+        embedding_hints = ("embed", "minilm", "bge-", "e5-", "retrieval")
+        if any(h in lower for h in embedding_hints):
+            return {"model_type": "embedding"}
+        return {"model_type": "chat"}
+
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
-        await self._setup_dynamic_url(resolved)
-        # For Ollama, listing models often doesn't need auth, but we use the setup dynamic url anyway
-        async with httpx.AsyncClient(timeout=30) as client:
+        if not resolved.base_url:
+            return self.get_known_models()
+
+        raw_base = resolved.base_url.rstrip("/")
+
+        async with httpx.AsyncClient(timeout=60) as client:
+            # 1. Try native Ollama API (/api/tags)
             try:
-                resp = await client.get(f"{self._base_url}/models")
+                resp = await client.get(f"{raw_base}/api/tags")
                 if resp.is_success:
                     data = resp.json()
-                    # Ollama /v1/models returns data: [{id: ...}, ...]
-                    return [
-                        {"id": m["id"], "display_name": m["id"]}
-                        for m in data.get("data", [])
-                    ]
+                    result = []
+                    for m in data.get("models", []):
+                        name = m["name"]
+                        entry = {"id": name, "display_name": name, **self._classify_model(name)}
+                        result.append(entry)
+                    return result
             except Exception:
                 pass
+
+            # 2. Fallback: OpenAI-compatible /v1/models
+            try:
+                v1_base = raw_base if "/v1" in raw_base else f"{raw_base}/v1"
+                resp = await client.get(f"{v1_base}/models")
+                if resp.is_success:
+                    data = resp.json()
+                    result = []
+                    for m in data.get("data", []):
+                        mid = m["id"]
+                        entry = {"id": mid, "display_name": mid, **self._classify_model(mid)}
+                        result.append(entry)
+                    return result
+            except Exception:
+                pass
+
         return self.get_known_models()
 
     def get_known_models(self) -> list[dict]:
+        """Fallback list shown when the Ollama server is unreachable."""
         return [
-            {"id": "llama3",           "display_name": "Llama 3"},
-            {"id": "llama3:8b",        "display_name": "Llama 3 8B"},
-            {"id": "llama3:70b",       "display_name": "Llama 3 70B"},
-            {"id": "mistral",          "display_name": "Mistral"},
-            {"id": "mixtral",          "display_name": "Mixtral"},
-            {"id": "phi3",             "display_name": "Phi-3"},
-            {"id": "nomic-embed-text", "display_name": "Nomic Embed Text"},
+            # ── Chat models ─────────────────────────────────────────────────
+            {"id": "llama3",           "display_name": "Llama 3",           "model_type": "chat"},
+            {"id": "llama3:8b",        "display_name": "Llama 3 8B",        "model_type": "chat"},
+            {"id": "llama3:70b",       "display_name": "Llama 3 70B",       "model_type": "chat"},
+            {"id": "llama3.2",         "display_name": "Llama 3.2",         "model_type": "chat"},
+            {"id": "mistral",          "display_name": "Mistral 7B",        "model_type": "chat"},
+            {"id": "mixtral",          "display_name": "Mixtral 8x7B",      "model_type": "chat"},
+            {"id": "phi3",             "display_name": "Phi-3",             "model_type": "chat"},
+            {"id": "phi4",             "display_name": "Phi-4",             "model_type": "chat"},
+            {"id": "gemma2",           "display_name": "Gemma 2",           "model_type": "chat"},
+            {"id": "qwen2.5",          "display_name": "Qwen 2.5",          "model_type": "chat"},
+            {"id": "deepseek-r1",      "display_name": "DeepSeek R1",       "model_type": "chat"},
+            # ── Embedding models ─────────────────────────────────────────────
+            {"id": "nomic-embed-text",  "display_name": "nomic-embed-text",  "model_type": "embedding", "embedding_dim": 768},
+            {"id": "mxbai-embed-large", "display_name": "mxbai-embed-large", "model_type": "embedding", "embedding_dim": 1024},
+            {"id": "all-minilm",        "display_name": "all-MiniLM",        "model_type": "embedding", "embedding_dim": 384},
+            {"id": "bge-m3",            "display_name": "BGE-M3",            "model_type": "embedding", "embedding_dim": 1024},
         ]
 
 
@@ -477,6 +533,8 @@ class ResolvedProvider:
     base_url:   Optional[str] = None
     auth_mode:  Optional[str] = None
     auth_token: Optional[str] = None
+    default_chat_model: Optional[str] = None
+    default_embedding_model: Optional[str] = None
 
 
 def resolve_provider(
@@ -490,22 +548,58 @@ def resolve_provider(
     Resolution order:
       1. User-supplied key (any provider, or preferred_provider if specified)
       2. AIProviderUnavailable
+
+    For 'embedding' feature the selection is more nuanced:
+      - Anthropic has no embedding API — excluded when feature='embedding'
+      - Among capable providers, prefer those with default_embedding_model set
+        (explicit user preference beats provider class default)
+      - Final tiebreak: most recently used (last_used_at DESC)
     """
+    # Providers that cannot embed — excluded when resolving embedding feature
+    NO_EMBED_PROVIDERS = {"anthropic"}
+
     with db_cursor() as cur:
-        # User-supplied key
-        query = "SELECT provider, key_enc, base_url, auth_mode, auth_token FROM user_ai_keys WHERE user_id = %s"
+        query = (
+            "SELECT provider, key_enc, base_url, auth_mode, auth_token, "
+            "default_chat_model, default_embedding_model "
+            "FROM user_ai_keys WHERE user_id = %s"
+        )
         params: list = [user_id]
+
         if preferred_provider:
             query += " AND provider = %s"
             params.append(preferred_provider)
-        query += " ORDER BY last_used_at DESC NULLS LAST LIMIT 1"
+        elif feature == "embedding":
+            # Exclude providers with no embedding API
+            placeholders = ", ".join(f"'{p}'" for p in NO_EMBED_PROVIDERS)
+            query += f" AND provider NOT IN ({placeholders})"
+
+        if feature == "embedding" and not preferred_provider:
+            # Prefer keys with an explicit default_embedding_model set,
+            # then fall back to last_used_at
+            query += (
+                " ORDER BY "
+                "  (CASE WHEN default_embedding_model IS NOT NULL "
+                "        AND default_embedding_model != '' THEN 0 ELSE 1 END),"
+                "  last_used_at DESC NULLS LAST"
+                " LIMIT 1"
+            )
+        else:
+            query += " ORDER BY last_used_at DESC NULLS LAST LIMIT 1"
+
         cur.execute(query, params)
         row = cur.fetchone()
 
         if not row:
+            if feature == "embedding" and not preferred_provider:
+                raise AIProviderUnavailable(
+                    "No embedding-capable AI provider key is configured. "
+                    "Add an OpenAI, Gemini, or Ollama key in Settings — AI Provider. "
+                    "(Anthropic does not provide an embedding API.)"
+                )
             raise AIProviderUnavailable(
                 "No AI provider key is configured for this account. "
-                "Add your own API key in Settings → AI Provider."
+                "Add your own API key in Settings — AI Provider."
             )
 
         provider_id: str = row["provider"]
@@ -516,22 +610,27 @@ def resolve_provider(
             )
         
         model = preferred_model or (
-            impl.default_embedding_model
-            if feature == "embedding"
-            else impl.default_chat_model
+            (row["default_embedding_model"] if feature == "embedding" else row["default_chat_model"])
+            or (impl.default_embedding_model if feature == "embedding" else impl.default_chat_model)
         )
+        try:
+            api_key = decrypt_api_key(row["key_enc"]) if row["key_enc"] else ""
+        except ValueError as exc:
+            raise AIProviderUnavailable(str(exc))
+
         return ResolvedProvider(
             provider=impl,
-            api_key=decrypt_api_key(row["key_enc"]) if row["key_enc"] else "",
+            api_key=api_key,
             model=model,
             source="account_key",
             user_id=user_id,
             base_url=row["base_url"],
             auth_mode=row["auth_mode"],
-            auth_token=row["auth_token"], # Should we decrypt this? Yes, if it was encrypted.
-            # For now, let's assume if it's in the DB, we might need decryption if it was stored via the same mechanism.
-            # But the UI will probably just store it. Let's add decryption just in case.
+            auth_token=row["auth_token"],
+            default_chat_model=row["default_chat_model"],
+            default_embedding_model=row["default_embedding_model"],
         )
+
 
 # ── Usage recording ───────────────────────────────────────────────────────────
 
@@ -655,7 +754,7 @@ Output a JSON array of proposed changes:
 If no changes are needed, return [].
 Return ONLY the JSON array."""
 
-# ── Utility ────────────────────────────────────────────────────────────────────
+# ── Utility ───────────────────────────────────────────────────────────────────
 
 def strip_fences(text: str) -> str:
     """Extract JSON content from text that might contain markdown fences or conversational filler."""

@@ -22,7 +22,7 @@
 | 模式 | `--color-primary` | `--color-primary-hover` | `--text-on-primary` |
 |------|-------------------|-------------------------|---------------------|
 | 暗色（預設） | `#4ade80` | `#22c55e` | `#FFFFFF` |
-| 亮色 | `#16a34a` | `#15803d` | `#0a2e18` |
+| 亮色 | `#16a34a` | `#15803d` | `#FFFFFF` |
 
 > 暗色模式採亮綠是為了在深色底上有足夠亮度；亮色模式改為深綠避免在白底刺眼。`--text-on-primary` 對應變動，避免按鈕文字過淺/過深。
 
@@ -71,6 +71,7 @@
 | OpenAI | `#10A37F` | `#0E8A6B` |
 | Anthropic | `#D97757` | `#C2410C` |
 | Gemini | `#8E75FF` | `#16a34a`（暫對齊主色）|
+| Ollama | `#A855F7` | `#7E22CE` |
 
 每個都有 `*-subtle` 變體。
 
@@ -157,6 +158,7 @@
 | Primary   | `--color-primary`       | `--text-on-primary`   | `--color-primary-hover` |
 | Secondary | transparent             | `--text-primary`      | `--bg-elevated`         |
 | Danger    | `--color-error-subtle`  | `--color-error`       | `--color-error`（背景全填）|
+| Ghost     | transparent             | `--text-secondary`    | `--bg-elevated`         |
 | Icon      | transparent             | `--text-secondary`    | `--bg-elevated`         |
 
 ```css

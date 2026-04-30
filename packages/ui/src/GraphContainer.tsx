@@ -7,7 +7,7 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain } from 'lucide-react';
+import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain, FileUp } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
@@ -27,10 +27,11 @@ interface Props {
   reloadKey?: number;
   onEditNode: (node: ApiNode) => void;
   onNewNode: () => void;
+  onSwitchView: (view: any) => void;
   userId?: string;
 }
 
-export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode, userId }: Props) {
+export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode, onSwitchView, userId }: Props) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
 
@@ -338,8 +339,36 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
       </header>
 
       {/* ── Canvas area — swaps on mode change, header stays ────────────────── */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        {graphMode === '2d' ? (
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {!loading && apiNodes.length === 0 && !error && !searchQuery ? (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-surface)' }}>
+            <div style={{ maxWidth: 450, textAlign: 'center', padding: 40 }} className="animate-fade-in">
+              <div style={{ 
+                width: 80, height: 80, borderRadius: 24, background: 'var(--color-primary-subtle)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px',
+                color: 'var(--color-primary)'
+              }}>
+                <Network size={40} />
+              </div>
+              <h2 style={{ fontSize: 24, marginBottom: 12 }}>{zh ? '開始建立您的知識圖譜' : 'Start building your graph'}</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.6, marginBottom: 32 }}>
+                {zh 
+                  ? '這個工作區目前還是空的。您可以手動新增節點，或上傳文件讓 AI 自動提取知識點。' 
+                  : 'This workspace is currently empty. You can manually add nodes or upload documents to let AI extract knowledge for you.'}
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <button className="btn-primary" onClick={onNewNode} style={{ padding: '10px 24px', height: 44, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10 }}>
+                  <PlusCircle size={18} />
+                  {zh ? '手動新增' : 'Add Node'}
+                </button>
+                <button className="btn-secondary" onClick={() => onSwitchView('ingest')} style={{ padding: '10px 24px', height: 44, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10 }}>
+                  <FileUp size={18} />
+                  {zh ? '上傳文件' : 'Ingest Docs'}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : graphMode === '2d' ? (
           <GraphView
             apiNodes={apiNodes}
             apiEdges={apiEdges}

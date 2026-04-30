@@ -26,7 +26,6 @@ class ApiKeyResponse(BaseModel):
     created_at: datetime
     last_used_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
-    revoked_at: Optional[datetime] = None
 
 class ApiKeyCreateResponse(ApiKeyResponse):
     key: str  # The one-time plaintext key
@@ -69,7 +68,7 @@ def list_api_keys(
     with db_cursor() as cur:
         cur.execute(
             """
-            SELECT id, name, prefix, scopes, workspace_id, created_at, last_used_at, expires_at, revoked_at
+            SELECT id, name, prefix, scopes, workspace_id, created_at, last_used_at, expires_at
             FROM api_keys
             WHERE user_id = %s
             ORDER BY created_at DESC
@@ -85,11 +84,11 @@ def revoke_api_key(
 ):
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "UPDATE api_keys SET revoked_at = now() WHERE id = %s AND user_id = %s AND revoked_at IS NULL",
+            "DELETE FROM api_keys WHERE id = %s AND user_id = %s",
             (key_id, current_user["sub"])
         )
         if cur.rowcount == 0:
-            raise HTTPException(status_code=404, detail="API key not found or already revoked")
+            raise HTTPException(status_code=404, detail="API key not found")
 
 
 class RotateApiKeyResponse(ApiKeyCreateResponse):
@@ -104,16 +103,16 @@ def rotate_api_key(
     """G3: Rotate an API key — revoke the old one and generate a new key with the same scopes."""
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "SELECT id, name, scopes, workspace_id FROM api_keys WHERE id = %s AND user_id = %s AND revoked_at IS NULL",
+            "SELECT id, name, scopes, workspace_id FROM api_keys WHERE id = %s AND user_id = %s",
             (key_id, current_user["sub"])
         )
         old_key = cur.fetchone()
         if not old_key:
-            raise HTTPException(status_code=404, detail="API key not found or already revoked")
+            raise HTTPException(status_code=404, detail="API key not found")
 
         # Revoke old key
         cur.execute(
-            "UPDATE api_keys SET revoked_at = now() WHERE id = %s",
+            "DELETE FROM api_keys WHERE id = %s",
             (key_id,)
         )
 
@@ -162,7 +161,7 @@ def list_workspace_api_keys(
 
         cur.execute(
             """
-            SELECT id, name, prefix, scopes, workspace_id, created_at, last_used_at, expires_at, revoked_at
+            SELECT id, name, prefix, scopes, workspace_id, created_at, last_used_at, expires_at
             FROM api_keys
             WHERE workspace_id = %s
             ORDER BY created_at DESC
@@ -229,16 +228,16 @@ def rotate_workspace_api_key(
             raise HTTPException(status_code=403, detail="Only workspace owner can manage service tokens")
 
         cur.execute(
-            "SELECT id, name, scopes, workspace_id FROM api_keys WHERE id = %s AND workspace_id = %s AND revoked_at IS NULL",
+            "SELECT id, name, scopes, workspace_id FROM api_keys WHERE id = %s AND workspace_id = %s",
             (key_id, ws_id)
         )
         old_key = cur.fetchone()
         if not old_key:
-            raise HTTPException(status_code=404, detail="API key not found or already revoked")
+            raise HTTPException(status_code=404, detail="API key not found")
 
         # Revoke old key
         cur.execute(
-            "UPDATE api_keys SET revoked_at = now() WHERE id = %s",
+            "DELETE FROM api_keys WHERE id = %s",
             (key_id,)
         )
 
@@ -285,8 +284,25 @@ def revoke_workspace_api_key(
             raise HTTPException(status_code=403, detail="Only workspace owner can manage service tokens")
 
         cur.execute(
-            "UPDATE api_keys SET revoked_at = now() WHERE id = %s AND workspace_id = %s AND revoked_at IS NULL",
+            "DELETE FROM api_keys WHERE id = %s AND workspace_id = %s",
             (key_id, ws_id)
         )
         if cur.rowcount == 0:
-            raise HTTPException(status_code=404, detail="API key not found or already revoked")
+            raise HTTPException(status_code=404, detail="API key not found")
+
+
+@router.get("/resolved-models")
+def get_resolved_models(type: str = "chat", user: dict = Depends(get_current_user)):
+    """Return the currently resolved provider and model for a user's task type."""
+    from core.ai import resolve_provider, AIProviderUnavailable
+    try:
+        resolved = resolve_provider(user["sub"], type)
+        return {
+            "provider": resolved.provider,
+            "model":    resolved.model,
+        }
+    except AIProviderUnavailable:
+        return {
+            "provider": "openai",
+            "model":    "gpt-4o-mini" if type == "chat" else "text-embedding-3-small",
+        }
