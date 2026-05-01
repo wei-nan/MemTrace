@@ -14,6 +14,14 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type { ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
+// @ts-ignore
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+// @ts-ignore
+import { RenderPass }     from 'three/examples/jsm/postprocessing/RenderPass';
+// @ts-ignore
+import { BokehPass }      from 'three/examples/jsm/postprocessing/BokehPass';
+// @ts-ignore
+import { OutputPass }     from 'three/examples/jsm/postprocessing/OutputPass';
 import { useTranslation } from 'react-i18next';
 import { type Node as ApiNode, type Edge as ApiEdge } from './api';
 
@@ -161,6 +169,8 @@ function makeNodeSprite(text: string, fillColor: string, strokeColor: string): T
   return sprite;
 }
 
+const LABEL_VISIBLE_DISTANCE = 250; // Camera distance threshold to hide labels
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -171,6 +181,7 @@ interface Props {
   healthMode?: boolean;
   healthScores?: Record<string, any>;
   isPreview?: boolean;
+  dofEnabled?: boolean;
 }
 
 const HEALTH_COLORS: Record<string, string> = {
@@ -179,12 +190,45 @@ const HEALTH_COLORS: Record<string, string> = {
   critical: '#ef4444',
 };
 
-export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode = false, healthScores = {}, isPreview = false }: Props) {
+export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode = false, healthScores = {}, isPreview = false, dofEnabled = false }: Props) {
   const fgRef      = useRef<ForceGraphMethods>(null!);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const palette    = useThemePalette();
   const { i18n }   = useTranslation();
   const zh         = i18n.language === 'zh-TW';
+
+  // ── Post-processing (DOF) ────────────────────────────────────────────────
+  const composerRef  = useRef<EffectComposer | null>(null);
+  const bokehPassRef = useRef<BokehPass | null>(null);
+
+  useEffect(() => {
+    // Wait for ForceGraph3D renderer to be ready
+    const timer = setTimeout(() => {
+      const fg = fgRef.current;
+      if (!fg) return;
+
+      const renderer = (fg as any).renderer() as THREE.WebGLRenderer;
+      const scene    = (fg as any).scene()    as THREE.Scene;
+      const camera   = (fg as any).camera()   as THREE.Camera;
+      if (!renderer || !scene || !camera) return;
+
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+
+      const bokeh = new BokehPass(scene, camera, {
+        focus:    500,
+        aperture: 0.00008,
+        maxblur:  0.004,
+      });
+      composer.addPass(bokeh);
+      composer.addPass(new OutputPass());
+
+      composerRef.current  = composer;
+      bokehPassRef.current = bokeh;
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // ── Measure container (ForceGraph3D needs explicit px dimensions) ──────────
   const [dims, setDims] = useState({ width: 800, height: 600 });
@@ -205,13 +249,16 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
   // ── Expanded node tracking ───────────────────────────────────────────────
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
+  // ── Label visibility tracking ────────────────────────────────────────────
+  const labelGroupsRef = useRef<Map<string, THREE.Sprite>>(new Map());
+
   // ── Convert API data → graph format ──────────────────────────────────────
   const graphData = useMemo(() => {
     const visibleNodeIds = new Set(apiNodes.map(n => n.id));
 
     const nodes = apiNodes.map(n => ({
       id:    n.id,
-      name:  n.title_zh || n.title_en,
+      name:  zh ? (n.title_zh || n.title_en) : (n.title_en || n.title_zh),
       ctype: n.content_type,
       trust: Math.max(0.2, Math.min(1.0, n.trust_score ?? 0.7)),
       _api:  n,
@@ -229,7 +276,12 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
       }));
 
     return { nodes: nodes as any[], links: links as any[] };
-  }, [apiNodes, apiEdges]);
+  }, [apiNodes, apiEdges, zh]);
+
+  // Cleanup label refs on data change to prevent memory leaks
+  useEffect(() => {
+    labelGroupsRef.current.clear();
+  }, [graphData]);
 
   // ── Space key → pan mode ──────────────────────────────────────────────────
   const [isSpacePressed, setIsSpacePressed] = useState(false);
@@ -272,7 +324,35 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
       node,
       1200,
     );
-  }, [onEditNode]);
+
+    // Update focal length after fly-to
+    setTimeout(() => {
+      const cam = fgRef.current?.camera();
+      if (cam && dofEnabled && bokehPassRef.current) {
+        (bokehPassRef.current as any).uniforms['focus'].value = cam.position.length();
+      }
+    }, 1250);
+  }, [onEditNode, dofEnabled]);
+
+  const handleCameraPositionChange = useCallback(() => {
+    const cam = fgRef.current?.camera();
+    if (!cam) return;
+
+    graphData.nodes.forEach((node: any) => {
+      const label = labelGroupsRef.current.get(node.id);
+      if (!label) return;
+      const dist = cam.position.distanceTo(
+        new THREE.Vector3(node.x ?? 0, node.y ?? 0, node.z ?? 0)
+      );
+      label.visible = dist < LABEL_VISIBLE_DISTANCE;
+    });
+
+    // Update DOF focal length
+    if (dofEnabled && bokehPassRef.current) {
+      const camPos = cam.position;
+      (bokehPassRef.current as any).uniforms['focus'].value = camPos.length();
+    }
+  }, [graphData.nodes, dofEnabled]);
 
   // ── Custom node rendering (theme-aware) ──────────────────────────────────
   const nodeThreeObject = useCallback((node: any) => {
@@ -317,7 +397,11 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
       palette.labelStroke,
     );
     label.position.set(0, isSelected ? -8 : -7, 0);
+    label.visible = true; // Initial visibility
     group.add(label);
+
+    // Track reference for distance-based hiding
+    labelGroupsRef.current.set(node.id, label);
 
     return group;
   }, [selectedNodeId, palette]);
@@ -430,6 +514,8 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
             linkOpacity={0.5}
             onNodeClick={handleNodeClick}
             onNodeHover={setHoveredNode}
+            // @ts-ignore - onCameraPositionChange exists at runtime but might be missing in types
+            onCameraPositionChange={handleCameraPositionChange}
             onBackgroundRightClick={() => {
               if (hoveredNode) {
                 const c = fgRef.current?.controls() as any;
@@ -444,6 +530,11 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
             d3VelocityDecay={0.3}
             warmupTicks={80}
             cooldownTime={3000}
+            onRenderFramePost={() => {
+              if (dofEnabled && composerRef.current) {
+                composerRef.current.render();
+              }
+            }}
           />
         )}
 

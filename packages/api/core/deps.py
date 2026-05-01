@@ -21,10 +21,12 @@ def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(bearer),
 ):
-    if not credentials:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    token = request.query_params.get("token")
+    if not token:
+        if not credentials:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        token = credentials.credentials
 
-    token = credentials.credentials
     if token.startswith("mt_"):
         key_hash = hashlib.sha256(token.encode()).hexdigest()
         ip = request.client.host if request.client else None
@@ -78,9 +80,11 @@ def get_current_user_optional(
     credentials: HTTPAuthorizationCredentials = Depends(bearer),
 ):
     """Returns the payload dict if authenticated, else None."""
-    if not credentials:
-        return None
-    token = credentials.credentials
+    token = request.query_params.get("token")
+    if not token:
+        if not credentials:
+            return None
+        token = credentials.credentials
     if token.startswith("mt_"):
         try:
             return get_current_user(request, credentials)

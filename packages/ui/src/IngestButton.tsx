@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Upload, Loader2, FileText } from 'lucide-react';
 import { ingest } from './api';
 import { useModal } from './components/ModalContext';
+import { segmentDocument } from './utils/document';
+import type { Segment } from './utils/document';
+import ImportPreviewModal from './components/ImportPreviewModal';
+import type { SheetInfo, SheetConfig } from './components/ExcelSheetSelector';
 
 export default function IngestButton({ wsId, onStarted }: { wsId: string, onStarted: () => void }) {
   const { t } = useTranslation();
@@ -11,29 +15,91 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Preview State
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [segments, setSegments] = useState<Segment[]>([]);
+
+  // B-3: Excel preview state
+  const [excelSheets, setExcelSheets] = useState<SheetInfo[]>([]);
+  const [selectedSheets, setSelectedSheets] = useState<string[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, SheetConfig>>({});
+
   const processFile = async (file: File) => {
-    // Only allow .txt and .md
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    if (ext !== 'txt' && ext !== 'md') {
-      toast({ 
-        message: t('ingest.file_support_err'), 
-        variant: 'error' 
-      });
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const textFormats = ['txt', 'md', 'sql', 'yaml', 'yml', 'json', 'py', 'js', 'ts', 'tsx', 'jsx', 'diff', 'patch', 'eml'];
+    const binaryFormats = ['pdf', 'docx', 'pptx', 'xlsx', 'xls', 'csv'];
+    
+    if (!textFormats.includes(ext) && !binaryFormats.includes(ext)) {
+      toast({ message: t('ingest.file_support_err'), variant: 'error' });
       return;
     }
 
+    if (textFormats.includes(ext)) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const segs = segmentDocument(text);
+        setSegments(segs);
+        setExcelSheets([]);
+        setPreviewFile(file);
+        setPreviewOpen(true);
+      };
+      reader.readAsText(file);
+    } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
+      // B-3: Fetch Excel sheet preview from backend
+      try {
+        const preview = await ingest.excelPreview(wsId, file);
+        setExcelSheets(preview.sheets || []);
+        setSelectedSheets((preview.sheets || []).map((s: SheetInfo) => s.name));
+        setColumnMapping({});
+        setSegments([{
+          id: 'excel_preview',
+          heading: file.name,
+          headingChain: [file.name],
+          content: `Excel/CSV - ${(preview.sheets || []).length} sheet(s)\nFormat: ${ext.toUpperCase()}`,
+          startIndex: 0,
+          endIndex: file.size
+        }]);
+        setPreviewFile(file);
+        setPreviewOpen(true);
+      } catch (e: any) {
+        toast({ message: e.message, variant: 'error' });
+      }
+    } else {
+      setSegments([{ 
+        id: 'binary_preview',
+        heading: file.name, 
+        headingChain: [file.name],
+        content: `[Binary Content - ${file.size} bytes]\nFormat: ${ext.toUpperCase()}`,
+        startIndex: 0,
+        endIndex: file.size
+      }]);
+      setExcelSheets([]);
+      setPreviewFile(file);
+      setPreviewOpen(true);
+    }
+  };
+
+  const handleConfirmIngest = async (docType: string, seeds?: string[]) => {
+    if (!previewFile) return;
+    
     setUploading(true);
+    setPreviewOpen(false);
     try {
-      await ingest.upload(wsId, file);
-      toast({ 
-        message: t('ingest.file_success'), 
-        variant: 'success' 
-      });
+      // B-3: Pass Excel config if applicable
+      const excelConfig = excelSheets.length > 0 ? {
+        selected_sheets: selectedSheets,
+        column_mapping: columnMapping,
+      } : undefined;
+      await ingest.upload(wsId, previewFile, docType, seeds, excelConfig);
+      toast({ message: t('ingest.file_success'), variant: 'success' });
       onStarted();
     } catch (e: any) {
       toast({ message: e.message, variant: 'error' });
     } finally {
       setUploading(false);
+      setPreviewFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -72,7 +138,7 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
         ref={fileInputRef}
         onChange={handleFileChange}
         style={{ display: 'none' }}
-        accept=".txt,.md"
+        accept=".txt,.md,.pdf,.docx,.pptx,.xlsx,.xls,.csv,.sql,.yaml,.yml,.json,.py,.js,.ts,.tsx,.jsx,.eml,.diff,.patch"
       />
       
       <div className="ingest-icon-wrapper">
@@ -178,6 +244,22 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
           animation: animate-spin 1s linear infinite;
         }
       `}</style>
+
+      {previewFile && (
+        <ImportPreviewModal
+          isOpen={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          filename={previewFile.name}
+          segments={segments}
+          onConfirm={handleConfirmIngest}
+          loading={uploading}
+          excelSheets={excelSheets}
+          selectedSheets={selectedSheets}
+          onSelectedSheetsChange={setSelectedSheets}
+          columnMapping={columnMapping}
+          onColumnMappingChange={setColumnMapping}
+        />
+      )}
     </div>
   );
 }

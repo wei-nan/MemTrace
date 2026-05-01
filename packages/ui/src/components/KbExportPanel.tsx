@@ -238,7 +238,7 @@ export default function KbExportPanel({ wsId }: { wsId: string; zh?: boolean }) 
                   </div>
                   {exp.status === 'completed' && (
                     <a
-                      href={`/api/v1/workspaces/${wsId}/exports/${exp.id}/download`}
+                      href={`/api/v1/workspaces/${wsId}/exports/${exp.id}/download?token=${localStorage.getItem('mt_token') || ''}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-secondary"

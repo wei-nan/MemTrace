@@ -1,6 +1,6 @@
 const BASE = "/api/v1";
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("mt_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
@@ -145,8 +145,17 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail ?? `HTTP ${res.status}`);
+    let errDetail;
+    try {
+      const err = await res.json();
+      errDetail = err.detail ?? err.message ?? err;
+      if (typeof errDetail === 'object') {
+        errDetail = JSON.stringify(errDetail);
+      }
+    } catch {
+      errDetail = res.statusText;
+    }
+    throw new Error(errDetail ?? `HTTP ${res.status}`);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
@@ -249,6 +258,8 @@ export const workspaces = {
     request("PUT", `${BASE}/workspaces/${wsId}/members/${userId}`, { role }),
   removeMember: (wsId: string, userId: string) =>
     request("DELETE", `${BASE}/workspaces/${wsId}/members/${userId}`),
+  detectLinks: (wsId: string) =>
+    request<{ message: string; nodes_checked: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/detect-links`),
   update: (wsId: string, data: Partial<{ name_zh: string; name_en: string; visibility: string }>) =>
     request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
   delete: (wsId: string) => request("DELETE", `${BASE}/workspaces/${wsId}`),
@@ -396,10 +407,29 @@ export const aiReviewers = {
 };
 
 export const ingest = {
-  upload: (wsId: string, file: File) => {
+  upload: (wsId: string, file: File, docType: string = "generic", seeds?: string[], excelConfig?: Record<string, any>) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("doc_type", docType);
+    if (seeds && seeds.length > 0) {
+      formData.append("seeds", JSON.stringify(seeds));
+    }
+    if (excelConfig) {
+      formData.append("excel_config", JSON.stringify(excelConfig));
+    }
     return fetch(`${BASE}/workspaces/${wsId}/ingest`, {
+      method: "POST",
+      headers: { ...authHeaders(), ...writeHeaders() },
+      body: formData,
+    }).then(async (res) => {
+      if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail ?? res.statusText);
+      return res.json();
+    });
+  },
+  excelPreview: (wsId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return fetch(`${BASE}/workspaces/${wsId}/ingest/excel-preview`, {
       method: "POST",
       headers: { ...authHeaders(), ...writeHeaders() },
       body: formData,

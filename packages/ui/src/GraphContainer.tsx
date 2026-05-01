@@ -38,6 +38,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
   // ── Shared graph state ────────────────────────────────────────────────────
   const [apiNodes, setApiNodes]     = useState<ApiNode[]>([]);
   const [apiEdges, setApiEdges]     = useState<ApiEdge[]>([]);
+  const [totalNodes, setTotalNodes] = useState<number | null>(null);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
   const [graphMode, setGraphMode]   = useState<GraphMode>('2d');
@@ -47,6 +48,11 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
 
   // ── Archive toggle (must precede load so it's in scope for the callback) ──
   const [showArchived, setShowArchived] = useState(false);
+
+  // ── Display limit ─────────────────────────────────────────────────────────
+  const LIMIT_OPTIONS = [100, 200, 500, 1000, 'unlimited'] as const;
+  type LimitOption = typeof LIMIT_OPTIONS[number];
+  const [displayLimit, setDisplayLimit] = useState<LimitOption>(200);
 
   // ── Search state ──────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery]   = useState('');
@@ -59,14 +65,17 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
     setLoading(true);
     setError('');
     try {
-      const [rawNodes, rawEdges, ws] = await Promise.all([
-        nodesApi.list(wsId, showArchived ? { status: 'all', limit: '200' } : { limit: '200' }),
+      const queryLimit = displayLimit === 'unlimited' ? '50000' : String(displayLimit);
+      const [rawNodes, rawEdges, ws, analytics] = await Promise.all([
+        nodesApi.list(wsId, showArchived ? { status: 'all', limit: queryLimit } : { limit: queryLimit }),
         edgesApi.list(wsId),
         workspaces.get(wsId),
+        workspaces.analytics(wsId).catch(() => null),
       ]);
       setApiNodes(rawNodes);
       setApiEdges(rawEdges);
       setWorkspace(ws);
+      setTotalNodes(analytics?.total_nodes ?? null);
     } catch (e: any) {
       if (e.message.includes('403') || e.message.includes('401')) {
         try {
@@ -96,7 +105,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
     } finally {
       setLoading(false);
     }
-  }, [wsId, showArchived]);
+  }, [wsId, showArchived, displayLimit]);
 
   // ── Keyword / semantic search ─────────────────────────────────────────────
   const performSearch = useCallback(async () => {
@@ -134,15 +143,26 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
   }, [wsId]);
 
   useEffect(() => {
-    if (healthMode) loadHealthScores();
+    if (healthMode) {
+      loadHealthScores();
+      setDofEnabled(false); // Disable DOF in health mode for clarity
+    }
   }, [healthMode, loadHealthScores]);
 
+  // ── DOF state ───────────────────────────────────────────────────────────
+  const [dofEnabled, setDofEnabled] = useState(true);
+
   // ── Subtitle text ─────────────────────────────────────────────────────────
+  const atDisplayCap = !loading && !error && displayLimit !== 'unlimited' && apiNodes.length >= displayLimit && totalNodes !== null && totalNodes > displayLimit;
   const subtitle = loading
     ? (zh ? '載入中…' : 'Loading…')
     : error
       ? `Error: ${error}`
-      : `${apiNodes.length} ${zh ? '節點' : 'nodes'} · ${apiEdges.length} ${zh ? '連結' : 'edges'}`;
+      : atDisplayCap
+        ? (zh
+            ? `顯示 ${apiNodes.length} / ${totalNodes} 節點 · ${apiEdges.length} 連結`
+            : `Showing ${apiNodes.length} of ${totalNodes} nodes · ${apiEdges.length} edges`)
+        : `${apiNodes.length} ${zh ? '節點' : 'nodes'} · ${apiEdges.length} ${zh ? '連結' : 'edges'}`;
 
   const orphanCount = apiNodes.filter(n => !apiEdges.some(e => e.from_id === n.id || e.to_id === n.id)).length;
 
@@ -209,21 +229,21 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
       {/* ── Shared header — always visible regardless of 2D/3D mode ────────── */}
       <header
         className="page-header animate-fade-in"
-        style={{ padding: '0 40px', marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+        style={{ padding: '0 40px', marginTop: '40px', display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'space-between', alignItems: 'flex-end' }}
       >
-        <div>
-          <h1 className="page-title">{zh ? '知識庫圖譜' : 'Knowledge Graph'}</h1>
+        <div style={{ flex: '1 1 300px', minWidth: 300 }}>
+          <h1 className="page-title" style={{ whiteSpace: 'nowrap' }}>{zh ? '知識庫圖譜' : 'Knowledge Graph'}</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <p className="page-subtitle" style={{ marginBottom: 0 }}>{subtitle}</p>
             {orphanCount > 0 && (
-              <div 
+              <div
                 onClick={() => {
                   setOrphanFilter('orphan');
                   setGraphMode('table');
                 }}
-                style={{ 
-                  fontSize: 11, padding: '2px 8px', borderRadius: 12, 
-                  background: 'var(--color-warning-subtle)', color: 'var(--color-warning)', 
+                style={{
+                  fontSize: 11, padding: '2px 8px', borderRadius: 12,
+                  background: 'var(--color-warning-subtle)', color: 'var(--color-warning)',
                   cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4
                 }}
               >
@@ -231,10 +251,49 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
                 {orphanCount} {zh ? '個孤立節點' : 'Orphans'}
               </div>
             )}
+            {atDisplayCap && (
+              <div
+                onClick={() => setGraphMode('table')}
+                title={zh ? '圖形視圖最多顯示 200 個節點，點擊切換至表格視圖以查看全部' : 'Graph view shows up to 200 nodes. Click to switch to Table view for all nodes.'}
+                style={{
+                  fontSize: 11, padding: '2px 8px', borderRadius: 12,
+                  background: 'var(--color-error-subtle, #fef2f2)', color: 'var(--color-error, #dc2626)',
+                  cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4,
+                }}
+              >
+                <TriangleAlert size={10} />
+                {zh ? `圖形上限 200，切換表格查看全部 ${totalNodes}` : `Graph cap 200 — Table view shows all ${totalNodes}`}
+              </div>
+            )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', flex: '1 1 auto', justifyContent: 'flex-end' }}>
+          {/* ── Node display limit selector ──────────────────────────────── */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+              {zh ? '顯示上限' : 'Show'}
+            </span>
+            <select
+              value={displayLimit}
+              onChange={(e) => setDisplayLimit(e.target.value === 'unlimited' ? 'unlimited' : Number(e.target.value) as LimitOption)}
+              style={{
+                padding: '0 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+                borderRadius: 8, color: 'var(--text-primary)', outline: 'none', height: 38,
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              {LIMIT_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>
+                  {opt === 'unlimited' ? (zh ? '無限制' : 'Unlimited') : opt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
+
           {/* ── 2D / 3D mode toggle ─────────────────────────────────────── */}
           <div style={{
             display: 'flex',
@@ -281,6 +340,18 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
             <Archive size={16} />
             {zh ? '歸檔' : 'Archived'}
           </button>
+
+          {graphMode === '3d' && (
+            <button
+              className={dofEnabled ? "btn-primary" : "btn-secondary"}
+              onClick={() => setDofEnabled(!dofEnabled)}
+              style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
+              title={zh ? '景深模糊效果（Depth of Field）' : 'Depth of Field blur effect'}
+            >
+              <Sparkles size={16} />
+              {zh ? '景深' : 'DOF'}
+            </button>
+          )}
 
           <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
 
@@ -388,6 +459,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
             healthMode={healthMode}
             healthScores={healthScores}
             isPreview={isPreview}
+            dofEnabled={dofEnabled}
           />
         ) : (
           <TableView 

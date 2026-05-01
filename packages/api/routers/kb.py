@@ -406,6 +406,7 @@ def _propose_change(
     suggested_edges: Optional[list[dict]] = None,
     source_info: Optional[str] = None,
     confidence_score: Optional[float] = None,
+    source_id: Optional[str] = None,
 ) -> str:
     before_snapshot = None
     after_snapshot = None
@@ -437,8 +438,8 @@ def _propose_change(
         """
         INSERT INTO review_queue (
             id, workspace_id, change_type, target_node_id, before_snapshot, node_data, diff_summary,
-            suggested_edges, status, source_info, proposer_type, proposer_id, proposer_meta, confidence_score
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s)
+            suggested_edges, status, source_info, proposer_type, proposer_id, proposer_meta, confidence_score, source_id
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s)
         """,
         (
             review_id,
@@ -454,6 +455,7 @@ def _propose_change(
             proposer_id,
             json.dumps(proposer_meta or {}, ensure_ascii=False) if proposer_meta is not None else None,
             confidence_score,
+            source_id,
         ),
     )
     return review_id
@@ -1180,7 +1182,7 @@ def list_nodes(
     q: Optional[str] = Query(None),
     tag: Optional[str] = Query(None),
     content_type: Optional[str] = Query(None),
-    limit: int = Query(50, le=200),
+    limit: int = Query(50, description="Use a large number for unlimited"),
     offset: int = Query(0),
     status: str = Query("active"),
     filter: Optional[str] = Query(None, description="orphan | faded | never_traversed"),
@@ -2303,3 +2305,23 @@ def get_health_scores(ws_id: str, user: dict = Depends(get_current_user_optional
 
 
 
+
+# ─── G-2: Manual Link Detection ──────────────────────────────────────────────
+
+@router.post("/workspaces/{ws_id}/nodes/detect-links", status_code=202)
+def trigger_link_detection(
+    ws_id: str, 
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(get_current_user)
+):
+    """G-2: Manually trigger cross-file association detection for all active nodes."""
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, write=True)
+        
+        # Get all active nodes
+        cur.execute("SELECT id FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+        node_ids = [r["id"] for r in cur.fetchall()]
+
+    from routers.ingest import detect_cross_file_associations_for_nodes
+    background_tasks.add_task(detect_cross_file_associations_for_nodes, ws_id, node_ids)
+    return {"message": "Link detection started in background", "nodes_checked": len(node_ids)}

@@ -26,6 +26,7 @@ from routers.ingest import router as ingest_router
 from routers.exports import router as exports_router
 from routers.api_keys import router as api_keys_router
 from routers.internal import router as internal_router
+from routers.mcp      import router as mcp_router
 
 logger = logging.getLogger(__name__)
 
@@ -427,6 +428,7 @@ app.include_router(ingest_router)
 app.include_router(exports_router, prefix="/api/v1")
 app.include_router(api_keys_router, prefix="/api/v1")
 app.include_router(internal_router, prefix="/api/v1")
+app.include_router(mcp_router)
 
 @app.get("/")
 def root():

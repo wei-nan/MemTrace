@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileUp, Globe, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { FileUp, Globe, Link as LinkIcon, Loader2, Database } from 'lucide-react';
 import { ingest } from './api';
 import { useModal } from './components/ModalContext';
 import IngestButton from './IngestButton';
 import IngestionHistory from './IngestionHistory';
+import ImportSourcesList from './components/ImportSourcesList';
 
 export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoToReview: () => void }) {
   const { t } = useTranslation();
   const { toast } = useModal();
   
-  const [tab, setTab] = useState<'file' | 'url'>('file');
+  const [tab, setTab] = useState<'file' | 'url' | 'sources'>('file');
   const [url, setUrl] = useState('');
   const [urlLoading, setUrlLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -74,6 +75,19 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
             <Globe size={16} />
             {t('ingest.tab_url')}
           </button>
+          <button 
+            onClick={() => setTab('sources')}
+            style={{
+              padding: '8px 20px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600,
+              background: tab === 'sources' ? 'var(--color-primary)' : 'transparent',
+              color: tab === 'sources' ? 'white' : 'var(--text-secondary)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Database size={16} />
+            來源稽核 (Sources)
+          </button>
         </div>
 
         <div className="glass-panel animate-slide-up" style={{ padding: 40, border: '1px solid var(--border-subtle)' }}>
@@ -87,7 +101,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
                 {t('ingest.file_support')}
               </div>
             </div>
-          ) : (
+          ) : tab === 'url' ? (
             <div style={{ maxWidth: 500, margin: '0 auto' }}>
               <form onSubmit={handleUrlSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ position: 'relative' }}>
@@ -109,6 +123,8 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
                 {t('ingest.web_auto_extract')}
               </div>
             </div>
+          ) : (
+            <ImportSourcesList wsId={wsId} />
           )}
         </div>
 

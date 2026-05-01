@@ -847,6 +847,34 @@ async def embed(
 
 # ── AI Prompts ────────────────────────────────────────────────────────────────
 
+# ── AI Prompts ────────────────────────────────────────────────────────────────
+
+def get_extraction_prompt(doc_type: str = "generic") -> str:
+    """Return a specialized system prompt based on the document type."""
+    base = EXTRACTION_SYSTEM
+    
+    if doc_type == "FRD":
+        return base + "\n\nSPECIAL INSTRUCTION for FRD:\n" \
+               "- Mandatory Extraction: Every API Endpoint (METHOD /path) MUST be extracted as a Procedural node. Title format: \"API: {METHOD} {path}\".\n" \
+               "- Mandatory Extraction: Every Business Rule (BR-xxx), Business Logic (BL-xxx), and User Story (US-xxx) MUST be extracted as an independent node.\n" \
+               "- Mandatory Extraction: Security-related items like reCAPTCHA, CAPTCHA, or OTP (One-Time Password) MUST be extracted as independent nodes.\n" \
+               "- Ensure every API endpoint node has an 'extends' edge to its parent feature/module.\n" \
+               "- These mandatory items must be extracted even if a similar title appears in 'existing_titles'."
+    
+    if doc_type == "TSD":
+        return base + "\n\nSPECIAL INSTRUCTION for TSD:\n" \
+               "- Prioritize extracting Data Models, Database Schemas, and System Components.\n" \
+               "- Use 'depends_on' edges to represent architectural dependencies.\n" \
+               "- Extract performance requirements or constraints as Preference nodes."
+    
+    if doc_type == "ADR":
+        return base + "\n\nSPECIAL INSTRUCTION for ADR:\n" \
+               "- Extract the 'Decision' as a Preference node.\n" \
+               "- Extract 'Context' and 'Status' as Context nodes.\n" \
+               "- Extract 'Consequences' as Factual nodes, linked to the decision via 'depends_on'."
+               
+    return base
+
 EXTRACTION_SYSTEM = """\
 You are a knowledge graph extraction assistant. Your goal is to convert source \
 material into the smallest possible set of atomic Memory Nodes connected by the \

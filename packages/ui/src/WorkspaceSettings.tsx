@@ -208,6 +208,45 @@ function ReembedAllButton({ wsId, zh }: { wsId: string; zh: boolean }) {
   );
 }
 
+function LinkDetectionButton({ wsId, zh }: { wsId: string; zh: boolean }) {
+  const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [checked, setChecked] = useState<number | null>(null);
+
+  const handleClick = async () => {
+    setState('loading');
+    try {
+      const res = await workspaces.detectLinks(wsId);
+      setChecked(res.nodes_checked);
+      setState('done');
+    } catch {
+      setState('error');
+    }
+  };
+
+  if (state === 'done') {
+    return (
+      <span style={{ fontSize: 12, color: 'var(--color-success)', fontWeight: 600 }}>
+        {zh ? `已啟動背景掃描 (${checked} 個節點)` : `Scan started (${checked} nodes)`}
+      </span>
+    );
+  }
+  if (state === 'error') {
+    return <span style={{ fontSize: 12, color: 'var(--color-error)' }}>{zh ? '失敗' : 'Failed'}</span>;
+  }
+
+  return (
+    <button
+      className="btn-secondary"
+      style={{ height: 36, display: 'flex', alignItems: 'center', gap: 8 }}
+      onClick={handleClick}
+      disabled={state === 'loading'}
+    >
+      {state === 'loading' ? <RefreshCw size={14} className="animate-spin" /> : <Link2 size={14} />}
+      {zh ? '執行跨文件關聯掃描' : 'Scan Cross-file Links'}
+    </button>
+  );
+}
+
 function AIReviewerSettings({ wsId }: { wsId: string }) {
   const { t } = useTranslation();
   const { toast } = useModal();
@@ -699,6 +738,21 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
               }}
             />
           )}
+
+          <SectionCard>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Link2 size={20} color="var(--color-primary)" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "跨文件關聯偵測" : "Cross-file Link Detection"}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  {zh ? "掃描現有節點內容，根據標題提及自動建立跨文件的關聯邊。" : "Scan existing nodes and automatically create cross-file associations based on title mentions."}
+                </div>
+              </div>
+              <LinkDetectionButton wsId={wsId} zh={zh} />
+            </div>
+          </SectionCard>
 
           {/* P6 - Decay Status */}
           {decayStats && (

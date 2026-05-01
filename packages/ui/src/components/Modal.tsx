@@ -13,6 +13,36 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { X, AlertTriangle, Info, CheckCircle, Trash2 } from 'lucide-react';
 
+export default function Modal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  children, 
+  width = '420px' 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  title: string; 
+  children: ReactNode; 
+  width?: number | string;
+}) {
+  if (!isOpen) return null;
+  return (
+    <ModalOverlay onClose={onClose} width={typeof width === 'number' ? `${width}px` : width}>
+      <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{title}</h3>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+          <X size={20} />
+        </button>
+      </div>
+      <div style={{ padding: 24 }}>
+        {children}
+      </div>
+    </ModalOverlay>
+  );
+}
+
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type ModalVariant = 'info' | 'success' | 'warning' | 'danger' | 'error';

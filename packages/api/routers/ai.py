@@ -95,6 +95,7 @@ class ExtractionRequest(BaseModel):
     existing_titles: list[str] = Field(default_factory=list, max_length=100)
     preferred_provider: Optional[str] = None
     preferred_model: Optional[str] = None
+    doc_type: Optional[str] = "generic"
 
 
 class ExtractedNode(BaseModel):
@@ -406,14 +407,28 @@ async def extract_nodes(
     except AIProviderUnavailable as e:
         raise HTTPException(status_code=503, detail=str(e))
 
-    existing_hint = (
-        f"\nExisting node titles in this workspace (avoid duplication):\n"
-        + "\n".join(f"- {t}" for t in body.existing_titles[:50])
-        if body.existing_titles else ""
-    )
+    # ISS-C-2: If FRD and segment looks like it contains mandatory items, suppress existing_titles hint
+    use_existing_hint = True
+    if body.doc_type == "FRD":
+        import re
+        mandatory_patterns = [
+            r'(GET|POST|PUT|DELETE|PATCH)\s+/',
+            r'BR-\d+', r'BL-\d+', r'US-\d+',
+            r'reCAPTCHA', r'OTP', r'One-Time Password', r'CAPTCHA'
+        ]
+        if any(re.search(p, body.segment, re.IGNORECASE) for p in mandatory_patterns):
+            use_existing_hint = False
 
+    existing_hint = ""
+    if use_existing_hint and body.existing_titles:
+        existing_hint = (
+            f"\nExisting node titles in this workspace (avoid duplication):\n"
+            + "\n".join(f"- {t}" for t in body.existing_titles[:50])
+        )
+
+    from core.ai import get_extraction_prompt
     messages = [
-        {"role": "system", "content": EXTRACTION_SYSTEM},
+        {"role": "system", "content": get_extraction_prompt(body.doc_type)},
         {
             "role": "user",
             "content": (
