@@ -126,8 +126,9 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
   };
 
   return (
-    <div 
-      className={`ingest-dropzone ${isDragging ? 'dragging' : ''} ${uploading ? 'uploading' : ''}`}
+    <>
+      <div 
+        className={`ingest-dropzone ${isDragging ? 'dragging' : ''} ${uploading ? 'uploading' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -244,11 +245,16 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
           animation: animate-spin 1s linear infinite;
         }
       `}</style>
+      </div>
 
       {previewFile && (
         <ImportPreviewModal
           isOpen={previewOpen}
-          onClose={() => setPreviewOpen(false)}
+          onClose={() => {
+            setPreviewOpen(false);
+            setPreviewFile(null); // Clear preview file to avoid re-opening old file
+            if (fileInputRef.current) fileInputRef.current.value = '';
+          }}
           filename={previewFile.name}
           segments={segments}
           onConfirm={handleConfirmIngest}
@@ -260,6 +266,6 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
           onColumnMappingChange={setColumnMapping}
         />
       )}
-    </div>
+    </>
   );
 }
