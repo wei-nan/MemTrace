@@ -263,6 +263,31 @@ Config file location:
 
 > Antigravity does **not** support `${workspaceFolder}` variable substitution. Keep total enabled MCP tools under 50.
 
+#### OpenClaw
+
+Run once in a terminal (requires the MCP package to be built first):
+
+```bash
+openclaw mcp set memtrace '{
+  "command": "node",
+  "args": ["/absolute/path/to/memtrace/packages/mcp/dist/index.js"],
+  "env": {
+    "MEMTRACE_API": "http://localhost:8000/api/v1",
+    "MEMTRACE_WS": "ws_spec0001",
+    "MEMTRACE_LANG": "zh-TW",
+    "MEMTRACE_TOKEN": "<your_api_token>"
+  }
+}'
+```
+
+Verify the server was registered:
+
+```bash
+openclaw mcp list
+```
+
+To remove it later: `openclaw mcp unset memtrace`
+
 ---
 
 ### Setup B — Remote Machine
@@ -349,6 +374,20 @@ Restart Cursor and verify the server is active under **Cursor Settings → MCP**
     }
   }
 }
+```
+
+#### OpenClaw — remote
+
+```bash
+openclaw mcp set memtrace '{
+  "command": "memtrace-mcp",
+  "env": {
+    "MEMTRACE_API": "https://<memtrace-host>/api/v1",
+    "MEMTRACE_WS": "<your_workspace_id>",
+    "MEMTRACE_LANG": "zh-TW",
+    "MEMTRACE_TOKEN": "mt_<your_personal_token>"
+  }
+}'
 ```
 
 > **Security note:** The MCP protocol itself runs locally over stdio — no MCP port is exposed over the network. Only the MemTrace API calls travel over HTTPS. Your personal token determines exactly which workspaces and operations are accessible.
