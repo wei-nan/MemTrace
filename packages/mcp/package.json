@@ -2,9 +2,14 @@
   "name": "@memtrace/mcp",
   "version": "1.0.0",
   "description": "MemTrace MCP server — exposes the knowledge graph to AI agents",
-  "private": true,
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "memtrace-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",

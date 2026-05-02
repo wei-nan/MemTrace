@@ -69,6 +69,8 @@ services:
       MEMTRACE_API: http://api:8000/api/v1
       MCP_TRANSPORT: sse
       MCP_PORT: 3001
+      MEMTRACE_TOKEN: ${MEMTRACE_TOKEN}
+      MEMTRACE_SSE_TOKEN: ${MEMTRACE_SSE_TOKEN}
     ports:
       - "3001:3001"
     depends_on:

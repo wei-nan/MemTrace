@@ -405,7 +405,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],   # Vite dev server
+    allow_origins=[
+        "http://localhost:5173",                          # Vite dev server
+        "https://mac-mini.tail6066c6.ts.net",            # Tailscale UI
+        "https://mac-mini.tail6066c6.ts.net:5173",       # Tailscale UI alt port
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -429,6 +433,12 @@ app.include_router(exports_router, prefix="/api/v1")
 app.include_router(api_keys_router, prefix="/api/v1")
 app.include_router(internal_router, prefix="/api/v1")
 app.include_router(mcp_router)
+
+# ── MCP package download (served from data/mcp/) ─────────────────────────────
+import pathlib as _pathlib
+_mcp_pkg_dir = _pathlib.Path(__file__).parent / "data" / "mcp"
+_mcp_pkg_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/mcp/download", StaticFiles(directory=str(_mcp_pkg_dir)), name="mcp-download")
 
 @app.get("/")
 def root():

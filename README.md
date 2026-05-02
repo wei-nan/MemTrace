@@ -134,21 +134,55 @@ npm run dev
 
 ## MCP Integration
 
-MemTrace exposes its knowledge base to AI coding tools via the **Model Context Protocol (MCP)**. Once connected, your AI assistant can search, read, and traverse the knowledge graph directly — without reading raw spec documents.
+MemTrace exposes its knowledge base to AI coding tools via the **Model Context Protocol (MCP)**. Once connected, your AI assistant can search, read, create, and update knowledge graph nodes directly — without reading raw spec documents.
 
 ### Available Tools
 
+#### Read
 | Tool | Description |
 |------|-------------|
+| `list_workspaces` | List all accessible workspaces |
 | `search_nodes` | Keyword search across all nodes (title + body) |
 | `get_node` | Retrieve a specific node by ID |
 | `traverse` | Walk the graph from a node up to N hops |
+| `traverse_edge` | Follow a specific edge to its target node |
 | `list_by_tag` | List all nodes matching a tag |
-| `list_workspaces` | List all accessible workspaces (requires `MEMTRACE_TOKEN`) |
+| `list_empty_nodes` | Find nodes missing body content |
+| `list_review_queue` | List nodes pending review |
+| `get_schema` | Retrieve workspace schema and field specs |
 
-> **Note:** All node tools accept an optional `workspace_id` parameter to query a specific KB. If omitted, they use the `MEMTRACE_WS` default.
+#### Write
+| Tool | Description |
+|------|-------------|
+| `create_node` | Add a new memory node |
+| `update_node` | Edit an existing node's fields |
+| `delete_node` | Remove a node (and its edges) |
+| `create_edge` | Connect two nodes with a typed relationship |
+| `vote_trust` | Cast a trust vote on a node |
+| `confirm_node_validity` | Mark a node as verified |
 
-### Step 1 — Build the MCP Server
+> All node tools accept an optional `workspace_id` parameter. If omitted, they use the `MEMTRACE_WS` default.
+
+> Write tools require a token with `kb:write` scope. `vote_trust` and `confirm_node_validity` require `node:rate`.
+
+---
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MEMTRACE_API` | `http://localhost:8000/api/v1` | API base URL |
+| `MEMTRACE_WS` | `ws_spec0001` | Default workspace ID |
+| `MEMTRACE_LANG` | `zh-TW` | Response language (`zh-TW` or `en`) |
+| `MEMTRACE_TOKEN` | (empty) | API key — required for private workspaces and all write tools |
+
+---
+
+### Setup A — Same Machine as MemTrace (Local)
+
+Use this when your AI tool runs on the same machine as the MemTrace server.
+
+**Step 1 — Build the MCP server**
 
 ```bash
 cd packages/mcp
@@ -156,114 +190,168 @@ npm install
 npm run build        # output → packages/mcp/dist/index.js
 ```
 
-### Step 2 — Start the API
-
-The MCP server proxies requests to the MemTrace API. The API must be running before your AI tool connects.
-
-```bash
-cd packages/api
-python -m uvicorn main:app --port 8000
-```
-
-### Step 3 — Configure Your Tool
-
-All three tools use the same `mcpServers` JSON format. Adjust the env vars to point at your workspace.
-
-| Env Var | Default | Description |
-|---------|---------|-------------|
-| `MEMTRACE_API` | `http://localhost:8000/api/v1` | API base URL |
-| `MEMTRACE_WS` | `ws_spec0001` | Default Workspace ID to query |
-| `MEMTRACE_LANG` | `zh-TW` | Response language (`zh-TW` or `en`) |
-| `MEMTRACE_TOKEN` | (empty) | API JWT/Token required to access private workspaces and `list_workspaces` tool |
-
-### Usage Scenarios
-1. **Single Workspace (Simplest)**: Just set `MEMTRACE_WS` in your environment and omit the `workspace_id` parameter when using tools. The tools will default to this workspace.
-2. **Multiple Workspaces (Known IDs)**: Set `MEMTRACE_WS` to your primary workspace. When querying other accessible workspaces, explicitly pass their ID via the `workspace_id` parameter present on all node tools.
-3. **Multiple Workspaces (Unknown IDs)**: Assure `MEMTRACE_TOKEN` is set. The AI agent can first call the `list_workspaces` tool to discover available knowledge bases and their metadata, then use the returned IDs to construct queries with `workspace_id`.
-
----
+**Step 2 — Configure your tool**
 
 #### Claude Code
 
 A project-level `.mcp.json` is already included in the repo root. Claude Code picks it up automatically when you open this project.
 
 ```json
-// .mcp.json  (already committed)
 {
   "mcpServers": {
-    "memtrace-kb": {
+    "memtrace": {
       "command": "node",
       "args": ["packages/mcp/dist/index.js"],
       "env": {
         "MEMTRACE_API": "http://localhost:8000/api/v1",
         "MEMTRACE_WS": "ws_spec0001",
         "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "<your_api_token_here>"
+        "MEMTRACE_TOKEN": "<your_api_token>"
       }
     }
   }
 }
 ```
 
-To use a different workspace, edit `MEMTRACE_WS` in `.mcp.json`.  
-To register globally (all projects), add the same block to `~/.claude/settings.json` under `"mcpServers"`.
+To register globally across all projects, add the same block to `~/.claude/settings.json` under `"mcpServers"`.
 
----
+#### Cursor (local)
 
-#### Cursor
-
-Create `.cursor/mcp.json` in the project root (project-scoped) or `~/.cursor/mcp.json` (global):
+Create `~/.cursor/mcp.json`:
 
 ```json
 {
   "mcpServers": {
-    "memtrace-kb": {
+    "memtrace": {
       "command": "node",
       "args": ["/absolute/path/to/memtrace/packages/mcp/dist/index.js"],
       "env": {
         "MEMTRACE_API": "http://localhost:8000/api/v1",
         "MEMTRACE_WS": "ws_spec0001",
         "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "<your_api_token_here>"
+        "MEMTRACE_TOKEN": "<your_api_token>"
       }
     }
   }
 }
 ```
 
-> **Note:** Cursor requires **absolute paths** in `args`. Replace `/absolute/path/to/memtrace` with the actual path on your machine.
-
-Then restart Cursor. Verify the server is active under **Cursor Settings → MCP**.
-
----
+> Cursor requires absolute paths in `args`.
 
 #### Antigravity (Google)
 
-Add to the global config file:
-
-- **macOS / Linux:** `~/.gemini/antigravity/mcp_config.json`
-- **Windows:** `%USERPROFILE%\.gemini\antigravity\mcp_config.json`
+Config file location:
+- macOS / Linux: `~/.gemini/antigravity/mcp_config.json`
+- Windows: `%USERPROFILE%\.gemini\antigravity\mcp_config.json`
 
 ```json
 {
   "mcpServers": {
-    "memtrace-kb": {
+    "memtrace": {
       "command": "node",
-      "args": ["C:\\absolute\\path\\to\\memtrace\\packages\\mcp\\dist\\index.js"],
+      "args": ["/absolute/path/to/memtrace/packages/mcp/dist/index.js"],
       "env": {
         "MEMTRACE_API": "http://localhost:8000/api/v1",
         "MEMTRACE_WS": "ws_spec0001",
         "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "<your_api_token_here>"
+        "MEMTRACE_TOKEN": "<your_api_token>"
       }
     }
   }
 }
 ```
 
-> **Note:** Antigravity requires absolute paths and does **not** support `${workspaceFolder}` variable substitution. Keep total enabled MCP tools under 50.
+> Antigravity does **not** support `${workspaceFolder}` variable substitution. Keep total enabled MCP tools under 50.
 
-Restart Antigravity after saving. Confirm the server appears in **Settings → AI → MCP Servers**.
+---
+
+### Setup B — Remote Machine
+
+Use this when your AI tool runs on a **different machine** from the MemTrace server. The MCP server runs locally on your machine and communicates with the remote MemTrace API over HTTPS. Each user authenticates with their own personal token — the server enforces their workspace permissions on every operation.
+
+This setup works with any network configuration that makes the MemTrace API reachable from your machine: a VPN, a reverse proxy, a direct public URL, or a private overlay network.
+
+**Step 1 — Ensure the API is reachable**
+
+Confirm you can reach the MemTrace API from your machine:
+
+```bash
+curl https://<memtrace-host>/api/v1/health
+# expected: {"status":"healthy"}
+```
+
+If the API is served on a non-standard port, include it: `https://<host>:<port>/api/v1`.
+
+**Step 2 — Create your API token**
+
+1. Open the MemTrace web UI and log in
+2. Go to **Settings → API Keys** → **New Key**
+3. Set the following scopes:
+
+| Scope | Required for |
+|-------|-------------|
+| `kb:write` | create / update / delete nodes and edges |
+| `node:traverse` | graph traversal tools |
+| `node:rate` | trust votes and validity confirmation |
+
+> Select `*` for full access to all tools.
+
+4. Copy the generated `mt_...` token — it is shown only once.
+
+**Step 3 — Install the MCP package** (requires Node.js 18+)
+
+```bash
+# Option A: install from the MemTrace server's package endpoint
+npm install -g https://<memtrace-host>/mcp/download/memtrace-mcp-latest.tgz
+
+# Option B: clone the repo and build locally
+git clone <repo-url>
+cd memtrace/packages/mcp && npm install && npm run build
+```
+
+**Step 4 — Configure your AI tool**
+
+#### Cursor
+
+Create or edit `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "memtrace": {
+      "command": "memtrace-mcp",
+      "env": {
+        "MEMTRACE_API": "https://<memtrace-host>/api/v1",
+        "MEMTRACE_WS": "<your_workspace_id>",
+        "MEMTRACE_LANG": "zh-TW",
+        "MEMTRACE_TOKEN": "mt_<your_personal_token>"
+      }
+    }
+  }
+}
+```
+
+Restart Cursor and verify the server is active under **Cursor Settings → MCP**.
+
+#### Antigravity (Google) — remote
+
+```json
+{
+  "mcpServers": {
+    "memtrace": {
+      "command": "memtrace-mcp",
+      "env": {
+        "MEMTRACE_API": "https://<memtrace-host>/api/v1",
+        "MEMTRACE_WS": "<your_workspace_id>",
+        "MEMTRACE_LANG": "zh-TW",
+        "MEMTRACE_TOKEN": "mt_<your_personal_token>"
+      }
+    }
+  }
+}
+```
+
+> **Security note:** The MCP protocol itself runs locally over stdio — no MCP port is exposed over the network. Only the MemTrace API calls travel over HTTPS. Your personal token determines exactly which workspaces and operations are accessible.
 
 ---
 
@@ -272,18 +360,16 @@ Restart Antigravity after saving. Confirm the server appears in **Settings → A
 Once connected, ask your AI assistant:
 
 ```
-What MCP tools are available from memtrace-kb?
+What MCP tools are available from memtrace?
 ```
-
-You should see `search_nodes`, `get_node`, `traverse`, and `list_by_tag` listed.
 
 Try a real query:
 
 ```
-Use memtrace-kb to find the decay half-life for each node type.
+Use memtrace to find the decay half-life for each node type.
 ```
 
-The assistant should call `search_nodes` and return the answer from `mem_d002` without reading the full spec document.
+The assistant should call `search_nodes` and return the answer without reading the full spec document.
 
 ---
 
@@ -291,10 +377,13 @@ The assistant should call `search_nodes` and return the answer from `mem_d002` w
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
-| `ENOENT` or `command not found` | Wrong path in `args` | Use absolute path; verify `dist/index.js` exists |
-| `Workspace not found` | Wrong `MEMTRACE_WS` | Run `seed_spec_kb.py` and confirm workspace ID |
-| `Connection refused` | API not running | Start with `uvicorn main:app --port 8000` |
-| Tools not listed | Server crashed on start | Check logs; run `node packages/mcp/dist/index.js` directly to see errors |
+| `ENOENT` / `command not found` | Wrong path or package not installed | Use absolute path; verify `dist/index.js` exists or reinstall the package |
+| `Workspace not found` | Wrong `MEMTRACE_WS` | Confirm workspace ID via `list_workspaces` tool |
+| `Connection refused` | API not running | Check `docker compose ps`; all containers should be healthy |
+| `401 Unauthorized` | Missing or invalid token | Set `MEMTRACE_TOKEN` to a valid `mt_...` key from Settings → API Keys |
+| `403 insufficient_scope` | Token missing required scope | Recreate the token with `kb:write`, `node:traverse`, `node:rate` scopes |
+| `404 Invalid oauth error` | Client using wrong endpoint | Cursor (remote): use `command: memtrace-mcp`, not a URL |
+| Tools not listed | MCP server crashed | Run `memtrace-mcp` in a terminal to see the error directly |
 
 ---
 

@@ -14,6 +14,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express, { type Request, type Response } from "express";
 import {
   CallToolRequestSchema,
@@ -512,10 +513,11 @@ async function listWorkspaces(limit = 20): Promise<string> {
 
 // ── MCP Server setup ──────────────────────────────────────────────────────────
 
-const server = new Server(
-  { name: "memtrace-kb", version: "1.0.0" },
-  { capabilities: { tools: {}, resources: {} } }
-);
+function createServer(): Server {
+  const server = new Server(
+    { name: "memtrace-kb", version: "1.0.0" },
+    { capabilities: { tools: {}, resources: {} } }
+  );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -927,8 +929,11 @@ server.setRequestHandler(ReadResourceRequestSchema, async (req) => {
     return { contents: [{ uri, mimeType: "text/markdown", text }] };
   }
 
-  throw new Error(`Unknown resource: ${uri}`);
-});
+    throw new Error(`Unknown resource: ${uri}`);
+  });
+
+  return server;
+}
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
@@ -942,24 +947,90 @@ const transportMode = process.env.MCP_TRANSPORT ?? "stdio";
 
 if (transportMode === "sse") {
   const app = express();
+  app.use(express.json());
   const port = Number(process.env.MCP_PORT) || 3001;
-  const sessions = new Map<string, SSEServerTransport>();
 
-  app.get("/sse", async (_req: Request, res: Response) => {
+  // ── Optional bearer-token guard ───────────────────────────────────────────
+  const SSE_TOKEN = process.env.MEMTRACE_SSE_TOKEN ?? "";
+
+  function checkBearerToken(req: Request, res: Response): boolean {
+    if (!SSE_TOKEN) return true;
+    const auth = req.headers["authorization"] ?? "";
+    const provided = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+    if (provided !== SSE_TOKEN) {
+      res.status(401).json({ error: "Unauthorized" });
+      return false;
+    }
+    return true;
+  }
+
+  // ── Streamable HTTP transport (MCP spec 2025-03-26, used by Cursor) ───────
+  // Note: no app-level auth here — network access is restricted by Tailscale.
+  // Sending 401 would trigger Cursor's OAuth discovery flow and cause errors.
+  const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
+
+  app.all("/mcp", async (req: Request, res: Response) => {
+    const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
+    // Route to existing session
+    if (sessionId && streamableSessions.has(sessionId)) {
+      const transport = streamableSessions.get(sessionId)!;
+      await transport.handleRequest(req, res, req.body);
+      return;
+    }
+
+    // Reject non-init requests without a valid session
+    if (sessionId) {
+      res.status(404).json({ error: "Session not found or expired" });
+      return;
+    }
+
+    // New session: only POST initialize is allowed without session ID
+    if (req.method !== "POST") {
+      res.status(400).json({ error: "New sessions must be initialized via POST" });
+      return;
+    }
+
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => crypto.randomUUID(),
+      onsessioninitialized: (sid) => {
+        streamableSessions.set(sid, transport);
+        console.log(`Streamable HTTP session created: ${sid}`);
+      },
+    });
+
+    transport.onclose = () => {
+      if (transport.sessionId) {
+        streamableSessions.delete(transport.sessionId);
+        console.log(`Streamable HTTP session closed: ${transport.sessionId}`);
+      }
+    };
+
+    const server = createServer();
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+  });
+
+  // ── Legacy SSE transport (used by Claude Code / older clients) ────────────
+  const sseSessions = new Map<string, SSEServerTransport>();
+
+  app.get("/sse", async (req: Request, res: Response) => {
+    if (!checkBearerToken(req, res)) return;
     const sessionId = crypto.randomUUID();
-    console.log(`New SSE connection: ${sessionId}`);
+    console.log(`SSE session created: ${sessionId}`);
     const transport = new SSEServerTransport(`/messages?sessionId=${sessionId}`, res);
-    sessions.set(sessionId, transport);
+    sseSessions.set(sessionId, transport);
     res.on("close", () => {
-      sessions.delete(sessionId);
+      sseSessions.delete(sessionId);
       console.log(`SSE session closed: ${sessionId}`);
     });
+    const server = createServer();
     await server.connect(transport);
   });
 
   app.post("/messages", async (req: Request, res: Response) => {
     const sessionId = req.query.sessionId as string;
-    const transport = sessions.get(sessionId);
+    const transport = sseSessions.get(sessionId);
     if (!transport) {
       res.status(400).send("Session not found or expired");
       return;
@@ -969,11 +1040,12 @@ if (transportMode === "sse") {
 
   app.listen(port, () => {
     console.log(`MemTrace MCP Server (SSE) listening on port ${port}`);
-    console.log(`SSE endpoint: http://localhost:${port}/sse`);
-    console.log(`Message endpoint: http://localhost:${port}/messages`);
+    console.log(`  Streamable HTTP : http://localhost:${port}/mcp  (Cursor / modern clients, Tailscale-only)`);
+    console.log(`  Legacy SSE      : http://localhost:${port}/sse  (Claude Code / older clients, token-guarded)`);
   });
 } else {
   const transport = new StdioServerTransport();
+  const server = createServer();
   await server.connect(transport);
   console.error("MemTrace MCP Server (Stdio) running...");
 }
