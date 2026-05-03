@@ -247,8 +247,18 @@ def import_kb(
                         raise HTTPException(status_code=413, detail="File too large (max 50MB)")
 
             with zipfile.ZipFile(zip_path, "r") as zf:
-                # C-03: Zip bomb protection
-                total_uncompressed = sum(info.file_size for info in zf.infolist())
+                # C-03: Zip bomb & path traversal protection
+                total_uncompressed = 0
+                total_compressed = sum(info.compress_size for info in zf.infolist()) or 1
+                
+                for info in zf.infolist():
+                    if ".." in info.filename or info.filename.startswith("/") or info.filename.startswith("\\"):
+                        raise HTTPException(status_code=400, detail="Invalid path in ZIP (Path Traversal attempt)")
+                    total_uncompressed += info.file_size
+
+                if total_uncompressed / total_compressed > 100:
+                    raise HTTPException(status_code=413, detail="Zip compression ratio too high (Zip Bomb detected)")
+                    
                 if len(zf.infolist()) > 1000 or total_uncompressed > 200 * 1024 * 1024:
                     raise HTTPException(status_code=413, detail="Zip contents too large or too many entries")
                 

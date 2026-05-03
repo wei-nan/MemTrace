@@ -621,6 +621,11 @@ async def _dispatch(msg: dict, user: dict) -> dict:
 # SSE endpoint
 # ═══════════════════════════════════════════════════════════════════════════════
 
+import time
+
+MAX_SESSIONS_PER_USER = 5
+SESSION_TTL_SECONDS = 3600
+
 @router.get("/sse")
 async def mcp_sse(
     request: Request,
@@ -631,12 +636,29 @@ async def mcp_sse(
     Sends an 'endpoint' event telling the client where to POST messages,
     then streams responses back as 'message' events.
     """
+    user_sub = user.get("sub")
+    
+    # Prune expired sessions globally (optional but good practice)
+    now = time.time()
+    expired = [sid for sid, s in _sessions.items() if now - s.get("created_at", 0) > SESSION_TTL_SECONDS]
+    for sid in expired:
+        _sessions.pop(sid, None)
+        
+    # Enforce max sessions per user limit
+    user_sessions = [sid for sid, s in _sessions.items() if s.get("user_sub") == user_sub]
+    if len(user_sessions) >= MAX_SESSIONS_PER_USER:
+        # Prune oldest session for this user
+        oldest_sid = min(user_sessions, key=lambda sid: _sessions[sid].get("created_at", 0))
+        _sessions.pop(oldest_sid, None)
+
     session_id = str(uuid.uuid4())
     queue: asyncio.Queue = asyncio.Queue()
     _sessions[session_id] = {
         "queue": queue,
-        "user_sub": user.get("sub"),
+        "user_sub": user_sub,
         "api_key_id": user.get("api_key_id"),
+        "created_at": now,
+        "last_accessed": now,
     }
 
     # Build the POST URL the client should use
@@ -689,6 +711,12 @@ async def mcp_messages(
     
     if session.get("user_sub") != user.get("sub") or session.get("api_key_id") != user.get("api_key_id"):
         raise HTTPException(status_code=403, detail="Session owner mismatch")
+        
+    if time.time() - session.get("created_at", 0) > SESSION_TTL_SECONDS:
+        _sessions.pop(sessionId, None)
+        raise HTTPException(status_code=401, detail="Session expired")
+        
+    session["last_accessed"] = time.time()
 
     queue = session["queue"]
 

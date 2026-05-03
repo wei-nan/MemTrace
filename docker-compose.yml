@@ -46,7 +46,7 @@ services:
       - ALL
     read_only: true
     tmpfs:
-      - /tmp
+      - /tmp:mode=1777
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -71,9 +71,9 @@ services:
       - ALL
     read_only: true
     tmpfs:
-      - /tmp
-      - /var/cache/nginx
-      - /var/run
+      - /tmp:mode=1777
+      - /var/cache/nginx:mode=1777
+      - /var/run:mode=1777
 
   mcp:
     build:
@@ -101,7 +101,7 @@ services:
       - ALL
     read_only: true
     tmpfs:
-      - /tmp
+      - /tmp:mode=1777
 
 
 volumes:

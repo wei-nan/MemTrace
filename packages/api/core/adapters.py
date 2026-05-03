@@ -76,9 +76,20 @@ class ExcelAdapter:
             delimiter = ","
             if "\t" in content and content.count("\t") > content.count(","):
                 delimiter = "\t"
-            return {"Sheet1": pd.read_csv(io.StringIO(content), sep=delimiter)}
+            df = pd.read_csv(io.StringIO(content), sep=delimiter)
+            if len(df.columns) > 100 or len(df) > 10000:
+                raise ValueError("CSV complexity limit exceeded (max 100 columns, 10000 rows)")
+            return {"Sheet1": df}
         else:
-            return pd.read_excel(stream, sheet_name=None)
+            dfs = pd.read_excel(stream, sheet_name=None)
+            total_cells = 0
+            for sn, df in dfs.items():
+                if len(df.columns) > 100 or len(df) > 10000:
+                    raise ValueError(f"Excel sheet '{sn}' complexity limit exceeded (max 100 columns, 10000 rows)")
+                total_cells += len(df.columns) * len(df)
+            if total_cells > 500000:
+                raise ValueError("Excel total complexity limit exceeded")
+            return dfs
 
     def _process_sheet(self, sheet_name: str, df, title_col: str = None,
                        desc_col: str = None, tag_col: str = None,
@@ -378,6 +389,8 @@ class PDFAdapter:
         
         with pdfplumber.open(stream) as pdf:
             page_count = len(pdf.pages)
+            if page_count > 500:
+                raise ValueError("PDF too large (max 500 pages)")
             
             current_heading = "Page 1"
             current_content = []
@@ -872,7 +885,17 @@ class SlackAdapter:
 
         segments = []
         with zipfile.ZipFile(stream) as z:
-            total_uncompressed = sum(info.file_size for info in z.infolist())
+            total_uncompressed = 0
+            total_compressed = sum(info.compress_size for info in z.infolist()) or 1
+            
+            for info in z.infolist():
+                if ".." in info.filename or info.filename.startswith("/") or info.filename.startswith("\\"):
+                    raise ValueError("Invalid path in ZIP (Path Traversal attempt)")
+                total_uncompressed += info.file_size
+
+            if total_uncompressed / total_compressed > 100:
+                raise ValueError("Zip compression ratio too high (Zip Bomb detected)")
+                
             if len(z.infolist()) > 5000 or total_uncompressed > 500 * 1024 * 1024:
                 raise ValueError("Zip contents too large or too many entries")
                 
@@ -971,10 +994,20 @@ class ImageAdapter:
         return filename.split('.')[-1].lower() in ["png", "jpg", "jpeg", "webp"] or mime_type.startswith("image/")
 
     async def parse(self, stream: BinaryIO, filename: str) -> NormalizedDocument:
-        # Note: In a real implementation, we would send the image bytes to a multimodal LLM.
-        # Here we provide a descriptive placeholder that process_ingestion will handle.
+        from PIL import Image
+        import io
         import base64
-        image_data = base64.b64encode(stream.read()).decode("utf-8")
+        
+        raw_bytes = stream.read()
+        try:
+            with Image.open(io.BytesIO(raw_bytes)) as img:
+                if img.width > 8000 or img.height > 8000:
+                    raise ValueError(f"Image dimensions too large ({img.width}x{img.height}). Max 8000x8000.")
+        except Exception as e:
+            if isinstance(e, ValueError): raise e
+            pass
+            
+        image_data = base64.b64encode(raw_bytes).decode("utf-8")
         
         # We store the base64 or a reference. For extraction, we'll need to send this to LLM.
         # For now, we return a segment that describes what to do.

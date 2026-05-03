@@ -1019,17 +1019,26 @@ async def ingest_url(
                 pass # DNS resolution failed, httpx will catch it later
                 
             # C-02: Use follow_redirects=False to prevent redirect to internal IPs
+            ALLOWED_CONTENT_TYPES = ["text/html", "text/plain", "application/json", "application/xml", "text/xml", "text/markdown"]
+            
             async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
-                res = await client.get(str(url))
-                if 300 <= res.status_code < 400:
-                     raise ValueError("SSRF protection: Redirects are not allowed")
-                res.raise_for_status()
+                async with client.stream("GET", str(url)) as res:
+                    if 300 <= res.status_code < 400:
+                         raise ValueError("SSRF protection: Redirects are not allowed")
+                    res.raise_for_status()
+                    
+                    content_type = res.headers.get("Content-Type", "")
+                    if not any(ctype in content_type for ctype in ALLOWED_CONTENT_TYPES):
+                        raise ValueError(f"Content-Type not allowed: {content_type}")
+                    
+                    # Check response size while downloading (streaming limit)
+                    file_bytes = b""
+                    async for chunk in res.aiter_bytes(chunk_size=1024*1024):
+                        file_bytes += chunk
+                        if len(file_bytes) > 5 * 1024 * 1024:
+                            raise ValueError("Content too large (max 5MB)")
                 
-                # Check response size (limit to 5MB)
-                if len(res.content) > 5 * 1024 * 1024:
-                    raise ValueError("Content too large (max 5MB)")
-                
-                html = res.text
+                html = file_bytes.decode("utf-8", errors="replace")
                 text = re.sub(r"<script.*?>.*?</script>", "", html, flags=re.DOTALL)
                 text = re.sub(r"<style.*?>.*?</style>",  "", text,  flags=re.DOTALL)
                 text = re.sub(r"<nav.*?>.*?</nav>",      "", text,  flags=re.DOTALL)

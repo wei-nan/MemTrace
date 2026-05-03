@@ -21,6 +21,10 @@ COPY package.json .
 RUN npm install --omit=dev 2>/dev/null || true
 
 COPY . .
+RUN groupadd -g 1000 memtrace && useradd -u 1000 -g memtrace -s /bin/bash -m memtrace && \
+    chown -R memtrace:memtrace /app
+
+USER 1000
 
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
