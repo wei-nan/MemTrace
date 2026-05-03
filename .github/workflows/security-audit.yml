@@ -1,0 +1,43 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 0' # run weekly
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        run: pip-audit -r packages/api/requirements.txt || true # don't fail the build immediately while fixing old packages
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run npm audit (API)
+        working-directory: packages/api
+        run: npm audit --audit-level=high || true
+
+      - name: Run npm audit (UI)
+        working-directory: packages/ui
+        run: npm audit --audit-level=high || true
+
+      - name: Run npm audit (MCP)
+        working-directory: packages/mcp
+        run: npm audit --audit-level=high || true

@@ -872,6 +872,10 @@ class SlackAdapter:
 
         segments = []
         with zipfile.ZipFile(stream) as z:
+            total_uncompressed = sum(info.file_size for info in z.infolist())
+            if len(z.infolist()) > 5000 or total_uncompressed > 500 * 1024 * 1024:
+                raise ValueError("Zip contents too large or too many entries")
+                
             for name in z.namelist():
                 if name.endswith(".json") and not name.startswith("metadata"):
                     try:

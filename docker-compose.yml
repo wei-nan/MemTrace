@@ -11,7 +11,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - memtrace_pgdata:/var/lib/postgresql/data
       - ./schema/sql:/docker-entrypoint-initdb.d:ro   # auto-run on first init
@@ -32,13 +32,21 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./packages/api/data:/app/data
       - ./backups:/backups
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -52,10 +60,20 @@ services:
     container_name: memtrace-ui
     restart: unless-stopped
     ports:
-      - "5173:80"
+      - "127.0.0.1:5173:8080"
     depends_on:
       api:
         condition: service_healthy
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
 
   mcp:
     build:
@@ -72,10 +90,18 @@ services:
       MEMTRACE_TOKEN: ${MEMTRACE_TOKEN}
       MEMTRACE_SSE_TOKEN: ${MEMTRACE_SSE_TOKEN}
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     depends_on:
       api:
         condition: service_healthy
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
 
 
 volumes:

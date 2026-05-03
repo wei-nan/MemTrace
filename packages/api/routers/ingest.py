@@ -854,7 +854,11 @@ async def excel_preview(
         raise HTTPException(status_code=400, detail="Only Excel/CSV files supported for preview")
 
     import pandas as pd
-    file_bytes = await file.read()
+    file_bytes = b""
+    while chunk := await file.read(1024 * 1024):
+        file_bytes += chunk
+        if len(file_bytes) > 20 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File too large (max 20MB)")
     stream = io.BytesIO(file_bytes)
 
     if ext == "csv":
@@ -914,7 +918,11 @@ async def ingest_file(
     try:
         # Core-2: Use adapter system
         import io
-        file_bytes = await file.read()
+        file_bytes = b""
+        while chunk := await file.read(1024 * 1024):
+            file_bytes += chunk
+            if len(file_bytes) > 20 * 1024 * 1024:
+                raise HTTPException(status_code=413, detail="File too large (max 20MB)")
         stream = io.BytesIO(file_bytes)
         adapter = get_adapter_for_file(file.filename, file.content_type)
 
@@ -994,9 +1002,33 @@ async def ingest_url(
 
     async def fetch_and_process():
         try:
-            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-                res = await client.get(url)
+            import socket, ipaddress
+            from urllib.parse import urlparse
+            
+            parsed_url = urlparse(str(url))
+            hostname = parsed_url.hostname
+            
+            if hostname in ("localhost", "127.0.0.1", "::1", "169.254.169.254"):
+                raise ValueError("SSRF protection: Internal domains/IPs are not allowed")
+                
+            try:
+                ip = socket.gethostbyname(hostname)
+                if ipaddress.ip_address(ip).is_private or ipaddress.ip_address(ip).is_loopback or ipaddress.ip_address(ip).is_link_local:
+                    raise ValueError("SSRF protection: Internal IPs are not allowed")
+            except socket.gaierror:
+                pass # DNS resolution failed, httpx will catch it later
+                
+            # C-02: Use follow_redirects=False to prevent redirect to internal IPs
+            async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
+                res = await client.get(str(url))
+                if 300 <= res.status_code < 400:
+                     raise ValueError("SSRF protection: Redirects are not allowed")
                 res.raise_for_status()
+                
+                # Check response size (limit to 5MB)
+                if len(res.content) > 5 * 1024 * 1024:
+                    raise ValueError("Content too large (max 5MB)")
+                
                 html = res.text
                 text = re.sub(r"<script.*?>.*?</script>", "", html, flags=re.DOTALL)
                 text = re.sub(r"<style.*?>.*?</style>",  "", text,  flags=re.DOTALL)

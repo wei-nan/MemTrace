@@ -237,12 +237,21 @@ def import_kb(
     errors: List[str] = []
 
     try:
+        id_map = {}
         with tempfile.TemporaryDirectory() as tmpdir:
             zip_path = os.path.join(tmpdir, "upload.zip")
             with open(zip_path, "wb") as f:
-                f.write(file.file.read())
+                while chunk := file.file.read(1024 * 1024):
+                    f.write(chunk)
+                    if f.tell() > 50 * 1024 * 1024:
+                        raise HTTPException(status_code=413, detail="File too large (max 50MB)")
 
             with zipfile.ZipFile(zip_path, "r") as zf:
+                # C-03: Zip bomb protection
+                total_uncompressed = sum(info.file_size for info in zf.infolist())
+                if len(zf.infolist()) > 1000 or total_uncompressed > 200 * 1024 * 1024:
+                    raise HTTPException(status_code=413, detail="Zip contents too large or too many entries")
+                
                 names = zf.namelist()
 
                 # Validate — manifest is optional for backwards compat
@@ -260,21 +269,24 @@ def import_kb(
                         errors.append("Node missing id field")
                         continue
                     try:
-                        cur.execute("SELECT id FROM memory_nodes WHERE id = %s", (node_id,))
+                        cur.execute("SELECT id, workspace_id FROM memory_nodes WHERE id = %s", (node_id,))
                         exists = cur.fetchone()
+
+                        is_cross_ws = exists and exists["workspace_id"] != ws_id
 
                         if exists and conflict_mode == "skip":
                             skipped += 1
+                            id_map[node_id] = node_id
                             continue
 
-                        if exists and conflict_mode == "overwrite":
+                        if exists and conflict_mode == "overwrite" and not is_cross_ws:
                             cur.execute(
                                 """
                                 UPDATE memory_nodes
                                 SET title_zh = %s, title_en = %s, body_zh = %s, body_en = %s,
                                     content_type = %s, tags = %s, trust_score = %s,
-                                    workspace_id = %s, updated_at = NOW()
-                                WHERE id = %s
+                                    updated_at = NOW()
+                                WHERE id = %s AND workspace_id = %s
                                 """,
                                 (
                                     node.get("title_zh"), node.get("title_en"),
@@ -282,11 +294,13 @@ def import_kb(
                                     node.get("content_type", "factual"),
                                     node.get("tags", []),
                                     node.get("trust_score", 0.8),
-                                    ws_id, node_id,
+                                    node_id, ws_id,
                                 ),
                             )
+                            id_map[node_id] = node_id
                         else:
                             new_id = generate_id("mem")
+                            id_map[node_id] = new_id
                             cur.execute(
                                 """
                                 INSERT INTO memory_nodes
@@ -319,13 +333,19 @@ def import_kb(
                         errors.append(f"Node {node_id}: {e}")
 
                 # Build mapping from original node_ids to any newly assigned ids
-                # For simplicity with skip/overwrite modes, edges referencing original ids
-                # are inserted as-is — they will work when conflict_mode=overwrite.
                 for edge in edges_data:
                     edge_id = edge.get("id")
                     if not edge_id:
                         continue
                     try:
+                        from_id = id_map.get(edge.get("from_id"), edge.get("from_id"))
+                        to_id = id_map.get(edge.get("to_id"), edge.get("to_id"))
+                        
+                        # H-03: Verify edges from/to exist in current workspace
+                        cur.execute("SELECT 1 FROM memory_nodes WHERE id IN (%s, %s) AND workspace_id = %s", (from_id, to_id, ws_id))
+                        if cur.rowcount < (1 if from_id == to_id else 2):
+                            continue
+
                         cur.execute(
                             """
                             INSERT INTO edges
@@ -335,7 +355,7 @@ def import_kb(
                             """,
                             (
                                 generate_id("edg"), ws_id,
-                                edge.get("from_id"), edge.get("to_id"),
+                                from_id, to_id,
                                 edge.get("relation", "related_to"),
                                 edge.get("weight", 1.0),
                                 edge.get("half_life_days", 90),

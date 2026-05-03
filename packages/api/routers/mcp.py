@@ -33,12 +33,14 @@ from fastapi.responses import StreamingResponse
 from core.database import db_cursor
 from core.deps import get_current_user
 
+from routers.kb import _require_ws_access
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["mcp"])
 
-# ── In-memory session map: session_id → asyncio.Queue ─────────────────────────
-_sessions: Dict[str, asyncio.Queue] = {}
+# ── In-memory session map: session_id → dict ─────────────────────────
+_sessions: Dict[str, dict] = {}
 
 # ── MCP server metadata ────────────────────────────────────────────────────────
 _SERVER_INFO = {
@@ -238,23 +240,7 @@ _TOOLS = [
 # Tool execution
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _check_workspace_access(ws_id: str, user: dict) -> None:
-    """Raise 403 if the user doesn't own or have access to this workspace."""
-    with db_cursor() as cur:
-        cur.execute(
-            """SELECT w.id FROM workspaces w
-               LEFT JOIN workspace_members wm ON wm.workspace_id = w.id AND wm.user_id = %s
-               WHERE w.id = %s AND w.status = 'active'
-                 AND (w.owner_id = %s OR wm.user_id IS NOT NULL)""",
-            (user["sub"], ws_id, user["sub"]),
-        )
-        if not cur.fetchone():
-            raise ValueError(f"Workspace '{ws_id}' not found or access denied")
-
-    # API key workspace_id restriction
-    if user.get("api_key_id") and user.get("workspace_id"):
-        if user["workspace_id"] != ws_id:
-            raise ValueError("API key is restricted to a different workspace")
+# _check_workspace_access removed in favor of _require_ws_access
 
 
 async def _execute_tool(name: str, args: dict, user: dict) -> Any:
@@ -263,26 +249,33 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     # ── list_workspaces ───────────────────────────────────────────────────────
     if name == "list_workspaces":
         with db_cursor() as cur:
+            params: list = [user["sub"], user["sub"]]
+            ws_restriction = ""
+            # Workspace-level API key: only show the designated workspace
+            if user.get("api_key_id") and user.get("workspace_id"):
+                ws_restriction = "AND w.id = %s"
+                params.append(user["workspace_id"])
             cur.execute(
-                """SELECT w.id, w.name_en, w.name_zh, w.kb_type, w.visibility,
+                f"""SELECT w.id, w.name_en, w.name_zh, w.kb_type, w.visibility,
                           (SELECT count(*) FROM memory_nodes WHERE workspace_id = w.id AND status='active') AS node_count
                    FROM workspaces w
                    LEFT JOIN workspace_members wm ON wm.workspace_id = w.id AND wm.user_id = %s
                    WHERE w.status = 'active'
                      AND (w.owner_id = %s OR wm.user_id IS NOT NULL)
+                     {ws_restriction}
                    ORDER BY w.created_at DESC""",
-                (user["sub"], user["sub"]),
+                params,
             )
             return cur.fetchall()
 
     # ── list_nodes ────────────────────────────────────────────────────────────
     if name == "list_nodes":
         ws_id = args.get("workspace_id", "")
-        _check_workspace_access(ws_id, user)
         q      = args.get("q", "")
         limit  = min(int(args.get("limit", 50)), 200)
         offset = int(args.get("offset", 0))
         with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user, write=False)
             conditions = ["workspace_id = %s", "status = 'active'"]
             params: list = [ws_id]
             if q:
@@ -310,8 +303,8 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     if name == "get_node":
         ws_id   = args["workspace_id"]
         node_id = args["node_id"]
-        _check_workspace_access(ws_id, user)
         with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user, write=False)
             cur.execute(
                 """SELECT id, workspace_id, title_zh, title_en, body_zh, body_en,
                           content_type, tags, trust_score, status,
@@ -329,8 +322,8 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
         ws_id = args["workspace_id"]
         query = args.get("query", "")
         limit = min(int(args.get("limit", 20)), 100)
-        _check_workspace_access(ws_id, user)
         with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user, write=False)
             cjk = re.findall(r'[一-鿿぀-ゟ゠-ヿ]+', query)
             eng = re.findall(r'[a-zA-Z0-9]{2,}', query)
             or_conds = ["search_vector @@ plainto_tsquery('simple', %s)"]
@@ -353,10 +346,10 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     # ── create_node ───────────────────────────────────────────────────────────
     if name == "create_node":
         ws_id = args["workspace_id"]
-        _check_workspace_access(ws_id, user)
         from core.security import generate_id
         node_id = generate_id("node")
         with db_cursor(commit=True) as cur:
+            _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
             cur.execute(
                 """INSERT INTO memory_nodes
                      (id, workspace_id, title_zh, title_en, body_zh, body_en,
@@ -381,7 +374,6 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     if name == "update_node":
         ws_id   = args["workspace_id"]
         node_id = args["node_id"]
-        _check_workspace_access(ws_id, user)
         allowed = {"title_zh", "title_en", "body_zh", "body_en",
                    "content_type", "tags", "trust_score"}
         updates = {k: v for k, v in args.items() if k in allowed}
@@ -389,6 +381,7 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
             raise ValueError("No updatable fields provided")
         set_clause = ", ".join(f"{k} = %s" for k in updates)
         with db_cursor(commit=True) as cur:
+            _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
             cur.execute(
                 f"""UPDATE memory_nodes SET {set_clause}, updated_at = now()
                     WHERE id = %s AND workspace_id = %s
@@ -404,8 +397,8 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     if name == "delete_node":
         ws_id   = args["workspace_id"]
         node_id = args["node_id"]
-        _check_workspace_access(ws_id, user)
         with db_cursor(commit=True) as cur:
+            _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
             cur.execute(
                 """UPDATE memory_nodes SET status = 'archived', archived_at = now()
                    WHERE id = %s AND workspace_id = %s AND status = 'active'""",
@@ -418,10 +411,10 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     # ── create_edge ───────────────────────────────────────────────────────────
     if name == "create_edge":
         ws_id = args["workspace_id"]
-        _check_workspace_access(ws_id, user)
         from core.security import generate_id
         edge_id = generate_id("edge")
         with db_cursor(commit=True) as cur:
+            _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
             cur.execute(
                 """INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight)
                    VALUES (%s, %s, %s, %s, %s, %s)
@@ -443,8 +436,8 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
         node_id   = args["node_id"]
         max_depth = min(int(args.get("depth", 2)), 4)
         relation  = args.get("relation")
-        _check_workspace_access(ws_id, user)
         with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user, write=False)
             # BFS
             visited: dict = {}
             queue: list = [(node_id, 0)]
@@ -483,8 +476,8 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     if name == "list_by_tag":
         ws_id = args["workspace_id"]
         tag   = args["tag"]
-        _check_workspace_access(ws_id, user)
         with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user, write=False)
             cur.execute(
                 """SELECT id, title_zh, title_en, content_type, tags, trust_score
                    FROM memory_nodes
@@ -518,8 +511,8 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     if name == "list_review_queue":
         ws_id = args["workspace_id"]
         limit = min(int(args.get("limit", 20)), 100)
-        _check_workspace_access(ws_id, user)
         with db_cursor() as cur:
+            _require_ws_access(cur, ws_id, user, write=False)
             cur.execute(
                 """SELECT id, title_zh, title_en, content_type, trust_score,
                           updated_at, validity_confirmed_at
@@ -536,8 +529,8 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
     if name == "confirm_node_validity":
         ws_id   = args["workspace_id"]
         node_id = args["node_id"]
-        _check_workspace_access(ws_id, user)
         with db_cursor(commit=True) as cur:
+            _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
             cur.execute(
                 """UPDATE memory_nodes
                    SET validity_confirmed_at = now(), trust_score = LEAST(trust_score + 0.05, 1.0)
@@ -640,7 +633,11 @@ async def mcp_sse(
     """
     session_id = str(uuid.uuid4())
     queue: asyncio.Queue = asyncio.Queue()
-    _sessions[session_id] = queue
+    _sessions[session_id] = {
+        "queue": queue,
+        "user_sub": user.get("sub"),
+        "api_key_id": user.get("api_key_id"),
+    }
 
     # Build the POST URL the client should use
     base = str(request.base_url).rstrip("/")
@@ -686,9 +683,14 @@ async def mcp_messages(
     user: dict = Depends(get_current_user),
 ):
     """Receive a JSON-RPC 2.0 message and push the response to the SSE session."""
-    queue = _sessions.get(sessionId)
-    if queue is None:
+    session = _sessions.get(sessionId)
+    if session is None:
         raise HTTPException(status_code=404, detail="Session not found or expired")
+    
+    if session.get("user_sub") != user.get("sub") or session.get("api_key_id") != user.get("api_key_id"):
+        raise HTTPException(status_code=403, detail="Session owner mismatch")
+
+    queue = session["queue"]
 
     try:
         body = await request.json()

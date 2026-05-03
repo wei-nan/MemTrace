@@ -44,7 +44,7 @@ class CsrfMiddleware(BaseHTTPMiddleware):
         # 2b. Skip CSRF for unauthenticated auth endpoints.
         #     These run before any CSRF cookie exists (fresh browser session), and
         #     cannot be CSRF-attacked since there is no authenticated session to hijack.
-        _CSRF_EXEMPT = {"/auth/login", "/auth/register", "/auth/refresh"}
+        _CSRF_EXEMPT = {"/auth/login", "/auth/register"}
         if request.url.path in _CSRF_EXEMPT:
             return await call_next(request)
 
