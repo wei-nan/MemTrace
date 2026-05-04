@@ -151,48 +151,48 @@ function renderNode(n: ApiNode, includeBody = true): string {
 
 const NODE_GUIDE = `# MemTrace Node Schema
 
-## 欄位規格 (Fields)
-| 欄位 | 型別 | 必填 | 說明 |
-|------|------|------|------|
-| title_en | string | ✅ | 英文標題 |
-| title_zh | string | 建議填 | 中文標題（支援中文搜尋） |
-| content_type | enum | ✅ | 節點類型，見下方 |
-| content_format | enum | ✅ | plain=純文字, markdown=Markdown |
-| body_zh | string | 擇一必填 | 中文內容 |
-| body_en | string | 擇一必填 | 英文內容 |
-| tags | string[] | 選填 | 分類標籤 |
-| visibility | enum | 選填 | public/team/private，預設 private |
-| source_type | enum | ✅ (AI) | AI agent 必須填 "ai" |
+## Fields
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| title_en | string | ✅ | English title |
+| title_zh | string | Recommended | Chinese title (supports Chinese search) |
+| content_type | enum | ✅ | Node type, see below |
+| content_format | enum | ✅ | plain=Plain text, markdown=Markdown |
+| body_zh | string | One of body_* | Chinese content |
+| body_en | string | One of body_* | English content |
+| tags | string[] | Optional | Classification tags |
+| visibility | enum | Optional | public/team/private, default is private |
+| source_type | enum | ✅ (AI) | AI agents must use "ai" |
 
-## content_type 選擇規則
-- **factual**: 陳述性事實（例：pgvector 支援 cosine similarity）
-- **procedural**: 步驟、流程或指引（例：如何設定 Google OAuth）
-- **preference**: 偏好、決策或特定選型（例：我們選擇 bcrypt 作為 hash 演算法）
-- **context**: 背景、專案核心目標或設計初衷（例：採用雙語設計的原因）
+## content_type Rules
+- **factual**: Declarative facts (e.g., pgvector supports cosine similarity)
+- **procedural**: Steps, processes, or guides (e.g., how to configure Google OAuth)
+- **preference**: Preferences, decisions, or technology choices (e.g., we chose bcrypt as the hash algorithm)
+- **context**: Background, project core goals, or design intentions (e.g., reasons for adopting a bilingual design)
 
-## 建立最佳實踐 (Best Practices)
-1. **先搜尋**: 建立前先用 \`search_nodes\` 確認無相似節點。
-2. **單一性**: 一個節點只記錄一個獨立的概念。
-3. **雙語化**: 盡量同時提供 中英文欄位，增加跨語言檢索能力。
-4. **關聯性**: 使用 \`suggested_edges\` 參數在建立時一併提議關聯。
-5. **品質回饋**: 讀取節點後，若發現資訊極具價值或有誤，應呼叫 \`vote_trust\` 調整信任分。
+## Best Practices
+1. **Search first**: Always use \`search_nodes\` before creating to avoid duplicates.
+2. **Singularity**: One node should only record one independent concept.
+3. **Bilingual**: Provide both Chinese and English fields when possible to increase cross-language retrieval capabilities.
+4. **Relationships**: Use the \`suggested_edges\` parameter to propose connections upon creation.
+5. **Quality feedback**: After reading a node, if the information is highly valuable or incorrect, call \`vote_trust\` to adjust the trust score.
 `;
 
 const EDGE_GUIDE = `# MemTrace Edge Schema
 
-## 關聯類型 (Relation Types)
-- **depends_on**: 此節點依賴目標節點才能運作或理解。
-- **extends**: 此節點是目標節點概念的進一步擴充或特化。
-- **related_to**: 兩者相關，但沒有明確的先後或屬序關係。
-- **contradicts**: 此節點與目標節點存在邏輯衝突或版本矛盾。
+## Relation Types
+- **depends_on**: This node relies on the target node to function or be understood.
+- **extends**: This node is a further expansion or specialization of the target node's concept.
+- **related_to**: The two are related, but without a clear precedence or hierarchy.
+- **contradicts**: This node has a logical conflict or version contradiction with the target node.
 
-## 參數說明
-- **weight**: 關聯強度 (0.1 至 1.0)。預設 1.0。
-- **workspace_id**: 目標工作區 ID。
+## Parameter Descriptions
+- **weight**: Connection strength (0.1 to 1.0). Default is 1.0.
+- **workspace_id**: Target workspace ID.
 
-## 限制與細節
-- 同一對節點 (A, B) 之間不能存在多條相同類型的邊（重複建立會回 409）。
-- 若為 Editor 角色，建立邊的請求會進入 \`review_queue\` 待審核。
+## Constraints & Details
+- Multiple edges of the same type cannot exist between the same pair of nodes (A, B) (duplicate creation returns 409).
+- For Editor roles, edge creation requests will enter the \`review_queue\` pending approval.
 `;
 
 const SCHEMA_GUIDE = `
@@ -539,7 +539,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       name: "get_node",
       description:
         "Retrieve a specific MemTrace knowledge node by its ID (e.g. mem_d001, mem_p003). Returns full content and metadata.\n" +
-        "讀取完節點後，若確認內容正確且有用，建議呼叫 `vote_trust` 或 `confirm_node_validity` 回饋品質訊號，以維持知識圖的活性。\n" +
+        "After reading the node, if the content is verified as correct and useful, it is recommended to call `vote_trust` or `confirm_node_validity` to provide quality signals and maintain the knowledge graph's vitality.\n" +
         "Pass `workspace_id` to query a specific KB; omit to use the configured default (`MEMTRACE_WS`).",
       inputSchema: {
         type: "object" as const,
@@ -554,7 +554,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       name: "traverse",
       description:
         "Get a node and its direct associations (upstream/downstream). Useful for understanding how concepts relate to each other. Set depth=2 to also include full content of neighbour nodes.\n" +
-        "讀取完節點後，若確認內容正確且有用，建議呼叫 `vote_trust` 或 `confirm_node_validity` 回饋品質訊號，以維持知識圖的活性。\n" +
+        "After reading the node, if the content is verified as correct and useful, it is recommended to call `vote_trust` or `confirm_node_validity` to provide quality signals and maintain the knowledge graph's vitality.\n" +
         "Pass `workspace_id` to query a specific KB; omit to use the configured default (`MEMTRACE_WS`).",
       inputSchema: {
         type: "object" as const,
@@ -582,19 +582,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "create_node",
-      description: `建立新的知識節點，進入 _propose_change 審核流程。
+      description: `Create a new knowledge node, entering the _propose_change review process.
 
-【建立前】建議先用 search_nodes 確認無重複節點。
-【AI agent】必須帶 source_type: "ai"。
-【body】body_zh / body_en 至少填一個。
+[Before creating] It is recommended to use search_nodes first to confirm there are no duplicate nodes.
+[AI agent] Must include source_type: "ai".
+[body] At least one of body_zh / body_en must be provided.
 
-content_type 選擇：
-- factual     = 陳述性事實（例：pgvector 支援 cosine similarity）
-- procedural  = 步驟流程（例：如何設定 Google OAuth）
-- preference  = 偏好或決策（例：我們選擇 bcrypt）
-- context     = 背景脈絡（例：採用雙語設計的原因）
+content_type selection:
+- factual     = Declarative facts (e.g., pgvector supports cosine similarity)
+- procedural  = Steps or processes (e.g., how to configure Google OAuth)
+- preference  = Preferences or decisions (e.g., we chose bcrypt)
+- context     = Background context (e.g., reasons for adopting a bilingual design)
 
-回傳 201 = 直接建立完成；202 + review_id = 已進入審核佇列（editor 角色）。`,
+Returns 201 = Created immediately; 202 + review_id = Entered review queue (editor role).`,
       inputSchema: {
         type: "object" as const,
         properties: {
@@ -603,32 +603,32 @@ content_type 選擇：
           content_type: { 
             type: "string", 
             enum: ["factual", "procedural", "preference", "context"],
-            description: "factual=事實知識 | procedural=步驟流程 | preference=偏好設定 | context=背景脈絡"
+            description: "factual=Declarative facts | procedural=Steps or processes | preference=Preferences or decisions | context=Background context"
           },
           content_format: { 
             type: "string", enum: ["plain", "markdown"],
-            description: "plain=純文字 | markdown=支援 Markdown 格式"
+            description: "plain=Plain text | markdown=Markdown format supported"
           },
           body_zh: { type: "string" },
           body_en: { type: "string" },
           tags: { type: "array", items: { type: "string" } },
           visibility: { 
             type: "string", enum: ["public", "team", "private"],
-            description: "public=所有人可見 | team=工作區成員 | private=僅自己"
+            description: "public=Visible to all | team=Workspace members | private=Only me"
           },
           source_type: {
             type: "string", enum: ["human", "ai"],
-            description: "呼叫者身份，AI 代理呼叫時務必傳 'ai'"
+            description: "Caller identity, AI agents MUST pass 'ai'"
           },
           suggested_edges: {
             type: "array",
-            description: "同時提議與既有節點的關聯（不立即建立，進入 review_queue）",
+            description: "Propose associations with existing nodes simultaneously (not created immediately, enters review_queue)",
             items: {
               type: "object",
               properties: {
-                to_id: { type: "string", description: "目標節點 ID，例如 mem_d001" },
+                to_id: { type: "string", description: "Target node ID, e.g. mem_d001" },
                 relation: { type: "string", enum: ["depends_on", "extends", "related_to", "contradicts"] },
-                weight: { type: "number", description: "關聯強度 0.1–1.0，預設 1.0" }
+                weight: { type: "number", description: "Connection strength 0.1-1.0, default 1.0" }
               },
               required: ["to_id", "relation"]
             }
@@ -640,7 +640,7 @@ content_type 選擇：
     },
     {
       name: "update_node",
-      description: "更新既有知識節點。只須傳入欲修改的欄位 (partial update)。使用 _propose_change 流程，編輯者提案會進入審核佇列。AI 修改請務必帶 source_type: 'ai'。",
+      description: "Update an existing knowledge node. Only pass the fields to modify (partial update). Uses _propose_change process; editor proposals will enter the review queue. AI modifications must include source_type: 'ai'.",
       inputSchema: {
         type: "object" as const,
         properties: {
@@ -673,7 +673,7 @@ content_type 選擇：
     },
     {
       name: "delete_node",
-      description: "刪除既有知識節點。使用 _propose_change 流程，對 editor 角色而言是「提案刪除」，不立即執行，會進入 review_queue。AI 操作請注意此點。",
+      description: "Delete an existing knowledge node. Uses _propose_change process; for editor roles this is a 'proposed deletion', not executed immediately, and will enter the review_queue. AI operations should note this.",
       inputSchema: {
         type: "object" as const,
         properties: {
@@ -685,22 +685,22 @@ content_type 選擇：
     },
     {
       name: "create_edge",
-      description: `在兩個節點之間建立關聯邊。建立前請先確保節點存在 (用 get_node)。
+      description: `Create an edge between two nodes. Ensure the nodes exist before creating (use get_node).
 
-relation 語意：
-- depends_on：此節點依賴目標節點
-- extends：擴展目標節點的概念
-- related_to：相關但無明確依賴
-- contradicts：與目標節點衝突或矛盾
+Relation semantics:
+- depends_on: This node depends on the target node
+- extends: Extends the target node's concept
+- related_to: Related but no explicit dependency
+- contradicts: Conflicts or contradicts the target node
 
-請注意：同一對節點間相同 relation type 不重複，重複建立會回 409。`,
+Note: Duplicate relations of the same type between the same pair of nodes are not allowed; duplicates will return 409.`,
       inputSchema: {
         type: "object" as const,
         properties: {
-          from_id: { type: "string", description: "來源節點 ID" },
-          to_id: { type: "string", description: "目標節點 ID" },
+          from_id: { type: "string", description: "Source node ID" },
+          to_id: { type: "string", description: "Target node ID" },
           relation: { type: "string", enum: ["depends_on", "extends", "related_to", "contradicts"] },
-          weight: { type: "number", description: "關聯強度 0.1–1.0，預設 1.0" },
+          weight: { type: "number", description: "Connection strength 0.1-1.0, default 1.0" },
           workspace_id: { type: "string" }
         },
         required: ["from_id", "to_id", "relation"]
@@ -708,7 +708,7 @@ relation 語意：
     },
     {
       name: "traverse_edge",
-      description: "記錄一條邊被走訪，觸發 co-access boost 機制（若兩端節點在近期均被存取，邊的 weight 會提升）。AI agent 在沿邊推理後應呼叫此工具，讓圖的使用模式反映實際推理路徑。",
+      description: "Record that an edge was traversed, triggering the co-access boost mechanism (if both endpoint nodes were recently accessed, the edge weight increases). AI agents should call this tool after reasoning along an edge, allowing the graph's usage patterns to reflect actual reasoning paths.",
       inputSchema: {
         type: "object" as const,
         properties: {
@@ -733,13 +733,13 @@ relation 語意：
     },
     {
       name: "vote_trust",
-      description: "對記憶節點進行品質評分。Accuracy 代表內容準確度，Utility 代表內容實用度。評分將直接影響節點的信任分數 (Trust Score)。",
+      description: "Rate the quality of a knowledge node. Accuracy represents content correctness, Utility represents content usefulness. The rating directly affects the node's Trust Score.",
       inputSchema: {
         type: "object" as const,
         properties: {
           node_id: { type: "string", description: "Target node ID" },
-          accuracy: { type: "number", description: "1-5 分，準確度評分" },
-          utility: { type: "number", description: "1-5 分，實用度評分" },
+          accuracy: { type: "number", description: "1-5 score, accuracy rating" },
+          utility: { type: "number", description: "1-5 score, utility rating" },
           workspace_id: { type: "string", description: "Target workspace ID" }
         },
         required: ["node_id", "accuracy", "utility"]
@@ -747,11 +747,11 @@ relation 語意：
     },
     {
       name: "list_review_queue",
-      description: "列出工作區中待審核的提案項目，可確認 AI 提案是否已進入佇列。",
+      description: "List pending proposals in the review queue for the workspace. Can be used to confirm if an AI proposal has entered the queue.",
       inputSchema: {
         type: "object" as const,
         properties: {
-          status: { type: "string", enum: ["pending", "accepted", "rejected"], description: "預設 pending" },
+          status: { type: "string", enum: ["pending", "accepted", "rejected"], description: "Default is pending" },
           workspace_id: { type: "string" }
         }
       }
@@ -768,25 +768,25 @@ relation 語意：
     },
     {
       name: "list_empty_nodes",
-      description: "列出工作區中 body 為空（中英文均缺）的節點，供 AI 發現並補充內容使用。",
+      description: "List nodes in the workspace where the body is empty (both English and Chinese are missing), so AI can find them and supply content.",
       inputSchema: {
         type: "object" as const,
         properties: {
-          limit: { type: "number", description: "最多回傳幾個（預設 10）" },
+          limit: { type: "number", description: "Max results (default 10)" },
           workspace_id: { type: "string", description: "Target workspace ID (omit to use server default)" },
         },
       },
     },
     {
       name: "get_schema",
-      description: "取得 MemTrace 節點與邊的完整規格、有效值列表與建立最佳實踐。不確定欄位格式時請先呼叫此工具。",
+      description: "Get the complete schema, valid values, and best practices for creating MemTrace nodes and edges. Please call this tool first if you are unsure about the field formats.",
       inputSchema: {
         type: "object" as const,
         properties: {
           topic: {
             type: "string",
             enum: ["node", "edge", "all"],
-            description: "查詢主題，預設 all"
+            description: "Query topic, default is all"
           }
         }
       }
