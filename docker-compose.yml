@@ -75,34 +75,6 @@ services:
       - /var/cache/nginx:mode=1777
       - /var/run:mode=1777
 
-  mcp:
-    build:
-      context: ./packages/mcp
-      dockerfile: Dockerfile
-    container_name: memtrace-mcp
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      MEMTRACE_API: http://api:8000/api/v1
-      MCP_TRANSPORT: sse
-      MCP_PORT: 3001
-      MEMTRACE_TOKEN: ${MEMTRACE_TOKEN}
-      MEMTRACE_SSE_TOKEN: ${MEMTRACE_SSE_TOKEN}
-    ports:
-      - "127.0.0.1:3001:3001"
-    depends_on:
-      api:
-        condition: service_healthy
-    user: "1000:1000"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: true
-    tmpfs:
-      - /tmp:mode=1777
-
 
 volumes:
   memtrace_pgdata:

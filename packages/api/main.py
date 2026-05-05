@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from core.backup import get_backup_config, run_backup_and_update_status
 from core.config import settings
@@ -421,6 +422,7 @@ app.add_middleware(CsrfMiddleware)           # 4th: validates CSRF token
 app.add_middleware(AuditLogMiddleware)       # 3rd: records every API call
 app.add_middleware(SecurityHeadersMiddleware)  # 2nd: adds security headers
 app.add_middleware(RateLimitMiddleware)      # 1st: blocks before doing anything else
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["mac-mini.tail6066c6.ts.net"])
 
 app.include_router(admin_router)
 app.include_router(auth_router)

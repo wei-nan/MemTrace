@@ -662,7 +662,9 @@ async def mcp_sse(
     }
 
     # Build the POST URL the client should use
-    base = str(request.base_url).rstrip("/")
+    proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
+    base = f"{proto}://{host}"
     post_url = f"{base}/messages?sessionId={session_id}"
 
     async def event_stream():
@@ -728,3 +730,25 @@ async def mcp_messages(
     response = await _dispatch(body, user)
     await queue.put(response)
     return {"ok": True}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Streamable HTTP transport (MCP spec 2025-03-26)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@router.post("/mcp")
+async def mcp_streamable(
+    request: Request,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Streamable HTTP transport — single POST endpoint for all JSON-RPC messages.
+    Used by Cursor, Antigravity, and other modern MCP clients.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+
+    response = await _dispatch(body, user)
+    return response
