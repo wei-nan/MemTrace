@@ -42,6 +42,7 @@ export default function OnboardingWizard({
   const [kbNameZh, setKbNameZh] = useState('');
   const [kbNameEn, setKbNameEn] = useState('');
   const [kbVisibility, setKbVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
+  const [qaArchiveMode, setQaArchiveMode] = useState<'auto-active' | 'review'>('review');
   
   // AI State
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>('openai');
@@ -130,6 +131,7 @@ export default function OnboardingWizard({
         visibility: kbVisibility,
         kb_type: 'evergreen',
         embedding_model: selectedKbEmbedModel || undefined,  // P4.1-E
+        qa_archive_mode: qaArchiveMode,
       });
       onUpdate({ first_kb_id: ws.id, steps_done: [...new Set([...state.steps_done, 'kb'])] });
     } catch (e: any) {
@@ -342,6 +344,34 @@ export default function OnboardingWizard({
               {zh ? '任何人均可瀏覽此知識庫。' : 'Anyone can browse this workspace.'}
             </div>
           )}
+        </div>
+
+        {/* P4.5-1A-5: QA Archive Mode */}
+        <div style={{ textAlign: 'left' }}>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
+            {zh ? 'QA 存檔模式' : 'QA Archive Mode'}
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button 
+              className={`btn-secondary ${qaArchiveMode === 'review' ? 'active' : ''}`}
+              style={{ flex: 1, fontSize: 11, background: qaArchiveMode === 'review' ? 'var(--color-primary-subtle)' : 'transparent', borderColor: qaArchiveMode === 'review' ? 'var(--color-primary)' : 'var(--border-default)' }}
+              onClick={() => setQaArchiveMode('review')}
+            >
+              {zh ? '手動審核 (預設)' : 'Manual Review'}
+            </button>
+            <button 
+              className={`btn-secondary ${qaArchiveMode === 'auto-active' ? 'active' : ''}`}
+              style={{ flex: 1, fontSize: 11, background: qaArchiveMode === 'auto-active' ? 'var(--color-primary-subtle)' : 'transparent', borderColor: qaArchiveMode === 'auto-active' ? 'var(--color-primary)' : 'var(--border-default)' }}
+              onClick={() => setQaArchiveMode('auto-active')}
+            >
+              {zh ? '自動存檔' : 'Auto Active'}
+            </button>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+            {qaArchiveMode === 'review' 
+              ? (zh ? 'AI 提取的內容需經人工確認後才進入正式圖譜。' : 'AI-extracted content requires manual approval.')
+              : (zh ? 'AI 提取的內容將直接生效（發生衝突時除外）。' : 'AI-extracted content goes live immediately (unless conflicted).')}
+          </div>
         </div>
 
         {/* P4.1-E: Embedding model selector */}

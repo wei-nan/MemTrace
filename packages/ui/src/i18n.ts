@@ -65,6 +65,8 @@ const resources = {
         warningTraversed: '超過 30% 的節點從未被使用',
         loading: '統計資料讀取中...',
         noData: '尚無統計資料',
+        noGaps: '目前無待答覆的知識缺口',
+        topGaps: '高頻知識缺口 (Top Gaps)',
         noMcpData: '尚無 MCP 查詢記錄',
         metrics: {
           avg_trust_score: '平均信任分',
@@ -142,7 +144,11 @@ const resources = {
         vis_conditional_public_desc: '外部可見圖譜結構但無法查看內容，需申請並經管理員核准後方可存取。',
         vis_public_desc: '任何人皆可搜尋並閱讀公開內容。',
         visibility_guide: '可見度說明',
-        vis_updated: '可見性設定已更新'
+        vis_updated: '可見性設定已更新',
+        qa_archive_mode: 'Q&A 歸檔模式',
+        qa_archive_mode_desc: '決定從對話中萃取的知識點是否需要經過審核佇列。',
+        manual_review: '手動審核 (推薦)',
+        auto_active: '自動生效'
       },
       common: {
         enable: '啟用',
@@ -216,6 +222,8 @@ const resources = {
         create: '建立',
         update: '更新',
         delete: '刪除',
+        gap: '知識缺口 (Gap)',
+        conflicted: '矛盾衝突',
         allProposers: '所有提案者',
         human: '真人',
         ai: 'AI',
@@ -227,7 +235,8 @@ const resources = {
         acceptSuccess: '已接受變更',
         rejectSuccess: '已拒絕變更',
         acceptAllConfirm: '確定要接受所有可見的待審核項目嗎？',
-        rejectConfirm: '確定要拒絕此項變更嗎？'
+        rejectConfirm: '確定要拒絕此項變更嗎？',
+        conflict_detected: '偵測到知識衝突'
       },
       health: {
         title: '節點健康管理',
@@ -393,19 +402,25 @@ const resources = {
         utility: '實用性',
         submit_vote: '提交評分',
         cancel_vote: '取消',
-        vote_submitted: '評分已提交'
+        vote_submitted: '評分已提交',
+        queried_via_mcp_label: '系統查詢 (MCP)',
+        times: '次'
       },
       relation: {
         depends_on: '依賴',
         extends: '擴展',
         related_to: '相關',
-        contradicts: '矛盾'
+        contradicts: '矛盾',
+        answered_by: '答覆於',
+        similar_to: '相似於',
+        queried_via_mcp: '經由 MCP 查詢'
       },
       content_type: {
         factual: '事實',
         procedural: '程序',
         preference: '偏好',
         context: '背景',
+        inquiry: '詢問',
         source_document: '來源文件'
       },
       diff: {
@@ -487,6 +502,8 @@ const resources = {
         warningTraversed: 'More than 30% of nodes never used',
         loading: 'Loading analytics...',
         noData: 'No analytics data.',
+        noGaps: 'No knowledge gaps identified yet.',
+        topGaps: 'Top Knowledge Gaps',
         noMcpData: 'No MCP query data yet.',
         metrics: {
           avg_trust_score: 'Avg Trust Score',
@@ -564,7 +581,11 @@ const resources = {
         vis_conditional_public_desc: 'Topology visible but content hidden; requires admin approval for access.',
         vis_public_desc: 'Discoverable and readable by everyone.',
         visibility_guide: 'Visibility Guide',
-        vis_updated: 'Visibility updated'
+        vis_updated: 'Visibility updated',
+        qa_archive_mode: 'Q&A Archive Mode',
+        qa_archive_mode_desc: 'Decide if knowledge extracted from conversations should pass through the review queue.',
+        manual_review: 'Manual Review (Recommended)',
+        auto_active: 'Auto Active'
       },
       common: {
         enable: 'Enable',
@@ -638,6 +659,8 @@ const resources = {
         create: 'Create',
         update: 'Update',
         delete: 'Delete',
+        gap: 'Search Gap',
+        conflicted: 'Conflicts',
         allProposers: 'All proposers',
         human: 'Human',
         ai: 'AI',
@@ -649,7 +672,8 @@ const resources = {
         acceptSuccess: 'Review accepted',
         rejectSuccess: 'Review rejected',
         acceptAllConfirm: 'Accept all visible review items?',
-        rejectConfirm: 'Reject this pending change?'
+        rejectConfirm: 'Are you sure you want to reject this change?',
+        conflict_detected: 'Knowledge Conflict Detected'
       },
       health: {
         title: 'Node Health Manager',
@@ -815,19 +839,25 @@ const resources = {
         utility: 'Utility',
         submit_vote: 'Submit Rating',
         cancel_vote: 'Cancel',
-        vote_submitted: 'Rating submitted'
+        vote_submitted: 'Rating submitted',
+        queried_via_mcp_label: 'System Query (MCP)',
+        times: 'hits'
       },
       relation: {
-        depends_on: 'depends on',
-        extends: 'extends',
-        related_to: 'related to',
-        contradicts: 'contradicts'
+        depends_on: 'Depends on',
+        extends: 'Extends',
+        related_to: 'Related to',
+        contradicts: 'Contradicts',
+        answered_by: 'Answered by',
+        similar_to: 'Similar to',
+        queried_via_mcp: 'Queried via MCP'
       },
       content_type: {
         factual: 'Factual',
         procedural: 'Procedural',
         preference: 'Preference',
         context: 'Context',
+        inquiry: 'Inquiry',
         source_document: 'Source Document'
       },
       diff: {

@@ -126,7 +126,7 @@ def update_review_item(id: str, body: ReviewUpdate, user: dict = Depends(get_cur
         return updated
 
 
-VALID_EDGE_RELATIONS = {"depends_on", "extends", "related_to", "contradicts"}
+VALID_EDGE_RELATIONS = {"depends_on", "extends", "related_to", "contradicts", "answered_by", "similar_to", "queried_via_mcp"}
 
 def _create_suggested_edges(cur, ws_id: str, from_node_id: str, suggested_edges: list):
     """Resolve to_title_en references and insert edges where target node exists."""
@@ -205,10 +205,10 @@ def accept_review_item(id: str, user: dict = Depends(get_current_user)):
                 SET
                     dim_accuracy = %s,
                     trust_score = (
-                        %s             * 0.30 +
+                        %s             * 0.40 +
                         dim_freshness  * 0.25 +
                         dim_utility    * 0.25 +
-                        dim_author_rep * 0.20
+                        dim_author_rep * 0.10
                     )
                 WHERE id = %s
                 """,

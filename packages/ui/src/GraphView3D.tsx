@@ -107,6 +107,7 @@ const NODE_BASE: Record<string, [number, number, number]> = {
   procedural: [34,  197,  94],   // green
   preference: [245, 158,  11],   // amber
   context:    [100, 116, 139],   // slate
+  inquiry:    [148, 163, 184],   // light slate-blue
 };
 const FALLBACK_RGB: [number, number, number] = [99, 102, 241];
 
@@ -116,6 +117,7 @@ const NODE_LABELS_ZH: Record<string, string> = {
   procedural: '程序',
   preference: '偏好',
   context:    '情境',
+  inquiry:    '詢問',
 };
 
 const EDGE_COLORS: Record<string, string> = {
@@ -123,6 +125,9 @@ const EDGE_COLORS: Record<string, string> = {
   extends:     '#4ade80',
   related_to:  '#64748b',
   contradicts: '#f87171',
+  answered_by: '#a78bfa',
+  similar_to:  '#94a3b8',
+  queried_via_mcp: '#2dd4bf',
 };
 
 const RELATION_LABELS_ZH: Record<string, string> = {
@@ -130,6 +135,9 @@ const RELATION_LABELS_ZH: Record<string, string> = {
   extends:     '延伸',
   related_to:  '關聯',
   contradicts: '矛盾',
+  answered_by: '答覆於',
+  similar_to:  '相似於',
+  queried_via_mcp: '經由 MCP 查詢',
 };
 
 /** Scale an RGB triple by `factor` (0.2–1.0) and return a CSS hex string. */

@@ -98,14 +98,15 @@ from models.kb import (
     WorkspaceCloneJobResponse,
     ForkWorkspaceRequest,
 )
+from core.agent import get_or_create_agent_node
 from models.review import NodeRevisionMetaResponse, NodeRevisionResponse
 
 router = APIRouter(prefix="/api/v1", tags=["knowledge-base"])
 
-VALID_RELATIONS = {"depends_on", "extends", "related_to", "contradicts"}
+VALID_RELATIONS = {"depends_on", "extends", "related_to", "contradicts", "answered_by", "similar_to", "queried_via_mcp"}
 VALID_KB_VIS = {"public", "conditional_public", "restricted", "private"}
 VALID_NODE_VIS = {"public", "team", "private"}
-VALID_CONTENT_T = {"factual", "procedural", "preference", "context"}
+VALID_CONTENT_T = {"factual", "procedural", "preference", "context", "inquiry"}
 VALID_FORMAT = {"plain", "markdown"}
 NODE_EDITABLE_FIELDS = [
     "title_zh",
@@ -204,18 +205,43 @@ def _validate_node_payload(data: dict):
         raise HTTPException(status_code=400, detail="At least one body language field must be non-empty")
 
 
+def _initial_author_rep(source_type: str, status: str) -> float:
+    """依來源與初始狀態決定 author reputation (P4.5-3D-1)。"""
+    if source_type == "human":
+        return 0.8
+    if source_type == "document":
+        return 0.6
+    if source_type == "qa_conversation":
+        # active（auto_active）給 0.3，archived（manual_review）給 0.5
+        return 0.3 if status == "active" else 0.5
+    if source_type == "mcp":
+        return 0.0
+    return 0.5
+
+
 def _node_row_to_snapshot(row: Optional[dict]) -> Optional[dict]:
     if not row:
         return None
     return {field: (list(row[field]) if field == "tags" and row.get(field) is not None else row.get(field)) for field in NODE_EDITABLE_FIELDS}
 
 
-def _prepare_node_data(data: dict, author: str, source_type: str = "human") -> dict:
+def _prepare_node_data(data: dict, author: str, source_type: str = "human", status: str = "active") -> dict:
     payload = {field: data.get(field) for field in NODE_EDITABLE_FIELDS}
     payload["tags"] = list(payload.get("tags") or [])
     _validate_node_payload(payload)
     payload["author"] = data.get("author") or author
     payload["source_type"] = data.get("source_type") or source_type
+    payload["dim_author_rep"] = data.get("dim_author_rep") or _initial_author_rep(payload["source_type"], status)
+    
+    # Calculate trust_score: Accuracy 0.4 (default 0.5), Freshness 0.25 (default 1.0), Utility 0.25 (default 0.5), Rep 0.1
+    # Note: These are initial values. dim_accuracy/freshness/utility use DB defaults if not set.
+    # But for a new node, we want a reasonable starting trust_score.
+    acc = 0.5
+    fresh = 1.0
+    util = 0.5
+    rep = payload["dim_author_rep"]
+    payload["trust_score"] = (acc * 0.4) + (fresh * 0.25) + (util * 0.25) + (rep * 0.1)
+
     payload["signature"] = compute_signature(
         {"zh-TW": payload["title_zh"], "en": payload["title_en"]},
         {
@@ -252,14 +278,15 @@ def _get_embedding_dim(model: str) -> int:
 
 
 def _create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
-    payload = _prepare_node_data(node_data, node_data["author"], node_data.get("source_type", "human"))
+    payload = _prepare_node_data(node_data, node_data["author"], node_data.get("source_type", "human"), node_data.get("status", "active"))
     node_id = node_data.get("id") or generate_id("mem")
     cur.execute(
         """
         INSERT INTO memory_nodes (
             id, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en,
-            tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
+            status, dim_author_rep, trust_score
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         RETURNING *
         """,
         (
@@ -278,6 +305,9 @@ def _create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             payload["source_type"],
             node_data.get("copied_from_node"),
             node_data.get("copied_from_ws"),
+            node_data.get("status", "active"),
+            payload["dim_author_rep"],
+            payload["trust_score"],
         ),
     )
     return cur.fetchone()
@@ -491,12 +521,16 @@ def _bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
                 return
 
         with db_cursor() as cur:
+            cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (node_id,))
+            node_row = cur.fetchone()
+            content_type = node_row["content_type"] if node_row else "factual"
+
             cur.execute(
                 """
-                SELECT id, (1 - (embedding <=> %s::vector)) AS sim
+                SELECT id, content_type, (1 - (embedding <=> %s::vector)) AS sim
                 FROM memory_nodes
                 WHERE workspace_id = %s AND id != %s
-                  AND embedding IS NOT NULL AND status = 'active'
+                  AND embedding IS NOT NULL AND status IN ('active', 'answered', 'answered-low-trust')
                   AND content_type != 'source_document'
                 ORDER BY sim DESC
                 LIMIT 5
@@ -511,10 +545,18 @@ def _bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
         with db_cursor(commit=True) as cur:
             for c in candidates:
                 try:
+                    relation = "related_to"
+                    # P4.5-3A-7: Use similar_to for inquiries if similarity < 0.88
+                    if content_type == "inquiry" and c["content_type"] == "inquiry":
+                        if c["sim"] < 0.88: # FAQ_CACHE_HIT threshold
+                            relation = "similar_to"
+                        else:
+                            continue # Skip if it would hit FAQ cache (handled elsewhere or by search)
+
                     _propose_change(
                         cur, ws_id, "create_edge", None,
                         {"from_id": node_id, "to_id": c["id"],
-                         "relation": "related_to", "weight": round(float(c["sim"]), 2)},
+                         "relation": relation, "weight": round(float(c["sim"]), 2)},
                         "ai", user_id,
                         {"source": "auto_edge_suggestion"},
                         source_info=f"Auto-suggested edge (similarity={c['sim']:.2f})",
@@ -946,18 +988,23 @@ def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_use
             """
             INSERT INTO workspaces (
                 id, name_zh, name_en, visibility, kb_type, owner_id, 
-                archive_window_days, min_traversals, embedding_model, embedding_dim
+                archive_window_days, min_traversals, embedding_model, embedding_dim, qa_archive_mode
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
             (
                 ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, 
                 user["sub"], body.archive_window_days, body.min_traversals,
-                embedding_model, embedding_dim
+                embedding_model, embedding_dim, body.qa_archive_mode
             ),
         )
         res = cur.fetchone()
+        
+        # P4.5-1B-0: Create Workspace Agent node
+        from core.agent import get_or_create_agent_node
+        get_or_create_agent_node(ws_id, cur)
+        
         return {**dict(res), "my_role": "admin"}
 
 
@@ -1026,7 +1073,7 @@ def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get
             raise HTTPException(status_code=404, detail="Workspace not found")
         if ws["owner_id"] != user["sub"]:
             raise HTTPException(status_code=403, detail="Only workspace owner can update settings")
-        updates = body.dict(exclude_unset=True)
+        updates = body.model_dump(exclude_unset=True)
         if not updates:
             return ws
         if "visibility" in updates and updates["visibility"] not in VALID_KB_VIS:
@@ -2147,6 +2194,26 @@ def get_workspace_analytics(ws_id: str, user: dict = Depends(get_current_user_op
         }
 
 
+@router.get("/workspaces/{ws_id}/stats/top-gaps")
+def get_top_gaps(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    """Return top 10 unanswered or low-trust inquiries sorted by ask_count."""
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user)
+        cur.execute(
+            """
+            SELECT id, title_zh, title_en, status, ask_count
+            FROM memory_nodes
+            WHERE workspace_id = %s
+              AND content_type = 'inquiry'
+              AND status IN ('gap', 'answered-low-trust')
+            ORDER BY ask_count DESC
+            LIMIT 10
+            """,
+            (ws_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
 @router.get("/workspaces/{ws_id}/analytics/token-efficiency")
 def get_workspace_token_efficiency(ws_id: str, user: dict = Depends(get_current_user_optional)):
     with db_cursor() as cur:
@@ -2325,3 +2392,51 @@ def trigger_link_detection(
     from routers.ingest import detect_cross_file_associations_for_nodes
     background_tasks.add_task(detect_cross_file_associations_for_nodes, ws_id, node_ids)
     return {"message": "Link detection started in background", "nodes_checked": len(node_ids)}
+
+# ─── MCP Interaction Tracking ───────────────────────────────────────────────
+
+def _write_mcp_interaction_edge(ws_id: str, node_id: str, tool_name: str, query_text: str = ""):
+    """
+    P4.5-1B-2: Record interaction edges for nodes retrieved via MCP.
+    Updates existing edge count or creates a new one.
+    """
+    from core.agent import get_or_create_agent_node
+    from core.security import generate_id
+    from datetime import datetime, timezone
+    import json
+
+    with db_cursor(commit=True) as cur:
+        agent_id = get_or_create_agent_node(ws_id, cur)
+        
+        # Check if edge already exists
+        cur.execute("""
+            SELECT id, metadata FROM edges
+            WHERE workspace_id = %s AND from_id = %s AND to_id = %s AND relation = 'queried_via_mcp'
+        """, (ws_id, agent_id, node_id))
+        edge_row = cur.fetchone()
+        
+        now_str = datetime.now(timezone.utc).isoformat()
+        if edge_row:
+            meta = edge_row["metadata"] or {}
+            meta["count"] = meta.get("count", 0) + 1
+            meta["last_hit"] = now_str
+            # Keep track of tools/queries in a list (limited to last 5)
+            history = meta.get("history", [])
+            history.insert(0, {"tool": tool_name, "query": query_text, "ts": now_str})
+            meta["history"] = history[:5]
+            
+            cur.execute("""
+                UPDATE edges SET metadata = %s, updated_at = now()
+                WHERE id = %s
+            """, (json.dumps(meta), edge_row["id"]))
+        else:
+            edge_id = generate_id("edge")
+            meta = {
+                "count": 1, 
+                "last_hit": now_str,
+                "history": [{"tool": tool_name, "query": query_text, "ts": now_str}]
+            }
+            cur.execute("""
+                INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, metadata)
+                VALUES (%s, %s, %s, %s, 'queried_via_mcp', 1.0, %s)
+            """, (edge_id, ws_id, agent_id, node_id, json.dumps(meta)))

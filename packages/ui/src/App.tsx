@@ -14,6 +14,7 @@ import GraphContainer from './GraphContainer';
 import NodeEditor from './NodeEditor';
 import ReviewQueue from './ReviewQueue';
 import IngestPage from './IngestPage';
+import McpStatusPanel from './components/McpStatusPanel';
 import OnboardingWizard from './OnboardingWizard';
 import WorkspaceSettings from './WorkspaceSettings';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -1238,6 +1239,7 @@ export default function App() {
   const [authenticated, setAuthenticated] = useState<boolean>(!!localStorage.getItem('mt_token'));
   const [user, setUser] = useState<User | null>(null);
   const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
+  const [showMcpStatus, setShowMcpStatus] = useState(false);
 
   useEffect(() => {
     if (authenticated) {
@@ -1794,6 +1796,14 @@ export default function App() {
             <LogOut size={18} />
             {!sidebarCollapsed && <span className="nav-text">{zh ? '登出' : 'Logout'}</span>}
           </div>
+          <div 
+            className={`nav-item ${showMcpStatus ? 'active' : ''}`} 
+            style={{ marginTop: 8, color: showMcpStatus ? 'var(--color-primary)' : 'inherit' }}
+            onClick={() => setShowMcpStatus(!showMcpStatus)}
+          >
+            <Network size={18} />
+            {!sidebarCollapsed && <span className="nav-text">MCP Status</span>}
+          </div>
         </div>
       </aside>
 
@@ -1914,6 +1924,11 @@ export default function App() {
            </div>
          )}
       </aside>
+
+      {/* MCP Status Panel (P4.5-4A-3) */}
+      {showMcpStatus && (
+        <McpStatusPanel onClose={() => setShowMcpStatus(false)} />
+      )}
     </div>
   );
 }

@@ -32,6 +32,7 @@ from core.config import settings
 from core.database import db_cursor
 from core.deps import get_current_user
 from core.security import generate_id
+from core.constants import FAQ_CACHE_HIT, CONTRADICTION_CHECK
 
 # ---------------------------------------------------------------------------
 # Hybrid retrieval constants & helpers
@@ -155,6 +156,7 @@ class ChatRequest(BaseModel):
     cross_kb_ids: Optional[list[str]] = None
     preferred_provider: Optional[str] = None
     preferred_model: Optional[str] = None
+    force_auto_active: bool = False
 
 class ChatResponse(BaseModel):
     answer: str
@@ -541,7 +543,7 @@ async def restructure_nodes(
     return RestructureResponse(changes=changes, tokens_used=tokens, source=resolved.source)
 
 
-async def _archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str, source_node_ids: list[str]):
+async def _archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str, source_node_ids: list[str], force_auto_active: bool = False):
     """
     Background task to distill a Q&A interaction into structured Memory Nodes.
     """
@@ -549,47 +551,172 @@ async def _archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str
         from core.ai import chat_completion, resolve_provider, strip_fences
         from core.database import db_cursor
         from core.security import generate_id
-        from routers.kb import _propose_change
-
+        from routers.kb import _propose_change, _create_node_in_db
         # 1. Resolve AI provider for distillation
         resolved = resolve_provider(user_id, "extraction")
         
         system_prompt = (
             "You are a Knowledge Archiver. Distill the following Q&A into a set of MemTrace nodes.\n"
-            "RULE 1: The Question MUST be a 'context' node.\n"
-            "RULE 2: The Answer should be 'factual', 'procedural', or 'preference'.\n"
-            "RULE 3: Return a JSON array of nodes with 'title_zh', 'title_en', 'content_type', 'body_zh', 'body_en', 'tags'.\n"
-            "Output EXACTLY one Q node and one A node."
+            "RULES:\n"
+            "1. The question itself MUST be one 'inquiry' node.\n"
+            "2. Each independent piece of knowledge in the answer should be a separate node (factual/procedural/preference).\n"
+            "3. If the answer has conditions (version, environment), create 'context' nodes for them.\n"
+            "4. Return a JSON array of nodes with 'title_zh', 'title_en', 'content_type', 'body_zh', 'body_en', 'tags'.\n"
+            "Example: [{\"title_zh\": \"...\", \"content_type\": \"inquiry\", ...}, {\"title_zh\": \"...\", \"content_type\": \"factual\", ...}]"
         )
         user_prompt = f"QUESTION: {question}\n\nANSWER: {answer}"
         
         raw, _ = await chat_completion(resolved, [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}])
         nodes_data = json.loads(strip_fences(raw))
         
-        if not isinstance(nodes_data, list) or len(nodes_data) < 2:
+        if not isinstance(nodes_data, list) or not nodes_data:
             return
 
         with db_cursor(commit=True) as cur:
-            # Create the nodes
-            q_node = nodes_data[0]
-            a_node = nodes_data[1]
-            q_node["content_type"] = "context"
+            cur.execute("SELECT qa_archive_mode FROM workspaces WHERE id = %s", (ws_id,))
+            row = cur.fetchone()
+            mode = "auto_active" if force_auto_active else (row["qa_archive_mode"] if row else "manual_review")
+            initial_status = "active" if mode == "auto_active" else "archived"
+
+            # 2. Extract inquiry node and knowledge nodes
+            inquiry_nodes = [n for n in nodes_data if n.get("content_type") == "inquiry"]
+            knowledge_nodes = [n for n in nodes_data if n.get("content_type") != "inquiry"]
+
+            if not inquiry_nodes:
+                print(f"[qa-archiver] No inquiry node found; skipping")
+                return
             
-            # Initial status is 'archived' (Review Queue)
-            q_id = _propose_change(cur, ws_id, "create", None, q_node, "ai", "qa_archiver")
-            a_id = _propose_change(cur, ws_id, "create", None, a_node, "ai", "qa_archiver")
+            # 3. Create nodes and edges
+            inquiry_data = inquiry_nodes[0]
+            inquiry_data["source_type"] = "qa_conversation"
+            inquiry_status = "answered" if knowledge_nodes else "gap"
+            inquiry_data["status"] = inquiry_status if mode == "auto_active" else "archived"
             
-            # Create the initial Edge between Q and A
-            edge_id = generate_id("edge")
-            cur.execute("""
-                INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status)
-                VALUES (%s, %s, %s, %s, 'related_to', 0.5, 'active')
-            """, (edge_id, ws_id, q_id, a_id))
-            
-            print(f"[qa-archiver] Created Q-A pair: {q_id} -> {a_id}")
+            if mode == "auto_active":
+                # Create Inquiry node
+                inquiry_created = _create_node_in_db(cur, ws_id, inquiry_data)
+                inquiry_id = inquiry_created["id"]
+
+                # P4.5-3A-7: Similar Inquiry Linking
+                # We need embedding for the inquiry node to find similar ones
+                try:
+                    from core.ai import embed
+                    from core.constants import SIMILAR_INQUIRY_LINK, FAQ_CACHE_HIT
+                    embed_prov = resolve_provider(user_id, "embedding")
+                    inquiry_vector, _ = await embed(embed_prov, inquiry_data["title_zh"] + " " + inquiry_data["body_zh"])
+                    
+                    # Update the node with embedding first so it's available
+                    cur.execute("UPDATE memory_nodes SET embedding = %s::vector WHERE id = %s", (inquiry_vector, inquiry_id))
+                    
+                    cur.execute("""
+                        SELECT id, (1 - (embedding <=> %s::vector)) AS similarity
+                        FROM memory_nodes
+                        WHERE workspace_id = %s
+                          AND content_type = 'inquiry'
+                          AND id != %s
+                          AND embedding IS NOT NULL
+                          AND (1 - (embedding <=> %s::vector)) >= %s
+                          AND (1 - (embedding <=> %s::vector)) < %s
+                        ORDER BY similarity DESC LIMIT 5
+                    """, (inquiry_vector, ws_id, inquiry_id, inquiry_vector, SIMILAR_INQUIRY_LINK, inquiry_vector, FAQ_CACHE_HIT))
+                    
+                    for similar in cur.fetchall():
+                        cur.execute("""
+                            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status)
+                            VALUES (%s, %s, %s, %s, 'similar_to', %s, 'active')
+                            ON CONFLICT DO NOTHING
+                        """, (generate_id("edge"), ws_id, inquiry_id, similar["id"], similar["similarity"]))
+                except Exception as _sim_err:
+                    print(f"[qa-archiver] Similar inquiry linking failed: {_sim_err}")
+                
+                # Create Knowledge nodes and link them
+                for kn in knowledge_nodes:
+                    kn["source_type"] = "qa_conversation"
+                    kn["status"] = "active"
+                    kn_created = _create_node_in_db(cur, ws_id, kn)
+                    
+                    # Link answer to inquiry
+                    cur.execute("""
+                        INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status)
+                        VALUES (%s, %s, %s, %s, 'answered_by', 0.7, 'active')
+                    """, (generate_id("edge"), ws_id, inquiry_id, kn_created["id"]))
+
+                    # P4.5-3C-1: Contradiction Detection
+                    # Check against existing active factual/preference nodes
+                    kn_vector = kn_created.get("embedding")
+                    if kn_vector:
+                        cur.execute("""
+                            SELECT id, title_zh, body_zh, content_type
+                            FROM memory_nodes
+                            WHERE workspace_id = %s
+                              AND id != %s
+                              AND content_type IN ('factual', 'preference')
+                              AND status = 'active'
+                              AND embedding IS NOT NULL
+                              AND (1 - (embedding <=> %s::vector)) >= %s
+                            ORDER BY (1 - (embedding <=> %s::vector)) DESC LIMIT 5
+                        """, (ws_id, kn_created["id"], kn_vector, CONTRADICTION_CHECK, kn_vector))
+                        candidates = cur.fetchall()
+                        
+                        if candidates:
+                            for cand in candidates:
+                                # Use LLM to judge contradiction
+                                try:
+                                    prompt = f"""判斷以下兩段陳述是否互相矛盾：
+A: {kn['body_zh']}
+B: {cand['body_zh']}
+
+請以 JSON 格式回傳，包含 'contradicts' (boolean) 與 'reason' (string)。
+"""
+                                    raw, _ = await chat_completion(resolved, [{"role": "user", "content": prompt}])
+                                    res = json.loads(strip_fences(raw))
+                                    if res.get("contradicts"):
+                                        # Create contradicts edge
+                                        cur.execute("""
+                                            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status, metadata)
+                                            VALUES (%s, %s, %s, %s, 'contradicts', 0.5, 'active', %s)
+                                        """, (generate_id("edge"), ws_id, kn_created["id"], cand["id"], json.dumps({"reason": res.get("reason")})))
+                                        
+                                        # Mark inquiry as conflicted
+                                        cur.execute("""
+                                            UPDATE memory_nodes SET status = 'conflicted' WHERE id = %s
+                                        """, (inquiry_id,))
+                                        inquiry_status = "conflicted"
+
+                                        # P4.5-3C: Propose to review queue even in auto-active mode if conflicted
+                                        inquiry_data["status"] = "conflicted"
+                                        _propose_change(
+                                            cur, ws_id, "update", inquiry_id, inquiry_data, "ai", "qa_archiver",
+                                            proposer_meta={"source": "contradiction_detector", "conflict_reason": res.get("reason")},
+                                            source_info=f"Conflict detected! Reason: {res.get('reason')}"
+                                        )
+                                except Exception as exc:
+                                    print(f"[qa-archiver] Contradiction check failed: {exc}")
+                
+                print(f"[qa-archiver] Processed inquiry {inquiry_id} (status={inquiry_status}) and {len(knowledge_nodes)} knowledge nodes")
+            else:
+                # manual_review: propose all nodes to review queue
+                inquiry_data["status"] = inquiry_status # The status in proposal
+                inquiry_rev_id = _propose_change(cur, ws_id, "create", None, inquiry_data, "ai", "qa_archiver", source_info="Q&A Archive (Inquiry)")
+                
+                for kn in knowledge_nodes:
+                    kn["source_type"] = "qa_conversation"
+                    kn["status"] = "archived"
+                    _propose_change(cur, ws_id, "create", None, kn, "ai", "qa_archiver", source_info=f"Q&A Archive (Answer for {inquiry_rev_id})")
+                
+                print(f"[qa-archiver] Proposed inquiry ({inquiry_status}) and {len(knowledge_nodes)} answers to review queue")
 
     except Exception as e:
         print(f"[qa-archiver] Failed to archive Q&A: {e}")
+
+
+async def _increment_ask_count(node_id: str):
+    """Background task to increment ask_count for an inquiry node."""
+    try:
+        with db_cursor(commit=True) as cur:
+            cur.execute("UPDATE memory_nodes SET ask_count = ask_count + 1 WHERE id = %s", (node_id,))
+    except Exception as e:
+        print(f"[ask_count] Failed to increment for {node_id}: {e}")
 
 
 @router.post("/chat-stream")
@@ -620,63 +747,106 @@ async def chat_with_kb_stream(
             resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
 
             # --- Hybrid node retrieval ---
-            # Step 1: vector search (skip gracefully when no embedding provider)
             source_nodes: list = []
+            faq_hit_id = None
+
+            # Step 0: FAQ 快取 — 先搜尋相似的 inquiry 節點
             try:
                 embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
                 vector, _ = await embed(embed_prov, body.message)
+                
                 with db_cursor() as cur:
                     cur.execute("""
-                        SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                        SELECT id, title_zh, title_en, ask_count,
                                (1 - (embedding <=> %s::vector)) AS similarity
                         FROM memory_nodes
-                        WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                        WHERE workspace_id = ANY(%s)
+                          AND content_type = 'inquiry'
+                          AND status IN ('answered', 'answered-low-trust')
+                          AND embedding IS NOT NULL
                           AND (1 - (embedding <=> %s::vector)) >= %s
-                        ORDER BY similarity DESC LIMIT %s
-                    """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
-                    source_nodes = list(cur.fetchall())
-                    print(f"[chat-stream] Vector search found {len(source_nodes)} nodes")
-            except Exception as _vec_err:
-                print(f"[chat-stream] Vector search skipped or failed: {_vec_err}")
+                        ORDER BY similarity DESC LIMIT 1
+                    """, (vector, list(target_ids), vector, FAQ_CACHE_HIT))
+                    faq_hit = cur.fetchone()
+                    
+                    if faq_hit:
+                        faq_hit_id = faq_hit["id"]
+                        print(f"[chat-stream] FAQ hit! inquiry_id={faq_hit_id}, sim={faq_hit['similarity']:.4f}")
+                        
+                        # 取得此 inquiry 連結的所有 answered_by 知識節點
+                        cur.execute("""
+                            SELECT n.id, n.title_zh, n.title_en, n.body_zh, n.body_en, n.workspace_id, 1.0 AS similarity
+                            FROM edges e
+                            JOIN memory_nodes n ON n.id = e.to_id
+                            WHERE e.from_id = %s
+                              AND e.relation = 'answered_by'
+                              AND e.status = 'active'
+                              AND n.status = 'active'
+                        """, (faq_hit_id,))
+                        source_nodes = list(cur.fetchall())
+                        
+                        # 如果命中 FAQ，背景遞增 ask_count
+                        background_tasks.add_task(_increment_ask_count, faq_hit_id)
+            except Exception as _faq_err:
+                print(f"[chat-stream] FAQ cache search failed: {_faq_err}")
 
-            # Step 2: keyword / full-text fallback when vector results are sparse
-            if len(source_nodes) < 3:
-                print(f"[chat-stream] Sparse results ({len(source_nodes)}), starting fallback...")
-                seen_ids = {n["id"] for n in source_nodes}
-                needed = _FALLBACK_LIMIT - len(source_nodes)
-                terms = _extract_search_terms(body.message)
-                print(f"[chat-stream] Extracted terms: {terms}")
+            if not source_nodes:
+                # Step 1: vector search (skip gracefully when no embedding provider)
                 try:
+                    embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
+                    vector, _ = await embed(embed_prov, body.message)
                     with db_cursor() as cur:
-                        ft_nodes: list = []
-                        is_pg = settings.database_url.startswith("postgresql")
-
-                        # Combine FT search and ILIKE for robustness
-                        or_conds = ["search_vector @@ plainto_tsquery('simple', %s)"]
-                        params = [body.message[:200]]
-                        
-                        if terms:
-                            for t in terms:
-                                or_conds.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)")
-                                like_t = f"%{t}%"
-                                params += [like_t, like_t, like_t]
-                        
-                        sql = f"""
+                        cur.execute("""
                             SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                                   0.0::{'float' if is_pg else 'real'} AS similarity
+                                   (1 - (embedding <=> %s::vector)) AS similarity
                             FROM memory_nodes
-                            WHERE workspace_id = ANY(%s) AND status = 'active'
-                              AND ({" OR ".join(or_conds)})
-                            LIMIT %s
-                        """
-                        print(f"[chat-stream] Fallback SQL params: {[list(target_ids)] + params + [needed]}")
-                        cur.execute(sql, [list(target_ids)] + params + [needed])
-                        ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
-                        print(f"[chat-stream] Fallback found {len(ft_nodes)} additional nodes")
+                            WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                              AND (1 - (embedding <=> %s::vector)) >= %s
+                            ORDER BY similarity DESC LIMIT %s
+                        """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
+                        source_nodes = list(cur.fetchall())
+                        print(f"[chat-stream] Vector search found {len(source_nodes)} nodes")
+                except Exception as _vec_err:
+                    print(f"[chat-stream] Vector search skipped or failed: {_vec_err}")
 
-                    source_nodes = source_nodes + ft_nodes
-                except Exception as _ft_err:
-                    print(f"[chat-stream] Full-text fallback failed: {_ft_err}")
+                # Step 2: keyword / full-text fallback when vector results are sparse
+                if len(source_nodes) < 3:
+                    print(f"[chat-stream] Sparse results ({len(source_nodes)}), starting fallback...")
+                    seen_ids = {n["id"] for n in source_nodes}
+                    needed = _FALLBACK_LIMIT - len(source_nodes)
+                    terms = _extract_search_terms(body.message)
+                    print(f"[chat-stream] Extracted terms: {terms}")
+                    try:
+                        with db_cursor() as cur:
+                            ft_nodes: list = []
+                            is_pg = settings.database_url.startswith("postgresql")
+
+                            # Combine FT search and ILIKE for robustness
+                            or_conds = ["search_vector @@ plainto_tsquery('simple', %s)"]
+                            params = [body.message[:200]]
+                            
+                            if terms:
+                                for t in terms:
+                                    or_conds.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)")
+                                    like_t = f"%{t}%"
+                                    params += [like_t, like_t, like_t]
+                            
+                            sql = f"""
+                                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                                       0.0::{'float' if is_pg else 'real'} AS similarity
+                                FROM memory_nodes
+                                WHERE workspace_id = ANY(%s) AND status = 'active'
+                                  AND ({" OR ".join(or_conds)})
+                                LIMIT %s
+                            """
+                            print(f"[chat-stream] Fallback SQL params: {[list(target_ids)] + params + [needed]}")
+                            cur.execute(sql, [list(target_ids)] + params + [needed])
+                            ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
+                            print(f"[chat-stream] Fallback found {len(ft_nodes)} additional nodes")
+
+                        source_nodes = source_nodes + ft_nodes
+                    except Exception as _ft_err:
+                        print(f"[chat-stream] Full-text fallback failed: {_ft_err}")
 
             # Send source nodes first
             yield json.dumps({"type": "source_nodes", "nodes": [dict(n) for n in source_nodes]}) + "\n"
@@ -744,7 +914,8 @@ async def chat_with_kb_stream(
                     user["sub"],
                     body.message,
                     final_answer,
-                    [n["id"] for n in source_nodes]
+                    [n["id"] for n in source_nodes],
+                    body.force_auto_active
                 )
 
             record_usage(resolved, "extraction", total_tokens, body.workspace_id)
@@ -781,74 +952,117 @@ async def chat_with_kb(
         resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
 
         # --- Hybrid node retrieval ---
-        # Step 1: vector search (skip gracefully when no embedding provider)
         source_nodes: list = []
+        faq_hit_id = None
+
+        # Step 0: FAQ 快取 — 先搜尋相似的 inquiry 節點
         try:
             embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
             vector, _ = await embed(embed_prov, body.message)
+            
             with db_cursor() as cur:
                 cur.execute("""
-                    SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                           (1 - (embedding <=> %s::vector)) AS similarity
+                    SELECT id, title_zh, title_en, ask_count,
+                            (1 - (embedding <=> %s::vector)) AS similarity
                     FROM memory_nodes
-                    WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                    WHERE workspace_id = ANY(%s)
+                      AND content_type = 'inquiry'
+                      AND status IN ('answered', 'answered-low-trust')
+                      AND embedding IS NOT NULL
                       AND (1 - (embedding <=> %s::vector)) >= %s
-                    ORDER BY similarity DESC LIMIT %s
-                """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
-                source_nodes = list(cur.fetchall())
-        except Exception as _vec_err:
-            print(f"[chat] Vector search skipped: {_vec_err}")
+                    ORDER BY similarity DESC LIMIT 1
+                """, (vector, list(target_ids), vector, FAQ_CACHE_HIT))
+                faq_hit = cur.fetchone()
+                
+                if faq_hit:
+                    faq_hit_id = faq_hit["id"]
+                    print(f"[chat] FAQ hit! inquiry_id={faq_hit_id}, sim={faq_hit['similarity']:.4f}")
+                    
+                    # 取得此 inquiry 連結的所有 answered_by 知識節點
+                    cur.execute("""
+                        SELECT n.id, n.title_zh, n.title_en, n.body_zh, n.body_en, n.workspace_id, 1.0 AS similarity
+                        FROM edges e
+                        JOIN memory_nodes n ON n.id = e.to_id
+                        WHERE e.from_id = %s
+                          AND e.relation = 'answered_by'
+                          AND e.status = 'active'
+                          AND n.status = 'active'
+                    """, (faq_hit_id,))
+                    source_nodes = list(cur.fetchall())
+                    
+                    # 背景遞增 ask_count
+                    background_tasks.add_task(_increment_ask_count, faq_hit_id)
+        except Exception as _faq_err:
+            print(f"[chat] FAQ cache search failed: {_faq_err}")
 
-        # Step 2: keyword / full-text fallback when vector results are sparse
-        if len(source_nodes) < 3:
-            seen_ids = {n["id"] for n in source_nodes}
-            needed = _FALLBACK_LIMIT - len(source_nodes)
-            terms = _extract_search_terms(body.message)
+        if not source_nodes:
+            # Step 1: vector search (skip gracefully when no embedding provider)
             try:
+                embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
+                vector, _ = await embed(embed_prov, body.message)
                 with db_cursor() as cur:
-                    ft_nodes: list = []
-                    is_pg = settings.database_url.startswith("postgresql")
+                    cur.execute("""
+                        SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                               (1 - (embedding <=> %s::vector)) AS similarity
+                        FROM memory_nodes
+                        WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                          AND (1 - (embedding <=> %s::vector)) >= %s
+                        ORDER BY similarity DESC LIMIT %s
+                    """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
+                    source_nodes = list(cur.fetchall())
+            except Exception as _vec_err:
+                print(f"[chat] Vector search skipped: {_vec_err}")
 
-                    # 2a. PostgreSQL plainto_tsquery (good for English / ASCII)
-                    if is_pg:
-                        cur.execute("""
-                            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                                   0.0::float AS similarity
-                            FROM memory_nodes
-                            WHERE workspace_id = ANY(%s) AND status = 'active'
-                              AND search_vector @@ plainto_tsquery('simple', %s)
-                            LIMIT %s
-                        """, (list(target_ids), body.message[:200], needed))
-                        ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
+            # Step 2: keyword / full-text fallback when vector results are sparse
+            if len(source_nodes) < 3:
+                seen_ids = {n["id"] for n in source_nodes}
+                needed = _FALLBACK_LIMIT - len(source_nodes)
+                terms = _extract_search_terms(body.message)
+                try:
+                    with db_cursor() as cur:
+                        ft_nodes: list = []
+                        is_pg = settings.database_url.startswith("postgresql")
 
-                    # 2b. CJK/keyword ILIKE fallback (handles Chinese & short queries)
-                    if len(ft_nodes) < needed and terms:
-                        still_need = needed - len(ft_nodes)
-                        ft_seen = seen_ids | {n["id"] for n in ft_nodes}
-                        conds = " OR ".join(
-                            "(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)"
-                            for _ in terms
-                        )
-                        ilike_params: list = []
-                        for t in terms:
-                            like_t = f"%{t}%"
-                            ilike_params += [like_t, like_t, like_t]
-                        cur.execute(
-                            f"""
-                            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                                   0.0::{'float' if is_pg else 'real'} AS similarity
-                            FROM memory_nodes
-                            WHERE workspace_id = ANY(%s) AND status = 'active'
-                              AND ({conds})
-                            LIMIT %s
-                            """,
-                            [list(target_ids)] + ilike_params + [still_need],
-                        )
-                        ft_nodes += [n for n in cur.fetchall() if n["id"] not in ft_seen]
+                        # 2a. PostgreSQL plainto_tsquery (good for English / ASCII)
+                        if is_pg:
+                            cur.execute("""
+                                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                                       0.0::float AS similarity
+                                FROM memory_nodes
+                                WHERE workspace_id = ANY(%s) AND status = 'active'
+                                  AND search_vector @@ plainto_tsquery('simple', %s)
+                                LIMIT %s
+                            """, (list(target_ids), body.message[:200], needed))
+                            ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
 
-                source_nodes = source_nodes + ft_nodes
-            except Exception as _ft_err:
-                print(f"[chat] Full-text fallback failed: {_ft_err}")
+                        # 2b. CJK/keyword ILIKE fallback (handles Chinese & short queries)
+                        if len(ft_nodes) < needed and terms:
+                            still_need = needed - len(ft_nodes)
+                            ft_seen = seen_ids | {n["id"] for n in ft_nodes}
+                            conds = " OR ".join(
+                                "(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)"
+                                for _ in terms
+                            )
+                            ilike_params: list = []
+                            for t in terms:
+                                like_t = f"%{t}%"
+                                ilike_params += [like_t, like_t, like_t]
+                            cur.execute(
+                                f"""
+                                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+                                       0.0::{'float' if is_pg else 'real'} AS similarity
+                                FROM memory_nodes
+                                WHERE workspace_id = ANY(%s) AND status = 'active'
+                                  AND ({conds})
+                                LIMIT %s
+                                """,
+                                [list(target_ids)] + ilike_params + [still_need],
+                            )
+                            ft_nodes += [n for n in cur.fetchall() if n["id"] not in ft_seen]
+
+                    source_nodes = source_nodes + ft_nodes
+                except Exception as _ft_err:
+                    print(f"[chat] Full-text fallback failed: {_ft_err}")
 
         context_str = json.dumps([dict(n) for n in source_nodes], ensure_ascii=False, indent=2)
         messages = [{"role": "system", "content": CHAT_SYSTEM}]
@@ -899,7 +1113,8 @@ async def chat_with_kb(
                 user["sub"],
                 body.message,
                 answer,
-                [n["id"] for n in source_nodes]
+                [n["id"] for n in source_nodes],
+                body.force_auto_active
             )
 
         record_usage(resolved, "extraction", tokens, body.workspace_id)
@@ -917,7 +1132,6 @@ async def chat_with_kb(
 
 
 @router.post("/chat/feedback", status_code=204)
-
 
 @router.post("/chat/feedback", status_code=204)
 async def submit_chat_feedback(

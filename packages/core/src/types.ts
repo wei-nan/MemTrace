@@ -1,9 +1,9 @@
 // ─── Memory Node ────────────────────────────────────────────────────────────
 
-export type ContentType = "factual" | "procedural" | "preference" | "context";
+export type ContentType = "factual" | "procedural" | "preference" | "context" | "inquiry";
 export type ContentFormat = "plain" | "markdown";
 export type Visibility = "public" | "team" | "private";
-export type SourceType = "human" | "ai_generated" | "ai_verified";
+export type SourceType = "human" | "ai_generated" | "ai_verified" | "document" | "qa_conversation" | "mcp";
 
 export interface MemoryNodeTitle {
   "zh-TW": string;
@@ -73,7 +73,7 @@ export interface MemoryNode {
 
 // ─── Edge ───────────────────────────────────────────────────────────────────
 
-export type RelationType = "depends_on" | "extends" | "related_to" | "contradicts";
+export type RelationType = "depends_on" | "extends" | "related_to" | "contradicts" | "answered_by" | "similar_to" | "queried_via_mcp";
 
 export interface EdgeDecay {
   half_life_days: number;  // >= 1

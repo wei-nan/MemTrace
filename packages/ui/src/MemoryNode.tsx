@@ -8,6 +8,7 @@ const TYPE_COLORS: Record<string, string> = {
   procedural: '#22c55e',
   preference: '#f59e0b',
   context:    '#64748b',
+  inquiry:    '#94a3b8',
 };
 const DEFAULT_COLOR = '#6366f1';
 
@@ -101,14 +102,34 @@ const MemoryNode = ({ data }: { data: any }) => {
         {data.isEmpty && (
           <span className="tag" style={{ background: 'rgba(239,68,68,0.1)', color: '#dc2626', fontSize: '0.6rem', border: '1px solid rgba(239,68,68,0.2)' }}>EMPTY</span>
         )}
+        {data.type === 'inquiry' && data.ask_count > 0 && (
+          <span className="tag" style={{ background: 'rgba(148,163,184,0.1)', color: '#64748b', fontSize: '0.6rem', border: '1px solid rgba(148,163,184,0.2)' }}>
+            ASK: {data.ask_count}
+          </span>
+        )}
       </div>
       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
         {t('node.type_label')}: {t(`content_type.${data.type}`, { defaultValue: data.type || 'factual' })}
       </div>
-      <div className="tag-container" style={{ marginTop: '8px' }}>
+      <div className="tag-container" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         {(data.tags || []).slice(0, 2).map((tag: string) => (
           <span className="tag" key={tag} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>#{tag}</span>
         ))}
+        {data.source_type === 'qa_conversation' && (
+          <span className="tag" style={{ fontSize: '0.65rem', background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed', border: '1px solid rgba(124, 58, 237, 0.2)' }} title={data.trust_score < 0.5 ? '🤖 AI 問答萃取，尚待驗證' : '🤖 AI 問答萃取'}>
+            🤖 AI
+          </span>
+        )}
+        {data.source_type === 'document' && (
+          <span className="tag" style={{ fontSize: '0.65rem', background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+            📄 DOC
+          </span>
+        )}
+        {data.source_type === 'mcp' && (
+          <span className="tag" style={{ fontSize: '0.65rem', background: 'rgba(100, 116, 139, 0.1)', color: '#475569', border: '1px solid rgba(100, 116, 139, 0.2)' }}>
+            🔍 SYS
+          </span>
+        )}
       </div>
 
       {isExpanded && bodyPreview && (

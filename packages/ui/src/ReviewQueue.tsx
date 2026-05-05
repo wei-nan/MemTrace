@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Check, Clock, Filter, RefreshCw, User, X, FileText } from "lucide-react";
+import { Bot, Check, Clock, Filter, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
 import { review, nodes as nodesApi, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
@@ -204,10 +204,15 @@ function ReviewCard({
           <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
             {item.source_info || "Review proposal"} · {new Date(item.created_at).toLocaleString()}
           </div>
-          {item.ai_review?.reasoning && (
-            <blockquote style={{ margin: "10px 0 0", padding: "10px 12px", borderLeft: "3px solid var(--color-primary)", background: "var(--bg-base)", color: "var(--text-secondary)" }}>
-              {item.ai_review.reasoning}
-            </blockquote>
+          {item.proposer_meta?.conflict_reason && (
+            <div style={{ marginTop: 12, padding: 12, background: \"rgba(239, 68, 68, 0.05)\", border: \"1px solid rgba(239, 68, 68, 0.2)\", borderRadius: 10 }}>
+              <div style={{ color: \"#dc2626\", fontSize: 13, fontWeight: 600, display: \"flex\", alignItems: \"center\", gap: 6 }}>
+                <TriangleAlert size={14} /> {t('review.conflict_detected', { defaultValue: 'Conflict Detected' })}
+              </div>
+              <div style={{ fontSize: 13, color: \"var(--text-secondary)\", marginTop: 6, lineHeight: 1.5 }}>
+                {String(item.proposer_meta.conflict_reason)}
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -238,7 +243,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
   const { confirm, toast } = useModal();
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [changeType, setChangeType] = useState<"all" | "create" | "update" | "delete">("all");
+  const [changeType, setChangeType] = useState<"all" | "create" | "update" | "delete" | "gap" | "conflicted">("all");
   const [proposerType, setProposerType] = useState<"all" | "human" | "ai">("all");
 
   const loadItems = async () => {
@@ -257,7 +262,14 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
   }, [wsId]);
 
   const filteredItems = useMemo(
-    () => items.filter((item) => (changeType === "all" || item.change_type === changeType) && (proposerType === "all" || item.proposer_type === proposerType)),
+    () => items.filter((item) => {
+      const matchType = changeType === "all" 
+        || (changeType === "gap" ? item.node_data?.status === "gap" : 
+            changeType === "conflicted" ? item.node_data?.status === "conflicted" :
+            item.change_type === changeType);
+      const matchProposer = proposerType === "all" || item.proposer_type === proposerType;
+      return matchType && matchProposer;
+    }),
     [items, changeType, proposerType],
   );
   const canReviewAny = filteredItems.some((item) => item.can_review);
@@ -325,19 +337,35 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
         </div>
       </div>
 
-      <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--border-subtle)", display: "flex", gap: 10, alignItems: "center", background: "var(--bg-surface)" }}>
-        <Filter size={16} />
-        <select className="mt-input" style={{ width: 150 }} value={changeType} onChange={(e) => setChangeType(e.target.value as typeof changeType)}>
-          <option value="all">{t('review.allChanges')}</option>
-          <option value="create">{t('review.create')}</option>
-          <option value="update">{t('review.update')}</option>
-          <option value="delete">{t('review.delete')}</option>
-        </select>
-        <select className="mt-input" style={{ width: 150 }} value={proposerType} onChange={(e) => setProposerType(e.target.value as typeof proposerType)}>
-          <option value="all">{t('review.allProposers')}</option>
-          <option value="human">{t('review.human')}</option>
-          <option value="ai">{t('review.ai')}</option>
-        </select>
+      <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--border-subtle)", display: "flex", gap: 12, alignItems: "center", background: "var(--bg-surface)", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6 }}>
+          {([
+            ["all", t('review.allChanges')],
+            ["create", t('review.create')],
+            ["update", t('review.update')],
+            ["delete", t('review.delete')],
+            ["gap", t('review.gap')],
+            ["conflicted", t('review.conflicted')],
+          ] as Array<[typeof changeType, string]>).map(([value, label]) => (
+            <button
+              key={value}
+              className={`tag ${changeType === value ? "tag-active" : ""}`}
+              onClick={() => setChangeType(value)}
+              style={{ cursor: "pointer" }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div style={{ width: 1, height: 20, background: "var(--border-subtle)", margin: "0 4px" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <User size={14} style={{ color: "var(--text-muted)" }} />
+          <select className="mt-input" style={{ width: 140, height: 32, fontSize: 13 }} value={proposerType} onChange={(e) => setProposerType(e.target.value as typeof proposerType)}>
+            <option value="all">{t('review.allProposers')}</option>
+            <option value="human">{t('review.human')}</option>
+            <option value="ai">{t('review.ai')}</option>
+          </select>
+        </div>
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>

@@ -13,6 +13,7 @@ class WorkspaceCreate(BaseModel):
     archive_window_days: int = 90
     min_traversals: int = 1
     embedding_model: Optional[str] = None                # P4.1-E: user-chosen model; None = auto-resolve
+    qa_archive_mode: str = "manual_review"               # auto_active | manual_review
 
 
 class WorkspaceResponse(BaseModel):
@@ -26,6 +27,7 @@ class WorkspaceResponse(BaseModel):
     min_traversals: int
     embedding_model: str = "text-embedding-3-small"      # P4.1-A: locked at creation
     embedding_dim: int = 1536                            # P4.1-A: locked at creation
+    qa_archive_mode: str
     created_at: datetime
     updated_at: datetime
     my_role: Optional[str] = None  # effective role of the requesting user: 'admin'|'editor'|'viewer'|None
@@ -111,6 +113,8 @@ class NodeResponse(BaseModel):
     validity_confirmed_at: Optional[datetime] = None
     validity_confirmed_by: Optional[str] = None
     content_stripped: bool = False
+    ask_count: int = 0
+    miss_count: int = 0
 
 
 class ValidityConfirmationResponse(BaseModel):
@@ -178,6 +182,7 @@ class WorkspaceUpdate(BaseModel):
     kb_type: Optional[Literal["evergreen", "ephemeral"]] = None
     archive_window_days: Optional[int] = None
     min_traversals: Optional[int] = None
+    qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None
 
 
 class TableViewResponse(BaseModel):

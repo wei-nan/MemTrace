@@ -260,7 +260,7 @@ export const workspaces = {
     request("DELETE", `${BASE}/workspaces/${wsId}/members/${userId}`),
   detectLinks: (wsId: string) =>
     request<{ message: string; nodes_checked: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/detect-links`),
-  update: (wsId: string, data: Partial<{ name_zh: string; name_en: string; visibility: string }>) =>
+  update: (wsId: string, data: Partial<{ name_zh: string; name_en: string; visibility: string; qa_archive_mode: string }>) =>
     request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
   delete: (wsId: string) => request("DELETE", `${BASE}/workspaces/${wsId}`),
   clone: (wsId: string, data: { name_zh?: string; name_en?: string; new_embedding_model?: string; visibility?: string }) =>
@@ -318,7 +318,8 @@ export const workspaces = {
   revokeApiKey: (wsId: string, keyId: string) =>
     request("DELETE", `${BASE}/workspaces/${wsId}/api-keys/${keyId}`),
   getDecayStats: (wsId: string) => request<any>("GET", `${BASE}/workspaces/${wsId}/decay-stats`),
-  getHealthReport: (wsId: string) => request<any>("GET", `${BASE}/workspaces/${wsId}/nodes/health`),
+  getHealthReport: (ws_id: string) => request<any>("GET", `${BASE}/workspaces/${ws_id}/nodes/health`),
+  topGaps: (ws_id: string) => request<Array<{ id: string; title_zh: string; title_en: string; status: string; ask_count: number }>>("GET", `${BASE}/workspaces/${ws_id}/stats/top-gaps`),
 };
 
 export const nodes = {
@@ -512,6 +513,7 @@ export interface Workspace {
   my_role: "admin" | "editor" | "viewer" | null;
   embedding_model: string;
   embedding_dim: number;
+  qa_archive_mode: "auto_active" | "manual_review";
 }
 
 export interface Node {
@@ -544,6 +546,7 @@ export interface Node {
   validity_confirmed_at?: string | null;
   validity_confirmed_by?: string | null;
   content_stripped?: boolean;
+  ask_count: number;
 }
 
 export interface ValidityConfirmation {
@@ -696,6 +699,7 @@ export interface Edge {
   rating_count: number;
   status: string;
   last_co_accessed: string;
+  metadata?: Record<string, any>;
 }
 
 export interface EdgeCreatePayload {
@@ -829,6 +833,7 @@ export const system = {
   updateBackupConfig: (data: Partial<Pick<BackupConfig, "enabled" | "path" | "interval_hours" | "keep_count">>) =>
     request<BackupConfig>("PATCH", `${BASE}/system/backup-config`, data),
   runBackup: () => request<{ message: string }>("POST", `${BASE}/system/backup/run`),
+  getMcpStatus: () => request<any>("GET", `${BASE}/mcp/status`),
 };
 
 export interface WorkspaceCloneJob {

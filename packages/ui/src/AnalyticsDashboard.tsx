@@ -73,6 +73,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [tokenEfficiency, setTokenEfficiency] = useState<TokenEfficiency | null>(null);
+  const [topGaps, setTopGaps] = useState<Array<{ id: string; title_zh: string; title_en: string; status: string; ask_count: number }>>([]);
 
   useEffect(() => {
     let active = true;
@@ -91,6 +92,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
         if (active) setLoading(false);
       });
     workspaces.tokenEfficiency(wsId).then(setTokenEfficiency).catch(() => {});
+    workspaces.topGaps(wsId).then(setTopGaps).catch(() => {});
     return () => {
       active = false;
     };
@@ -174,19 +176,48 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
         </section>
       </div>
 
-      <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
-        <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.kbTypeMetrics')}</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-          {Object.entries(data.kb_type_metrics).map(([key, value]) => (
-            <div key={key} style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t(`analytics.metrics.${key}`, { defaultValue: key })}</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>
-                {key.includes("ratio") ? formatPercent(value) : Number(value).toFixed(key.includes("avg_days") ? 1 : 2).replace(".00", "")}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
+          <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.topGaps')}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {topGaps.map((gap) => (
+              <div key={gap.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, fontSize: 13 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>
+                  <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>
+                    {gap.title_zh || gap.title_en || gap.id}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{gap.status}</div>
+                </div>
+                <div style={{
+                  background: "var(--bg-app)",
+                  padding: "2px 8px",
+                  borderRadius: 8,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--color-primary)"
+                }}>
+                  ASK: {gap.ask_count}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+            {!topGaps.length && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t('analytics.noGaps')}</div>}
+          </div>
+        </section>
+
+        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
+          <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.kbTypeMetrics')}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+            {Object.entries(data.kb_type_metrics).map(([key, value]) => (
+              <div key={key} style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t(`analytics.metrics.${key}`, { defaultValue: key })}</div>
+                <div style={{ fontSize: 20, fontWeight: 700 }}>
+                  {key.includes("ratio") ? formatPercent(value) : Number(value).toFixed(key.includes("avg_days") ? 1 : 2).replace(".00", "")}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
 
       <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
         <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.tokenEfficiency')}</div>

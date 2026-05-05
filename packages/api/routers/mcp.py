@@ -25,19 +25,42 @@ import json
 import logging
 import re
 import uuid
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, BackgroundTasks
 from fastapi.responses import StreamingResponse
 
 from core.database import db_cursor
 from core.deps import get_current_user
 
 from routers.kb import _require_ws_access
+from core.ai import resolve_provider, record_usage
+from core.constants import SEARCH_MISS_DEDUP
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["mcp"])
+
+@router.get("/status")
+async def mcp_status(user: dict = Depends(get_current_user)):
+    """Return real-time MCP session status."""
+    user_sub = user.get("sub")
+    user_sessions = [
+        {
+            "session_id": sid,
+            "created_at": s.get("created_at"),
+            "last_accessed": s.get("last_accessed")
+        }
+        for sid, s in _sessions.items()
+        if s.get("user_sub") == user_sub
+    ]
+    return {
+        "active_sessions_total": len(_sessions),
+        "user_sessions": user_sessions,
+        "server_info": _SERVER_INFO
+    }
+
 
 # ── In-memory session map: session_id → dict ─────────────────────────
 _sessions: Dict[str, dict] = {}
@@ -116,7 +139,7 @@ _TOOLS = [
                 "body_en":      {"type": "string", "description": "Node body in English"},
                 "content_type": {
                     "type": "string",
-                    "enum": ["factual", "procedural", "preference", "context"],
+                    "enum": ["factual", "procedural", "preference", "context", "inquiry"],
                     "description": "Node content type",
                 },
                 "tags":         {"type": "array", "items": {"type": "string"}},
@@ -167,7 +190,7 @@ _TOOLS = [
                 "to_id":        {"type": "string", "description": "Target node ID"},
                 "relation": {
                     "type": "string",
-                    "enum": ["depends_on", "extends", "related_to", "contradicts"],
+                    "enum": ["depends_on", "extends", "related_to", "contradicts", "answered_by", "similar_to", "queried_via_mcp"],
                 },
                 "weight": {"type": "number", "description": "Edge weight 0.0–1.0"},
             },
@@ -242,8 +265,49 @@ _TOOLS = [
 
 # _check_workspace_access removed in favor of _require_ws_access
 
+async def _handle_search_miss(ws_id: str, query_text: str, user_id: str):
+    """Background task to record a gap node when search yields 0 results."""
+    from core.security import generate_id
+    
+    try:
+        resolved = resolve_provider(user_id, "embedding")
+        vector, tokens = await resolved.provider.embed(resolved, query_text)
+        record_usage(resolved, "embedding", tokens, workspace_id=ws_id)
+    except Exception as e:
+        logger.error("Failed to generate embedding for search miss: %s", e)
+        return
 
-async def _execute_tool(name: str, args: dict, user: dict) -> Any:
+    with db_cursor(commit=True) as cur:
+        # Check if a similar gap node already exists
+        cur.execute(
+            """SELECT id FROM memory_nodes 
+               WHERE workspace_id = %s 
+                 AND status = 'gap'
+                 AND content_type = 'inquiry'
+                 AND embedding IS NOT NULL
+                 AND (1 - (embedding <=> %s::vector)) >= %s
+               ORDER BY (1 - (embedding <=> %s::vector)) DESC LIMIT 1""",
+            (ws_id, vector, SEARCH_MISS_DEDUP, vector)
+        )
+        row = cur.fetchone()
+        
+        if row:
+            cur.execute("UPDATE memory_nodes SET miss_count = miss_count + 1 WHERE id = %s", (row["id"],))
+        else:
+            node_id = generate_id("node")
+            cur.execute(
+                """INSERT INTO memory_nodes
+                     (id, workspace_id, title_zh, title_en, body_zh, body_en,
+                      content_type, tags, trust_score, status, source_type, dim_author_rep, embedding)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector)""",
+                (
+                    node_id, ws_id,
+                    query_text, query_text, "", "",
+                    "inquiry", ["auto:search-miss"], 0.0, "gap", "mcp", 0.0, vector
+                )
+            )
+
+async def _execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
     """Dispatch a tool call to the appropriate DB query."""
 
     # ── list_workspaces ───────────────────────────────────────────────────────
@@ -305,6 +369,11 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
         node_id = args["node_id"]
         with db_cursor() as cur:
             _require_ws_access(cur, ws_id, user, write=False)
+            
+            # P4.5-1B-2: Record interaction edge
+            from routers.kb import _write_mcp_interaction_edge
+            background_tasks.add_task(_write_mcp_interaction_edge, ws_id, node_id, name, "node_lookup")
+            
             cur.execute(
                 """SELECT id, workspace_id, title_zh, title_en, body_zh, body_en,
                           content_type, tags, trust_score, status,
@@ -315,6 +384,7 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
             row = cur.fetchone()
             if not row:
                 raise ValueError(f"Node '{node_id}' not found")
+            
             return row
 
     # ── search_nodes ──────────────────────────────────────────────────────────
@@ -341,7 +411,20 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
                     ORDER BY trust_score DESC LIMIT %s""",
                 params + [limit],
             )
-            return cur.fetchall()
+            results = cur.fetchall()
+            
+            if len(results) == 0 and query:
+                background_tasks.add_task(_handle_search_miss, ws_id, query, user["sub"])
+            elif len(results) > 0:
+                # P4.5-1B-2: Record interaction edges for top results
+                from routers.kb import _write_mcp_interaction_edge
+                for r in results[:3]: # Only record for top 3 to avoid noise
+                    background_tasks.add_task(_write_mcp_interaction_edge, ws_id, r["id"], name, query)
+                
+                # P4.5-1B-1: Log MCP query
+                background_tasks.add_task(_log_mcp_query, ws_id, name, query, len(results))
+                
+            return results
 
     # ── create_node ───────────────────────────────────────────────────────────
     if name == "create_node":
@@ -470,6 +553,10 @@ async def _execute_tool(name: str, args: dict, user: dict) -> Any:
                         neighbor = e["to_id"] if e["from_id"] == curr_id else e["from_id"]
                         if neighbor not in visited:
                             queue.append((neighbor, depth + 1))
+            # P4.5-1B-2: Record interaction edge for the root node
+            from routers.kb import _write_mcp_interaction_edge
+            background_tasks.add_task(_write_mcp_interaction_edge, ws_id, node_id, name)
+
             return {"nodes": list(visited.values()), "edges": edges_found}
 
     # ── list_by_tag ───────────────────────────────────────────────────────────
@@ -576,7 +663,7 @@ def _serialize(obj: Any) -> Any:
         return str(obj)
 
 
-async def _dispatch(msg: dict, user: dict) -> dict:
+async def _dispatch(msg: dict, user: dict, background_tasks: BackgroundTasks) -> dict:
     method = msg.get("method", "")
     msg_id = msg.get("id")
 
@@ -598,7 +685,7 @@ async def _dispatch(msg: dict, user: dict) -> dict:
         tool    = params.get("name", "")
         args    = params.get("arguments", {})
         try:
-            result = await _execute_tool(tool, args, user)
+            result = await _execute_tool(tool, args, user, background_tasks)
             serialized = _serialize(result)
             return _jsonrpc_ok(msg_id, {
                 "content": [{"type": "text", "text": json.dumps(serialized, ensure_ascii=False, indent=2)}],
@@ -705,6 +792,7 @@ async def mcp_messages(
     request: Request,
     sessionId: str = Query(...),
     user: dict = Depends(get_current_user),
+    background_tasks: BackgroundTasks = None,
 ):
     """Receive a JSON-RPC 2.0 message and push the response to the SSE session."""
     session = _sessions.get(sessionId)
@@ -727,10 +815,9 @@ async def mcp_messages(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    response = await _dispatch(body, user)
+    response = await _dispatch(body, user, background_tasks)
     await queue.put(response)
     return {"ok": True}
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Streamable HTTP transport (MCP spec 2025-03-26)
@@ -740,6 +827,7 @@ async def mcp_messages(
 async def mcp_streamable(
     request: Request,
     user: dict = Depends(get_current_user),
+    background_tasks: BackgroundTasks = None,
 ):
     """
     Streamable HTTP transport — single POST endpoint for all JSON-RPC messages.
@@ -750,5 +838,14 @@ async def mcp_streamable(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    response = await _dispatch(body, user)
+    response = await _dispatch(body, user, background_tasks)
     return response
+
+
+def _log_mcp_query(ws_id: str, tool: str, query: str, result_count: int, tokens: int = 0):
+    """P4.5-1B-2: Log MCP query for observability."""
+    with db_cursor(commit=True) as cur:
+        cur.execute("""
+            INSERT INTO mcp_query_logs (workspace_id, tool_name, query_text, result_count, token_usage)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (ws_id, tool, query, result_count, tokens))

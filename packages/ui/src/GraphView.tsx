@@ -11,6 +11,7 @@ import ReactFlow, {
 import type { Node, Edge, Connection, NodeChange, EdgeChange } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useTranslation } from 'react-i18next';
+import { Network } from 'lucide-react';
 import MemoryNode from './MemoryNode';
 import { type Node as ApiNode, type Edge as ApiEdge, type NodeHealthScore } from './api';
 
@@ -134,6 +135,7 @@ function GraphViewInner({ apiNodes, apiEdges, relationColors, onEditNode, health
           zh={zh}
           apiNodes={apiNodes}
           i18n={i18n}
+          relationColors={relationColors}
         />
       </div>
     </div>
@@ -151,13 +153,15 @@ interface GraphCanvasProps {
   zh: boolean;
   apiNodes: ApiNode[];
   i18n: any;
+  relationColors: Record<string, string>;
 }
 
 function GraphCanvas({
   rfNodes, rfEdges, onNodesChange, onEdgesChange, onConnect, onNodeClick,
-  isSpacePressed, zh, apiNodes, i18n,
+  isSpacePressed, zh, apiNodes, i18n, relationColors
 }: GraphCanvasProps) {
   const lod = useLod();
+  const [showLegend, setShowLegend] = useState(false);
 
   const nodesWithLod = rfNodes.map(n => {
     const apiNode = apiNodes.find(a => a.id === n.id);
@@ -174,37 +178,87 @@ function GraphCanvas({
   });
 
   return (
-    <ReactFlow
-      nodes={nodesWithLod}
-      edges={rfEdges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onNodeClick={onNodeClick}
-      nodeTypes={nodeTypes}
-      panOnDrag={isSpacePressed}
-      selectionOnDrag={!isSpacePressed}
-      onlyRenderVisibleElements
-      fitView
-    >
-      <Background color="var(--border-default)" gap={20} size={1} />
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <ReactFlow
+        nodes={nodesWithLod}
+        edges={rfEdges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        nodeTypes={nodeTypes}
+        panOnDrag={isSpacePressed}
+        selectionOnDrag={!isSpacePressed}
+        onlyRenderVisibleElements
+        fitView
+      >
+        <Background color="var(--border-default)" gap={20} size={1} />
+        
+        <div style={{
+          position: 'absolute', bottom: 14, left: 16,
+          color: 'var(--text-muted)', fontSize: 11, opacity: 0.5,
+          pointerEvents: 'none', lineHeight: 1.7, zIndex: 10
+        }}>
+          {zh
+            ? '左鍵拖曳旋轉 · Space+拖曳平移 · 滾輪縮放 · 點擊開啟節點'
+            : 'Left-click rotate · Space+drag pan · Scroll zoom · Click to open node'}
+        </div>
 
-      <div style={{
-        position: 'absolute', bottom: 14, left: 16,
-        color: 'var(--text-muted)', fontSize: 11, opacity: 0.5,
-        pointerEvents: 'none', lineHeight: 1.7, zIndex: 10
-      }}>
-        {zh
-          ? '左鍵拖曳旋轉 · Space+拖曳平移 · 滾輪縮放 · 點擊開啟節點'
-          : 'Left-click rotate · Space+drag pan · Scroll zoom · Click to open node'}
+        <MiniMap
+          style={{ background: 'var(--bg-surface)' }}
+          nodeColor={(node) => ((node?.data as any)?.healthColor || 'var(--color-primary)')}
+          maskColor="var(--bg-overlay)"
+        />
+      </ReactFlow>
+
+      {/* Graph Legend (P4.5-3A-5) */}
+      <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 10 }}>
+        <button 
+          className="btn-secondary" 
+          style={{ padding: '6px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, boxShadow: 'var(--shadow-md)' }}
+          onClick={() => setShowLegend(!showLegend)}
+        >
+          <Network size={14} /> {zh ? '圖譜圖例' : 'Legend'}
+        </button>
+
+        {showLegend && (
+          <div style={{ 
+            marginTop: 10, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', 
+            borderRadius: 12, padding: 14, minWidth: 180, boxShadow: 'var(--shadow-lg)' 
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 10, textTransform: 'uppercase' }}>
+              {zh ? '節點類型' : 'Node Types'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { type: 'factual', color: '#3b82f6', label: zh ? '事實' : 'Factual' },
+                { type: 'procedural', color: '#10b981', label: zh ? '流程' : 'Procedural' },
+                { type: 'preference', color: '#f59e0b', label: zh ? '偏好' : 'Preference' },
+                { type: 'context', color: '#8b5cf6', label: zh ? '脈絡' : 'Context' },
+                { type: 'inquiry', color: '#94a3b8', label: zh ? '缺漏' : 'Gap Node' },
+              ].map(item => (
+                <div key={item.type} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }} />
+                  <span>{item.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', margin: '14px 0 10px', textTransform: 'uppercase' }}>
+              {zh ? '關係語意' : 'Relations'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {Object.entries(relationColors).map(([relation, color]) => (
+                <div key={relation} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>
+                  <div style={{ width: 20, height: 2, background: color, borderBottom: relation === 'related_to' ? '1px dashed #666' : 'none' }} />
+                  <span>{relation}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      <MiniMap
-        style={{ background: 'var(--bg-surface)' }}
-        nodeColor={(node) => ((node?.data as any)?.healthColor || 'var(--color-primary)')}
-        maskColor="var(--bg-overlay)"
-      />
-    </ReactFlow>
+    </div>
   );
 }
 

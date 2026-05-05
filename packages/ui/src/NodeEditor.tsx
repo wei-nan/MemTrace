@@ -16,9 +16,9 @@ interface Props {
   sourceNodeId?: string;
 }
 
-const CONTENT_TYPES = ["factual", "procedural", "preference", "context"];
+const CONTENT_TYPES = ["factual", "procedural", "preference", "context", "inquiry"];
 const VISIBILITIES = ["private", "team", "public"];
-const RELATIONS = ["depends_on", "extends", "related_to", "contradicts"];
+const RELATIONS = ["depends_on", "extends", "related_to", "contradicts", "answered_by", "similar_to", "queried_via_mcp"];
 
 function isNodeResponse(value: unknown): value is Node {
   return Boolean(value && typeof value === "object" && "id" in value && "workspace_id" in value);
@@ -499,6 +499,11 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <h1 style={{ margin: 0, fontSize: 26 }}>{displayLang === "zh" ? node?.title_zh : node?.title_en}</h1>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                 <span className="tag"><Shield size={12} /> {t(`content_type.${node?.content_type}`, { defaultValue: node?.content_type })}</span>
+                {node?.content_type === 'inquiry' && node?.ask_count > 0 && (
+                  <span className="tag" style={{ background: 'rgba(148, 163, 184, 0.1)', color: '#64748b' }}>
+                    <Bot size={12} /> ASK: {node.ask_count}
+                  </span>
+                )}
                 <span className="tag"><Calendar size={12} /> {node?.created_at.split("T")[0]}</span>
                 <span className="tag"><User size={12} /> {t("node.trust_score")} {(node?.trust_score ?? 0).toFixed(2)}</span>
                 {node?.tags.map((tag) => <span key={tag} className="tag">#{tag}</span>)}
@@ -610,7 +615,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 <LinkIcon size={16} /> {t("node.associations")}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {nodeEdges.map((edge) => {
+                {nodeEdges.filter(e => e.relation !== 'queried_via_mcp').map((edge) => {
                   const otherId = edge.from_id === node?.id ? edge.to_id : edge.from_id;
                   const otherNode = allNodes.find((candidate) => candidate.id === otherId);
                   return (
@@ -632,7 +637,25 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                     </button>
                   );
                 })}
-                {!nodeEdges.length && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("node.no_associations")}</div>}
+                {nodeEdges.some(e => e.relation === 'queried_via_mcp') && (
+                  <div style={{ 
+                    marginTop: 4, 
+                    padding: "8px 12px", 
+                    background: "var(--bg-app)", 
+                    borderRadius: 10, 
+                    border: "1px solid var(--border-subtle)",
+                    fontSize: 13,
+                    color: "var(--text-muted)",
+                    display: "flex",
+                    justifyContent: "space-between"
+                  }}>
+                    <span>{t('node.queried_via_mcp_label', { defaultValue: 'System Query (MCP)' })}</span>
+                    <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>
+                      {nodeEdges.find(e => e.relation === 'queried_via_mcp')?.metadata?.count ?? 0} {t('node.times', { defaultValue: 'hits' })}
+                    </span>
+                  </div>
+                )}
+                {nodeEdges.filter(e => e.relation !== 'queried_via_mcp').length === 0 && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("node.no_associations")}</div>}
               </div>
 
               {/* AI Suggested Edges */}

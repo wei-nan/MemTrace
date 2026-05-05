@@ -681,6 +681,29 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
           </SectionCard>
 
           <SectionCard>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                  {t('ws_settings.qa_archive_mode')}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 400 }}>{t('ws_settings.qa_archive_mode_desc')}</div>
+              </div>
+              <select className="mt-input" value={ws?.qa_archive_mode ?? "manual_review"} style={{ width: 180 }} onChange={async (e) => {
+                try {
+                  await workspaces.update(wsId, { qa_archive_mode: e.target.value as any });
+                  await loadData();
+                  toast({ message: t('common.save'), variant: "success" });
+                } catch (err) {
+                  toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
+                }
+              }}>
+                <option value="manual_review">{t('ws_settings.manual_review')}</option>
+                <option value="auto_active">{t('ws_settings.auto_active')}</option>
+              </select>
+            </div>
+          </SectionCard>
+
+          <SectionCard>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Brain size={20} color="var(--color-primary)" />

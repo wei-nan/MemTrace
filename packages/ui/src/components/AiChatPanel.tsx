@@ -18,6 +18,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [allowEdits, setAllowEdits] = useState(false);
+  const [forceAutoActive, setForceAutoActive] = useState(false);
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>('openai');
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
@@ -84,6 +85,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
         allow_edits: allowEdits,
         preferred_provider: provider,
         preferred_model: selectedModel,
+        force_auto_active: forceAutoActive,
       }, (chunk) => {
         if (chunk.type === 'source_nodes') {
           setMessages(prev => {
@@ -195,6 +197,20 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             title={allowEdits ? (zh ? '關閉 AI 提案模式' : 'Disable AI proposals') : (zh ? '開啟 AI 提案模式' : 'Enable AI proposals')}
           >
             {allowEdits ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+          </button>
+        </div>
+
+        {/* force_auto_active toggle */}
+        <div style={{ marginLeft: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            {zh ? '自動生效' : 'Auto Active'}
+          </span>
+          <button
+            onClick={() => setForceAutoActive(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: forceAutoActive ? 'var(--color-primary)' : 'var(--text-muted)' }}
+            title={forceAutoActive ? (zh ? '關閉強制自動生效' : 'Disable force auto active') : (zh ? '開啟強制自動生效' : 'Enable force auto active')}
+          >
+            {forceAutoActive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
           </button>
         </div>
       </div>

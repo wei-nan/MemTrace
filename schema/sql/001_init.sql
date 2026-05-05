@@ -10,15 +10,15 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ─── ENUM TYPES ───────────────────────────────────────────────────
 
-CREATE TYPE content_type    AS ENUM ('factual', 'procedural', 'preference', 'context');
+CREATE TYPE content_type    AS ENUM ('factual', 'procedural', 'preference', 'context', 'inquiry');
 CREATE TYPE content_format  AS ENUM ('plain', 'markdown');
 CREATE TYPE visibility_type AS ENUM ('public', 'team', 'private');
-CREATE TYPE source_type     AS ENUM ('human', 'ai_generated', 'ai_verified');
-CREATE TYPE relation_type   AS ENUM ('depends_on', 'extends', 'related_to', 'contradicts');
+CREATE TYPE source_type     AS ENUM ('human', 'ai_generated', 'ai_verified', 'document', 'qa_conversation', 'mcp');
+CREATE TYPE relation_type   AS ENUM ('depends_on', 'extends', 'related_to', 'contradicts', 'answered_by', 'similar_to', 'queried_via_mcp');
 CREATE TYPE kb_visibility   AS ENUM ('public', 'restricted', 'private');
 CREATE TYPE member_role     AS ENUM ('viewer', 'editor');
 CREATE TYPE kb_type         AS ENUM ('evergreen', 'ephemeral');
-CREATE TYPE node_status     AS ENUM ('active', 'archived');
+CREATE TYPE node_status     AS ENUM ('active', 'archived', 'gap', 'answered', 'answered-low-trust', 'conflicted');
 CREATE TYPE edge_status     AS ENUM ('active', 'faded', 'pinned');
 
 -- ─── USERS ────────────────────────────────────────────────────────
@@ -113,7 +113,14 @@ CREATE TABLE workspaces (
 
   -- AI Model Locking (Phase 4.1)
   embedding_model TEXT,
-  embedding_dim   INTEGER
+  embedding_dim   INTEGER,
+
+  -- Q&A Archiving (Phase 4.5)
+  qa_archive_mode VARCHAR(20) NOT NULL DEFAULT 'manual_review'
+                  CHECK (qa_archive_mode IN ('manual_review', 'auto_active')),
+  
+  -- Workspace Agent (P4.5-1B-0)
+  agent_node_id TEXT
 );
 
 CREATE TABLE workspace_members (
@@ -200,6 +207,10 @@ CREATE TABLE memory_nodes (
   -- Lifecycle (SPEC §7.3)
   status          node_status NOT NULL DEFAULT 'active',
   archived_at     TIMESTAMPTZ,
+
+  -- Phase 4.5
+  miss_count      INTEGER NOT NULL DEFAULT 0,
+  ask_count       INTEGER NOT NULL DEFAULT 0,
 
   -- Semantic embedding (Phase 4.1: dynamic vector size based on locked model)
   embedding       vector
@@ -507,4 +518,18 @@ CREATE TRIGGER trg_update_clone_job_timestamp
     BEFORE UPDATE ON workspace_clone_jobs
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
+
+-- ─── MCP QUERY LOGS (Phase 4.5) ──────────────────────────────────
+
+CREATE TABLE mcp_query_logs (
+  id               TEXT PRIMARY KEY,             -- mcp_<hex8>
+  workspace_id     TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  tool_name        TEXT NOT NULL,
+  query_text       TEXT,
+  result_node_count INTEGER NOT NULL DEFAULT 0,
+  estimated_tokens  INTEGER NOT NULL DEFAULT 0,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_mcp_logs_ws ON mcp_query_logs (workspace_id);
 
