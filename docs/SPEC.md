@@ -62,6 +62,8 @@ This is not merely a permissions model. It is a statement about the **relationsh
 - **Faded**: The state an edge enters when its weight drops below `min_weight` due to decay. A faded edge is archived automatically but can be restored.
 - **Knowledge Base Type**: A workspace-level setting (`evergreen` or `ephemeral`) that governs how the decay engine treats nodes and edges in that workspace (see §7.3).
 - **Knowledge Base Visibility**: The four-tier sharing level of a Knowledge Base (`public`, `conditional_public`, `restricted`, `private`), controlling who can discover and access it. Set at creation time and immutable thereafter. Distinct from Memory Node visibility, which controls individual node access within a Knowledge Base.
+- **External API**: REST API with scoped API keys (`kb:read`, `kb:write`, `node:traverse`, `node:rate`)
+- **MCP Server**: Native integration via Python API (SSE & Streamable HTTP)
 - **Write Serialization**: The per-workspace write queue mechanism that ensures concurrent writes (by humans or AI) are applied in arrival order, preventing race conditions.
 - **Conflict Flag**: A marker applied to a Memory Node when the system detects a logical inconsistency introduced by an AI or concurrent human edit (see §17.4).
 - **KB Association**: An explicit link between two Knowledge Bases that grants AI agents permission to reason across their contents (see §18).
@@ -479,16 +481,14 @@ The browser tab title must dynamically reflect the active Knowledge Base to assi
 ### 9.5 Docker Deployment
 The MemTrace application stack is containerized for consistent deployment across environments using Docker and Docker Compose.
 
-- **Architecture**: The stack consists of four primary services:
+- **Architecture**: The stack consists of three primary services:
   - `db`: PostgreSQL 17 with `pgvector` extension for knowledge graph and vector storage.
-  - `api`: Python (FastAPI) backend service.
+  - `api`: Python (FastAPI) backend service (includes native MCP).
   - `ui`: React (Vite) frontend service.
-  - `mcp`: Node.js MCP server for AI agent integration.
 - **Orchestration**: `docker-compose.yml` manages service dependencies, environment variables, and volumes for data persistence.
 - **Ports**:
   - UI: `5173` (mapped from `80` in production image)
-  - API: `8000`
-  - MCP: `3001` (SSE mode)
+  - API / MCP: `8000`
   - DB: `5432`
 
 ## 11. Document-Based Knowledge Base Bootstrapping

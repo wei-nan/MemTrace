@@ -419,9 +419,11 @@ async def _execute_tool(name: str, args: dict, user: dict, background_tasks: Bac
                 # P4.5-1B-2: Record interaction edges for top results
                 from routers.kb import _write_mcp_interaction_edge
                 for r in results[:3]: # Only record for top 3 to avoid noise
+                    logger.info(f"Adding interaction edge task for {r['id']}")
                     background_tasks.add_task(_write_mcp_interaction_edge, ws_id, r["id"], name, query)
                 
                 # P4.5-1B-1: Log MCP query
+                logger.info(f"Adding query log task for {name}")
                 background_tasks.add_task(_log_mcp_query, ws_id, name, query, len(results))
                 
             return results
@@ -431,13 +433,22 @@ async def _execute_tool(name: str, args: dict, user: dict, background_tasks: Bac
         ws_id = args["workspace_id"]
         from core.security import generate_id
         node_id = generate_id("node")
+        # P4.5-2B-1: Compute signature and set author
+        from core.security import compute_signature
+        sig = compute_signature(
+            {"en": args.get("title_en", ""), "zh": args.get("title_zh", "")},
+            {"en": args.get("body_en", ""), "zh": args.get("body_zh", "")},
+            args.get("tags", []),
+            user["sub"]
+        )
+        
         with db_cursor(commit=True) as cur:
             _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
             cur.execute(
                 """INSERT INTO memory_nodes
                      (id, workspace_id, title_zh, title_en, body_zh, body_en,
-                      content_type, tags, trust_score)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                      content_type, tags, trust_score, author, signature)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    RETURNING id, title_zh, title_en, content_type, tags,
                              trust_score, created_at""",
                 (
@@ -448,7 +459,9 @@ async def _execute_tool(name: str, args: dict, user: dict, background_tasks: Bac
                     args.get("body_en", ""),
                     args.get("content_type", "factual"),
                     args.get("tags", []),
-                    args.get("trust_score", 0.8),
+                    args.get("trust_score", 0.5),
+                    user["sub"],
+                    sig
                 ),
             )
             return cur.fetchone()
@@ -846,6 +859,6 @@ def _log_mcp_query(ws_id: str, tool: str, query: str, result_count: int, tokens:
     """P4.5-1B-2: Log MCP query for observability."""
     with db_cursor(commit=True) as cur:
         cur.execute("""
-            INSERT INTO mcp_query_logs (workspace_id, tool_name, query_text, result_count, token_usage)
+            INSERT INTO mcp_query_logs (workspace_id, tool_name, query_text, result_node_count, estimated_tokens)
             VALUES (%s, %s, %s, %s, %s)
         """, (ws_id, tool, query, result_count, tokens))

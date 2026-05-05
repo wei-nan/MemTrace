@@ -41,7 +41,7 @@ It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sh
 | **Trust** | accuracy, freshness, utility, author\_rep dimensions; SHA-256 anti-forgery |
 | **Auth** | Email + password registration with verification, Google OAuth 2.0 |
 | **External API** | REST API with scoped API keys (`kb:read`, `kb:write`, `node:traverse`, `node:rate`) |
-| **MCP Server** | AI agent integration via Model Context Protocol (stdio & HTTP+SSE) |
+| **MCP Server** | Native integration via Python API (SSE & Streamable HTTP) |
 | **i18n** | Full UI in Traditional Chinese (zh-TW) and English |
 | **Onboarding** | Guided web wizard and interactive `memtrace init` CLI flow |
 
@@ -57,11 +57,11 @@ It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sh
                      │ REST / MCP
 ┌────────────────────▼─────────────────────────┐
 │           MemTrace API (FastAPI)             │
-│  Auth · CRUD · Search · Decay · Ingest       │
+│  Auth · CRUD · Search · Decay · Ingest · MCP │
 └──────┬──────────────┬──────────────┬─────────┘
        │              │              │
-  PostgreSQL 17   pgvector       MCP Server
-  (metadata +    (embeddings)   (stdio / SSE)
+  PostgreSQL 17   pgvector     Modern Clients
+  (metadata +    (embeddings)   (SSE / Streamable HTTP)
    traversal)
 ```
 
@@ -70,7 +70,7 @@ It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sh
 ```
 packages/
 ├── core/      TypeScript — schema validation, decay engine
-├── api/       Python / FastAPI — REST backend
+├── api/       Python / FastAPI — REST backend + Native MCP
 ├── ui/        React / Vite — web app
 ├── cli/       TypeScript — memtrace CLI
 └── ingest/    Document & AI extraction pipeline
@@ -167,248 +167,47 @@ MemTrace exposes its knowledge base to AI coding tools via the **Model Context P
 
 ---
 
-### Environment Variables
+---
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MEMTRACE_API` | `http://localhost:8000/api/v1` | API base URL |
-| `MEMTRACE_WS` | `ws_spec0001` | Default workspace ID |
-| `MEMTRACE_LANG` | `zh-TW` | Response language (`zh-TW` or `en`) |
-| `MEMTRACE_TOKEN` | (empty) | API key — required for private workspaces and all write tools |
+### Connection Methods
+
+The MCP server is now natively integrated into the Python API. All access uses per-user `mt_` API keys via port **8000**.
+
+#### 1. Streamable HTTP (Recommended)
+Single POST endpoint used by **Cursor**, **Antigravity**, and other modern clients.
+- **URL**: `https://<your-host>:8000/mcp`
+- **Auth**: `Authorization: Bearer mt_<your_api_key>`
+
+#### 2. SSE (Standard)
+Server-Sent Events transport used by **Claude Desktop**.
+- **URL**: `https://<your-host>:8000/sse`
+- **Auth**: `Authorization: Bearer mt_<your_api_key>`
 
 ---
 
-### Setup A — Same Machine as MemTrace (Local)
+### Setup Instructions
 
-Use this when your AI tool runs on the same machine as the MemTrace server.
-
-**Step 1 — Build the MCP server**
-
-```bash
-cd packages/mcp
-npm install
-npm run build        # output → packages/mcp/dist/index.js
-```
-
-**Step 2 — Configure your tool**
-
-#### Claude Code
-
-A project-level `.mcp.json` is already included in the repo root. Claude Code picks it up automatically when you open this project.
+#### Claude Desktop
+Add this to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "memtrace": {
-      "command": "node",
-      "args": ["packages/mcp/dist/index.js"],
-      "env": {
-        "MEMTRACE_API": "http://localhost:8000/api/v1",
-        "MEMTRACE_WS": "ws_spec0001",
-        "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "<your_api_token>"
+      "type": "sse",
+      "url": "http://localhost:8000/sse",
+      "headers": {
+        "Authorization": "Bearer mt_<your_api_token>"
       }
     }
   }
 }
 ```
 
-To register globally across all projects, add the same block to `~/.claude/settings.json` under `"mcpServers"`.
-
-#### Cursor (local)
-
-Create `~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "memtrace": {
-      "command": "node",
-      "args": ["/absolute/path/to/memtrace/packages/mcp/dist/index.js"],
-      "env": {
-        "MEMTRACE_API": "http://localhost:8000/api/v1",
-        "MEMTRACE_WS": "ws_spec0001",
-        "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "<your_api_token>"
-      }
-    }
-  }
-}
-```
-
-> Cursor requires absolute paths in `args`.
-
-#### Antigravity (Google)
-
-Config file location:
-- macOS / Linux: `~/.gemini/antigravity/mcp_config.json`
-- Windows: `%USERPROFILE%\.gemini\antigravity\mcp_config.json`
-
-```json
-{
-  "mcpServers": {
-    "memtrace": {
-      "command": "node",
-      "args": ["/absolute/path/to/memtrace/packages/mcp/dist/index.js"],
-      "env": {
-        "MEMTRACE_API": "http://localhost:8000/api/v1",
-        "MEMTRACE_WS": "ws_spec0001",
-        "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "<your_api_token>"
-      }
-    }
-  }
-}
-```
-
-> Antigravity does **not** support `${workspaceFolder}` variable substitution. Keep total enabled MCP tools under 50.
-
-#### OpenClaw
-
-Run once in a terminal (requires the MCP package to be built first):
-
-```bash
-openclaw mcp set memtrace '{
-  "command": "node",
-  "args": ["/absolute/path/to/memtrace/packages/mcp/dist/index.js"],
-  "env": {
-    "MEMTRACE_API": "http://localhost:8000/api/v1",
-    "MEMTRACE_WS": "ws_spec0001",
-    "MEMTRACE_LANG": "zh-TW",
-    "MEMTRACE_TOKEN": "<your_api_token>"
-  }
-}'
-```
-
-Verify the server was registered:
-
-```bash
-openclaw mcp list
-```
-
-To remove it later: `openclaw mcp unset memtrace`
-
----
-
-### Setup B — Remote Machine
-
-Use this when your AI tool runs on a **different machine** from the MemTrace server. The MCP server runs locally on your machine and communicates with the remote MemTrace API over HTTPS. Each user authenticates with their own personal token — the server enforces their workspace permissions on every operation.
-
-This setup works with any network configuration that makes the MemTrace API reachable from your machine: a VPN, a reverse proxy, a direct public URL, or a private overlay network.
-
-**Step 1 — Ensure the API is reachable**
-
-Confirm you can reach the MemTrace API from your machine:
-
-```bash
-curl https://<memtrace-host>/api/v1/health
-# expected: {"status":"healthy"}
-```
-
-If the API is served on a non-standard port, include it: `https://<host>:<port>/api/v1`.
-
-**Step 2 — Create your API token**
-
-1. Open the MemTrace web UI and log in
-2. Go to **Settings → API Keys** → **New Key**
-3. Set the following scopes:
-
-| Scope | Required for |
-|-------|-------------|
-| `kb:write` | create / update / delete nodes and edges |
-| `node:traverse` | graph traversal tools |
-| `node:rate` | trust votes and validity confirmation |
-
-> Select `*` for full access to all tools.
-
-4. Copy the generated `mt_...` token — it is shown only once.
-
-**Step 3 — Install the MCP package** (requires Node.js 18+)
-
-```bash
-# Option A: install from the MemTrace server's package endpoint
-npm install -g https://<memtrace-host>/mcp/download/memtrace-mcp-latest.tgz
-
-# Option B: clone the repo and build locally
-git clone <repo-url>
-cd memtrace/packages/mcp && npm install && npm run build
-```
-
-**Step 4 — Configure your AI tool**
-
-#### Cursor
-
-Create or edit `~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "memtrace": {
-      "command": "memtrace-mcp",
-      "env": {
-        "MEMTRACE_API": "https://<memtrace-host>/api/v1",
-        "MEMTRACE_WS": "<your_workspace_id>",
-        "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "mt_<your_personal_token>"
-      }
-    }
-  }
-}
-```
-
-Restart Cursor and verify the server is active under **Cursor Settings → MCP**.
-
-#### Antigravity (Google) — remote
-
-```json
-{
-  "mcpServers": {
-    "memtrace": {
-      "command": "memtrace-mcp",
-      "env": {
-        "MEMTRACE_API": "https://<memtrace-host>/api/v1",
-        "MEMTRACE_WS": "<your_workspace_id>",
-        "MEMTRACE_LANG": "zh-TW",
-        "MEMTRACE_TOKEN": "mt_<your_personal_token>"
-      }
-    }
-  }
-}
-```
-
-#### OpenClaw — remote
-
-```bash
-openclaw mcp set memtrace '{
-  "command": "memtrace-mcp",
-  "env": {
-    "MEMTRACE_API": "https://<memtrace-host>/api/v1",
-    "MEMTRACE_WS": "<your_workspace_id>",
-    "MEMTRACE_LANG": "zh-TW",
-    "MEMTRACE_TOKEN": "mt_<your_personal_token>"
-  }
-}'
-```
-
-> **Security note:** The MCP protocol itself runs locally over stdio — no MCP port is exposed over the network. Only the MemTrace API calls travel over HTTPS. Your personal token determines exactly which workspaces and operations are accessible.
-
----
-
-### Verifying the Connection
-
-Once connected, ask your AI assistant:
-
-```
-What MCP tools are available from memtrace?
-```
-
-Try a real query:
-
-```
-Use memtrace to find the decay half-life for each node type.
-```
-
-The assistant should call `search_nodes` and return the answer without reading the full spec document.
+#### Cursor / Antigravity
+Add a new MCP server with type **HTTP**:
+- **URL**: `http://localhost:8000/mcp`
+- **Headers**: `{"Authorization": "Bearer mt_<your_api_token>"}`
 
 ---
 
@@ -416,13 +215,9 @@ The assistant should call `search_nodes` and return the answer without reading t
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
-| `ENOENT` / `command not found` | Wrong path or package not installed | Use absolute path; verify `dist/index.js` exists or reinstall the package |
-| `Workspace not found` | Wrong `MEMTRACE_WS` | Confirm workspace ID via `list_workspaces` tool |
-| `Connection refused` | API not running | Check `docker compose ps`; all containers should be healthy |
-| `401 Unauthorized` | Missing or invalid token | Set `MEMTRACE_TOKEN` to a valid `mt_...` key from Settings → API Keys |
-| `403 insufficient_scope` | Token missing required scope | Recreate the token with `kb:write`, `node:traverse`, `node:rate` scopes |
-| `404 Invalid oauth error` | Client using wrong endpoint | Cursor (remote): use `command: memtrace-mcp`, not a URL |
-| Tools not listed | MCP server crashed | Run `memtrace-mcp` in a terminal to see the error directly |
+| `Connection refused` | API not running | Check `docker compose ps`; ensure port 8000 is open |
+| `401 Unauthorized` | Invalid token | Confirm token starts with `mt_` and has `kb:read` scope |
+| `404 Not Found` | Wrong endpoint | Use `/mcp` for Cursor or `/sse` for Claude Desktop |
 
 ---
 

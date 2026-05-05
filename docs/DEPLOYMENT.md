@@ -24,13 +24,11 @@ This guide describes how to deploy the MemTrace application stack using Docker.
 
 3. **Verify Services**:
    - **UI**: http://localhost:5173
-   - **API**: http://localhost:8000/docs (Swagger UI)
-   - **MCP**: http://localhost:3001/sse (SSE endpoint)
+   - **API / MCP**: http://localhost:8000/docs (Swagger UI)
 
 ## Service Architecture
-- **API (Python/FastAPI)**: Handles knowledge graph logic, vector search, and AI provider integration.
+- **API (Python/FastAPI)**: Handles knowledge graph logic, vector search, AI provider integration, and native MCP support (SSE + Streamable HTTP).
 - **UI (React/Vite)**: Modern, dynamic interface for graph visualization and node editing.
-- **MCP (Node.js)**: Model Context Protocol server allowing AI agents to query the knowledge base.
 - **DB (PostgreSQL 17 + pgvector)**: Specialized database for graph and semantic search.
 
 ## Production Considerations

@@ -2426,7 +2426,7 @@ def _write_mcp_interaction_edge(ws_id: str, node_id: str, tool_name: str, query_
             meta["history"] = history[:5]
             
             cur.execute("""
-                UPDATE edges SET metadata = %s, updated_at = now()
+                UPDATE edges SET metadata = %s, last_co_accessed = now()
                 WHERE id = %s
             """, (json.dumps(meta), edge_row["id"]))
         else:

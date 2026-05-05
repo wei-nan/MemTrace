@@ -262,9 +262,6 @@ memtrace/
 │   │       ├── AnalyticsDashboard.tsx Workspace health & token-efficiency cards
 │   │       └── NodeHealthManager.tsx Empty-body / single-language warnings
 │   │
-│   ├── mcp/                 MCP (Model Context Protocol) server (TypeScript)
-│   │   └── src/index.ts     stdio + SSE transports; read & write tools, resources
-│   │
 │   ├── cli/                 memtrace CLI (TypeScript, built with tsc)
 │   │   └── src/index.ts     Commander.js entrypoint
 │   │
@@ -359,14 +356,12 @@ MemTrace supports **Ollama** for local-first AI workflows.
 | `APP_URL` | Public base URL injected into verification / password-reset links. |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | Only when `EMAIL_PROVIDER=smtp`. |
 
-### MCP client side (`.mcp.json`, **not** the API `.env`)
+### MCP client side (`config.json`, **not** the API `.env`)
 
 | Variable | Description |
 |----------|-------------|
-| `MEMTRACE_API` | API base URL (default `http://localhost:8000/api/v1`). |
-| `MEMTRACE_WS` | Default workspace ID for MCP tool calls. |
-| `MEMTRACE_TOKEN` | Workspace API key — required for any write tool or `list_workspaces`. |
-| `MEMTRACE_LANG` | `zh-TW` or `en`; controls tool description language. |
+| `url` | API base URL + transport (e.g. `http://localhost:8000/sse` or `/mcp`). |
+| `Authorization` | Workspace API key (`mt_...`) passed in headers. |
 
 > **Backup** settings are configured at runtime via the UI (Settings → Backup), not env vars.
 
