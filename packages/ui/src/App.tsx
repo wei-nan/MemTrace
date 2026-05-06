@@ -20,7 +20,7 @@ import WorkspaceSettings from './WorkspaceSettings';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import NodeHealthManager from './NodeHealthManager';
 import ResetPasswordPage from './ResetPasswordPage';
-import { Routes, Route, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { auth, workspaces, ai, users, system, type Workspace, type Node as ApiNode, type AIKey, type Onboarding, type PersonalApiKey, type BackupConfig, type WorkspaceCloneJob } from './api';
 import { useModal } from './components/ModalContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -1330,6 +1330,7 @@ export default function App() {
   }, [authenticated]);
 
   const [cloneJob, setCloneJob] = useState<WorkspaceCloneJob | null>(null);
+  const [cancellingJob, setCancellingJob] = useState(false);
 
   useEffect(() => {
     if (!selectedWs) {
@@ -1408,7 +1409,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/public/:wsId" element={<PublicWorkspaceView />} />
-      <Route path="/verify" element={<MagicLinkVerifyPage />} />
+      <Route path="/verify" element={<MagicLinkVerifyPage onAuthenticated={() => setAuthenticated(true)} />} />
       <Route path="/invite/:token" element={<JoinInvitationPage />} />
       <Route path="/auth" element={
         authenticated ? <Navigate to="/" /> : <AuthPage onAuthenticated={() => setAuthenticated(true)} />
@@ -1854,17 +1855,13 @@ export default function App() {
         )}
         <ErrorBoundary>
         {currentView === 'graph' && (
-          <GraphContainer
+            <GraphContainer
             wsId={selectedWs?.id}
             userId={user?.id}
             reloadKey={graphVersion}
             onEditNode={node => setEditingNode(node)}
             onNewNode={() => setEditingNode(null)}
             onSwitchView={setCurrentView}
-            user={user}
-            onLogout={handleLogout}
-            showMcpStatus={showMcpStatus}
-            setShowMcpStatus={setShowMcpStatus}
           />
         )}
         {currentView === 'analytics' && selectedWs && (

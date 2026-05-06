@@ -5,9 +5,9 @@
  * that survives 2D ↔ 3D switching, then mounts either GraphView (2D canvas)
  * or GraphView3D (3D canvas) below it — both are now pure renderers.
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain, FileUp, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { Archive, RefreshCw, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain, FileUp } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
@@ -36,8 +36,7 @@ interface Props {
 }
 
 export default function GraphContainer({ 
-  wsId, reloadKey, onEditNode, onNewNode, onSwitchView, userId,
-  user, onLogout, showMcpStatus, setShowMcpStatus 
+  wsId, reloadKey, onEditNode, onNewNode, onSwitchView, userId
 }: Props) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
@@ -61,24 +60,8 @@ export default function GraphContainer({
   const LIMIT_OPTIONS = [100, 200, 500, 1000, 'unlimited'] as const;
   type LimitOption = typeof LIMIT_OPTIONS[number];
   const [displayLimit, setDisplayLimit] = useState<LimitOption>(200);
-
-  // ── Search state ──────────────────────────────────────────────────────────
-  const [searchQuery, setSearchQuery]   = useState('');
-  const [searchMode, setSearchMode]     = useState<'keyword' | 'semantic'>('keyword');
   const [orphanFilter, setOrphanFilter] = useState<string | undefined>(undefined);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
   const [dofEnabled, setDofEnabled] = useState(true);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // ── Load all data ─────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -129,27 +112,10 @@ export default function GraphContainer({
     }
   }, [wsId, showArchived, displayLimit]);
 
-  // ── Keyword / semantic search ─────────────────────────────────────────────
-  const performSearch = useCallback(async () => {
-    if (!wsId || !searchQuery.trim()) { load(); return; }
-    setLoading(true);
-    try {
-      const results = searchMode === 'semantic'
-        ? await nodesApi.searchSemantic(wsId, searchQuery)
-        : await nodesApi.list(wsId, { q: searchQuery });
-      setApiNodes(results);
-      // Keep existing edges — they'll simply have dangling refs for hidden nodes
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [wsId, searchQuery, searchMode, load]);
-
   useEffect(() => { load(); }, [load, reloadKey]);
 
   // ── Health mode state ────────────────────────────────────────────────────
-  const [healthMode, setHealthMode] = useState(false);
+  const healthMode = false; // setHealthMode removed to fix build error. Restore if health toggle is added.
   const [healthScores, setHealthScores] = useState<Record<string, any>>({});
 
   const loadHealthScores = useCallback(async () => {
@@ -428,7 +394,7 @@ export default function GraphContainer({
 
       {/* ── Canvas area — swaps on mode change, header stays ────────────────── */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', marginTop: '20px' }}>
-        {!loading && apiNodes.length === 0 && !error && !searchQuery ? (
+        {!loading && apiNodes.length === 0 && !error ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-surface)' }}>
             <div style={{ maxWidth: 450, textAlign: 'center', padding: 40 }} className="animate-fade-in">
               <div style={{ 

@@ -28,6 +28,8 @@ from routers.exports import router as exports_router
 from routers.api_keys import router as api_keys_router
 from routers.internal import router as internal_router
 from routers.mcp      import router as mcp_router
+from routers.public   import router as public_router
+from routers.registration import router as registration_router
 
 logger = logging.getLogger(__name__)
 
@@ -435,6 +437,8 @@ app.include_router(exports_router, prefix="/api/v1")
 app.include_router(api_keys_router, prefix="/api/v1")
 app.include_router(internal_router, prefix="/api/v1")
 app.include_router(mcp_router)
+app.include_router(public_router)
+app.include_router(registration_router)
 
 # ── MCP package download (served from data/mcp/) ─────────────────────────────
 import pathlib as _pathlib

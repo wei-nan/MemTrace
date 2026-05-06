@@ -26,6 +26,15 @@ class RefreshRequest(BaseModel):
     token: str
 
 
+class MagicLinkRegisterRequest(BaseModel):
+    email: EmailStr
+    purpose_note: Optional[str] = None
+
+
+class MagicLinkVerifyRequest(BaseModel):
+    token: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

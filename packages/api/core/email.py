@@ -126,6 +126,32 @@ def send_workspace_deletion_notice(
     _dispatch(to, subject, html, text)
 
 
+def send_magic_link_email(to: str, token: str) -> None:
+    """Send a magic link for passwordless login."""
+    url   = f"{settings.app_url}/verify?token={token}"
+    subject = "您的 MemTrace 登入連結 / Your MemTrace login link"
+    html  = _tpl_magic_link(url)
+    text  = (
+        f"請點擊以下連結登入 MemTrace（10 分鐘內有效）：\n{url}\n\n"
+        f"Please click the link below to login to MemTrace (valid for 10 minutes):\n{url}"
+    )
+    _dispatch(to, subject, html, text)
+
+
+def send_invitation_email(to: str, token: str, workspace_name: str, inviter_name: str) -> None:
+    """Send an invitation to join a workspace."""
+    url   = f"{settings.app_url}/invite/{token}"
+    subject = f"{inviter_name} 邀請您加入「{workspace_name}」知識庫"
+    html  = _tpl_invitation(url, workspace_name, inviter_name)
+    text  = (
+        f"{inviter_name} 邀請您加入「{workspace_name}」知識庫。\n"
+        f"請點擊以下連結接受邀請：\n{url}\n\n"
+        f"{inviter_name} invited you to join the workspace \"{workspace_name}\".\n"
+        f"Please click the link below to accept the invitation:\n{url}"
+    )
+    _dispatch(to, subject, html, text)
+
+
 # ── Email templates ────────────────────────────────────────────────────────────
 #
 # Intentionally minimal inline HTML — no external dependencies, no CDN links.
@@ -218,4 +244,30 @@ def _tpl_ws_deleted(ws_name: str) -> str:
 <hr class="divider">
 <p class="sub">Your workspace "<strong>{ws_name}</strong>" has been permanently deleted from MemTrace today.<br>
 All nodes, edges, and chat history have been removed. This action cannot be undone.</p>"""
+    return _BASE.format(content=content, footer=_FOOTER_DEFAULT)
+
+
+def _tpl_magic_link(url: str) -> str:
+    content = f"""
+<p>您好，我們收到了登入 MemTrace 的請求。</p>
+<p>請點擊下方按鈕登入，連結將在 <strong>10 分鐘</strong>後失效。</p>
+<a href="{url}" class="btn">登入 MemTrace &rarr;</a>
+<hr class="divider">
+<p class="sub">Hi, we received a request to login to MemTrace.<br>
+Click the button above to login. The link expires in <strong>10 minutes</strong>.</p>
+<p class="sub">如果您沒有提出此請求，可以忽略本郵件。<br>
+If you didn't request this, you can safely ignore this email.</p>
+<p class="link-fallback">{url}</p>"""
+    return _BASE.format(content=content, footer=_FOOTER_DEFAULT)
+
+
+def _tpl_invitation(url: str, workspace_name: str, inviter_name: str) -> str:
+    content = f"""
+<p>您好，<strong>{inviter_name}</strong> 邀請您加入「<strong>{workspace_name}</strong>」知識庫。</p>
+<p>點擊下方按鈕即可接受邀請並開始協作。</p>
+<a href="{url}" class="btn">接受邀請 &rarr;</a>
+<hr class="divider">
+<p class="sub">Hi, <strong>{inviter_name}</strong> invited you to join the workspace "<strong>{workspace_name}</strong>".<br>
+Click the button above to accept and start collaborating.</p>
+<p class="link-fallback">{url}</p>"""
     return _BASE.format(content=content, footer=_FOOTER_DEFAULT)

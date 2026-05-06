@@ -1,5 +1,10 @@
 const BASE = "/api/v1";
 
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
 export function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("mt_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -231,6 +236,8 @@ export const auth = {
   me: () => request<{ id: string; display_name: string; email: string; email_verified: boolean }>("GET", "/auth/me"),
   verifyEmail: (token: string) => request("POST", `/auth/verify-email/${token}`),
   resendVerification: () => request("POST", "/auth/resend-verification-email"),
+  registerWithInvite: (token: string, data: { email: string }) => request("POST", `/auth/register/invite/${token}`, data),
+  verifyMagicLink: (token: string) => request<TokenResponse>("POST", "/auth/magic-link/verify", { token }),
   forgotPassword: (email: string) => request("POST", "/auth/forgot-password", { email }),
   resetPassword: (token: string, password: string) => request("POST", "/auth/reset-password", { token, new_password: password }),
   getOnboarding: () => request<Onboarding>("GET", "/auth/me/onboarding"),
@@ -835,6 +842,14 @@ export const system = {
     request<BackupConfig>("PATCH", `${BASE}/system/backup-config`, data),
   runBackup: () => request<{ message: string }>("POST", `${BASE}/system/backup/run`),
   getMcpStatus: () => request<any>("GET", `${BASE}/mcp/status`),
+  registrations: (status: string) => request<any[]>("GET", `${BASE}/admin/registrations?status=${status}`),
+  approveRegistration: (id: string) => request("POST", `${BASE}/admin/registrations/${id}/approve`),
+  rejectRegistration: (id: string) => request("POST", `${BASE}/admin/registrations/${id}/reject`),
+};
+
+export const kb = {
+  getGraph: (wsId: string) => request<any>("GET", `${BASE}/public/workspaces/${wsId}/graph-preview`),
+  getPublicInfo: (wsId: string) => request<Workspace>("GET", `${BASE}/public/workspaces/${wsId}`),
 };
 
 export interface WorkspaceCloneJob {
@@ -863,4 +878,5 @@ export const api = {
   ingest,
   users,
   system,
+  kb,
 };

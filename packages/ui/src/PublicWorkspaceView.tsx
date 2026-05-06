@@ -78,9 +78,15 @@ export default function PublicWorkspaceView() {
       
       <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <GraphView 
-          nodes={nodes} 
-          edges={edges} 
-          readOnly={true}
+          apiNodes={nodes} 
+          apiEdges={edges} 
+          relationColors={{
+            depends_on: 'var(--color-primary)',
+            extends: 'var(--node-secondary)',
+            related_to: 'var(--text-muted)',
+            contradicts: 'var(--color-error)',
+          }}
+          isPreview={true}
         />
         
         {/* Bottom stats overlay */}

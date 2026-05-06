@@ -11,6 +11,7 @@ from core.backup import (
     validate_path,
 )
 from core.deps import require_system_admin
+from core.database import db_cursor
 
 router = APIRouter(prefix="/api/v1/system", tags=["admin"])
 
@@ -71,3 +72,30 @@ def trigger_backup(
         config.get("keep_count", 7),
     )
     return {"message": "Backup started"}
+
+
+@router.get("/registrations")
+def list_registrations(status: Optional[str] = "pending", user: dict = Depends(require_system_admin)):
+    with db_cursor() as cur:
+        query = "SELECT id, email, status, purpose_note, admin_note, reviewed_by, reviewed_at, created_at FROM user_registrations"
+        params = []
+        if status:
+            query += " WHERE status = %s"
+            params.append(status)
+        query += " ORDER BY created_at DESC"
+        cur.execute(query, tuple(params))
+        return cur.fetchall()
+
+
+@router.post("/registrations/{reg_id}/approve")
+def approve_registration(reg_id: str, user: dict = Depends(require_system_admin)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("UPDATE user_registrations SET status = 'approved', reviewed_by = %s, reviewed_at = now() WHERE id = %s", (user["sub"], reg_id))
+    return {"message": "Approved"}
+
+
+@router.post("/registrations/{reg_id}/reject")
+def reject_registration(reg_id: str, user: dict = Depends(require_system_admin)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("UPDATE user_registrations SET status = 'rejected', reviewed_by = %s, reviewed_at = now() WHERE id = %s", (user["sub"], reg_id))
+    return {"message": "Rejected"}
