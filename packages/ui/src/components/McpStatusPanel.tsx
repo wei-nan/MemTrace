@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Network, X, ShieldCheck, Activity, Globe, Clock, ChevronRight } from 'lucide-react';
+import { Network, X, ShieldCheck, Activity, Clock, ChevronRight } from 'lucide-react';
 import { system } from '../api';
 
 export default function McpStatusPanel({ onClose }: { onClose: () => void }) {

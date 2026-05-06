@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Check, Clock, Filter, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
+import { Bot, Check, Clock, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
 import { review, nodes as nodesApi, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
@@ -204,12 +204,12 @@ function ReviewCard({
           <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
             {item.source_info || "Review proposal"} · {new Date(item.created_at).toLocaleString()}
           </div>
-          {item.proposer_meta?.conflict_reason && (
-            <div style={{ marginTop: 12, padding: 12, background: \"rgba(239, 68, 68, 0.05)\", border: \"1px solid rgba(239, 68, 68, 0.2)\", borderRadius: 10 }}>
-              <div style={{ color: \"#dc2626\", fontSize: 13, fontWeight: 600, display: \"flex\", alignItems: \"center\", gap: 6 }}>
+          {!!item.proposer_meta?.conflict_reason && (
+            <div style={{ marginTop: 12, padding: 12, background: "rgba(239, 68, 68, 0.05)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 10 }}>
+              <div style={{ color: "#dc2626", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                 <TriangleAlert size={14} /> {t('review.conflict_detected', { defaultValue: 'Conflict Detected' })}
               </div>
-              <div style={{ fontSize: 13, color: \"var(--text-secondary)\", marginTop: 6, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 6, lineHeight: 1.5 }}>
                 {String(item.proposer_meta.conflict_reason)}
               </div>
             </div>

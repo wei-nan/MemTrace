@@ -244,7 +244,8 @@ export const workspaces = {
     name_en: string;
     visibility: string;
     kb_type: "evergreen" | "ephemeral";
-    embedding_model?: string;   // P4.1-E: user-chosen model; omit = auto-resolve
+    embedding_model?: string;
+    qa_archive_mode?: "auto_active" | "manual_review";
   }) =>
     request<Workspace>("POST", `${BASE}/workspaces`, data),
   get: (id: string) => request<Workspace>("GET", `${BASE}/workspaces/${id}`),
