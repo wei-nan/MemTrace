@@ -516,7 +516,7 @@ async def _execute_tool(name: str, args: dict, user: dict, background_tasks: Bac
                    VALUES (%s, %s, %s, %s, %s, %s)
                    ON CONFLICT (workspace_id, from_id, to_id, relation) DO UPDATE
                      SET weight = EXCLUDED.weight, last_co_accessed = now()
-                   RETURNING id, from_id, to_id, relation, weight, created_at""",
+                   RETURNING id, from_id, to_id, relation, weight, last_co_accessed""",
                 (
                     edge_id, ws_id,
                     args["from_id"], args["to_id"],
