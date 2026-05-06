@@ -515,7 +515,7 @@ async def _execute_tool(name: str, args: dict, user: dict, background_tasks: Bac
                 """INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight)
                    VALUES (%s, %s, %s, %s, %s, %s)
                    ON CONFLICT (workspace_id, from_id, to_id, relation) DO UPDATE
-                     SET weight = EXCLUDED.weight, updated_at = now()
+                     SET weight = EXCLUDED.weight, last_co_accessed = now()
                    RETURNING id, from_id, to_id, relation, weight, created_at""",
                 (
                     edge_id, ws_id,
