@@ -428,11 +428,11 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
   const isEmpty = apiNodes.length === 0;
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '0 40px 40px', boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', flex: 1, minHeight: 0, padding: '0 40px 40px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
       <div
         ref={wrapperRef}
         style={{
-          width: '100%', height: '100%',
+          width: '100%', flex: 1, minHeight: 0,
           borderRadius: 16, overflow: 'hidden',
           border: '1px solid var(--border-default)',
           background: palette.wrapperBg,

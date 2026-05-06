@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Bot, Check, Clock, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
 import { review, nodes as nodesApi, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
@@ -320,22 +321,13 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--bg-base)" }}>
-      <div style={{ padding: "24px 32px", borderBottom: "1px solid var(--border-default)", background: "var(--bg-surface)", display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Clock size={20} />
-            <h2 style={{ margin: 0 }}>{t('review.title')}</h2>
-            <span className="tag tag-active">{filteredItems.length}</span>
-          </div>
-          <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>{t('review.subtitle')}</div>
-        </div>
+      {createPortal(
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          {canReviewAny && <button className="btn-secondary" onClick={handleRunAIPrescreen}><Bot size={16} /> {t('review.aiPrescreen')}</button>}
-          {canReviewAny && <button className="btn-primary" onClick={handleAcceptAll}><Check size={16} /> {t('review.acceptAll')}</button>}
-          <button className="btn-secondary" onClick={loadItems}><RefreshCw size={16} /> {t('review.refresh')}</button>
-          <button className="btn-secondary" onClick={onClose}>{t('review.backToGraph')}</button>
-        </div>
-      </div>
+          {canReviewAny && <button className="btn-secondary" style={{ height: 38 }} onClick={handleRunAIPrescreen}><Bot size={16} /> {t('review.aiPrescreen')}</button>}
+          {canReviewAny && <button className="btn-primary" style={{ height: 38 }} onClick={handleAcceptAll}><Check size={16} /> {t('review.acceptAll')}</button>}
+        </div>,
+        document.getElementById('header-actions')!
+      )}
 
       <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--border-subtle)", display: "flex", gap: 12, alignItems: "center", background: "var(--bg-surface)", flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 6 }}>
@@ -351,7 +343,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
               key={value}
               className={`tag ${changeType === value ? "tag-active" : ""}`}
               onClick={() => setChangeType(value)}
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", height: 38, border: "none" }}
             >
               {label}
             </button>
@@ -360,11 +352,22 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
         <div style={{ width: 1, height: 20, background: "var(--border-subtle)", margin: "0 4px" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <User size={14} style={{ color: "var(--text-muted)" }} />
-          <select className="mt-input" style={{ width: 140, height: 32, fontSize: 13 }} value={proposerType} onChange={(e) => setProposerType(e.target.value as typeof proposerType)}>
+          <select className="mt-input" style={{ width: 140, height: 38, fontSize: 13 }} value={proposerType} onChange={(e) => setProposerType(e.target.value as typeof proposerType)}>
             <option value="all">{t('review.allProposers')}</option>
             <option value="human">{t('review.human')}</option>
             <option value="ai">{t('review.ai')}</option>
           </select>
+        </div>
+
+        <div style={{ flex: 1 }} />
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn-secondary" style={{ height: 38, padding: "0 16px", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }} onClick={loadItems}>
+            <RefreshCw size={14} /> {t('review.refresh')}
+          </button>
+          <button className="btn-secondary" style={{ height: 38, padding: "0 16px", fontSize: 13 }} onClick={onClose}>
+            {t('review.backToGraph')}
+          </button>
         </div>
       </div>
 

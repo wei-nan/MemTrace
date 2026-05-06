@@ -115,7 +115,7 @@ export default function GraphContainer({
   useEffect(() => { load(); }, [load, reloadKey]);
 
   // ── Health mode state ────────────────────────────────────────────────────
-  const healthMode = false; // setHealthMode removed to fix build error. Restore if health toggle is added.
+  const healthMode = false;
   const [healthScores, setHealthScores] = useState<Record<string, any>>({});
 
   const loadHealthScores = useCallback(async () => {
@@ -133,7 +133,7 @@ export default function GraphContainer({
   useEffect(() => {
     if (healthMode) {
       loadHealthScores();
-      setDofEnabled(false); // Disable DOF in health mode for clarity
+      setDofEnabled(false);
     }
   }, [healthMode, loadHealthScores]);
 
@@ -152,6 +152,10 @@ export default function GraphContainer({
 
   const orphanCount = totalOrphans;
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('mt:update-header', { detail: { subtitle } }));
+  }, [subtitle]);
+
   if (!wsId) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 15 }}>
@@ -161,7 +165,7 @@ export default function GraphContainer({
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 40px)', width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
       {/* ── Preview Mode Banner ────────────────────────────────────────── */}
       {isPreview && (
@@ -195,46 +199,11 @@ export default function GraphContainer({
         </div>
       )}
 
-      {/* ── Public Spec KB Banner ─────────────────────────────────────── */}
-      {wsId === 'ws_spec0001' && !isPreview && (
-        <div style={{
-          background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-default)',
-          color: 'var(--text-primary)', padding: '8px 40px', display: 'flex', alignItems: 'center', gap: 10,
-          fontSize: 13, fontWeight: 500, zIndex: 10
-        }}>
-          <Brain size={16} style={{ color: 'var(--color-primary)' }} />
-          <span>
-            {zh ? '📘 此為公開展示用知識庫' : '📘 This is a public demonstration knowledge base'}
-            <span style={{ marginLeft: 8, opacity: 0.7, fontWeight: 400 }}>
-              {zh ? '展示 MemTrace 的核心功能，可透過 MCP 直接探索' : 'Demonstrates core features; explore directly via MCP'}
-            </span>
-          </span>
-        </div>
-      )}
-
-      {/* ── Page Title & Stats (Absolute, vertically aligned with the user menu @ top-right) ── */}
-      <div
-        style={{
-          position: 'absolute', top: 22, left: 40,
-          height: 38, display: 'flex', alignItems: 'center', gap: 12,
-          zIndex: 1100, maxWidth: 'calc(100% - 320px)', overflow: 'hidden'
-        }}
-      >
-        <h1 className="page-title" style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)', whiteSpace: 'nowrap', lineHeight: '38px' }}>
-          {zh ? '知識圖譜' : 'Knowledge Graph'}
-        </h1>
-        <div style={{ width: 1, height: 16, background: 'var(--border-default)', flexShrink: 0 }} />
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {subtitle}
-        </p>
-      </div>
-
       {/* ── Toolbar — left group (filters) + right group (view & actions) ───── */}
       <header
         className="page-header animate-fade-in"
         style={{
-          padding: '0 40px',
-          marginTop: 80,
+          padding: '16px 40px',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
@@ -242,6 +211,8 @@ export default function GraphContainer({
           rowGap: 10,
           columnGap: 16,
           minHeight: 38,
+          background: 'var(--bg-base)',
+          borderBottom: '1px solid var(--border-subtle)',
         }}
       >
         {/* ─── LEFT GROUP: badges + display limit ─────────────────────────── */}
@@ -392,8 +363,8 @@ export default function GraphContainer({
         </div>
       </header>
 
-      {/* ── Canvas area — swaps on mode change, header stays ────────────────── */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', marginTop: '20px' }}>
+      {/* ── Canvas area ── */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {!loading && apiNodes.length === 0 && !error ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-surface)' }}>
             <div style={{ maxWidth: 450, textAlign: 'center', padding: 40 }} className="animate-fade-in">

@@ -1451,6 +1451,15 @@ export default function App() {
   // ── Render ────────────────────────────────────────────────────────────────
   const zh = i18n.language === 'zh-TW';
 
+  const [pageSubtitle, setPageSubtitle] = useState('');
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail?.subtitle !== undefined) setPageSubtitle(e.detail.subtitle);
+    };
+    window.addEventListener('mt:update-header', handler);
+    return () => window.removeEventListener('mt:update-header', handler);
+  }, []);
+
   return (
     <Routes>
       <Route path="/public/:wsId" element={<PublicWorkspaceView />} />
@@ -1557,41 +1566,7 @@ export default function App() {
                 background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                 borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-lg)',
               }}>
-                {/* Pinned: MemTrace Public Spec */}
-                {wsList.find(ws => ws.id === 'ws_spec0001') && (
-                  <div
-                    onClick={() => { 
-                      const spec = wsList.find(ws => ws.id === 'ws_spec0001');
-                      if (spec) {
-                        setSelectedWs(spec);
-                        setCurrentView('graph');
-                        setWsMenuOpen(false);
-                      }
-                    }}
-                    style={{
-                      padding: '12px 14px', cursor: 'pointer', fontSize: 13,
-                      background: selectedWs?.id === 'ws_spec0001' ? 'var(--color-primary-subtle)' : 'var(--bg-elevated)',
-                      borderBottom: '1px solid var(--border-default)',
-                      display: 'flex', alignItems: 'center', gap: 10,
-                    }}
-                  >
-                    <div style={{
-                      width: 28, height: 28, borderRadius: 6,
-                      background: 'var(--color-primary)', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center', color: 'white',
-                    }}>
-                      <Brain size={16} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
-                        {zh ? 'MemTrace 公開規格書' : 'MemTrace Public Spec'}
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                        {zh ? '核心文件與設計規範' : 'Core docs & design specs'}
-                      </div>
-                    </div>
-                  </div>
-                )}
+
 
                 {/* My workspaces */}
                 {wsList.filter(ws => ws.visibility !== 'public' && ws.visibility !== 'conditional_public').map(ws => (
@@ -1830,130 +1805,163 @@ export default function App() {
 
       {/* ── Main Viewport ────────────────────────────────────────────────── */}
       <main className="view-port">
-        {/* Global Top-Right Account Menu (Fixed position) */}
-        {user && (
-          <div 
-            ref={userMenuRef}
-            style={{ 
-              position: 'absolute', top: 22, right: 40, zIndex: 1200,
-              display: 'flex', gap: 12, alignItems: 'center'
-            }}
-          >
-            {/* User Profile Dropdown */}
-            <div style={{ position: 'relative' }}>
-              <div 
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                style={{ 
-                  background: 'transparent', border: 'none',
-                  borderRadius: 8, padding: '0 4px', height: 38, display: 'flex', alignItems: 'center', gap: 10,
-                  cursor: 'pointer', boxShadow: 'none', transition: 'all 0.2s',
-                  userSelect: 'none'
-                }}
-                className="user-menu-trigger"
-              >
-                <div style={{ 
-                  width: 28, height: 28, borderRadius: '50%', background: 'var(--color-primary-subtle)',
-                  color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 14, fontWeight: 700
-                }}>
-                  {user.display_name?.[0]?.toUpperCase()}
-                </div>
-                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{user.display_name}</span>
-              </div>
 
-              {userMenuOpen && (
-                <div style={{ 
-                  position: 'absolute', top: 'calc(100% + 8px)', right: 0, 
-                  width: 200, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)',
-                  borderRadius: 12, boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
-                  animation: 'fade-in-down 0.2s ease-out', zIndex: 1100
-                }}>
+        <div className="workspace-content">
+          <header className="main-header">
+            <div className="header-left">
+              <h1 className="header-title">
+                {currentView === 'graph' ? (zh ? '知識圖譜' : 'Knowledge Graph') :
+                 currentView === 'analytics' ? t('analytics.title') :
+                 currentView === 'node_health' ? t('sidebar.health') :
+                 currentView === 'review' ? t('review.title') :
+                 currentView === 'ws_settings' ? (zh ? '工作區設定' : 'Workspace Settings') :
+                 currentView === 'ingest' ? t('ingest.title') :
+                 currentView === 'settings' ? (zh ? '個人設定' : 'Personal Settings') : 'MemTrace'}
+              </h1>
+              {((currentView === 'graph' && pageSubtitle) || 
+                (currentView === 'review' && t('review.subtitle')) ||
+                (currentView === 'analytics' && (zh ? '系統數據與健康狀態' : 'System metrics & Health')) ||
+                (currentView === 'ingest' && t('ingest.desc')) ||
+                (currentView === 'ws_settings' && (zh ? '管理成員與權限' : 'Manage members & permissions'))
+              ) && (
+                <span className="header-subtitle">
+                  {currentView === 'graph' ? pageSubtitle :
+                   currentView === 'review' ? t('review.subtitle') :
+                   currentView === 'analytics' ? (zh ? '系統數據與健康狀態' : 'System metrics & Health') :
+                   currentView === 'ingest' ? t('ingest.desc') :
+                   currentView === 'ws_settings' ? (zh ? '管理成員與權限' : 'Manage members & permissions') : ''}
+                </span>
+              )}
+            </div>
+            
+            <div className="header-right">
+              <div id="header-actions"></div>
+              {user && (
+                <div 
+                  ref={userMenuRef}
+                  style={{ position: 'relative' }}
+                >
                   <div 
-                    className="nav-item" 
-                    onClick={() => { setCurrentView('settings'); setUserMenuOpen(false); }}
-                    style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    style={{ 
+                      background: 'transparent', border: 'none',
+                      borderRadius: 8, padding: '0 4px', height: 38, display: 'flex', alignItems: 'center', gap: 10,
+                      cursor: 'pointer', boxShadow: 'none', transition: 'all 0.2s',
+                      userSelect: 'none'
+                    }}
+                    className="user-menu-trigger"
                   >
-                    <Settings size={16} />
-                    <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '個人設定' : 'Personal Settings'}</span>
+                    <div style={{ 
+                      width: 28, height: 28, borderRadius: '50%', background: 'var(--color-primary-subtle)',
+                      color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14, fontWeight: 700
+                    }}>
+                      {user.display_name?.[0]?.toUpperCase()}
+                    </div>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{user.display_name}</span>
                   </div>
-                  <div 
-                    className="nav-item" 
-                    onClick={() => { setShowMcpStatus(!showMcpStatus); setUserMenuOpen(false); }}
-                    style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
-                  >
-                    <Network size={16} />
-                    <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>MCP Status</span>
-                  </div>
-                  <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
-                  <div 
-                    className="nav-item logout-item" 
-                    onClick={() => { handleLogout(); setUserMenuOpen(false); }}
-                    style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
-                  >
-                    <LogOut size={16} />
-                    <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '登出' : 'Logout'}</span>
-                  </div>
+
+                  {userMenuOpen && (
+                    <div style={{ 
+                      position: 'absolute', top: 'calc(100% + 8px)', right: 0, 
+                      width: 200, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)',
+                      borderRadius: 12, boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
+                      animation: 'fade-in-down 0.2s ease-out', zIndex: 1100
+                    }}>
+                      <div 
+                        className="nav-item" 
+                        onClick={() => { setCurrentView('settings'); setUserMenuOpen(false); }}
+                        style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                      >
+                        <Settings size={16} />
+                        <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '個人設定' : 'Personal Settings'}</span>
+                      </div>
+                      <div 
+                        className="nav-item" 
+                        onClick={() => { setShowMcpStatus(!showMcpStatus); setUserMenuOpen(false); }}
+                        style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                      >
+                        <Network size={16} />
+                        <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>MCP Status</span>
+                      </div>
+                      <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+                      <div 
+                        className="nav-item logout-item" 
+                        onClick={() => { handleLogout(); setUserMenuOpen(false); }}
+                        style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                      >
+                        <LogOut size={16} />
+                        <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '登出' : 'Logout'}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+          </header>
+
+          <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <ErrorBoundary>
+            {currentView === 'graph' && (
+                <GraphContainer
+                wsId={selectedWs?.id}
+                userId={user?.id}
+                reloadKey={graphVersion}
+                onEditNode={node => setEditingNode(node)}
+                onNewNode={() => setEditingNode(null)}
+                onSwitchView={setCurrentView}
+              />
+            )}
+            {currentView === 'analytics' && selectedWs && (
+              <div style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
+                <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+                  <AnalyticsDashboard wsId={selectedWs.id} onOpenHealthManager={() => setCurrentView('node_health')} />
+                </div>
+              </div>
+            )}
+            {currentView === 'node_health' && selectedWs && (
+              <div style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
+                <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+                  <NodeHealthManager wsId={selectedWs.id} onEditNode={(node) => setEditingNode(node)} />
+                </div>
+              </div>
+            )}
+            {currentView === 'settings' && (
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                <SettingsPanel 
+                  user={user}
+                  theme={theme} 
+                  toggleTheme={toggleTheme} 
+                  language={i18n.language} 
+                  switchLanguage={switchLanguage} 
+                />
+              </div>
+            )}
+            {currentView === 'review' && selectedWs && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <ReviewQueue wsId={selectedWs.id} onClose={() => setCurrentView('graph')} />
+              </div>
+            )}
+            {currentView === 'ws_settings' && selectedWs && (
+              <div style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
+                 <div style={{ maxWidth: 800, margin: '0 auto' }}>
+                    <WorkspaceSettings wsId={selectedWs.id} userId={user?.id} />
+                 </div>
+              </div>
+            )}
+            {currentView === 'ingest' && selectedWs && (
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                <IngestPage 
+                  wsId={selectedWs.id} 
+                  onGoToReview={() => setCurrentView('review')} 
+                />
+              </div>
+            )}
+            </ErrorBoundary>
           </div>
-        )}
-        <ErrorBoundary>
-        {currentView === 'graph' && (
-            <GraphContainer
-            wsId={selectedWs?.id}
-            userId={user?.id}
-            reloadKey={graphVersion}
-            onEditNode={node => setEditingNode(node)}
-            onNewNode={() => setEditingNode(null)}
-            onSwitchView={setCurrentView}
-          />
-        )}
-        {currentView === 'analytics' && selectedWs && (
-          <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
-            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-              <h2 style={{ fontSize: 22, marginBottom: 24 }}>{t('analytics.title')}</h2>
-              <AnalyticsDashboard wsId={selectedWs.id} onOpenHealthManager={() => setCurrentView('node_health')} />
-            </div>
-          </div>
-        )}
-        {currentView === 'node_health' && selectedWs && (
-          <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
-            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-              <h2 style={{ fontSize: 22, marginBottom: 24 }}>{t('sidebar.health')}</h2>
-              <NodeHealthManager wsId={selectedWs.id} onEditNode={(node) => setEditingNode(node)} />
-            </div>
-          </div>
-        )}
-        {currentView === 'settings' && (
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            <SettingsPanel 
-              user={user}
-              theme={theme} 
-              toggleTheme={toggleTheme} 
-              language={i18n.language} 
-              switchLanguage={switchLanguage} 
-            />
-          </div>
-        )}
-        {currentView === 'review' && selectedWs && (
-          <ReviewQueue wsId={selectedWs.id} onClose={() => setCurrentView('graph')} />
-        )}
-        {currentView === 'ws_settings' && selectedWs && (
-          <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
-             <div style={{ maxWidth: 800, margin: '0 auto' }}>
-                <h2 style={{ fontSize: 22, marginBottom: 32 }}>{zh ? '工作區設定' : 'Workspace Settings'}</h2>
-                <WorkspaceSettings wsId={selectedWs.id} userId={user?.id} />
-             </div>
-          </div>
-        )}
-        {currentView === 'ingest' && selectedWs && (
-          <IngestPage 
-            wsId={selectedWs.id} 
-            onGoToReview={() => setCurrentView('review')} 
-          />
-        )}
-        </ErrorBoundary>
+
+        </div>
+
       </main>
 
       {/* ── Integrated Side Panel ────────────────────────────────────────── */}

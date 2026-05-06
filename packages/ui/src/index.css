@@ -125,7 +125,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow: hidden;
   transition: background-color 0.2s, color 0.2s;
 }
 
@@ -670,7 +670,63 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--color-primary) !important;
 }
 
+
 .logout-item:hover {
   color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* ── Unified Layout ── */
+.main-header {
+  height: 80px;
+  min-height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  z-index: 1000;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.header-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-left: 1px solid var(--border-default);
+  padding-left: 16px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+#header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-content {
+  flex: 1;
+  overflow: hidden;
+  background: var(--bg-base);
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }

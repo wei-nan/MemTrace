@@ -36,12 +36,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: 40 }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <header style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>{t('ingest.title')}</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
-            {t('ingest.desc')}
-          </p>
-        </header>
+
 
         {/* ── Tabs ────────────────────────────────────────────────────────── */}
         <div style={{ 

@@ -160,7 +160,7 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
   };
 
   return (
-    <div className="table-view-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0 40px 40px' }}>
+    <div className="table-view-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, padding: '0 40px 40px' }}>
       
       {/* Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, gap: 16 }}>

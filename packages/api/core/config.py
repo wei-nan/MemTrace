@@ -54,7 +54,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = "../../.env"
-        env_prefix = "MEMTRACE_"
         extra = "ignore"
 
     @model_validator(mode="after")

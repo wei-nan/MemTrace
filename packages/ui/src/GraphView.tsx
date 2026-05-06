@@ -122,8 +122,8 @@ function GraphViewInner({ apiNodes, apiEdges, relationColors, onEditNode, health
   }, [apiNodes, onEditNode, isPreview]);
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '0 40px 40px', boxSizing: 'border-box' }}>
-      <div style={{ width: '100%', height: '100%', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
+    <div style={{ width: '100%', flex: 1, minHeight: 0, padding: '0 40px 40px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ width: '100%', flex: 1, minHeight: 0, borderRadius: 16, overflow: 'hidden', border: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
         <GraphCanvas
           rfNodes={rfNodes}
           rfEdges={rfEdges}
