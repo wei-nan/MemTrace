@@ -41,10 +41,10 @@ def register(body: MagicLinkRegisterRequest):
     """
     mode = settings.registration_mode
     if mode == "closed":
-        raise HTTPException(status_code=403, detail="此實例不開放公開註冊，請聯絡管理員")
+        raise HTTPException(status_code=403, detail="此知識庫目前不開放公開註冊，請聯絡管理員")
 
     if mode == "invite_only":
-        raise HTTPException(status_code=403, detail="此實例僅限受邀者註冊。")
+        raise HTTPException(status_code=403, detail="此知識庫僅限受邀者註冊。")
 
     email = body.email.lower().strip()
 
