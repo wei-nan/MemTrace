@@ -610,6 +610,41 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               </div>
             )}
 
+            {/* inquiry 節點：answered_by 答案列表 */}
+            {node?.content_type === 'inquiry' && nodeEdges.some(e => e.relation === 'answered_by') && (
+              <div>
+                <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <Bot size={16} /> {displayLang === 'zh' ? '答案節點' : 'Answers'}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {nodeEdges.filter(e => e.relation === 'answered_by').map(edge => {
+                    const answerNode = allNodes.find(n => n.id === edge.to_id);
+                    return (
+                      <button
+                        key={edge.id}
+                        onClick={() => answerNode && onSelectNode?.(answerNode)}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "10px 12px",
+                          borderRadius: 10,
+                          border: "1px solid var(--border-default)",
+                          background: "var(--bg-surface)",
+                          cursor: answerNode ? "pointer" : "default",
+                        }}
+                      >
+                        <span>{answerNode ? (displayLang === 'zh' ? answerNode.title_zh : answerNode.title_en) : edge.to_id}</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                          trust: {(answerNode?.trust_score ?? 0).toFixed(2)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div>
               <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <LinkIcon size={16} /> {t("node.associations")}

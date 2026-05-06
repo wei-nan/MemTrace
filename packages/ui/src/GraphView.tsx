@@ -235,7 +235,7 @@ function GraphCanvas({
                 { type: 'procedural', color: '#10b981', label: zh ? '流程' : 'Procedural' },
                 { type: 'preference', color: '#f59e0b', label: zh ? '偏好' : 'Preference' },
                 { type: 'context', color: '#8b5cf6', label: zh ? '脈絡' : 'Context' },
-                { type: 'inquiry', color: '#94a3b8', label: zh ? '缺漏' : 'Gap Node' },
+                { type: 'inquiry', color: '#94a3b8', label: zh ? '詢問' : 'Inquiry' },
               ].map(item => (
                 <div key={item.type} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }} />
