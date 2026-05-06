@@ -7,7 +7,7 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, RefreshCw, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain, FileUp } from 'lucide-react';
+import { Archive, RefreshCw, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, FileUp } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';

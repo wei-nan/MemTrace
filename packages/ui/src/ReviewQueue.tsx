@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bot, Check, Clock, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
+import { Bot, Check, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
 import { review, nodes as nodesApi, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
