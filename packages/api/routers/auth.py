@@ -56,51 +56,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 # ─── Register ─────────────────────────────────────────────────────────────────
 
-@router.post("/register", response_model=TokenResponse, status_code=201)
-def register(body: RegisterRequest):
-    err = check_password_policy(body.password)
-    if err:
-        raise HTTPException(status_code=400, detail=err)
-
-    with db_cursor(commit=True) as cur:
-        cur.execute("SELECT id FROM users WHERE email = %s", (body.email,))
-        if cur.fetchone():
-            raise HTTPException(status_code=409, detail="Email already registered")
-
-        user_id   = generate_id("usr")
-        pw_hash   = hash_password(body.password)
-        now       = datetime.now(timezone.utc)
-
-        cur.execute("""
-            INSERT INTO users (id, display_name, email, password_hash, email_verified, created_at)
-            VALUES (%s, %s, %s, %s, false, %s)
-        """, (user_id, body.display_name, body.email, pw_hash, now))
-
-        # No default workspace creation — rely on onboarding or manual creation
-        pass
-
-        # generate verification token
-        verify_token = secrets.token_urlsafe(32)
-        cur.execute(
-            "INSERT INTO email_verification_tokens (token, user_id, expires_at) VALUES (%s, %s, %s)",
-            (verify_token, user_id, now + timedelta(hours=24))
-        )
-        send_verification_email(body.email, verify_token)
-
-    access_token = create_access_token(user_id, body.email, body.display_name)
-    raw_refresh, refresh_hash = generate_refresh_token()
-    refresh_expires = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
-    with db_cursor(commit=True) as cur:
-        cur.execute(
-            "INSERT INTO refresh_tokens (token_hash, user_id, expires_at) VALUES (%s, %s, %s)",
-            (refresh_hash, user_id, refresh_expires),
-        )
-    response = JSONResponse(
-        content={"access_token": access_token, "token_type": "bearer"},
-        status_code=201,
-    )
-    _set_refresh_cookie(response, raw_refresh)
-    return response
+# Legacy registration disabled in Phase 4.6 (logic moved to registration.py)
+# @router.post("/register", response_model=TokenResponse, status_code=201)
+# def register(body: RegisterRequest):
+#     ...
 
 
 # ─── Login ────────────────────────────────────────────────────────────────────

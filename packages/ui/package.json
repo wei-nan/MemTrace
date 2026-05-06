@@ -22,6 +22,7 @@
     "react-i18next": "^17.0.2",
     "react-markdown": "^10.1.0",
     "reactflow": "^11.11.4",
+    "react-router-dom": "^7.1.5",
     "three": "^0.183.2"
   },
   "devDependencies": {

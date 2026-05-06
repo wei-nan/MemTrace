@@ -851,3 +851,16 @@ export interface WorkspaceCloneJob {
   created_at: string;
   updated_at: string;
 }
+
+export const api = {
+  auth,
+  workspaces,
+  nodes,
+  edges,
+  ai,
+  review,
+  aiReviewers,
+  ingest,
+  users,
+  system,
+};

@@ -5,9 +5,9 @@
  * that survives 2D ↔ 3D switching, then mounts either GraphView (2D canvas)
  * or GraphView3D (3D canvas) below it — both are now pure renderers.
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain, FileUp } from 'lucide-react';
+import { Archive, RefreshCw, Search, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, Brain, FileUp, ChevronDown, Settings, LogOut } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
@@ -29,9 +29,16 @@ interface Props {
   onNewNode: () => void;
   onSwitchView: (view: any) => void;
   userId?: string;
+  user?: any;
+  onLogout?: () => void;
+  showMcpStatus?: boolean;
+  setShowMcpStatus?: (v: boolean) => void;
 }
 
-export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode, onSwitchView, userId }: Props) {
+export default function GraphContainer({ 
+  wsId, reloadKey, onEditNode, onNewNode, onSwitchView, userId,
+  user, onLogout, showMcpStatus, setShowMcpStatus 
+}: Props) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
 
@@ -39,6 +46,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
   const [apiNodes, setApiNodes]     = useState<ApiNode[]>([]);
   const [apiEdges, setApiEdges]     = useState<ApiEdge[]>([]);
   const [totalNodes, setTotalNodes] = useState<number | null>(null);
+  const [totalOrphans, setTotalOrphans] = useState<number>(0);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
   const [graphMode, setGraphMode]   = useState<GraphMode>('2d');
@@ -58,6 +66,19 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
   const [searchQuery, setSearchQuery]   = useState('');
   const [searchMode, setSearchMode]     = useState<'keyword' | 'semantic'>('keyword');
   const [orphanFilter, setOrphanFilter] = useState<string | undefined>(undefined);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const [dofEnabled, setDofEnabled] = useState(true);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // ── Load all data ─────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -76,6 +97,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
       setApiEdges(rawEdges);
       setWorkspace(ws);
       setTotalNodes(analytics?.total_nodes ?? null);
+      setTotalOrphans(analytics?.orphan_node_count ?? 0);
     } catch (e: any) {
       if (e.message.includes('403') || e.message.includes('401')) {
         try {
@@ -149,8 +171,6 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
     }
   }, [healthMode, loadHealthScores]);
 
-  // ── DOF state ───────────────────────────────────────────────────────────
-  const [dofEnabled, setDofEnabled] = useState(true);
 
   // ── Subtitle text ─────────────────────────────────────────────────────────
   const atDisplayCap = !loading && !error && displayLimit !== 'unlimited' && apiNodes.length >= displayLimit && totalNodes !== null && totalNodes > displayLimit;
@@ -164,7 +184,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
             : `Showing ${apiNodes.length} of ${totalNodes} nodes · ${apiEdges.length} edges`)
         : `${apiNodes.length} ${zh ? '節點' : 'nodes'} · ${apiEdges.length} ${zh ? '連結' : 'edges'}`;
 
-  const orphanCount = apiNodes.filter(n => !apiEdges.some(e => e.from_id === n.id || e.to_id === n.id)).length;
+  const orphanCount = totalOrphans;
 
   if (!wsId) {
     return (
@@ -226,50 +246,73 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
         </div>
       )}
 
-      {/* ── Shared header — always visible regardless of 2D/3D mode ────────── */}
+      {/* ── Page Title & Stats (Absolute, vertically aligned with the user menu @ top-right) ── */}
+      <div
+        style={{
+          position: 'absolute', top: 22, left: 40,
+          height: 38, display: 'flex', alignItems: 'center', gap: 12,
+          zIndex: 1100, maxWidth: 'calc(100% - 320px)', overflow: 'hidden'
+        }}
+      >
+        <h1 className="page-title" style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)', whiteSpace: 'nowrap', lineHeight: '38px' }}>
+          {zh ? '知識圖譜' : 'Knowledge Graph'}
+        </h1>
+        <div style={{ width: 1, height: 16, background: 'var(--border-default)', flexShrink: 0 }} />
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {subtitle}
+        </p>
+      </div>
+
+      {/* ── Toolbar — left group (filters) + right group (view & actions) ───── */}
       <header
         className="page-header animate-fade-in"
-        style={{ padding: '0 40px', marginTop: '40px', display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'space-between', alignItems: 'flex-end' }}
+        style={{
+          padding: '0 40px',
+          marginTop: 80,
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          rowGap: 10,
+          columnGap: 16,
+          minHeight: 38,
+        }}
       >
-        <div style={{ flex: '1 1 300px', minWidth: 300 }}>
-          <h1 className="page-title" style={{ whiteSpace: 'nowrap' }}>{zh ? '知識庫圖譜' : 'Knowledge Graph'}</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <p className="page-subtitle" style={{ marginBottom: 0 }}>{subtitle}</p>
-            {orphanCount > 0 && (
-              <div
-                onClick={() => {
-                  setOrphanFilter('orphan');
-                  setGraphMode('table');
-                }}
-                style={{
-                  fontSize: 11, padding: '2px 8px', borderRadius: 12,
-                  background: 'var(--color-warning-subtle)', color: 'var(--color-warning)',
-                  cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4
-                }}
-              >
-                <TriangleAlert size={10} />
-                {orphanCount} {zh ? '個孤立節點' : 'Orphans'}
-              </div>
-            )}
-            {atDisplayCap && (
-              <div
-                onClick={() => setGraphMode('table')}
-                title={zh ? '圖形視圖最多顯示 200 個節點，點擊切換至表格視圖以查看全部' : 'Graph view shows up to 200 nodes. Click to switch to Table view for all nodes.'}
-                style={{
-                  fontSize: 11, padding: '2px 8px', borderRadius: 12,
-                  background: 'var(--color-error-subtle, #fef2f2)', color: 'var(--color-error, #dc2626)',
-                  cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4,
-                }}
-              >
-                <TriangleAlert size={10} />
-                {zh ? `圖形上限 200，切換表格查看全部 ${totalNodes}` : `Graph cap 200 — Table view shows all ${totalNodes}`}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* ─── LEFT GROUP: badges + display limit ─────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {orphanCount > 0 && (
+            <div
+              onClick={() => { setOrphanFilter('orphan'); setGraphMode('table'); }}
+              style={{
+                fontSize: 11, padding: '0 10px', borderRadius: 20, height: 28,
+                background: 'var(--color-warning-subtle)', color: 'var(--color-warning)',
+                cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+                border: '1px solid var(--color-warning)', whiteSpace: 'nowrap'
+              }}
+            >
+              <TriangleAlert size={14} />
+              {orphanCount} {zh ? '個孤立節點' : 'Orphans'}
+            </div>
+          )}
+          {atDisplayCap && (
+            <div
+              onClick={() => setGraphMode('table')}
+              title={zh ? '圖形視圖最多顯示 200 個節點，點擊切換至表格視圖以查看全部' : 'Graph view shows up to 200 nodes. Click to switch to Table view for all nodes.'}
+              style={{
+                fontSize: 11, padding: '0 10px', borderRadius: 20, height: 28,
+                background: 'var(--color-error-subtle)', color: 'var(--color-error)',
+                cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+                border: '1px solid var(--color-error)', whiteSpace: 'nowrap'
+              }}
+            >
+              <TriangleAlert size={14} />
+              {zh ? `圖形上限 ${displayLimit}` : `Graph cap ${displayLimit}`}
+            </div>
+          )}
+          {(orphanCount > 0 || atDisplayCap) && (
+            <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
+          )}
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', flex: '1 1 auto', justifyContent: 'flex-end' }}>
-          {/* ── Node display limit selector ──────────────────────────────── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
               {zh ? '顯示上限' : 'Show'}
@@ -278,10 +321,15 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
               value={displayLimit}
               onChange={(e) => setDisplayLimit(e.target.value === 'unlimited' ? 'unlimited' : Number(e.target.value) as LimitOption)}
               style={{
-                padding: '0 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                padding: '0 28px 0 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                 borderRadius: 8, color: 'var(--text-primary)', outline: 'none', height: 38,
-                boxShadow: 'var(--shadow-sm)'
+                boxShadow: 'var(--shadow-sm)',
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 8px center',
+                backgroundSize: '14px',
               }}
             >
               {LIMIT_OPTIONS.map(opt => (
@@ -291,22 +339,24 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
               ))}
             </select>
           </div>
+        </div>
 
-          <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
-
-          {/* ── 2D / 3D mode toggle ─────────────────────────────────────── */}
+        {/* ─── RIGHT GROUP: view mode + tools + actions ───────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          {/* 2D / 3D / Table toggle */}
           <div style={{
             display: 'flex',
             background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
             borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-sm)',
+            height: 38
           }}>
             {(['2d', '3d', 'table'] as GraphMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => setGraphMode(mode)}
                 style={{
-                  padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  border: 'none',
+                  padding: '0 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  border: 'none', height: '100%',
                   background: graphMode === mode ? 'var(--color-primary)' : 'transparent',
                   color: graphMode === mode ? 'white' : 'var(--text-muted)',
                   transition: 'all 0.15s',
@@ -321,16 +371,7 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
 
           <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
 
-          {/* ── Health mode toggle ────────────────────────────────────────── */}
-          <button
-            className={healthMode ? "btn-primary" : "btn-secondary"}
-            onClick={() => setHealthMode(!healthMode)}
-            style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
-          >
-            <Sparkles size={16} className={healthMode ? "animate-pulse" : ""} />
-            {zh ? '健康模式' : 'Health Mode'}
-          </button>
-
+          {/* Tool toggles */}
           <button
             className={showArchived ? "btn-primary" : "btn-secondary"}
             onClick={() => setShowArchived(!showArchived)}
@@ -353,64 +394,40 @@ export default function GraphContainer({ wsId, reloadKey, onEditNode, onNewNode,
             </button>
           )}
 
-          <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
-
-          {/* ── Search bar ──────────────────────────────────────────────── */}
-          <div className="search-bar" style={{ width: 300, boxShadow: 'var(--shadow-md)' }}>
-            <Search size={16} style={{ color: 'var(--text-muted)', marginLeft: 4 }} />
-            <input
-              className="search-input"
-              placeholder={
-                searchMode === 'keyword'
-                  ? (zh ? '搜尋關鍵字…' : 'Search keyword…')
-                  : (zh ? '語意搜尋…' : 'Semantic search…')
-              }
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && performSearch()}
-            />
-            <button
-              onClick={() => setSearchMode(m => m === 'keyword' ? 'semantic' : 'keyword')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px',
-                borderRadius: 8,
-                background: searchMode === 'semantic' ? 'var(--color-primary)' : 'transparent',
-                border: searchMode === 'semantic' ? 'none' : '1px solid var(--border-default)',
-                color: searchMode === 'semantic' ? 'var(--text-on-primary)' : 'var(--text-secondary)',
-                fontSize: 11, cursor: 'pointer', transition: 'all 0.2s',
-              }}
-            >
-              <Sparkles size={12} />
-              {searchMode === 'semantic' ? 'AI' : (zh ? '文字' : 'Text')}
-            </button>
-          </div>
-
-          {/* ── Auto-connect orphans ────────────────────────────────────── */}
           {!isPreview && wsId && (
             <ConnectOrphansButton wsId={wsId} zh={zh} onDone={load} />
           )}
 
-          {/* ── Refresh ─────────────────────────────────────────────────── */}
-          <button className="btn-secondary" onClick={load} disabled={loading} style={{ height: 38 }}>
+          <button
+            className="btn-secondary"
+            onClick={load}
+            disabled={loading}
+            style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
+          >
             <RefreshCw
               size={16}
-              style={{ marginRight: 6, animation: loading ? 'spin 1s linear infinite' : 'none' }}
+              style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }}
             />
             {zh ? '重新整理' : 'Refresh'}
           </button>
 
-          {/* ── New Node ────────────────────────────────────────────────── */}
+          <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
+
           {!isPreview && (
-          <button className="btn-primary" onClick={onNewNode} style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <PlusCircle size={15} />
-            {zh ? '新增節點' : 'New Node'}
-          </button>
+            <button
+              className="btn-primary"
+              onClick={onNewNode}
+              style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+            >
+              <PlusCircle size={15} />
+              {zh ? '新增節點' : 'New Node'}
+            </button>
           )}
         </div>
       </header>
 
       {/* ── Canvas area — swaps on mode change, header stays ────────────────── */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', marginTop: '20px' }}>
         {!loading && apiNodes.length === 0 && !error && !searchQuery ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-surface)' }}>
             <div style={{ maxWidth: 450, textAlign: 'center', padding: 40 }} className="animate-fade-in">

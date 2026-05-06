@@ -37,7 +37,3 @@ jobs:
       - name: Run npm audit (UI)
         working-directory: packages/ui
         run: npm audit --audit-level=high || true
-
-      - name: Run npm audit (MCP)
-        working-directory: packages/mcp
-        run: npm audit --audit-level=high || true

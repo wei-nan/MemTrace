@@ -353,7 +353,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .brand-icon {
@@ -607,4 +607,70 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--bg-elevated);
   color: var(--text-muted);
   border: 1px solid var(--border-default);
+}
+
+/* ── Switch Component ──────────────────────────────── */
+.mt-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.mt-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mt-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-strong);
+  transition: .3s;
+  border-radius: 24px;
+}
+
+.mt-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.mt-switch input:checked + .mt-switch-slider {
+  background-color: var(--color-primary);
+}
+
+.mt-switch input:focus + .mt-switch-slider {
+  box-shadow: 0 0 1px var(--color-primary);
+}
+
+.mt-switch input:checked + .mt-switch-slider:before {
+  transform: translateX(20px);
+}
+
+@keyframes fade-in-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-menu-trigger:hover {
+  background: var(--bg-elevated) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.logout-item:hover {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
 }

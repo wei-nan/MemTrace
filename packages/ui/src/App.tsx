@@ -20,9 +20,15 @@ import WorkspaceSettings from './WorkspaceSettings';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import NodeHealthManager from './NodeHealthManager';
 import ResetPasswordPage from './ResetPasswordPage';
+import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { auth, workspaces, ai, users, system, type Workspace, type Node as ApiNode, type AIKey, type Onboarding, type PersonalApiKey, type BackupConfig, type WorkspaceCloneJob } from './api';
 import { useModal } from './components/ModalContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+
+// Phase 4.6 Pages
+import PublicWorkspaceView from './PublicWorkspaceView';
+import MagicLinkVerifyPage from './MagicLinkVerifyPage';
+import JoinInvitationPage from './JoinInvitationPage';
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean };
 type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest';
@@ -1289,10 +1295,11 @@ export default function App() {
   const [wsList, setWsList] = useState<Workspace[]>([]);
   const [selectedWs, setSelectedWs] = useState<Workspace | null>(null);
   const [wsMenuOpen, setWsMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showCreateWs, setShowCreateWs] = useState(false);
   const [showForkWs, setShowForkWs] = useState<Workspace | null>(null); // P4.1-F: source workspace to fork
-  const [cancellingJob, setCancellingJob] = useState(false);
   const wsMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // True when the current user has write access to the selected workspace
   const canWrite = !!(selectedWs && selectedWs.my_role && ['admin', 'editor', 'owner'].includes(selectedWs.my_role));
@@ -1363,6 +1370,9 @@ export default function App() {
       if (wsMenuRef.current && !wsMenuRef.current.contains(e.target as Node)) {
         setWsMenuOpen(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -1393,32 +1403,25 @@ export default function App() {
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
-  const params = new URLSearchParams(window.location.search);
-  const resetToken = params.get('reset_token') || params.get('token');
-
-  if (!authenticated) {
-    if (resetToken && (window.location.pathname === '/reset-password' || params.has('reset_token'))) {
-      return (
-        <ResetPasswordPage 
-          token={resetToken} 
-          onSuccess={() => {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('reset_token');
-            url.searchParams.delete('token');
-            window.history.replaceState({}, '', url.pathname === '/reset-password' ? '/' : url.toString());
-            // No need to force reload, just re-rendering App will pick up the change
-            setGraphVersion(v => v + 1); // Trigger re-render
-          }} 
-        />
-      );
-    }
-    return <AuthPage onAuthenticated={() => setAuthenticated(true)} />;
-  }
-
   const zh = i18n.language === 'zh-TW';
 
   return (
-    <div className="app-container">
+    <Routes>
+      <Route path="/public/:wsId" element={<PublicWorkspaceView />} />
+      <Route path="/verify" element={<MagicLinkVerifyPage />} />
+      <Route path="/invite/:token" element={<JoinInvitationPage />} />
+      <Route path="/auth" element={
+        authenticated ? <Navigate to="/" /> : <AuthPage onAuthenticated={() => setAuthenticated(true)} />
+      } />
+      <Route path="/reset-password" element={
+        <ResetPasswordPage 
+          token={new URLSearchParams(window.location.search).get('token') || ''} 
+          onSuccess={() => window.location.href = '/'} 
+        />
+      } />
+      <Route path="/" element={
+        !authenticated ? <Navigate to="/auth" /> : (
+          <div className="app-container">
       {/* ── Onboarding Wizard ─────────────────────────────────────────── */}
       {onboarding && !onboarding.completed && (
         <OnboardingWizard
@@ -1776,39 +1779,79 @@ export default function App() {
           )}
         </nav>
 
-        <div style={{ marginTop: 'auto' }}>
-          {sidebarCollapsed && user && (
-            <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border-default)' }}>
-              {user.display_name[0]}
-            </div>
-          )}
-          {!sidebarCollapsed && user && (
-            <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border-default)' }}>
-              {user.display_name}
-            </div>
-          )}
-
-          <div className={`nav-item ${currentView === 'settings' ? 'active' : ''}`} onClick={() => setCurrentView('settings')}>
-            <Settings size={18} />
-            {!sidebarCollapsed && <span className="nav-text">{t('sidebar.settings')}</span>}
-          </div>
-          <div className="nav-item" onClick={handleLogout}>
-            <LogOut size={18} />
-            {!sidebarCollapsed && <span className="nav-text">{zh ? '登出' : 'Logout'}</span>}
-          </div>
-          <div 
-            className={`nav-item ${showMcpStatus ? 'active' : ''}`} 
-            style={{ marginTop: 8, color: showMcpStatus ? 'var(--color-primary)' : 'inherit' }}
-            onClick={() => setShowMcpStatus(!showMcpStatus)}
-          >
-            <Network size={18} />
-            {!sidebarCollapsed && <span className="nav-text">MCP Status</span>}
-          </div>
-        </div>
+        {/* Relocated to top-right corner */}
       </aside>
 
       {/* ── Main Viewport ────────────────────────────────────────────────── */}
       <main className="view-port">
+        {/* Global Top-Right Account Menu (Fixed position) */}
+        {user && (
+          <div 
+            ref={userMenuRef}
+            style={{ 
+              position: 'absolute', top: 22, right: 40, zIndex: 1200,
+              display: 'flex', gap: 12, alignItems: 'center'
+            }}
+          >
+            {/* User Profile Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <div 
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                style={{ 
+                  background: 'transparent', border: 'none',
+                  borderRadius: 8, padding: '0 4px', height: 38, display: 'flex', alignItems: 'center', gap: 10,
+                  cursor: 'pointer', boxShadow: 'none', transition: 'all 0.2s',
+                  userSelect: 'none'
+                }}
+                className="user-menu-trigger"
+              >
+                <div style={{ 
+                  width: 28, height: 28, borderRadius: '50%', background: 'var(--color-primary-subtle)',
+                  color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontWeight: 700
+                }}>
+                  {user.display_name?.[0]?.toUpperCase()}
+                </div>
+                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{user.display_name}</span>
+              </div>
+
+              {userMenuOpen && (
+                <div style={{ 
+                  position: 'absolute', top: 'calc(100% + 8px)', right: 0, 
+                  width: 200, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)',
+                  borderRadius: 12, boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
+                  animation: 'fade-in-down 0.2s ease-out', zIndex: 1100
+                }}>
+                  <div 
+                    className="nav-item" 
+                    onClick={() => { setCurrentView('settings'); setUserMenuOpen(false); }}
+                    style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                  >
+                    <Settings size={16} />
+                    <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '個人設定' : 'Personal Settings'}</span>
+                  </div>
+                  <div 
+                    className="nav-item" 
+                    onClick={() => { setShowMcpStatus(!showMcpStatus); setUserMenuOpen(false); }}
+                    style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                  >
+                    <Network size={16} />
+                    <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>MCP Status</span>
+                  </div>
+                  <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+                  <div 
+                    className="nav-item logout-item" 
+                    onClick={() => { handleLogout(); setUserMenuOpen(false); }}
+                    style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                  >
+                    <LogOut size={16} />
+                    <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '登出' : 'Logout'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         <ErrorBoundary>
         {currentView === 'graph' && (
           <GraphContainer
@@ -1818,6 +1861,10 @@ export default function App() {
             onEditNode={node => setEditingNode(node)}
             onNewNode={() => setEditingNode(null)}
             onSwitchView={setCurrentView}
+            user={user}
+            onLogout={handleLogout}
+            showMcpStatus={showMcpStatus}
+            setShowMcpStatus={setShowMcpStatus}
           />
         )}
         {currentView === 'analytics' && selectedWs && (
@@ -1930,5 +1977,8 @@ export default function App() {
         <McpStatusPanel onClose={() => setShowMcpStatus(false)} />
       )}
     </div>
+        )
+      } />
+    </Routes>
   );
 }
