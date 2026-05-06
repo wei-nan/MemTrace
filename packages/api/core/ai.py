@@ -291,7 +291,31 @@ class AnthropicProvider(AIProvider):
 
     async def chat(self, resolved, messages, max_tokens, temperature):
         system = next((m["content"] for m in messages if m["role"] == "system"), "")
-        user_messages = [m for m in messages if m["role"] != "system"]
+        user_messages = []
+        for m in messages:
+            if m["role"] == "system": continue
+            content = m["content"]
+            if isinstance(content, list):
+                new_content = []
+                for part in content:
+                    if part["type"] == "text":
+                        new_content.append({"type": "text", "text": part["text"]})
+                    elif part["type"] == "image_url":
+                        url = part["image_url"]["url"]
+                        if url.startswith("data:"):
+                            header, data = url.split(",", 1)
+                            mime_type = header.split(";")[0].split(":")[1]
+                            new_content.append({
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": mime_type,
+                                    "data": data
+                                }
+                            })
+                user_messages.append({"role": m["role"], "content": new_content})
+            else:
+                user_messages.append(m)
 
         async with httpx.AsyncClient(timeout=300) as client:
             resp = await client.post(
@@ -316,7 +340,31 @@ class AnthropicProvider(AIProvider):
 
     async def stream_chat(self, resolved, messages, max_tokens, temperature):
         system = next((m["content"] for m in messages if m["role"] == "system"), "")
-        user_messages = [m for m in messages if m["role"] != "system"]
+        user_messages = []
+        for m in messages:
+            if m["role"] == "system": continue
+            content = m["content"]
+            if isinstance(content, list):
+                new_content = []
+                for part in content:
+                    if part["type"] == "text":
+                        new_content.append({"type": "text", "text": part["text"]})
+                    elif part["type"] == "image_url":
+                        url = part["image_url"]["url"]
+                        if url.startswith("data:"):
+                            header, data = url.split(",", 1)
+                            mime_type = header.split(";")[0].split(":")[1]
+                            new_content.append({
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": mime_type,
+                                    "data": data
+                                }
+                            })
+                user_messages.append({"role": m["role"], "content": new_content})
+            else:
+                user_messages.append(m)
 
         async with httpx.AsyncClient(timeout=300) as client:
             async with client.stream(
@@ -402,11 +450,30 @@ class GeminiProvider(AIProvider):
         contents = []
         for m in messages:
             if m["role"] == "system": continue
-            # Gemini roles: "user", "model" (instead of "assistant")
             role = "user" if m["role"] == "user" else "model"
+            parts = []
+            content = m["content"]
+            if isinstance(content, list):
+                for part in content:
+                    if part["type"] == "text":
+                        parts.append({"text": part["text"]})
+                    elif part["type"] == "image_url":
+                        url = part["image_url"]["url"]
+                        if url.startswith("data:"):
+                            header, data = url.split(",", 1)
+                            mime_type = header.split(";")[0].split(":")[1]
+                            parts.append({
+                                "inlineData": {
+                                    "mimeType": mime_type,
+                                    "data": data
+                                }
+                            })
+            else:
+                parts.append({"text": content})
+            
             contents.append({
                 "role": role,
-                "parts": [{"text": m["content"]}]
+                "parts": parts
             })
 
         body = {
@@ -449,9 +516,29 @@ class GeminiProvider(AIProvider):
         for m in messages:
             if m["role"] == "system": continue
             role = "user" if m["role"] == "user" else "model"
+            parts = []
+            content = m["content"]
+            if isinstance(content, list):
+                for part in content:
+                    if part["type"] == "text":
+                        parts.append({"text": part["text"]})
+                    elif part["type"] == "image_url":
+                        url = part["image_url"]["url"]
+                        if url.startswith("data:"):
+                            header, data = url.split(",", 1)
+                            mime_type = header.split(";")[0].split(":")[1]
+                            parts.append({
+                                "inlineData": {
+                                    "mimeType": mime_type,
+                                    "data": data
+                                }
+                            })
+            else:
+                parts.append({"text": content})
+                
             contents.append({
                 "role": role,
-                "parts": [{"text": m["content"]}]
+                "parts": parts
             })
 
         body = {
@@ -710,88 +797,99 @@ def resolve_provider(
     NO_EMBED_PROVIDERS = {"anthropic"}
 
     with db_cursor() as cur:
+        # Fetch all candidate keys for the user
         query = (
             "SELECT provider, key_enc, base_url, auth_mode, auth_token, "
-            "default_chat_model, default_embedding_model "
+            "default_chat_model, default_embedding_model, last_used_at "
             "FROM user_ai_keys WHERE user_id = %s"
         )
         params: list = [user_id]
-
         if preferred_provider:
             query += " AND provider = %s"
             params.append(preferred_provider)
-        elif feature == "embedding":
-            # Exclude providers with no embedding API
-            placeholders = ", ".join(f"'{p}'" for p in NO_EMBED_PROVIDERS)
-            query += f" AND provider NOT IN ({placeholders})"
-
-        if feature == "embedding" and not preferred_provider:
-            # Prefer keys with an explicit default_embedding_model set,
-            # then fall back to last_used_at. 
-            # If a preferred_model is passed (from workspace lock), prioritize the key that uses it.
-            query += " ORDER BY "
-            if preferred_model:
-                query += " (CASE WHEN default_embedding_model = %s THEN 0 ELSE 1 END), "
-                params.append(preferred_model)
-            
-            query += (
-                "  (CASE WHEN default_embedding_model IS NOT NULL "
-                "        AND default_embedding_model != '' THEN 0 ELSE 1 END),"
-                "  last_used_at DESC NULLS LAST"
-                " LIMIT 1"
-            )
-        else:
-            query += " ORDER BY "
-            if preferred_model:
-                # Same logic for chat/extraction
-                col = "default_embedding_model" if feature == "embedding" else "default_chat_model"
-                query += f" (CASE WHEN {col} = %s THEN 0 ELSE 1 END), "
-                params.append(preferred_model)
-            query += " last_used_at DESC NULLS LAST LIMIT 1"
-
+        
         cur.execute(query, params)
-        row = cur.fetchone()
+        rows = cur.fetchall()
 
-        if not row:
-            if feature == "embedding" and not preferred_provider:
-                raise AIProviderUnavailable(
-                    "No embedding-capable AI provider key is configured. "
-                    "Add an OpenAI, Gemini, or Ollama key in Settings — AI Provider. "
-                    "(Anthropic does not provide an embedding API.)"
-                )
+    if not rows:
+        if feature == "embedding" and not preferred_provider:
             raise AIProviderUnavailable(
-                "No AI provider key is configured for this account. "
-                "Add your own API key in Settings — AI Provider."
+                "No embedding-capable AI provider key is configured. "
+                "Add an OpenAI, Gemini, or Ollama key in Settings — AI Provider. "
+                "(Anthropic does not provide an embedding API.)"
             )
+        raise AIProviderUnavailable(
+            "No AI provider key is configured for this account. "
+            "Add your own API key in Settings — AI Provider."
+        )
 
-        provider_id: str = row["provider"]
+    # Filter and score candidates in Python to allow checking provider class defaults
+    candidates = []
+    for row in rows:
+        provider_id = row["provider"]
         impl = PROVIDER_REGISTRY.get(provider_id)
         if not impl:
-            raise AIProviderUnavailable(
-                f"Provider '{provider_id}' is not installed on this server."
-            )
-        
-        model = preferred_model or (
-            (row["default_embedding_model"] if feature == "embedding" else row["default_chat_model"])
-            or (impl.default_embedding_model if feature == "embedding" else impl.default_chat_model)
-        )
-        try:
-            api_key = decrypt_api_key(row["key_enc"]) if row["key_enc"] else ""
-        except ValueError as exc:
-            raise AIProviderUnavailable(str(exc))
+            continue
+        if feature == "embedding" and provider_id in NO_EMBED_PROVIDERS:
+            continue
 
-        return ResolvedProvider(
-            provider=impl,
-            api_key=api_key,
-            model=model,
-            source="account_key",
-            user_id=user_id,
-            base_url=row["base_url"],
-            auth_mode=row["auth_mode"],
-            auth_token=row["auth_token"],
-            default_chat_model=row["default_chat_model"],
-            default_embedding_model=row["default_embedding_model"],
-        )
+        # Score: lower is better
+        score = 100
+        
+        # Check for model match
+        if preferred_model:
+            # 1. Matches user's explicit default for this key (Strongest)
+            user_default = row["default_embedding_model"] if feature == "embedding" else row["default_chat_model"]
+            if user_default == preferred_model:
+                score -= 60
+            # 2. Matches provider's class-level default (Medium)
+            elif (impl.default_embedding_model if feature == "embedding" else impl.default_chat_model) == preferred_model:
+                score -= 40
+        
+        # 3. Key has any explicit default set (Minor preference for specialized keys)
+        has_default = row["default_embedding_model" if feature == "embedding" else "default_chat_model"]
+        if has_default:
+            score -= 5
+
+        candidates.append({
+            "score": score,
+            "last_used_at": row["last_used_at"] or datetime.min.replace(tzinfo=timezone.utc),
+            "row": row,
+            "impl": impl
+        })
+
+    if not candidates:
+        raise AIProviderUnavailable(f"No suitable provider found for {feature}.")
+
+    # Sort by Score (ASC), then Last Used (DESC)
+    candidates.sort(key=lambda x: (x["score"], -x["last_used_at"].timestamp()))
+    
+    best = candidates[0]
+    row = best["row"]
+    impl = best["impl"]
+
+    model = preferred_model or (
+        (row["default_embedding_model"] if feature == "embedding" else row["default_chat_model"])
+        or (impl.default_embedding_model if feature == "embedding" else impl.default_chat_model)
+    )
+    
+    try:
+        api_key = decrypt_api_key(row["key_enc"]) if row["key_enc"] else ""
+    except ValueError as exc:
+        raise AIProviderUnavailable(str(exc))
+
+    return ResolvedProvider(
+        provider=impl,
+        api_key=api_key,
+        model=model,
+        source="account_key",
+        user_id=user_id,
+        base_url=row["base_url"],
+        auth_mode=row["auth_mode"],
+        auth_token=row["auth_token"],
+        default_chat_model=row["default_chat_model"],
+        default_embedding_model=row["default_embedding_model"],
+    )
 
 
 # ── Usage recording ───────────────────────────────────────────────────────────
