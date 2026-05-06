@@ -727,16 +727,27 @@ def resolve_provider(
 
         if feature == "embedding" and not preferred_provider:
             # Prefer keys with an explicit default_embedding_model set,
-            # then fall back to last_used_at
+            # then fall back to last_used_at. 
+            # If a preferred_model is passed (from workspace lock), prioritize the key that uses it.
+            query += " ORDER BY "
+            if preferred_model:
+                query += " (CASE WHEN default_embedding_model = %s THEN 0 ELSE 1 END), "
+                params.append(preferred_model)
+            
             query += (
-                " ORDER BY "
                 "  (CASE WHEN default_embedding_model IS NOT NULL "
                 "        AND default_embedding_model != '' THEN 0 ELSE 1 END),"
                 "  last_used_at DESC NULLS LAST"
                 " LIMIT 1"
             )
         else:
-            query += " ORDER BY last_used_at DESC NULLS LAST LIMIT 1"
+            query += " ORDER BY "
+            if preferred_model:
+                # Same logic for chat/extraction
+                col = "default_embedding_model" if feature == "embedding" else "default_chat_model"
+                query += f" (CASE WHEN {col} = %s THEN 0 ELSE 1 END), "
+                params.append(preferred_model)
+            query += " last_used_at DESC NULLS LAST LIMIT 1"
 
         cur.execute(query, params)
         row = cur.fetchone()

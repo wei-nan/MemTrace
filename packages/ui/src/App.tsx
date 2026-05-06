@@ -63,35 +63,50 @@ function CreateWorkspaceModal({
   const [visibility, setVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [embedModels, setEmbedModels] = useState<{ id: string; dim: number }[]>([]);
+  const [embedModels, setEmbedModels] = useState<{ id: string; dim: number; provider: string }[]>([]);
   const [selectedEmbedModel, setSelectedEmbedModel] = useState<string>('');
 
   useEffect(() => {
-    // 1. Resolve which provider / model would be used automatically
-    ai.getResolvedModel('embedding').then(async resolved => {
-      const provider = resolved.provider?.toLowerCase() ?? '';
-      const autoModel = resolved.model ?? '';
-
-      // 2. Build model list based on provider
-      if (provider === 'ollama') {
-        try {
-          const all = await ai.listModels('ollama');
-          const embedOnly = all.filter(m => m.model_type === 'embedding');
-          const list = embedOnly.map(m => ({ id: m.id, dim: m.embedding_dim ?? 768 }));
-          setEmbedModels(list.length ? list : [{ id: autoModel, dim: 768 }]);
-        } catch {
-          setEmbedModels([{ id: autoModel, dim: 768 }]);
+    // Aggreggate embedding models from all configured providers
+    Promise.all([
+      ai.getCredits(),
+      ai.getResolvedModel('embedding').catch(() => ({ provider: null, model: null }))
+    ]).then(async ([credits, resolved]) => {
+      const activeProviders = Object.entries(credits.has_own_key)
+        .filter(([_, has]) => has)
+        .map(([p]) => p);
+      
+      let allModels: { id: string; dim: number; provider: string }[] = [];
+      
+      for (const p of activeProviders) {
+        if (p === 'ollama') {
+          try {
+            const models = await ai.listModels('ollama');
+            const embeds = models.filter(m => m.model_type === 'embedding');
+            allModels.push(...embeds.map(m => ({ id: m.id, dim: m.embedding_dim ?? 768, provider: 'ollama' })));
+          } catch (e) {}
+        } else {
+          const known = KNOWN_EMBED_MODELS[p] || [];
+          allModels.push(...known.map(m => ({ ...m, provider: p })));
         }
-      } else {
-        const knownList = KNOWN_EMBED_MODELS[provider] ?? [{ id: autoModel, dim: 1536 }];
-        setEmbedModels(knownList.length ? knownList : [{ id: autoModel, dim: 1536 }]);
       }
 
-      // 3. Default selection = auto-resolved model
-      setSelectedEmbedModel(autoModel);
+      // If no keys configured, use safe default
+      if (allModels.length === 0) {
+        allModels = [{ id: 'text-embedding-3-small', dim: 1536, provider: 'openai' }];
+      }
+
+      setEmbedModels(allModels);
+      
+      // Default selection: priority 1: resolved model, priority 2: first available
+      const autoModel = resolved.model;
+      if (autoModel && allModels.some(m => m.id === autoModel)) {
+        setSelectedEmbedModel(autoModel);
+      } else {
+        setSelectedEmbedModel(allModels[0].id);
+      }
     }).catch(() => {
-      // No AI provider configured; use safe default
-      setEmbedModels([{ id: 'text-embedding-3-small', dim: 1536 }]);
+      setEmbedModels([{ id: 'text-embedding-3-small', dim: 1536, provider: 'openai' }]);
       setSelectedEmbedModel('text-embedding-3-small');
     });
   }, []);
@@ -241,8 +256,8 @@ function CreateWorkspaceModal({
                 style={{ width: '100%' }}
               >
                 {embedModels.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.id} ({m.dim}d)
+                  <option key={`${(m as any).provider}-${m.id}`} value={m.id}>
+                    {m.id} ({m.dim}d) — {(m as any).provider?.toUpperCase() || '?'}
                   </option>
                 ))}
               </select>
@@ -285,39 +300,44 @@ function ForkWorkspaceModal({
   const { toast } = useModal();
   const [nameZh, setNameZh] = useState(`${sourceWs.name_zh} (Fork)`);
   const [nameEn, setNameEn] = useState(`${sourceWs.name_en} (Fork)`);
-  const [embedModels, setEmbedModels] = useState<{ id: string; dim: number }[]>([]);
+  const [embedModels, setEmbedModels] = useState<{ id: string; dim: number; provider: string }[]>([]);
   const [selectedEmbedModel, setSelectedEmbedModel] = useState<string>(sourceWs.embedding_model);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Build embed model list: auto-resolve + inherit from source
-    ai.getResolvedModel('embedding').then(async resolved => {
-      const provider = resolved.provider?.toLowerCase() ?? '';
-      if (provider === 'ollama') {
-        try {
-          const all = await ai.listModels('ollama');
-          const list = all
-            .filter(m => m.model_type === 'embedding')
-            .map(m => ({ id: m.id, dim: m.embedding_dim ?? 768 }));
-          // Ensure source model is in the list (even if not installed locally)
-          if (!list.find(m => m.id === sourceWs.embedding_model)) {
-            list.unshift({ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim });
-          }
-          setEmbedModels(list.length ? list : [{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
-        } catch {
-          setEmbedModels([{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
+    // Aggreggate embedding models from all configured providers
+    Promise.all([
+      ai.getCredits(),
+      ai.getResolvedModel('embedding').catch(() => ({ provider: null, model: null }))
+    ]).then(async ([credits, _]) => {
+      const activeProviders = Object.entries(credits.has_own_key)
+        .filter(([_, has]) => has)
+        .map(([p]) => p);
+      
+      let allModels: { id: string; dim: number; provider: string }[] = [];
+      
+      for (const p of activeProviders) {
+        if (p === 'ollama') {
+          try {
+            const models = await ai.listModels('ollama');
+            const embeds = models.filter(m => m.model_type === 'embedding');
+            allModels.push(...embeds.map(m => ({ id: m.id, dim: m.embedding_dim ?? 768, provider: 'ollama' })));
+          } catch (e) {}
+        } else {
+          const known = KNOWN_EMBED_MODELS[p] || [];
+          allModels.push(...known.map(m => ({ ...m, provider: p })));
         }
-      } else {
-        const knownList = KNOWN_EMBED_MODELS[provider] ?? [];
-        const combined = [...knownList];
-        if (!combined.find(m => m.id === sourceWs.embedding_model)) {
-          combined.unshift({ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim });
-        }
-        setEmbedModels(combined.length ? combined : [{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
       }
+
+      // Ensure source model is in the list
+      if (!allModels.find(m => m.id === sourceWs.embedding_model)) {
+        allModels.unshift({ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim, provider: 'inherited' });
+      }
+
+      setEmbedModels(allModels);
     }).catch(() => {
-      setEmbedModels([{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim }]);
+      setEmbedModels([{ id: sourceWs.embedding_model, dim: sourceWs.embedding_dim, provider: 'inherited' }]);
     });
   }, [sourceWs.embedding_model, sourceWs.embedding_dim]);
 
@@ -411,8 +431,8 @@ function ForkWorkspaceModal({
                 style={{ width: '100%' }}
               >
                 {embedModels.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.id} ({m.dim}d)
+                  <option key={`${m.provider}-${m.id}`} value={m.id}>
+                    {m.id} ({m.dim}d) — {m.provider.toUpperCase()}
                     {m.id === sourceWs.embedding_model ? (zh ? ' ← 與來源相同' : ' ← same as source') : ''}
                   </option>
                 ))}
@@ -647,7 +667,6 @@ function SettingsPanel({
   // Derived lists from fetched models
   const chatModels = ollamaModels.filter(m => m.model_type !== 'embedding');
   const embeddingModels = ollamaModels.filter(m => m.model_type === 'embedding');
-  const selectedEmbedDim = embeddingModels.find(m => m.id === defaultEmbeddingModel)?.embedding_dim ?? null;
 
   const loadData = () => {
     ai.listKeys().then(setKeys).catch(() => {});
@@ -1117,7 +1136,49 @@ function SettingsPanel({
                   </span>
                 )}
               </div>
+            </>
+          ) : (
+            <div>
+              <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>API Key</label>
+              <input
+                className="mt-input"
+                type="password"
+                placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
+                value={apiKey}
+                onChange={e => setApiKey(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
+              />
+            </div>
+          )}
 
+          {/* Common model selectors for all providers (Static known lists for non-Ollama) */}
+          {provider !== 'ollama' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{zh ? '預設對話模型' : 'Default Chat Model'}</label>
+                <select className="mt-input" value={defaultChatModel} onChange={e => setDefaultChatModel(e.target.value)}>
+                  <option value="">{zh ? '-- 系統預設 --' : '-- Default --'}</option>
+                  {(provider === 'openai' ? ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'] :
+                    provider === 'anthropic' ? ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'] :
+                    provider === 'gemini' ? ['gemini-1.5-pro', 'gemini-1.5-flash'] : []
+                  ).map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{zh ? '預設向量模型' : 'Default Embedding Model'}</label>
+                <select className="mt-input" value={defaultEmbeddingModel} onChange={e => setDefaultEmbeddingModel(e.target.value)}>
+                  <option value="">{zh ? '-- 系統預設 --' : '-- Default --'}</option>
+                  {(provider === 'openai' ? ['text-embedding-3-small', 'text-embedding-3-large', 'text-embedding-ada-002'] :
+                    provider === 'gemini' ? ['text-embedding-004'] : []
+                  ).map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Ollama specific selectors (already implemented, but we keep them here) */}
+          {provider === 'ollama' && (
+            <>
               {/* Chat model selector */}
               <div>
                 <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
@@ -1134,7 +1195,6 @@ function SettingsPanel({
                 >
                   <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇對話模型 --' : '-- Select chat model --')}</option>
                   {chatModels.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
-                  {/* Preserve previously saved value even if not in current list */}
                   {defaultChatModel && !chatModels.find(m => m.id === defaultChatModel) && (
                     <option value={defaultChatModel}>{defaultChatModel}</option>
                   )}
@@ -1158,32 +1218,17 @@ function SettingsPanel({
                   <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇向量模型 --' : '-- Select embedding model --')}</option>
                   {embeddingModels.map(m => (
                     <option key={m.id} value={m.id}>
-                      {/* needs_install models already include "(需安裝)" in display_name from backend */}
                       {m.needs_install
                         ? m.display_name
                         : `${m.display_name}${m.embedding_dim ? ` (${m.embedding_dim}d)` : ''}`}
                     </option>
                   ))}
-                  {defaultEmbeddingModel && !embeddingModels.find(m => m.id === defaultEmbeddingModel) && (
+                  {defaultEmbeddingModel && !embeddingModels.find((m: any) => m.id === defaultEmbeddingModel) && (
                     <option value={defaultEmbeddingModel}>{defaultEmbeddingModel}</option>
                   )}
                 </select>
-                {selectedEmbedDim && (
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                    {zh ? `向量維度：${selectedEmbedDim}（工作區建立後鎖定）` : `Embedding dim: ${selectedEmbedDim} — locked after workspace creation`}
-                  </div>
-                )}
               </div>
             </>
-          ) : (
-            <input
-              className="mt-input"
-              type="password"
-              placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
-            />
           )}
           {error && <div style={{ color: 'var(--color-error)', fontSize: 12 }}>{error}</div>}
           {success && <div style={{ color: 'var(--color-success)', fontSize: 12 }}>{success}</div>}

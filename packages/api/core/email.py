@@ -126,14 +126,23 @@ def send_workspace_deletion_notice(
     _dispatch(to, subject, html, text)
 
 
-def send_magic_link_email(to: str, token: str) -> None:
-    """Send a magic link for passwordless login."""
+def send_magic_link_email(to: str, token: str, purpose: str = "login") -> None:
+    """Send a magic link for passwordless login or registration."""
     url   = f"{settings.app_url}/verify?token={token}"
-    subject = "您的 MemTrace 登入連結 / Your MemTrace login link"
-    html  = _tpl_magic_link(url)
+    
+    if purpose == "registration":
+        subject = "您的 MemTrace 註冊連結 / Your MemTrace registration link"
+        msg_zh = "註冊 MemTrace"
+        msg_en = "register for MemTrace"
+    else:
+        subject = "您的 MemTrace 登入連結 / Your MemTrace login link"
+        msg_zh = "登入 MemTrace"
+        msg_en = "login to MemTrace"
+
+    html  = _tpl_magic_link(url, purpose)
     text  = (
-        f"請點擊以下連結登入 MemTrace（10 分鐘內有效）：\n{url}\n\n"
-        f"Please click the link below to login to MemTrace (valid for 10 minutes):\n{url}"
+        f"請點擊以下連結{msg_zh}（10 分鐘內有效）：\n{url}\n\n"
+        f"Please click the link below to {msg_en} (valid for 10 minutes):\n{url}"
     )
     _dispatch(to, subject, html, text)
 
@@ -247,14 +256,17 @@ All nodes, edges, and chat history have been removed. This action cannot be undo
     return _BASE.format(content=content, footer=_FOOTER_DEFAULT)
 
 
-def _tpl_magic_link(url: str) -> str:
+def _tpl_magic_link(url: str, purpose: str = "login") -> str:
+    msg_zh = "註冊並登入" if purpose == "registration" else "登入"
+    msg_en = "register and login" if purpose == "registration" else "login"
+    
     content = f"""
-<p>您好，我們收到了登入 MemTrace 的請求。</p>
-<p>請點擊下方按鈕登入，連結將在 <strong>10 分鐘</strong>後失效。</p>
-<a href="{url}" class="btn">登入 MemTrace &rarr;</a>
+<p>您好，我們收到了{msg_zh} MemTrace 的請求。</p>
+<p>請點擊下方按鈕{msg_zh}，連結將在 <strong>10 分鐘</strong>後失效。</p>
+<a href="{url}" class="btn">{msg_zh} MemTrace &rarr;</a>
 <hr class="divider">
-<p class="sub">Hi, we received a request to login to MemTrace.<br>
-Click the button above to login. The link expires in <strong>10 minutes</strong>.</p>
+<p class="sub">Hi, we received a request to {msg_en} to MemTrace.<br>
+Click the button above to {msg_en}. The link expires in <strong>10 minutes</strong>.</p>
 <p class="sub">如果您沒有提出此請求，可以忽略本郵件。<br>
 If you didn't request this, you can safely ignore this email.</p>
 <p class="link-fallback">{url}</p>"""

@@ -49,9 +49,12 @@ class Settings(BaseSettings):
     # Users whose email matches one of these are treated as system administrators.
     # Required for backup configuration and other privileged operations.
     admin_emails: str = ""
+    registration_mode: str = "invite_only"  # "open" | "domain" | "approval" | "invite_only" | "closed"
+    registration_domains: list[str] = []    # ["example.com"]
 
     class Config:
         env_file = "../../.env"
+        env_prefix = "MEMTRACE_"
         extra = "ignore"
 
     @model_validator(mode="after")

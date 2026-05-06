@@ -5,34 +5,31 @@ interface Props {
   onAuthenticated: () => void;
 }
 
-type Mode = 'login' | 'register' | 'forgot' | 'forgot_sent';
+type Mode = 'login' | 'register' | 'forgot' | 'sent';
 
-export default function AuthPage({ onAuthenticated }: Props) {
+export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
   const [mode, setMode] = useState<Mode>('login');
 
-  const [displayName, setDisplayName] = useState('');
   const [email, setEmail]             = useState('');
-  const [password, setPassword]       = useState('');
+  const [purposeNote, setPurposeNote] = useState('');
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
+  const [message, setMessage]         = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setMessage('');
     try {
       if (mode === 'forgot') {
         await auth.forgotPassword(email);
-        setMode('forgot_sent');
+        setMode('sent');
+        setMessage('If an account exists, a reset link has been sent.');
         return;
       }
-      let resp;
-      if (mode === 'register') {
-        resp = await auth.register({ display_name: displayName, email, password });
-      } else {
-        resp = await auth.login({ email, password });
-      }
-      localStorage.setItem('mt_token', resp.access_token);
-      onAuthenticated();
+      
+      const resp = await auth.register({ email, purpose_note: purposeNote });
+      setMode('sent');
+      setMessage(resp.message || 'Check your email for the magic link!');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -40,16 +37,16 @@ export default function AuthPage({ onAuthenticated }: Props) {
     }
   };
 
-  const switchMode = (m: Mode) => { setMode(m); setError(''); };
+  const switchMode = (m: Mode) => { setMode(m); setError(''); setMessage(''); };
 
-  if (mode === 'forgot_sent') {
+  if (mode === 'sent') {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-base)' }}>
         <div className="glass-panel" style={{ padding: 40, minWidth: 380, maxWidth: 440, textAlign: 'center' }}>
           <div style={{ fontSize: 40, marginBottom: 16 }}>📧</div>
           <h2 style={{ marginBottom: 8, color: 'var(--text-primary)' }}>Check your email</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>
-            If an account exists for <strong>{email}</strong>, a reset link has been sent. The link expires in 1 hour.
+            {message || `A link has been sent to ${email}. Please check your inbox (and spam folder).`}
           </p>
           <button className="btn-secondary" onClick={() => switchMode('login')} style={{ width: '100%' }}>
             Back to Sign In
@@ -86,7 +83,7 @@ export default function AuthPage({ onAuthenticated }: Props) {
                   fontWeight: mode === m ? 600 : 400, fontSize: 14,
                   transition: 'all 0.2s',
                 }}>
-                {m === 'login' ? 'Sign In' : 'Create Account'}
+                {m === 'login' ? 'Sign In' : 'Register'}
               </button>
             ))}
           </div>
@@ -94,34 +91,25 @@ export default function AuthPage({ onAuthenticated }: Props) {
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
-          {mode === 'register' && (
-            <label style={{ display: 'block', marginBottom: 14 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Display Name</span>
-              <input className="mt-input" type="text" value={displayName}
-                onChange={e => setDisplayName(e.target.value)} required />
-            </label>
-          )}
-
           <label style={{ display: 'block', marginBottom: 14 }}>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Email</span>
             <input className="mt-input" type="email" value={email}
+              placeholder="you@company.com"
               onChange={e => setEmail(e.target.value)} required />
           </label>
 
-          {(mode === 'login' || mode === 'register') && (
+          {mode === 'register' && (
             <label style={{ display: 'block', marginBottom: 20 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Password</span>
-              <input className="mt-input" type="password" value={password}
-                onChange={e => setPassword(e.target.value)} required />
-              {mode === 'register' && (
-                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                  8–128 characters, at least one uppercase, lowercase, and digit.
-                </span>
-              )}
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Purpose (Optional)</span>
+              <textarea 
+                className="mt-input" 
+                value={purposeNote}
+                placeholder="Why do you want to join?"
+                style={{ height: 80, resize: 'none', padding: '10px 12px' }}
+                onChange={e => setPurposeNote(e.target.value)} 
+              />
             </label>
           )}
-
-          {mode === 'forgot' && <div style={{ marginBottom: 20 }} />}
 
           {error && (
             <p style={{ color: 'var(--color-error)', fontSize: 13, marginBottom: 12 }}>{error}</p>
@@ -130,8 +118,8 @@ export default function AuthPage({ onAuthenticated }: Props) {
           <button className="btn-primary" type="submit" disabled={loading}
             style={{ width: '100%', padding: '12px 0', fontSize: 15 }}>
             {loading ? '…'
-              : mode === 'login' ? 'Sign In'
-              : mode === 'register' ? 'Create Account'
+              : mode === 'login' ? 'Send Login Link'
+              : mode === 'register' ? 'Request Access'
               : 'Send Reset Link'}
           </button>
         </form>

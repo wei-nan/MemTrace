@@ -226,8 +226,8 @@ async function requestStream(path: string, body: unknown, onChunk: (data: any) =
 }
 
 export const auth = {
-  register: (data: { display_name: string; email: string; password: string }) =>
-    request<{ access_token: string }>("POST", "/auth/register", data),
+  register: (data: { email: string; purpose_note?: string }) =>
+    request<{ message: string }>("POST", "/auth/register", data),
   login: (data: { email: string; password: string }) =>
     request<{ access_token: string }>("POST", "/auth/login", data),
   logout: () => request("POST", "/auth/logout"),
