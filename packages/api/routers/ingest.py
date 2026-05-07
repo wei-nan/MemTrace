@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 import json
 from typing import List, Optional, Tuple, Literal
@@ -13,6 +14,10 @@ from routers.kb import _propose_change, _require_ws_access
 import httpx
 import re
 from pydantic import BaseModel, HttpUrl
+
+# Limit concurrent AI extraction calls across all ingestion jobs.
+# Prevents rate-limit storms when batch-uploading many files simultaneously.
+_AI_SEMAPHORE = asyncio.Semaphore(3)
 
 class UrlIngestRequest(BaseModel):
     url: HttpUrl
@@ -238,9 +243,10 @@ async def _safe_parse_nodes(raw: str, resolved, filename: str) -> Tuple[list[dic
                 "content": f"Repair this broken JSON from '{filename}':\n\n{cleaned[:6000]}",
             },
         ]
-        repaired_raw, repair_tokens = await chat_completion(
-            resolved, repair_messages, max_tokens=4096
-        )
+        async with _AI_SEMAPHORE:
+            repaired_raw, repair_tokens = await chat_completion(
+                resolved, repair_messages, max_tokens=4096
+            )
         repaired_cleaned = strip_fences(repaired_raw)
 
         result = json.loads(repaired_cleaned)
@@ -737,29 +743,30 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
             chunk_resolved = resolved
             raw, tokens = None, 0
             chunk_error: Optional[Exception] = None
-            for attempt in range(2):   # at most 2 attempts (primary + one fallback)
-                try:
-                    raw, tokens = await chat_completion(chunk_resolved, messages)
-                    chunk_error = None
-                    break
-                except AIProviderError as e:
-                    chunk_error = e
-                    if attempt == 0:
-                        # Try the next available provider
-                        try:
-                            from core.database import db_cursor as _db2
-                            with _db2() as cur2:
-                                cur2.execute(
-                                    "SELECT provider FROM user_ai_keys WHERE user_id = %s AND provider != %s "
-                                    "ORDER BY last_used_at DESC NULLS LAST LIMIT 1",
-                                    (user_id, chunk_resolved.provider.name),
-                                )
-                                alt = cur2.fetchone()
-                            if alt:
-                                chunk_resolved = resolve_provider(user_id, "extraction", preferred_provider=alt["provider"])
-                                print(f"Chunk {idx}: switched to {chunk_resolved.provider.name} after error: {e}")
-                        except Exception:
-                            pass
+            async with _AI_SEMAPHORE:   # limit concurrent AI calls across all ingestion jobs
+                for attempt in range(2):   # at most 2 attempts (primary + one fallback)
+                    try:
+                        raw, tokens = await chat_completion(chunk_resolved, messages)
+                        chunk_error = None
+                        break
+                    except AIProviderError as e:
+                        chunk_error = e
+                        if attempt == 0:
+                            # Try the next available provider
+                            try:
+                                from core.database import db_cursor as _db2
+                                with _db2() as cur2:
+                                    cur2.execute(
+                                        "SELECT provider FROM user_ai_keys WHERE user_id = %s AND provider != %s "
+                                        "ORDER BY last_used_at DESC NULLS LAST LIMIT 1",
+                                        (user_id, chunk_resolved.provider.name),
+                                    )
+                                    alt = cur2.fetchone()
+                                if alt:
+                                    chunk_resolved = resolve_provider(user_id, "extraction", preferred_provider=alt["provider"])
+                                    print(f"Chunk {idx}: switched to {chunk_resolved.provider.name} after error: {e}")
+                            except Exception:
+                                pass
 
             if chunk_error is not None:
                 raise chunk_error  # re-raise if all attempts failed
@@ -1267,7 +1274,8 @@ async def retry_audit_headings(
                 
                 try:
                     from core.ai import chat_completion
-                    raw, tokens = await chat_completion(resolved, messages)
+                    async with _AI_SEMAPHORE:
+                        raw, tokens = await chat_completion(resolved, messages)
                     nodes_data, _ = await _safe_parse_nodes(raw, resolved, filename)
                     all_nodes.extend(nodes_data)
                     

@@ -943,10 +943,26 @@ async def chat_completion(
     messages: list[dict],
     max_tokens: int = 4096,
     temperature: float = 0.2,
+    _retries: int = 4,
 ) -> tuple[str, int]:
-    return await resolved.provider.chat(
-        resolved, messages, max_tokens, temperature
-    )
+    import asyncio as _asyncio
+    delay = 5.0
+    for attempt in range(_retries + 1):
+        try:
+            return await resolved.provider.chat(resolved, messages, max_tokens, temperature)
+        except AIProviderError as exc:
+            msg = str(exc)
+            is_rate_limit = "429" in msg or "RESOURCE_EXHAUSTED" in msg or "rate" in msg.lower()
+            is_timeout = "timeout" in msg.lower() or "ReadTimeout" in msg
+            if (is_rate_limit or is_timeout) and attempt < _retries:
+                wait = delay * (2 ** attempt)
+                import logging as _logging
+                _logging.getLogger(__name__).warning(
+                    "AI call failed (%s), retry %d/%d in %.0fs", msg[:80], attempt + 1, _retries, wait
+                )
+                await _asyncio.sleep(wait)
+                continue
+            raise
 
 async def chat_stream(
     resolved: ResolvedProvider,
