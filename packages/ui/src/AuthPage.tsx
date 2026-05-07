@@ -11,10 +11,12 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
   const [mode, setMode] = useState<Mode>('login');
 
   const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
   const [purposeNote, setPurposeNote] = useState('');
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [message, setMessage]         = useState('');
+  const [usePassword, setUsePassword] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +29,15 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
         return;
       }
       
-      const resp = await auth.register({ email, purpose_note: purposeNote });
+      if (mode === 'login' && usePassword && password) {
+        const resp = await auth.login({ email, password });
+        localStorage.setItem('mt_token', resp.access_token);
+        window.location.reload(); // Simple way to trigger App re-auth
+        return;
+      }
+
+      // Default to magic link (unified register/login)
+      const resp = await auth.register({ email, purpose_note: mode === 'register' ? purposeNote : undefined });
       setMode('sent');
       setMessage(resp.message || 'Check your email for the magic link!');
     } catch (err: any) {
@@ -37,7 +47,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
     }
   };
 
-  const switchMode = (m: Mode) => { setMode(m); setError(''); setMessage(''); };
+  const switchMode = (m: Mode) => { setMode(m); setError(''); setMessage(''); setPassword(''); };
 
   if (mode === 'sent') {
     return (
@@ -98,6 +108,21 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
               onChange={e => setEmail(e.target.value)} required />
           </label>
 
+          {mode === 'login' && usePassword && (
+            <label style={{ display: 'block', marginBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Password</span>
+                <a href="#" onClick={e => { e.preventDefault(); switchMode('forgot'); }}
+                  style={{ color: 'var(--color-primary)', fontSize: 11 }}>
+                  Forgot?
+                </a>
+              </div>
+              <input className="mt-input" type="password" value={password}
+                placeholder="••••••••"
+                onChange={e => setPassword(e.target.value)} required={usePassword} />
+            </label>
+          )}
+
           {mode === 'register' && (
             <label style={{ display: 'block', marginBottom: 20 }}>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Purpose (Optional)</span>
@@ -118,27 +143,23 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
           <button className="btn-primary" type="submit" disabled={loading}
             style={{ width: '100%', padding: '12px 0', fontSize: 15 }}>
             {loading ? '…'
-              : mode === 'login' ? 'Send Login Link'
+              : mode === 'login' ? (usePassword && password ? 'Sign In' : 'Send Magic Link')
               : mode === 'register' ? 'Request Access'
               : 'Send Reset Link'}
           </button>
-        </form>
 
-        {/* Footer links */}
-        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 13 }}>
           {mode === 'login' && (
-            <a href="#" onClick={e => { e.preventDefault(); switchMode('forgot'); }}
-              style={{ color: 'var(--color-primary)' }}>
-              Forgot password?
-            </a>
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <button 
+                type="button"
+                onClick={() => { setUsePassword(!usePassword); setPassword(''); setError(''); }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {usePassword ? 'Use Magic Link instead' : 'Use Password instead'}
+              </button>
+            </div>
           )}
-          {mode === 'forgot' && (
-            <a href="#" onClick={e => { e.preventDefault(); switchMode('login'); }}
-              style={{ color: 'var(--text-muted)' }}>
-              ← Back to Sign In
-            </a>
-          )}
-        </div>
+        </form>
       </div>
     </div>
   );

@@ -242,6 +242,7 @@ export const auth = {
   resetPassword: (token: string, password: string) => request("POST", "/auth/reset-password", { token, new_password: password }),
   getOnboarding: () => request<Onboarding>("GET", "/auth/me/onboarding"),
   updateOnboarding: (data: Partial<Onboarding>) => request<Onboarding>("PATCH", "/auth/me/onboarding", data),
+  updatePassword: (password: string) => request("POST", "/auth/me/password", { new_password: password }),
 };
 
 export const workspaces = {

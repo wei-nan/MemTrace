@@ -275,6 +275,9 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
   );
   const canReviewAny = filteredItems.some((item) => item.can_review);
 
+  const { i18n } = useTranslation();
+  const zh = i18n.language.startsWith('zh');
+
   const handleAccept = async (id: string) => {
     try {
       await review.accept(id);
@@ -309,6 +312,23 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
     }
   };
 
+  const handleRejectAll = async () => {
+    const ok = await confirm({ 
+      title: zh ? "全部拒絕" : "Reject All", 
+      message: zh ? "您確定要拒絕所有待審核的記憶嗎？此操作無法復原。" : "Are you sure you want to reject all pending review items? This action cannot be undone.", 
+      variant: "danger", 
+      confirmLabel: zh ? "全部拒絕" : "Reject All" 
+    });
+    if (!ok) return;
+    try {
+      await review.rejectAll(wsId);
+      await loadItems();
+      toast({ message: zh ? "所有待審核項目已拒絕" : "All pending items rejected", variant: "success" });
+    } catch (e) {
+      toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    }
+  };
+
   const handleRunAIPrescreen = async () => {
     try {
       const result = await review.aiPrescreen(wsId);
@@ -324,6 +344,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
       {createPortal(
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {canReviewAny && <button className="btn-secondary" style={{ height: 38 }} onClick={handleRunAIPrescreen}><Bot size={16} /> {t('review.aiPrescreen')}</button>}
+          {canReviewAny && <button className="btn-secondary" style={{ height: 38 }} onClick={handleRejectAll}><X size={16} /> {zh ? '全部拒絕' : 'Reject All'}</button>}
           {canReviewAny && <button className="btn-primary" style={{ height: 38 }} onClick={handleAcceptAll}><Check size={16} /> {t('review.acceptAll')}</button>}
         </div>,
         document.getElementById('header-actions')!

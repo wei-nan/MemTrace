@@ -664,6 +664,34 @@ function SettingsPanel({
   const [defaultChatModel, setDefaultChatModel] = useState('');
   const [defaultEmbeddingModel, setDefaultEmbeddingModel] = useState('');
 
+  const [pwd, setPwd] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [pwdSaving, setPwdSaving] = useState(false);
+  const [pwdError, setPwdError] = useState('');
+
+  const handleUpdatePassword = async () => {
+    if (pwd.length < 8) {
+      setPwdError(zh ? '密碼長度需至少 8 個字元' : 'Password must be at least 8 characters');
+      return;
+    }
+    if (pwd !== confirmPwd) {
+      setPwdError(zh ? '兩次輸入的密碼不一致' : 'Passwords do not match');
+      return;
+    }
+    setPwdSaving(true);
+    setPwdError('');
+    try {
+      await auth.updatePassword(pwd);
+      setPwd('');
+      setConfirmPwd('');
+      toast({ message: zh ? '密碼已更新' : 'Password updated', variant: 'success' });
+    } catch (e: any) {
+      setPwdError(e.message);
+    } finally {
+      setPwdSaving(false);
+    }
+  };
+
   // Derived lists from fetched models
   const chatModels = ollamaModels.filter(m => m.model_type !== 'embedding');
   const embeddingModels = ollamaModels.filter(m => m.model_type === 'embedding');
@@ -861,6 +889,43 @@ function SettingsPanel({
               <option value="zh-TW">繁體中文</option>
               <option value="en">English</option>
             </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Security & Password Section */}
+      <section style={{ marginBottom: 40 }}>
+        <h3 style={{ fontSize: 15, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Key size={16} style={{ color: 'var(--color-primary)' }} />
+          {zh ? '安全性與登入' : 'Security & Login'}
+        </h3>
+        <div style={{
+          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+          borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 16
+        }}>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+            {zh ? '設定密碼後，您可以使用 Email + 密碼 直接登入，無需等待魔術連結。' : 'Set a password to sign in with Email + Password directly, bypassing magic links.'}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
+            <input 
+              className="mt-input" type="password" 
+              placeholder={zh ? '新密碼 (至少 8 字元)' : 'New password (min 8 chars)'} 
+              value={pwd} onChange={e => setPwd(e.target.value)} 
+            />
+            <input 
+              className="mt-input" type="password" 
+              placeholder={zh ? '確認新密碼' : 'Confirm new password'} 
+              value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} 
+            />
+            {pwdError && <div style={{ color: 'var(--color-error)', fontSize: 12 }}>{pwdError}</div>}
+            <button 
+              className="btn-primary" 
+              onClick={handleUpdatePassword} 
+              disabled={pwdSaving || !pwd}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              {pwdSaving ? (zh ? '儲存中…' : 'Saving…') : (zh ? '設定/更新密碼' : 'Set/Update Password')}
+            </button>
           </div>
         </div>
       </section>
@@ -1465,7 +1530,7 @@ export default function App() {
       <Route path="/public/:wsId" element={<PublicWorkspaceView />} />
       <Route path="/verify" element={<MagicLinkVerifyPage onAuthenticated={() => setAuthenticated(true)} />} />
       <Route path="/invite/:token" element={<JoinInvitationPage />} />
-      <Route path="/auth" element={
+      <Route path="/signin" element={
         authenticated ? <Navigate to="/" /> : <AuthPage onAuthenticated={() => setAuthenticated(true)} />
       } />
       <Route path="/reset-password" element={
@@ -1475,7 +1540,7 @@ export default function App() {
         />
       } />
       <Route path="/" element={
-        !authenticated ? <Navigate to="/auth" /> : (
+        !authenticated ? <Navigate to="/signin" /> : (
           <div className="app-container">
       {/* ── Onboarding Wizard ─────────────────────────────────────────── */}
       {onboarding && !onboarding.completed && (
@@ -1742,17 +1807,7 @@ export default function App() {
             {!sidebarCollapsed && <span className="nav-text">{t('sidebar.graph')}</span>}
           </div>
 
-          {selectedWs && canWrite && currentView !== 'settings' && (
-            <div
-              className="nav-item"
-              style={{ marginTop: 8, color: 'var(--color-primary)' }}
-              title={sidebarCollapsed ? t('sidebar.write') : undefined}
-              onClick={() => { setCurrentView('graph'); setEditingNode(null); }}
-            >
-              <PlusCircle size={18} />
-              {!sidebarCollapsed && <span className="nav-text">{t('sidebar.write')}</span>}
-            </div>
-          )}
+
 
           {selectedWs && (
             <div

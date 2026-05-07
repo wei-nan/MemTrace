@@ -303,6 +303,23 @@ def update_onboarding(body: dict, user: dict = Depends(get_current_user)):
         
         cur.execute("UPDATE users SET onboarding = %s WHERE id = %s", (json.dumps(new_state), user["sub"]))
         return new_state
+
+@router.post("/me/password", status_code=204)
+def update_password(body: dict, user: dict = Depends(get_current_user)):
+    new_password = body.get("new_password")
+    if not new_password:
+        raise HTTPException(status_code=400, detail="New password required")
+        
+    err = check_password_policy(new_password)
+    if err:
+        raise HTTPException(status_code=400, detail=err)
+
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "UPDATE users SET password_hash = %s WHERE id = %s",
+            (hash_password(new_password), user["sub"])
+        )
+
 @router.post("/verify-email/{token}")
 def verify_email(token: str):
     with db_cursor(commit=True) as cur:

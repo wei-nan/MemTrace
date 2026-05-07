@@ -11,6 +11,7 @@ import { auth, workspaces, ai, ingest, type Onboarding } from './api';
 const STEPS = [
   { id: 'welcome', icon: Languages },
   { id: 'account', icon: CheckCircle2 },
+  { id: 'security', icon: Key },
   { id: 'email', icon: Mail },
   { id: 'kb', icon: Database },
   { id: 'ingest', icon: FileUp },
@@ -592,6 +593,61 @@ export default function OnboardingWizard({
   );
 
 
+  const renderSecurity = () => {
+    const [pwd, setPwd] = useState('');
+    const [confirmPwd, setConfirmPwd] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [pwdError, setPwdError] = useState('');
+
+    const handleSetPassword = async () => {
+      if (pwd.length < 8) {
+        setPwdError(zh ? '密碼長度需至少 8 個字元' : 'Password must be at least 8 characters');
+        return;
+      }
+      if (pwd !== confirmPwd) {
+        setPwdError(zh ? '兩次輸入的密碼不一致' : 'Passwords do not match');
+        return;
+      }
+      setSubmitting(true);
+      setPwdError('');
+      try {
+        await auth.updatePassword(pwd);
+        next('security');
+      } catch (e: any) {
+        setPwdError(e.message);
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="onboard-card">
+        <div className="onboard-icon"><Key size={48} /></div>
+        <h3>{zh ? '設定登入密碼' : 'Set Login Password'}</h3>
+        <p>{zh ? '為了方便下次直接登入，請設定您的密碼。設定後您可以使用 Email + 密碼 登入。' : 'To log in directly next time, please set a password. After this, you can sign in using Email + Password.'}</p>
+        <div className="onboard-form mt-24">
+          <input 
+            className="mt-input" type="password" 
+            placeholder={zh ? '新密碼 (至少 8 字元)' : 'New password (min 8 chars)'} 
+            value={pwd} onChange={e => setPwd(e.target.value)} 
+          />
+          <input 
+            className="mt-input" type="password" 
+            placeholder={zh ? '確認密碼' : 'Confirm password'} 
+            value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} 
+          />
+          {pwdError && <div className="error-text" style={{ fontSize: 12 }}><AlertCircle size={12}/> {pwdError}</div>}
+        </div>
+        <div className="flex-center mt-32 gap-12">
+          <button className="btn-ghost" onClick={() => skip('security')}>{zh ? '稍後設定' : 'Skip for now'}</button>
+          <button className="btn-primary" onClick={handleSetPassword} disabled={submitting}>
+            {submitting ? <Loader2 className="animate-spin" /> : (zh ? '設定密碼並繼續' : 'Set Password & Continue')}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderDone = () => (
     <div className="onboard-card">
       <div className="onboard-icon-warn"><PartyPopper size={48} /></div>
@@ -666,11 +722,12 @@ export default function OnboardingWizard({
         <div className="onboarding-view">
           {activeStepIdx === 0 && renderWelcome()}
           {activeStepIdx === 1 && renderAccount()}
-          {activeStepIdx === 2 && renderEmail()}
-          {activeStepIdx === 3 && renderKb()}
-          {activeStepIdx === 4 && renderIngest()}
-          {activeStepIdx === 5 && renderAi()}
-          {activeStepIdx === 6 && renderDone()}
+          {activeStepIdx === 2 && renderSecurity()}
+          {activeStepIdx === 3 && renderEmail()}
+          {activeStepIdx === 4 && renderKb()}
+          {activeStepIdx === 5 && renderIngest()}
+          {activeStepIdx === 6 && renderAi()}
+          {activeStepIdx === 7 && renderDone()}
         </div>
       </div>
 
