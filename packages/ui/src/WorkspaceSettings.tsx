@@ -704,6 +704,37 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
           </SectionCard>
 
           <SectionCard>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600 }}>{zh ? "文件擷取模型" : "Extraction Provider"}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 400 }}>
+                  {zh ? "上傳文件時使用的 LLM。設為「自動」時沿用帳號預設。" : "LLM used when ingesting documents. 'Auto' falls back to your account default."}
+                </div>
+              </div>
+              <select
+                className="mt-input"
+                value={ws?.extraction_provider ?? ""}
+                style={{ width: 160 }}
+                onChange={async (e) => {
+                  try {
+                    await workspaces.update(wsId, { extraction_provider: e.target.value || null } as any);
+                    await loadData();
+                    toast({ message: t('common.save'), variant: "success" });
+                  } catch (err) {
+                    toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
+                  }
+                }}
+              >
+                <option value="">{zh ? "自動 (帳號預設)" : "Auto (account default)"}</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="gemini">Gemini</option>
+                <option value="ollama">Ollama</option>
+              </select>
+            </div>
+          </SectionCard>
+
+          <SectionCard>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Brain size={20} color="var(--color-primary)" />

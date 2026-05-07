@@ -14,6 +14,7 @@ class WorkspaceCreate(BaseModel):
     min_traversals: int = 1
     embedding_model: Optional[str] = None                # P4.1-E: user-chosen model; None = auto-resolve
     qa_archive_mode: str = "manual_review"               # auto_active | manual_review
+    extraction_provider: Optional[str] = None            # preferred LLM for ingestion; None = user default
 
 
 class WorkspaceResponse(BaseModel):
@@ -28,6 +29,7 @@ class WorkspaceResponse(BaseModel):
     embedding_model: str = "text-embedding-3-small"      # P4.1-A: locked at creation
     embedding_dim: int = 1536                            # P4.1-A: locked at creation
     qa_archive_mode: str
+    extraction_provider: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     my_role: Optional[str] = None  # effective role of the requesting user: 'admin'|'editor'|'viewer'|None
@@ -183,6 +185,7 @@ class WorkspaceUpdate(BaseModel):
     archive_window_days: Optional[int] = None
     min_traversals: Optional[int] = None
     qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None
+    extraction_provider: Optional[str] = None
 
 
 class TableViewResponse(BaseModel):

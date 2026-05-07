@@ -1123,16 +1123,18 @@ def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_use
         cur.execute(
             """
             INSERT INTO workspaces (
-                id, name_zh, name_en, visibility, kb_type, owner_id, 
-                archive_window_days, min_traversals, embedding_model, embedding_dim, qa_archive_mode
+                id, name_zh, name_en, visibility, kb_type, owner_id,
+                archive_window_days, min_traversals, embedding_model, embedding_dim,
+                qa_archive_mode, extraction_provider
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
             (
-                ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type, 
+                ws_id, body.name_zh, body.name_en, body.visibility, body.kb_type,
                 user["sub"], body.archive_window_days, body.min_traversals,
-                embedding_model, embedding_dim, body.qa_archive_mode
+                embedding_model, embedding_dim, body.qa_archive_mode,
+                body.extraction_provider,
             ),
         )
         res = cur.fetchone()

@@ -544,6 +544,7 @@ export interface Workspace {
   embedding_model: string;
   embedding_dim: number;
   qa_archive_mode: "auto_active" | "manual_review";
+  extraction_provider: string | null;
 }
 
 export interface Node {
