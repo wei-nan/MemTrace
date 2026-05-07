@@ -119,6 +119,135 @@ NODE_EDITABLE_FIELDS = [
     "visibility",
 ]
 
+NODE_PUBLIC_COLUMNS = """
+    id, workspace_id, title_zh, title_en, content_type, content_format,
+    body_zh, body_en, tags, visibility, author, trust_score,
+    dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
+    traversal_count, unique_traverser_count, validity_confirmed_at,
+    source_type, status, created_at, updated_at
+"""
+
+
+def _bfs_neighborhood(
+    cur,
+    workspace_id: str,
+    root_id: str,
+    depth: int = 2,
+    relation: Optional[str] = None,
+    direction: Literal["both", "outbound", "inbound"] = "both",
+    include_source: bool = True,
+    viewer_role: Optional[str] = None,
+    viewer_id: Optional[str] = None,
+) -> dict:
+    """BFS neighborhood query, returns {root_id, depth, nodes, edges, truncated, total_nodes}"""
+    
+    # P4.7-S3-1: Dynamic depth adjustment based on workspace density
+    # If user provides default depth (2), we adjust based on node count.
+    if depth <= 2:
+        cur.execute("SELECT COUNT(*) FROM memory_nodes WHERE workspace_id = %s", (workspace_id,))
+        ws_count = cur.fetchone()["count"]
+        if ws_count < 1000:
+            depth = 3
+        elif ws_count > 10000:
+            depth = 1
+            
+    depth = min(max(depth, 1), 3)
+    
+    nodes_found = {}
+    edges_found = []
+    queue = deque([(root_id, 0)])
+    
+    # Track which IDs are already in the queue to avoid redundant processing
+    enqueued = {root_id}
+    
+    truncated = False
+    
+    while queue:
+        curr_id, curr_depth = queue.popleft()
+        
+        # Load node
+        cur.execute(
+            f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE id = %s AND workspace_id = %s AND status IN ('active', 'pending_review')",
+            (curr_id, workspace_id)
+        )
+        node = cur.fetchone()
+        if not node:
+            continue
+            
+        # source_document filter
+        if not include_source and node["content_type"] == "source_document":
+            continue
+            
+        node = dict(node)
+        
+        # P4.7-S3-2: Enhanced Pending review flag (check both node status and review_queue)
+        cur.execute(
+            "SELECT 1 FROM review_queue WHERE node_id = %s AND status = 'pending' LIMIT 1",
+            (curr_id,)
+        )
+        has_pending_review = (cur.fetchone() is not None)
+        node["is_pending"] = (node["status"] == "pending_review") or has_pending_review
+            
+        # Visibility & Privacy check (Option B)
+        # If not public and viewer is not authorized (not owner/editor/admin), redact
+        is_owner = (viewer_id and viewer_id == node["author"])
+        if node["visibility"] != "public" and viewer_role not in ("editor", "admin") and not is_owner:
+            node["is_protected"] = True
+            node["title_zh"] = None
+            node["title_en"] = None
+            node["body_zh"] = None
+            node["body_en"] = None
+            node["tags"] = []
+        else:
+            node["is_protected"] = False
+
+        nodes_found[curr_id] = node
+        
+        if len(nodes_found) >= 500:
+            truncated = True
+            break
+
+        if curr_depth < depth:
+            # Find neighbors
+            where_clauses = ["workspace_id = %s", "status IN ('active', 'faded')"]
+            params = [workspace_id]
+            
+            direction_clause = ""
+            if direction == "outbound":
+                direction_clause = "AND from_id = %s"
+                params.append(curr_id)
+            elif direction == "inbound":
+                direction_clause = "AND to_id = %s"
+                params.append(curr_id)
+            else: # both
+                direction_clause = "AND (from_id = %s OR to_id = %s)"
+                params.append(curr_id)
+                params.append(curr_id)
+                
+            if relation:
+                where_clauses.append("relation = %s")
+                params.append(relation)
+                
+            query = f"SELECT id, from_id, to_id, relation, weight, co_access_count, last_co_accessed, status FROM edges WHERE {' AND '.join(where_clauses)} {direction_clause}"
+            cur.execute(query, params)
+            
+            for edge in cur.fetchall():
+                edges_found.append(dict(edge))
+                neighbor_id = edge["to_id"] if edge["from_id"] == curr_id else edge["from_id"]
+                if neighbor_id not in enqueued:
+                    enqueued.add(neighbor_id)
+                    queue.append((neighbor_id, curr_depth + 1))
+
+    return {
+        "root_id": root_id,
+        "depth": depth,
+        "nodes": list(nodes_found.values()),
+        "edges": edges_found,
+        "truncated": truncated,
+        "total_nodes": len(nodes_found)
+    }
+
+
 
 def _require_ws_access(cur, ws_id: str, user: Optional[dict], write: bool = False, required_scope: Optional[str] = None):
     # API key scope and workspace validation
@@ -293,7 +422,7 @@ def _create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
             status, dim_author_rep, trust_score
         ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        RETURNING *
+        RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
             node_id,
@@ -320,7 +449,7 @@ def _create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
 
 
 def _update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: str) -> dict:
-    cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+    cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
     existing = cur.fetchone()
     if not existing:
         raise HTTPException(status_code=404, detail="Node not found")
@@ -333,7 +462,7 @@ def _update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id:
         SET title_zh = %s, title_en = %s, content_type = %s, content_format = %s,
             body_zh = %s, body_en = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s
         WHERE id = %s AND workspace_id = %s
-        RETURNING *
+        RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
             payload["title_zh"],
@@ -354,7 +483,7 @@ def _update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id:
 
 
 def _delete_node_in_db(cur, ws_id: str, node_id: str):
-    cur.execute("DELETE FROM memory_nodes WHERE id = %s AND workspace_id = %s RETURNING *", (node_id, ws_id))
+    cur.execute(f"DELETE FROM memory_nodes WHERE id = %s AND workspace_id = %s RETURNING {NODE_PUBLIC_COLUMNS}", (node_id, ws_id))
     row = cur.fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Node not found")
@@ -448,7 +577,7 @@ def _propose_change(
     after_snapshot = None
 
     if target_node_id:
-        cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (target_node_id, ws_id))
+        cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE id = %s AND workspace_id = %s", (target_node_id, ws_id))
         existing = cur.fetchone()
         if not existing:
             raise HTTPException(status_code=404, detail="Target node not found")
@@ -1229,6 +1358,32 @@ def get_workspace(ws_id: str, user: dict = Depends(get_current_user_optional)):
         return cur.fetchone()
 
 
+@router.get("/workspaces/{workspace_id}/nodes/{node_id}/neighborhood")
+async def get_neighborhood(
+    workspace_id: str,
+    node_id: str,
+    depth: int = Query(2, ge=1, le=3),
+    relation: Optional[str] = None,
+    direction: Literal["both", "outbound", "inbound"] = "both",
+    include_source: bool = Query(True),
+    current_user = Depends(get_current_user_optional),
+):
+    with db_cursor() as cur:
+        workspace = _require_ws_access(cur, workspace_id, current_user)
+        
+        viewer_id = current_user["sub"] if current_user else None
+        viewer_role = _get_effective_role(cur, workspace_id, workspace["owner_id"], viewer_id)
+
+        result = _bfs_neighborhood(
+            cur, workspace_id, node_id, depth, relation, direction,
+            include_source=include_source,
+            viewer_role=viewer_role,
+            viewer_id=viewer_id,
+        )
+
+        return result
+
+
 @router.get("/workspaces/{ws_id}/nodes", response_model=list[NodeResponse])
 def list_nodes(
     ws_id: str,
@@ -1289,7 +1444,7 @@ def list_nodes(
         if not include_source and not content_type:
             filters.append("content_type != 'source_document'")
         params += [limit, offset]
-        cur.execute(f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params)
+        cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params)
         rows = cur.fetchall()  # fetchall BEFORE any further cur.execute calls
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
         return [_strip_body_if_viewer(row, role) for row in rows]
@@ -1331,7 +1486,7 @@ def get_table_view(
         sort_order = "DESC" if order.lower() == "desc" else "ASC"
         
         params_list = list(params) + [limit, offset]
-        cur.execute(f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY {sort_col} {sort_order} LIMIT %s OFFSET %s", params_list)
+        cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY {sort_col} {sort_order} LIMIT %s OFFSET %s", params_list)
         rows = cur.fetchall()
         role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
         nodes = [_strip_body_if_viewer(row, role) for row in rows]
@@ -1347,7 +1502,7 @@ def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dic
         _apply_text_search(filters, params, query)
         params.append(limit)
         cur.execute(
-            f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY updated_at DESC, created_at DESC LIMIT %s",
+            f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY updated_at DESC, created_at DESC LIMIT %s",
             params,
         )
         rows = cur.fetchall()  # fetchall before _get_effective_role to avoid cursor reuse
@@ -1510,7 +1665,7 @@ def suggest_edges_for_node(ws_id: str, node_id: str, user: dict = Depends(get_cu
 def get_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user_optional)):
     with db_cursor() as cur:
         ws = _require_ws_access(cur, ws_id, user)
-        cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+        cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
         node = cur.fetchone()
         if not node:
             raise HTTPException(status_code=404, detail="Node not found")
@@ -1561,7 +1716,7 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: Ba
     updates = body.model_dump(exclude_none=True)
     with db_cursor(commit=True) as cur:
         ws = _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
-        cur.execute("SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+        cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
         existing = cur.fetchone()
         if not existing:
             raise HTTPException(status_code=404, detail="Node not found")
@@ -1917,45 +2072,25 @@ def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_u
 
 
 @router.post("/nodes/{node_id}/traverse", status_code=204)
-def traverse_node(node_id: str, user: dict = Depends(RequireScope("node:traverse"))):
-    """A5: After traverse, auto-update dim_utility and recompute trust_score."""
-    TraversalGuard.check(user["sub"])  # anomaly detection: 500/10m soft, 2000/10m hard-suspend
-    with db_cursor(commit=True) as cur:
-        # Verify the caller actually has access to this node's workspace
+def traverse_node(
+    node_id: str,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(RequireScope("node:traverse"))
+):
+    """
+    P4.7: Explicitly record node traversal and update trust metrics.
+    Delegates to _record_traversal background task.
+    """
+    TraversalGuard.check(user["sub"])
+    with db_cursor() as cur:
         cur.execute("SELECT workspace_id FROM memory_nodes WHERE id = %s", (node_id,))
         node_row = cur.fetchone()
         if not node_row:
             raise HTTPException(status_code=404, detail="Node not found")
         _require_ws_access(cur, node_row["workspace_id"], user)
+        ws_id = node_row["workspace_id"]
 
-        is_new = not _actor_has_traversed_node(cur, node_id, user["sub"])
-        cur.execute("INSERT INTO traversal_log (node_id, actor_id) VALUES (%s, %s)", (node_id, user["sub"]))
-        cur.execute(
-            """
-            UPDATE memory_nodes
-            SET traversal_count = traversal_count + 1,
-                unique_traverser_count = unique_traverser_count + %s
-            WHERE id = %s
-            """,
-            (1 if is_new else 0, node_id),
-        )
-        # A5: Auto-update dim_utility and recompute composite trust_score
-        # Weights: Accuracy 40%, Freshness 25%, Utility 25%, Author Rep 10%
-        cur.execute(
-            """
-            UPDATE memory_nodes
-            SET
-                dim_utility = LEAST(1.0, (traversal_count)::float / 100.0),
-                trust_score = (
-                    dim_accuracy   * 0.40 +
-                    dim_freshness  * 0.25 +
-                    LEAST(1.0, (traversal_count)::float / 100.0) * 0.25 +
-                    dim_author_rep * 0.10
-                )
-            WHERE id = %s
-            """,
-            (node_id,),
-        )
+    background_tasks.add_task(_record_traversal, ws_id, node_id, user["sub"])
 
 
 @router.post(
@@ -2446,3 +2581,57 @@ def _write_mcp_interaction_edge(ws_id: str, node_id: str, tool_name: str, query_
                 INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, metadata)
                 VALUES (%s, %s, %s, %s, 'queried_via_mcp', 1.0, %s)
             """, (edge_id, ws_id, agent_id, node_id, json.dumps(meta)))
+
+
+def _record_traversal(ws_id: str, node_id: str, user_id: str):
+    """
+    Background task to record node traversal and update trust metrics (freshness).
+    P4.7-S1-2 & S3-4.
+    """
+    with db_cursor(commit=True) as cur:
+        # Record in log
+        # Note: traversal_log schema is (node_id, actor_id, traversed_at)
+        cur.execute(
+            "INSERT INTO traversal_log (node_id, actor_id) VALUES (%s, %s)",
+            (node_id, user_id)
+        )
+        
+        # Check if this is a new traverser for this node
+        cur.execute(
+            "SELECT COUNT(*) FROM traversal_log WHERE node_id = %s AND actor_id = %s",
+            (node_id, user_id)
+        )
+        count = cur.fetchone()["count"]
+        is_new = (count == 1)
+
+        # Update node counters and freshness
+        # Freshness is reset to 1.0 when a node is 'traversed' (viewed/explored)
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET traversal_count = traversal_count + 1,
+                unique_traverser_count = unique_traverser_count + %s,
+                dim_freshness = 1.0,
+                validity_confirmed_at = now()
+            WHERE id = %s AND workspace_id = %s
+            """,
+            (1 if is_new else 0, node_id, ws_id)
+        )
+        
+        # Recompute trust_score with new utility (based on traversal_count)
+        # Weights: Accuracy 40%, Freshness 25%, Utility 25%, Author Rep 10%
+        cur.execute(
+            """
+            UPDATE memory_nodes
+            SET
+                dim_utility = LEAST(1.0, (traversal_count)::float / 100.0),
+                trust_score = (
+                    dim_accuracy   * 0.40 +
+                    1.0            * 0.25 +
+                    LEAST(1.0, (traversal_count)::float / 100.0) * 0.25 +
+                    dim_author_rep * 0.10
+                )
+            WHERE id = %s AND workspace_id = %s
+            """,
+            (node_id, ws_id)
+        )

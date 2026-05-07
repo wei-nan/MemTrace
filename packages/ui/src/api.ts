@@ -332,8 +332,12 @@ export const workspaces = {
 };
 
 export const nodes = {
-  list: (wsId: string, params?: Record<string, string>) => {
-    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+  list: (wsId: string, params?: Record<string, string | number>) => {
+    const stringParams: Record<string, string> = {};
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => { stringParams[k] = String(v); });
+    }
+    const qs = params ? `?${new URLSearchParams(stringParams).toString()}` : "";
     return request<Node[]>("GET", `${BASE}/workspaces/${wsId}/nodes${qs}`);
   },
   get: (wsId: string, nodeId: string) => request<Node>("GET", `${BASE}/workspaces/${wsId}/nodes/${nodeId}`),
@@ -344,6 +348,10 @@ export const nodes = {
   traverse: (nodeId: string) => request("POST", `${BASE}/nodes/${nodeId}/traverse`),
   searchSemantic: (wsId: string, query: string, limit = 10) =>
     request<Node[]>("POST", `${BASE}/workspaces/${wsId}/nodes/search-semantic?query=${encodeURIComponent(query)}&limit=${limit}`),
+  neighborhood: (wsId: string, nodeId: string, params?: { depth?: number; relation?: string; direction?: string; include_source?: boolean }) => {
+    const qs = params ? `?${new URLSearchParams(params as any).toString()}` : "";
+    return request<NeighborhoodResponse>("GET", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/neighborhood${qs}`);
+  },
   revisions: (wsId: string, nodeId: string) =>
     request<NodeRevisionMeta[]>("GET", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/revisions`),
   revision: (wsId: string, nodeId: string, revisionNo: number) =>
@@ -417,7 +425,7 @@ export const aiReviewers = {
 };
 
 export const ingest = {
-  upload: (wsId: string, file: File, docType: string = "generic", seeds?: string[], excelConfig?: Record<string, any>) => {
+  upload: (wsId: string, file: File, docType: string = "generic", seeds?: string[], excelConfig?: Record<string, any>, meta?: { batch_id?: string; queue_position?: number }) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("doc_type", docType);
@@ -427,6 +435,9 @@ export const ingest = {
     if (excelConfig) {
       formData.append("excel_config", JSON.stringify(excelConfig));
     }
+    if (meta?.batch_id) formData.append("batch_id", meta.batch_id);
+    if (meta?.queue_position !== undefined) formData.append("queue_position", String(meta.queue_position));
+
     return fetch(`${BASE}/workspaces/${wsId}/ingest`, {
       method: "POST",
       headers: { ...authHeaders(), ...writeHeaders() },
@@ -436,6 +447,7 @@ export const ingest = {
       return res.json();
     });
   },
+  cancel: (wsId: string, jobId: string) => request("DELETE", `${BASE}/workspaces/${wsId}/ingest/${jobId}`),
   excelPreview: (wsId: string, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -508,6 +520,15 @@ export interface ModelInfo {
 
 export interface CreditStatus {
   has_own_key: { openai: boolean; anthropic: boolean; gemini: boolean; ollama: boolean };
+}
+
+export interface NeighborhoodResponse {
+  root_id: string;
+  depth: number;
+  nodes: Node[];
+  edges: Edge[];
+  truncated: boolean;
+  total_nodes: number;
 }
 
 export interface Workspace {
@@ -765,12 +786,15 @@ export interface KBImportResponse {
 export interface IngestionLog {
   id: string;
   filename: string;
-  status: "processing" | "completed" | "failed";
+  status: "pending" | "processing" | "completed" | "failed" | "cancelling" | "cancelled";
   error_msg?: string;
   chunks_total?: number;   // null when document fits in one chunk
   chunks_done?: number;
   created_at: string;
   completed_at?: string;
+  batch_id?: string;
+  queue_position?: number;
+  source_document_id?: string;
 }
 
 export interface ChatRequest {

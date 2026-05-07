@@ -184,12 +184,13 @@ const LABEL_VISIBLE_DISTANCE = 250; // Camera distance threshold to hide labels
 interface Props {
   apiNodes: ApiNode[];
   apiEdges: ApiEdge[];
-  relationColors: Record<string, string>; // kept for API compat
   onEditNode?: (node: ApiNode) => void;
   healthMode?: boolean;
-  healthScores?: Record<string, any>;
+  healthScores?: Record<string, { score: number; label: string }>;
   isPreview?: boolean;
   dofEnabled?: boolean;
+  onNodeDoubleClick?: (nodeId: string) => void;
+  mode?: '2d' | '3d' | 'table' | 'explore';
 }
 
 const HEALTH_COLORS: Record<string, string> = {
@@ -198,7 +199,10 @@ const HEALTH_COLORS: Record<string, string> = {
   critical: '#ef4444',
 };
 
-export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode = false, healthScores = {}, isPreview = false, dofEnabled = false }: Props) {
+export default function GraphView3D({ 
+  apiNodes, apiEdges, onEditNode, healthMode = false, healthScores = {}, 
+  isPreview = false, dofEnabled = false, onNodeDoubleClick, mode = '3d'
+}: Props) {
   const fgRef      = useRef<ForceGraphMethods>(null!);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const palette    = useThemePalette();
@@ -281,6 +285,8 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
         color:    EDGE_COLORS[e.relation] ?? '#64748b',
         weight:   e.weight ?? 1,
         status:   e.status ?? 'active',
+        co_access_count: e.co_access_count,
+        last_co_accessed: e.last_co_accessed,
       }));
 
     return { nodes: nodes as any[], links: links as any[] };
@@ -316,9 +322,20 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
 
   // ── Click → open editor + highlight ────────────────────────────────────
   const [hoveredNode, setHoveredNode] = useState<any>(null);
+  const lastClickTime = useRef<number>(0);
 
   const handleNodeClick = useCallback((node: any) => {
     if (isPreview) return;
+    
+    const now = Date.now();
+    if (now - lastClickTime.current < 300) {
+      // Double click navigation
+      if (onNodeDoubleClick) onNodeDoubleClick(node.id);
+      lastClickTime.current = 0;
+      return;
+    }
+    lastClickTime.current = now;
+
     if (node._api && onEditNode) onEditNode(node._api);
     setSelectedNodeId(node.id);
 
@@ -371,7 +388,11 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
       color = HEALTH_COLORS[healthScores[node.id].label] || color;
     }
 
+    const n = node._api;
     const isSelected = !isPreview && node.id === selectedNodeId;
+    const isPending = n?.status === 'pending_review';
+    const isProtected = n?.is_protected;
+    const hasSource = !!n?.source_document_id;
 
     const group = new THREE.Group();
 
@@ -385,6 +406,22 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
     group.add(sphere);
 
+    // Pulse effect for pending nodes
+    if (isPending) {
+      const pulseGeo = new THREE.SphereGeometry(isSelected ? 7 : 6, 24, 24);
+      const pulseMat = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.2,
+      });
+      const pulse = new THREE.Mesh(pulseGeo, pulseMat);
+      // We can't easily animate in nodeThreeObject because it's called once, 
+      // but force-graph will re-use the object. We'll use a custom property 
+      // to let the global raf know.
+      (pulse as any)._isPulse = true; 
+      group.add(pulse);
+    }
+
     // Glow ring for selected node
     if (isSelected) {
       const ringGeo = new THREE.RingGeometry(6, 7.5, 32);
@@ -396,6 +433,26 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       group.add(ring);
+    }
+
+    // Lock icon for protected nodes
+    if (isProtected) {
+      const lockGeo = new THREE.PlaneGeometry(3, 3);
+      const lockTex = new THREE.TextureLoader().load('https://cdn-icons-png.flaticon.com/512/61/61457.png'); // Lock icon
+      const lockMat = new THREE.MeshBasicMaterial({ map: lockTex, transparent: true, color: '#f87171' });
+      const lock = new THREE.Mesh(lockGeo, lockMat);
+      lock.position.set(3, 3, 0);
+      group.add(lock);
+    }
+
+    // Document icon for nodes with source
+    if (hasSource) {
+      const docGeo = new THREE.PlaneGeometry(3, 3);
+      const docTex = new THREE.TextureLoader().load('https://cdn-icons-png.flaticon.com/512/2991/2991108.png'); // Doc icon
+      const docMat = new THREE.MeshBasicMaterial({ map: docTex, transparent: true, color: '#60a5fa' });
+      const doc = new THREE.Mesh(docGeo, docMat);
+      doc.position.set(-3, 3, 0);
+      group.add(doc);
     }
 
     // Label sprite (theme-aware stroke + fill)
@@ -498,26 +555,75 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
                 ${subtitle ? `<div style="opacity:0.5;font-size:11px;margin-bottom:6px">${subtitle}</div>` : ''}
                 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
                   <span style="background:rgba(99,102,241,0.25);padding:1px 6px;border-radius:4px;font-size:10px">${typeLabel}</span>
-                  <span style="opacity:0.5;font-size:10px">${zh ? '信任' : 'trust'}: ${(n.trust_score ?? 0).toFixed(2)}</span>
+                  <span style="opacity:0.5;font-size:10px">${zh ? '總信任' : 'trust'}: ${(n.trust_score ?? 0).toFixed(2)}</span>
                   <span style="opacity:0.5;font-size:10px">${edges} ${zh ? '關聯' : 'edges'}</span>
                 </div>
+                
+                ${mode === 'explore' ? `
+                <div style="margin-top:8px;border-top:1px solid ${palette.legendDivider};padding-top:8px;display:flex;flex-direction:column;gap:4px">
+                  <div style="display:flex;justify-content:space-between;font-size:10px">
+                    <span>${zh ? '準確性' : 'Accuracy'}</span>
+                    <span style="font-family:monospace">${(n.dim_accuracy ?? 0).toFixed(2)}</span>
+                  </div>
+                  <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
+                    <div style="height:100%;width:${(n.dim_accuracy ?? 0) * 100}%;background:var(--color-primary)"></div>
+                  </div>
+                  
+                  <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:2px">
+                    <span>${zh ? '新鮮度' : 'Freshness'}</span>
+                    <span style="font-family:monospace">${(n.dim_freshness ?? 0).toFixed(2)}</span>
+                  </div>
+                  <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
+                    <div style="height:100%;width:${(n.dim_freshness ?? 0) * 100}%;background:var(--node-secondary)"></div>
+                  </div>
+
+                  <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:2px">
+                    <span>${zh ? '實用度' : 'Utility'}</span>
+                    <span style="font-family:monospace">${(n.dim_utility ?? 0).toFixed(2)}</span>
+                  </div>
+                  <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
+                    <div style="height:100%;width:${(n.dim_utility ?? 0) * 100}%;background:#fbbf24"></div>
+                  </div>
+                  
+                  <div style="font-size:9px;opacity:0.5;margin-top:4px;text-align:right">
+                    ${zh ? '預計' : 'Est.'} ${Math.round((n.dim_freshness ?? 0.5) * (n.content_type === 'factual' ? 365 : 90))} ${zh ? '天後衰退' : 'days to faded'}
+                  </div>
+                </div>
+                ` : ''}
+
                 ${isExpired ? `<div style="color:#eab308;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '有效性已過期' : 'Validity Expired'}</div>` : ''}
                 ${(!n.body_zh && !n.body_en) ? `<div style="color:#ef4444;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '內容為空' : 'Empty Body'}</div>` : ''}
+                <div style="border-top:1px solid ${palette.legendDivider};margin-top:8px;padding-top:6px;font-size:9px;opacity:0.4;text-align:center">
+                  ${zh ? '雙擊以鄰域探索' : 'Double-click to explore neighborhood'}
+                </div>
               </div>`;
             }}
             nodeThreeObject={nodeThreeObject}
             nodeThreeObjectExtend={false}
-            linkWidth={(link: any) => Math.max(0.3, (link.weight ?? 1) * 3)}
+            linkWidth={(link: any) => {
+              if (mode === 'explore' && link.co_access_count !== undefined) {
+                return Math.max(0.5, Math.log((link.co_access_count ?? 0) + 1) * 2);
+              }
+              return Math.max(0.3, (link.weight ?? 1) * 3);
+            }}
             linkColor={(link: any) => link.status === 'faded' ? '#94a3b830' : link.color}
             linkDirectionalArrowLength={5}
             linkDirectionalArrowRelPos={1}
-            linkDirectionalParticles={2}
-            linkDirectionalParticleSpeed={0.004}
-            linkDirectionalParticleWidth={1.5}
             linkLabel={(link: any) => {
               const label = zh ? (RELATION_LABELS_ZH[link.relation] || link.relation) : link.relation.replace('_', ' ');
               const color = EDGE_COLORS[link.relation] || '#64748b';
-              return `<div style="background:${palette.tooltipBg};border:1px solid ${color}44;border-radius:6px;padding:4px 10px;font-size:11px;color:${color}">${label}</div>`;
+              const isFaded = link.status === 'faded';
+              
+              let extra = '';
+              if (isFaded && link.last_co_accessed) {
+                const days = Math.floor((Date.now() - new Date(link.last_co_accessed).getTime()) / (1000 * 3600 * 24));
+                extra = `<div style="font-size:10px;color:#ef4444;margin-top:4px">${zh ? `已衰退 (上次走訪：${days} 天前)` : `Faded (${days} days since last access)`}</div>`;
+              }
+
+              return `<div style="background:${palette.tooltipBg};border:1px solid ${isFaded ? '#94a3b8' : color}44;border-radius:6px;padding:6px 12px;font-size:11px;color:${isFaded ? '#94a3b8' : color}">
+                <div style="font-weight:700">${label}</div>
+                ${extra}
+              </div>`;
             }}
             linkOpacity={0.5}
             onNodeClick={handleNodeClick}
@@ -538,6 +644,19 @@ export default function GraphView3D({ apiNodes, apiEdges, onEditNode, healthMode
             d3VelocityDecay={0.3}
             warmupTicks={80}
             cooldownTime={3000}
+            linkDirectionalParticles={(link: any) => {
+              if (link.status === 'faded') return 0;
+              // P4.7-S4-2: Scale particles by node count to maintain FPS
+              if (apiNodes.length > 300) return 1;
+              if (apiNodes.length > 100) return 2;
+              return 4;
+            }}
+            linkDirectionalParticleSpeed={() => {
+              // Faster particles for fewer nodes
+              if (apiNodes.length > 300) return 0.002;
+              return 0.004;
+            }}
+            linkDirectionalParticleWidth={1.5}
             onRenderFramePost={() => {
               if (dofEnabled && composerRef.current) {
                 composerRef.current.render();

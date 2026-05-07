@@ -404,7 +404,8 @@ const resources = {
         cancel_vote: '取消',
         vote_submitted: '評分已提交',
         queried_via_mcp_label: '系統查詢 (MCP)',
-        times: '次'
+        times: '次',
+        explore_in_graph: '在圖譜中探索'
       },
       relation: {
         depends_on: '依賴',
@@ -798,6 +799,7 @@ const resources = {
         no_associations: 'No associations yet.',
         search_node_ph: 'Search node title or paste node id',
         link: 'Link',
+        explore_in_graph: 'Explore in Graph',
         copy_to_workspace: 'Copy to Workspace',
         copy: 'Copy',
         no_other_ws: 'No other workspaces available',

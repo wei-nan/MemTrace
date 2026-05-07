@@ -408,11 +408,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",                          # Vite dev server
-        "https://mac-mini.tail6066c6.ts.net",            # Tailscale UI
-        "https://mac-mini.tail6066c6.ts.net:5173",       # Tailscale UI alt port
-    ],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

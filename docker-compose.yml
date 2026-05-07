@@ -35,7 +35,7 @@ services:
       MEMTRACE_ANON_LOG_SALT: ${MEMTRACE_ANON_LOG_SALT:-dev_salt_123}
       MEMTRACE_REGISTRATION_MODE: ${MEMTRACE_REGISTRATION_MODE:-invite_only}
     ports:
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -63,7 +63,7 @@ services:
     container_name: memtrace-ui
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5173:8080"
+      - "5173:8080"
     depends_on:
       api:
         condition: service_healthy

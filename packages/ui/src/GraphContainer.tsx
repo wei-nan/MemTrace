@@ -7,13 +7,14 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, RefreshCw, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, FileUp } from 'lucide-react';
+import { Archive, RefreshCw, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, FileUp, Compass } from 'lucide-react';
 import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
 import TableView from './TableView';
+import NeighborhoodView from './NeighborhoodView';
 
-type GraphMode = '2d' | '3d' | 'table';
+type GraphMode = '2d' | '3d' | 'table' | 'explore';
 
 const RELATION_COLORS: Record<string, string> = {
   depends_on:  'var(--color-primary)',
@@ -33,10 +34,11 @@ interface Props {
   onLogout?: () => void;
   showMcpStatus?: boolean;
   setShowMcpStatus?: (v: boolean) => void;
+  onExplore?: (nodeId: string) => void;
 }
 
 export default function GraphContainer({ 
-  wsId, reloadKey, onEditNode, onNewNode, onSwitchView, userId
+  wsId, reloadKey, onEditNode, onNewNode, onSwitchView, userId, onExplore
 }: Props) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
@@ -52,14 +54,27 @@ export default function GraphContainer({
   const [isPreview, setIsPreview]   = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [workspace, setWorkspace]   = useState<any>(null);
+  const [exploreRootNodeId, setExploreRootNodeId] = useState<string | null>(null);
+
+  // Expose onExplore to parent via imperative-like prop update if needed,
+  // but here we just handle it if passed.
+  useEffect(() => {
+    if (onExplore) {
+      // This is a bit hacky, but lets the parent trigger explore mode
+      (window as any).mt_trigger_explore = (nodeId: string) => {
+        setExploreRootNodeId(nodeId);
+        setGraphMode('explore');
+      };
+    }
+  }, [onExplore]);
 
   // ── Archive toggle (must precede load so it's in scope for the callback) ──
   const [showArchived, setShowArchived] = useState(false);
 
   // ── Display limit ─────────────────────────────────────────────────────────
-  const LIMIT_OPTIONS = [100, 200, 500, 1000, 'unlimited'] as const;
+  const LIMIT_OPTIONS = [50, 100, 200, 500] as const;
   type LimitOption = typeof LIMIT_OPTIONS[number];
-  const [displayLimit, setDisplayLimit] = useState<LimitOption>(200);
+  const [displayLimit, setDisplayLimit] = useState<LimitOption>(100);
   const [orphanFilter, setOrphanFilter] = useState<string | undefined>(undefined);
   const [dofEnabled, setDofEnabled] = useState(true);
 
@@ -69,7 +84,7 @@ export default function GraphContainer({
     setLoading(true);
     setError('');
     try {
-      const queryLimit = displayLimit === 'unlimited' ? '50000' : String(displayLimit);
+      const queryLimit = String(displayLimit);
       const [rawNodes, rawEdges, ws, analytics] = await Promise.all([
         nodesApi.list(wsId, showArchived ? { status: 'all', limit: queryLimit } : { limit: queryLimit }),
         edgesApi.list(wsId),
@@ -139,7 +154,7 @@ export default function GraphContainer({
 
 
   // ── Subtitle text ─────────────────────────────────────────────────────────
-  const atDisplayCap = !loading && !error && displayLimit !== 'unlimited' && apiNodes.length >= displayLimit && totalNodes !== null && totalNodes > displayLimit;
+  const atDisplayCap = !loading && !error && apiNodes.length >= displayLimit && totalNodes !== null && totalNodes > displayLimit;
   const subtitle = loading
     ? (zh ? '載入中…' : 'Loading…')
     : error
@@ -256,7 +271,7 @@ export default function GraphContainer({
             </span>
             <select
               value={displayLimit}
-              onChange={(e) => setDisplayLimit(e.target.value === 'unlimited' ? 'unlimited' : Number(e.target.value) as LimitOption)}
+              onChange={(e) => setDisplayLimit(Number(e.target.value) as LimitOption)}
               style={{
                 padding: '0 28px 0 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
@@ -271,7 +286,7 @@ export default function GraphContainer({
             >
               {LIMIT_OPTIONS.map(opt => (
                 <option key={opt} value={opt}>
-                  {opt === 'unlimited' ? (zh ? '無限制' : 'Unlimited') : opt}
+                  {opt}
                 </option>
               ))}
             </select>
@@ -287,20 +302,25 @@ export default function GraphContainer({
             borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-sm)',
             height: 38
           }}>
-            {(['2d', '3d', 'table'] as GraphMode[]).map(mode => (
+            {(['2d', '3d', 'table', 'explore'] as GraphMode[]).map(mode => (
               <button
                 key={mode}
-                onClick={() => setGraphMode(mode)}
+                onClick={() => {
+                  setGraphMode(mode);
+                  if (mode !== 'explore') setExploreRootNodeId(null);
+                }}
+                disabled={mode === 'explore' && !exploreRootNodeId}
                 style={{
                   padding: '0 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   border: 'none', height: '100%',
                   background: graphMode === mode ? 'var(--color-primary)' : 'transparent',
-                  color: graphMode === mode ? 'white' : 'var(--text-muted)',
+                  color: graphMode === mode ? 'white' : (mode === 'explore' && !exploreRootNodeId ? 'var(--text-disabled)' : 'var(--text-muted)'),
                   transition: 'all 0.15s',
                   display: 'flex', alignItems: 'center', gap: 5,
+                  opacity: mode === 'explore' && !exploreRootNodeId ? 0.5 : 1,
                 }}
               >
-                {mode === '2d' ? <Network size={12} /> : mode === '3d' ? <Layers size={12} /> : <Table2 size={12} />}
+                {mode === '2d' ? <Network size={12} /> : mode === '3d' ? <Layers size={12} /> : mode === 'table' ? <Table2 size={12} /> : <Compass size={12} />}
                 {mode.toUpperCase()}
               </button>
             ))}
@@ -408,12 +428,21 @@ export default function GraphContainer({
           <GraphView3D
             apiNodes={apiNodes}
             apiEdges={apiEdges}
-            relationColors={RELATION_COLORS}
             onEditNode={onEditNode}
             healthMode={healthMode}
             healthScores={healthScores}
             isPreview={isPreview}
             dofEnabled={dofEnabled}
+          />
+        ) : graphMode === 'explore' && wsId ? (
+          <NeighborhoodView
+            wsId={wsId}
+            rootNodeId={exploreRootNodeId}
+            onNodeClick={onEditNode}
+            onExploreNode={(nodeId) => {
+              setExploreRootNodeId(nodeId);
+            }}
+            onClose={() => setGraphMode('2d')}
           />
         ) : (
           <TableView 

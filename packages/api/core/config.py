@@ -51,6 +51,8 @@ class Settings(BaseSettings):
     admin_emails: str = ""
     registration_mode: str = "invite_only"  # "open" | "domain" | "approval" | "invite_only" | "closed"
     registration_domains: list[str] = []    # ["example.com"]
+    allow_anonymous: bool = False           # Whether to allow guest view for public workspaces
+    allowed_origins: list[str] = ["http://localhost:5173"]  # CORS allowed origins
 
     class Config:
         env_file = "../../.env"

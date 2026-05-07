@@ -402,15 +402,24 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
         )}
 
         <div style={{ display: 'flex', gap: 10, background: 'var(--bg-app)', padding: '8px 12px', borderRadius: 24, border: '1px solid var(--border-default)' }}>
-          <input
-            style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text-default)', fontSize: 14, paddingLeft: 8 }}
+          <textarea
+            style={{ 
+              flex: 1, background: 'none', border: 'none', outline: 'none', 
+              color: 'var(--text-default)', fontSize: 14, paddingLeft: 8,
+              resize: 'none', paddingTop: 6, minHeight: 24, maxHeight: 160,
+              fontFamily: 'inherit', lineHeight: 1.5
+            }}
+            rows={Math.min(5, input.split('\n').length)}
             placeholder={zh ? '輸入訊息...' : 'Type a message...'}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && input.trim() && !loading) {
-                const canSend = !credits || credits.has_own_key[provider];
-                if (canSend) handleSend();
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (input.trim() && !loading) {
+                  const canSend = !credits || credits.has_own_key[provider];
+                  if (canSend) handleSend();
+                }
               }
             }}
           />

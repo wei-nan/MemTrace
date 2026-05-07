@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
-import { Archive, Bot, Calendar, CheckCircle2, Copy, Edit3, History, Link as LinkIcon, RotateCcw, Save, Shield, Trash2, TriangleAlert, User, X } from "lucide-react";
+import { Archive, Bot, Calendar, CheckCircle2, Compass, Copy, Edit3, History, Link as LinkIcon, RotateCcw, Save, Shield, Trash2, TriangleAlert, User, X } from "lucide-react";
 import { ai as aiApi, edges as edgesApi, nodes as nodesApi, review as reviewApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta, type ReviewItem } from "./api";
 import DiffPreviewModal from "./components/DiffPreviewModal";
 import { useModal } from "./components/ModalContext";
@@ -649,6 +649,22 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <LinkIcon size={16} /> {t("node.associations")}
               </div>
+              
+              {node && !isViewerLocked && (
+                <button
+                  className="btn-primary"
+                  style={{ width: '100%', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 10, height: 42 }}
+                  onClick={() => {
+                    if (node?.id && (window as any).mt_trigger_explore) {
+                      (window as any).mt_trigger_explore(node.id);
+                      onClose();
+                    }
+                  }}
+                >
+                  <Compass size={18} />
+                  {t("node.explore_in_graph", { defaultValue: "Explore in Graph" })}
+                </button>
+              )}
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {nodeEdges.filter(e => e.relation !== 'queried_via_mcp').map((edge) => {
                   const otherId = edge.from_id === node?.id ? edge.to_id : edge.from_id;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, CheckCircle2, XCircle, Clock, ExternalLink, ServerCrash } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Clock, ExternalLink, ServerCrash, Compass, ChevronDown, ChevronRight, Ban } from 'lucide-react';
 import { ingest, type IngestionLog } from './api';
 
 // ── Progress bar ────────────────────────────────────────────────────────────
@@ -48,15 +48,17 @@ function ServerSideNotice({ t }: { t: any }) {
 
 // ── Single log row ──────────────────────────────────────────────────────────
 
-function LogRow({ log, t, onGoToReview }: { log: IngestionLog; t: any; onGoToReview: () => void }) {
+function LogRow({ log, t, onGoToReview, nested = false }: { log: IngestionLog; t: any; onGoToReview: () => void; nested?: boolean }) {
   const isMultiChunk = (log.chunks_total ?? 1) > 1;
+  const zh = t.language === 'zh-TW';
 
   return (
     <div style={{
-      background: 'var(--bg-surface)',
-      border: `1px solid ${log.status === 'failed' ? 'var(--color-error)' : 'var(--border-default)'}`,
-      borderRadius: 12,
-      padding: '12px 16px',
+      background: nested ? 'transparent' : 'var(--bg-surface)',
+      border: nested ? 'none' : `1px solid ${log.status === 'failed' ? 'var(--color-error)' : 'var(--border-default)'}`,
+      borderBottom: nested ? '1px solid var(--border-subtle)' : undefined,
+      borderRadius: nested ? 0 : 12,
+      padding: nested ? '8px 0' : '12px 16px',
     }}>
       {/* ── Top row: icon + info + action ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
@@ -64,13 +66,16 @@ function LogRow({ log, t, onGoToReview }: { log: IngestionLog; t: any; onGoToRev
 
           {/* Status icon */}
           <div style={{ flexShrink: 0, color:
-            log.status === 'processing' ? 'var(--color-primary)' :
+            (log.status === 'processing' || log.status === 'cancelling') ? 'var(--color-primary)' :
             log.status === 'completed'  ? 'var(--color-success)' :
+            log.status === 'cancelled'   ? 'var(--text-muted)' :
             'var(--color-error)'
           }}>
-            {log.status === 'processing' && <Loader2 size={18} className="animate-spin" />}
+            {(log.status === 'processing' || log.status === 'cancelling') && <Loader2 size={18} className="animate-spin" />}
             {log.status === 'completed'  && <CheckCircle2 size={18} />}
             {log.status === 'failed'     && <XCircle size={18} />}
+            {log.status === 'cancelled'  && <Ban size={18} />}
+            {log.status === 'pending'    && <Clock size={18} />}
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -86,6 +91,9 @@ function LogRow({ log, t, onGoToReview }: { log: IngestionLog; t: any; onGoToRev
                   ? t('ingest.processing_chunks')
                   : t('ingest.processing_single')
               )}
+              {log.status === 'cancelling' && (zh ? '正在取消...' : 'Cancelling...')}
+              {log.status === 'cancelled' && (zh ? '已取消' : 'Cancelled')}
+              {log.status === 'pending' && (zh ? '佇列中' : 'In Queue')}
               {log.status === 'completed' && t('ingest.completed')}
               {log.status === 'failed'    && (log.error_msg || t('ingest.failed'))}
             </div>
@@ -98,17 +106,85 @@ function LogRow({ log, t, onGoToReview }: { log: IngestionLog; t: any; onGoToRev
         </div>
 
         {/* Action */}
-        {log.status === 'completed' && (
-          <button
-            className="btn-secondary"
-            onClick={onGoToReview}
-            style={{ padding: '6px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}
-          >
-            {t('ingest.review_btn')}
-            <ExternalLink size={12} />
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          {log.status === 'completed' && log.source_document_id && (
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                if ((window as any).mt_trigger_explore) {
+                  (window as any).mt_trigger_explore(log.source_document_id);
+                }
+              }}
+              style={{ padding: '4px 10px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+            >
+              <Compass size={11} />
+              {t('ingest.explore_btn', { defaultValue: 'Explore' })}
+            </button>
+          )}
+          {log.status === 'completed' && (
+            <button
+              className="btn-secondary"
+              onClick={onGoToReview}
+              style={{ padding: '4px 10px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+            >
+              {t('ingest.review_btn')}
+              <ExternalLink size={11} />
+            </button>
+          )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+// ── Batch Group component ───────────────────────────────────────────────────
+
+function BatchGroup({ batchId, logs, t, onGoToReview }: { batchId: string; logs: IngestionLog[]; t: any; onGoToReview: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const zh = t.language === 'zh-TW';
+  const doneCount = logs.filter(l => l.status === 'completed').length;
+  const totalCount = logs.length;
+  const isProcessing = logs.some(l => l.status === 'processing' || l.status === 'cancelling' || l.status === 'pending');
+  const hasFailed = logs.some(l => l.status === 'failed');
+
+  return (
+    <div style={{ 
+      background: 'var(--bg-surface)', 
+      border: `1px solid ${hasFailed ? 'var(--color-error)' : 'var(--border-default)'}`, 
+      borderRadius: 12, overflow: 'hidden' 
+    }}>
+      <div 
+        onClick={() => setExpanded(!expanded)}
+        style={{ 
+          padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+          cursor: 'pointer', background: isProcessing ? 'var(--color-primary-subtle)' : 'transparent' 
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ color: 
+            isProcessing ? 'var(--color-primary)' : 
+            hasFailed ? 'var(--color-error)' : 'var(--color-success)' 
+          }}>
+            {isProcessing ? <Loader2 size={18} className="animate-spin" /> : 
+             hasFailed ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>
+              {zh ? '多檔案批次攝入' : 'Batch Ingestion'} ({doneCount}/{totalCount})
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>ID: {batchId.substring(0, 12)}...</div>
+          </div>
+        </div>
+        {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </div>
+      
+      {expanded && (
+        <div style={{ padding: '0 16px 8px 46px', display: 'flex', flexDirection: 'column' }}>
+          {logs.sort((a,b) => (a.queue_position || 0) - (b.queue_position || 0)).map(log => (
+            <LogRow key={log.id} log={log} t={t} onGoToReview={onGoToReview} nested />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -147,7 +223,7 @@ export default function IngestionHistory({
 
   // Auto-poll while any job is still processing
   useEffect(() => {
-    const hasProcessing = logs.some(l => l.status === 'processing');
+    const hasProcessing = logs.some(l => l.status === 'processing' || l.status === 'cancelling' || l.status === 'pending');
     if (!hasProcessing) return;
     const timer = setTimeout(loadLogs, 3000);
     return () => clearTimeout(timer);
@@ -156,19 +232,37 @@ export default function IngestionHistory({
 
   if (logs.length === 0 && !loading) return null;
 
-  const hasProcessing = logs.some(l => l.status === 'processing');
+  // Group logs by batch_id
+  const batchGroups: Record<string, IngestionLog[]> = {};
+  const individuals: IngestionLog[] = [];
+
+  logs.forEach(log => {
+    if (log.batch_id) {
+      if (!batchGroups[log.batch_id]) batchGroups[log.batch_id] = [];
+      batchGroups[log.batch_id].push(log);
+    } else {
+      individuals.push(log);
+    }
+  });
+
+  const hasProcessingGlobal = logs.some(l => l.status === 'processing');
 
   return (
     <div style={{ marginTop: 40, textAlign: 'left' }}>
-      <h3 style={{ fontSize: 16, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <h3 style={{ fontSize: 16, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700 }}>
         <Clock size={16} />
         {t('ingest.recent')}
       </h3>
 
-      {hasProcessing && <ServerSideNotice t={t} />}
+      {hasProcessingGlobal && <ServerSideNotice t={t} />}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {logs.map(log => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Batches first */}
+        {Object.entries(batchGroups).map(([bid, group]) => (
+          <BatchGroup key={bid} batchId={bid} logs={group} t={t} onGoToReview={onGoToReview} />
+        ))}
+        {/* Then individuals */}
+        {individuals.map(log => (
           <LogRow key={log.id} log={log} t={t} onGoToReview={onGoToReview} />
         ))}
       </div>

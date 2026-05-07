@@ -1,112 +1,91 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Upload, Loader2, FileText } from 'lucide-react';
+import { Upload, Loader2, FileText, CheckCircle2, XCircle, Clock, Trash2 } from 'lucide-react';
 import { ingest } from './api';
 import { useModal } from './components/ModalContext';
-import { segmentDocument } from './utils/document';
-import type { Segment } from './utils/document';
-import ImportPreviewModal from './components/ImportPreviewModal';
-import type { SheetInfo, SheetConfig } from './components/ExcelSheetSelector';
 
 export default function IngestButton({ wsId, onStarted }: { wsId: string, onStarted: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const zh = i18n.language === 'zh-TW';
   const { toast } = useModal();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileQueue, setFileQueue] = useState<{ file: File; status: 'pending' | 'processing' | 'done' | 'failed'; jobId?: string; error?: string }[]>([]);
 
-  // Preview State
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewFile, setPreviewFile] = useState<File | null>(null);
-  const [segments, setSegments] = useState<Segment[]>([]);
-
-  // B-3: Excel preview state
-  const [excelSheets, setExcelSheets] = useState<SheetInfo[]>([]);
-  const [selectedSheets, setSelectedSheets] = useState<string[]>([]);
-  const [columnMapping, setColumnMapping] = useState<Record<string, SheetConfig>>({});
-
-  const processFile = async (file: File) => {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const processFiles = (files: File[]) => {
     const textFormats = ['txt', 'md', 'sql', 'yaml', 'yml', 'json', 'py', 'js', 'ts', 'tsx', 'jsx', 'diff', 'patch', 'eml'];
     const binaryFormats = ['pdf', 'docx', 'pptx', 'xlsx', 'xls', 'csv'];
     
-    if (!textFormats.includes(ext) && !binaryFormats.includes(ext)) {
-      toast({ message: t('ingest.file_support_err'), variant: 'error' });
-      return;
+    const validFiles = files.filter(file => {
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      return textFormats.includes(ext) || binaryFormats.includes(ext);
+    });
+
+    if (validFiles.length < files.length) {
+      toast({ message: t('ingest.file_support_err'), variant: 'warning' });
     }
 
-    if (textFormats.includes(ext)) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const segs = segmentDocument(text);
-        setSegments(segs);
-        setExcelSheets([]);
-        setPreviewFile(file);
-        setPreviewOpen(true);
-      };
-      reader.readAsText(file);
-    } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
-      // B-3: Fetch Excel sheet preview from backend
-      try {
-        const preview = await ingest.excelPreview(wsId, file);
-        setExcelSheets(preview.sheets || []);
-        setSelectedSheets((preview.sheets || []).map((s: SheetInfo) => s.name));
-        setColumnMapping({});
-        setSegments([{
-          id: 'excel_preview',
-          heading: file.name,
-          headingChain: [file.name],
-          content: `Excel/CSV - ${(preview.sheets || []).length} sheet(s)\nFormat: ${ext.toUpperCase()}`,
-          startIndex: 0,
-          endIndex: file.size
-        }]);
-        setPreviewFile(file);
-        setPreviewOpen(true);
-      } catch (e: any) {
-        toast({ message: e.message, variant: 'error' });
-      }
-    } else {
-      setSegments([{ 
-        id: 'binary_preview',
-        heading: file.name, 
-        headingChain: [file.name],
-        content: `[Binary Content - ${file.size} bytes]\nFormat: ${ext.toUpperCase()}`,
-        startIndex: 0,
-        endIndex: file.size
-      }]);
-      setExcelSheets([]);
-      setPreviewFile(file);
-      setPreviewOpen(true);
-    }
+    setFileQueue(prev => [
+      ...prev,
+      ...validFiles.map(f => ({ file: f, status: 'pending' as const }))
+    ]);
   };
 
-  const handleConfirmIngest = async (docType: string, seeds?: string[]) => {
-    if (!previewFile) return;
+  const startBatchIngest = async () => {
+    if (fileQueue.length === 0 || uploading) return;
     
     setUploading(true);
-    setPreviewOpen(false);
+    const newBatchId = `batch_${Date.now()}`;
+
+    const updatedQueue = [...fileQueue];
+    
+    for (let i = 0; i < updatedQueue.length; i++) {
+      if (updatedQueue[i].status !== 'pending') continue;
+
+      updatedQueue[i].status = 'processing';
+      setFileQueue([...updatedQueue]);
+
+      try {
+        const res = await ingest.upload(wsId, updatedQueue[i].file, 'generic', undefined, undefined, { batch_id: newBatchId, queue_position: i });
+        updatedQueue[i].status = 'done';
+        updatedQueue[i].jobId = res.job_id;
+      } catch (e: any) {
+        updatedQueue[i].status = 'failed';
+        updatedQueue[i].error = e.message;
+      }
+      setFileQueue([...updatedQueue]);
+    }
+
+    setUploading(false);
+    onStarted();
+    toast({ message: t('ingest.batch_complete', { defaultValue: 'Batch ingestion complete' }), variant: 'success' });
+  };
+
+  const removeFromQueue = (index: number) => {
+    setFileQueue(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const cancelJob = async (index: number) => {
+    const item = fileQueue[index];
+    if (!item.jobId) return;
     try {
-      // B-3: Pass Excel config if applicable
-      const excelConfig = excelSheets.length > 0 ? {
-        selected_sheets: selectedSheets,
-        column_mapping: columnMapping,
-      } : undefined;
-      await ingest.upload(wsId, previewFile, docType, seeds, excelConfig);
-      toast({ message: t('ingest.file_success'), variant: 'success' });
-      onStarted();
+      await ingest.cancel(wsId, item.jobId);
+      setFileQueue(prev => {
+        const next = [...prev];
+        next[index].status = 'failed';
+        next[index].error = 'Cancelled';
+        return next;
+      });
     } catch (e: any) {
       toast({ message: e.message, variant: 'error' });
-    } finally {
-      setUploading(false);
-      setPreviewFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) processFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) processFiles(files);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -121,49 +100,110 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) processFile(file);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) processFiles(files);
   };
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div 
         className={`ingest-dropzone ${isDragging ? 'dragging' : ''} ${uploading ? 'uploading' : ''}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      onClick={() => !uploading && fileInputRef.current?.click()}
-    >
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-        accept=".txt,.md,.pdf,.docx,.pptx,.xlsx,.xls,.csv,.sql,.yaml,.yml,.json,.py,.js,.ts,.tsx,.jsx,.eml,.diff,.patch"
-      />
-      
-      <div className="ingest-icon-wrapper">
-        {uploading ? (
-          <Loader2 size={32} className="animate-spin" />
-        ) : isDragging ? (
-          <FileText size={32} />
-        ) : (
-          <Upload size={32} />
-        )}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => !uploading && fileInputRef.current?.click()}
+      >
+        <input
+          type="file"
+          multiple
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+          accept=".txt,.md,.pdf,.docx,.pptx,.xlsx,.xls,.csv,.sql,.yaml,.yml,.json,.py,.js,.ts,.tsx,.jsx,.eml,.diff,.patch"
+        />
+        
+        <div className="ingest-icon-wrapper">
+          {uploading ? (
+            <Loader2 size={32} className="animate-spin" />
+          ) : isDragging ? (
+            <FileText size={32} />
+          ) : (
+            <Upload size={32} />
+          )}
+        </div>
+
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+            {zh ? '拖放檔案至此或點擊上傳' : 'Drag & drop files here or click to upload'}
+          </p>
+          <p style={{ margin: '8px 0 0', fontSize: 12, opacity: 0.6 }}>
+            {zh ? '支援多檔案選取 (TXT, PDF, DOCX, Excel, JSON...)' : 'Support multi-file selection (TXT, PDF, DOCX, Excel, JSON...)'}
+          </p>
+        </div>
       </div>
 
-      <div className="ingest-text">
-        <div className="main-text">
-          {uploading 
-            ? t('ingest.uploading') 
-            : t('ingest.btn_new')}
+      {fileQueue.length > 0 && (
+        <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: 20, border: '1px solid var(--border-subtle)', marginTop: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{zh ? '待處理佇列' : 'Ingestion Queue'}</h3>
+            <button 
+              className="btn-primary" 
+              onClick={startBatchIngest} 
+              disabled={uploading || !fileQueue.some(i => i.status === 'pending')}
+              style={{ fontSize: 12, padding: '6px 12px' }}
+            >
+              {uploading ? (zh ? '處理中...' : 'Processing...') : (zh ? '開始全部攝入' : 'Start Ingest All')}
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {fileQueue.map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                  {item.status === 'processing' ? <Loader2 size={14} className="animate-spin" color="var(--color-primary)" /> : 
+                   item.status === 'done' ? <CheckCircle2 size={14} color="var(--color-success)" /> :
+                   item.status === 'failed' ? <XCircle size={14} color="var(--color-error)" /> :
+                   <Clock size={14} color="var(--text-muted)" />}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.file.name}</span>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    {item.status === 'pending' ? (zh ? '等待中' : 'Pending') :
+                     item.status === 'processing' ? (zh ? '處理中' : 'Processing') :
+                     item.status === 'done' ? (zh ? '完成' : 'Done') :
+                     (item.error || (zh ? '失敗' : 'Failed'))}
+                  </span>
+                  
+                  {item.status === 'failed' && (
+                    <button 
+                      onClick={() => {
+                        const newQueue = [...fileQueue];
+                        newQueue[idx].status = 'pending';
+                        newQueue[idx].error = undefined;
+                        setFileQueue(newQueue);
+                      }} 
+                      style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: 4, fontSize: 11, fontWeight: 700 }}
+                    >
+                      {zh ? '重試' : 'Retry'}
+                    </button>
+                  )}
+                  {item.status === 'pending' && (
+                    <button onClick={() => removeFromQueue(idx)} style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', padding: 4 }}>
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                  {item.status === 'processing' && (
+                    <button onClick={() => cancelJob(idx)} style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', padding: 4 }}>
+                      <XCircle size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="sub-text">
-          {isDragging 
-            ? t('ingest.drop_analyzing') 
-            : t('ingest.click_or_drag')}
-        </div>
-      </div>
+      )}
 
       <style>{`
         .ingest-dropzone {
@@ -222,21 +262,6 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
           box-shadow: var(--shadow-md);
         }
 
-        .ingest-text {
-          text-align: center;
-        }
-
-        .main-text {
-          font-size: 16px;
-          font-weight: 600;
-          margin-bottom: 4px;
-        }
-
-        .sub-text {
-          font-size: 13px;
-          opacity: 0.7;
-        }
-
         @keyframes animate-spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
@@ -245,27 +270,6 @@ export default function IngestButton({ wsId, onStarted }: { wsId: string, onStar
           animation: animate-spin 1s linear infinite;
         }
       `}</style>
-      </div>
-
-      {previewFile && (
-        <ImportPreviewModal
-          isOpen={previewOpen}
-          onClose={() => {
-            setPreviewOpen(false);
-            setPreviewFile(null); // Clear preview file to avoid re-opening old file
-            if (fileInputRef.current) fileInputRef.current.value = '';
-          }}
-          filename={previewFile.name}
-          segments={segments}
-          onConfirm={handleConfirmIngest}
-          loading={uploading}
-          excelSheets={excelSheets}
-          selectedSheets={selectedSheets}
-          onSelectedSheetsChange={setSelectedSheets}
-          columnMapping={columnMapping}
-          onColumnMappingChange={setColumnMapping}
-        />
-      )}
-    </>
+    </div>
   );
 }

@@ -529,48 +529,27 @@ async def _execute_tool(name: str, args: dict, user: dict, background_tasks: Bac
     # ── traverse ──────────────────────────────────────────────────────────────
     if name == "traverse":
         ws_id     = args["workspace_id"]
-        node_id   = args["node_id"]
-        max_depth = min(int(args.get("depth", 2)), 4)
-        relation  = args.get("relation")
+        root_id   = args["node_id"]
+        depth     = min(int(args.get("depth", 2)), 4)
+        
         with db_cursor() as cur:
             _require_ws_access(cur, ws_id, user, write=False)
-            # BFS
-            visited: dict = {}
-            queue: list = [(node_id, 0)]
-            edges_found: list = []
-            while queue:
-                curr_id, depth = queue.pop(0)
-                if curr_id in visited or depth > max_depth:
-                    continue
-                cur.execute(
-                    "SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = %s AND status='active'",
-                    (curr_id, ws_id),
-                )
-                node = cur.fetchone()
-                if not node:
-                    continue
-                visited[curr_id] = node
-                if depth < max_depth:
-                    rel_filter = "AND relation = %s" if relation else ""
-                    rel_params = [relation] if relation else []
-                    cur.execute(
-                        f"""SELECT from_id, to_id, relation, weight
-                            FROM edges
-                            WHERE workspace_id = %s AND status = 'active'
-                              AND (from_id = %s OR to_id = %s)
-                              {rel_filter}""",
-                        [ws_id, curr_id, curr_id] + rel_params,
-                    )
-                    for e in cur.fetchall():
-                        edges_found.append(e)
-                        neighbor = e["to_id"] if e["from_id"] == curr_id else e["from_id"]
-                        if neighbor not in visited:
-                            queue.append((neighbor, depth + 1))
+            
+            from routers.kb import _bfs_neighborhood
+            result = _bfs_neighborhood(
+                cur, ws_id, root_id,
+                depth=depth,
+                relation=None,
+                direction="both",
+                include_source=False,  # MCP default excludes source_document
+                viewer_role="editor",  # MCP client treated as editor/owner
+            )
+            
             # P4.5-1B-2: Record interaction edge for the root node
             from routers.kb import _write_mcp_interaction_edge
-            background_tasks.add_task(_write_mcp_interaction_edge, ws_id, node_id, name)
+            background_tasks.add_task(_write_mcp_interaction_edge, ws_id, root_id, name)
 
-            return {"nodes": list(visited.values()), "edges": edges_found}
+            return result
 
     # ── list_by_tag ───────────────────────────────────────────────────────────
     if name == "list_by_tag":

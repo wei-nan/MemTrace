@@ -637,14 +637,16 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         total_chunks = len(chunks)
         all_nodes: list[dict] = []
 
-        # Record the total chunk count so the UI can render a progress bar
-        with db_cursor(commit=True) as cur:
-            cur.execute(
-                "UPDATE ingestion_logs SET chunks_total = %s WHERE id = %s",
-                (total_chunks, job_id),
-            )
-
         for idx, (chunk_content, heading_chain, meta) in enumerate(chunks, 1):
+            # P4.7-S6-3: Check for cancellation at chunk boundary
+            with db_cursor(commit=True) as cur:
+                cur.execute("SELECT status FROM ingestion_logs WHERE id = %s", (job_id,))
+                job_status = cur.fetchone()["status"]
+                if job_status == 'cancelling':
+                    cur.execute("UPDATE ingestion_logs SET status = 'cancelled', cancelled_at = NOW() WHERE id = %s", (job_id,))
+                    print(f"[ingest] Job {job_id} cancelled at chunk {idx}/{total_chunks}")
+                    return
+
             chunk_label = f"{filename} (chunk {idx}/{total_chunks})" if total_chunks > 1 else filename
             
             # Inject heading chain context
@@ -903,6 +905,8 @@ async def ingest_file(
     doc_type: str = "generic",
     seeds: Optional[str] = None, # JSON array of approved seed titles
     excel_config: Optional[str] = None,  # B-3: JSON object with sheet/column mapping
+    batch_id: Optional[str] = None,      # P4.7-S6-4
+    queue_position: Optional[int] = None,
     user: dict = Depends(get_current_user),
 ):
     with db_cursor(commit=True) as cur:
@@ -910,10 +914,10 @@ async def ingest_file(
         job_id = generate_id("ing")
         cur.execute(
             """
-            INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status)
-            VALUES (%s, %s, %s, %s, 'processing')
+            INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status, batch_id, queue_position)
+            VALUES (%s, %s, %s, %s, 'processing', %s, %s)
             """,
-            (job_id, ws_id, user["sub"], file.filename),
+            (job_id, ws_id, user["sub"], file.filename, batch_id, queue_position or 0),
         )
     try:
         # Core-2: Use adapter system
@@ -1266,3 +1270,29 @@ async def retry_audit_headings(
 
     background_tasks.add_task(_process_retry)
     return {"message": "Retry ingestion started", "job_id": job_id, "segment_count": len(segments_to_process)}
+
+
+@router.delete("/{ws_id}/ingest/{job_id}", status_code=204)
+def cancel_ingestion(ws_id: str, job_id: str, user: dict = Depends(get_current_user)):
+    """
+    P4.7-S6-2: Cancel a pending or processing ingestion job.
+    - pending: Directly set to cancelled.
+    - processing: Set to cancelling, background task will check and stop.
+    """
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True)
+        
+        cur.execute("SELECT status FROM ingestion_logs WHERE id = %s AND workspace_id = %s", (job_id, ws_id))
+        job = cur.fetchone()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+            
+        status = job["status"]
+        if status == 'pending':
+            cur.execute("UPDATE ingestion_logs SET status = 'cancelled', cancelled_at = NOW() WHERE id = %s", (job_id,))
+        elif status == 'processing':
+            cur.execute("UPDATE ingestion_logs SET status = 'cancelling' WHERE id = %s", (job_id,))
+        elif status == 'cancelling' or status == 'cancelled':
+            pass # Already in requested state
+        else:
+            raise HTTPException(status_code=409, detail=f"Cannot cancel job in {status} status")
