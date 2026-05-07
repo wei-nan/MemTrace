@@ -599,7 +599,11 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
             try:
                 resolved = _rp(user_id, "extraction", preferred_provider=ws_extraction_provider)
             except _APU:
-                resolved = _resolve_with_fallback(user_id, "extraction")
+                raise AIProviderUnavailable(
+                    f"Workspace is configured to use '{ws_extraction_provider}' for extraction, "
+                    f"but no '{ws_extraction_provider}' API key is configured for your account. "
+                    f"Add the key in Settings → AI Provider, or change the workspace extraction provider."
+                )
         else:
             resolved = _resolve_with_fallback(user_id, "extraction")
         total_tokens = 0
