@@ -414,15 +414,17 @@ class AnthropicProvider(AIProvider):
 
 class GeminiProvider(AIProvider):
     name                    = "gemini"
-    default_chat_model      = "gemini-1.5-flash"
+    default_chat_model      = "gemini-2.0-flash"
     default_embedding_model = "text-embedding-004"
 
     def get_known_models(self) -> list[dict]:
         return [
-            {"id": "gemini-2.0-flash-exp",           "display_name": "Gemini 2.0 Flash (Exp)"},
-            {"id": "gemini-1.5-flash",               "display_name": "Gemini 1.5 Flash"},
+            {"id": "gemini-2.5-flash-preview-05-20", "display_name": "Gemini 2.5 Flash (Preview)"},
+            {"id": "gemini-2.5-pro-preview-05-06",   "display_name": "Gemini 2.5 Pro (Preview)"},
+            {"id": "gemini-2.0-flash",               "display_name": "Gemini 2.0 Flash"},
+            {"id": "gemini-2.0-flash-lite",          "display_name": "Gemini 2.0 Flash Lite"},
             {"id": "gemini-1.5-pro",                 "display_name": "Gemini 1.5 Pro"},
-            {"id": "gemini-1.5-flash-8b",            "display_name": "Gemini 1.5 Flash-8B"},
+            {"id": "gemini-1.5-flash",               "display_name": "Gemini 1.5 Flash"},
         ]
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:

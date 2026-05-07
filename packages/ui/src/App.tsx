@@ -796,8 +796,8 @@ function SettingsPanel({
         base_url: provider === 'ollama' ? baseUrl : undefined,
         auth_mode: provider === 'ollama' ? authMode : undefined,
         auth_token: provider === 'ollama' ? authToken : undefined,
-        default_chat_model: provider === 'ollama' ? defaultChatModel : undefined,
-        default_embedding_model: provider === 'ollama' ? defaultEmbeddingModel : undefined,
+        default_chat_model: defaultChatModel || undefined,
+        default_embedding_model: defaultEmbeddingModel || undefined,
       });
       setApiKey('');
       setSuccess(zh ? '已儲存' : 'Saved');
@@ -1063,11 +1063,21 @@ function SettingsPanel({
                 background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
                 borderRadius: 8, padding: '10px 14px',
               }}>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontSize: 13, fontWeight: 500 }}>{k.provider}</span>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 10 }}>
                     ····{k.key_hint}
                   </span>
+                  {k.default_chat_model && (
+                    <span style={{ fontSize: 11, color: 'var(--color-primary)', marginLeft: 8, background: 'var(--color-primary-subtle)', padding: '1px 6px', borderRadius: 4 }}>
+                      {k.default_chat_model}
+                    </span>
+                  )}
+                  {!k.default_chat_model && k.provider !== 'ollama' && (
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>
+                      {zh ? '（使用系統預設模型）' : '(using system default model)'}
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => handleDeleteKey(k.provider)}
@@ -1223,9 +1233,19 @@ function SettingsPanel({
                 <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{zh ? '預設對話模型' : 'Default Chat Model'}</label>
                 <select className="mt-input" value={defaultChatModel} onChange={e => setDefaultChatModel(e.target.value)}>
                   <option value="">{zh ? '-- 系統預設 --' : '-- Default --'}</option>
-                  {(provider === 'openai' ? ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'] :
-                    provider === 'anthropic' ? ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'] :
-                    provider === 'gemini' ? ['gemini-1.5-pro', 'gemini-1.5-flash'] : []
+                  {(provider === 'openai' ? [
+                      'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini',
+                    ] :
+                    provider === 'anthropic' ? [
+                      'claude-opus-4-7', 'claude-sonnet-4-6',
+                      'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022',
+                      'claude-haiku-4-5-20251001', 'claude-3-5-haiku-20241022',
+                    ] :
+                    provider === 'gemini' ? [
+                      'gemini-2.5-flash-preview-05-20', 'gemini-2.5-pro-preview-05-06',
+                      'gemini-2.0-flash', 'gemini-2.0-flash-lite',
+                      'gemini-1.5-pro', 'gemini-1.5-flash',
+                    ] : []
                   ).map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
