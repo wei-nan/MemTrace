@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, CheckCircle2, XCircle, Clock, ExternalLink, ServerCrash, Compass, ChevronDown, ChevronRight, Ban } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Clock, ExternalLink, ServerCrash, Compass, ChevronDown, ChevronRight, Ban, X } from 'lucide-react';
 import { ingest, type IngestionLog } from './api';
 
 // ── Progress bar ────────────────────────────────────────────────────────────
@@ -48,9 +48,10 @@ function ServerSideNotice({ t }: { t: any }) {
 
 // ── Single log row ──────────────────────────────────────────────────────────
 
-function LogRow({ log, t, onGoToReview, nested = false }: { log: IngestionLog; t: any; onGoToReview: () => void; nested?: boolean }) {
+function LogRow({ log, t, onGoToReview, onCancel, nested = false }: { log: IngestionLog; t: any; onGoToReview: () => void; onCancel: (id: string) => void; nested?: boolean }) {
   const isMultiChunk = (log.chunks_total ?? 1) > 1;
   const zh = t.language === 'zh-TW';
+  const cancellable = log.status === 'processing' || log.status === 'pending';
 
   return (
     <div style={{
@@ -131,6 +132,17 @@ function LogRow({ log, t, onGoToReview, nested = false }: { log: IngestionLog; t
               <ExternalLink size={11} />
             </button>
           )}
+          {cancellable && (
+            <button
+              className="btn-secondary"
+              onClick={() => onCancel(log.id)}
+              title={zh ? '取消任務' : 'Cancel job'}
+              style={{ padding: '4px 8px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-error)', whiteSpace: 'nowrap' }}
+            >
+              <X size={11} />
+              {zh ? '取消' : 'Cancel'}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -139,7 +151,7 @@ function LogRow({ log, t, onGoToReview, nested = false }: { log: IngestionLog; t
 
 // ── Batch Group component ───────────────────────────────────────────────────
 
-function BatchGroup({ batchId, logs, t, onGoToReview }: { batchId: string; logs: IngestionLog[]; t: any; onGoToReview: () => void }) {
+function BatchGroup({ batchId, logs, t, onGoToReview, onCancel }: { batchId: string; logs: IngestionLog[]; t: any; onGoToReview: () => void; onCancel: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const zh = t.language === 'zh-TW';
   const doneCount = logs.filter(l => l.status === 'completed').length;
@@ -181,7 +193,7 @@ function BatchGroup({ batchId, logs, t, onGoToReview }: { batchId: string; logs:
       {expanded && (
         <div style={{ padding: '0 16px 8px 46px', display: 'flex', flexDirection: 'column' }}>
           {logs.sort((a,b) => (a.queue_position || 0) - (b.queue_position || 0)).map(log => (
-            <LogRow key={log.id} log={log} t={t} onGoToReview={onGoToReview} nested />
+            <LogRow key={log.id} log={log} t={t} onGoToReview={onGoToReview} onCancel={onCancel} nested />
           ))}
         </div>
       )}
@@ -204,7 +216,7 @@ export default function IngestionHistory({
   const [logs, setLogs] = useState<IngestionLog[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       const data = await ingest.getLogs(wsId);
@@ -214,12 +226,23 @@ export default function IngestionHistory({
     } finally {
       setLoading(false);
     }
-  };
+  }, [wsId]);
+
+  const handleCancel = useCallback(async (jobId: string) => {
+    // Optimistically show cancelling state
+    setLogs(prev => prev.map(l => l.id === jobId ? { ...l, status: 'cancelling' as const } : l));
+    try {
+      await ingest.cancel(wsId, jobId);
+    } catch (e) {
+      console.error('Cancel failed', e);
+    }
+    // Refresh to get actual status from server
+    loadLogs();
+  }, [wsId, loadLogs]);
 
   useEffect(() => {
     loadLogs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wsId, refreshKey]);
+  }, [wsId, refreshKey, loadLogs]);
 
   // Auto-poll while any job is still processing
   useEffect(() => {
@@ -227,8 +250,7 @@ export default function IngestionHistory({
     if (!hasProcessing) return;
     const timer = setTimeout(loadLogs, 3000);
     return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [logs]);
+  }, [logs, loadLogs]);
 
   if (logs.length === 0 && !loading) return null;
 
@@ -259,11 +281,11 @@ export default function IngestionHistory({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Batches first */}
         {Object.entries(batchGroups).map(([bid, group]) => (
-          <BatchGroup key={bid} batchId={bid} logs={group} t={t} onGoToReview={onGoToReview} />
+          <BatchGroup key={bid} batchId={bid} logs={group} t={t} onGoToReview={onGoToReview} onCancel={handleCancel} />
         ))}
         {/* Then individuals */}
         {individuals.map(log => (
-          <LogRow key={log.id} log={log} t={t} onGoToReview={onGoToReview} />
+          <LogRow key={log.id} log={log} t={t} onGoToReview={onGoToReview} onCancel={handleCancel} />
         ))}
       </div>
     </div>

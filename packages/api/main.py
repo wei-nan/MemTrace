@@ -353,6 +353,34 @@ def _run_migrations():
             logger.info("Migration applied: %s", sql_file.name)
 
 
+STALE_INGEST_TIMEOUT_MINUTES = 30
+STALE_INGEST_CHECK_INTERVAL_SECONDS = 300  # check every 5 minutes
+
+
+async def _stale_ingest_loop():
+    """Auto-fail ingestion jobs that have been stuck in processing/pending for too long."""
+    while True:
+        await asyncio.sleep(STALE_INGEST_CHECK_INTERVAL_SECONDS)
+        try:
+            with db_cursor(commit=True) as cur:
+                cur.execute(
+                    """
+                    UPDATE ingestion_logs
+                    SET status = 'failed',
+                        error_msg = 'Job timed out after %s minutes with no progress.',
+                        completed_at = NOW()
+                    WHERE status IN ('processing', 'pending')
+                      AND created_at < NOW() - INTERVAL '%s minutes'
+                    """,
+                    (STALE_INGEST_TIMEOUT_MINUTES, STALE_INGEST_TIMEOUT_MINUTES),
+                )
+                count = cur.rowcount
+            if count:
+                logger.warning("Auto-failed %d timed-out ingestion job(s)", count)
+        except Exception as exc:
+            logger.warning("Stale ingest check failed: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
@@ -380,17 +408,36 @@ async def lifespan(app: FastAPI):
             "ADMIN_EMAILS=user@example.com in your .env file."
         )
 
+    # ── Recover stale ingestion jobs left by a previous crash/restart ─────────
+    try:
+        with db_cursor(commit=True) as cur:
+            cur.execute(
+                """
+                UPDATE ingestion_logs
+                SET status = 'failed',
+                    error_msg = 'Server restarted while job was in progress.',
+                    completed_at = NOW()
+                WHERE status IN ('processing', 'cancelling', 'pending')
+                """
+            )
+            count = cur.rowcount
+        if count:
+            logger.warning("Marked %d stale ingestion job(s) as failed on startup", count)
+    except Exception as exc:
+        logger.warning("Could not clean up stale ingestion jobs: %s", exc)
+
     decay_task         = asyncio.create_task(_decay_loop())
     ephemeral_task     = asyncio.create_task(_ephemeral_decay_loop())   # D4
     deletion_task      = asyncio.create_task(_deletion_notification_loop())
     cleanup_task       = asyncio.create_task(_cleanup_loop())            # G4
     backup_task        = asyncio.create_task(_backup_loop())
     audit_task         = asyncio.create_task(audit_writer_loop())        # P1-2 batched audit writer
-    logger.info("Background schedulers started (decay + ephemeral decay + deletion notifications + cleanup + backup + audit)")
+    stale_ingest_task  = asyncio.create_task(_stale_ingest_loop())
+    logger.info("Background schedulers started (decay + ephemeral decay + deletion notifications + cleanup + backup + audit + stale-ingest)")
     try:
         yield
     finally:
-        for t in (decay_task, ephemeral_task, deletion_task, cleanup_task, backup_task, audit_task):
+        for t in (decay_task, ephemeral_task, deletion_task, cleanup_task, backup_task, audit_task, stale_ingest_task):
             t.cancel()
             try:
                 await t
