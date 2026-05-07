@@ -430,7 +430,7 @@ class GeminiProvider(AIProvider):
             return self.get_known_models()
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
-                f"https://generativelanguage.googleapis.com/v1/models?key={resolved.api_key}"
+                f"https://generativelanguage.googleapis.com/v1beta/models?key={resolved.api_key}"
             )
         if not resp.is_success:
             return self.get_known_models()
@@ -445,7 +445,7 @@ class GeminiProvider(AIProvider):
         ]
 
     async def chat(self, resolved, messages, max_tokens, temperature):
-        # Gemini v1beta supports system_instruction separately
+        # system_instruction requires v1beta endpoint
         system = next((m["content"] for m in messages if m["role"] == "system"), "")
         contents = []
         for m in messages:
@@ -488,7 +488,7 @@ class GeminiProvider(AIProvider):
 
         async with httpx.AsyncClient(timeout=300) as client:
             resp = await client.post(
-                f"https://generativelanguage.googleapis.com/v1/models/{resolved.model}:generateContent?key={resolved.api_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:generateContent?key={resolved.api_key}",
                 json=body
             )
         
@@ -554,7 +554,7 @@ class GeminiProvider(AIProvider):
         async with httpx.AsyncClient(timeout=300) as client:
             async with client.stream(
                 "POST",
-                f"https://generativelanguage.googleapis.com/v1/models/{resolved.model}:streamGenerateContent?alt=sse&key={resolved.api_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:streamGenerateContent?alt=sse&key={resolved.api_key}",
                 json=body
             ) as resp:
                 if not resp.is_success:
@@ -578,7 +578,7 @@ class GeminiProvider(AIProvider):
     async def embed(self, resolved, text):
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
-                f"https://generativelanguage.googleapis.com/v1/models/{resolved.model}:embedContent?key={resolved.api_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:embedContent?key={resolved.api_key}",
                 json={
                     "model": f"models/{resolved.model}",
                     "content": {"parts": [{"text": text}]}
