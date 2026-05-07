@@ -79,16 +79,18 @@ function CreateWorkspaceModal({
       let allModels: { id: string; dim: number; provider: string }[] = [];
       
       for (const p of activeProviders) {
-        if (p === 'ollama') {
-          try {
-            const models = await ai.listModels('ollama');
-            const embeds = models.filter(m => m.model_type === 'embedding');
-            allModels.push(...embeds.map(m => ({ id: m.id, dim: m.embedding_dim ?? 768, provider: 'ollama' })));
-          } catch (e) {}
-        } else {
-          const known = KNOWN_EMBED_MODELS[p] || [];
-          allModels.push(...known.map(m => ({ ...m, provider: p })));
-        }
+        if (p === 'anthropic') continue; // Anthropic has no embedding API
+        try {
+          const models = await ai.listModels(p);
+          const embeds = models.filter(m => m.model_type === 'embedding');
+          if (embeds.length > 0) {
+            allModels.push(...embeds.map(m => ({ id: m.id, dim: m.embedding_dim ?? (KNOWN_EMBED_MODELS[p]?.find(k => k.id === m.id)?.dim ?? 768), provider: p })));
+            continue;
+          }
+        } catch (e) {}
+        // Fallback to static list if API call fails or returns no embedding models
+        const known = KNOWN_EMBED_MODELS[p] || [];
+        allModels.push(...known.map(m => ({ ...m, provider: p })));
       }
 
       // If no keys configured, use safe default
@@ -97,7 +99,7 @@ function CreateWorkspaceModal({
       }
 
       setEmbedModels(allModels);
-      
+
       // Default selection: priority 1: resolved model, priority 2: first available
       const autoModel = resolved.model;
       if (autoModel && allModels.some(m => m.id === autoModel)) {
@@ -318,16 +320,17 @@ function ForkWorkspaceModal({
       let allModels: { id: string; dim: number; provider: string }[] = [];
       
       for (const p of activeProviders) {
-        if (p === 'ollama') {
-          try {
-            const models = await ai.listModels('ollama');
-            const embeds = models.filter(m => m.model_type === 'embedding');
-            allModels.push(...embeds.map(m => ({ id: m.id, dim: m.embedding_dim ?? 768, provider: 'ollama' })));
-          } catch (e) {}
-        } else {
-          const known = KNOWN_EMBED_MODELS[p] || [];
-          allModels.push(...known.map(m => ({ ...m, provider: p })));
-        }
+        if (p === 'anthropic') continue;
+        try {
+          const models = await ai.listModels(p);
+          const embeds = models.filter(m => m.model_type === 'embedding');
+          if (embeds.length > 0) {
+            allModels.push(...embeds.map(m => ({ id: m.id, dim: m.embedding_dim ?? (KNOWN_EMBED_MODELS[p]?.find(k => k.id === m.id)?.dim ?? 768), provider: p })));
+            continue;
+          }
+        } catch (e) {}
+        const known = KNOWN_EMBED_MODELS[p] || [];
+        allModels.push(...known.map(m => ({ ...m, provider: p })));
       }
 
       // Ensure source model is in the list
