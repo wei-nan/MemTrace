@@ -875,18 +875,21 @@ def clone_workspace(ws_id: str, body: WorkspaceCloneRequest, background_tasks: B
 
         # 1. Create target workspace
         target_ws_id = generate_id("ws")
+        new_qa_mode = body.qa_archive_mode or source["qa_archive_mode"] or "manual_review"
+        new_extraction = body.extraction_provider if body.extraction_provider is not None else source.get("extraction_provider")
         cur.execute(
             """
             INSERT INTO workspaces (
                 id, name_zh, name_en, visibility, kb_type, owner_id,
-                archive_window_days, min_traversals, embedding_model, embedding_dim
+                archive_window_days, min_traversals, embedding_model, embedding_dim,
+                qa_archive_mode, extraction_provider
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 target_ws_id, name_zh, name_en, new_visibility, source["kb_type"],
                 user["sub"], source["archive_window_days"], source["min_traversals"],
-                new_model, new_dim
+                new_model, new_dim, new_qa_mode, new_extraction
             ),
         )
 
@@ -941,19 +944,22 @@ def fork_workspace(
 
         # Create target workspace owned by the current user (always private)
         target_ws_id = generate_id("ws")
+        fork_qa_mode = body.qa_archive_mode or source["qa_archive_mode"] or "manual_review"
+        fork_extraction = body.extraction_provider if body.extraction_provider is not None else source.get("extraction_provider")
         cur.execute(
             """
             INSERT INTO workspaces (
                 id, name_zh, name_en, visibility, kb_type, owner_id,
-                archive_window_days, min_traversals, embedding_model, embedding_dim
+                archive_window_days, min_traversals, embedding_model, embedding_dim,
+                qa_archive_mode, extraction_provider
             )
-            VALUES (%s, %s, %s, 'private', %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, 'private', %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 target_ws_id, body.name_zh, body.name_en,
                 source["kb_type"], user["sub"],
                 source["archive_window_days"], source["min_traversals"],
-                new_model, new_dim,
+                new_model, new_dim, fork_qa_mode, fork_extraction,
             ),
         )
 
@@ -1214,6 +1220,9 @@ def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get
         updates = body.model_dump(exclude_unset=True)
         if not updates:
             return ws
+        for immutable in ("kb_type", "embedding_model", "embedding_dim"):
+            if immutable in updates:
+                raise HTTPException(status_code=400, detail=f"Immutable field: {immutable}")
         if "visibility" in updates and updates["visibility"] not in VALID_KB_VIS:
             raise HTTPException(status_code=400, detail="Invalid visibility")
         set_clause = ", ".join(f"{k} = %s" for k in updates)

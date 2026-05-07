@@ -181,7 +181,6 @@ class WorkspaceUpdate(BaseModel):
     name_zh: Optional[str] = None
     name_en: Optional[str] = None
     visibility: Optional[str] = None
-    kb_type: Optional[Literal["evergreen", "ephemeral"]] = None
     archive_window_days: Optional[int] = None
     min_traversals: Optional[int] = None
     qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None
@@ -228,7 +227,9 @@ class WorkspaceCloneRequest(BaseModel):
     name_zh: Optional[str] = None
     name_en: Optional[str] = None
     new_embedding_model: Optional[str] = None
-    visibility: Optional[str] = None    # 'public' | 'private' | 'restricted'; None = 'private'
+    visibility: Optional[str] = None            # None = 'private'
+    qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None   # None = inherit
+    extraction_provider: Optional[str] = None   # None = inherit
 
 
 class WorkspaceCloneJobResponse(BaseModel):
@@ -249,4 +250,6 @@ class ForkWorkspaceRequest(BaseModel):
     """P4.1-F: Fork a public workspace into the current user's account."""
     name_zh: str
     name_en: str
-    embedding_model: Optional[str] = None     # None = inherit source workspace model
+    embedding_model: Optional[str] = None       # None = inherit source
+    qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None  # None = inherit
+    extraction_provider: Optional[str] = None   # None = inherit
