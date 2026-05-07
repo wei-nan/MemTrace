@@ -2079,7 +2079,13 @@ export default function App() {
 
       {/* MCP Status Panel (P4.5-4A-3) */}
       {showMcpStatus && (
-        <McpStatusPanel onClose={() => setShowMcpStatus(false)} />
+        <>
+          <div 
+            style={{ position: 'fixed', inset: 0, background: 'var(--bg-overlay)', zIndex: 1999, backdropFilter: 'blur(4px)' }} 
+            onClick={() => setShowMcpStatus(false)}
+          />
+          <McpStatusPanel onClose={() => setShowMcpStatus(false)} />
+        </>
       )}
     </div>
         )

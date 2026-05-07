@@ -22,7 +22,7 @@ export default function McpStatusPanel({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="side-panel mcp-status-panel" style={{ width: 400, zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+    <div className="side-panel mcp-status-panel" style={{ width: 400, position: 'fixed', right: 0, top: 0, height: '100vh', zIndex: 2000, display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-default)' }}>
       <div style={{ padding: '24px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ padding: 8, background: 'var(--color-primary-subtle)', borderRadius: 8, color: 'var(--color-primary)' }}>

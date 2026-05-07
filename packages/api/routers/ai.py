@@ -48,15 +48,36 @@ def _extract_search_terms(text: str) -> list[str]:
     Extract meaningful search terms for a LIKE-based fallback that handles
     CJK text (Chinese / Japanese / Korean) and ASCII English.
     """
-    # 1. CJK runs (Chinese, Japanese, Korean)
-    cjk_runs = _re.findall(r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', text)
-    # 2. English words (2+ chars)
+    # 1. Strip common natural language fillers to focus on keywords
+    fillers = ["幫我", "了解一下", "請問", "關於", "這個", "我想知道", "相關", "內容", "訊息", "資料"]
+    clean_text = text
+    for f in fillers:
+        clean_text = clean_text.replace(f, "")
+
+    # 2. CJK runs (Chinese, Japanese, Korean)
+    cjk_runs = _re.findall(r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', clean_text)
+    
+    # If a CJK run is very long, it might be a sentence. Break it down.
+    extra_cjk = []
+    for run in cjk_runs:
+        if len(run) > 5:
+            # Add chunks to increase match probability
+            extra_cjk.append(run[:4])
+            extra_cjk.append(run[-4:])
+            if len(run) > 8:
+                mid = len(run) // 2
+                extra_cjk.append(run[mid-2:mid+2])
+
+    # 3. English words (2+ chars)
     eng_words = _re.findall(r'[A-Za-z0-9]{2,}', text)
     
-    # Dedup and filter very common short particles if needed, but for now just take all
-    terms = list(dict.fromkeys(cjk_runs + eng_words))
+    terms = list(dict.fromkeys(cjk_runs + extra_cjk + eng_words))
+    # Filter out empty or single char CJK (unless it's the only term)
+    if len(terms) > 1:
+        terms = [t for t in terms if len(t) > 1]
+        
     terms.sort(key=len, reverse=True)
-    return terms[:8]
+    return terms[:10]
 
 router = APIRouter(prefix="/api/v1/ai", tags=["ai"])
 

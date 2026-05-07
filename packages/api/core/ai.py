@@ -20,6 +20,7 @@ That's it. No changes to routers, models, or the database schema are needed.
 from __future__ import annotations
 
 import base64
+from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Literal, Optional
@@ -413,16 +414,15 @@ class AnthropicProvider(AIProvider):
 
 class GeminiProvider(AIProvider):
     name                    = "gemini"
-    default_chat_model      = "gemini-2.5-flash"
+    default_chat_model      = "gemini-1.5-flash"
     default_embedding_model = "text-embedding-004"
 
     def get_known_models(self) -> list[dict]:
         return [
-            {"id": "gemini-2.5-flash-preview-05-20", "display_name": "Gemini 2.5 Flash"},
-            {"id": "gemini-2.5-pro-preview-05-06",   "display_name": "Gemini 2.5 Pro"},
-            {"id": "gemini-2.0-flash",               "display_name": "Gemini 2.0 Flash"},
+            {"id": "gemini-2.0-flash-exp",           "display_name": "Gemini 2.0 Flash (Exp)"},
             {"id": "gemini-1.5-flash",               "display_name": "Gemini 1.5 Flash"},
             {"id": "gemini-1.5-pro",                 "display_name": "Gemini 1.5 Pro"},
+            {"id": "gemini-1.5-flash-8b",            "display_name": "Gemini 1.5 Flash-8B"},
         ]
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:

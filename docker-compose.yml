@@ -30,10 +30,10 @@ services:
     env_file:
       - .env
     environment:
-      MEMTRACE_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      MEMTRACE_SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      SECRET_KEY: ${SECRET_KEY}
       MEMTRACE_ANON_LOG_SALT: ${MEMTRACE_ANON_LOG_SALT:-dev_salt_123}
-      MEMTRACE_REGISTRATION_MODE: ${MEMTRACE_REGISTRATION_MODE:-invite_only}
+      REGISTRATION_MODE: ${MEMTRACE_REGISTRATION_MODE:-invite_only}
     ports:
       - "8000:8000"
     depends_on:

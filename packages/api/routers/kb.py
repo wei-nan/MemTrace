@@ -120,11 +120,12 @@ NODE_EDITABLE_FIELDS = [
 ]
 
 NODE_PUBLIC_COLUMNS = """
-    id, workspace_id, title_zh, title_en, content_type, content_format,
-    body_zh, body_en, tags, visibility, author, trust_score,
-    dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
-    traversal_count, unique_traverser_count, validity_confirmed_at,
-    source_type, status, created_at, updated_at
+    id, schema_version, workspace_id, title_zh, title_en, content_type, content_format,
+    body_zh, body_en, tags, visibility, author, created_at, updated_at,
+    signature, source_type, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
+    traversal_count, unique_traverser_count, status, archived_at,
+    copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
+    ask_count, miss_count
 """
 
 

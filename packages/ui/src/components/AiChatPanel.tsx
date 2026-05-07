@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X } from 'lucide-react';
+import { Send, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X, RotateCcw } from 'lucide-react';
 import { ai, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus } from '../api';
 import ReactMarkdown from 'react-markdown';
 
@@ -132,7 +132,17 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             return next;
           });
         } else if (chunk.type === 'error') {
-          throw new Error(chunk.detail);
+          setLoading(false);
+          setMessages(prev => {
+            const next = [...prev];
+            if (next[msgIdx]) {
+              next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\n**Error:** ${chunk.detail}` };
+            } else {
+              next.push({ role: 'assistant', content: `**Error:** ${chunk.detail}` });
+            }
+            return next;
+          });
+          return; // Stop processing this stream
         }
       });
 
@@ -185,6 +195,24 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
         <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
           {zh ? 'AI 助手' : 'AI Assistant'}
         </h3>
+        
+        <button
+          onClick={() => {
+            if (messages.length > 0) {
+              setMessages([]);
+              setProposalStates({});
+            }
+          }}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', 
+            color: 'var(--text-muted)', transition: 'color 0.2s', padding: 4, borderRadius: 4
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--color-primary)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+          title={zh ? '開新對話 (清除歷史)' : 'New Conversation (Clear History)'}
+        >
+          <RotateCcw size={16} />
+        </button>
 
         {/* allow_edits toggle */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
