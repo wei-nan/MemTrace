@@ -417,7 +417,7 @@ def _create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
     payload = _prepare_node_data(node_data, node_data["author"], node_data.get("source_type", "human"), node_data.get("status", "active"))
     node_id = node_data.get("id") or generate_id("mem")
     cur.execute(
-        """
+        f"""
         INSERT INTO memory_nodes (
             id, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en,
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
@@ -458,7 +458,7 @@ def _update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id:
     merged = {**dict(existing), **{field: node_data.get(field, existing.get(field)) for field in NODE_EDITABLE_FIELDS}}
     payload = _prepare_node_data(merged, actor_id, merged.get("source_type", "human"))
     cur.execute(
-        """
+        f"""
         UPDATE memory_nodes
         SET title_zh = %s, title_en = %s, content_type = %s, content_format = %s,
             body_zh = %s, body_en = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s
