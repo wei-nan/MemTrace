@@ -233,6 +233,12 @@ def _prepare_node_data(data: dict, author: str, source_type: str = "human", stat
     payload["source_type"] = data.get("source_type") or source_type
     payload["dim_author_rep"] = data.get("dim_author_rep") or _initial_author_rep(payload["source_type"], status)
     
+    # Ensure mandatory text fields are not None (prevents DB NotNullViolation)
+    payload["title_zh"] = payload.get("title_zh") or ""
+    payload["title_en"] = payload.get("title_en") or ""
+    payload["body_zh"] = payload.get("body_zh") or ""
+    payload["body_en"] = payload.get("body_en") or ""
+    
     # Calculate trust_score: Accuracy 0.4 (default 0.5), Freshness 0.25 (default 1.0), Utility 0.25 (default 0.5), Rep 0.1
     # Note: These are initial values. dim_accuracy/freshness/utility use DB defaults if not set.
     # But for a new node, we want a reasonable starting trust_score.
