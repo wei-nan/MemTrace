@@ -209,7 +209,8 @@ class TestConnectionRequest(BaseModel):
 def list_ai_keys(user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
         cur.execute(
-            "SELECT id, provider, key_hint, created_at, last_used_at "
+            "SELECT id, provider, key_hint, created_at, last_used_at, "
+            "base_url, auth_mode, auth_token, default_chat_model, default_embedding_model "
             "FROM user_ai_keys WHERE user_id = %s ORDER BY created_at DESC",
             (user["sub"],),
         )
@@ -231,21 +232,21 @@ def create_ai_key(body: AIKeyCreate, user: dict = Depends(get_current_user)):
                 INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint, base_url, auth_mode, auth_token, default_chat_model, default_embedding_model)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id, provider) DO UPDATE
-                  SET key_enc = EXCLUDED.key_enc,
-                      key_hint = EXCLUDED.key_hint,
-                      base_url = EXCLUDED.base_url,
-                      auth_mode = EXCLUDED.auth_mode,
-                      auth_token = EXCLUDED.auth_token,
-                      default_chat_model = EXCLUDED.default_chat_model,
+                  SET key_enc               = COALESCE(EXCLUDED.key_enc, user_ai_keys.key_enc),
+                      key_hint              = COALESCE(NULLIF(EXCLUDED.key_hint, ''), user_ai_keys.key_hint),
+                      base_url              = EXCLUDED.base_url,
+                      auth_mode             = EXCLUDED.auth_mode,
+                      auth_token            = EXCLUDED.auth_token,
+                      default_chat_model    = EXCLUDED.default_chat_model,
                       default_embedding_model = EXCLUDED.default_embedding_model,
-                      last_used_at = NULL
+                      last_used_at          = NULL
                 RETURNING id, provider, key_hint, created_at, last_used_at
                 """,
                 (
-                    key_id, 
-                    user["sub"], 
-                    body.provider, 
-                    key_enc, 
+                    key_id,
+                    user["sub"],
+                    body.provider,
+                    key_enc,
                     key_hint,
                     body.base_url,
                     body.auth_mode,

@@ -211,12 +211,15 @@ class OpenAIProvider(AIProvider):
 
     def get_known_models(self) -> list[dict]:
         return [
-            {"id": "gpt-4o", "display_name": "GPT-4o"},
-            {"id": "gpt-4o-mini", "display_name": "GPT-4o Mini"},
-            {"id": "gpt-4-turbo", "display_name": "GPT-4 Turbo"},
-            {"id": "gpt-3.5-turbo", "display_name": "GPT-3.5 Turbo"},
-            {"id": "o1-preview", "display_name": "o1 Preview"},
-            {"id": "o1-mini", "display_name": "o1 Mini"},
+            {"id": "gpt-4.1",                "display_name": "GPT-4.1",               "model_type": "chat"},
+            {"id": "gpt-4.1-mini",           "display_name": "GPT-4.1 Mini",          "model_type": "chat"},
+            {"id": "gpt-4o",                 "display_name": "GPT-4o",                "model_type": "chat"},
+            {"id": "gpt-4o-mini",            "display_name": "GPT-4o Mini",           "model_type": "chat"},
+            {"id": "o3",                     "display_name": "o3",                    "model_type": "chat"},
+            {"id": "o4-mini",                "display_name": "o4 Mini",               "model_type": "chat"},
+            {"id": "text-embedding-3-small", "display_name": "text-embedding-3-small","model_type": "embedding", "embedding_dim": 1536},
+            {"id": "text-embedding-3-large", "display_name": "text-embedding-3-large","model_type": "embedding", "embedding_dim": 3072},
+            {"id": "text-embedding-ada-002", "display_name": "text-embedding-ada-002","model_type": "embedding", "embedding_dim": 1536},
         ]
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
@@ -230,11 +233,14 @@ class OpenAIProvider(AIProvider):
         if not resp.is_success:
             return self.get_known_models()
         data = resp.json()
-        return [
-            {"id": m["id"], "display_name": m["id"]}
-            for m in data["data"]
-            if "gpt" in m["id"] or "o1" in m["id"]
-        ]
+        results = []
+        for m in data["data"]:
+            mid = m["id"]
+            if "text-embedding" in mid:
+                results.append({"id": mid, "display_name": mid, "model_type": "embedding"})
+            elif any(x in mid for x in ("gpt-", "o1", "o3", "o4")):
+                results.append({"id": mid, "display_name": mid, "model_type": "chat"})
+        return results or self.get_known_models()
 
     async def embed(self, resolved, text):
         headers = {}
@@ -262,13 +268,13 @@ class AnthropicProvider(AIProvider):
 
     def get_known_models(self) -> list[dict]:
         return [
-            {"id": "claude-opus-4-7",              "display_name": "Claude Opus 4.7"},
-            {"id": "claude-sonnet-4-6",             "display_name": "Claude Sonnet 4.6"},
-            {"id": "claude-haiku-4-5-20251001",     "display_name": "Claude Haiku 4.5"},
-            {"id": "claude-opus-4-20250514",        "display_name": "Claude Opus 4"},
-            {"id": "claude-sonnet-4-20250514",      "display_name": "Claude Sonnet 4"},
-            {"id": "claude-3-5-sonnet-20241022",    "display_name": "Claude 3.5 Sonnet"},
-            {"id": "claude-3-5-haiku-20241022",     "display_name": "Claude 3.5 Haiku"},
+            {"id": "claude-opus-4-7",           "display_name": "Claude Opus 4.7",   "model_type": "chat"},
+            {"id": "claude-sonnet-4-6",          "display_name": "Claude Sonnet 4.6", "model_type": "chat"},
+            {"id": "claude-haiku-4-5-20251001",  "display_name": "Claude Haiku 4.5",  "model_type": "chat"},
+            {"id": "claude-opus-4-20250514",     "display_name": "Claude Opus 4",     "model_type": "chat"},
+            {"id": "claude-sonnet-4-20250514",   "display_name": "Claude Sonnet 4",   "model_type": "chat"},
+            {"id": "claude-3-5-sonnet-20241022", "display_name": "Claude 3.5 Sonnet", "model_type": "chat"},
+            {"id": "claude-3-5-haiku-20241022",  "display_name": "Claude 3.5 Haiku",  "model_type": "chat"},
         ]
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
@@ -286,7 +292,7 @@ class AnthropicProvider(AIProvider):
             return self.get_known_models()
         data = resp.json()
         return [
-            {"id": m["id"], "display_name": m.get("display_name", m["id"])}
+            {"id": m["id"], "display_name": m.get("display_name", m["id"]), "model_type": "chat"}
             for m in data["data"]
         ]
 
@@ -419,12 +425,13 @@ class GeminiProvider(AIProvider):
 
     def get_known_models(self) -> list[dict]:
         return [
-            {"id": "gemini-2.5-flash-preview-05-20", "display_name": "Gemini 2.5 Flash (Preview)"},
-            {"id": "gemini-2.5-pro-preview-05-06",   "display_name": "Gemini 2.5 Pro (Preview)"},
-            {"id": "gemini-2.0-flash",               "display_name": "Gemini 2.0 Flash"},
-            {"id": "gemini-2.0-flash-lite",          "display_name": "Gemini 2.0 Flash Lite"},
-            {"id": "gemini-1.5-pro",                 "display_name": "Gemini 1.5 Pro"},
-            {"id": "gemini-1.5-flash",               "display_name": "Gemini 1.5 Flash"},
+            {"id": "gemini-2.5-flash-preview-05-20", "display_name": "Gemini 2.5 Flash (Preview)", "model_type": "chat"},
+            {"id": "gemini-2.5-pro-preview-05-06",   "display_name": "Gemini 2.5 Pro (Preview)",   "model_type": "chat"},
+            {"id": "gemini-2.0-flash",               "display_name": "Gemini 2.0 Flash",           "model_type": "chat"},
+            {"id": "gemini-2.0-flash-lite",          "display_name": "Gemini 2.0 Flash Lite",      "model_type": "chat"},
+            {"id": "gemini-1.5-pro",                 "display_name": "Gemini 1.5 Pro",             "model_type": "chat"},
+            {"id": "gemini-1.5-flash",               "display_name": "Gemini 1.5 Flash",           "model_type": "chat"},
+            {"id": "text-embedding-004",             "display_name": "text-embedding-004",         "model_type": "embedding"},
         ]
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
@@ -437,14 +444,16 @@ class GeminiProvider(AIProvider):
         if not resp.is_success:
             return self.get_known_models()
         data = resp.json()
-        return [
-            {
-                "id": m["name"].replace("models/", ""),
-                "display_name": m.get("displayName", m["name"])
-            }
-            for m in data["models"]
-            if "generateContent" in m.get("supportedGenerationMethods", [])
-        ]
+        results = []
+        for m in data["models"]:
+            methods = m.get("supportedGenerationMethods", [])
+            mid = m["name"].replace("models/", "")
+            dname = m.get("displayName", mid)
+            if "generateContent" in methods:
+                results.append({"id": mid, "display_name": dname, "model_type": "chat"})
+            elif "embedContent" in methods:
+                results.append({"id": mid, "display_name": dname, "model_type": "embedding"})
+        return results or self.get_known_models()
 
     async def chat(self, resolved, messages, max_tokens, temperature):
         # system_instruction requires v1beta endpoint

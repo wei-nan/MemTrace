@@ -657,7 +657,6 @@ function SettingsPanel({
   const [baseUrl, setBaseUrl] = useState('');
   const [authMode, setAuthMode] = useState<'none' | 'bearer'>('none');
   const [authToken, setAuthToken] = useState('');
-  const [testing, setTesting] = useState(false);
   const [ollamaModels, setOllamaModels] = useState<import('./api').ModelInfo[]>([]);
   const [fetchingModels, setFetchingModels] = useState(false);
   const [modelFetchSource, setModelFetchSource] = useState<'server' | 'fallback' | null>(null);
@@ -701,25 +700,42 @@ function SettingsPanel({
     users.apiKeys.list().then(setPersonalKeys).catch(() => {});
   };
 
-  const fetchOllamaModels = async (silent = false) => {
-    if (!baseUrl) {
-      if (!silent) setError(zh ? '請先輸入 Base URL' : 'Please enter Base URL first');
-      return;
-    }
+  const fetchProviderModels = async (targetProvider = provider, silent = false) => {
     setError('');
     setFetchingModels(true);
     setModelFetchSource(null);
     try {
-      const ms = await ai.listModelsProxy('ollama', { base_url: baseUrl, auth_mode: authMode, auth_token: authToken });
+      let ms: import('./api').ModelInfo[];
+
+      if (targetProvider === 'ollama') {
+        if (!baseUrl) {
+          if (!silent) setError(zh ? '請先輸入 Base URL' : 'Please enter Base URL first');
+          return;
+        }
+        ms = await ai.listModelsProxy('ollama', { base_url: baseUrl, auth_mode: authMode, auth_token: authToken });
+        // Determine if we got live models or fallback static list
+        const knownFallbackIds = new Set(['llama3','mistral','mixtral','phi3','phi4','gemma2','qwen2.5','deepseek-r1','nomic-embed-text','mxbai-embed-large','all-minilm','bge-m3','llama3:8b','llama3:70b','llama3.2']);
+        const chatFromServer = ms.filter((m: any) => m.model_type !== 'embedding');
+        setModelFetchSource(chatFromServer.some((m: any) => !knownFallbackIds.has(m.id)) ? 'server' : 'fallback');
+      } else {
+        // For cloud providers: if user typed a new key, test it first; otherwise use stored key
+        if (apiKey) {
+          try {
+            await ai.testConnection({ provider: targetProvider, api_key: apiKey });
+          } catch (e: any) {
+            setError(e.message);
+            return;
+          }
+          ms = await ai.listModelsProxy(targetProvider, { api_key: apiKey });
+        } else {
+          // Use stored key via server-side resolve
+          ms = await ai.listModels(targetProvider);
+        }
+        setModelFetchSource(ms.length > 0 ? 'server' : 'fallback');
+        if (ms.length === 0) ms = [];
+      }
+
       setOllamaModels(ms);
-      // If backend appended fallback embedding models, all chat models are from server.
-      // If ALL models have no unique id outside known list AND none are marked needs_install = false,
-      // it's a pure fallback. Simplest heuristic: if any model lacks needs_install flag and isn't
-      // in the static known list, it came from the server.
-      const knownFallbackIds = new Set(['llama3','mistral','mixtral','phi3','phi4','gemma2','qwen2.5','deepseek-r1','nomic-embed-text','mxbai-embed-large','all-minilm','bge-m3','llama3:8b','llama3:70b','llama3.2']);
-      const chatFromServer = ms.filter((m: any) => m.model_type !== 'embedding');
-      const looksLiveFetch = chatFromServer.some((m: any) => !knownFallbackIds.has(m.id));
-      setModelFetchSource(looksLiveFetch ? 'server' : 'fallback');
       if (!silent) toast({ message: zh ? '已取得模型列表' : 'Models fetched', variant: 'success' });
     } catch (e: any) {
       setError(e.message);
@@ -768,7 +784,12 @@ function SettingsPanel({
   };
 
   const handleSaveKey = async () => {
-    if (provider !== 'ollama' && apiKey.length < 10) {
+    const existingKey = keys.find(k => k.provider === provider);
+    if (provider !== 'ollama' && !apiKey && !existingKey) {
+      setError(zh ? '請輸入 API Key' : 'API key required');
+      return;
+    }
+    if (provider !== 'ollama' && apiKey && apiKey.length < 10) {
       setError(zh ? 'API Key 太短' : 'API key too short');
       return;
     }
@@ -792,7 +813,7 @@ function SettingsPanel({
     try {
       await ai.createKey({
         provider,
-        api_key: apiKey,
+        api_key: apiKey || undefined,   // omit if blank (keep existing key)
         base_url: provider === 'ollama' ? baseUrl : undefined,
         auth_mode: provider === 'ollama' ? authMode : undefined,
         auth_token: provider === 'ollama' ? authToken : undefined,
@@ -809,28 +830,6 @@ function SettingsPanel({
     }
   };
 
-  const handleTestConnection = async () => {
-    setTesting(true);
-    setError('');
-    setSuccess('');
-    try {
-      await ai.testConnection({
-        provider,
-        api_key: apiKey,
-        base_url: baseUrl,
-        auth_mode: authMode,
-        auth_token: authToken,
-        // For Ollama, pass the selected chat model so the test doesn't use the
-        // hardcoded default "llama3" which may not be installed on the server.
-        model: provider === 'ollama' ? (defaultChatModel || undefined) : undefined,
-      });
-      setSuccess(zh ? '連線測試成功' : 'Connection test successful');
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setTesting(false);
-    }
-  };
 
   const handleDeleteKey = async (p: string) => {
     const ok = await confirm({
@@ -1113,9 +1112,11 @@ function SettingsPanel({
                       setAuthToken(existing.auth_token || '');
                       setDefaultChatModel(existing.default_chat_model || '');
                       setDefaultEmbeddingModel(existing.default_embedding_model || '');
-                      // Auto-fetch models when switching to a configured Ollama provider
+                      // Auto-fetch models when switching to a configured provider
                       if (p.value === 'ollama' && savedUrl) {
-                        setTimeout(() => fetchOllamaModels(true), 0);
+                        setTimeout(() => fetchProviderModels('ollama', true), 0);
+                      } else if (p.value !== 'ollama') {
+                        setTimeout(() => fetchProviderModels(p.value, true), 0);
                       }
                     } else {
                       setBaseUrl('');
@@ -1144,14 +1145,14 @@ function SettingsPanel({
           </div>
           {provider === 'ollama' ? (
             <>
-              {/* ── Step 1: Connection ── */}
+              {/* ── Ollama: Step 1 — Connection ── */}
               <div>
                 <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Base URL</label>
                 <input
                   className="mt-input"
                   placeholder="http://localhost:11434"
                   value={baseUrl}
-                  onChange={e => { setBaseUrl(e.target.value); setModelFetchSource(null); }}
+                  onChange={e => { setBaseUrl(e.target.value); setModelFetchSource(null); setOllamaModels([]); }}
                 />
               </div>
               <div style={{ display: 'flex', gap: 12 }}>
@@ -1165,164 +1166,129 @@ function SettingsPanel({
                 {authMode === 'bearer' && (
                   <div style={{ flex: 2 }}>
                     <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Token</label>
-                    <input
-                      className="mt-input"
-                      type="password"
-                      placeholder="token..."
-                      value={authToken}
-                      onChange={e => setAuthToken(e.target.value)}
-                    />
+                    <input className="mt-input" type="password" placeholder="token..." value={authToken} onChange={e => setAuthToken(e.target.value)} />
                   </div>
-                )}
-              </div>
-
-              {/* ── Step 2: Fetch & pick models ── */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <button
-                  className="btn-secondary"
-                  onClick={() => fetchOllamaModels(false)}
-                  disabled={fetchingModels || !baseUrl}
-                  style={{ whiteSpace: 'nowrap' }}
-                >
-                  {fetchingModels
-                    ? (zh ? '取得中…' : 'Fetching…')
-                    : (zh ? '取得模型列表' : 'Fetch Models')}
-                </button>
-                {modelFetchSource === 'server' && (() => {
-                  const serverChatCount = chatModels.length;
-                  const needsInstallEmbeds = embeddingModels.filter(m => m.needs_install);
-                  const liveEmbedCount = embeddingModels.length - needsInstallEmbeds.length;
-                  return (
-                    <span style={{ fontSize: 11, color: 'var(--color-success)' }}>
-                      ✓ {zh
-                        ? `${serverChatCount} 個對話模型${liveEmbedCount > 0 ? `・${liveEmbedCount} 個向量模型` : ''}`
-                        : `${serverChatCount} chat model${serverChatCount !== 1 ? 's' : ''}${liveEmbedCount > 0 ? ` · ${liveEmbedCount} embedding` : ''}`}
-                      {needsInstallEmbeds.length > 0 && (
-                        <span style={{ color: 'var(--color-warning, #f59e0b)', marginLeft: 6 }}>
-                          · {zh ? `向量模型需另行安裝` : `embedding models need install`}
-                        </span>
-                      )}
-                    </span>
-                  );
-                })()}
-                {modelFetchSource === 'fallback' && (
-                  <span style={{ fontSize: 11, color: 'var(--color-warning, #f59e0b)' }}>
-                    ⚠ {zh ? '伺服器未回應，顯示預設清單' : 'Server unavailable — showing default list'}
-                  </span>
                 )}
               </div>
             </>
           ) : (
-            <div>
-              <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>API Key</label>
-              <input
-                className="mt-input"
-                type="password"
-                placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
-              />
-            </div>
-          )}
-
-          {/* Common model selectors for all providers (Static known lists for non-Ollama) */}
-          {provider !== 'ollama' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{zh ? '預設對話模型' : 'Default Chat Model'}</label>
-                <select className="mt-input" value={defaultChatModel} onChange={e => setDefaultChatModel(e.target.value)}>
-                  <option value="">{zh ? '-- 系統預設 --' : '-- Default --'}</option>
-                  {(provider === 'openai' ? [
-                      'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini',
-                    ] :
-                    provider === 'anthropic' ? [
-                      'claude-opus-4-7', 'claude-sonnet-4-6',
-                      'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022',
-                      'claude-haiku-4-5-20251001', 'claude-3-5-haiku-20241022',
-                    ] :
-                    provider === 'gemini' ? [
-                      'gemini-2.5-flash-preview-05-20', 'gemini-2.5-pro-preview-05-06',
-                      'gemini-2.0-flash', 'gemini-2.0-flash-lite',
-                      'gemini-1.5-pro', 'gemini-1.5-flash',
-                    ] : []
-                  ).map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>{zh ? '預設向量模型' : 'Default Embedding Model'}</label>
-                <select className="mt-input" value={defaultEmbeddingModel} onChange={e => setDefaultEmbeddingModel(e.target.value)}>
-                  <option value="">{zh ? '-- 系統預設 --' : '-- Default --'}</option>
-                  {(provider === 'openai' ? ['text-embedding-3-small', 'text-embedding-3-large', 'text-embedding-ada-002'] :
-                    provider === 'gemini' ? ['text-embedding-004'] : []
-                  ).map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-            </div>
-          )}
-
-          {/* Ollama specific selectors (already implemented, but we keep them here) */}
-          {provider === 'ollama' && (
             <>
-              {/* Chat model selector */}
+              {/* ── Cloud provider: API Key ── */}
               <div>
                 <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  {zh ? '預設對話模型' : 'Default Chat Model'}
-                  {!defaultChatModel && ollamaModels.length > 0 && (
-                    <span style={{ color: 'var(--color-error)', marginLeft: 6 }}>*</span>
+                  API Key
+                  {keys.find(k => k.provider === provider) && (
+                    <span style={{ color: 'var(--color-success)', marginLeft: 8 }}>
+                      {zh ? '（已設定，留空則使用現有金鑰）' : '(configured — leave blank to keep existing key)'}
+                    </span>
                   )}
                 </label>
-                <select
+                <input
                   className="mt-input"
-                  value={defaultChatModel}
-                  onChange={e => setDefaultChatModel(e.target.value)}
-                  disabled={ollamaModels.length === 0}
-                >
-                  <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇對話模型 --' : '-- Select chat model --')}</option>
-                  {chatModels.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
-                  {defaultChatModel && !chatModels.find(m => m.id === defaultChatModel) && (
-                    <option value={defaultChatModel}>{defaultChatModel}</option>
-                  )}
-                </select>
-              </div>
-
-              {/* Embedding model selector */}
-              <div>
-                <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
-                  {zh ? '預設向量模型' : 'Default Embedding Model'}
-                  {!defaultEmbeddingModel && ollamaModels.length > 0 && (
-                    <span style={{ color: 'var(--color-error)', marginLeft: 6 }}>*</span>
-                  )}
-                </label>
-                <select
-                  className="mt-input"
-                  value={defaultEmbeddingModel}
-                  onChange={e => setDefaultEmbeddingModel(e.target.value)}
-                  disabled={ollamaModels.length === 0}
-                >
-                  <option value="">{ollamaModels.length === 0 ? (zh ? '請先取得模型列表' : 'Fetch models first') : (zh ? '-- 選擇向量模型 --' : '-- Select embedding model --')}</option>
-                  {embeddingModels.map(m => (
-                    <option key={m.id} value={m.id}>
-                      {m.needs_install
-                        ? m.display_name
-                        : `${m.display_name}${m.embedding_dim ? ` (${m.embedding_dim}d)` : ''}`}
-                    </option>
-                  ))}
-                  {defaultEmbeddingModel && !embeddingModels.find((m: any) => m.id === defaultEmbeddingModel) && (
-                    <option value={defaultEmbeddingModel}>{defaultEmbeddingModel}</option>
-                  )}
-                </select>
+                  type="password"
+                  placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
+                  value={apiKey}
+                  onChange={e => { setApiKey(e.target.value); setModelFetchSource(null); setOllamaModels([]); }}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSaveKey(); }}
+                />
               </div>
             </>
+          )}
+
+          {/* ── Shared: Fetch Models button ── */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              className="btn-secondary"
+              onClick={() => fetchProviderModels(provider, false)}
+              disabled={fetchingModels || (provider === 'ollama' ? !baseUrl : false)}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              {fetchingModels
+                ? (zh ? '測試中…' : 'Fetching…')
+                : provider === 'ollama'
+                  ? (zh ? '取得模型列表' : 'Fetch Models')
+                  : (zh ? '測試金鑰並取得模型' : 'Test Key & Fetch Models')}
+            </button>
+            {modelFetchSource === 'server' && (() => {
+              const nChat = chatModels.length;
+              const needsInstall = embeddingModels.filter((m: any) => m.needs_install);
+              const nEmbed = embeddingModels.length - needsInstall.length;
+              return (
+                <span style={{ fontSize: 11, color: 'var(--color-success)' }}>
+                  ✓ {zh
+                    ? `${nChat} 個對話模型${nEmbed > 0 ? `・${nEmbed} 個向量模型` : ''}`
+                    : `${nChat} chat model${nChat !== 1 ? 's' : ''}${nEmbed > 0 ? ` · ${nEmbed} embedding` : ''}`}
+                  {needsInstall.length > 0 && (
+                    <span style={{ color: 'var(--color-warning, #f59e0b)', marginLeft: 6 }}>
+                      · {zh ? '向量模型需另行安裝' : 'embedding models need install'}
+                    </span>
+                  )}
+                </span>
+              );
+            })()}
+            {modelFetchSource === 'fallback' && (
+              <span style={{ fontSize: 11, color: 'var(--color-warning, #f59e0b)' }}>
+                ⚠ {zh ? '無法連線，顯示預設清單' : 'Could not connect — showing default list'}
+              </span>
+            )}
+          </div>
+
+          {/* ── Shared: Chat model selector ── */}
+          <div>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
+              {zh ? '預設對話模型' : 'Default Chat Model'}
+              {provider === 'ollama' && !defaultChatModel && ollamaModels.length > 0 && (
+                <span style={{ color: 'var(--color-error)', marginLeft: 6 }}>*</span>
+              )}
+            </label>
+            <select
+              className="mt-input"
+              value={defaultChatModel}
+              onChange={e => setDefaultChatModel(e.target.value)}
+            >
+              <option value="">{zh ? '-- 系統預設 --' : '-- System default --'}</option>
+              {chatModels.map((m: any) => (
+                <option key={m.id} value={m.id}>{m.display_name || m.id}</option>
+              ))}
+              {defaultChatModel && !chatModels.find((m: any) => m.id === defaultChatModel) && (
+                <option value={defaultChatModel}>{defaultChatModel}</option>
+              )}
+            </select>
+          </div>
+
+          {/* ── Shared: Embedding model selector (hidden for Anthropic) ── */}
+          {provider !== 'anthropic' && (
+            <div>
+              <label style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>
+                {zh ? '預設向量模型' : 'Default Embedding Model'}
+                {provider === 'ollama' && !defaultEmbeddingModel && ollamaModels.length > 0 && (
+                  <span style={{ color: 'var(--color-error)', marginLeft: 6 }}>*</span>
+                )}
+              </label>
+              <select
+                className="mt-input"
+                value={defaultEmbeddingModel}
+                onChange={e => setDefaultEmbeddingModel(e.target.value)}
+              >
+                <option value="">{zh ? '-- 系統預設 --' : '-- System default --'}</option>
+                {embeddingModels.map((m: any) => (
+                  <option key={m.id} value={m.id}>
+                    {m.needs_install
+                      ? m.display_name
+                      : `${m.display_name || m.id}${m.embedding_dim ? ` (${m.embedding_dim}d)` : ''}`}
+                  </option>
+                ))}
+                {defaultEmbeddingModel && !embeddingModels.find((m: any) => m.id === defaultEmbeddingModel) && (
+                  <option value={defaultEmbeddingModel}>{defaultEmbeddingModel}</option>
+                )}
+              </select>
+            </div>
           )}
           {error && <div style={{ color: 'var(--color-error)', fontSize: 12 }}>{error}</div>}
           {success && <div style={{ color: 'var(--color-success)', fontSize: 12 }}>{success}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button className="btn-primary" onClick={handleSaveKey} disabled={saving}>
-              {saving ? (zh ? '儲存中…' : 'Saving…') : (zh ? '儲存 API Key' : 'Save API Key')}
-            </button>
-            <button className="btn-secondary" onClick={handleTestConnection} disabled={testing}>
-              {testing ? (zh ? '測試中…' : 'Testing…') : (zh ? '測試連線' : 'Test Connection')}
+              {saving ? (zh ? '儲存中…' : 'Saving…') : (zh ? '儲存設定' : 'Save Settings')}
             </button>
           </div>
         </div>
