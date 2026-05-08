@@ -243,10 +243,9 @@ async def _safe_parse_nodes(raw: str, resolved, filename: str) -> Tuple[list[dic
                 "content": f"Repair this broken JSON from '{filename}':\n\n{cleaned[:6000]}",
             },
         ]
-        async with _AI_SEMAPHORE:
-            repaired_raw, repair_tokens = await chat_completion(
-                resolved, repair_messages, max_tokens=4096
-            )
+        repaired_raw, repair_tokens = await chat_completion(
+            resolved, repair_messages, max_tokens=4096
+        )
         repaired_cleaned = strip_fences(repaired_raw)
 
         result = json.loads(repaired_cleaned)
@@ -573,6 +572,15 @@ def _propose_edge(cur, ws_id, from_id, to_id, relation, source_type, proposer, m
 # ── Background task ───────────────────────────────────────────────────────────
 
 async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str, filename: str, doc_type: str = "generic", approved_seeds: Optional[list[str]] = None, doc: Optional[NormalizedDocument] = None):
+    await _AI_SEMAPHORE.acquire()
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "UPDATE ingestion_logs SET status = 'processing' WHERE id = %s AND status = 'pending'",
+            (job_id,),
+        )
+        if cur.rowcount == 0:
+            _AI_SEMAPHORE.release()
+            return  # cancelled while waiting for a semaphore slot
     try:
         from core.security import generate_id
         source_id = generate_id("src")
@@ -743,30 +751,29 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
             chunk_resolved = resolved
             raw, tokens = None, 0
             chunk_error: Optional[Exception] = None
-            async with _AI_SEMAPHORE:   # limit concurrent AI calls across all ingestion jobs
-                for attempt in range(2):   # at most 2 attempts (primary + one fallback)
-                    try:
-                        raw, tokens = await chat_completion(chunk_resolved, messages)
-                        chunk_error = None
-                        break
-                    except AIProviderError as e:
-                        chunk_error = e
-                        if attempt == 0:
-                            # Try the next available provider
-                            try:
-                                from core.database import db_cursor as _db2
-                                with _db2() as cur2:
-                                    cur2.execute(
-                                        "SELECT provider FROM user_ai_keys WHERE user_id = %s AND provider != %s "
-                                        "ORDER BY last_used_at DESC NULLS LAST LIMIT 1",
-                                        (user_id, chunk_resolved.provider.name),
-                                    )
-                                    alt = cur2.fetchone()
-                                if alt:
-                                    chunk_resolved = resolve_provider(user_id, "extraction", preferred_provider=alt["provider"])
-                                    print(f"Chunk {idx}: switched to {chunk_resolved.provider.name} after error: {e}")
-                            except Exception:
-                                pass
+            for attempt in range(2):   # at most 2 attempts (primary + one fallback)
+                try:
+                    raw, tokens = await chat_completion(chunk_resolved, messages)
+                    chunk_error = None
+                    break
+                except AIProviderError as e:
+                    chunk_error = e
+                    if attempt == 0:
+                        # Try the next available provider
+                        try:
+                            from core.database import db_cursor as _db2
+                            with _db2() as cur2:
+                                cur2.execute(
+                                    "SELECT provider FROM user_ai_keys WHERE user_id = %s AND provider != %s "
+                                    "ORDER BY last_used_at DESC NULLS LAST LIMIT 1",
+                                    (user_id, chunk_resolved.provider.name),
+                                )
+                                alt = cur2.fetchone()
+                            if alt:
+                                chunk_resolved = resolve_provider(user_id, "extraction", preferred_provider=alt["provider"])
+                                print(f"Chunk {idx}: switched to {chunk_resolved.provider.name} after error: {e}")
+                        except Exception:
+                            pass
 
             if chunk_error is not None:
                 raise chunk_error  # re-raise if all attempts failed
@@ -856,6 +863,8 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                 "UPDATE ingestion_logs SET status = 'failed', error_msg = %s, completed_at = now() WHERE id = %s",
                 (error_str, job_id),
             )
+    finally:
+        _AI_SEMAPHORE.release()
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -938,7 +947,7 @@ async def ingest_file(
         cur.execute(
             """
             INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status, batch_id, queue_position)
-            VALUES (%s, %s, %s, %s, 'processing', %s, %s)
+            VALUES (%s, %s, %s, %s, 'pending', %s, %s)
             """,
             (job_id, ws_id, user["sub"], file.filename, batch_id, queue_position or 0),
         )
@@ -1022,7 +1031,7 @@ async def ingest_url(
         cur.execute(
             """
             INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status)
-            VALUES (%s, %s, %s, %s, 'processing')
+            VALUES (%s, %s, %s, %s, 'pending')
             """,
             (job_id, ws_id, user["sub"], f"URL: {url}"),
         )
@@ -1255,30 +1264,38 @@ async def retry_audit_headings(
         cur.execute(
             """
             INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status, chunks_total)
-            VALUES (%s, %s, %s, %s, 'processing', %s)
+            VALUES (%s, %s, %s, %s, 'pending', %s)
             """,
             (job_id, ws_id, user["sub"], f"Retry: {filename}", len(segments_to_process)),
         )
 
     async def _process_retry():
+        await _AI_SEMAPHORE.acquire()
+        with db_cursor(commit=True) as cur:
+            cur.execute(
+                "UPDATE ingestion_logs SET status = 'processing' WHERE id = %s AND status = 'pending'",
+                (job_id,),
+            )
+            if cur.rowcount == 0:
+                _AI_SEMAPHORE.release()
+                return  # cancelled while waiting
         try:
             resolved = _resolve_with_fallback(user["sub"], "extraction")
             all_nodes = []
-            
+
             for idx, text in enumerate(segments_to_process, 1):
                 from core.ai import get_extraction_prompt
                 messages = [
                     {"role": "system", "content": get_extraction_prompt(payload.doc_type)},
                     {"role": "user", "content": f"Extract missing nodes from this specific section of '{filename}':\n\n{text}"}
                 ]
-                
+
                 try:
                     from core.ai import chat_completion
-                    async with _AI_SEMAPHORE:
-                        raw, tokens = await chat_completion(resolved, messages)
+                    raw, tokens = await chat_completion(resolved, messages)
                     nodes_data, _ = await _safe_parse_nodes(raw, resolved, filename)
                     all_nodes.extend(nodes_data)
-                    
+
                     with db_cursor(commit=True) as cur:
                         cur.execute("UPDATE ingestion_logs SET chunks_done = %s WHERE id = %s", (idx, job_id))
                 except Exception as e:
@@ -1291,6 +1308,8 @@ async def retry_audit_headings(
         except Exception as e:
             with db_cursor(commit=True) as cur:
                 cur.execute("UPDATE ingestion_logs SET status = 'failed', error_msg = %s, completed_at = now() WHERE id = %s", (str(e), job_id))
+        finally:
+            _AI_SEMAPHORE.release()
 
     background_tasks.add_task(_process_retry)
     return {"message": "Retry ingestion started", "job_id": job_id, "segment_count": len(segments_to_process)}
