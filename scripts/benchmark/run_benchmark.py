@@ -127,14 +127,18 @@ def simulate_kb_retrieval(question: dict, client: httpx.Client) -> dict:
     Strategy:
       1. search_nodes with key terms from the question
       2. get_node for expected_nodes (direct lookup)
-      Measure total tokens fetched.
+      3. traverse from first found node (multi_hop / cross_reference only)
+      Measure total tokens fetched across all steps.
     """
+    category = question.get("category", "")
+    use_traverse = category in ("multi_hop", "cross_reference")
+
     total_tokens = 0
     fetched_nodes = set()
-    fetched_content = []
     latency_ms = 0
+    traverse_anchor: str | None = None   # first node found via search
 
-    # Step 1: keyword search (simulate what agent would do first)
+    # Step 1: keyword search
     key_terms = extract_key_terms(question["question_en"])
     for term in key_terms[:2]:   # max 2 search calls
         t0 = time.perf_counter()
@@ -145,9 +149,22 @@ def simulate_kb_retrieval(question: dict, client: httpx.Client) -> dict:
             nid = n.get("id", "")
             if nid and nid not in fetched_nodes:
                 fetched_nodes.add(nid)
-                fetched_content.append(nid)
+                if traverse_anchor is None:
+                    traverse_anchor = nid
 
-    # Step 2: direct node fetch for expected nodes (simulate get_node calls)
+    # Step 2: traverse from first found node (multi-hop questions)
+    if use_traverse and traverse_anchor:
+        t0 = time.perf_counter()
+        result, toks = kb_traverse(traverse_anchor, depth=2, client=client)
+        latency_ms += (time.perf_counter() - t0) * 1000
+        total_tokens += toks
+        # Add traversal-discovered nodes to fetched set
+        for n in result.get("nodes", []):
+            nid = n.get("id", "")
+            if nid:
+                fetched_nodes.add(nid)
+
+    # Step 3: direct node fetch for any expected nodes still missing
     for nid in question.get("expected_nodes", []):
         if nid not in fetched_nodes:
             t0 = time.perf_counter()
@@ -156,7 +173,6 @@ def simulate_kb_retrieval(question: dict, client: httpx.Client) -> dict:
             total_tokens += toks
             if node:
                 fetched_nodes.add(nid)
-                fetched_content.append(nid)
 
     # Coverage: were all expected nodes retrieved?
     expected = set(question.get("expected_nodes", []))
@@ -169,6 +185,7 @@ def simulate_kb_retrieval(question: dict, client: httpx.Client) -> dict:
         "expected_nodes": question.get("expected_nodes", []),
         "coverage":       coverage,
         "latency_ms":     round(latency_ms, 1),
+        "used_traverse":  use_traverse and traverse_anchor is not None,
     }
 
 def extract_key_terms(question: str) -> list[str]:
@@ -238,8 +255,8 @@ def run_benchmark(output_path: str | None = None):
 
     # Run questions
     print(f"\n[3/3] Running {len(questions)} benchmark questions...\n")
-    print(f"  {'ID':<5} {'Category':<20} {'KB tok':>8} {'Coverage':>10} {'Efficiency':>12} {'Latency':>10}")
-    print(f"  {'-'*5} {'-'*20} {'-'*8} {'-'*10} {'-'*12} {'-'*10}")
+    print(f"  {'ID':<5} {'Category':<20} {'KB tok':>8} {'Coverage':>10} {'Efficiency':>12} {'Latency':>10} {'Trav':>5}")
+    print(f"  {'-'*5} {'-'*20} {'-'*8} {'-'*10} {'-'*12} {'-'*10} {'-'*5}")
 
     results = []
     with httpx.Client(timeout=10.0) as client:
@@ -250,11 +267,13 @@ def run_benchmark(output_path: str | None = None):
             cov  = score_coverage(retrieval)
             cov_symbol = "OK" if cov >= 1.0 else ("~" if cov > 0 else "NG")
 
+            trav_mark = "T" if retrieval.get("used_traverse") else " "
             print(f"  {q['id']:<5} {q['category']:<20} "
                   f"{retrieval['kb_tokens']:>8,} "
                   f"{cov_symbol} {cov*100:>6.0f}%  "
                   f"  {eff:>6.1f}x ({pct:.0f}% less)  "
-                  f"{retrieval['latency_ms']:>7.0f} ms")
+                  f"{retrieval['latency_ms']:>7.0f} ms"
+                  f"  {trav_mark}")
 
             results.append({
                 "question_id":   q["id"],
@@ -268,6 +287,7 @@ def run_benchmark(output_path: str | None = None):
                 "latency_ms":    retrieval["latency_ms"],
                 "nodes_fetched": retrieval["nodes_fetched"],
                 "expected_nodes": retrieval["expected_nodes"],
+                "used_traverse": retrieval.get("used_traverse", False),
             })
 
     # Aggregate stats

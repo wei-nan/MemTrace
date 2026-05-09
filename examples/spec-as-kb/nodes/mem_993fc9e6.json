@@ -1,0 +1,46 @@
+{
+  "id": "mem_993fc9e6",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "節點走訪統計數據結構",
+    "en": "Node Traversal Statistics Data Structure"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "節點響應中的 `traversal` 物件包含 `count`（走訪次數）和 `unique_traversers`（唯一走訪者數量）欄位。",
+      "en": "The `traversal` object in a node response includes `count` (number of traversals) and `unique_traversers` (number of unique traversers) fields."
+    }
+  },
+  "tags": [
+    "data-structure",
+    "traversal-stats",
+    "node"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.257768+00:00",
+    "signature": "66359e4b04b32eb74bda754d4a7ce4bb86ffb941c45a7f46889bfa738edbffd8",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

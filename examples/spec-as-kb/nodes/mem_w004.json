@@ -13,12 +13,35 @@
       "en": "## Completed (Phase 1–4)\n\n| Layer | Status |\n|-------|--------|\n| core (types/decay/signature/trust computation) | ✅ |\n| SQL schema (001_init + 28 migrations) | ✅ |\n| api/core (database/security/AI abstraction) | ✅ |\n| api/routers/auth (login/JWT/password reset) | ✅ |\n| api/routers/kb (workspace/node/edge/roles) | ✅ |\n| api/routers/ingest (PDF/Markdown ingestion) | ✅ |\n| mcp server (stdio+SSE / read+write+vote_trust tools) | ✅ |\n| ui (Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics) | ✅ |\n\n## Phase 4 Completed Tasks\n\n| Task | Goal | Status |\n|------|------|--------|\n| P4-A | KB health dashboard + token efficiency report | ✅ |\n| P4-B | Spec-as-KB upgraded to public demo homepage | ✅ |\n| P4-C | MCP vote_trust tool + 4-dimension trust vote API | ✅ |\n| P4-D | CLI ingest/copy-node/init, Core contentTypeHalfLife/SHA-256, Scheduler jobs | ✅ |\n| P4-G | Self-hosted Ollama provider (local/LAN/reverse proxy) | ✅ |"
     }
   },
-  "tags": ["dev", "workflow", "procedural"],
+  "tags": [
+    "dev",
+    "workflow",
+    "procedural"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-28T00:00:00Z",
-    "updated_at": "2026-04-29T00:00:00Z",
-    "source_type": "human"
+    "created_at": "2026-04-28T00:00:00+00:00",
+    "signature": "",
+    "source_type": "human",
+    "updated_at": "2026-04-29T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
   }
 }

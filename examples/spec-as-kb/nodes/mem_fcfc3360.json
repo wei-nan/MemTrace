@@ -1,0 +1,48 @@
+{
+  "id": "mem_fcfc3360",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "AI 呼叫日誌要求",
+    "en": "AI Call Logging Requirement"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "所有 AI 呼叫，無論是使用工作區級別還是帳戶級別的金鑰，都必須記錄。日誌作為計費、調試和政策執行的權威記錄。",
+      "en": "All AI calls, regardless of whether they use a workspace-level or account-level key, must be logged. The log serves as the authoritative record for billing, debugging, and policy enforcement."
+    }
+  },
+  "tags": [
+    "ai",
+    "說明",
+    "記錄",
+    "錯誤",
+    "結構"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.870968+00:00",
+    "signature": "d602c01a63a9d7c9de1f73258fc8a94b375dadb29578da5d267ed59f356eb6fa",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

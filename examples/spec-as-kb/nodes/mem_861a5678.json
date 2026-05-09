@@ -1,0 +1,48 @@
+{
+  "id": "mem_861a5678",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點中文標題",
+    "en": "Memory Node Chinese Title"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `title_zh` 欄位類型為 TEXT，存儲記憶節點的繁體中文標題。",
+      "en": "The `title_zh` column in the `memory_nodes` table is of type TEXT, storing the Traditional Chinese title of the memory node."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "i18n"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:38.887496+00:00",
+    "signature": "12328509dc7671ad30f9527c83a236ec95851b5d63e6c5365783c6b50b757d97",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

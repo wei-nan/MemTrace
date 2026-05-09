@@ -13,18 +13,34 @@
       "en": "Every Memory Node carries a composite trust score (0–1) derived from four dimensions:\n\n| Dimension | Description | Default at creation |\n|-----------|-------------|--------------------|\n| `accuracy` | Factual correctness | 0.5 |\n| `freshness` | Timeliness | 1.0 |\n| `utility` | Practical usefulness | 0.5 |\n| `author_rep` | Author reputation | 0.5 |\n\nTrust scores are updated continuously by community votes (up/down) and verification counts. Content is SHA-256 signed on every save. Nodes with score < 0.3 are flagged; nodes < 0.1 are removed from the public index."
     }
   },
-  "tags": ["data-model", "trust", "anti-forgery"],
+  "tags": [
+    "data-model",
+    "trust",
+    "anti-forgery"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

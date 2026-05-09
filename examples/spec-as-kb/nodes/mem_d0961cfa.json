@@ -1,0 +1,46 @@
+{
+  "id": "mem_d0961cfa",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點編輯器存取方法",
+    "en": "Memory Node Editor Access Methods"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "編輯器可從圖譜視圖（透過工具列按鈕或雙擊空白畫布區域）以及節點的上下文菜單存取。",
+      "en": "The editor is accessible from the Graph View (via a toolbar button or double-clicking an empty canvas area) and from the node's context menu."
+    }
+  },
+  "tags": [
+    "editor",
+    "access",
+    "ui"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.331044+00:00",
+    "signature": "8a3d4055ab327d3e4acebfb2c8f2e9c165b22d5051ede17ec4d37ec45d66869a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

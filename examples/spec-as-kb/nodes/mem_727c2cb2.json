@@ -1,0 +1,46 @@
+{
+  "id": "mem_727c2cb2",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "入門流程完成狀態追蹤",
+    "en": "Onboarding Completion State Tracking"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MemTrace 在服務端追蹤每個使用者的入門 (onboarding) 流程完成進度。",
+      "en": "MemTrace tracks onboarding completion status per user on the server-side."
+    }
+  },
+  "tags": [
+    "onboarding",
+    "user-state",
+    "server-side"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.365178+00:00",
+    "signature": "7afcc2ae675a0fe89085bcc1e691fed58e025a908cae57ce7cfdb000934644f6",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

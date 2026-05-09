@@ -1,0 +1,47 @@
+{
+  "id": "mem_42669ba9",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "POST /edges/{edge_id}/rate 請求體",
+    "en": "POST /edges/{edge_id}/rate Request Body"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "請求體包含一個 `rating` 欄位（1 到 5 之間的整數）和一個可選的 `note` 欄位。每個執行者對每條邊只能提交一次評分，後續提交將覆蓋先前的評分。",
+      "en": "The request body includes a `rating` field (an integer between 1 and 5) and an optional `note` field. Only one rating per actor per edge is enforced, with subsequent submissions overwriting previous ratings."
+    }
+  },
+  "tags": [
+    "api",
+    "request-body",
+    "rating",
+    "constraints"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.239378+00:00",
+    "signature": "a5a308930ff1aefa0598e53a5f2529fd427006c614b29d6f873d4ac68e4b6ed4",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

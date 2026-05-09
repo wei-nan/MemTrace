@@ -1,0 +1,46 @@
+{
+  "id": "mem_playbook_003",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "最佳實踐：區分節點類型",
+    "en": "Best Practice: Distinguishing Node Types"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "### 內容類型指南\n- **事實性 (Factual)**：客觀事實、技術規格、定義。\n- **程序性 (Procedural)**：行動步驟、SOP、操作指南。\n- **偏好性 (Preference)**：團隊決策、設計偏好、選擇理由。\n- **背景性 (Context)**：專案背景、高層次哲學、設計意圖。",
+      "en": "### Content Type Guide\n- **Factual**: Objective facts, technical specs, definitions.\n- **Procedural**: Action steps, SOPs, how-to guides.\n- **Preference**: Team decisions, design preferences, rationale for choices.\n- **Context**: Project background, high-level philosophy, design intent."
+    }
+  },
+  "tags": [
+    "best-practice",
+    "content-type",
+    "guide"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T13:35:31.814382+00:00",
+    "signature": "manual_playbook_003",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.5,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

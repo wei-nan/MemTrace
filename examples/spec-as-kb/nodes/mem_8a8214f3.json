@@ -1,0 +1,48 @@
+{
+  "id": "mem_8a8214f3",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點來源類型",
+    "en": "Memory Node Source Type"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `source_type` 欄位類型為 ENUM，可能的值為 `human` / `ai_generated` / `ai_verified`。",
+      "en": "The `source_type` column in the `memory_nodes` table is of type ENUM, with possible values `human` / `ai_generated` / `ai_verified`."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "enum"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.108336+00:00",
+    "signature": "5dce0a872a0e0bec6f9fc2e51d4e0fc0593f549fbac11c16734de343d7cce113",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

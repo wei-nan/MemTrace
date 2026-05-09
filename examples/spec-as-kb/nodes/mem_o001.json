@@ -13,19 +13,36 @@
       "en": "Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Eight-step flow:\n\n① Create account (Email + Password)\n② Verify email\n③ Name first Knowledge Base (bilingual name + visibility, default private)\n④ Choose Knowledge Base Type: Evergreen (default) or Ephemeral — **immutable after creation**\n⑤ Choose starting point: blank or upload document (.md/.txt/.pdf/.docx)\n⑥ AI provider setup (shown only on document path, skippable)\n⑦ Review extracted candidate nodes (at least one must be accepted to advance)\n⑧ Done (three shortcuts: add first node, invite someone, connect AI tool)\n\nProgress tracked server-side via the `onboarding` object (`steps_done[]` + `steps_skipped[]`); resumes from the last incomplete step after interruption. Once `completed: true`, the wizard is never shown automatically again."
     }
   },
-  "tags": ["onboarding", "ui", "wizard", "ux", "kb-type"],
+  "tags": [
+    "onboarding",
+    "ui",
+    "wizard",
+    "ux",
+    "kb-type"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
-    "updated_at": "2026-04-16T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

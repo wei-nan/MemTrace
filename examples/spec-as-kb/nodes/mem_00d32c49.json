@@ -1,0 +1,46 @@
+{
+  "id": "mem_00d32c49",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "節點極小化原則",
+    "en": "Node Minimization Principle"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "知識圖譜設計的核心原則，主張使用更小的節點、更多的邊以及更短的走訪路徑，以提高資訊檢索效率並降低認知負荷。",
+      "en": "?亥???閮剛??敹???銝餃撐?游???暺憭????渡??甇瑁楝敺?隞交?擃?閮炎蝝Ｘ???A core principle for knowledge graph design, advocating for smaller nodes, more edges, and shorter traversal paths to improve information retrieval efficiency."
+    }
+  },
+  "tags": [
+    "knowledge-graph",
+    "design-principle",
+    "ai-restructuring"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.681728+00:00",
+    "signature": "9371b1b41df3cfd13fc796a731df2f30c24170405d5e9772324e1620188ba65f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

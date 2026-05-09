@@ -1,0 +1,47 @@
+{
+  "id": "mem_45350e40",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "AI 呼叫執行位置",
+    "en": "AI Call Execution Location"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "AI 呼叫由客戶端或伺服器使用使用者提供的金鑰發出。",
+      "en": "AI calls are made from the client or server using the user's supplied key."
+    }
+  },
+  "tags": [
+    "ai",
+    "client-side",
+    "server-side",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.470219+00:00",
+    "signature": "a3a3895d6cb9185703b032de058c6dd65efd9cc05ede25cb259018cb9089e18c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

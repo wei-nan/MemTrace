@@ -1,0 +1,46 @@
+{
+  "id": "mem_da5739b0",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "匯入預覽畫面概覽",
+    "en": "Import Preview Screen Overview"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "匯入預覽畫面顯示匯入作業的摘要，包括節點和邊的總數，以及哪些節點是乾淨的或可能是重複的。",
+      "en": "The import preview screen displays a summary of the import job, including the total number of nodes and edges, and which nodes are clean or potentially duplicates."
+    }
+  },
+  "tags": [
+    "import",
+    "ui",
+    "preview"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.950895+00:00",
+    "signature": "33e0e380ea727d436286ac1bf2851417357f1fbec9cdf77e3c99a89c6c790c2a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

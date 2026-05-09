@@ -1,0 +1,48 @@
+{
+  "id": "mem_bcc8e28c",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點可見性",
+    "en": "Memory Node Visibility"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `visibility` 欄位類型為 ENUM，可能的值為 `public` / `team` / `private`。",
+      "en": "The `visibility` column in the `memory_nodes` table is of type ENUM, with possible values `public` / `team` / `private`."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "enum"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.029513+00:00",
+    "signature": "07adf4dc6273637faa730c865f2b2953aa0ea1a717679492657b03f24f16450e",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

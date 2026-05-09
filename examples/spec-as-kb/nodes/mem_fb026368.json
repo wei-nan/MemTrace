@@ -1,0 +1,48 @@
+{
+  "id": "mem_fb026368",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點英文標題",
+    "en": "Memory Node English Title"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `title_en` 欄位類型為 TEXT，存儲記憶節點的英文標題。",
+      "en": "The `title_en` column in the `memory_nodes` table is of type TEXT, storing the English title of the memory node."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "i18n"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:38.909891+00:00",
+    "signature": "3a62af0adbac099be083237631539bac551d692c9362add2123ac306fa432351",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "mem_526945e4",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MCP 傳輸模式：HTTP + SSE",
+    "en": "MCP Transport Mode: HTTP + SSE"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "當 `memtrace serve --mcp` 運行時（第二階段），可以使用 HTTP + SSE 傳輸模式。",
+      "en": "The HTTP + SSE transport mode is available when `memtrace serve --mcp` is running (Phase 2)."
+    }
+  },
+  "tags": [
+    "mcp",
+    "transport",
+    "http",
+    "sse",
+    "phase-2"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.327756+00:00",
+    "signature": "8dfd08b535e9fe8263dcd1cf08eebf3b2f95bc51b3a1c9d7fc574a6d12ecbb5d",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

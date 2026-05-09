@@ -1,0 +1,46 @@
+{
+  "id": "mem_bd6996dd",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點內容輸入模式",
+    "en": "Memory Node Content Input Modes"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "每個記憶節點的正文 (`content.body`) 支持兩種輸入模式。",
+      "en": "Each Memory Node body (`content.body`) supports two input modes."
+    }
+  },
+  "tags": [
+    "memory-node",
+    "content",
+    "input"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.354196+00:00",
+    "signature": "0d9fdbf1ccbc62f8451c6a16bd834ea4e2ef14bebea32091c6e3fb59657e02f4",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

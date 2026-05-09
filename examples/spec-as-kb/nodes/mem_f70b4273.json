@@ -1,0 +1,46 @@
+{
+  "id": "mem_f70b4273",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "判斷入門流程進度",
+    "en": "Determining Onboarding Progress"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`steps_done`?steps_skipped`甈??勗?瘙箏??嗅??蝙?刻?撠郊撽??脣漲璇??潦?The `steps_done` and `steps_skipped` fields together determine the current onboarding step and progress bar value.",
+      "en": "`steps_done`?steps_skipped`甈??勗?瘙箏??嗅??蝙?刻?撠郊撽??脣漲璇??潦?The `steps_done` and `steps_skipped` fields together determine the current onboarding step and progress bar value."
+    }
+  },
+  "tags": [
+    "onboarding",
+    "progress",
+    "ui"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.398911+00:00",
+    "signature": "16aaf873e830ab998ec1834add380b9d5bafa80ec0b980ad6bc58c2a60e90b4a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

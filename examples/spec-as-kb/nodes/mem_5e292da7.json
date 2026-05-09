@@ -1,0 +1,42 @@
+{
+  "id": "mem_5e292da7",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "來源格式參考範本",
+    "en": "皞撘??冽撘?Source Format Reference Formats"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "不同的來源格式使用特定的參考格式：Markdown/純文字使用 §<heading> 或 ¶<paragraph_index>；PDF/DOCX 使用 page:<n>, para:<m>；PPTX 使用 slide:<n>；影片/音訊使用 <HH:MM:SS>-<HH:MM:SS>；網頁使用 <section heading or XPath fragment>。",
+      "en": "銝????澆??摰?撘?澆?嚗arkdown/蝝?摮蝙??`禮<heading>` ??`繞<paragraph_index>`嚗DF/DOCX 雿輻 `page:<n>, para:<m>`嚗PTX 雿輻 `slide:<n>`嚗蔣???唾?雿輻 `<HH:MM:SS>-<HH:MM:SS>`嚗雯?蝙??`<section heading or XPath fragment>`??Different source formats use specific reference formats: Markdown/plain text uses `禮<heading>` or `繞<paragraph_index>`; PDF/DOCX uses `page:<n>, para:<m>`; PPTX uses `slide:<n>`; Video/audio uses `<HH:MM:SS>-<HH:MM:SS>`; and Web pages use `<section heading or XPath fragment>`."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.812338+00:00",
+    "signature": "588186fe569c2ea8746c1b3951552737e78c888f03e512bb9c31ce683af3aa0f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

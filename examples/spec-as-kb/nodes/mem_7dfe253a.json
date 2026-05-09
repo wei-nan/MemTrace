@@ -1,0 +1,48 @@
+{
+  "id": "mem_7dfe253a",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MCP 身份驗證",
+    "en": "MCP Authentication"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "驗證是透過傳遞 API 金鑰完成的，該金鑰作為 `MEMTRACE_API_KEY` 環境變量（stdio 模式）或 `Authorization` 標頭（HTTP 模式）傳遞。",
+      "en": "Authentication is via an API key passed as the `MEMTRACE_API_KEY` environment variable (stdio mode) or `Authorization` header (HTTP mode)."
+    }
+  },
+  "tags": [
+    "mcp",
+    "authentication",
+    "api-key",
+    "environment-variable",
+    "http-header"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.347126+00:00",
+    "signature": "40ba3456cf0cbbf4aa1cf85bbac939f6d6e95a7488dd0d987161188f20053de6",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

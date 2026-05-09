@@ -1,0 +1,46 @@
+{
+  "id": "mem_22c9d8d6",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "自然衰減機制",
+    "en": "Organic Decay Mechanism"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "系統會自動管理知識的衰減，除非節點或邊被手動釘選（pinned）。",
+      "en": "蝟餌絞??恣?霅?銵唳?嚗??暺??◤???箏???The system automatically manages the decay of knowledge unless a node or edge is manually pinned."
+    }
+  },
+  "tags": [
+    "衰減",
+    "權重",
+    "decay"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.612477+00:00",
+    "signature": "81794826c7a783c9fbfa0d8eaa2e8526a26dc20b3f852f4a42811973c0866b02",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

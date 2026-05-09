@@ -1,0 +1,47 @@
+{
+  "id": "mem_76d6491f",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": ".mcp.json 設定檔更新為單實例寫法",
+    "en": ".mcp.json Configuration Update to Single Instance"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`.mcp.json` 設定檔已更新為單實例寫法，移除了對每個知識庫一個實例的依賴，並整合了 token 設定。這簡化了配置，使其更易於管理。",
+      "en": "The `.mcp.json` configuration file has been updated to a single-instance approach, removing the dependency on one instance per knowledge base and integrating token settings. This simplifies configuration and makes it easier to manage."
+    }
+  },
+  "tags": [
+    "設定檔",
+    "mcp",
+    "架構",
+    "配置"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:38.497095+00:00",
+    "signature": "61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

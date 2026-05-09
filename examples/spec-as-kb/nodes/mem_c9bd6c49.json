@@ -1,0 +1,45 @@
+{
+  "id": "mem_c9bd6c49",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "memory_nodes 表中的 `conflict_status` 欄位",
+    "en": "`conflict_status` Column in `memory_nodes` Table"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表包含一個名為 `conflict_status` 的文本欄位，其值可以為 `NULL`, `'flagged'`, 或 `'resolved'`。",
+      "en": "The `memory_nodes` table includes a text column named `conflict_status`, which can have values of `NULL`, `'flagged'`, or `'resolved'`."
+    }
+  },
+  "tags": [
+    "database_schema",
+    "conflict_management"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.706468+00:00",
+    "signature": "155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

@@ -40,6 +40,52 @@ Feature = Literal["extraction", "embedding", "restructure"]
 
 # Token limits are no longer managed by MemTrace. Users must supply their own keys.
 
+# JSON Schema for structured node extraction (OpenAI / Anthropic / Gemini tool calling).
+# This is the single source of truth for what AI extraction returns. Any field not in
+# this schema is rejected by the provider before reaching our code.
+VALID_NODE_CONTENT_TYPES = ["factual", "procedural", "preference", "context", "inquiry"]
+VALID_EDGE_RELATIONS     = ["depends_on", "extends", "related_to", "contradicts"]
+
+EXTRACTION_NODE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "nodes": {
+            "type": "array",
+            "description": "List of atomic memory nodes extracted from the source text.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title_zh": {"type": "string", "description": "繁體中文標題（必填，至少其中之一）"},
+                    "title_en": {"type": "string", "description": "English title"},
+                    "content_type": {
+                        "type": "string",
+                        "enum": VALID_NODE_CONTENT_TYPES,
+                        "description": "Node category"
+                    },
+                    "body_zh": {"type": "string", "description": "繁體中文內容（必填，至少其中之一）"},
+                    "body_en": {"type": "string", "description": "English body"},
+                    "tags":    {"type": "array", "items": {"type": "string"}},
+                    "suggested_edges": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "to_index": {"type": "integer", "description": "Index of target node in this array"},
+                                "relation": {"type": "string", "enum": VALID_EDGE_RELATIONS}
+                            },
+                            "required": ["to_index", "relation"]
+                        }
+                    },
+                    "source_segment":   {"type": "string", "description": "Brief paraphrase of the source passage"},
+                    "confidence_score": {"type": "number"}
+                },
+                "required": ["title_zh", "content_type", "body_zh"]
+            }
+        }
+    },
+    "required": ["nodes"]
+}
+
 # ── Exceptions ────────────────────────────────────────────────────────────────
 
 class AIProviderUnavailable(Exception):
@@ -126,6 +172,25 @@ class AIProvider(ABC):
         raise AIProviderError(
             f"Provider '{self.name}' does not support embeddings. "
             "Choose a provider with embedding support for semantic search."
+        )
+
+    async def extract_structured(
+        self,
+        resolved: ResolvedProvider,
+        system: str,
+        user_message,                 # str or list of content parts (for multimodal)
+        max_tokens: int = 4096,
+        temperature: float = 0.2,
+    ) -> tuple[list[dict], int]:
+        """
+        Extract memory nodes via provider-native tool/function calling.
+        Returns (list_of_node_dicts, tokens_used).
+
+        Default raises NotImplementedError so callers can fall back to text mode.
+        """
+        raise NotImplementedError(
+            f"Provider '{self.name}' does not support structured extraction; "
+            "caller should fall back to text mode."
         )
 
 
@@ -257,6 +322,57 @@ class OpenAIProvider(AIProvider):
             raise AIProviderError(f"OpenAI embed {resp.status_code}: {resp.text[:400]}")
         data = resp.json()
         return data["data"][0]["embedding"], data["usage"]["total_tokens"]
+
+    async def extract_structured(self, resolved, system, user_message,
+                                  max_tokens=4096, temperature=0.2):
+        import json as _json
+        headers = {}
+        if resolved.api_key:
+            headers["Authorization"] = f"Bearer {resolved.api_key}"
+
+        # OpenAI requires `messages` user content as string or array of parts
+        user_content = user_message if isinstance(user_message, list) else [
+            {"type": "text", "text": user_message}
+        ]
+
+        payload = {
+            "model": resolved.model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user",   "content": user_content},
+            ],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "tools": [{
+                "type": "function",
+                "function": {
+                    "name": "extract_memory_nodes",
+                    "description": "Extract atomic memory nodes from the given source text.",
+                    "parameters": EXTRACTION_NODE_SCHEMA,
+                }
+            }],
+            "tool_choice": {"type": "function", "function": {"name": "extract_memory_nodes"}},
+        }
+        async with httpx.AsyncClient(timeout=600) as client:
+            resp = await client.post(
+                f"{self._base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"OpenAI structured {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        msg = data["choices"][0]["message"]
+        tool_calls = msg.get("tool_calls") or []
+        if not tool_calls:
+            raise AIProviderError(f"OpenAI structured: no tool_call in response: {msg}")
+        try:
+            args = _json.loads(tool_calls[0]["function"]["arguments"])
+        except _json.JSONDecodeError as e:
+            raise AIProviderError(f"OpenAI structured: invalid tool args JSON: {e}")
+        nodes = args.get("nodes", []) or []
+        tokens = data.get("usage", {}).get("total_tokens", 0)
+        return nodes, tokens
 
 
 # ── Built-in: Anthropic ───────────────────────────────────────────────────────
@@ -414,6 +530,62 @@ class AnthropicProvider(AIProvider):
                                 yield "", usage.get("output_tokens", 0)
                     except:
                         continue
+
+    async def extract_structured(self, resolved, system, user_message,
+                                  max_tokens=4096, temperature=0.2):
+        # Convert user_message into Anthropic content blocks
+        if isinstance(user_message, list):
+            content_blocks = []
+            for part in user_message:
+                if part.get("type") == "text":
+                    content_blocks.append({"type": "text", "text": part["text"]})
+                elif part.get("type") == "image_url":
+                    url = part["image_url"]["url"]
+                    if url.startswith("data:"):
+                        header, b64 = url.split(",", 1)
+                        mime = header.split(";")[0].split(":")[1]
+                        content_blocks.append({
+                            "type": "image",
+                            "source": {"type": "base64", "media_type": mime, "data": b64}
+                        })
+        else:
+            content_blocks = [{"type": "text", "text": user_message}]
+
+        body = {
+            "model": resolved.model,
+            "system": system,
+            "messages": [{"role": "user", "content": content_blocks}],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "tools": [{
+                "name": "extract_memory_nodes",
+                "description": "Extract atomic memory nodes from the given source text.",
+                "input_schema": EXTRACTION_NODE_SCHEMA,
+            }],
+            "tool_choice": {"type": "tool", "name": "extract_memory_nodes"},
+        }
+        async with httpx.AsyncClient(timeout=600) as client:
+            resp = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": resolved.api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+                json=body,
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"Anthropic structured {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        nodes = []
+        for block in data.get("content", []):
+            if block.get("type") == "tool_use" and block.get("name") == "extract_memory_nodes":
+                nodes = (block.get("input") or {}).get("nodes", []) or []
+                break
+        if not nodes and data.get("stop_reason") == "tool_use":
+            # Tool use was triggered but our parser missed it — log and raise
+            raise AIProviderError(f"Anthropic structured: tool_use block missing or empty: {data}")
+        tokens = data.get("usage", {}).get("input_tokens", 0) + data.get("usage", {}).get("output_tokens", 0)
+        return nodes, tokens
 
 
 # ── Built-in: Google Gemini ──────────────────────────────────────────────────
@@ -600,6 +772,83 @@ class GeminiProvider(AIProvider):
         data = resp.json()
         return data["embedding"]["values"], 0 # Gemini embedding usage unknown
 
+    async def extract_structured(self, resolved, system, user_message,
+                                  max_tokens=4096, temperature=0.2):
+        # Build user parts
+        if isinstance(user_message, list):
+            parts = []
+            for part in user_message:
+                if part.get("type") == "text":
+                    parts.append({"text": part["text"]})
+                elif part.get("type") == "image_url":
+                    url = part["image_url"]["url"]
+                    if url.startswith("data:"):
+                        header, b64 = url.split(",", 1)
+                        mime = header.split(";")[0].split(":")[1]
+                        parts.append({"inlineData": {"mimeType": mime, "data": b64}})
+        else:
+            parts = [{"text": user_message}]
+
+        # Gemini's function-declaration parameter schema doesn't accept
+        # certain JSON-Schema keywords (e.g. "additionalProperties").
+        # Our schema is already conservative, but strip any unsupported keys defensively.
+        gemini_schema = _gemini_clean_schema(EXTRACTION_NODE_SCHEMA)
+
+        body = {
+            "contents": [{"role": "user", "parts": parts}],
+            "system_instruction": {"parts": [{"text": system}]},
+            "generationConfig": {
+                "maxOutputTokens": max_tokens,
+                "temperature": temperature,
+            },
+            "tools": [{
+                "functionDeclarations": [{
+                    "name": "extract_memory_nodes",
+                    "description": "Extract atomic memory nodes from the given source text.",
+                    "parameters": gemini_schema,
+                }]
+            }],
+            "toolConfig": {
+                "functionCallingConfig": {
+                    "mode": "ANY",
+                    "allowedFunctionNames": ["extract_memory_nodes"],
+                }
+            },
+        }
+        async with httpx.AsyncClient(timeout=600) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:generateContent?key={resolved.api_key}",
+                json=body,
+            )
+        if not resp.is_success:
+            raise AIProviderError(f"Gemini structured {resp.status_code}: {resp.text[:400]}")
+        data = resp.json()
+        nodes = []
+        try:
+            cand = data["candidates"][0]
+            for part in cand.get("content", {}).get("parts", []):
+                fc = part.get("functionCall")
+                if fc and fc.get("name") == "extract_memory_nodes":
+                    nodes = (fc.get("args") or {}).get("nodes", []) or []
+                    break
+        except (KeyError, IndexError) as e:
+            raise AIProviderError(f"Gemini structured unexpected response ({e}): {data}")
+        tokens = data.get("usageMetadata", {}).get("totalTokenCount", 0)
+        return nodes, tokens
+
+
+def _gemini_clean_schema(schema: dict) -> dict:
+    """Strip JSON-Schema keys Gemini's function-calling validator rejects."""
+    if isinstance(schema, dict):
+        return {
+            k: _gemini_clean_schema(v)
+            for k, v in schema.items()
+            if k not in ("additionalProperties", "$schema", "$ref", "definitions", "default")
+        }
+    if isinstance(schema, list):
+        return [_gemini_clean_schema(item) for item in schema]
+    return schema
+
 
 # ── Built-in: Ollama ──────────────────────────────────────────────────────────
 
@@ -649,6 +898,21 @@ class OllamaProvider(OpenAIProvider):
 
         try:
             return await super().embed(resolved, text)
+        finally:
+            resolved.api_key = original_key
+
+    async def extract_structured(self, resolved, system, user_message,
+                                  max_tokens=4096, temperature=0.2):
+        await self._setup_dynamic_url(resolved)
+        original_key = resolved.api_key
+        if resolved.auth_mode == 'none':
+            resolved.api_key = ""
+        elif resolved.auth_token:
+            resolved.api_key = resolved.auth_token
+        try:
+            return await super().extract_structured(
+                resolved, system, user_message, max_tokens, temperature
+            )
         finally:
             resolved.api_key = original_key
 
@@ -946,23 +1210,83 @@ async def chat_completion(
     _retries: int = 4,
 ) -> tuple[str, int]:
     import asyncio as _asyncio
+    import logging as _logging
     delay = 5.0
     for attempt in range(_retries + 1):
         try:
             return await resolved.provider.chat(resolved, messages, max_tokens, temperature)
-        except AIProviderError as exc:
+        except Exception as exc:
             msg = str(exc)
+            exc_type = type(exc).__name__
             is_rate_limit = "429" in msg or "RESOURCE_EXHAUSTED" in msg or "rate" in msg.lower()
-            is_timeout = "timeout" in msg.lower() or "ReadTimeout" in msg
+            is_timeout = (
+                "timeout" in msg.lower()
+                or "ReadTimeout" in msg
+                or "ReadTimeout" in exc_type
+                or "TimeoutError" in exc_type
+                or "ConnectTimeout" in exc_type
+            )
             if (is_rate_limit or is_timeout) and attempt < _retries:
                 wait = delay * (2 ** attempt)
-                import logging as _logging
                 _logging.getLogger(__name__).warning(
-                    "AI call failed (%s), retry %d/%d in %.0fs", msg[:80], attempt + 1, _retries, wait
+                    "AI call failed (%s: %s), retry %d/%d in %.0fs",
+                    exc_type, msg[:80], attempt + 1, _retries, wait
                 )
                 await _asyncio.sleep(wait)
                 continue
+            # Re-raise as AIProviderError so callers get a consistent type
+            if not isinstance(exc, AIProviderError):
+                raise AIProviderError(f"{exc_type}: {msg}") from exc
             raise
+
+async def extract_nodes_structured(
+    resolved: ResolvedProvider,
+    system: str,
+    user_message,
+    max_tokens: int = 4096,
+    temperature: float = 0.2,
+    _retries: int = 3,
+) -> tuple[list[dict], int]:
+    """
+    Extract memory nodes via the provider's native tool/function calling.
+    Returns (list_of_node_dicts, tokens_used).
+
+    Raises NotImplementedError if the provider does not support structured output —
+    callers should fall back to text mode in that case.
+    Other errors (timeout, network) are retried with exponential backoff.
+    """
+    import asyncio as _asyncio
+    import logging as _logging
+    delay = 5.0
+    for attempt in range(_retries + 1):
+        try:
+            return await resolved.provider.extract_structured(
+                resolved, system, user_message, max_tokens, temperature
+            )
+        except NotImplementedError:
+            raise
+        except Exception as exc:
+            msg = str(exc)
+            exc_type = type(exc).__name__
+            is_rate_limit = "429" in msg or "RESOURCE_EXHAUSTED" in msg or "rate" in msg.lower()
+            is_timeout = (
+                "timeout" in msg.lower()
+                or "ReadTimeout" in exc_type
+                or "TimeoutError" in exc_type
+                or "ConnectTimeout" in exc_type
+            )
+            if (is_rate_limit or is_timeout) and attempt < _retries:
+                wait = delay * (2 ** attempt)
+                _logging.getLogger(__name__).warning(
+                    "Structured extraction failed (%s: %s), retry %d/%d in %.0fs",
+                    exc_type, msg[:80], attempt + 1, _retries, wait
+                )
+                await _asyncio.sleep(wait)
+                continue
+            if not isinstance(exc, AIProviderError):
+                raise AIProviderError(f"{exc_type}: {msg}") from exc
+            raise
+
 
 async def chat_stream(
     resolved: ResolvedProvider,
@@ -991,10 +1315,13 @@ def get_extraction_prompt(doc_type: str = "generic") -> str:
     
     if doc_type == "FRD":
         return base + "\n\nSPECIAL INSTRUCTION for FRD:\n" \
-               "- Mandatory Extraction: Every API Endpoint (METHOD /path) MUST be extracted as a Procedural node. Title format: \"API: {METHOD} {path}\".\n" \
-               "- Mandatory Extraction: Every Business Rule (BR-xxx), Business Logic (BL-xxx), and User Story (US-xxx) MUST be extracted as an independent node.\n" \
-               "- Mandatory Extraction: Security-related items like reCAPTCHA, CAPTCHA, or OTP (One-Time Password) MUST be extracted as independent nodes.\n" \
-               "- Ensure every API endpoint node has an 'extends' edge to its parent feature/module.\n" \
+               "CRITICAL: You MUST output ONLY the standard node format shown above. " \
+               "Do NOT invent custom keys like 'transitions', 'rules', 'api_endpoints', 'endpoints', 'section_title', 'success', 'data', etc. " \
+               "ALL content must go into body_zh / body_en as plain text or markdown.\n" \
+               "- Every API Endpoint (METHOD /path) → Procedural node. title_en: \"API: {METHOD} {path}\", title_zh: description in Chinese.\n" \
+               "- Every Business Rule (BR-xxx), Business Logic (BL-xxx), User Story (US-xxx) → independent Factual node.\n" \
+               "- Security items (reCAPTCHA, OTP, permissions) → independent nodes.\n" \
+               "- State machines, workflows → Procedural node with transitions described in body_zh as text.\n" \
                "- These mandatory items must be extracted even if a similar title appears in 'existing_titles'."
     
     if doc_type == "TSD":
@@ -1041,11 +1368,17 @@ CRITICAL JSON FORMATTING RULES — failure to follow these will break the output
   paraphrase them in plain language instead.
 - If you are unsure whether a character needs escaping, escape it.
 
+content_type MUST be exactly one of these four values (no other values allowed):
+- "factual"    — a fact, rule, definition, data model, business rule, requirement, constraint
+- "procedural" — a step-by-step process, workflow, API endpoint, use case, user story
+- "preference" — a non-functional requirement, config choice, design decision, performance target
+- "context"    — background info, overview, rationale, note
+
 Output a JSON array of nodes. Each node:
 {
   "title_zh": "...",
   "title_en": "...",
-  "content_type": "factual|procedural|preference|context",
+  "content_type": "factual",
   "body_zh": "...",
   "body_en": "...",
   "tags": ["..."],

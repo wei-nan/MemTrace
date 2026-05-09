@@ -1,0 +1,47 @@
+{
+  "id": "mem_54473627",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "POST /nodes/{node_id}/traverse 端點",
+    "en": "POST /nodes/{node_id}/traverse Endpoint"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "此端點用於記錄調用者已訪問特定節點。",
+      "en": "This endpoint is used to record that the caller has visited a specific node."
+    }
+  },
+  "tags": [
+    "api",
+    "rest",
+    "traversal",
+    "node"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.164919+00:00",
+    "signature": "d4a83d290c2c0d364f5d646e3c3032f7dc70ea68d28ded6eaba1f5cb0b7834e4",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

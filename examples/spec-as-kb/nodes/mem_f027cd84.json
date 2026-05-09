@@ -1,0 +1,46 @@
+{
+  "id": "mem_f027cd84",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MemTrace AI 功能概覽",
+    "en": "MemTrace AI Features Overview"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MemTrace 在三個不同的上下文中使用 AI，所有這些都共享相同的提供者抽象和 API 金鑰模型。",
+      "en": "MemTrace uses AI in three distinct contexts, all sharing the same provider abstraction and API key model."
+    }
+  },
+  "tags": [
+    "ai",
+    "features",
+    "architecture"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.433573+00:00",
+    "signature": "613853d08868de023cab46df86662e05317b460277273a997266163eb98cd87a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

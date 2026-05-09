@@ -1,0 +1,47 @@
+{
+  "id": "mem_964c73a3",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MEMTRACE_TOKEN 匿名行為",
+    "en": "MEMTRACE_TOKEN Anonymous Behavior"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "若未傳遞 `MEMTRACE_TOKEN`，系統將維持匿名行為，僅能存取公開工作區，`list_workspaces` 將返回公開庫或空列表。",
+      "en": "If `MEMTRACE_TOKEN` is not provided, the system will maintain anonymous behavior, allowing access only to public workspaces. `list_workspaces` will return public repositories or an empty list."
+    }
+  },
+  "tags": [
+    "環境變數",
+    "API",
+    "認證",
+    "匿名存取"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.061108+00:00",
+    "signature": "12b69126a9d518c5b28e719a150430576fa04e99ea78b9b1c86d9a7769fee9eb",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -13,18 +13,37 @@
       "en": "Workspaces move through three states: active (normal), pending_deletion (soft-deleted, grace period active), deleted (purged from DB).\n\nSoft-delete trigger: admin calls DELETE /workspaces/{ws_id}\n- Sets status = pending_deletion, deleted_at = NOW()\n- Non-admin members immediately lose access\n- Admin/owner retains read-only access (for data export)\n- Email notifications: day 0 (deletion initiated), day 25 (5-day warning), day 30 (final purge)\n\nRestoration: any admin calls POST /workspaces/{ws_id}/restore within the grace period\n- status returns to active, deleted_at is cleared, all member access is restored\n\nAutomatic purge: daily background job deletes workspaces where status = 'pending_deletion' AND deleted_at < NOW() - INTERVAL '30 days'. This is a hard CASCADE DELETE — all nodes, edges, members, invites, and chat sessions are deleted. Cannot be undone.\n\nGrace period by KB type:\n- evergreen: 30 days\n- ephemeral: 7 days\n\nSchema change:\nALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','pending_deletion','deleted')), ADD COLUMN deleted_at TIMESTAMPTZ;"
     }
   },
-  "tags": ["workspace", "lifecycle", "soft-delete", "grace-period", "deletion", "restore"],
+  "tags": [
+    "workspace",
+    "lifecycle",
+    "soft-delete",
+    "grace-period",
+    "deletion",
+    "restore"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-12T00:00:00Z",
+    "created_at": "2026-04-12T00:00:00+00:00",
     "signature": "e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 4,
+    "unique_traversers": 2
+  }
 }

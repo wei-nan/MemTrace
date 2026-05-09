@@ -1,0 +1,46 @@
+{
+  "id": "mem_6d8524a7",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "新數據模型欄位",
+    "en": "New Data Model Fields"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "數據模型中新增了 `version`, `conflict_status`, `conflict_detail`, `source_doc_node_id`, 和 `source_paragraph_ref` 等欄位。",
+      "en": "New fields `version`, `conflict_status`, `conflict_detail`, `source_doc_node_id`, and `source_paragraph_ref` have been added to the data model."
+    }
+  },
+  "tags": [
+    "data-model",
+    "schema",
+    "update"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.718604+00:00",
+    "signature": "ce86c3a5dbe8e825cb9600f783656939236cc44481125fd58c074491c61e572c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

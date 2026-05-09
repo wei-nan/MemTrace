@@ -13,18 +13,35 @@
       "en": "External services and scripts authenticate with **API Keys** (format: `mt_live_<hex>`), not session JWTs. Keys may be scoped to a specific workspace or valid across all. Full key value shown only once at creation. Four scopes:\n\n| Scope | Grants |\n|-------|--------|\n| `kb:read` | Read KBs, nodes, edges |\n| `kb:write` | Create and edit nodes, edges |\n| `node:traverse` | Record traversal events |\n| `node:rate` | Submit path ratings (1–5) |\n\nAll API endpoints prefixed with `/api/v1`, using `Authorization: Bearer` for both keys and session tokens (server distinguishes by prefix)."
     }
   },
-  "tags": ["api", "api-key", "access-control", "integration"],
+  "tags": [
+    "api",
+    "api-key",
+    "access-control",
+    "integration"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6",
     "source_type": "human"
   },
   "trust": {
-    "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "score": 0.73,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.04,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 4,
+    "unique_traversers": 2
+  }
 }

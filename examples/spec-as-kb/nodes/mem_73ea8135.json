@@ -1,0 +1,48 @@
+{
+  "id": "mem_73ea8135",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "簡化圖譜載荷結構",
+    "en": "Stripped Graph Payload Structure"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "簡化圖譜載荷包含 `preview_mode: true` 以及簡化後的 `nodes` 和 `edges` 數組。節點僅包含 `id` 和 `position`，而邊包含 `from`, `to`, 和 `relation`。",
+      "en": "The stripped graph payload includes `preview_mode: true` and stripped `nodes` and `edges` arrays. Nodes only contain `id` and `position`, while edges contain `from`, `to`, and `relation`."
+    }
+  },
+  "tags": [
+    "API優化",
+    "簡化結構",
+    "api優化",
+    "結構",
+    "載荷"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.742298+00:00",
+    "signature": "cda26ec974454fdbdab284c8fb6a214080176621f450398f2a91a6605e980ddf",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

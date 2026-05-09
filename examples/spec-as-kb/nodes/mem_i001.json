@@ -13,18 +13,35 @@
       "en": "MemTrace uses Email + Password authentication. Security measures include: bcrypt hash (cost ≥ 12), password policy (8–128 chars, upper+lower+digit, HaveIBeenPwned check), verification email (24h expiry), and 5-failure lockout for 15 minutes. Upon login, a JWT session (7 days) is issued and passed via the Authorization: Bearer header. Logout is handled via an immediate blocklist. Third-party OAuth is currently not supported to simplify the authentication surface and reduce external dependencies."
     }
   },
-  "tags": ["auth", "security", "jwt", "password-policy"],
+  "tags": [
+    "auth",
+    "security",
+    "jwt",
+    "password-policy"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

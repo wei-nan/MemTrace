@@ -1,0 +1,42 @@
+{
+  "id": "mem_08f1c514",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "來源文件節點預設排除項",
+    "en": "Source Document Node Default Exclusions"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "來源文件節點預設會從圖譜視圖（除非啟動「顯示來源文件」）、關鍵字與語義搜尋結果、問答與 AI 對話上下文檢索以及 MCP search_nodes 結果中排除。",
+      "en": "皞?隞嗥?暺?閮剖??炎閬??日???＊蝷箏?憪??????菔???蝢拇?撠???蝑?AI撠店銝??炎蝝Ｖ誑?CP `search_nodes` 蝯?銝剜??扎?Source document nodes are excluded by default from Graph View (unless 'Show source files' is enabled), keyword and semantic search results, Q&A and AI Conversation context retrieval, and MCP `search_nodes` results."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.831618+00:00",
+    "signature": "8c1c5ae6bf2674b4f5bd74831f3b1e8b63148c33abfec5059782b406519f5e93",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

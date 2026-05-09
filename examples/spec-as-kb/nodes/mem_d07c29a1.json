@@ -1,0 +1,42 @@
+{
+  "id": "mem_d07c29a1",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "更新時間欄位 (provenance.updated_at)",
+    "en": "Updated At Field (`provenance.updated_at`)"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`provenance.updated_at`甈???箏?銝莎??交????澆?嚗?銝敹????典?憪遣蝡?瘥活蝺刻摩??身摰?The `provenance.updated_at` field is an optional string (date-time format) that is set on every edit after initial creation.",
+      "en": "`provenance.updated_at`甈???箏?銝莎??交????澆?嚗?銝敹????典?憪遣蝡?瘥活蝺刻摩??身摰?The `provenance.updated_at` field is an optional string (date-time format) that is set on every edit after initial creation."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.886390+00:00",
+    "signature": "fde73fc348c926db7350610cbd46f6cc5b253b7227e3720fad21e1ac55261d00",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

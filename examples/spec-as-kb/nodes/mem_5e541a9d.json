@@ -1,0 +1,46 @@
+{
+  "id": "mem_5e541a9d",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Markdown 模式下的即時預覽",
+    "en": "Live Preview in Markdown Mode"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "蝺刻摩?典`markdown`璅∪?銝???靘??祕??閬賡?踴?The editor must provide a live preview panel when in `markdown` mode.",
+      "en": "蝺刻摩?典`markdown`璅∪?銝???靘??祕??閬賡?踴?The editor must provide a live preview panel when in `markdown` mode."
+    }
+  },
+  "tags": [
+    "editor",
+    "markdown",
+    "preview"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.463663+00:00",
+    "signature": "cd53c9cd3540a9cc3d0e9462e2fb041b0f9775acd9c1c20a372955a4aa590bce",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

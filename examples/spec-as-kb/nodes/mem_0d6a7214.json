@@ -1,0 +1,46 @@
+{
+  "id": "mem_0d6a7214",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "工作區存取授權",
+    "en": "Workspace Access Granting"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "工作區的存取權限僅透過管理員的明確邀請授予。",
+      "en": "Access to a workspace is granted only via explicit admin invitation."
+    }
+  },
+  "tags": [
+    "access-control",
+    "admin",
+    "invitation"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.592594+00:00",
+    "signature": "7565ff5c348962f12749977db91aa8c4ec162aaa28a3d45be254023066708312",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

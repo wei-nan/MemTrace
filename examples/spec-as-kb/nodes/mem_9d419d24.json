@@ -1,0 +1,46 @@
+{
+  "id": "mem_9d419d24",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點表",
+    "en": "Memory Nodes Table"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "數據庫中的 `memory_nodes` 表存儲所有記憶節點的數據。",
+      "en": "The `memory_nodes` table in the database stores data for all memory nodes."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:38.834888+00:00",
+    "signature": "6d5d61fadf3d71c95c9a3003ed98545b06907cc17eaf4fb39604b234efd3aec2",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

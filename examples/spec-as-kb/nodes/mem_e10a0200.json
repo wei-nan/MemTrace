@@ -1,0 +1,45 @@
+{
+  "id": "mem_e10a0200",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "顯示新金鑰的一次性複製對話框",
+    "en": "Display One-Time Copy Dialog for New Key"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "金鑰建立後，應顯示一個一次性複製對話框。",
+      "en": "After creation, a one-time copy dialog should be displayed for the new key."
+    }
+  },
+  "tags": [
+    "api-key",
+    "ui"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:38:53.632458+00:00",
+    "signature": "04c3b3db95c39e7be32de5edbd26fc9e83a18b2fc27939e5c70d2740b8e39975",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

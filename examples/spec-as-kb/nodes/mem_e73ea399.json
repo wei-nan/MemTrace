@@ -1,0 +1,47 @@
+{
+  "id": "mem_e73ea399",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "EDGE_GUIDE 內容定義",
+    "en": "EDGE_GUIDE Content Definition"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`EDGE_GUIDE` 常數定義了關聯類型語意、權重範圍、`half_life_days` 說明以及 409 衝突處理方式。",
+      "en": "The `EDGE_GUIDE` constant defines relation type semantics, weight range, `half_life_days` explanation, and 409 conflict handling."
+    }
+  },
+  "tags": [
+    "edge_guide",
+    "edge",
+    "specification",
+    "documentation"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:29.242927+00:00",
+    "signature": "5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

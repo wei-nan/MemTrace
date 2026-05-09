@@ -1,390 +1,5246 @@
 [
   {
-    "id": "edge_p001_d001", "from": "mem_p001", "to": "mem_d001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_01635c01",
+    "from": "mem_ce794c4c",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:55.350143+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_p001_d002", "from": "mem_p001", "to": "mem_d002",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_01b4d281",
+    "from": "mem_62d07b1d",
+    "to": "mem_i002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:13.213558+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_p002_d006", "from": "mem_p002", "to": "mem_d006",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_0241e599",
+    "from": "mem_1fc9c6b4",
+    "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:54.410669+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_p002_d005", "from": "mem_p002", "to": "mem_d005",
-    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_047d551a",
+    "from": "mem_cbe1be4b",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_p003_i003", "from": "mem_p003", "to": "mem_i003",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_0550c870",
+    "from": "mem_d2b5ef2f",
+    "to": "mem_033baf41",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:20.606618+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_p003_g001", "from": "mem_p003", "to": "mem_g001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_062161ab",
+    "from": "mem_af74b0f0",
+    "to": "mem_d07c29a1",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_p001_p002", "from": "mem_p001", "to": "mem_p002",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_08493ecd",
+    "from": "mem_da5739b0",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_p001_p003", "from": "mem_p001", "to": "mem_p003",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_08f77c5f",
+    "from": "mem_e7f9e165",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_d001_d003", "from": "mem_d001", "to": "mem_d003",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_0a34c5a0",
+    "from": "mem_af74b0f0",
+    "to": "mem_82b732f5",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_d001_d004", "from": "mem_d001", "to": "mem_d004",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_0bc26c86",
+    "from": "mem_861a5678",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_d001_d005", "from": "mem_d001", "to": "mem_d005",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_0c6397ff",
+    "from": "mem_5e292da7",
+    "to": "mem_27e2935e",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_d001_d006", "from": "mem_d001", "to": "mem_d006",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "id": "edge_0d44e22e",
+    "from": "mem_c9bd6c49",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:43.044476+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_d002_g003", "from": "mem_d002", "to": "mem_g003",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_d002_g001", "from": "mem_d002", "to": "mem_g001",
-    "relation": "related_to", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_d005_i001", "from": "mem_d005", "to": "mem_i001",
-    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_d006_g002", "from": "mem_d006", "to": "mem_g002",
-    "relation": "related_to", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_g001_d002", "from": "mem_g001", "to": "mem_d002",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_g002_g001", "from": "mem_g002", "to": "mem_g001",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_g002_g003", "from": "mem_g002", "to": "mem_g003",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_d004_d001", "from": "mem_d004", "to": "mem_d001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_k001_d001", "from": "mem_k001", "to": "mem_d001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_k001_d002", "from": "mem_k001", "to": "mem_d002",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_k002_k001", "from": "mem_k002", "to": "mem_k001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_k003_k001", "from": "mem_k003", "to": "mem_k001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_k003_d005", "from": "mem_k003", "to": "mem_d005",
-    "relation": "extends", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_a002_a001", "from": "mem_a002", "to": "mem_a001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_a002_k001", "from": "mem_a002", "to": "mem_k001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_a003_a002", "from": "mem_a003", "to": "mem_a002",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_a003_d001", "from": "mem_a003", "to": "mem_d001",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_i002_i001", "from": "mem_i002", "to": "mem_i001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_i002_k001", "from": "mem_i002", "to": "mem_k001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_i003_i002", "from": "mem_i003", "to": "mem_i002",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_i003_g002", "from": "mem_i003", "to": "mem_g002",
-    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_o001_i001", "from": "mem_o001", "to": "mem_i001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_o001_k001", "from": "mem_o001", "to": "mem_k001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_o001_a002", "from": "mem_o001", "to": "mem_a002",
-    "relation": "extends", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_o002_i001", "from": "mem_o002", "to": "mem_i001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_o002_a001", "from": "mem_o002", "to": "mem_a001",
-    "relation": "extends", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 90, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_w001_w002", "from": "mem_w001", "to": "mem_w002",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_w002_w003", "from": "mem_w002", "to": "mem_w003",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_w004_w001", "from": "mem_w004", "to": "mem_w001",
-    "relation": "depends_on", "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_w004_d001", "from": "mem_w004", "to": "mem_d001",
-    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_w004_i001", "from": "mem_w004", "to": "mem_i001",
-    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_w002_d006", "from": "mem_w002", "to": "mem_d006",
-    "relation": "related_to", "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-11T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.1 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_i004_i001", "from": "mem_i004", "to": "mem_i001",
+    "id": "edge_0d8beb9d",
+    "from": "mem_a71dcf58",
+    "to": "mem_i002",
     "relation": "extends",
-    "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:50.641632+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_i004_i002", "from": "mem_i004", "to": "mem_i002",
+    "id": "edge_0e02004e",
+    "from": "mem_b3ee2495",
+    "to": "mem_964c73a3",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.097515+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_1162caa6",
+    "from": "mem_e778fedf",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_12940901",
+    "from": "mem_cdea5189",
+    "to": "mem_27e2935e",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_17223f15",
+    "from": "mem_0752c920",
+    "to": "mem_27e2935e",
     "relation": "extends",
-    "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:14.437850+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_i004_i003", "from": "mem_i004", "to": "mem_i003",
+    "id": "edge_18f6785a",
+    "from": "mem_e73ea399",
+    "to": "mem_d002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:20.606618+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_1b6041e3",
+    "from": "mem_f2edb572",
+    "to": "mem_27e2935e",
     "relation": "related_to",
-    "weight": 0.9, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_i004_a003", "from": "mem_i004", "to": "mem_a003",
+    "id": "edge_1c00c1f4",
+    "from": "mem_fb0354ee",
+    "to": "mem_i002",
     "relation": "related_to",
-    "weight": 0.85, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:42:59.149067+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_k004_k001", "from": "mem_k004", "to": "mem_k001",
+    "id": "edge_1c570d11",
+    "from": "mem_82b732f5",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_1d5ed7fe",
+    "from": "mem_ef3bebe9",
+    "to": "mem_9fbbb5eb",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_1dc850d8",
+    "from": "mem_a4bdc8a9",
+    "to": "mem_d001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:50.641632+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_1f53113a",
+    "from": "mem_d0961cfa",
+    "to": "mem_27e2935e",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_214992ad",
+    "from": "mem_9d2bb35f",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_22af54fd",
+    "from": "mem_e3e6a8a4",
+    "to": "mem_i001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:31.324937+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_22d5b4c2",
+    "from": "mem_ff4e804e",
+    "to": "mem_10a89b1f",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_23820d66",
+    "from": "mem_524c73f6",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_23a219bd",
+    "from": "mem_21638c34",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_24dfdebd",
+    "from": "mem_08f1c514",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_2627ad77",
+    "from": "mem_e0ebc6e5",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:42.035809+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_269859df",
+    "from": "mem_7484cfc2",
+    "to": "mem_4621ebb5",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.140277+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_284bd9ec",
+    "from": "mem_76d6491f",
+    "to": "mem_af74b0f0",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:42:59.149067+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_28b93b3b",
+    "from": "mem_82683707",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_29245c4a",
+    "from": "mem_727c2cb2",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:14.437850+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_2a781ce1",
+    "from": "mem_bb9aff63",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_2ab05f4b",
+    "from": "mem_99877db7",
+    "to": "mem_cbe1be4b",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_2b47e6ca",
+    "from": "mem_013d11be",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_2d8d94c2",
+    "from": "mem_52ac8940",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_2e1a4055",
+    "from": "mem_9d419d24",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T12:36:26.778339+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_3614a007",
+    "from": "mem_62d07b1d",
+    "to": "mem_i003",
     "relation": "extends",
-    "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:13.213558+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_k004_i004", "from": "mem_k004", "to": "mem_i004",
-    "relation": "depends_on",
-    "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_k004_g003", "from": "mem_k004", "to": "mem_g003",
+    "id": "edge_373469c5",
+    "from": "mem_e3e6a8a4",
+    "to": "mem_ce00334f",
     "relation": "related_to",
-    "weight": 0.8, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:31.324937+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
-    "id": "edge_a004_a001", "from": "mem_a004", "to": "mem_a001",
-    "relation": "depends_on",
-    "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_a004_i004", "from": "mem_a004", "to": "mem_i004",
-    "relation": "depends_on",
-    "weight": 1.0, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
-  },
-  {
-    "id": "edge_a004_i003", "from": "mem_a004", "to": "mem_i003",
+    "id": "edge_37a338f1",
+    "from": "mem_97757fb8",
+    "to": "mem_54cc2c31",
     "relation": "related_to",
-    "weight": 0.85, "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:00Z",
-    "decay": { "half_life_days": 180, "min_weight": 0.05 },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_38600758",
+    "from": "mem_9fbbb5eb",
+    "to": "mem_aab6d931",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_39299c86",
+    "from": "mem_156804b8",
+    "to": "mem_27e2935e",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_3a443b0f",
+    "from": "mem_bd6996dd",
+    "to": "mem_9fbbb5eb",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_3a6cc35d",
+    "from": "mem_bcc8e28c",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_3b88e540",
+    "from": "mem_ef8ec8ec",
+    "to": "mem_af74b0f0",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_3c022e1a",
+    "from": "mem_993fc9e6",
+    "to": "mem_cbe1be4b",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_43d683a5",
+    "from": "mem_32bc6360",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:42:40.023988+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_44e9771f",
+    "from": "mem_99877db7",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_46179afc",
+    "from": "mem_c8db759e",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_468e1757",
+    "from": "mem_7dfe253a",
+    "to": "mem_d679d993",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_47fe6bc3",
+    "from": "mem_cbe1be4b",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_482615a6",
+    "from": "mem_ac50a001",
+    "to": "mem_i002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_4ad63282",
+    "from": "mem_1b09b6ed",
+    "to": "mem_cbe1be4b",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_4bec9830",
+    "from": "mem_1fc9c6b4",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:54.410669+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_4da7ccdb",
+    "from": "mem_c3e5a685",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_4f84ad70",
+    "from": "mem_71aebf92",
+    "to": "mem_i002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_4fb17d4f",
+    "from": "mem_184116bb",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_4fcf4b8d",
+    "from": "mem_25ad6564",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_511b633e",
+    "from": "mem_dbaef1ba",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5235ed7e",
+    "from": "mem_cd89f403",
+    "to": "mem_d002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:50.641632+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_533750d3",
+    "from": "mem_565d7142",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_537826c7",
+    "from": "mem_960858c8",
+    "to": "mem_dc852972",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.081337+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5575cee7",
+    "from": "mem_54cc2c31",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_574a6cfe",
+    "from": "mem_35f0002a",
+    "to": "mem_27e2935e",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:14.437850+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5a03f41d",
+    "from": "mem_4c589d76",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5a2cb28d",
+    "from": "mem_99877db7",
+    "to": "mem_82b732f5",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5ad55737",
+    "from": "mem_54473627",
+    "to": "mem_p001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5e1f7e80",
+    "from": "mem_79dce6e3",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5e456c05",
+    "from": "mem_f83d6e1b",
+    "to": "mem_i003",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:03.811682+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5e513c38",
+    "from": "mem_4abf6ce6",
+    "to": "mem_ce794c4c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.040241+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_5ff3d7e2",
+    "from": "mem_5e486c31",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_60245b1b",
+    "from": "mem_07334d61",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_61231935",
+    "from": "mem_a6a2a683",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_61a9ef7b",
+    "from": "mem_54473627",
+    "to": "mem_i002",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_61f8ef6d",
+    "from": "mem_73ea8135",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_622e463e",
+    "from": "mem_1b09b6ed",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_64a35936",
+    "from": "mem_af74b0f0",
+    "to": "mem_d679d993",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_65ba494e",
+    "from": "mem_54473627",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_65d1eb1a",
+    "from": "mem_3b303d15",
+    "to": "mem_4621ebb5",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T02:40:01.366196+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_66f502ea",
+    "from": "mem_99877db7",
+    "to": "mem_d07c29a1",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_671a42f3",
+    "from": "mem_fb026368",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_67ee8a17",
+    "from": "mem_6089d7d9",
+    "to": "mem_25b80084",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_68f438b9",
+    "from": "mem_f9a2bb47",
+    "to": "mem_25b80084",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_6a3c5b7f",
+    "from": "mem_7e74197c",
+    "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:42:40.023988+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_6c47922d",
+    "from": "mem_22c9d8d6",
+    "to": "mem_861a5678",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_6d8ff04b",
+    "from": "mem_f83d6e1b",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:03.811682+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_6f7058a1",
+    "from": "mem_31b38aa1",
+    "to": "mem_d002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T16:02:02.514570+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_6f7f45f0",
+    "from": "mem_a4bdc8a9",
+    "to": "mem_i002",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:50.641632+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_6fc99ea1",
+    "from": "mem_5a3bd1b0",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_71f92565",
+    "from": "mem_31b38aa1",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T16:02:02.514570+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_72e52180",
+    "from": "mem_7dfe253a",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_731702b1",
+    "from": "mem_c4ce77e1",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_73f801b3",
+    "from": "mem_87639252",
+    "to": "mem_4621ebb5",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.179895+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_749a44a8",
+    "from": "mem_1b50a9b1",
+    "to": "mem_861a5678",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_750979fa",
+    "from": "mem_7dfe253a",
+    "to": "mem_9fbbb5eb",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_764f46eb",
+    "from": "mem_f8057a39",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:42:59.149067+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_772d5cd7",
+    "from": "mem_b3ee2495",
+    "to": "mem_f8057a39",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.097515+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_781b97ce",
+    "from": "mem_ef8ec8ec",
+    "to": "mem_i003",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_787e7752",
+    "from": "mem_263e8dd9",
+    "to": "mem_10a89b1f",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:02:39.045024+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_7948703c",
+    "from": "mem_c9dd39d4",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:03:32.554194+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_7a8dc9e0",
+    "from": "mem_32bc6360",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:42:40.023988+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_7aadf0e2",
+    "from": "mem_526945e4",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_7e889a3b",
+    "from": "mem_9d2bb35f",
+    "to": "mem_aab6d931",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_7f0fd875",
+    "from": "mem_033baf41",
+    "to": "mem_d001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:20.606618+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8037ec69",
+    "from": "mem_4f8e3f0b",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_80cfe3bf",
+    "from": "mem_5b28def8",
+    "to": "mem_ce794c4c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.019233+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_81b4725d",
+    "from": "mem_af74b0f0",
+    "to": "mem_22c9d8d6",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8274ce8b",
+    "from": "mem_80054468",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_84b93650",
+    "from": "mem_d2b5ef2f",
+    "to": "mem_i003",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:20.606618+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_858a86b0",
+    "from": "mem_107440f8",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_86ae45b8",
+    "from": "mem_2c0de61a",
+    "to": "mem_76d6491f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.160150+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_86da6c78",
+    "from": "mem_21638c34",
+    "to": "mem_af74b0f0",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_87cc947e",
+    "from": "mem_cd89f403",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:50.641632+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_87f16be7",
+    "from": "mem_eedc4eef",
+    "to": "mem_25b80084",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_89a4fa58",
+    "from": "mem_993fc9e6",
+    "to": "mem_ee62ef2c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_89df9f23",
+    "from": "mem_05ce17d1",
+    "to": "mem_d679d993",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8ab83897",
+    "from": "mem_5e541a9d",
+    "to": "mem_d679d993",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8b2c30ba",
+    "from": "mem_7e74197c",
+    "to": "mem_i002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:42:40.023988+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8d7fa7f8",
+    "from": "mem_76037494",
+    "to": "mem_ee62ef2c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8e3f199e",
+    "from": "mem_d07c29a1",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8f89fb7c",
+    "from": "mem_7f0a2526",
+    "to": "mem_ce794c4c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:13:59.077027+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_8f9c0f9d",
+    "from": "mem_5b9dd113",
+    "to": "mem_10a89b1f",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_90fd9453",
+    "from": "mem_8dc3944b",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:03.811682+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_91f62cc7",
+    "from": "mem_c8db759e",
+    "to": "mem_aab6d931",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_933a99dc",
+    "from": "mem_cdea5189",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_93db2df5",
+    "from": "mem_aab6d931",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_9487cec0",
+    "from": "mem_bf7d06a5",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_94c7575c",
+    "from": "mem_8dc3944b",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:03.811682+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_95419a3b",
+    "from": "mem_8a8214f3",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_95eecfe9",
+    "from": "mem_ef8ec8ec",
+    "to": "mem_k001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_97177962",
+    "from": "mem_6a46a549",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_9be1e60d",
+    "from": "mem_e0ebc6e5",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:42.035809+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_9cab64b6",
+    "from": "mem_d3564082",
+    "to": "mem_cce15a1a",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T02:39:59.693849+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_9e3c42dc",
+    "from": "mem_727c2cb2",
+    "to": "mem_i001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:14.437850+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_9f6dcb71",
+    "from": "mem_41c6465d",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_9f704b56",
+    "from": "mem_8575b4a1",
+    "to": "mem_d679d993",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a002_a001",
+    "from": "mem_a002",
+    "to": "mem_a001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a002_k001",
+    "from": "mem_a002",
+    "to": "mem_k001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a003_a002",
+    "from": "mem_a003",
+    "to": "mem_a002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a003_d001",
+    "from": "mem_a003",
+    "to": "mem_d001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a004_a001",
+    "from": "mem_a004",
+    "to": "mem_a001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a004_i003",
+    "from": "mem_a004",
+    "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 0.85,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a004_i004",
+    "from": "mem_a004",
+    "to": "mem_i004",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a005_a001",
+    "from": "mem_a005",
+    "to": "mem_a001",
+    "relation": "depends_on",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-29T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a005_g004",
+    "from": "mem_a005",
+    "to": "mem_g004",
+    "relation": "related_to",
+    "weight": 0.85,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-29T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a1efea86",
+    "from": "mem_7f8829ed",
+    "to": "mem_cbe1be4b",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a304fe3e",
+    "from": "mem_25ad6564",
+    "to": "mem_27e2935e",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a32863a7",
+    "from": "mem_4f8e3f0b",
+    "to": "mem_cbe1be4b",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a547ba97",
+    "from": "mem_27e2935e",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a5cbb4aa",
+    "from": "mem_f70b4273",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a5e95faf",
+    "from": "mem_71aebf92",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a68f7b40",
+    "from": "mem_25b80084",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_a813d78d",
+    "from": "mem_e10a0200",
+    "to": "mem_i002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:55.350143+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_ae9ad765",
+    "from": "mem_964c73a3",
+    "to": "mem_4621ebb5",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.061108+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_b2d8bb45",
+    "from": "mem_8145c1ad",
+    "to": "mem_25b80084",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_b38505cf",
+    "from": "mem_45b2269d",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_b6970d25",
+    "from": "mem_a4bdc8a9",
+    "to": "mem_a71dcf58",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:50.641632+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_b710644c",
+    "from": "mem_7f9fadcd",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_b7a3d074",
+    "from": "mem_53258df1",
+    "to": "mem_9fbbb5eb",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_b970b4d2",
+    "from": "mem_d4ea05e2",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_bb746187",
+    "from": "mem_45350e40",
+    "to": "mem_27e2935e",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_bd3c13c5",
+    "from": "mem_1b0a6c77",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_be22cde3",
+    "from": "mem_07334d61",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_c1df6653",
+    "from": "mem_00d32c49",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:17:32.244924+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_c2fd007f",
+    "from": "mem_8dc3944b",
+    "to": "mem_i002",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:03.811682+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_c50e617f",
+    "from": "mem_d692bb11",
+    "to": "mem_76d6491f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.118808+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_c646d386",
+    "from": "mem_9b4c8d95",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_c709aff9",
+    "from": "mem_8c9d6883",
+    "to": "mem_ce794c4c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:46.907519+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_c8b9b311",
+    "from": "mem_42669ba9",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_cb05b4ac",
+    "from": "mem_f2edb572",
+    "to": "mem_cbe1be4b",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_cce43c8c",
+    "from": "mem_8575b4a1",
+    "to": "mem_25b80084",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_cd7181cd",
+    "from": "mem_a9dee7ad",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:02:51.052196+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_cf2c8559",
+    "from": "mem_1185cce5",
+    "to": "mem_i002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:32.013292+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d001_d003",
+    "from": "mem_d001",
+    "to": "mem_d003",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d001_d004",
+    "from": "mem_d001",
+    "to": "mem_d004",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d001_d005",
+    "from": "mem_d001",
+    "to": "mem_d005",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d001_d006",
+    "from": "mem_d001",
+    "to": "mem_d006",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d002_g001",
+    "from": "mem_d002",
+    "to": "mem_g001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d002_g003",
+    "from": "mem_d002",
+    "to": "mem_g003",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d004_d001",
+    "from": "mem_d004",
+    "to": "mem_d001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d005_i001",
+    "from": "mem_d005",
+    "to": "mem_i001",
+    "relation": "related_to",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d006_g002",
+    "from": "mem_d006",
+    "to": "mem_g002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d065f96d",
+    "from": "mem_0d6a7214",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d0b9e9ab",
+    "from": "mem_fee2f20e",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d12f2a8d",
+    "from": "mem_71aebf92",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d198d0b9",
+    "from": "mem_1b50a9b1",
+    "to": "mem_80054468",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d1d91ed3",
+    "from": "mem_f83d6e1b",
+    "to": "mem_af74b0f0",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:03.811682+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d41a0854",
+    "from": "mem_af74b0f0",
+    "to": "mem_9fbbb5eb",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d6099c0d",
+    "from": "mem_c3e5a685",
+    "to": "mem_25b80084",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d6958040",
+    "from": "mem_2c1bd9d5",
+    "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:31.324937+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d6a0f5b4",
+    "from": "mem_6a46a549",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d7151fbc",
+    "from": "mem_097ff069",
+    "to": "mem_af74b0f0",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d7dbcf5c",
+    "from": "mem_a28ca156",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d860dd06",
+    "from": "mem_2698efe6",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_d98782a6",
+    "from": "mem_a590bb10",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_dcb45264",
+    "from": "mem_7f8829ed",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_dcf08ece",
+    "from": "mem_1fc9c6b4",
+    "to": "mem_af74b0f0",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:54.410669+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_dfeb5cdb",
+    "from": "mem_25ad6564",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e05e3086",
+    "from": "mem_8575b4a1",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e1db7da9",
+    "from": "mem_4379cf51",
+    "to": "mem_54cc2c31",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e55e384e",
+    "from": "mem_ac50a001",
+    "to": "mem_i001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e5c88695",
+    "from": "mem_df5063bd",
+    "to": "mem_i002",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:55.350143+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e628ae9a",
+    "from": "mem_524c73f6",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:49.051845+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e68b0d5f",
+    "from": "mem_ee62ef2c",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e7a1f166",
+    "from": "mem_9fe95573",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e7fe22ad",
+    "from": "mem_99877db7",
+    "to": "mem_22c9d8d6",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e827033b",
+    "from": "mem_99877db7",
+    "to": "mem_af74b0f0",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_e835def7",
+    "from": "mem_7e3f40a4",
+    "to": "mem_ce794c4c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.001045+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_ec4e067a",
+    "from": "mem_31b38aa1",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T16:02:02.514570+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_eccd7b3c",
+    "from": "mem_1fc8782f",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_ed174e43",
+    "from": "mem_fcfc3360",
+    "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:24.442796+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_ed1c80e0",
+    "from": "mem_2e101ff1",
+    "to": "mem_9fbbb5eb",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_eef11bfb",
+    "from": "mem_c9bd6c49",
+    "to": "mem_6d8524a7",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:43.044476+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f04d972c",
+    "from": "mem_f027cd84",
+    "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:09:26.211513+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f29eda08",
+    "from": "mem_2c1bd9d5",
+    "to": "mem_i002",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:31.324937+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f2a2e7fa",
+    "from": "mem_a71dcf58",
+    "to": "mem_d001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:50.641632+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f307927c",
+    "from": "mem_dc852972",
+    "to": "mem_4621ebb5",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T02:39:36.926692+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f491e209",
+    "from": "mem_9d2bb35f",
+    "to": "mem_ee62ef2c",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f6893d85",
+    "from": "mem_2c1bd9d5",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:31.324937+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f6a4447f",
+    "from": "mem_99877db7",
+    "to": "mem_d679d993",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f704e21e",
+    "from": "mem_b41097bf",
+    "to": "mem_k001",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:31.324937+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f7559b5d",
+    "from": "mem_da5739b0",
+    "to": "mem_10a89b1f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_f7a00752",
+    "from": "mem_033baf41",
+    "to": "mem_e73ea399",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:06:20.606618+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_fab2900b",
+    "from": "mem_9209a508",
+    "to": "mem_ce00334f",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_fb7b42c2",
+    "from": "mem_73ea8135",
+    "to": "mem_8145c1ad",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_fc0dfc20",
+    "from": "mem_b41097bf",
+    "to": "mem_d001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-25T14:05:31.324937+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_fd3a3eec",
+    "from": "mem_4abf6ce6",
+    "to": "mem_5b28def8",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-26T00:29:47.040241+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_fe6f055f",
+    "from": "mem_10a89b1f",
+    "to": "mem_ce00334f",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_ff1efcb2",
+    "from": "mem_d1d90285",
+    "to": "mem_af74b0f0",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_g001_d002",
+    "from": "mem_g001",
+    "to": "mem_d002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_g002_g001",
+    "from": "mem_g002",
+    "to": "mem_g001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_g002_g003",
+    "from": "mem_g002",
+    "to": "mem_g003",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_g004_a001",
+    "from": "mem_g004",
+    "to": "mem_a001",
+    "relation": "depends_on",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-29T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_g004_g001",
+    "from": "mem_g004",
+    "to": "mem_g001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-29T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_g004_g002",
+    "from": "mem_g004",
+    "to": "mem_g002",
+    "relation": "related_to",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-29T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i002_i001",
+    "from": "mem_i002",
+    "to": "mem_i001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i002_k001",
+    "from": "mem_i002",
+    "to": "mem_k001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i003_g002",
+    "from": "mem_i003",
+    "to": "mem_g002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i003_i002",
+    "from": "mem_i003",
+    "to": "mem_i002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i004_a003",
+    "from": "mem_i004",
+    "to": "mem_a003",
+    "relation": "related_to",
+    "weight": 0.85,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i004_i001",
+    "from": "mem_i004",
+    "to": "mem_i001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i004_i002",
+    "from": "mem_i004",
+    "to": "mem_i002",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_i004_i003",
+    "from": "mem_i004",
+    "to": "mem_i003",
+    "relation": "related_to",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k001_d001",
+    "from": "mem_k001",
+    "to": "mem_d001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k001_d002",
+    "from": "mem_k001",
+    "to": "mem_d002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k002_k001",
+    "from": "mem_k002",
+    "to": "mem_k001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k003_d005",
+    "from": "mem_k003",
+    "to": "mem_d005",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k003_k001",
+    "from": "mem_k003",
+    "to": "mem_k001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k004_g003",
+    "from": "mem_k004",
+    "to": "mem_g003",
+    "relation": "related_to",
+    "weight": 0.8,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k004_i004",
+    "from": "mem_k004",
+    "to": "mem_i004",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_k004_k001",
+    "from": "mem_k004",
+    "to": "mem_k001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.05,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_o001_a002",
+    "from": "mem_o001",
+    "to": "mem_a002",
+    "relation": "extends",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_o001_i001",
+    "from": "mem_o001",
+    "to": "mem_i001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_o001_k001",
+    "from": "mem_o001",
+    "to": "mem_k001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_o002_a001",
+    "from": "mem_o002",
+    "to": "mem_a001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_o002_i001",
+    "from": "mem_o002",
+    "to": "mem_i001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p001_d001",
+    "from": "mem_p001",
+    "to": "mem_d001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p001_d002",
+    "from": "mem_p001",
+    "to": "mem_d002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p001_p002",
+    "from": "mem_p001",
+    "to": "mem_p002",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p001_p003",
+    "from": "mem_p001",
+    "to": "mem_p003",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p002_d005",
+    "from": "mem_p002",
+    "to": "mem_d005",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p002_d006",
+    "from": "mem_p002",
+    "to": "mem_d006",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p003_g001",
+    "from": "mem_p003",
+    "to": "mem_g001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_p003_i003",
+    "from": "mem_p003",
+    "to": "mem_i003",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
+    "decay": {
+      "half_life_days": 90.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_pb_001",
+    "from": "mem_p003",
+    "to": "mem_playbook_001",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:35:36.756590+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_pb_002",
+    "from": "mem_playbook_001",
+    "to": "mem_playbook_002",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:35:36.756590+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_pb_003",
+    "from": "mem_playbook_001",
+    "to": "mem_playbook_003",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-24T13:35:36.756590+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_w001_w002",
+    "from": "mem_w001",
+    "to": "mem_w002",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_w002_d006",
+    "from": "mem_w002",
+    "to": "mem_d006",
+    "relation": "related_to",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_w002_w003",
+    "from": "mem_w002",
+    "to": "mem_w003",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_w004_d001",
+    "from": "mem_w004",
+    "to": "mem_d001",
+    "relation": "related_to",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_w004_i001",
+    "from": "mem_w004",
+    "to": "mem_i001",
+    "relation": "related_to",
+    "weight": 0.9,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
+  },
+  {
+    "id": "edge_w004_w001",
+    "from": "mem_w004",
+    "to": "mem_w001",
+    "relation": "depends_on",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-04-11T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 180.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   }
 ]

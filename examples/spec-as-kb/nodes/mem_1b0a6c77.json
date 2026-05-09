@@ -1,0 +1,48 @@
+{
+  "id": "mem_1b0a6c77",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "API 金鑰/對談停權閾值",
+    "en": "API Key/Session Suspension Threshold"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "如果走訪率在 10 分鐘內超過 2000 次請求，API 金鑰或對談將被停權。",
+      "en": "An API key or session is suspended if the traversal rate exceeds 2000 requests within a 10-minute period."
+    }
+  },
+  "tags": [
+    "api-key",
+    "session",
+    "security",
+    "rate-limiting",
+    "threshold"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.743224+00:00",
+    "signature": "b44ed89375ac73f6c55e71e4e97b9521aa00be67b37609a04552c515ac852362",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

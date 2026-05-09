@@ -1,0 +1,42 @@
+{
+  "id": "mem_1185cce5",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "建立 API 金鑰",
+    "en": "Create API Key"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "使用 `curl` 命令向 `/api/v1/users/me/api-keys` 端點發送 POST 請求，以建立一個新的 API 金鑰。請求需包含授權 Bearer Token、Content-Type 為 `application/json`，以及包含金鑰名稱和範圍（例如 `kb:read`, `kb:write`）的 JSON 資料。",
+      "en": "Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new API key. The request must include an Authorization Bearer Token, Content-Type as `application/json`, and JSON data containing the key name and scopes (e.g., `kb:read`, `kb:write`)."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:30.610529+00:00",
+    "signature": "64f3676e69b048faf93b180a7bd9c33f59d965f34af7acd616c3933fa4b44cd7",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

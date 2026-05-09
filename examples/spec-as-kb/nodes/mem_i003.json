@@ -13,19 +13,35 @@
       "en": "MemTrace implements the **Model Context Protocol (MCP)**, allowing AI agents (e.g. Claude Code) to use MemTrace as a context provider without reading raw spec documents.\n\n**Transport**: stdio only for now (`node packages/mcp/dist/index.js`).\n\n**Currently implemented tools**:\n\n| Tool | Description |\n|------|-------------|\n| `search_nodes` | Keyword search across nodes (Chinese and English), returns full content |\n| `get_node` | Retrieve a specific node by ID with full content and metadata |\n| `traverse` | Get a node plus its upstream/downstream associations (depth=1 or 2) |\n| `list_by_tag` | List all nodes with a specific tag |\n\n**Environment variables**:\n- `MEMTRACE_API`: API base URL (default `http://localhost:8000/api/v1`)\n- `MEMTRACE_WS`: Workspace ID (default `ws_spec0001`)\n- `MEMTRACE_LANG`: Display language (default `zh-TW`)\n\n**Current limitation**: Each MCP server instance is locked to a single workspace (set by `MEMTRACE_WS`). To query multiple knowledge bases, the current workaround is to start a separate instance per workspace in `.mcp.json`, but identical tool names cause confusion for AI agents.\n\n**Planned but not yet implemented**:\n- Multi-workspace support: optional `workspace_id` parameter on all tools + `list_workspaces` tool\n- Resources (`memtrace://node/{id}` URI reads)\n- Write tools (`create_node`, `update_node`, `create_edge`)\n- HTTP + SSE transport\n- `traverse_edge` to trigger co-access boost\n\nAgents should call traverse when following an edge, keeping frequently used paths alive against decay."
     }
   },
-  "tags": ["mcp", "ai-agent", "integration", "api"],
+  "tags": [
+    "mcp",
+    "ai-agent",
+    "integration",
+    "api"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-11T00:00:00Z",
-    "updated_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 3,
+    "unique_traversers": 2
+  }
 }

@@ -13,17 +13,37 @@
       "en": "## KB health summary\n\n`GET /workspaces/{ws_id}/analytics` returns the following (30-day window):\n\n| Field | Description |\n|-------|-------------|\n| `total_nodes` | Total active node count |\n| `active_edges` | Edges with weight > 0.3 |\n| `orphan_node_count` | Nodes with no active edges |\n| `avg_trust_score` | Workspace-wide average trust_score |\n| `faded_edge_ratio` | Ratio of faded edges to all edges |\n| `monthly_traversal_count` | Total traversals in the last 30 days |\n| `top_nodes` | Top-5 nodes by traversal count |\n| `traversal_trend` | Per-day traversal data (30 days) |\n| `kb_type_metrics` | KB-type-aware metrics (see below) |\n\n**KB-type-aware metrics**:\n- `evergreen`: `isolated_subgraph_count`, `avg_edges_per_node`\n- `operational/ephemeral`: `never_traversed_ratio`, `avg_days_between_traversals`\n\n**Alert logic (UI)**:\n- `evergreen` + `orphan_node_count > 0` → orange alert\n- non-evergreen + `never_traversed_ratio > 0.3` → yellow alert\n\n## Token efficiency report\n\n`GET /workspaces/{ws_id}/analytics/token-efficiency` returns:\n\n| Field | Description |\n|-------|-------------|\n| `avg_tokens_per_query` | Average tokens returned per MCP call this month |\n| `estimated_full_doc_tokens` | Estimated full-read tokens (body char count / 4) |\n| `savings_ratio` | `1 - avg_per_query / full_doc` |\n| `monthly_query_count` | MCP call count this month |\n\nData source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / traverse / get_node / list_by_tag / vote_trust) writes one log entry asynchronously, recording `tool_name`, `result_node_count`, `estimated_tokens`, and `provider`.\n\n## UI component\n\n`packages/ui/src/AnalyticsDashboard.tsx`: 4-card metric grid + 30-day traversal sparkline + Top Nodes list + token efficiency block + KB-type metrics grid. Opened via the Analytics tab in the workspace detail view."
     }
   },
-  "tags": ["analytics", "dashboard", "token-efficiency", "kb-health", "mcp-logs", "ui"],
+  "tags": [
+    "analytics",
+    "dashboard",
+    "token-efficiency",
+    "kb-health",
+    "mcp-logs",
+    "ui"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-29T00:00:00Z",
+    "created_at": "2026-04-29T00:00:00+00:00",
+    "signature": "",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

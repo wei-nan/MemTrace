@@ -1,0 +1,47 @@
+{
+  "id": "mem_0752c920",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "貢獻者角色能力：提議更改",
+    "en": "Contributor Role Capability: Proposing Changes"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "貢獻者可以提議對節點或邊進行更改。這些提案進入審核隊列，需要管理員核准後才能應用。",
+      "en": "Contributors can propose changes to nodes or edges. These proposals enter a review queue and require admin approval to be applied."
+    }
+  },
+  "tags": [
+    "role",
+    "contributor",
+    "proposal",
+    "review-queue"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.486330+00:00",
+    "signature": "c9e0f98fe56cae12c67d59594eb46922bacdf9e4aa36e3df1f975b9552b4828e",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

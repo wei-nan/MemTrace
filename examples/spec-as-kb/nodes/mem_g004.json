@@ -13,17 +13,37 @@
       "en": "Each node carries a composite `trust_score` (0–1) computed from four weighted dimensions:\n\n| Dimension | Field | Weight | Meaning |\n|-----------|-------|--------|---------|\n| Accuracy | `dim_accuracy` | 40% | Whether the content is correct |\n| Freshness | `dim_freshness` | 25% | Whether the information is still current |\n| Utility | `dim_utility` | 25% | Whether the content is practically helpful |\n| Author Reputation | `dim_author_rep` | 10% | Historical reliability of the contributor |\n\n```\ntrust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1\n```\n\n## Voting mechanism (vote_trust)\n\nScores are submitted as **integers 1–5** (API accepts accuracy and utility). The backend averages all votes, divides by 5 to get a 0–1 float, then updates the node.\n\n**API**: `POST /workspaces/{ws_id}/nodes/{node_id}/vote-trust`\n```json\n{ \"accuracy\": 4, \"utility\": 5 }\n```\n\n**MCP Tool**: `vote_trust(node_id, accuracy, utility)`\n- AI agents should call this proactively after reading a node they find correct and useful\n- Each user has one vote per node (ON CONFLICT DO UPDATE)\n- Votes stored in the `node_trust_votes` table\n\n## confirm_node_validity\n\n`POST /workspaces/{ws_id}/nodes/{node_id}/confirm-validity` is a one-tap validity stamp: automatically raises `dim_accuracy` to 1.0, recomputes `trust_score`, and sets `validity_confirmed_at`. Equivalent to \"I have manually verified this node is still accurate.\"\n\n## TypeScript implementation\n\n`packages/core/src/trust.ts` exposes `computeTrustScore()` and `updateTrustScore()`, matching the Python-side result to within 0.01."
     }
   },
-  "tags": ["graph-mechanics", "trust", "vote", "quality", "mcp-tool", "credibility"],
+  "tags": [
+    "graph-mechanics",
+    "trust",
+    "vote",
+    "quality",
+    "mcp-tool",
+    "credibility"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-29T00:00:00Z",
+    "created_at": "2026-04-29T00:00:00+00:00",
+    "signature": "",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

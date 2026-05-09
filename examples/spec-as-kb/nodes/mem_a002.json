@@ -13,18 +13,35 @@
       "en": "Supported formats: `.md`, `.txt`, `.pdf`, `.docx`. Extraction flow:\n\n1. AI segments the document into candidate chunks by structure (headings, paragraphs)\n2. Each chunk is classified into a Content Type\n3. Bilingual title and body drafts are generated\n4. Candidate Edges are proposed based on semantic proximity and document order\n\nAll results enter the **Review Queue** — never auto-committed. Extracted node source_type defaults to `ai_generated`; accepted without edits → `ai_verified`; accepted after edits → `human`. Each node records source_document and extraction_model."
     }
   },
-  "tags": ["ai", "ingestion", "extraction", "document"],
+  "tags": [
+    "ai",
+    "ingestion",
+    "extraction",
+    "document"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 2,
+    "unique_traversers": 1
+  }
 }

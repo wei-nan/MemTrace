@@ -13,18 +13,35 @@
       "en": "AI-extracted candidate nodes do not enter the Knowledge Base automatically — they must pass human review. Three actions: Accept (as-is), Edit then Accept (modify before committing), Reject (discard). Bulk operations (Accept all / Reject all) are supported. At least one node must be accepted before the review step can be closed. After review, accepted nodes are written with the correct source_type; rejected candidates are permanently discarded. This is MemTrace's core mechanism for preventing AI-generated content from polluting the Knowledge Base."
     }
   },
-  "tags": ["ai", "review-queue", "quality-control", "ingestion"],
+  "tags": [
+    "ai",
+    "review-queue",
+    "quality-control",
+    "ingestion"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

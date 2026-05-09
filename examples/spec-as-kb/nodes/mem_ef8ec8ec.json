@@ -1,0 +1,45 @@
+{
+  "id": "mem_ef8ec8ec",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "AI Chat 使用知識庫關聯邊界",
+    "en": "AI Chat Uses KB Association Boundaries"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "AI Chat 功能將依賴知識庫關聯的邊界設定。",
+      "en": "The AI Chat functionality will depend on the boundary settings of knowledge base associations."
+    }
+  },
+  "tags": [
+    "ai-chat",
+    "knowledge-base-association"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:58.716612+00:00",
+    "signature": "386ed5a376b7d7370a26182eaf9146e51d7f02dc1aec134bab2d9fb00a5f2986",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

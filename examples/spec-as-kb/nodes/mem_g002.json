@@ -13,18 +13,35 @@
       "en": "When two connected nodes are accessed sequentially or simultaneously in the same context (Co-Access), the corresponding edge's weight receives a boost based on relation type:\n\n| Relation | Boost |\n|----------|-------|\n| `depends_on` | +0.30 |\n| `extends` | +0.20 |\n| `related_to` | +0.15 |\n| `contradicts` | +0.10 |\n\nAlso increments co_access_count, updates last_co_accessed, and caps weight at 1.0. Triggered by POST /edges/{id}/traverse or MCP tool traverse_edge."
     }
   },
-  "tags": ["graph-mechanics", "co-access", "boost", "weight"],
+  "tags": [
+    "graph-mechanics",
+    "co-access",
+    "boost",
+    "weight"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

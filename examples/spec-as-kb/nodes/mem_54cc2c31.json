@@ -1,0 +1,42 @@
+{
+  "id": "mem_54cc2c31",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "非成員存取單一節點權限",
+    "en": "???∟赤???暺?閮勗甈?Non-Member Access to Individual Nodes"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "非成員嘗試執行 GET /api/v1/workspaces/{ws_id}/nodes/{id} 將會回傳 HTTP 403。",
+      "en": "???∩蝙?刻?閰阡?`GET /api/v1/workspaces/{ws_id}/nodes/{id}`閮芸??桀?暺?餈?`HTTP 403`?航炊??Attempting `GET /api/v1/workspaces/{ws_id}/nodes/{id}` as a non-member returns `HTTP 403`."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.810020+00:00",
+    "signature": "b459d17d111fb8c96441d6b90de474522e0adef6a244d7932ff73fa93c624ea2",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

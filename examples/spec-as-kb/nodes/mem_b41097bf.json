@@ -1,0 +1,46 @@
+{
+  "id": "mem_b41097bf",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點複製功能",
+    "en": "Memory Node Copying Functionality"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "任何單獨的記憶節點都可以複製到不同的知識庫。",
+      "en": "Any individual Memory Node can be copied to a different Knowledge Base."
+    }
+  },
+  "tags": [
+    "memory-node",
+    "knowledge-base",
+    "copy"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.655142+00:00",
+    "signature": "cea540a33f70ed93236f0dbdc41def46a9b3201f9f8378d4a7f27aa582019b77",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

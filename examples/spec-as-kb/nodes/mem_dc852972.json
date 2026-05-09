@@ -1,0 +1,46 @@
+{
+  "id": "mem_dc852972",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MEMTRACE_TOKEN 安全提醒",
+    "en": "MEMTRACE_TOKEN Security Reminder"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "關於 `MEMTRACE_TOKEN` 的安全提醒文字已加入伺服器啟動時的標準錯誤日誌 (stderr log) 中。",
+      "en": "A security reminder text regarding `MEMTRACE_TOKEN` has been added to the server startup's standard error log (stderr log)."
+    }
+  },
+  "tags": [
+    "環境變數",
+    "安全性",
+    "日誌"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:36.926692+00:00",
+    "signature": "656f7b6e924f07b2bef8f84a0a2a011de8f9270d6618c86707eb069cb8973af7",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

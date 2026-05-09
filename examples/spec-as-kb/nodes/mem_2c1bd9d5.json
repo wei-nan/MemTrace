@@ -1,0 +1,48 @@
+{
+  "id": "mem_2c1bd9d5",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "對話 API：發送消息 (POST /chat)",
+    "en": "Chat API: Send Message (POST /chat)"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "透過 POST 請求向指定的工作區發送消息。可以傳遞可選的 `session_id` 以繼續現有對話。",
+      "en": "Sends a message to a specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation."
+    }
+  },
+  "tags": [
+    "api",
+    "chat",
+    "message",
+    "conversation",
+    "post"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.693915+00:00",
+    "signature": "6b15654db2b55b29e7943d96ebfe8bd110b52e5febab150f4e704a1b2117ab6b",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "mem_9fe95573",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "純文本導出格式結構",
+    "en": "Plain Text Export Format Structure"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "純文本導出格式的整體結構包含一個頁首，列出知識庫名稱、範圍標籤、導出的 ISO 時間戳以及工作區 ID。",
+      "en": "The overall structure of the plain text export format includes a header with the Knowledge Base Name, Scope Label, ISO datetime of export, and Workspace ID."
+    }
+  },
+  "tags": [
+    "export",
+    "format",
+    "plain-text"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.929029+00:00",
+    "signature": "8be687263181850916849d41e4c5a323a08df03632ea41235d3f0b3ceb3b7198",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

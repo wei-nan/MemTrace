@@ -1,0 +1,47 @@
+{
+  "id": "mem_f2edb572",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "邊走訪統計數據結構",
+    "en": "Edge Traversal Statistics Data Structure"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "邊響應中的 `traversal` 物件包含 `count`（走訪次數）、`rating_avg`（平均評分）和 `rating_count`（評分次數）欄位。",
+      "en": "The `traversal` object in an edge response includes `count` (number of traversals), `rating_avg` (average rating), and `rating_count` (number of ratings) fields."
+    }
+  },
+  "tags": [
+    "data-structure",
+    "traversal-stats",
+    "edge",
+    "rating"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.274389+00:00",
+    "signature": "44138550101d58d53cf07a6ec12d41ed6fae6e149da9cf27f11fffac79788237",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "mem_f8057a39",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "工具 description 更新",
+    "en": "Tool Description Update"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`search_nodes`、`get_node`、`traverse`、`list_by_tag` 等工具的描述已更新，新增一行說明如何使用 `workspace_id` 參數查詢特定知識庫，或省略以使用預設值 `MEMTRACE_WS`。",
+      "en": "The descriptions for tools like `search_nodes`, `get_node`, `traverse`, and `list_by_tag` have been updated to include a line explaining how to pass `workspace_id` to query a specific KB, or omit it to use the configured default (`MEMTRACE_WS`)."
+    }
+  },
+  "tags": [
+    "工具",
+    "文件",
+    "工作區"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:37.786358+00:00",
+    "signature": "619066f74e4abdca14e319bcd9cbfe613562619b098582a5070872003bddedae",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

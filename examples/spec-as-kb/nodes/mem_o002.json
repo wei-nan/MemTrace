@@ -13,19 +13,36 @@
       "en": "Running `memtrace init` launches an interactive terminal wizard with five steps:\n\n① Authentication: log in to existing account / create new account\n② Create first Knowledge Base: English name + visibility (private / restricted / public, default private)\n③ Choose KB type: evergreen (default) or ephemeral — **immutable after creation**\n④ AI provider setup (press Enter to skip): choose openai / anthropic and enter API key (auto-tests connection)\n⑤ Import document (press Enter to skip): provide file path or URL\n\nConfig written to `~/.memtrace/config.json` with `chmod 600` immediately.\n\nRe-running: prompts which setting to update — AI provider / switch default workspace / re-authenticate / exit. Existing values are not overwritten unless explicitly selected."
     }
   },
-  "tags": ["onboarding", "cli", "init", "setup", "kb-type"],
+  "tags": [
+    "onboarding",
+    "cli",
+    "init",
+    "setup",
+    "kb-type"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
-    "updated_at": "2026-04-16T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

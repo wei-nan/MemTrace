@@ -1,0 +1,47 @@
+{
+  "id": "mem_dbaef1ba",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "工作區所有者角色",
+    "en": "Workspace Owner Role"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "工作區所有者始終是管理員，且不能從該角色降級。",
+      "en": "The workspace owner is always an admin and cannot be demoted from this role."
+    }
+  },
+  "tags": [
+    "role",
+    "owner",
+    "admin",
+    "restriction"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.522712+00:00",
+    "signature": "5adde963a195e4b5f2c42f464fcdc25d634412c734ad62d4e46760cb4799b819",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

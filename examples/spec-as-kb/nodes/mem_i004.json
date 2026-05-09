@@ -13,18 +13,39 @@
       "en": "MemTrace uses a git-inspired three-tier permission model that applies equally to human users and AI tools (including MCP).\n\nRoles:\n- viewer: read-only + Q&A chat + node rating (votes_up/down)\n- contributor: all viewer capabilities + submit change proposals (→ review queue, requires admin approval)\n- admin: all contributor capabilities + direct write + approve/reject proposals + manage members + invite users + soft-delete/restore workspace\n\nThe workspace owner is always admin and cannot be demoted.\n\nAPI Key scope mapping:\n- kb:read → viewer\n- kb:propose → contributor\n- kb:write → admin\n\nMCP tools respect the same rules: a kb:read key cannot call create_node; a kb:propose key can call propose_node; a kb:write key can write directly.\n\nContributor proposal flow: POST /workspaces/{ws_id}/proposals → review_queue (source_type = contributor_proposal) → takes effect after admin approval.\n\nDefault role on join:\n- Create workspace → admin (owner)\n- Accept invite link → role embedded in the invite token by admin\n- Cross-workspace node copy → no membership granted"
     }
   },
-  "tags": ["access-control", "permissions", "roles", "viewer", "contributor", "admin", "mcp", "api-key"],
+  "tags": [
+    "access-control",
+    "permissions",
+    "roles",
+    "viewer",
+    "contributor",
+    "admin",
+    "mcp",
+    "api-key"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-12T00:00:00Z",
+    "created_at": "2026-04-12T00:00:00+00:00",
     "signature": "d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 5,
+    "unique_traversers": 2
+  }
 }

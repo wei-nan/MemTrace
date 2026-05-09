@@ -1,0 +1,47 @@
+{
+  "id": "mem_a6a2a683",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點 ID",
+    "en": "Memory Node ID"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `id` 欄位是主鍵，類型為 TEXT，例如 `mem_abc123`。",
+      "en": "The `id` column in the `memory_nodes` table is the primary key, of type TEXT, e.g., `mem_abc123`."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:38.856937+00:00",
+    "signature": "b9327bb4b77a1cdb973a11d5f37e2eea745b8d5da337fc61dc0c6f2f5bcc77b7",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

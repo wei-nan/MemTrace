@@ -13,11 +13,34 @@
       "en": "## How is the Spec KB created?\nThe Spec Knowledge Base (`ws_spec0001`) is created automatically by `schema/sql/099_seed_spec_kb.sql`.\n\nWhen you run `docker compose up`, PostgreSQL's init mechanism executes all `*.sql` files under `schema/sql/` in order. `099_seed_spec_kb.sql` runs last, creating the workspace and inserting 30 nodes and their edges.\n\n## Verify\n```bash\ndocker exec -it memtrace-db psql -U memtrace -d memtrace \\\n  -c \"SELECT COUNT(*) FROM memory_nodes WHERE workspace_id='ws_spec0001' AND status='active';\"\n# Expected: 30\n```\n\n## Reset Spec KB\n```bash\ndocker compose down -v && docker compose up -d\n```"
     }
   },
-  "tags": ["dev", "seed", "procedural"],
+  "tags": [
+    "dev",
+    "seed",
+    "procedural"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-28T00:00:00Z",
+    "created_at": "2026-04-28T00:00:00+00:00",
+    "signature": "",
     "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
   }
 }

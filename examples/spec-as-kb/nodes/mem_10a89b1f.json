@@ -1,0 +1,46 @@
+{
+  "id": "mem_10a89b1f",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "受邀使用者角色分配",
+    "en": "Invited User Role Assignment"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "受邀使用者將以邀請令牌中指定的角色添加到工作區中。",
+      "en": "Invited users are added to the workspace with the role specified in the invite token."
+    }
+  },
+  "tags": [
+    "roles",
+    "invitation",
+    "access-control"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.631905+00:00",
+    "signature": "7cf62b3b242f03e9b7889e041598b464fd164b5d7d1f01cba4a9eda874bbb8ed",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

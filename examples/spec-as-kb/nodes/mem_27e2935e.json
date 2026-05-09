@@ -1,0 +1,46 @@
+{
+  "id": "mem_27e2935e",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "工作區角色與權限",
+    "en": "Workspace Roles & Permissions"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "工作區內的知識存取嚴格基於角色，特別是對於「有條件公開」(conditional_public) 和「受限」(restricted) 的工作區。",
+      "en": "Access to knowledge within a workspace is strictly role-based, especially for `conditional_public` and `restricted` workspaces."
+    }
+  },
+  "tags": [
+    "access-control",
+    "roles",
+    "permissions"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.701124+00:00",
+    "signature": "d1a47e7c44150c33817a30ae6a42bfaf25f2225950b5aff7824c979513ec19be",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

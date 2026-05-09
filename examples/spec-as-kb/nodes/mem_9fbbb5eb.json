@@ -1,0 +1,46 @@
+{
+  "id": "mem_9fbbb5eb",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Memory Node v1 手動編輯的新增欄位",
+    "en": "Additional Fields for Manual Editing in Memory Node v1"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "為了支持手動創建和編輯，`content.format` 和 `provenance.updated_at` 欄位被附加到 `node.v1.json`。",
+      "en": "To support manual creation and editing, `content.format` and `provenance.updated_at` fields are appended to `node.v1.json`."
+    }
+  },
+  "tags": [
+    "schema",
+    "編輯",
+    "欄位"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.850666+00:00",
+    "signature": "452abb112c53437818f068b051dae5b3ed9838e84f1596251e5802d0afdf7c11",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

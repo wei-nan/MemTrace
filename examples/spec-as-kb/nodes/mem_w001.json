@@ -13,11 +13,34 @@
       "en": "MemTrace uses an npm workspaces monorepo. The root `package.json` manages six packages:\n\n| Package | Path | Language | Role |\n|---------|------|----------|------|\n| core | packages/core | TypeScript | Shared types, decay logic, ID/signature generator |\n| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer |\n| ui | packages/ui | React/Vite | Web frontend |\n| cli | packages/cli | TypeScript | Local CLI tool |\n| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transports) |\n| ingest | packages/ingest | TypeScript | Document ingestion pipeline |\n\n`core` is consumed by `cli`. `api` is independent of the TS workspace."
     }
   },
-  "tags": ["dev", "architecture", "monorepo"],
+  "tags": [
+    "dev",
+    "architecture",
+    "monorepo"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-28T00:00:00Z",
+    "created_at": "2026-04-28T00:00:00+00:00",
+    "signature": "",
     "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
   }
 }

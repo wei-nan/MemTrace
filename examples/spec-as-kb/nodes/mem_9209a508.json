@@ -1,0 +1,48 @@
+{
+  "id": "mem_9209a508",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點標籤",
+    "en": "Memory Node Tags"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `tags` 欄位類型為 TEXT[]，存儲記憶節點的標籤，並已建立 GIN 索引。",
+      "en": "The `tags` column in the `memory_nodes` table is of type TEXT[], storing tags for the memory node, and is GIN-indexed."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "indexing"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.008653+00:00",
+    "signature": "56e5ce2c9c37c38be23ac86af4fe6b4d09f5df89d845026f4202d553b0f40f75",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

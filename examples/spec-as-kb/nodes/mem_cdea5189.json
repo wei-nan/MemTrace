@@ -1,0 +1,42 @@
+{
+  "id": "mem_cdea5189",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "封存節點永不銷毀原則",
+    "en": "Archived Nodes Are Never Destroyed"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "封存的節點將無限期保留，永遠不會被永久刪除。",
+      "en": "?喃蝙蝭暺◤甇豢?嚗???瘞賊?銝?鋡怠?斗??瑞??Archived nodes are preserved indefinitely and are never permanently deleted."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.539979+00:00",
+    "signature": "50b0515bc00d8ed2ec480923fd0e3b1837b27543d57436eb4770e741c478f558",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

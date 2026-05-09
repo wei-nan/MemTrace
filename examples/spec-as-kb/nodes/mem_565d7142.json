@@ -1,0 +1,45 @@
+{
+  "id": "mem_565d7142",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點新增來源文件參考欄位",
+    "en": "閮擃?暺憓??辣撘??Memory Nodes Add Source Document Reference Columns"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "為了將萃取節點連結到其來源段落，memory_nodes 表中新增了 source_doc_node_id（引用來源文件節點 ID）和 source_paragraph_ref（段落級參考）欄位。",
+      "en": "?箔?撠???蝭暺??嗆?畾菔?韏瑚?嚗memory_nodes` 銵其葉?啣?鈭?`source_doc_node_id` (撘皞?隞嗥?暺D) ??`source_paragraph_ref` (畾菔蝝撘) ??To link extracted nodes to their source passages, `source_doc_node_id` (referencing the source document node ID) and `source_paragraph_ref` (paragraph-level reference) columns are added to the `memory_nodes` table."
+    }
+  },
+  "tags": [
+    "來源",
+    "文件"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.793451+00:00",
+    "signature": "4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

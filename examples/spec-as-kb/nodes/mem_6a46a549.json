@@ -1,0 +1,46 @@
+{
+  "id": "mem_6a46a549",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "知識庫導出與匯入規範",
+    "en": "Knowledge Base Export & Import Specification"
+  },
+  "content": {
+    "type": "context",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "關於導出類型、可篩選範圍和格式詳情的完整規範，請參閱 禮22。",
+      "en": "For full specification including export types, filterable scopes, and format details, see 禮22."
+    }
+  },
+  "tags": [
+    "specification",
+    "export",
+    "import"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.289665+00:00",
+    "signature": "1fe072bfa79a235c67cbcb708caaa9f62839ddcb301956885e5fc13d472ac11f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

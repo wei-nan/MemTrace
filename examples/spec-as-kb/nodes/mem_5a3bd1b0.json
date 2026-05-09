@@ -1,0 +1,46 @@
+{
+  "id": "mem_5a3bd1b0",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "輸入模式切換與內容轉換",
+    "en": "Input Mode Switching and Content Conversion"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "切換輸入模式不會自動轉換現有內容。",
+      "en": "Switching input modes does not automatically convert existing content."
+    }
+  },
+  "tags": [
+    "editor",
+    "input-mode",
+    "content-conversion"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.480432+00:00",
+    "signature": "d021d2e82b6639637bd114078242f8e2b2c15fd730461f24e271137b0b3c8e9a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

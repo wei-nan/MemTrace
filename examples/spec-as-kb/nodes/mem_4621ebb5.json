@@ -1,0 +1,47 @@
+{
+  "id": "mem_4621ebb5",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MemTrace 功能實作展開細項 - 第二階段完成",
+    "en": "MemTrace Feature Breakdown - Phase 2 Completed"
+  },
+  "content": {
+    "type": "context",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "本文件將待辦事項中的高階規格，展開為提供給前端 (UI)、後端 (API)、資料庫 (DB) 開發人員具體可執行的工作細項。",
+      "en": "This document details high-level specifications from the backlog into concrete subtasks for UI, API, and DB developers."
+    }
+  },
+  "tags": [
+    "memtrace",
+    "feature-breakdown",
+    "project-management",
+    "phase-2"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:32.330603+00:00",
+    "signature": "3fefc7da371b9f5f6f0dd7fcadad0fc77650f3b51d4496bafe2bace9ab83ce41",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

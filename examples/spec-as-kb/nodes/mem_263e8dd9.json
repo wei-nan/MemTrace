@@ -1,0 +1,46 @@
+{
+  "id": "mem_263e8dd9",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "邀請 API 端點",
+    "en": "Invitation API Endpoint"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "?冽?喲極雿??隢?API蝡舫???`POST /workspaces/{ws_id}/invites`??The API endpoint for issuing workspace invitations is `POST /workspaces/{ws_id}/invites`.",
+      "en": "?冽?喲極雿??隢?API蝡舫???`POST /workspaces/{ws_id}/invites`??The API endpoint for issuing workspace invitations is `POST /workspaces/{ws_id}/invites`."
+    }
+  },
+  "tags": [
+    "api",
+    "invitation",
+    "admin"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.611211+00:00",
+    "signature": "6fc2382e4ea2d6fb918a89b618c797778a7778327c86d6939a3571ef142d5cfc",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

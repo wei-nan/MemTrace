@@ -1,0 +1,45 @@
+{
+  "id": "mem_5b9dd113",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶導出功能",
+    "en": "Memory Export Functionality"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "雿輻?隞亙??嗅?撌乩?閮?臬?唳?唳?獢?Users can export their current working memory to a local file.",
+      "en": "雿輻?隞亙??嗅?撌乩?閮?臬?唳?唳?獢?Users can export their current working memory to a local file."
+    }
+  },
+  "tags": [
+    "memory-management",
+    "export"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.214139+00:00",
+    "signature": "e642c5361a573c1ec70f8f5f549a951819bcedae6c4c0110291c72e3bde360d4",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

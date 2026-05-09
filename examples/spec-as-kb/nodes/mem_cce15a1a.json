@@ -1,0 +1,47 @@
+{
+  "id": "mem_cce15a1a",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "節點修訂表唯一約束",
+    "en": "Node Revisions Table Unique Constraint"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "在 `node_revisions` 資料表中，`node_id` 和 `revision_no` 的組合必須是唯一的，確保每個節點的每個修訂版本都有獨特的識別。",
+      "en": "The combination of `node_id` and `revision_no` must be unique in the `node_revisions` table, ensuring each revision of a node has a distinct identifier."
+    }
+  },
+  "tags": [
+    "資料庫",
+    "資料表",
+    "節點修訂",
+    "唯一約束"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:32.871852+00:00",
+    "signature": "1c84d32a9837c44a5f42f009e966b613ed097d1fb83d089d9741a87ae2b34222",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

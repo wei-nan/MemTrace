@@ -1,0 +1,45 @@
+{
+  "id": "mem_7e3f40a4",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "新增知識庫關聯",
+    "en": "Add Knowledge Base Association"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "使用者介面應提供功能，讓使用者可以搜尋並選擇目標知識庫進行關聯，僅限公共或已有存取權的知識庫。",
+      "en": "The UI should provide functionality to search and select target knowledge bases for association, limited to public KBs or those with existing access."
+    }
+  },
+  "tags": [
+    "UI",
+    "Knowledge Base Association"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.001045+00:00",
+    "signature": "f2473369340496fcb6392f6e752729905ea8a7cb37a37cebb1ce91ffeb268882",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "mem_79dce6e3",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點 Schema 版本",
+    "en": "Memory Node Schema Version"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `schema_version` 欄位類型為 TEXT，固定為 '1.0'。",
+      "en": "The `schema_version` column in the `memory_nodes` table is of type TEXT, fixed to '1.0'."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:38.872833+00:00",
+    "signature": "ba4fdaf3d15b468f342627140d094e4d7edd8e03d683ca2e527e33dca2be84ed",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

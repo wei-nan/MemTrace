@@ -1,0 +1,48 @@
+{
+  "id": "mem_d4ea05e2",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點信任分數",
+    "en": "Memory Node Trust Score"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `trust_score` 欄位類型為 NUMERIC(4,3)，表示 0 到 1 之間的綜合信任分數。",
+      "en": "The `trust_score` column in the `memory_nodes` table is of type NUMERIC(4,3), representing a composite trust score between 0 and 1."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "score"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.130605+00:00",
+    "signature": "7c28f4b6744720099944e0b00fe9f6eacea46d6715cdde3f103aa4ba4cab8d00",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

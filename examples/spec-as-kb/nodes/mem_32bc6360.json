@@ -1,0 +1,45 @@
+{
+  "id": "mem_32bc6360",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "排程呼叫 `apply_node_archiving()`",
+    "en": "Schedule Call for `apply_node_archiving()`"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "排程器應補上對 `apply_node_archiving()` 函式的每日 UTC 02:00 呼叫，該函式已存在但目前未被觸發。",
+      "en": "The scheduler should add a daily UTC 02:00 call to the `apply_node_archiving()` function, which exists but is currently not triggered."
+    }
+  },
+  "tags": [
+    "scheduler",
+    "node-archiving"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:38:35.076074+00:00",
+    "signature": "014a6e02054ebb86a8d31ec981406f8fa1b145a2fe86d02590c5310b59f8a95d",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

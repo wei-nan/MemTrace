@@ -4,7 +4,11 @@ import asyncio
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 import json
 from typing import List, Optional, Tuple, Literal
-from core.ai import EXTRACTION_SYSTEM, AIProviderUnavailable, AIProviderError, chat_completion, record_usage, resolve_provider, strip_fences, PROVIDER_REGISTRY
+from core.ai import (
+    EXTRACTION_SYSTEM, AIProviderUnavailable, AIProviderError,
+    chat_completion, extract_nodes_structured,
+    record_usage, resolve_provider, strip_fences, PROVIDER_REGISTRY,
+)
 from core.database import db_cursor
 from core.security import generate_id
 from core.deps import get_current_user
@@ -195,6 +199,139 @@ def _extract_objects_partial(text: str) -> list[dict]:
     return objects
 
 
+_CONTENT_TYPE_MAP = {
+    # 常見的 AI 自創 content_type → 最接近的合法值
+    "requirement":      "factual",
+    "requirements":     "factual",
+    "feature":          "factual",
+    "functional":       "factual",
+    "specification":    "factual",
+    "rule":             "factual",
+    "business_rule":    "factual",
+    "business rule":    "factual",
+    "data":             "factual",
+    "concept":          "factual",
+    "definition":       "factual",
+    "constraint":       "preference",
+    "non_functional":   "preference",
+    "nonfunctional":    "preference",
+    "config":           "preference",
+    "configuration":    "preference",
+    "workflow":         "procedural",
+    "process":          "procedural",
+    "use_case":         "procedural",
+    "user_story":       "procedural",
+    "step":             "procedural",
+    "api":              "procedural",
+    "background":       "context",
+    "note":             "context",
+    "overview":         "context",
+}
+_VALID_CONTENT_TYPES = {"factual", "procedural", "preference", "context", "inquiry"}
+
+# Standard keys in the extraction flat format — everything else is treated as body content
+_EXTRACTION_STANDARD_KEYS = {
+    "title_zh", "title_en", "content_type", "content_format",
+    "body_zh", "body_en", "tags", "visibility",
+    "suggested_edges", "source_segment", "confidence_score",
+    "title", "content",  # nested-format keys handled in step 1
+}
+
+# Priority order of keys to try as a title source when title_zh/title_en are absent
+_TITLE_CANDIDATE_KEYS = [
+    "title", "section_title", "section", "name", "label",
+    "heading", "description", "summary", "api_version",
+]
+
+def _split_bilingual_title(title: str) -> tuple[str, str]:
+    """Split 'Chinese text (English text)' → (title_zh, title_en)."""
+    import re
+    m = re.match(r"^(.+?)\s*\(([A-Za-z][^)]{2,})\)\s*$", title)
+    if m:
+        left = m.group(1).strip()
+        right = m.group(2).strip()
+        has_zh = any("一" <= c <= "鿿" for c in left)
+        if has_zh:
+            return left, right
+    has_zh = any("一" <= c <= "鿿" for c in title)
+    return (title, "") if has_zh else ("", title)
+
+
+def _normalize_nodes(nodes: list[dict], filename: str) -> list[dict]:
+    """Flatten nested/structured nodes and remap AI-invented content_type values.
+
+    Nodes that cannot produce both a non-empty title and a non-empty body are
+    dropped with a warning rather than forwarded to _propose_change where they
+    would raise a 400.
+    """
+    import json as _json
+    normalized = []
+    for n in nodes:
+        # 1. Flatten spec-as-kb nested format
+        #    {"title": {"zh-TW": ..., "en": ...}, "content": {"type": ..., "body": {...}}}
+        if "title" in n and isinstance(n["title"], dict):
+            t = n.pop("title")
+            n = {**n,
+                 "title_zh": t.get("zh-TW") or t.get("zh") or "",
+                 "title_en": t.get("en") or ""}
+        if "content" in n and isinstance(n["content"], dict):
+            c = n.pop("content")
+            body = c.get("body", {})
+            n = {**n,
+                 "content_type":   c.get("type", ""),
+                 "content_format": c.get("format", "markdown"),
+                 "body_zh": body.get("zh-TW") or body.get("zh") or "",
+                 "body_en": body.get("en") or ""}
+
+        # 2. Derive title from any available candidate key
+        if not (n.get("title_zh") or n.get("title_en")):
+            # Try specialised API endpoint key combo first
+            method   = str(n.get("method", "")).strip()
+            endpoint = str(n.get("endpoint", "")).strip()
+            if method and endpoint:
+                t_en = f"{method} {endpoint}"
+                desc = str(n.get("description", "") or "").strip()
+                t_zh = desc if desc else t_en
+                n = {**n, "title_zh": t_zh, "title_en": t_en}
+            else:
+                # Walk candidate keys until one yields a non-empty string
+                raw = ""
+                for key in _TITLE_CANDIDATE_KEYS:
+                    v = n.get(key)
+                    if v and isinstance(v, str) and v.strip():
+                        raw = v.strip()
+                        break
+                if raw:
+                    t_zh, t_en = _split_bilingual_title(raw)
+                    if not t_zh and not t_en:
+                        t_zh = raw
+                    n = {**n, "title_zh": t_zh, "title_en": t_en}
+
+        # 3. Build body from non-standard payload keys if body still missing
+        if not (n.get("body_zh") or n.get("body_en")):
+            extra = {k: v for k, v in n.items() if k not in _EXTRACTION_STANDARD_KEYS}
+            if extra:
+                n = {**n, "body_zh": _json.dumps(extra, ensure_ascii=False, indent=2), "body_en": ""}
+
+        # 4. Last-resort: drop nodes that still lack title OR body to avoid DB 400s
+        if not (n.get("title_zh") or n.get("title_en")):
+            print(f"[ingest] {filename}: dropped node — no title resolvable from keys {list(n.keys())}")
+            continue
+        if not (n.get("body_zh") or n.get("body_en")):
+            print(f"[ingest] {filename}: dropped node '{n.get('title_zh') or n.get('title_en')}' — empty body")
+            continue
+
+        # 5. Normalise content_type
+        ct = (n.get("content_type") or "").lower().strip()
+        if ct not in _VALID_CONTENT_TYPES:
+            mapped = _CONTENT_TYPE_MAP.get(ct, "factual")
+            if ct:
+                print(f"[ingest] {filename}: content_type '{ct}' → '{mapped}'")
+            n = {**n, "content_type": mapped}
+        normalized.append(n)
+    return normalized
+
+
 async def _safe_parse_nodes(raw: str, resolved, filename: str) -> Tuple[list[dict], int]:
     """
     Parse the LLM response as a JSON node array.
@@ -214,9 +351,9 @@ async def _safe_parse_nodes(raw: str, resolved, filename: str) -> Tuple[list[dic
     try:
         result = json.loads(cleaned)
         if isinstance(result, list):
-            return result, 0
+            return _normalize_nodes(result, filename), 0
         if isinstance(result, dict):
-            return [result], 0
+            return _normalize_nodes([result], filename), 0
     except json.JSONDecodeError:
         pass
 
@@ -224,7 +361,7 @@ async def _safe_parse_nodes(raw: str, resolved, filename: str) -> Tuple[list[dic
     partial = _extract_objects_partial(cleaned)
     if partial:
         print(f"[ingest] partial extraction rescued {len(partial)} objects from {filename}")
-        return partial, 0
+        return _normalize_nodes(partial, filename), 0
 
     # ── Pass 3: LLM repair (last resort) ─────────────────────────────────────
     try:
@@ -250,9 +387,9 @@ async def _safe_parse_nodes(raw: str, resolved, filename: str) -> Tuple[list[dic
 
         result = json.loads(repaired_cleaned)
         if isinstance(result, list):
-            return result, repair_tokens
+            return _normalize_nodes(result, filename), repair_tokens
         if isinstance(result, dict):
-            return [result], repair_tokens
+            return _normalize_nodes([result], filename), repair_tokens
     except Exception as e:
         print(f"[ingest] JSON repair failed for {filename}: {e}")
 
@@ -395,6 +532,7 @@ async def _persist_nodes(cur, ws_id: str, nodes_data: list[dict], job_id: str,
         if duplicate_info and duplicate_info[0] == "pending_review":
             # Already queued in this ingestion run — skip to avoid duplicate proposals
             skipped += 1
+            n["_change_type"] = "skip"
             review_ids.append((None, n))
             continue
 
@@ -449,6 +587,7 @@ async def _persist_nodes(cur, ws_id: str, nodes_data: list[dict], job_id: str,
             confidence_score=n.get("confidence_score"),
             source_id=source_id,
         )
+        n["_change_type"] = change_type
         review_ids.append((rid, n))
 
     if skipped:
@@ -575,7 +714,7 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
     await _AI_SEMAPHORE.acquire()
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "UPDATE ingestion_logs SET status = 'processing' WHERE id = %s AND status = 'pending'",
+            "UPDATE ingestion_logs SET status = 'processing', started_at = now() WHERE id = %s AND status = 'pending'",
             (job_id,),
         )
         if cur.rowcount == 0:
@@ -729,19 +868,11 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                     )
                 system_prompt += diagram_prompt
 
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": f"Extract Memory Nodes from this segment of '{chunk_label}':\n---\n{chunk_to_process}\n---"}
-                    ]
-                },
+            user_content = [
+                {"type": "text", "text": f"Extract Memory Nodes from this segment of '{chunk_label}':\n---\n{chunk_to_process}\n---"}
             ]
-
-            # H-1: Multimodal injection
             if meta.get("image_base64"):
-                messages[1]["content"].append({
+                user_content.append({
                     "type": "image_url",
                     "image_url": {"url": f"data:{meta.get('mime_type', 'image/png')};base64,{meta['image_base64']}"}
                 })
@@ -749,38 +880,61 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
             # Per-chunk provider fallback: if resolved provider fails (e.g. out of credits),
             # try the next available provider automatically.
             chunk_resolved = resolved
-            raw, tokens = None, 0
+            nodes_data: list[dict] = []
+            tokens = 0
+            repair_tokens = 0
             chunk_error: Optional[Exception] = None
+
             for attempt in range(2):   # at most 2 attempts (primary + one fallback)
                 try:
-                    raw, tokens = await chat_completion(chunk_resolved, messages)
+                    # Primary path: native tool/function calling — schema enforced upstream
+                    nodes_data, tokens = await extract_nodes_structured(
+                        chunk_resolved, system_prompt, user_content
+                    )
                     chunk_error = None
                     break
+                except NotImplementedError:
+                    # Fallback path: text mode + JSON repair (Ollama / unsupported models)
+                    try:
+                        messages = [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user",   "content": user_content},
+                        ]
+                        raw, tokens = await chat_completion(chunk_resolved, messages)
+                        nodes_data, repair_tokens = await _safe_parse_nodes(
+                            raw or "", chunk_resolved, chunk_label
+                        )
+                        chunk_error = None
+                        break
+                    except AIProviderError as e:
+                        chunk_error = e
                 except AIProviderError as e:
                     chunk_error = e
-                    if attempt == 0:
-                        # Try the next available provider
-                        try:
-                            from core.database import db_cursor as _db2
-                            with _db2() as cur2:
-                                cur2.execute(
-                                    "SELECT provider FROM user_ai_keys WHERE user_id = %s AND provider != %s "
-                                    "ORDER BY last_used_at DESC NULLS LAST LIMIT 1",
-                                    (user_id, chunk_resolved.provider.name),
-                                )
-                                alt = cur2.fetchone()
-                            if alt:
-                                chunk_resolved = resolve_provider(user_id, "extraction", preferred_provider=alt["provider"])
-                                print(f"Chunk {idx}: switched to {chunk_resolved.provider.name} after error: {e}")
-                        except Exception:
-                            pass
+
+                # Try the next available provider before giving up
+                if attempt == 0 and chunk_error is not None:
+                    try:
+                        from core.database import db_cursor as _db2
+                        with _db2() as cur2:
+                            cur2.execute(
+                                "SELECT provider FROM user_ai_keys WHERE user_id = %s AND provider != %s "
+                                "ORDER BY last_used_at DESC NULLS LAST LIMIT 1",
+                                (user_id, chunk_resolved.provider.name),
+                            )
+                            alt = cur2.fetchone()
+                        if alt:
+                            chunk_resolved = resolve_provider(user_id, "extraction", preferred_provider=alt["provider"])
+                            print(f"Chunk {idx}: switched to {chunk_resolved.provider.name} after error: {chunk_error}")
+                    except Exception:
+                        pass
 
             if chunk_error is not None:
                 raise chunk_error  # re-raise if all attempts failed
 
-            total_tokens += tokens
-            nodes_data, repair_tokens = await _safe_parse_nodes(raw or "", chunk_resolved, chunk_label)
-            total_tokens += repair_tokens
+            # Defensive normalization (mostly redundant under structured mode,
+            # but still useful if the fallback text path produced noise).
+            nodes_data = _normalize_nodes(nodes_data, chunk_label)
+            total_tokens += tokens + repair_tokens
 
             # Merge adapter-level suggested_edges into LLM-extracted nodes
             adapter_edges = meta.get("suggested_edges", [])
@@ -844,11 +998,17 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         for rid in pending_rids:
             await run_ai_review_for_item(rid)
 
+        nodes_created = sum(1 for rid, n in review_ids if n.get("_change_type") == "create")
+        nodes_skipped = sum(1 for rid, n in review_ids if n.get("_change_type") in ("skip", "update"))
+
         record_usage(resolved, "extraction", total_tokens, ws_id)
         with db_cursor(commit=True) as cur:
             cur.execute(
-                "UPDATE ingestion_logs SET status = 'completed', completed_at = now() WHERE id = %s",
-                (job_id,),
+                """UPDATE ingestion_logs
+                   SET status = 'completed', completed_at = now(),
+                       nodes_created = %s, nodes_skipped = %s
+                   WHERE id = %s""",
+                (nodes_created, nodes_skipped, job_id),
             )
 
     except Exception as exc:
@@ -1006,7 +1166,8 @@ def list_ingestion_logs(ws_id: str, user: dict = Depends(get_current_user)):
             """
             SELECT id, filename, status, error_msg,
                    chunks_total, chunks_done,
-                   created_at, completed_at
+                   created_at, started_at, completed_at,
+                   nodes_created, nodes_skipped
             FROM ingestion_logs
             WHERE workspace_id = %s
             ORDER BY created_at DESC

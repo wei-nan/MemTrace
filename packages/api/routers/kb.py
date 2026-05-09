@@ -370,12 +370,10 @@ def _prepare_node_data(data: dict, author: str, source_type: str = "human", stat
     payload["body_en"] = payload.get("body_en") or ""
     
     # Calculate trust_score: Accuracy 0.4 (default 0.5), Freshness 0.25 (default 1.0), Utility 0.25 (default 0.5), Rep 0.1
-    # Note: These are initial values. dim_accuracy/freshness/utility use DB defaults if not set.
-    # But for a new node, we want a reasonable starting trust_score.
     acc = 0.5
     fresh = 1.0
     util = 0.5
-    rep = payload["dim_author_rep"]
+    rep = float(payload["dim_author_rep"])  # DB returns decimal.Decimal; cast to float before arithmetic
     payload["trust_score"] = (acc * 0.4) + (fresh * 0.25) + (util * 0.25) + (rep * 0.1)
 
     payload["signature"] = compute_signature(

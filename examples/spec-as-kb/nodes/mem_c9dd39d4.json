@@ -1,0 +1,48 @@
+{
+  "id": "mem_c9dd39d4",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "知識庫保護機制概覽",
+    "en": "Overview of Knowledge Base Protection Mechanisms"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "本節定義了旨在防止知識盜竊的保護機制，同時保留對授權成員和核准預覽的合法可用性。",
+      "en": "This section defines protection mechanisms designed to prevent knowledge theft while preserving legitimate usability for authorized members and approved previews."
+    }
+  },
+  "tags": [
+    "安全",
+    "概覽",
+    "介紹",
+    "權限",
+    "保護"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.730201+00:00",
+    "signature": "a78ac73dff4068fc8b90f4c1d73ea5fd9589364d6f39cd0d31951ca205b53a5a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

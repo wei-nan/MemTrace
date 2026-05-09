@@ -1,0 +1,46 @@
+{
+  "id": "mem_6089d7d9",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "私有工作區搜尋與列表不可見性",
+    "en": "Private Workspace Search/Listing Invisibility"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "「私有」(private) 工作區不會出現在任何列表或搜尋結果中。",
+      "en": "A `private` workspace does not appear in any listing or search result."
+    }
+  },
+  "tags": [
+    "workspace-type",
+    "private",
+    "visibility"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.682293+00:00",
+    "signature": "f17d1b398b13665411a5e123be8e90e901051f72a5292d56240efdf3c25e755c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

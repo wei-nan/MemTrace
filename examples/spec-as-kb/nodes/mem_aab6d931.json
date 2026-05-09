@@ -1,0 +1,46 @@
+{
+  "id": "mem_aab6d931",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "簡化圖譜載荷的快取政策",
+    "en": "Caching Policy for Stripped Graph Payload"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "預覽載荷不可由客戶端快取，這由響應標頭 `Cache-Control: no-store` 指示。",
+      "en": "The preview payload is not cacheable by the client, indicated by the response header `Cache-Control: no-store`."
+    }
+  },
+  "tags": [
+    "快取",
+    "API優化",
+    "性能"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.829461+00:00",
+    "signature": "6e6398e27fe86238ff08625e26c0b131b6cabffda49bd17964086ec5d8f0d341",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

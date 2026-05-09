@@ -13,18 +13,34 @@
       "en": "The provenance object on each node records the knowledge's origin: author, created_at, signature (SHA-256 content hash), source_type (human / ai_generated / ai_verified). updated_at is added on any edit. AI-extracted nodes additionally record source_document (the source file) and extraction_model (the AI model used). Nodes copied across Knowledge Bases record copied_from.node_id and copied_from.workspace_id. Provenance is always recorded but does not restrict access."
     }
   },
-  "tags": ["data-model", "provenance", "traceability"],
+  "tags": [
+    "data-model",
+    "provenance",
+    "traceability"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 2,
+    "unique_traversers": 2
+  }
 }

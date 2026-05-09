@@ -1,0 +1,46 @@
+{
+  "id": "mem_1b50a9b1",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點編輯器欄位",
+    "en": "Memory Node Editor Fields"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "撱箇?/蝺刻摩銵典?湧鈭???雿?雿輻?‵撖怒?The creation/edit form exposes several fields for user input.",
+      "en": "撱箇?/蝺刻摩銵典?湧鈭???雿?雿輻?‵撖怒?The creation/edit form exposes several fields for user input."
+    }
+  },
+  "tags": [
+    "editor",
+    "fields",
+    "memory-node"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.497376+00:00",
+    "signature": "b20effdba67a36c189fcc02d6a494aa870056bd4e8a4f6b878040a55275100d1",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

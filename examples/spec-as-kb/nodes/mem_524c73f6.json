@@ -1,0 +1,46 @@
+{
+  "id": "mem_524c73f6",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "D4 節點歸檔排程完整化",
+    "en": "D4 Node Archiving Schedule Completion"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "此功能目標是補齊缺失的排程呼叫，以完整實作節點從衰減到歸檔的生命週期。",
+      "en": "The goal of this feature is to complete missing scheduled calls to fully implement the node lifecycle from decay to archiving."
+    }
+  },
+  "tags": [
+    "scheduler",
+    "node-management",
+    "archiving"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:40:00.508542+00:00",
+    "signature": "4c99e0484ce778915b995e295444a4ca0df29299e9704f530886f6082898b1b1",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -13,19 +13,39 @@
       "en": "MemTrace does not operate its own AI inference service. All AI features are powered by the user's chosen provider.\n\n**Officially built-in providers**:\n\n| Provider | Identifier | Default chat model | Embedding model | Dim |\n|----------|------------|--------------------|-----------------|-----|\n| OpenAI | `openai` | `gpt-4o-mini` | `text-embedding-3-small` | 1536 |\n| Anthropic | `anthropic` | `claude-haiku-4-5-20251001` | `voyage-3-lite` | 1024 |\n| Google Gemini | `gemini` | `gemini-2.0-flash` | `text-embedding-004` | 768 |\n| Ollama (self-hosted) | `ollama` | `llama3` (variable) | `nomic-embed-text` | Variable |\n\n**Ollama notes**: No API key required. Configure `base_url` (default `http://localhost:11434`) and `auth_mode`: `none` (local) or `bearer` (reverse proxy). Embedding dimension depends on the chosen model (`nomic-embed-text`=768, `mxbai-embed-large`=1024) and is **immutable after workspace creation**. See `docs/ollama-deployment.md`.\n\n**Embedding dimension constraint**: Each workspace fixes its embedding dimension at creation time (`workspaces.embedding_provider` + `embedding_dim`) and it is **immutable**. Different providers produce vectors of different dimensions; nodes embedded with different models cannot be compared via cosine similarity.\n\n**API key storage**: CLI in `~/.memtrace/config.json` (chmod 600); UI encrypted in `user_ai_keys` (Ollama also stores `base_url` and `auth_token`). Keys are **never** transmitted outside the MemTrace server.\n\n**Community providers**: Add more providers via the `AIProvider` Protocol in `packages/api/core/ai.py` (Mistral, Cohere, vLLM, etc.). Implement and register in `PROVIDER_REGISTRY` — no router or schema changes needed.\n\n**Future business model**: a managed credit option (free tier + paid) may be introduced. The provider interface abstraction lets this swap in without touching extraction logic."
     }
   },
-  "tags": ["ai", "api-key", "provider", "security", "gemini", "ollama", "embedding"],
+  "tags": [
+    "ai",
+    "api-key",
+    "provider",
+    "security",
+    "gemini",
+    "ollama",
+    "embedding"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
-    "updated_at": "2026-04-29T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7",
-    "source_type": "human"
+    "source_type": "human",
+    "updated_at": "2026-04-29T00:00:00+00:00"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

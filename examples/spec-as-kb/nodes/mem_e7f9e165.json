@@ -1,0 +1,45 @@
+{
+  "id": "mem_e7f9e165",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "節點創建時的預設值",
+    "en": "Default Values on Node Creation"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "新節點創建的預設值包括 `content.format` 為 `\"plain\"`, `trust.score` 為 0.5, `trust.dimensions` (accuracy 0.5, freshness 1.0, utility 0.5, author_rep 0.5), 以及 `trust.votes` (up 0, down 0, verifications 0)。",
+      "en": "Default values for new node creation include `content.format` as `\"plain\"`, `trust.score` as 0.5, `trust.dimensions` (accuracy 0.5, freshness 1.0, utility 0.5, author_rep 0.5), and `trust.votes` (up 0, down 0, verifications 0)."
+    }
+  },
+  "tags": [
+    "設定",
+    "預設值"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.907406+00:00",
+    "signature": "11dce764ed34376c489501afe7fa9330e9e93e1b549033f0c531a25cf39e346c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

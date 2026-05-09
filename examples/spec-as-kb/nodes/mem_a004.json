@@ -13,18 +13,37 @@
       "en": "Any member with viewer role or above can ask natural-language questions against a workspace's KB. Q&A is read-only — it never writes to the KB.\n\nExecution flow:\n1. User sends a message\n2. search_nodes(query) → retrieves top-5 relevant nodes\n3. traverse(top node, depth=1) → adds neighbour context (optional, improves multi-hop answers)\n4. Build prompt: system instruction (answer only from provided nodes, cite node IDs) + node content blocks + user question\n5. Call AI (uses workspace AI provider config, §16.5)\n6. Return: answer + cited_nodes[] + tokens_used + session_id\n\nAPI:\n- POST /workspaces/{ws_id}/chat — send message (pass session_id to continue a conversation; omit to start a new session)\n- GET /workspaces/{ws_id}/chat/sessions — list the caller's sessions\n- GET /workspaces/{ws_id}/chat/sessions/{session_id} — get full message history\n\nMulti-turn: the last 10 messages in the session are included in the context window for conversational continuity.\n\nSchema: chat_sessions (id, workspace_id, user_id, created_at, updated_at) and chat_messages (id, session_id, role user/assistant, content, cited_nodes[], tokens_used, created_at).\n\nNote: Q&A requires authentication even on public workspaces. Unauthenticated users cannot use this feature."
     }
   },
-  "tags": ["ai", "chat", "q&a", "conversational", "session", "read-only"],
+  "tags": [
+    "ai",
+    "chat",
+    "q&a",
+    "conversational",
+    "session",
+    "read-only"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "system",
-    "created_at": "2026-04-12T00:00:00Z",
+    "created_at": "2026-04-12T00:00:00+00:00",
     "signature": "f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 3,
+    "unique_traversers": 1
+  }
 }

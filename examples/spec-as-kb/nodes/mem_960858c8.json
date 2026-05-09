@@ -1,0 +1,47 @@
+{
+  "id": "mem_960858c8",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": ".mcp.json 設定範例",
+    "en": ".mcp.json Configuration Example"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "更新後的 `.mcp.json` 範例結構包含 `mcpServers` 物件，其中 `memtrace` 服務定義了 `command`、`args` 和 `env` 變數，如 `MEMTRACE_API`、`MEMTRACE_WS`、`MEMTRACE_LANG` 和 `MEMTRACE_TOKEN`。",
+      "en": "The updated `.mcp.json` example structure includes an `mcpServers` object, where the `memtrace` service defines `command`, `args`, and `env` variables such as `MEMTRACE_API`, `MEMTRACE_WS`, `MEMTRACE_LANG`, and `MEMTRACE_TOKEN`."
+    }
+  },
+  "tags": [
+    "設定檔",
+    "MCP",
+    "範例",
+    "環境變數"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.081337+00:00",
+    "signature": "cb8a163dc1c365306103f3ad0ff2315f25bf59e91ccf68703c3ca99fda285996",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

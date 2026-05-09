@@ -1,0 +1,47 @@
+{
+  "id": "mem_21638c34",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "POST /edges/{edge_id}/rate 端點",
+    "en": "POST /edges/{edge_id}/rate Endpoint"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "此端點用於為路徑提交明確的評分（1-5）。",
+      "en": "This endpoint is used to submit an explicit rating (1-5) for a path."
+    }
+  },
+  "tags": [
+    "api",
+    "rest",
+    "rating",
+    "edge"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.201027+00:00",
+    "signature": "cb4131be818878d469bd1c212bcc26506d6ca08b7a42d30d9a8991f3ffa33f05",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

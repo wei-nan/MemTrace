@@ -1,0 +1,46 @@
+{
+  "id": "mem_ee62ef2c",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "簡化圖譜載荷的 API 端點",
+    "en": "API Endpoint for Stripped Graph Payload"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "端點 `GET /api/v1/workspaces/{ws_id}/graph?preview=true` 用於提供簡化圖譜載荷。",
+      "en": "The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` serves the stripped graph payload."
+    }
+  },
+  "tags": [
+    "api",
+    "端點",
+    "簡化結構"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.793666+00:00",
+    "signature": "692f0b08e25bd54aa1bb741d90fa13d17d3c521fb8eae5d5eea3f70315d0124c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "mem_df5063bd",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "列出已歸檔節點 API",
+    "en": "List Archived Nodes API"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "提供一個 API 端點 `GET /workspaces/{ws_id}/nodes?filter=archived`，用於列出指定工作區中所有已歸檔的節點。",
+      "en": "Provide an API endpoint `GET /workspaces/{ws_id}/nodes?filter=archived` to list all archived nodes within a specified workspace."
+    }
+  },
+  "tags": [
+    "api",
+    "node-archiving"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:38:49.910036+00:00",
+    "signature": "50c10babc72825ea1a4c613a30ae476d998c5a3f0fbe90f05d8277b528f729c9",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

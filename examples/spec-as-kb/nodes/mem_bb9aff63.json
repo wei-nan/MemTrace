@@ -1,0 +1,46 @@
+{
+  "id": "mem_bb9aff63",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "管理員角色概覽",
+    "en": "Admin Role Overview"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "管理員是知識庫的所有者或維護者。他們擁有所有貢獻者能力、直接寫入權限、批准或拒絕提案的能力、管理成員以及軟刪除和恢復工作區的能力。",
+      "en": "Admins are repository owners or maintainers. They possess all contributor capabilities, direct write access, the ability to approve or reject proposals, manage members, and soft-delete and restore workspaces."
+    }
+  },
+  "tags": [
+    "role",
+    "admin",
+    "capabilities"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.503845+00:00",
+    "signature": "e887ffec2fead0932c9e9c9281169b35a204c219a609098713d149f87b622012",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

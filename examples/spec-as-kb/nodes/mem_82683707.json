@@ -1,0 +1,46 @@
+{
+  "id": "mem_82683707",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MCP 傳輸模式：stdio",
+    "en": "MCP Transport Mode: stdio"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "stdio 是本地 CLI 使用的默認 MCP 傳輸模式。",
+      "en": "stdio is the default MCP transport mode for local CLI usage."
+    }
+  },
+  "tags": [
+    "mcp",
+    "transport",
+    "cli"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.307697+00:00",
+    "signature": "f880922d12b02e864797d55776d62aa807c4e9908e7c0cd744586cd744afcf2c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

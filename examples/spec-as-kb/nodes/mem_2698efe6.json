@@ -1,0 +1,46 @@
+{
+  "id": "mem_2698efe6",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "POST /edges/{edge_id}/traverse 請求體",
+    "en": "POST /edges/{edge_id}/traverse Request Body"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "請求體包含一個 `actor_id` (例如 `usr_abc123` 或 `apikey_abc123`) 以及一個可選的 `note` 欄位。",
+      "en": "The request body includes an `actor_id` (e.g., `usr_abc123` or `apikey_abc123`) and an optional `note` field."
+    }
+  },
+  "tags": [
+    "api",
+    "request-body",
+    "traversal"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.220298+00:00",
+    "signature": "8da827ee692a2b067d6b98da026c3001d951a76bece032cb35ba88cef2a09dda",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

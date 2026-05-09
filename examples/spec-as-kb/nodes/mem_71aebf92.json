@@ -1,0 +1,46 @@
+{
+  "id": "mem_71aebf92",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "驗收情境：查詢指定工作區節點",
+    "en": "Acceptance Scenario: Query Specific Workspace Nodes"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "驗收情境之一：呼叫 `search_nodes(query=\"認證\", workspace_id=\"ws_project_abc\")` 應能成功查詢 `ws_project_abc` 工作區中的節點。",
+      "en": "One acceptance scenario: calling `search_nodes(query=\"認證\", workspace_id=\"ws_project_abc\")` should successfully query nodes within the `ws_project_abc` workspace."
+    }
+  },
+  "tags": [
+    "驗收測試",
+    "工作區",
+    "查詢"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:48.355492+00:00",
+    "signature": "8afa92eb018c4301321a6ed7b199a7ec28ba488e9f2e899f75ef028ff4ea9e09",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "mem_184116bb",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "入門流程物件結構",
+    "en": "Onboarding Object Structure"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "入門流程狀態由一個 `onboarding` 物件表示，包括 `completed`、`steps_done`、`steps_skipped` 和 `first_kb_id` 等欄位。",
+      "en": "The onboarding state is represented by an `onboarding` object, including `completed`, `steps_done`, `steps_skipped`, and `first_kb_id` fields."
+    }
+  },
+  "tags": [
+    "onboarding",
+    "data-model",
+    "json"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.381562+00:00",
+    "signature": "5651cf39b30ea36b6a4a87ddb2eef33aa78408a213d5570ebbd306c438554bb1",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

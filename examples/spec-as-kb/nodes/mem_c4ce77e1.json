@@ -1,0 +1,46 @@
+{
+  "id": "mem_c4ce77e1",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "封存節點在專屬的「封存」視圖中可見",
+    "en": "Archived Nodes Visible in Dedicated \"Archive\" View"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "封存節點可以在專用的「封存」視圖中訪問和顯示，該視圖可從工作區側邊欄進入。",
+      "en": "Archived nodes are accessible and displayed within a dedicated \"Archive\" view, which can be reached from the workspace sidebar."
+    }
+  },
+  "tags": [
+    "視圖",
+    "封存",
+    "隱藏"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.575050+00:00",
+    "signature": "bf861774dffed73c434ea5c3c5a0d846a0ac249c2558d9ad2e8b12173dcaa5e2",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

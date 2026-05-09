@@ -1,0 +1,45 @@
+{
+  "id": "mem_8c9d6883",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "列出已關聯知識庫",
+    "en": "List Associated Knowledge Bases"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "使用者介面應顯示目前已關聯的知識庫清單，包含其名稱、可見性及加入日期。",
+      "en": "The UI should display a list of currently associated knowledge bases, including their name, visibility, and join date."
+    }
+  },
+  "tags": [
+    "UI",
+    "Knowledge Base Association"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:46.907519+00:00",
+    "signature": "19f346e6b9ce368196351ab310fcc0fe214b2868b43cce79cd4c9920e8be0aa8",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

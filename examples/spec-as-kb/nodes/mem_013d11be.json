@@ -1,0 +1,45 @@
+{
+  "id": "mem_013d11be",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Markdown 輸入模式",
+    "en": "Markdown Input Mode"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "在 `markdown` 模式下，輸入內容在閱讀視圖中被渲染為 HTML，而原始 Markdown 內容被儲存。",
+      "en": "In `markdown` mode, input is rendered as HTML in read view, while raw Markdown is stored."
+    }
+  },
+  "tags": [
+    "input-mode",
+    "markdown"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.414292+00:00",
+    "signature": "3f5ab1967571ab79453c47895d21ed5af47489952515e7f2b69c52dd17c70c39",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

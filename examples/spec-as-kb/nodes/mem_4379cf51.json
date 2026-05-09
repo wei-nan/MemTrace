@@ -1,0 +1,46 @@
+{
+  "id": "mem_4379cf51",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "內容格式欄位",
+    "en": "Content Format Field"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "所選的輸入模式會作為 content.format 欄位持久化在節點中（參見 §4.1 schema 擴充）。",
+      "en": "?詨??撓?交芋撘??槁content.format`甈????蝭暺葉嚗?閬?.1璅∪??游?憟辣嚗?The selected input mode is persisted in the node as the `content.format` field (see 禮4.1 schema extension)."
+    }
+  },
+  "tags": [
+    "memory-node",
+    "schema",
+    "content-format"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.438284+00:00",
+    "signature": "c8318b292f3ffcbd257b802a6890d12035f468d5483c527af32c73489ff3955d",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

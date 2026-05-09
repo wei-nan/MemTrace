@@ -1,0 +1,46 @@
+{
+  "id": "mem_cd89f403",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "暫時性知識庫邊緣衰減排程",
+    "en": "Ephemeral KB Edge Decay Schedule"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "暫時性知識庫的邊緣衰減排程應從每日觸發改為每 1 小時觸發。",
+      "en": "The edge decay schedule for Ephemeral Knowledge Bases should be changed from daily to hourly triggering."
+    }
+  },
+  "tags": [
+    "scheduler",
+    "ephemeral-kb",
+    "edge-decay"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:38:39.851283+00:00",
+    "signature": "0880355a86987c4a47300e767f68c6870b43bc47586c6c8c16f1825998a6e90b",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

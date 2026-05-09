@@ -13,19 +13,36 @@
       "en": "Edge weight decays over time according to (v1):\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n**Core principle**: **Decay shapes attention, not existence.** Nothing is deleted by decay alone.\n\n**Edge state transition**: When `weight < min_weight` (default 0.1), the edge transitions to `faded`:\n- Hidden from default Graph View and traversal results\n- Still stored in the database (`status = 'faded'`); restorable by the original author or admin\n- Queryable via API with `include_faded=true`\n\n**Node level**:\n- `evergreen` workspace: nodes are archived based on traversal count within an observation window (§7.3), not time-based\n- `ephemeral` workspace: when all connected edges are faded, the node is auto-archived\n\n**Pinned exemption**: Nodes and edges with `pinned: true` are fully exempt from both time-decay and traversal-count archiving.\n\nTrigger: daily by the `apply_edge_decay()` SQL function (mirrors `packages/core/src/decay.ts`)."
     }
   },
-  "tags": ["graph-mechanics", "decay", "weight", "faded", "archive"],
+  "tags": [
+    "graph-mechanics",
+    "decay",
+    "weight",
+    "faded",
+    "archive"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
-    "updated_at": "2026-04-16T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

@@ -13,19 +13,36 @@
       "en": "A Memory Node is the atomic unit of knowledge in MemTrace. Each node captures **one** idea and contains:\n\n- **Bilingual title + body** (zh-TW + en), independently authored\n- **Content Type**: `factual` / `procedural` / `preference` / `context` / `source_document`\n- **Format**: `plain` or `markdown`\n- **Tags**: string array for classification and search\n- **Visibility**: `public` / `team` / `private`\n- **Provenance**: author, creation timestamp, SHA-256 signature, source_type\n- **Trust**: four-dimension trust score\n- **Traversal**: visit count and unique visitor count\n- **Status**: `active` / `archived` (archived nodes are hidden from default views, not deleted)\n\n**Concurrency fields** (§17):\n- `version` — optimistic-lock integer, auto-incremented on every UPDATE; PATCH must include `X-Node-Version` header\n- `conflict_status` — `flagged` / `resolved`, set by the conflict detection job\n- `conflict_detail` — JSONB, records conflict type and related node\n\n**Source-document traceability fields** (§20):\n- `source_doc_node_id` — references a `source_document`-type node for extraction traceability\n- `source_paragraph_ref` — string marking the original location (e.g. `page:3, para:2` or `00:14:32-00:15:01`)\n\nNode ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`."
     }
   },
-  "tags": ["data-model", "schema", "core", "version", "conflict"],
+  "tags": [
+    "data-model",
+    "schema",
+    "core",
+    "version",
+    "conflict"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
-    "updated_at": "2026-04-16T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

@@ -1,0 +1,48 @@
+{
+  "id": "mem_5e486c31",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "記憶節點內容類型",
+    "en": "Memory Node Content Type"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`memory_nodes` 表中的 `content_type` 欄位類型為 ENUM，可能的值為 `factual` / `procedural` / `preference` / `context`。",
+      "en": "The `content_type` column in the `memory_nodes` table is of type ENUM, with possible values `factual` / `procedural` / `preference` / `context`."
+    }
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "enum"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:38.931076+00:00",
+    "signature": "179fb1239331cc5bbd9a469a659b3dfaa27968ce2e431f888b057fc4aff9e393",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

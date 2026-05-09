@@ -1,0 +1,46 @@
+{
+  "id": "mem_f9a2bb47",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "來源文件節點欄位定義",
+    "en": "Source Document Node Field Definition"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "來源文件節點包含以下欄位：`content_type` 為 `source_document`，`title_zh`/`title_en` 為原始檔名 + 匯入時間戳，`body_zh`/`body_en` 為完整的提取文本或轉錄稿，`visibility` 預設為 `private`，且 `source_type` 為 `human`。",
+      "en": "A source document node has the following fields: `content_type` as `source_document`, `title_zh`/`title_en` as original filename + ingestion timestamp, `body_zh`/`body_en` as full extracted text or transcript, `visibility` defaulting to `private`, and `source_type` as `human`."
+    }
+  },
+  "tags": [
+    "後端資料",
+    "來源",
+    "文件"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.773860+00:00",
+    "signature": "7d2711cfebac275319bf5ebc62579cd1b3de62a9d03f2952bdd65e03bb984b84",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

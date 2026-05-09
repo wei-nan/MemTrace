@@ -1,0 +1,42 @@
+{
+  "id": "mem_25b80084",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "非成員存取條件式公開工作區",
+    "en": "Non-Member Access to Conditional Public Workspace"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "?園??雿輻?赤???conditional_public`撌乩????隡箸??冽?餈?銝?移蝪∠??????瑯?When a non-member user accesses a `conditional_public` workspace, the server returns a stripped graph payload.",
+      "en": "?園??雿輻?赤???conditional_public`撌乩????隡箸??冽?餈?銝?移蝪∠??????瑯?When a non-member user accesses a `conditional_public` workspace, the server returns a stripped graph payload."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.722141+00:00",
+    "signature": "1ad8d1c6a71fd754a34836bb2dcb3ae02a1792f1819065808a800393d273da28",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

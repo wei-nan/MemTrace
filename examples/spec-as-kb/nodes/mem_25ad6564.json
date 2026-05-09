@@ -1,0 +1,46 @@
+{
+  "id": "mem_25ad6564",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "個人工作區可見性",
+    "en": "Private Workspace Visibility"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "「私有」(private) 工作區對所有其他使用者完全隱藏。",
+      "en": "A `private` workspace is completely hidden from all other users."
+    }
+  },
+  "tags": [
+    "workspace-type",
+    "visibility",
+    "private"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.649243+00:00",
+    "signature": "d9e0ea13c43e0e843f62e0fde909343ab684ea90f2dd3e4d953aaf5dbb099de5",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

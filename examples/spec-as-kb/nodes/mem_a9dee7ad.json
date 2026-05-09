@@ -1,0 +1,42 @@
+{
+  "id": "mem_a9dee7ad",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "AI 編輯限制：僅限當前工作區節點",
+    "en": "AI蝺刻摩?嚗?極雿?蝭暺?AI Edit Restriction: Current Workspace Nodes"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "當 allow_edits: true 時，AI 只能對當前工作區中的節點提出編輯建議。",
+      "en": "??`allow_edits: true` ??AI?芾撠?極雿?銝剔?蝭暺??箇楊頛臬遣霅啜?When `allow_edits: true`, AI may only propose edits to nodes within the current workspace."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.697058+00:00",
+    "signature": "e7bf10d2741911fda9174cec1c320fb1aa084b441af68b4ccf38eb16825802f4",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

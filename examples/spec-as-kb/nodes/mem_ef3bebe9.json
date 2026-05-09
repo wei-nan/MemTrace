@@ -1,0 +1,47 @@
+{
+  "id": "mem_ef3bebe9",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "JWT Token 載荷結構",
+    "en": "JWT Token Payload Structure"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "JWT Token 載荷包括 `sub` (使用者 ID)、`email`、`display_name`、`iat` (簽發時間) 和 `exp` (過期時間) 等欄位。",
+      "en": "The JWT Token payload includes `sub` (user ID), `email`, `display_name`, `iat` (issued-at time), and `exp` (expiry time) fields."
+    }
+  },
+  "tags": [
+    "jwt",
+    "token",
+    "載荷",
+    "對談管理"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.127115+00:00",
+    "signature": "28b7156405594bd26902d892ca1e916dbbde4c482b49dbb04839f3fec346da9a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

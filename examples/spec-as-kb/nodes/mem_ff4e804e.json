@@ -1,0 +1,46 @@
+{
+  "id": "mem_ff4e804e",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "入門精靈自動顯示條件",
+    "en": "雿輻??撠?撠?＊蝷箸?隞?Onboarding Wizard Auto-Display Condition"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "銝?圳completed: true`嚗蝙?刻?撠?撠?銝??芸?憿舐內??Once `completed: true`, the onboarding wizard is never shown automatically again.",
+      "en": "銝?圳completed: true`嚗蝙?刻?撠?撠?銝??芸?憿舐內??Once `completed: true`, the onboarding wizard is never shown automatically again."
+    }
+  },
+  "tags": [
+    "onboarding",
+    "ui",
+    "completion"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.415959+00:00",
+    "signature": "0c8adbf4e2f1b9f5bc07fac93f031d00d9a0cf53f41896d28bb69c72e0415ce9",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

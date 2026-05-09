@@ -1,0 +1,42 @@
+{
+  "id": "mem_c8db759e",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "連向封存節點的邊會自動衰減",
+    "en": "甇豢?蝭暺???鋡急楚??Edges Connected to Archived Nodes Are Faded"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "所有連向已封存節點的邊，其外觀會自動變為「衰減」狀態，但不會從資料庫中刪除。",
+      "en": "?????唳飛瑼?暺????楚?＊蝷綽?雿??◤?芷??All edges linked to an archived node are automatically faded in appearance but are not deleted from the database."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.557633+00:00",
+    "signature": "e2889812266b17efc364454a6ee3ea5a6881e8250b720564bfa2dc84bbaddf20",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

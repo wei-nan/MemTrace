@@ -1,0 +1,45 @@
+{
+  "id": "mem_a71dcf58",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "手動歸檔節點 API",
+    "en": "Manual Node Archiving API"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "提供一個 API 端點 `POST /nodes/{id}/archive`，允許編輯者或更高權限的使用者手動歸檔節點。",
+      "en": "Provide an API endpoint `POST /nodes/{id}/archive` allowing editors or higher-privileged users to manually archive nodes."
+    }
+  },
+  "tags": [
+    "api",
+    "node-archiving"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:38:43.473681+00:00",
+    "signature": "26e451b46c407090a14f1a4895054227a8666715f81b890e1197f195286486f6",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

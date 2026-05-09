@@ -1,0 +1,47 @@
+{
+  "id": "mem_d1d90285",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "API Key 權限範圍：kb:propose",
+    "en": "API Key Scope: kb:propose"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "具有 kb:propose 權限範圍的 API Key 授予貢獻者（contributor）角色的能力，包括所有讀取權限以及提交建議的能力。",
+      "en": "`kb:propose` 蝭???API ???鞎Ｙ???脰???????迂?舀???鈭斗?霅啁??賢???An API key with the `kb:propose` scope grants contributor role capabilities, including all read access and the ability to submit proposals."
+    }
+  },
+  "tags": [
+    "api-key",
+    "scope",
+    "contributor",
+    "proposal"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.620555+00:00",
+    "signature": "676665976061e64f48291d081a2edea8a4ae9b7eafef376b42fd6438a6a74965",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

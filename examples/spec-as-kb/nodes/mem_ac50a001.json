@@ -1,0 +1,47 @@
+{
+  "id": "mem_ac50a001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "對談管理：JWTs",
+    "en": "Session Management: JWTs"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "對談由使用 HS256 算法簽署的 JWT (JSON Web Tokens) 表示，密鑰存儲在環境中。",
+      "en": "Sessions are represented as signed JWTs (JSON Web Tokens) using the HS256 algorithm, with the secret stored in the environment."
+    }
+  },
+  "tags": [
+    "對談管理",
+    "jwt",
+    "hs256",
+    "安全"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.107288+00:00",
+    "signature": "cd442ccb55c20dab87ed4f4c0ff1e966f5a7ba54018623f6ec3172ab3c6d9d5e",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "mem_107440f8",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "簡化圖譜載荷中的節點 ID",
+    "en": "Node IDs in Stripped Graph Payload"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "簡化圖譜載荷中的真實 `memory_node.id` 值被替換為不透明的順序預覽 ID (`node_preview_N`)，這些 ID 在不同請求之間是不穩定的。",
+      "en": "Real `memory_node.id` values in the stripped graph payload are replaced with opaque sequential preview IDs (`node_preview_N`) that are not stable across requests."
+    }
+  },
+  "tags": [
+    "節點ID",
+    "簡化結構",
+    "資料載荷"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.758281+00:00",
+    "signature": "1deb02df329cb170fcdc2a70609066f0765abe86315b577b6bdf3c214b6cb7e7",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

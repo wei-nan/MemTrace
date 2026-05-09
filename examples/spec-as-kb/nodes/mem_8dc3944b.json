@@ -1,0 +1,45 @@
+{
+  "id": "mem_8dc3944b",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "撤銷工作區邀請 API",
+    "en": "Revoke Workspace Invitation API"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "提供 `DELETE /workspaces/{ws_id}/invites/{token}` 端點，用於撤銷已發送的工作區邀請。",
+      "en": "Provides the `DELETE /workspaces/{ws_id}/invites/{token}` endpoint to revoke a sent workspace invitation."
+    }
+  },
+  "tags": [
+    "api",
+    "邀請管理"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:01.850026+00:00",
+    "signature": "93a44d63a64aa6011cdb805134454d4bf38d2959fdfc83f09af4b64fd2048c5d",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

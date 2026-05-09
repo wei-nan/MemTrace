@@ -1,0 +1,47 @@
+{
+  "id": "mem_87639252",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "驗收情境：列出所有可存取工作區",
+    "en": "Acceptance Scenario: List All Accessible Workspaces"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "驗收情境之一：當設定 `MEMTRACE_TOKEN` 後，呼叫 `list_workspaces()` 應回傳該 token 可存取的所有工作區清單。",
+      "en": "One acceptance scenario: after setting `MEMTRACE_TOKEN`, calling `list_workspaces()` should return a list of all workspaces accessible by that token."
+    }
+  },
+  "tags": [
+    "驗收測試",
+    "工作區",
+    "API",
+    "認證"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.179895+00:00",
+    "signature": "f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

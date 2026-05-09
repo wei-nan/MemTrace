@@ -1,0 +1,48 @@
+{
+  "id": "mem_31b38aa1",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "指南內容來源共用",
+    "en": "Guide Content Source Sharing"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`NODE_GUIDE` 和 `EDGE_GUIDE` 的內容與 `get_schema` 工具共用同一份來源，該來源是從 `SCHEMA_GUIDE` 常數拆分而來。",
+      "en": "The content for `NODE_GUIDE` and `EDGE_GUIDE` shares the same source as the `get_schema` tool, derived from a split `SCHEMA_GUIDE` constant."
+    }
+  },
+  "tags": [
+    "schema_guide",
+    "node_guide",
+    "edge_guide",
+    "get_schema",
+    "source"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:31.349734+00:00",
+    "signature": "6dd2202e0239d34dcbc455ca48e987489b046a8e53676f2c290064bc4f23d649",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

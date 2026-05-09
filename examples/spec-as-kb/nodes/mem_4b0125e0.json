@@ -1,0 +1,46 @@
+{
+  "id": "mem_4b0125e0",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "攝入節點的來源文件保留策略",
+    "en": "??蝭暺?靽???瑼?Source File Retention on Ingested Nodes"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "當文件被攝入時，其原始來源文件會被保留為一個特殊節點，以確保萃取的可溯性，並提供從任何萃取節點回到其來源段落的直接連結，而不污染主知識圖譜。",
+      "en": "?嗆?隞嗉◤????????瑼?雿銝?畾?暺◤靽?嚗誑蝣箔????餈賣滲?改?銝行?靘?隞颱???蝭暺?嗆?畾菔??仿??嚗????蜓?亥?????When a document is ingested, its original source file is retained as a special node to ensure extraction traceability and provide a direct link from any extracted node back to its source passage without polluting the main knowledge graph."
+    }
+  },
+  "tags": [
+    "存取",
+    "來源",
+    "文件"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.736854+00:00",
+    "signature": "944b98fa9abb8ad8331129296039305a02c7b9291c5257066ca17a2918a88b3a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

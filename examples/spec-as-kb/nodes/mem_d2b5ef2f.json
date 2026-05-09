@@ -1,0 +1,48 @@
+{
+  "id": "mem_d2b5ef2f",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MCP 伺服器中的資源 URI 處理",
+    "en": "Resource URI Handling in MCP Server"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MCP 伺服器根據請求參數中的 URI，處理對 `memtrace://guide/node` 和 `memtrace://guide/edge` 的請求，並回傳對應的 Markdown 內容。對於未知資源 URI，伺服器會拋出錯誤。",
+      "en": "The MCP server handles requests for `memtrace://guide/node` and `memtrace://guide/edge` URIs based on the request parameters, returning corresponding Markdown content. For unknown resource URIs, the server throws an error."
+    }
+  },
+  "tags": [
+    "mcp",
+    "server",
+    "resource",
+    "uri",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:28.168325+00:00",
+    "signature": "2a481a49932b3fe3aaa57af8df71c64f827b6103478398eaaae36179a315ab44",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

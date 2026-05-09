@@ -1,0 +1,47 @@
+{
+  "id": "mem_35f0002a",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "檢視者角色能力",
+    "en": "Viewer Role Capabilities"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "檢視者可以搜索、列出和獲取節點、追蹤走訪、對節點進行評分（votes_up / votes_down），以及使用對話式問答。他們不能創建、修改或刪除任何節點、邊或工作區設置，也不能提出更改建議。",
+      "en": "Viewers can search, list, and get nodes, track traversals, rate nodes (votes_up / votes_down), and use conversational Q&A. They cannot create, modify, or delete any nodes, edges, or workspace settings, nor can they propose changes."
+    }
+  },
+  "tags": [
+    "role",
+    "viewer",
+    "capabilities",
+    "restrictions"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.544502+00:00",
+    "signature": "05de91add0c34978b1ec1aceb37bff828648288caadf274fa3b0143c5f95a75a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

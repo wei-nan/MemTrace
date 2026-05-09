@@ -13,18 +13,35 @@
       "en": "| Relation | Semantics | When to use |\n|----------|-----------|-------------|\n| `depends_on` | Source requires target to be valid | A's process presupposes B's concept |\n| `extends` | Source extends or supplements target | A is an advanced version of B |\n| `related_to` | Related without clear dependency direction | A and B belong to the same topic |\n| `contradicts` | Source conflicts with target | A's conclusion conflicts with B |\n\nChoosing the correct relation type matters: it determines co-access boost strength and how AI agents interpret the relationship when traversing the graph."
     }
   },
-  "tags": ["graph-mechanics", "relation-type", "edge", "schema"],
+  "tags": [
+    "graph-mechanics",
+    "relation-type",
+    "edge",
+    "schema"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.95, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
 }

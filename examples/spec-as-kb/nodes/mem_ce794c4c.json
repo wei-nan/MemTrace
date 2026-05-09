@@ -1,0 +1,42 @@
+{
+  "id": "mem_ce794c4c",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MemTrace 功能計畫 - 任務拆解文件",
+    "en": "MemTrace Feature Plan - Task Breakdown Document"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "本文件概述了 MemTrace 功能計畫的開發任務，依功能群組（A-H）分類，並標註各任務所屬的層級（DB、API、UI、MCP、CLI、Core、Scheduler）。",
+      "en": "This document outlines the development tasks for the MemTrace feature plan, categorized by functional groups (A-H) and marked with their respective layers (DB, API, UI, MCP, CLI, Core, Scheduler)."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:38:58.002264+00:00",
+    "signature": "ceb8023eca96714907c41e68f043ba347de980648324aa76cae44df509ed922a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "mem_2a909fec",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "create_node 驗收情境：僅填寫 title_en",
+    "en": "create_node Acceptance Scenario: title_en Only"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "驗收情境之一是測試 `create_node` 函數在只填寫 `title_en` 而不填寫 `title_zh` 的情況下，是否能正常建立節點，且 `title_zh` 預設為空字串。",
+      "en": "One acceptance scenario is to test if the `create_node` function can successfully create a node when only `title_en` is provided and `title_zh` is left empty, with `title_zh` defaulting to an empty string."
+    }
+  },
+  "tags": [
+    "驗收情境",
+    "節點建立",
+    "api",
+    "測試"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:27.638354+00:00",
+    "signature": "ad2e98d78ac8c1440456beee48b50a220b21705bd120a7fbdb0c32c8d6ca88fa",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

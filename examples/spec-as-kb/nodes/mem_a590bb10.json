@@ -1,0 +1,48 @@
+{
+  "id": "mem_a590bb10",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "工作區創建者的默認角色",
+    "en": "Default Role for Workspace Creator"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "當使用者創建工作區時，他們會自動被分配管理員（所有者）角色。",
+      "en": "When a user creates a workspace, they are automatically assigned the admin (owner) role."
+    }
+  },
+  "tags": [
+    "role",
+    "default",
+    "workspace-creation",
+    "admin",
+    "owner"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.680957+00:00",
+    "signature": "39f9a4ffb3fb89db47b80bab32db52d8c4accf6828180b79d56d1eef56cff254",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

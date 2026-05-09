@@ -1,0 +1,46 @@
+{
+  "id": "mem_playbook_001",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "MemTrace Playbook：知識圖譜原則",
+    "en": "MemTrace Playbook: Principles of Knowledge Mapping"
+  },
+  "content": {
+    "type": "context",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "### 核心原則\n1. **原子性**：每個節點應精確描述一個獨立的概念。\n2. **雙語對稱**：提供英文和中文內容，以確保跨語言發現。\n3. **關係優先**：沒有邊的節點是孤立的記憶。始終考慮它如何與現有知識相關聯。",
+      "en": "### Core Principles\n1. **Atomicity**: Each node should describe exactly one independent concept.\n2. **Bilingual Symmetry**: Provide both English and Chinese content to ensure cross-lingual discovery.\n3. **Relationship First**: A node without edges is isolated memory. Always consider how it relates to existing knowledge."
+    }
+  },
+  "tags": [
+    "playbook",
+    "philosophy",
+    "core"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T13:35:31.814382+00:00",
+    "signature": "manual_playbook_001",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.5,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

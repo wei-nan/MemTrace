@@ -1,0 +1,47 @@
+{
+  "id": "mem_af74b0f0",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "模型上下文協議 (MCP)",
+    "en": "Model Context Protocol (MCP)"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "MemTrace 實現了模型上下文協議 (MCP)，使 AI 代理和 LLM 能夠在無需手動 REST 集成的情況下消耗和貢獻知識圖譜。",
+      "en": "MemTrace implements the Model Context Protocol (MCP) to enable AI agents and LLMs to consume and contribute to the Knowledge Graph without manual REST integration."
+    }
+  },
+  "tags": [
+    "protocol",
+    "ai-integration",
+    "llm",
+    "knowledge-graph"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.290234+00:00",
+    "signature": "7deee1e16d2dc125019dd48422261a6a6f2a507e63a5af83183cb0baaa6465f0",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

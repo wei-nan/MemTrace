@@ -1,0 +1,47 @@
+{
+  "id": "mem_d3564082",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "處理 createNode/updateNode 的 202 回應",
+    "en": "Handle 202 Response for createNode/updateNode"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "當 createNode 或 updateNode API 回傳 202 狀態碼時，應從回應主體中提取 review_id 並明確回傳給 AI 代理。",
+      "en": "When the createNode or updateNode API returns a 202 status code, the review_id should be extracted from the response body and explicitly returned to the AI agent."
+    }
+  },
+  "tags": [
+    "api",
+    "錯誤處理",
+    "ai代理",
+    "審核流程"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:59.693849+00:00",
+    "signature": "23ae917c2d984d6ff3437a3c309dd34ed183a39846dbcf3156193dc0e779c845",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

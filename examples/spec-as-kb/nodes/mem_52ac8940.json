@@ -1,0 +1,45 @@
+{
+  "id": "mem_52ac8940",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "純文本輸入模式",
+    "en": "Plain Text Input Mode"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "在 `plain` 模式下，輸入內容會按原樣存儲在 `content.body` 中，不進行任何渲染標記。",
+      "en": "In `plain` mode, input is stored as-is in `content.body` with no rendering markup."
+    }
+  },
+  "tags": [
+    "input-mode",
+    "plain-text"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.391767+00:00",
+    "signature": "0d46112da947dead20360dc05d449e40425556481707045ac95fe29254d918b3",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

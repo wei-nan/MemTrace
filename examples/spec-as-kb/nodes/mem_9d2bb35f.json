@@ -1,0 +1,47 @@
+{
+  "id": "mem_9d2bb35f",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "API 金鑰範圍與工具行為",
+    "en": "API Key Scopes and Tool Behavior"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "一個 API 金鑰可以持有這三種範圍中的恰好一種。MCP 工具遵循金鑰的範圍，行為與相同角色的真人使用者完全一致；例如，`kb:read` 金鑰不能調用 `create_node`，而 `kb:write` 金鑰可以直接調用 `create_node`。",
+      "en": "An API key can hold exactly one of these three scopes. MCP tools respect the key's scope identically to a human user of the same role; for example, a `kb:read` key cannot call `create_node`, while a `kb:write` key can call `create_node` directly."
+    }
+  },
+  "tags": [
+    "api-key",
+    "scope",
+    "restriction",
+    "tool-integration"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.662171+00:00",
+    "signature": "ebf39bff13bb90908583ff5cb051532e6a089703a636a2ef60cb0edc2de260b1",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

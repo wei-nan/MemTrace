@@ -258,10 +258,11 @@ def generate_sql_seed(nodes: list[dict], edges: list[dict]) -> str:
         d    = e.get("decay", {})
         tr_e = e.get("traversal", {})
         pin  = "true" if d.get("pinned", False) else "false"
+        weight = e.get("weight", d.get("weight", 1.0))   # weight at top-level, fallback to decay.weight
         lines += [
             "INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)",
             f"VALUES ('{e['id']}','{SPEC_WS_ID}','{e['from']}','{e['to']}','{e['relation']}',"
-            f"{d.get('weight',1.0)},{d.get('half_life_days',90)},{d.get('min_weight',0.05)},"
+            f"{weight},{d.get('half_life_days',90)},{d.get('min_weight',0.05)},"
             f"{pin},{tr_e.get('co_access_count',0)},{tr_e.get('count',0)})",
             "ON CONFLICT (id) DO NOTHING;",
             "",

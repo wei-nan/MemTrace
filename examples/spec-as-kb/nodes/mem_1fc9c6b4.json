@@ -1,0 +1,47 @@
+{
+  "id": "mem_1fc9c6b4",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "AI 代理工作流程：搜尋現有節點",
+    "en": "AI Agent Workflow: Search Existing Nodes"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "AI 代理在建立新節點前，應先呼叫 `search_nodes(\"認證機制\")` 等功能，確認知識庫中是否已存在相關節點，避免重複。",
+      "en": "Before creating a new node, an AI agent should first call `search_nodes(\"authentication mechanism\")` or similar functions to check if related nodes already exist in the knowledge base, preventing duplication."
+    }
+  },
+  "tags": [
+    "ai代理",
+    "工作流程",
+    "節點建立",
+    "搜尋"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:40:02.057085+00:00",
+    "signature": "ce76ce6a71d629231411b6006cde3379e98c2074b2cf40c3fc050542c9a16cfb",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

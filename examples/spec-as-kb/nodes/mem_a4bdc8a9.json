@@ -1,0 +1,45 @@
+{
+  "id": "mem_a4bdc8a9",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "從歸檔還原節點 API",
+    "en": "Restore Node from Archive API"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "提供一個 API 端點 `POST /nodes/{id}/restore`，允許編輯者或更高權限的使用者從歸檔中還原節點。",
+      "en": "Provide an API endpoint `POST /nodes/{id}/restore` allowing editors or higher-privileged users to restore nodes from archive."
+    }
+  },
+  "tags": [
+    "api",
+    "node-archiving"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:38:45.094920+00:00",
+    "signature": "029e98ddd550f5a3e9de0fffe6caf0393b841248c6f5db9ba68f07f14c5c8c28",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

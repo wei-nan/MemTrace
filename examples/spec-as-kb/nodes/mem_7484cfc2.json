@@ -1,0 +1,47 @@
+{
+  "id": "mem_7484cfc2",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "README/使用文件更新：多庫、不知 ID 使用情境",
+    "en": "README/Usage Document Update: Multiple Workspaces, Unknown ID Scenario"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "README 和使用文件已更新，說明多庫、不知 ID 使用情境：設定 `MEMTRACE_TOKEN`，然後先呼叫 `list_workspaces` 取得工作區清單，再決定要操作哪個工作區。",
+      "en": "The README and usage documentation have been updated to describe the multiple workspaces, unknown ID scenario: set `MEMTRACE_TOKEN`, then first call `list_workspaces` to retrieve the list of workspaces before deciding which one to operate on."
+    }
+  },
+  "tags": [
+    "文件",
+    "使用情境",
+    "工作區",
+    "API"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.140277+00:00",
+    "signature": "6983266fb92ae46b22414142a0280713c5effeace03270342f52ae2abd1ed078",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

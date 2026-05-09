@@ -1,0 +1,47 @@
+{
+  "id": "mem_53258df1",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "JWT Token 生命週期",
+    "en": "JWT Token Lifetime"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "JWT Token???賡望???憭押恥?嗥垢?Token???蝙?灼/auth/refresh`蝡舫??脰???渡???The JWT Token lifetime is 7 days. Clients should refresh the token before expiry using the `/auth/refresh` endpoint.",
+      "en": "JWT Token???賡望???憭押恥?嗥垢?Token???蝙?灼/auth/refresh`蝡舫??脰???渡???The JWT Token lifetime is 7 days. Clients should refresh the token before expiry using the `/auth/refresh` endpoint."
+    }
+  },
+  "tags": [
+    "jwt",
+    "token",
+    "生命週期",
+    "重新整理"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.146846+00:00",
+    "signature": "8399bf427db47ef13542102eafca9d11e86950d69a8ad492ce82ba7fd62fe25e",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

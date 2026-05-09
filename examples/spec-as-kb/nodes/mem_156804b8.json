@@ -1,0 +1,47 @@
+{
+  "id": "mem_156804b8",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "API 金鑰權限範圍：kb:write",
+    "en": "API Key Scope: kb:write"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "`kb:write` 權限範圍的 API 金鑰授予管理員角色能力，提供完全寫入權限。",
+      "en": "An API key with the `kb:write` scope grants admin role capabilities, providing full write access."
+    }
+  },
+  "tags": [
+    "api-key",
+    "scope",
+    "admin",
+    "write-access"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.640994+00:00",
+    "signature": "956a647920f96b7a1b1d0aff71ff87d58dc65179427575b5a85f87acd1dacaa3",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

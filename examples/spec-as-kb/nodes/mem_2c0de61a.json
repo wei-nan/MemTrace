@@ -1,0 +1,46 @@
+{
+  "id": "mem_2c0de61a",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "驗收情境：不傳 workspace_id",
+    "en": "Acceptance Scenario: No workspace_id Provided"
+  },
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "驗收情境之一：當呼叫工具不傳遞 `workspace_id` 時，系統應使用 `MEMTRACE_WS` 的預設值，且行為應與現有版本相同。",
+      "en": "One acceptance scenario: when calling a tool without providing `workspace_id`, the system should use the default value from `MEMTRACE_WS`, and its behavior should be identical to the current version."
+    }
+  },
+  "tags": [
+    "驗收測試",
+    "工作區",
+    "預設值"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.160150+00:00",
+    "signature": "89d20e0e7af63433f78a354afc2310c674a8000d91be7a2f7763c8b069a72691",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

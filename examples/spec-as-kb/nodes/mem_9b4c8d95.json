@@ -1,0 +1,42 @@
+{
+  "id": "mem_9b4c8d95",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "新增內容類型：source_document",
+    "en": "New Content Type: source_document"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "content_type 列舉中新增了 source_document 值，以支援來源文件的保留。",
+      "en": "?箔??舀??瑼???`content_type` ??銝剜憓? `source_document` ?潦?The `source_document` value has been added to the `content_type` enum to support source file retention."
+    }
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.757174+00:00",
+    "signature": "82ce2be4c99239eecb2f93776b4e69fda7149935e80c8f2a181d4424f7672e7f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

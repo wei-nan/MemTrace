@@ -13,18 +13,34 @@
       "en": "A Knowledge Base (Workspace) is the container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Users can create multiple Knowledge Bases. A Knowledge Base has its own sharing level (public / restricted / private), independent from node-level visibility — effective access is the more restrictive of the two. A Knowledge Base may be started blank or bootstrapped from a document with AI extraction. ID format: ws_<hex8>."
     }
   },
-  "tags": ["knowledge-base", "workspace", "container"],
+  "tags": [
+    "knowledge-base",
+    "workspace",
+    "container"
+  ],
   "visibility": "public",
   "provenance": {
     "author": "memtrace-spec",
-    "created_at": "2026-04-11T00:00:00Z",
+    "created_at": "2026-04-11T00:00:00+00:00",
     "signature": "a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4",
     "source_type": "human"
   },
   "trust": {
     "score": 0.95,
-    "dimensions": { "accuracy": 0.95, "freshness": 1.0, "utility": 0.9, "author_rep": 0.9 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
   },
-  "traversal": { "count": 0, "unique_traversers": 0 }
+  "traversal": {
+    "count": 3,
+    "unique_traversers": 1
+  }
 }

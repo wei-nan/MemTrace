@@ -1,0 +1,47 @@
+{
+  "id": "mem_8145c1ad",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "個人工作區邀請限制",
+    "en": "Private Workspace Invitation Restriction"
+  },
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "無法為「私有」工作區發出邀請，且不能添加非所有者使用者。",
+      "en": "Invitations cannot be issued for `private` workspaces, and no non-owner user may be added."
+    }
+  },
+  "tags": [
+    "workspace-type",
+    "private",
+    "invitation",
+    "restriction"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.666242+00:00",
+    "signature": "435ab2d509c4abf3d81388b7bcca68ec976f2116156fc76bc3ee0e5a9a6baf63",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}
