@@ -17,7 +17,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [message, setMessage]         = useState('');
-  const [usePassword, setUsePassword] = useState(true);
+  const [usePassword] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +52,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
   const bgStyles: React.CSSProperties = {
     position: 'fixed',
     inset: 0,
-    background: 'radial-gradient(circle at 20% 20%, #1a1f2e 0%, #0b0d11 100%)',
+    background: 'var(--bg-base)',
     zIndex: -1,
     overflow: 'hidden',
   };
@@ -106,10 +106,11 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
         padding: '48px', 
         minWidth: '400px', 
         maxWidth: '440px', 
-        backdropFilter: 'blur(24px)', 
-        background: 'rgba(21, 24, 30, 0.7)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'none', 
+        background: '#FFFFFF',
+        color: '#0F172A',
+        border: '1px solid rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)',
         animation: 'mt-scale-in 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
       }}>
 
@@ -117,15 +118,13 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
           <div style={{ 
             fontSize: 32, 
             fontWeight: 800, 
-            background: 'linear-gradient(135deg, #2DD4BF 0%, #818CF8 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: 'var(--color-primary)',
             letterSpacing: '-1px',
             marginBottom: 8
           }}>
             MemTrace
           </div>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0, fontWeight: 400 }}>
+          <p style={{ fontSize: 14, color: '#475569', margin: 0, fontWeight: 400 }}>
             {mode === 'forgot' ? 'Secure password recovery' : 'The intelligence layer for your ideas'}
           </p>
         </div>
@@ -133,19 +132,19 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
         {(mode === 'login' || mode === 'register') && (
           <div style={{ 
             display: 'flex', 
-            background: 'rgba(0,0,0,0.2)', 
+            background: '#FFFFFF', 
             padding: '4px',
             borderRadius: '12px',
             marginBottom: 32,
-            border: '1px solid var(--border-subtle)'
+            border: '1px solid var(--border-default)'
           }}>
             {(['login', 'register'] as const).map(m => (
               <Button key={m} variant="ghost" onClick={() => switchMode(m)}
                 style={{
                   flex: 1, padding: '10px 0',
                   borderRadius: '8px',
-                  background: mode === m ? 'rgba(45, 212, 191, 0.15)' : 'transparent',
-                  color: mode === m ? 'var(--color-primary)' : 'var(--text-muted)',
+                  background: mode === m ? 'var(--color-primary)' : 'transparent',
+                  color: mode === m ? '#FFFFFF' : 'var(--text-muted)',
                   fontWeight: mode === m ? 600 : 500, fontSize: 13,
                 }}>
                 {m === 'login' ? 'Sign In' : 'Register'}
@@ -168,7 +167,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</span>
-                <Button variant="link" onClick={() => switchMode('forgot')} style={{ fontSize: 12 }}>
+                <Button variant="link" onClick={() => switchMode('forgot')} style={{ fontSize: 12, color: 'var(--color-primary)' }}>
                   Forgot?
                 </Button>
               </div>
@@ -221,24 +220,14 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
               borderRadius: '12px',
               marginTop: 8,
               boxShadow: '0 10px 15px -3px var(--color-primary-subtle)',
-              background: 'linear-gradient(135deg, #2DD4BF 0%, #14B8A6 100%)',
-              color: '#0F172A'
+              background: 'var(--color-primary)',
+              color: '#FFFFFF'
             }}
           >
-            {mode === 'login' ? (usePassword && password ? 'Sign In' : 'Send Magic Link')
+            {mode === 'login' ? 'Sign In'
               : mode === 'register' ? 'Create Account'
               : 'Reset Password'}
           </Button>
-
-            <div style={{ textAlign: 'center', marginTop: 8 }}>
-              <Button
-                variant="ghost"
-                onClick={() => { setUsePassword(!usePassword); setPassword(''); setError(''); }}
-                style={{ color: 'var(--text-muted)', fontSize: 13 }}
-              >
-                {usePassword ? 'Sign in with magic link' : 'Sign in with password'}
-              </Button>
-            </div>
         </form>
       </div>
     </div>

@@ -9,10 +9,10 @@
   --bg-overlay:     rgba(0, 0, 0, 0.75);  /* Modal backdrop */
   
   /* ── Glassmorphism ───────────────────────────────── */
-  --glass-bg:       rgba(21, 24, 30, 0.75);
-  --glass-border:   rgba(255, 255, 255, 0.08);
-  --glass-shadow:   0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  --glass-blur:     12px;
+  --glass-bg:       #FFFFFF;               /* White background */
+  --glass-border:   rgba(0, 0, 0, 0.1);
+  --glass-shadow:   0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  --glass-blur:     0px;
 
   /* ── Accents & Brand ────────────────────────────── */
   --color-primary:        #2DD4BF;               /* Emerald teal */
@@ -101,6 +101,8 @@
   --input-border:      #CBD5E1;
   --input-border-hover: #94A3B8;
 
+  --switch-bg: #FFFFFF;
+
   --color-primary:        #0D9488;
   --color-primary-hover:  #0F766E;
   --color-primary-subtle: rgba(13, 148, 136, 0.08);
@@ -109,6 +111,11 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.12);
+
+  /* Force white text on all buttons in light mode */
+  --btn-text-forced: #FFFFFF;
+  --btn-secondary-bg: #475569; /* Darker for light mode contrast */
+  --btn-danger-bg: #DC2626;    /* Darker for light mode contrast */
 }
 
 * {
@@ -173,8 +180,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-primary);
+  background: var(--btn-secondary-bg, rgba(255, 255, 255, 0.03));
+  color: var(--btn-text-forced, var(--text-primary));
   border: 1px solid var(--border-default);
   padding: 12px 24px;
   border-radius: 12px;
@@ -190,14 +197,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover {
-  background: var(--bg-elevated);
-  border-color: var(--border-strong);
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: rgba(248, 113, 113, 0.1);
-  color: var(--color-error);
+  background: var(--btn-danger-bg, rgba(248, 113, 113, 0.1));
+  color: var(--btn-text-forced, var(--color-error));
   border: 1px solid rgba(248, 113, 113, 0.2);
   padding: 10px 20px;
   border-radius: 10px;
@@ -208,8 +214,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-danger:hover {
-  background: var(--color-error);
-  color: white;
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 
@@ -669,9 +674,10 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--border-strong);
+  background-color: var(--switch-bg, var(--border-strong));
   transition: .3s;
   border-radius: 24px;
+  border: 1px solid var(--border-default);
 }
 
 .mt-switch-slider:before {
