@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X, RotateCcw } from 'lucide-react';
 import { ai, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus } from '../api';
 import ReactMarkdown from 'react-markdown';
+import { Button, Card } from './ui';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -196,36 +197,35 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
           {zh ? 'AI 助手' : 'AI Assistant'}
         </h3>
         
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => {
             if (messages.length > 0) {
               setMessages([]);
               setProposalStates({});
             }
           }}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', 
-            color: 'var(--text-muted)', transition: 'color 0.2s', padding: 4, borderRadius: 4
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--color-primary)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
           title={zh ? '開新對話 (清除歷史)' : 'New Conversation (Clear History)'}
+          style={{ padding: 4 }}
         >
           <RotateCcw size={16} />
-        </button>
+        </Button>
 
         {/* allow_edits toggle */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             {zh ? '允許提案' : 'Allow proposals'}
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setAllowEdits(v => !v)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: allowEdits ? 'var(--color-primary)' : 'var(--text-muted)' }}
             title={allowEdits ? (zh ? '關閉 AI 提案模式' : 'Disable AI proposals') : (zh ? '開啟 AI 提案模式' : 'Enable AI proposals')}
+            style={{ color: allowEdits ? 'var(--color-primary)' : 'var(--text-muted)' }}
           >
             {allowEdits ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-          </button>
+          </Button>
         </div>
 
         {/* force_auto_active toggle */}
@@ -233,13 +233,15 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             {zh ? '自動生效' : 'Auto Active'}
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setForceAutoActive(v => !v)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: forceAutoActive ? 'var(--color-primary)' : 'var(--text-muted)' }}
             title={forceAutoActive ? (zh ? '關閉強制自動生效' : 'Disable force auto active') : (zh ? '開啟強制自動生效' : 'Enable force auto active')}
+            style={{ color: forceAutoActive ? 'var(--color-primary)' : 'var(--text-muted)' }}
           >
             {forceAutoActive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -479,13 +481,16 @@ function ProposalCard({
 }) {
   const isDone = status !== 'pending';
   return (
-    <div style={{
-      background: isDone ? 'var(--bg-app)' : 'var(--bg-surface)',
-      padding: 12, borderRadius: 10,
-      border: `1px solid ${status === 'accepted' ? 'var(--color-success)' : status === 'rejected' ? 'var(--color-error)' : 'var(--border-default)'}`,
-      opacity: isDone ? 0.7 : 1,
-      transition: 'all 0.2s',
-    }}>
+    <Card 
+      variant="surface"
+      padding="sm"
+      style={{
+        background: isDone ? 'var(--bg-app)' : 'var(--bg-surface)',
+        border: `1px solid ${status === 'accepted' ? 'var(--color-success)' : status === 'rejected' ? 'var(--color-error)' : 'var(--border-default)'}`,
+        opacity: isDone ? 0.7 : 1,
+        transition: 'all 0.2s',
+      }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
         <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-primary)', background: 'var(--color-primary-subtle)', padding: '2px 6px', borderRadius: 4 }}>
           {proposal.operation}
@@ -501,33 +506,37 @@ function ProposalCard({
       </div>
       {!isDone && (
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            className="btn-primary"
-            style={{ flex: 1, fontSize: 12, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+          <Button
+            variant="primary"
+            size="sm"
+            style={{ flex: 1, fontSize: 12, height: 28 }}
             onClick={onAccept}
+            leftIcon={<Check size={12} />}
           >
-            <Check size={12} /> {zh ? '接受' : 'Accept'}
-          </button>
-          <button
-            className="btn-secondary"
-            style={{ flex: 1, fontSize: 12, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+            {zh ? '接受' : 'Accept'}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            style={{ flex: 1, fontSize: 12, height: 28 }}
             onClick={onReject}
+            leftIcon={<X size={12} />}
           >
-            <X size={12} /> {zh ? '拒絕' : 'Reject'}
-          </button>
+            {zh ? '拒絕' : 'Reject'}
+          </Button>
           {(proposal as any).review_queue_id && (
-            <button
-              className="btn-secondary"
-              style={{ fontSize: 12, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '0 10px' }}
+            <Button
+              variant="secondary"
+              size="sm"
+              style={{ fontSize: 12, height: 28, padding: '0 10px' }}
               onClick={() => window.open(`/review`, '_blank')}
               title={zh ? '在審核佇列中查看' : 'View in Review Queue'}
-            >
-              <ExternalLink size={12} />
-            </button>
+              leftIcon={<ExternalLink size={12} />}
+            />
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

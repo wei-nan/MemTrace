@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { 
   CheckCircle2, Mail, Database, FileUp, 
   Settings2, PartyPopper, ChevronRight,
-  Upload, Loader2, AlertCircle, RefreshCw,
+  Upload, AlertCircle, RefreshCw,
   Languages, GitMerge, Key, Brain
 } from 'lucide-react';
 import { auth, workspaces, ai, ingest, type Onboarding } from './api';
+import { Button, Input } from './components/ui';
 
 const STEPS = [
   { id: 'welcome', icon: Languages },
@@ -269,9 +270,9 @@ export default function OnboardingWizard({
           <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t('onboarding.concept_trust_desc')}</div>
         </div>
       </div>
-      <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('welcome')}>
-        {zh ? '下一步' : 'Next Step'} <ChevronRight size={16} />
-      </button>
+      <Button variant="primary" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('welcome')} rightIcon={<ChevronRight size={16} />}>
+        {zh ? '下一步' : 'Next Step'}
+      </Button>
     </div>
   );
 
@@ -280,9 +281,9 @@ export default function OnboardingWizard({
       <div className="onboard-icon-success"><CheckCircle2 size={48} /></div>
       <h3>{t('onboarding.account_ready')}</h3>
       <p>{t('onboarding.account_subtitle')}</p>
-      <button className="btn-primary mt-32" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('account')}>
-        {t('onboarding.start_setup')} <ChevronRight size={16} />
-      </button>
+      <Button variant="primary" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('account')} rightIcon={<ChevronRight size={16} />}>
+        {t('onboarding.start_setup')}
+      </Button>
     </div>
   );
 
@@ -296,13 +297,13 @@ export default function OnboardingWizard({
       </div>
       <div className="flex-center mt-32 gap-12">
         {!user?.email_verified && (
-          <button className="btn-secondary" onClick={() => auth.resendVerification()}>
-            <RefreshCw size={14} /> {t('onboarding.resend')}
-          </button>
+          <Button variant="secondary" onClick={() => auth.resendVerification()} leftIcon={<RefreshCw size={14} />}>
+            {t('onboarding.resend')}
+          </Button>
         )}
-        <button className="btn-primary" onClick={() => next('email')}>
+        <Button variant="primary" onClick={() => next('email')}>
           {user?.email_verified ? t('onboarding.next') : t('onboarding.verify_later')}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -313,13 +314,11 @@ export default function OnboardingWizard({
       <h3>{t('onboarding.create_kb')}</h3>
       <p>{t('onboarding.kb_subtitle')}</p>
       <div className="onboard-form mt-24">
-        <input 
-          className="mt-input" 
+        <Input 
           placeholder={t('onboarding.kb_name_zh')} 
           value={kbNameZh} onChange={e => setKbNameZh(e.target.value)}
         />
-        <input 
-          className="mt-input" 
+        <Input 
           placeholder={t('onboarding.kb_name_en')} 
           value={kbNameEn} onChange={e => setKbNameEn(e.target.value)}
         />
@@ -353,20 +352,22 @@ export default function OnboardingWizard({
             {zh ? 'QA 存檔模式' : 'QA Archive Mode'}
           </label>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button 
-              className={`btn-secondary ${qaArchiveMode === 'manual_review' ? 'active' : ''}`}
-              style={{ flex: 1, fontSize: 11, background: qaArchiveMode === 'manual_review' ? 'var(--color-primary-subtle)' : 'transparent', borderColor: qaArchiveMode === 'manual_review' ? 'var(--color-primary)' : 'var(--border-default)' }}
+            <Button 
+              variant={qaArchiveMode === 'manual_review' ? 'primary' : 'secondary'}
+              size="sm"
+              style={{ flex: 1, fontSize: 11 }}
               onClick={() => setQaArchiveMode('manual_review')}
             >
               {zh ? '手動審核 (預設)' : 'Manual Review'}
-            </button>
-            <button 
-              className={`btn-secondary ${qaArchiveMode === 'auto_active' ? 'active' : ''}`}
-              style={{ flex: 1, fontSize: 11, background: qaArchiveMode === 'auto_active' ? 'var(--color-primary-subtle)' : 'transparent', borderColor: qaArchiveMode === 'auto_active' ? 'var(--color-primary)' : 'var(--border-default)' }}
+            </Button>
+            <Button 
+              variant={qaArchiveMode === 'auto_active' ? 'primary' : 'secondary'}
+              size="sm"
+              style={{ flex: 1, fontSize: 11 }}
               onClick={() => setQaArchiveMode('auto_active')}
             >
               {zh ? '自動存檔' : 'Auto Active'}
-            </button>
+            </Button>
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
             {qaArchiveMode === 'manual_review' 
@@ -403,10 +404,10 @@ export default function OnboardingWizard({
       </div>
       {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
       <div className="flex-center mt-32 gap-12">
-        <button className="btn-ghost" onClick={handleSkipKb}>{t('onboarding.skip')}</button>
-        <button className="btn-primary" onClick={handleCreateKb} disabled={loading}>
-          {loading ? <Loader2 className="animate-spin" /> : t('onboarding.create_kb_btn')}
-        </button>
+        <Button variant="ghost" onClick={handleSkipKb}>{t('onboarding.skip')}</Button>
+        <Button variant="primary" onClick={handleCreateKb} loading={loading}>
+          {t('onboarding.create_kb_btn')}
+        </Button>
       </div>
     </div>
   );
@@ -442,7 +443,7 @@ export default function OnboardingWizard({
         </div>
       )}
       <div className="flex-center mt-32 gap-12">
-        {!isProcessing && <button className="btn-ghost" onClick={() => skip('ingest')}>{t('onboarding.skip')}</button>}
+        {!isProcessing && <Button variant="ghost" onClick={() => skip('ingest')}>{t('onboarding.skip')}</Button>}
       </div>
     </div>
   );
@@ -453,41 +454,21 @@ export default function OnboardingWizard({
       <h3>{t('onboarding.configure_ai')}</h3>
       <p>{t('onboarding.ai_subtitle')}</p>
       <div className="provider-selector mt-24">
-        <button 
-          className={provider === 'openai' ? 'active' : ''} 
-          onClick={() => setProvider('openai')}
-          style={provider === 'openai' ? { background: 'var(--ai-openai-subtle)', color: 'var(--ai-openai)', borderColor: 'var(--ai-openai)' } : {}}
-        >
-          OpenAI
-        </button>
-        <button 
-          className={provider === 'anthropic' ? 'active' : ''} 
-          onClick={() => setProvider('anthropic')}
-          style={provider === 'anthropic' ? { background: 'var(--ai-anthropic-subtle)', color: 'var(--ai-anthropic)', borderColor: 'var(--ai-anthropic)' } : {}}
-        >
-          Anthropic
-        </button>
-        <button 
-          className={provider === 'gemini' ? 'active' : ''} 
-          onClick={() => setProvider('gemini')}
-          style={provider === 'gemini' ? { background: 'var(--ai-gemini-subtle)', color: 'var(--ai-gemini)', borderColor: 'var(--ai-gemini)' } : {}}
-        >
-          Gemini
-        </button>
-        <button 
-          className={provider === 'ollama' ? 'active' : ''} 
-          onClick={() => setProvider('ollama')}
-          style={provider === 'ollama' ? { background: 'var(--ai-ollama-subtle)', color: 'var(--ai-ollama)', borderColor: 'var(--ai-ollama)' } : {}}
-        >
-          Ollama
-        </button>
+        {(['openai', 'anthropic', 'gemini', 'ollama'] as const).map(p => (
+          <Button 
+            key={p}
+            variant={provider === p ? 'primary' : 'secondary'}
+            onClick={() => setProvider(p)}
+          >
+            {p.charAt(0).toUpperCase() + p.slice(1)}
+          </Button>
+        ))}
       </div>
       
       {provider === 'ollama' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
           {/* ── Connection ── */}
-          <input
-            className="mt-input"
+          <Input
             placeholder="Base URL (e.g. http://localhost:11434)"
             value={baseUrl} onChange={e => { setBaseUrl(e.target.value); setModelFetchSource(null); }}
           />
@@ -497,8 +478,8 @@ export default function OnboardingWizard({
               <option value="bearer">Bearer Token</option>
             </select>
             {authMode === 'bearer' && (
-              <input
-                type="password" className="mt-input" style={{ flex: 2 }}
+              <Input
+                type="password" style={{ flex: 2 }}
                 placeholder="Token"
                 value={authToken} onChange={e => setAuthToken(e.target.value)}
               />
@@ -507,14 +488,15 @@ export default function OnboardingWizard({
 
           {/* ── Fetch models ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              className="btn-secondary"
+            <Button
+              variant="secondary"
               onClick={fetchOllamaModelsOnboarding}
-              disabled={fetchingModels || !baseUrl}
+              loading={fetchingModels}
+              disabled={!baseUrl}
               style={{ whiteSpace: 'nowrap' }}
             >
-              {fetchingModels ? (zh ? '取得中…' : 'Fetching…') : (zh ? '取得模型列表' : 'Fetch Models')}
-            </button>
+              {zh ? '取得模型列表' : 'Fetch Models'}
+            </Button>
             {modelFetchSource === 'server' && (
               <span style={{ fontSize: 11, color: 'var(--color-success)' }}>
                 ✓ {zh ? `${ollamaModels.length} 個模型` : `${ollamaModels.length} models from server`}
@@ -576,18 +558,18 @@ export default function OnboardingWizard({
           </div>
         </div>
       ) : (
-        <input 
-          type="password" className="mt-input mt-16" 
+        <Input 
+          type="password" 
           placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'AIza...'}
           value={apiKey} onChange={e => setApiKey(e.target.value)}
         />
       )}
       {error && <div className="error-text mt-12"><AlertCircle size={14}/> {error}</div>}
       <div className="flex-center mt-32 gap-12">
-        <button className="btn-ghost" onClick={() => skip('ai')}>{t('onboarding.skip')}</button>
-        <button className="btn-primary" onClick={handleSaveAiKey} disabled={loading}>
-          {loading ? <Loader2 className="animate-spin" /> : t('onboarding.save_finish')}
-        </button>
+        <Button variant="ghost" onClick={() => skip('ai')}>{t('onboarding.skip')}</Button>
+        <Button variant="primary" onClick={handleSaveAiKey} loading={loading}>
+          {t('onboarding.save_finish')}
+        </Button>
       </div>
     </div>
   );
@@ -626,23 +608,23 @@ export default function OnboardingWizard({
         <h3>{zh ? '設定登入密碼' : 'Set Login Password'}</h3>
         <p>{zh ? '為了方便下次直接登入，請設定您的密碼。設定後您可以使用 Email + 密碼 登入。' : 'To log in directly next time, please set a password. After this, you can sign in using Email + Password.'}</p>
         <div className="onboard-form mt-24">
-          <input 
-            className="mt-input" type="password" 
+          <Input 
+            type="password" 
             placeholder={zh ? '新密碼 (至少 8 字元)' : 'New password (min 8 chars)'} 
             value={pwd} onChange={e => setPwd(e.target.value)} 
           />
-          <input 
-            className="mt-input" type="password" 
+          <Input 
+            type="password" 
             placeholder={zh ? '確認密碼' : 'Confirm password'} 
             value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} 
           />
           {pwdError && <div className="error-text" style={{ fontSize: 12 }}><AlertCircle size={12}/> {pwdError}</div>}
         </div>
         <div className="flex-center mt-32 gap-12">
-          <button className="btn-ghost" onClick={() => skip('security')}>{zh ? '稍後設定' : 'Skip for now'}</button>
-          <button className="btn-primary" onClick={handleSetPassword} disabled={submitting}>
-            {submitting ? <Loader2 className="animate-spin" /> : (zh ? '設定密碼並繼續' : 'Set Password & Continue')}
-          </button>
+          <Button variant="ghost" onClick={() => skip('security')}>{zh ? '稍後設定' : 'Skip for now'}</Button>
+          <Button variant="primary" onClick={handleSetPassword} loading={submitting}>
+            {zh ? '設定密碼並繼續' : 'Set Password & Continue'}
+          </Button>
         </div>
       </div>
     );
@@ -700,9 +682,9 @@ export default function OnboardingWizard({
         </div>
       </div>
 
-      <button className="btn-primary mt-32" style={{ display: 'block', margin: '24px auto 0' }} onClick={onComplete}>
+      <Button variant="primary" style={{ display: 'block', margin: '24px auto 0' }} onClick={onComplete}>
         {t('onboarding.enter_app')}
-      </button>
+      </Button>
     </div>
   );
 

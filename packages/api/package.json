@@ -5,5 +5,8 @@
   "private": true,
   "dependencies": {
     "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "echo 'No build step for API'"
   }
 }

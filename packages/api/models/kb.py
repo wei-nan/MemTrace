@@ -30,8 +30,12 @@ class WorkspaceResponse(BaseModel):
     embedding_dim: int = 1536                            # P4.1-A: locked at creation
     qa_archive_mode: str
     extraction_provider: Optional[str] = None
+    embedding_provider: Optional[str] = None
+    auto_split: bool = False
+    allow_anonymous_view: bool = False
     created_at: datetime
     updated_at: datetime
+    settings: dict = {}
     my_role: Optional[str] = None  # effective role of the requesting user: 'admin'|'editor'|'viewer'|None
 
 
@@ -69,6 +73,7 @@ class NodeCreate(BaseModel):
     copied_from_ws: Optional[str] = None
     source_type: Literal["human", "ai"] = "human"
     suggested_edges: list[SuggestedEdge] = []
+    force_create: bool = False
 
 
 class NodeUpdate(BaseModel):
@@ -185,6 +190,9 @@ class WorkspaceUpdate(BaseModel):
     min_traversals: Optional[int] = None
     qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None
     extraction_provider: Optional[str] = None
+    auto_split: Optional[bool] = None
+    allow_anonymous_view: Optional[bool] = None
+    settings: Optional[dict] = None
 
 
 class TableViewResponse(BaseModel):
@@ -253,3 +261,14 @@ class ForkWorkspaceRequest(BaseModel):
     embedding_model: Optional[str] = None       # None = inherit source
     qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None  # None = inherit
     extraction_provider: Optional[str] = None   # None = inherit
+
+class TableViewRequest(BaseModel):
+    q: str
+
+
+class BulkArchiveRequest(BaseModel):
+    node_ids: list[str]
+
+
+class BulkArchiveResponse(BaseModel):
+    archived_count: int

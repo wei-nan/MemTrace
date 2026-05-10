@@ -173,3 +173,6 @@ websockets==16.0
     # via uvicorn
 xlsxwriter==3.2.9
     # via python-pptx
+
+pytest==8.0.0
+pytest-asyncio==0.23.5

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { FileText, CheckCircle2 } from 'lucide-react';
 import type { Segment } from '../utils/document';
 import { injectContext } from '../utils/document';
-import Modal from './Modal';
+import { Modal, Button } from './ui';
 import ExcelSheetSelector from './ExcelSheetSelector';
 import type { SheetInfo, SheetConfig } from './ExcelSheetSelector';
 
@@ -75,12 +75,24 @@ export default function ImportPreviewModal({
     currentSegment ? injectContext(currentSegment) : ''
   , [currentSegment]);
 
+  const footer = (
+    <>
+      <Button variant="ghost" onClick={onClose} disabled={loading}>
+        取消
+      </Button>
+      <Button onClick={() => onConfirm(docType, approvedSeeds)} loading={loading} disabled={loading}>
+        開始分析與匯入
+      </Button>
+    </>
+  );
+
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
       title={`匯入預覽: ${filename}`}
       width={1000}
+      footer={footer}
     >
       <div style={{ display: 'flex', flexDirection: 'column', height: '70vh', gap: 20 }}>
         
@@ -265,7 +277,7 @@ export default function ImportPreviewModal({
             overflow: 'hidden',
             border: '1px solid var(--border-subtle)', 
             borderRadius: 12,
-            background: 'white'
+            background: 'var(--bg-surface)'
           }}>
             <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600 }}>
@@ -282,26 +294,6 @@ export default function ImportPreviewModal({
           </div>
 
         </div>
-
-        {/* Footer Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 10 }}>
-          <button 
-            className="btn-secondary" 
-            onClick={onClose}
-            disabled={loading}
-          >
-            取消
-          </button>
-          <button 
-            className="btn-primary" 
-            style={{ minWidth: 140 }}
-            onClick={() => onConfirm(docType, approvedSeeds)}
-            disabled={loading}
-          >
-            {loading ? '處理中...' : '開始分析與匯入'}
-          </button>
-        </div>
-
       </div>
     </Modal>
   );

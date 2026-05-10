@@ -10,6 +10,7 @@ from core.database import db_cursor
 from core.diff import build_node_diff
 from core.security import generate_id
 from core.deps import get_current_user
+from core.constants import VALID_RELATIONS
 from models.kb import NodeResponse
 from models.review import (
     AIReviewerCreate,
@@ -18,15 +19,17 @@ from models.review import (
     ReviewQueueResponse,
     ReviewUpdate,
 )
-from routers.kb import (
-    _create_node_in_db,
-    _delete_node_in_db,
-    _get_effective_role,
-    _node_row_to_snapshot,
-    _require_ws_access,
-    _strip_body_if_viewer,
-    _update_node_in_db,
-    _write_node_revision,
+from services.nodes import (
+    create_node_in_db as _create_node_in_db,
+    delete_node_in_db as _delete_node_in_db,
+    node_row_to_snapshot as _node_row_to_snapshot,
+    update_node_in_db as _update_node_in_db,
+    write_node_revision as _write_node_revision,
+)
+from services.workspaces import (
+    get_effective_role as _get_effective_role,
+    require_ws_access as _require_ws_access,
+    strip_body_if_viewer as _strip_body_if_viewer,
 )
 
 router = APIRouter(prefix="/api/v1/workspaces", tags=["review"])
@@ -66,11 +69,13 @@ def _apply_review_item(cur, item: dict):
     change_type = item["change_type"]
     node_data = item["node_data"] or {}
     if change_type == "create":
+        node_data["source_id"] = item.get("source_id")
         node = _create_node_in_db(cur, ws_id, node_data)
     elif change_type == "update":
         target_node_id = item["target_node_id"]
         if not target_node_id:
             raise HTTPException(status_code=400, detail="Update review missing target node")
+        node_data["source_id"] = item.get("source_id")
         node = _update_node_in_db(cur, ws_id, target_node_id, node_data, node_data.get("author") or item.get("proposer_id") or "system")
     elif change_type == "delete":
         target_node_id = item["target_node_id"]
@@ -126,7 +131,7 @@ def update_review_item(id: str, body: ReviewUpdate, user: dict = Depends(get_cur
         return updated
 
 
-VALID_EDGE_RELATIONS = {"depends_on", "extends", "related_to", "contradicts", "answered_by", "similar_to", "queried_via_mcp"}
+# VALID_EDGE_RELATIONS is imported from core.constants as VALID_RELATIONS (single source of truth)
 
 def _create_suggested_edges(cur, ws_id: str, from_node_id: str, suggested_edges: list):
     """Resolve to_title_en references and insert edges where target node exists."""
@@ -134,7 +139,7 @@ def _create_suggested_edges(cur, ws_id: str, from_node_id: str, suggested_edges:
         to_title = e.get("to_title_en")
         relation = e.get("relation", "related_to")
         # Normalize unsupported relation types to avoid DB enum violation
-        if relation not in VALID_EDGE_RELATIONS:
+        if relation not in VALID_RELATIONS:
             relation = "related_to"
         if not to_title:
             continue

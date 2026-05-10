@@ -1,294 +1,467 @@
-# MemTrace Design System — 色彩系統規範
+# MemTrace Design System
 
-> **版本：** 2.0
-> **最後同步：** 2026-04-27（與 `packages/ui/src/index.css` 對齊）
-> **適用範圍：** `packages/ui/src/index.css`、所有 React 元件、SVG 資產
-> **此文件以實際 CSS 為準，修改前請與 UI 負責人確認。**
+> Version: 3.0  
+> Last synced: 2026-05-10  
+> Source of truth: `packages/ui/src/index.css` and `packages/ui/src/components/ui/*`  
+> Scope: React UI, shared CSS tokens, shared UI primitives, SVG assets, and application-level visual conventions.
 
----
+This document describes the current MemTrace UI style. It replaces the older green-only design guidance. The implemented UI now uses a teal primary color, restrained secondary accents, glass-style surfaces, and shared UI primitives.
 
-## 設計原則
+## Principles
 
-1. **單一品牌色** — 整個系統只有一個品牌色族（葉綠 Green），不引入第二品牌色
-2. **無漸層** — 所有元件一律使用平色（flat color），全面禁止 `linear-gradient` / `radial-gradient`
-3. **主色隨模式調整明度** — 暗色模式用亮綠 `#4ade80`、亮色模式用深綠 `#16a34a`，確保兩模式下都有足夠對比
-4. **語意色僅限狀態** — success / warning / error / info 只用在狀態提示，不能挪做品牌色
-5. **硬編碼為零** — 所有顏色必須透過 CSS Token 引用，禁止直接寫色碼
+1. Use tokens first.
+   Colors, borders, shadows, backgrounds, and text colors must come from CSS variables in `index.css`.
 
----
+2. Prefer shared UI primitives.
+   New UI should use `Button`, `Input`, `Card`, and `Modal` from `packages/ui/src/components/ui` before adding raw elements.
 
-## 主色族（Green）
+3. Keep product UI quiet and work-focused.
+   MemTrace is a knowledge/workspace tool. Avoid marketing-style hero layouts, decorative gradients, oversized typography in panels, and excessive visual ornament.
 
-| 模式 | `--color-primary` | `--color-primary-hover` | `--text-on-primary` |
-|------|-------------------|-------------------------|---------------------|
-| 暗色（預設） | `#4ade80` | `#22c55e` | `#FFFFFF` |
-| 亮色 | `#16a34a` | `#15803d` | `#FFFFFF` |
+4. Use accents sparingly.
+   Teal is the primary product color. Indigo, pink, and provider colors are available but must not become competing brand colors.
 
-> 暗色模式採亮綠是為了在深色底上有足夠亮度；亮色模式改為深綠避免在白底刺眼。`--text-on-primary` 對應變動，避免按鈕文字過淺/過深。
+5. Avoid hard-coded visual values.
+   Hard-coded hex colors, one-off border radii, and custom shadows should be treated as legacy unless required for graph semantics or third-party visualization APIs.
 
----
+6. Maintain light/dark parity.
+   Any visual change must work in both `:root[data-theme="dark"]` and `:root[data-theme="light"]`.
 
-## 語意色（兩模式都用）
+## Current Token Model
 
-| Token | 暗色 | 亮色 | 用途 |
-|-------|------|------|------|
-| `--color-success` | `#4ADE80` | `#16A34A` | 成功訊息、驗證通過 |
-| `--color-warning` | `#FBBF24` | `#D97706` | 警告、待處理 |
-| `--color-error` | `#F87171` | `#DC2626` | 錯誤、危險操作 |
-| `--color-info` | `#60A5FA` | `#2563EB` | 中性資訊提示 |
+Tokens live in [index.css](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/index.css).
 
-每個語意色都有對應 `*-subtle` 變體（用於背景底色）。
-
----
-
-## 圖譜節點與邊（GraphView）
-
-節點顏色對應 `trust_score`（與規格 §4.1 trust 維度連動）：
-
-| Token | 暗色 | 亮色 | 觸發條件 |
-|-------|------|------|---------|
-| `--node-core` | `#4ade80` | `#16a34a` | 中心節點 / `trust_score ≥ 0.8` |
-| `--node-secondary` | `#86efac` | `#4ade80` | `trust_score ≥ 0.5` |
-| `--node-leaf` | `#bbf7d0` | `#86efac` | `trust_score ≥ 0.2` |
-| `--node-faded` | `#374151` | `#D1D5DB` | `status = 'archived'` 或 faded |
-
-邊則用 RGBA 透明度區分強弱：
-
-| Token | 用途 |
-|-------|------|
-| `--edge-default` | 一般邊（weight 中等） |
-| `--edge-strong` | 高權重 / hover 中 |
-| `--edge-faded` | weight < min_weight 已 faded |
-
----
-
-## AI Provider 識別色
-
-每個第三方 AI 供應商有專屬色，用於 Provider 選單與用量卡片：
-
-| Provider | 暗色 | 亮色 |
-|----------|------|------|
-| OpenAI | `#10A37F` | `#0E8A6B` |
-| Anthropic | `#D97757` | `#C2410C` |
-| Gemini | `#8E75FF` | `#16a34a`（暫對齊主色）|
-| Ollama | `#A855F7` | `#7E22CE` |
-
-每個都有 `*-subtle` 變體。
-
----
-
-## 背景 / 邊框 / 文字 token
-
-完整 token 表以 `packages/ui/src/index.css` 的 `:root` 區塊為準。摘要如下：
-
-### 暗色模式（預設）
+### Dark Theme
 
 ```css
 :root,
 :root[data-theme="dark"] {
-  /* 背景層次 */
-  --bg-base:        #0F1115;               /* 頁面底層 */
-  --bg-surface:     #1A1D24;               /* 卡片、面板、Modal */
-  --bg-elevated:    #22262F;               /* Dropdown、Tooltip */
-  --bg-overlay:     rgba(0, 0, 0, 0.60);   /* Modal 遮罩 */
+  --bg-base:        #0B0D11;
+  --bg-surface:     #15181E;
+  --bg-elevated:    #1E222A;
+  --bg-overlay:     rgba(0, 0, 0, 0.75);
 
-  /* 邊框（三層） */
-  --border-subtle:  rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.10);
-  --border-strong:  rgba(255, 255, 255, 0.18);
+  --glass-bg:       rgba(21, 24, 30, 0.75);
+  --glass-border:   rgba(255, 255, 255, 0.08);
+  --glass-shadow:   0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-blur:     12px;
 
-  /* 文字（五層） */
-  --text-primary:    #F3F4F6;
-  --text-secondary:  #9CA3AF;
-  --text-muted:      #6B7280;
-  --text-disabled:   #374151;
-  --text-on-primary: #FFFFFF;
+  --color-primary:        #2DD4BF;
+  --color-primary-hover:  #14B8A6;
+  --color-primary-subtle: rgba(45, 212, 191, 0.12);
+  --color-primary-glow:   rgba(45, 212, 191, 0.35);
 
-  /* 主色族（葉綠） */
-  --color-primary:        #4ade80;
-  --color-primary-hover:  #22c55e;
-  --color-primary-subtle: rgba(74, 222, 128, 0.15);
+  --color-secondary:      #818CF8;
+  --color-accent:         #F472B6;
 
-  /* 陰影 */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.60);
+  --border-subtle:  rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-strong:  rgba(255, 255, 255, 0.14);
+
+  --text-primary:    #F8FAFC;
+  --text-secondary:  #94A3B8;
+  --text-muted:      #64748B;
+  --text-disabled:   #334155;
+  --text-on-primary: #0F172A;
+
+  --input-bg:          rgba(15, 23, 42, 0.32);
+  --input-bg-hover:    rgba(15, 23, 42, 0.42);
+  --input-bg-focus:    rgba(15, 23, 42, 0.52);
+  --input-disabled-bg: rgba(15, 23, 42, 0.18);
+  --input-border:      var(--border-default);
+  --input-border-hover: var(--border-strong);
 }
 ```
 
-### 亮色模式
+### Light Theme
 
 ```css
 :root[data-theme="light"] {
-  --bg-base:        #F8F9FC;               /* 帶藍灰調，非純白 */
+  --bg-base:        #F8FAFC;
   --bg-surface:     #FFFFFF;
-  --bg-elevated:    #FFFFFF;
-  --bg-overlay:     rgba(0, 0, 0, 0.40);
+  --bg-elevated:    #F1F5F9;
+  --bg-overlay:     rgba(15, 23, 42, 0.45);
 
-  --border-subtle:  #F1F3F9;
-  --border-default: #E4E7EF;
-  --border-strong:  #C7D0E3;
+  --glass-bg:       rgba(255, 255, 255, 0.85);
+  --glass-border:   rgba(15, 23, 42, 0.08);
+  --glass-shadow:   0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --glass-blur:     8px;
 
-  --text-primary:    #111827;
-  --text-secondary:  #374151;
-  --text-muted:      #6B7280;
-  --text-disabled:   #9CA3AF;
-  --text-on-primary: #0a2e18;
+  --color-primary:        #0D9488;
+  --color-primary-hover:  #0F766E;
+  --color-primary-subtle: rgba(13, 148, 136, 0.08);
+  --color-primary-glow:   rgba(13, 148, 136, 0.2);
 
-  --color-primary:        #16a34a;
-  --color-primary-hover:  #15803d;
-  --color-primary-subtle: rgba(22, 163, 74, 0.10);
+  --border-subtle:  #F1F5F9;
+  --border-default: #E2E8F0;
+  --border-strong:  #CBD5E1;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10);
+  --text-primary:    #0F172A;
+  --text-secondary:  #475569;
+  --text-muted:      #64748B;
+  --text-disabled:   #94A3B8;
+  --text-on-primary: #FFFFFF;
+
+  --input-bg:          #FFFFFF;
+  --input-bg-hover:    #FFFFFF;
+  --input-bg-focus:    #FFFFFF;
+  --input-disabled-bg: #F1F5F9;
+  --input-border:      #CBD5E1;
+  --input-border-hover: #94A3B8;
 }
 ```
 
-> 完整版（含所有語意色、節點色、AI provider 色）見 `packages/ui/src/index.css`。
+## Color Usage
 
----
+### Primary
 
-## 元件應用規則
+Use `--color-primary` for:
 
-### 按鈕
+- Primary buttons
+- Active navigation states
+- Focus rings
+- Key icons
+- Important action affordances
 
-| 種類      | 背景                    | 文字                  | Hover                   |
-|-----------|-------------------------|-----------------------|-------------------------|
-| Primary   | `--color-primary`       | `--text-on-primary`   | `--color-primary-hover` |
-| Secondary | transparent             | `--text-primary`      | `--bg-elevated`         |
-| Danger    | `--color-error-subtle`  | `--color-error`       | `--color-error`（背景全填）|
-| Ghost     | transparent             | `--text-secondary`    | `--bg-elevated`         |
-| Icon      | transparent             | `--text-secondary`    | `--bg-elevated`         |
+Do not override `--color-primary` inside a component.
 
-```css
-.btn-primary {
-  background: var(--color-primary);
-  color: var(--text-on-primary);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.btn-primary:hover {
-  background: var(--color-primary-hover);
-  transform: translateY(-1px);
-}
+### Secondary And Accent
+
+Use `--color-secondary` and `--color-accent` only when a feature needs a secondary visual category. They are not replacement brand colors.
+
+Valid uses:
+
+- Distinguishing AI/provider-related metadata
+- Graph/category accents
+- Rare supporting highlights
+
+Invalid uses:
+
+- Making entire pages indigo or pink
+- Replacing primary button color
+- Creating decorative background blobs or gradients
+
+### Status Colors
+
+Use status colors only for state:
+
+| Token | Use |
+|---|---|
+| `--color-success` | Completed, valid, healthy |
+| `--color-warning` | Pending, risky, needs attention |
+| `--color-error` | Failed, destructive, invalid |
+| `--color-info` | Informational status |
+
+Status colors should have subtle background variants when used as badges or alert surfaces.
+
+### AI Provider Colors
+
+Provider colors exist for provider labels, model menus, and usage indicators:
+
+| Provider | Token |
+|---|---|
+| OpenAI | `--ai-openai` |
+| Anthropic | `--ai-anthropic` |
+| Gemini | `--ai-gemini` |
+| Ollama | `--ai-ollama` |
+
+Provider colors must not be used as general UI colors.
+
+## Typography
+
+Fonts are loaded in `index.css`.
+
+| Use | Font | Weight |
+|---|---|---|
+| Body text | `Inter` | 400-600 |
+| Headings | `Outfit` | 600-700 |
+| Code / technical inline data | `JetBrains Mono` | 400-500 |
+
+Rules:
+
+- Do not scale type with viewport width.
+- Do not use negative letter spacing in compact panels.
+- Use 13-14px for dense operational UI labels and body rows.
+- Use 15-18px for panel headings.
+- Reserve large display type for true first-screen product surfaces, not tool panels.
+
+## Shared UI Primitives
+
+Shared primitives live in [components/ui](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/index.ts).
+
+New UI should import from:
+
+```ts
+import { Button, Input, Card, Modal } from './components/ui';
 ```
 
-### 輸入框
+or from the correct relative path for nested components.
 
-```css
-.mt-input {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  color: var(--text-primary);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 14px;
-}
-.mt-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-subtle);
-}
+### Button
+
+Implementation:
+
+- [Button.tsx](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Button.tsx)
+- [Button.css](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Button.css)
+
+Variants:
+
+| Variant | Use |
+|---|---|
+| `primary` | Main affirmative action |
+| `secondary` | Common non-primary action |
+| `danger` | Destructive action |
+| `ghost` | Low-emphasis action |
+| `link` | Inline text action |
+| `icon` | Icon-only tool action |
+
+Sizes:
+
+| Size | Use |
+|---|---|
+| `sm` | Dense tables, compact toolbars |
+| `md` | Default |
+| `lg` | Dialog primary action or sparse settings panel |
+
+Example:
+
+```tsx
+<Button variant="primary" loading={saving} onClick={handleSave}>
+  Save
+</Button>
+
+<Button variant="icon" aria-label="Close" onClick={onClose}>
+  <X size={16} />
+</Button>
 ```
 
-### 卡片 / 面板（glass-panel）
+Rules:
 
-```css
-.glass-panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: 16px;
-  box-shadow: var(--shadow-md);
-}
+- Use `loading`, not `isLoading`.
+- Icon-only buttons must have `aria-label`.
+- Prefer `variant="danger"` for destructive actions instead of inline red styles.
+- Do not create new `.btn-*` classes unless adding a shared variant.
+
+### Input
+
+Implementation:
+
+- [Input.tsx](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Input.tsx)
+- [Input.css](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Input.css)
+
+Example:
+
+```tsx
+<Input
+  label="Workspace name"
+  value={name}
+  onChange={event => setName(event.target.value)}
+  error={nameError}
+/>
 ```
 
-### Tag
+Rules:
 
-```css
-.tag {
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
-  border-radius: 100px;
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
+- Use `Input` for new single-line text fields.
+- Use `.mt-input` only for legacy code, selects, or textareas until shared `Select` / `Textarea` primitives exist.
+- Error text should use the `error` prop where possible.
+- Editable fields must use `--input-bg` and `--input-border`; disabled or readonly fields must use `--input-disabled-bg`.
+- In light theme, editable fields should read as active white controls, not grey readonly surfaces.
+
+### Card
+
+Implementation:
+
+- [Card.tsx](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Card.tsx)
+- [Card.css](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Card.css)
+
+Variants:
+
+| Variant | Use |
+|---|---|
+| `surface` | Default panel/card |
+| `elevated` | Active or emphasized surface |
+| `glass` | Overlay-like translucent surface |
+| `outline` | Selectable option or low-emphasis grouping |
+
+Padding:
+
+| Padding | Value |
+|---|---|
+| `none` | 0 |
+| `sm` | 12px |
+| `md` | 20px |
+| `lg` | 32px |
+
+Rules:
+
+- Do not nest decorative cards inside decorative cards.
+- Use cards for repeated items, modals, and framed tools.
+- Page sections should generally be unframed layouts or full-width bands, not floating card stacks.
+
+### Modal
+
+Implementation:
+
+- [Modal.tsx](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Modal.tsx)
+- [Modal.css](/Users/shiweinan/Workspace/MemTrace/packages/ui/src/components/ui/Modal.css)
+
+Use `Modal` for custom dialogs and `AlertModal` / `ConfirmModal` through `ModalContext` for standard alerts and confirmations.
+
+Rules:
+
+- Dialog titles should be concise.
+- Primary action goes right; secondary/cancel action goes left of primary.
+- Destructive confirmation must use `variant="danger"`.
+- Modal widths should be explicit and stable.
+
+## Legacy Classes
+
+The following global classes still exist and are allowed in existing screens:
+
+| Class | Current status | Guidance |
+|---|---|---|
+| `.btn-primary` / `.btn-secondary` / `.btn-danger` / `.btn-ghost` / `.btn-link` / `.btn-icon` | Legacy-compatible | New code should prefer `Button` |
+| `.mt-input` | Legacy-compatible | New text input should prefer `Input`; selects/textareas may still use `.mt-input` |
+| `.glass-panel` | Legacy-compatible | Use for graph/node panels or existing glass surfaces |
+| `.tag` | Legacy-compatible | Acceptable for simple tags until a shared `Badge` component exists |
+| `.search-bar` / `.search-input` | Legacy-compatible | Acceptable for existing search UI |
+| `.tabs` / `.tab` | Legacy-compatible | Acceptable until shared Tabs component exists |
+
+When touching a legacy component, migrate opportunistically if the change is local and low risk.
+
+## Menus, Selects, Toggles, And Tables
+
+Shared primitives for Select, Toggle, Tabs, Badge, and Table do not yet exist. Until they do:
+
+- Use `.mt-input` for `select` and textarea surfaces.
+- Use `--bg-surface`, `--bg-elevated`, and border tokens for custom menus.
+- Use `--color-primary-subtle` for selected states.
+- Use status tokens for state badges.
+- Avoid hard-coded menu shadows and colors.
+
+Recommended future components:
+
+- `Select`
+- `Textarea`
+- `Toggle`
+- `Badge`
+- `Tabs`
+- `Table`
+- `Tooltip`
+
+## Layout Rules
+
+- App shell uses `.app-container`, `.sidebar`, `.view-port`, and `.side-panel`.
+- Sidebar width is 280px expanded and 72px collapsed.
+- Dense tool surfaces should prefer 8px or 12px gaps.
+- Large panels should use 16px to 24px padding.
+- Fixed-format elements like graph controls, icon buttons, and toolbar controls should have stable dimensions.
+- Text must not overflow buttons, cards, table cells, or panels. Use wrapping, truncation, or smaller local labels as needed.
+
+## Graph UI
+
+Graph colors are semantic and should use graph/node tokens:
+
+| Token | Use |
+|---|---|
+| `--node-core` | High-trust or focused node |
+| `--node-secondary` | Medium-trust node |
+| `--node-leaf` | Lower-trust leaf node |
+| `--node-faded` | Archived or faded node |
+| `--edge-default` | Normal edge |
+| `--edge-strong` | Strong or hover edge |
+
+Graph libraries may require concrete color strings. Prefer deriving those strings from theme-aware palette helpers near the graph component rather than scattering literals across the app.
+
+## Accessibility
+
+- Icon-only buttons require accessible labels.
+- Focus states must be visible and use `--color-primary-subtle`.
+- Text and controls must meet contrast in both light and dark themes.
+- Do not communicate state by color alone; pair color with text, icon, or shape.
+- Modals must be dismissible by Escape and close affordance.
+
+## Hard-Coded Values Policy
+
+Avoid:
+
+```tsx
+style={{ color: '#ef4444' }}
+style={{ background: '#10b981' }}
 ```
 
-### 圖譜節點顏色函式
+Prefer:
 
-```typescript
-function nodeColor(trustScore: number, status: string): string {
-  if (status === 'archived') return 'var(--node-faded)';
-  if (trustScore >= 0.8)     return 'var(--node-core)';
-  if (trustScore >= 0.5)     return 'var(--node-secondary)';
-  return                            'var(--node-leaf)';
-}
+```tsx
+style={{ color: 'var(--color-error)' }}
+style={{ background: 'var(--color-success)' }}
 ```
 
----
+Hard-coded colors are allowed only when:
 
-## 字型
+- A third-party visualization API cannot use CSS variables directly.
+- The value represents external brand identity, such as provider colors, and no token exists yet.
+- The value is temporary and marked for migration.
 
-| 用途 | 字型 |
-|------|------|
-| 正文 | `Inter`（300–700） |
-| 標題（h1–h6） | `Outfit`（400–700）— `font-weight: 600`、`letter-spacing: -0.02em` |
+## Prohibited Patterns
 
-兩者由 `index.css` 透過 Google Fonts 載入。
+| Prohibited | Use instead |
+|---|---|
+| New raw `<button>` with hand-written button styles | `Button` |
+| New raw `<input>` with hand-written input styles | `Input` |
+| New modal made from fixed-position divs | `Modal` / `ModalContext` |
+| Hard-coded hex colors | CSS tokens |
+| Decorative gradients or background blobs | Token-based surfaces |
+| Replacing primary color per feature | Provider/status tokens only where semantically relevant |
+| Cards inside cards for page layout | Unframed layout, sections, or repeated item cards |
 
----
+## Migration Checklist
 
-## 亮色 / 暗色模式切換
+When editing UI code:
 
-切換邏輯放在 `App.tsx`：
+- [ ] New buttons use `Button`.
+- [ ] New text inputs use `Input`.
+- [ ] New dialogs use `Modal` or `ModalContext`.
+- [ ] New colors use CSS variables.
+- [ ] Icon-only controls have labels.
+- [ ] Light and dark themes are checked.
+- [ ] Inline styles are limited to layout or dynamic values.
+- [ ] Legacy `.btn-*` / `.mt-input` usage is not expanded unnecessarily.
 
-```typescript
-const savedTheme = localStorage.getItem('mt_theme') ?? 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
+## Known Gaps
 
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('mt_theme', next);
-}
-```
+The UI is not fully migrated yet. Existing screens still contain:
 
----
+- Raw buttons with `className="btn-*"`
+- Raw `input`, `select`, and `textarea` elements
+- Inline layout styles
+- Some hard-coded colors in older components
+- Legacy `.glass-panel` surfaces
 
-## Logo 使用規範
+These are acceptable as transitional debt. New work should not add more unless there is a concrete reason.
 
-| 場景 | 規格 |
-|------|------|
-| App 側邊欄（暗色） | 主色 `#4ade80`，輪廓白色 |
-| 文件、淺色背景 | 主色 `#16a34a`，輪廓 `#374151` |
-| Favicon / App Icon | 純圖形，32×32，單色採當前模式主色 |
-| 最小尺寸 | 水平版 Logo 不得小於 **120px 寬**；Icon 不得小於 **16px** |
+## Logo Usage
 
----
+Logo assets live under `packages/ui/public`.
 
-## 禁止事項速查
+| Asset | Use |
+|---|---|
+| `logo.svg` | Default |
+| `logo-light.svg` | Light-background contexts |
+| `logo-dark.svg` | Dark-background contexts |
+| `favicon.svg` | Browser icon |
 
-| 禁止 | 原因 |
-|------|------|
-| `linear-gradient(...)` | 漸層設計已廢除 |
-| `radial-gradient(...)` | 同上 |
-| 直接寫色碼（如 `#4ade80`）| 必須透過 Token 引用 |
-| 引入綠色以外的品牌色 | 語意色僅限狀態提示 |
-| 在 Logo 或圖譜節點上使用語意色 | 節點只能用 `--node-*` 系列 |
-| 在元件層覆寫 `--color-primary` | 主色為設計決策，不隨情境調整 |
+Rules:
 
----
+- Do not recolor logo assets ad hoc in components.
+- Sidebar/app shell should use the existing logo asset or token-colored icon treatment consistently.
+- Icon-only logo usage must remain legible at 16px.
 
-## 變更歷程
+## Change History
 
-| 版本 | 日期 | 主要變更 |
-|------|------|---------|
-| 1.0 | 2026-04-11 | 首版，採 Indigo `#4F46E5`，主色不隨模式改變 |
-| **2.0** | **2026-04-27** | 改為葉綠主色族，主色隨模式調整明度；移除 `--color-primary-50/100/.../900` 數字階；新增 AI Provider 與圖譜節點 token |
+| Version | Date | Changes |
+|---|---|---|
+| 1.0 | 2026-04-11 | Initial Indigo-based design guidance |
+| 2.0 | 2026-04-27 | Green primary color, graph/provider tokens |
+| 3.0 | 2026-05-10 | Synced to current teal/glass implementation; added shared UI primitive governance and legacy migration rules |

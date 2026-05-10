@@ -8,7 +8,7 @@ from core.deps import get_current_user
 from core.config import settings
 from core.security import generate_id
 from models.collaboration import MemberResponse, InviteCreate, InviteResponse, JoinRequestCreate, JoinRequestResponse
-from routers.kb import _get_effective_role, _require_ws_access
+from services.workspaces import get_effective_role as _get_effective_role, require_ws_access as _require_ws_access
 
 router = APIRouter(prefix="/api/v1/workspaces", tags=["collaboration"])
 

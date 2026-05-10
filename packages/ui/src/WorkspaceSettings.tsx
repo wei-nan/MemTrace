@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import { ModalOverlay } from "./components/Modal";
 import KbExportPanel from "./components/KbExportPanel";
+import { Button, Input, Card } from "./components/ui";
 
 const DEFAULT_AI_REVIEW_PROMPT = `You are an AI reviewer for a collaborative knowledge graph.
 Return JSON with decision, confidence, and reasoning.
@@ -30,27 +31,23 @@ function DeleteWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onC
         </div>
         <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 16 }}>
           {zh ? "此操作不可復原。刪除後所有節點、邊、成員記錄將永久消失。" : "This action cannot be undone. All nodes, edges, and member records will be permanently deleted."}
-          <br />
-          {zh ? `請輸入工作區名稱「${expectedName}」以確認刪除：` : `Please type the workspace name "${expectedName}" to confirm:`}
         </p>
-        <input
-          className="mt-input"
-          style={{ width: "100%", marginBottom: 24 }}
+        <Input
+          label={zh ? `請輸入工作區名稱「${expectedName}」以確認刪除：` : `Please type the workspace name "${expectedName}" to confirm:`}
           value={typedName}
           onChange={e => setTypedName(e.target.value)}
           placeholder={expectedName}
           autoFocus
         />
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-          <button className="btn-secondary" onClick={onCancel}>{zh ? "取消" : "Cancel"}</button>
-          <button 
-            className="btn-primary" 
-            style={{ background: isValid ? "var(--color-error)" : "var(--bg-elevated)", color: isValid ? "#fff" : "var(--text-muted)", border: "none", cursor: isValid ? "pointer" : "not-allowed" }}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24 }}>
+          <Button variant="secondary" onClick={onCancel}>{zh ? "取消" : "Cancel"}</Button>
+          <Button 
+            variant="danger"
             disabled={!isValid}
             onClick={onConfirm}
           >
             {zh ? "確認刪除" : "Confirm Delete"}
-          </button>
+          </Button>
         </div>
       </div>
     </ModalOverlay>
@@ -98,14 +95,16 @@ function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onCo
         </div>
         
         <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
-          <div>
-            <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{zh ? "中文名稱" : "Chinese Name"}</label>
-            <input className="mt-input" style={{ width: "100%" }} value={nameZh} onChange={e => setNameZh(e.target.value)} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{zh ? "英文名稱" : "English Name"}</label>
-            <input className="mt-input" style={{ width: "100%" }} value={nameEn} onChange={e => setNameEn(e.target.value)} />
-          </div>
+          <Input 
+            label={zh ? "中文名稱" : "Chinese Name"} 
+            value={nameZh} 
+            onChange={e => setNameZh(e.target.value)} 
+          />
+          <Input 
+            label={zh ? "英文名稱" : "English Name"} 
+            value={nameEn} 
+            onChange={e => setNameEn(e.target.value)} 
+          />
           <div>
             <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{zh ? "向量模型 (Embedding Model)" : "Embedding Model"}</label>
             <select 
@@ -148,13 +147,13 @@ function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onCo
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-          <button className="btn-secondary" onClick={onCancel}>{zh ? "取消" : "Cancel"}</button>
-          <button
-            className="btn-primary"
+          <Button variant="secondary" onClick={onCancel}>{zh ? "取消" : "Cancel"}</Button>
+          <Button
+            variant="primary"
             onClick={() => onConfirm({ name_zh: nameZh, name_en: nameEn, new_embedding_model: selectedModel, visibility })}
           >
             {zh ? "開始複製" : "Start Clone"}
-          </button>
+          </Button>
         </div>
       </div>
     </ModalOverlay>
@@ -163,9 +162,9 @@ function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onCo
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 14, padding: 18 }}>
+    <Card variant="surface" padding="md" style={{ border: "1px solid var(--border-default)" }}>
       {children}
-    </section>
+    </Card>
   );
 }
 
@@ -196,15 +195,15 @@ function ReembedAllButton({ wsId, zh }: { wsId: string; zh: boolean }) {
   }
 
   return (
-    <button
-      className="btn-secondary"
-      style={{ fontSize: 11, padding: '2px 8px', height: 24, display: 'flex', alignItems: 'center', gap: 4 }}
+    <Button
+      variant="secondary"
+      size="sm"
       onClick={handleClick}
-      disabled={state === 'loading'}
+      loading={state === 'loading'}
+      leftIcon={<RefreshCw size={11} />}
     >
-      <RefreshCw size={11} className={state === 'loading' ? 'animate-spin' : ''} />
       {zh ? '重新嵌入所有節點' : 'Re-embed All'}
-    </button>
+    </Button>
   );
 }
 
@@ -235,15 +234,14 @@ function LinkDetectionButton({ wsId, zh }: { wsId: string; zh: boolean }) {
   }
 
   return (
-    <button
-      className="btn-secondary"
-      style={{ height: 36, display: 'flex', alignItems: 'center', gap: 8 }}
+    <Button
+      variant="secondary"
       onClick={handleClick}
-      disabled={state === 'loading'}
+      loading={state === 'loading'}
+      leftIcon={<Link2 size={14} />}
     >
-      {state === 'loading' ? <RefreshCw size={14} className="animate-spin" /> : <Link2 size={14} />}
       {zh ? '執行跨文件關聯掃描' : 'Scan Cross-file Links'}
-    </button>
+    </Button>
   );
 }
 
@@ -317,7 +315,7 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
       <SectionCard>
         <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> {t('ws_settings.create_reviewer_title')}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: 10 }}>
-          <input className="mt-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('ws_settings.members')} />
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('ws_settings.members')} />
           <select className="mt-input" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })}>
             {providers.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
@@ -326,22 +324,20 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
               {models.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
               {!models.length && <option value={form.model}>{form.model}</option>}
             </select>
-            <button className="btn-secondary" style={{ padding: '0 8px' }} onClick={() => fetchModels(form.provider)} title="Refresh models" disabled={loadingModels}>
-              <RefreshCw size={14} className={loadingModels ? "spin" : ""} />
-            </button>
+            <Button variant="secondary" onClick={() => fetchModels(form.provider)} loading={loadingModels} leftIcon={<RefreshCw size={14} />} title="Refresh models" />
           </div>
         </div>
         <textarea className="mt-input" style={{ minHeight: 120, marginTop: 10 }} value={form.system_prompt} onChange={(e) => setForm({ ...form, system_prompt: e.target.value })} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, marginTop: 10 }}>
-          <input className="mt-input" type="number" step="0.01" min="0" max="1" value={form.auto_accept_threshold} onChange={(e) => setForm({ ...form, auto_accept_threshold: Number(e.target.value) })} placeholder="Auto accept threshold" />
-          <input className="mt-input" type="number" step="0.01" min="0" max="1" value={form.auto_reject_threshold} onChange={(e) => setForm({ ...form, auto_reject_threshold: Number(e.target.value) })} placeholder="Auto reject threshold" />
+          <Input type="number" step="0.01" min="0" max="1" value={form.auto_accept_threshold} onChange={(e) => setForm({ ...form, auto_accept_threshold: Number(e.target.value) })} placeholder="Auto accept threshold" />
+          <Input type="number" step="0.01" min="0" max="1" value={form.auto_reject_threshold} onChange={(e) => setForm({ ...form, auto_reject_threshold: Number(e.target.value) })} placeholder="Auto reject threshold" />
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} />
             Enabled
           </label>
         </div>
         <div style={{ marginTop: 12 }}>
-          <button className="btn-primary" onClick={save}>{t('ws_settings.create')}</button>
+          <Button variant="primary" onClick={save}>{t('ws_settings.create')}</Button>
         </div>
       </SectionCard>
 
@@ -356,14 +352,14 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn-secondary" onClick={async () => {
+              <Button variant="secondary" onClick={async () => {
                 await aiReviewers.update(wsId, item.id, { enabled: !item.enabled });
                 await load();
-              }}>{item.enabled ? t('common.disable') : t('common.enable')}</button>
-              <button className="btn-secondary" onClick={async () => {
+              }}>{item.enabled ? t('common.disable') : t('common.enable')}</Button>
+              <Button variant="secondary" onClick={async () => {
                 await aiReviewers.delete(wsId, item.id);
                 await load();
-              }}><Trash2 size={16} /></button>
+              }} leftIcon={<Trash2 size={16} />} />
             </div>
           </div>
         ))}
@@ -405,14 +401,14 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
       alert({
         title: t('ws_settings.new_key_title'),
         message: (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", gap: 12 }}>
             <p>{t('ws_settings.new_key_msg')}</p>
             <div style={{ display: "flex", gap: 8 }}>
-              <input className="mt-input" readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
-              <button className="btn-secondary" onClick={() => {
+              <Input readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
+              <Button variant="secondary" onClick={() => {
                 navigator.clipboard.writeText(res.key);
                 toast({ message: t('common.copied'), variant: "success" });
-              }}><Copy size={16} /></button>
+              }} leftIcon={<Copy size={16} />} />
             </div>
           </div>
         )
@@ -434,11 +430,11 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <p>{t('ws_settings.rotated_key_msg')}</p>
             <div style={{ display: "flex", gap: 8 }}>
-              <input className="mt-input" readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
-              <button className="btn-secondary" onClick={() => {
+              <Input readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
+              <Button variant="secondary" onClick={() => {
                 navigator.clipboard.writeText(res.key);
                 toast({ message: t('common.copied'), variant: "success" });
-              }}><Copy size={16} /></button>
+              }} leftIcon={<Copy size={16} />} />
             </div>
           </div>
         )
@@ -468,13 +464,13 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
           {zh ? "服務 Token 用於自動化任務，如 API 攝入或外部整合。" : "Service tokens are used for automated tasks like API ingestion or external integrations."}
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <input className="mt-input" placeholder={zh ? "名稱 (例: Ingestion Bot)" : "Key name (e.g. Ingestion Bot)"} value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ flex: 2, minWidth: 200 }} />
+          <Input placeholder={zh ? "名稱 (例: Ingestion Bot)" : "Key name (e.g. Ingestion Bot)"} value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ flex: 2, minWidth: 200 }} />
           <select className="mt-input" value={newKeyScope} onChange={e => setNewKeyScope(e.target.value)} style={{ flex: 1, minWidth: 140 }}>
             <option value="kb:read">kb:read</option>
             <option value="kb:propose">kb:propose</option>
             <option value="kb:write">kb:write</option>
           </select>
-          <button className="btn-primary" onClick={handleCreate}>{zh ? "產生 Token" : "Generate Token"}</button>
+          <Button variant="primary" onClick={handleCreate}>{zh ? "產生 Token" : "Generate Token"}</Button>
         </div>
       </SectionCard>
 
@@ -492,8 +488,8 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn-secondary" onClick={() => handleRotate(k.id)} title="Rotate Token"><RefreshCw size={14} /></button>
-              <button className="btn-secondary" onClick={() => handleRevoke(k.id)} title={zh ? "刪除" : "Delete"}><Trash2 size={14} /></button>
+              <Button variant="secondary" onClick={() => handleRotate(k.id)} title="Rotate Token" leftIcon={<RefreshCw size={14} />} />
+              <Button variant="secondary" onClick={() => handleRevoke(k.id)} title={zh ? "刪除" : "Delete"} leftIcon={<Trash2 size={14} />} />
             </div>
           </div>
         ))}
@@ -627,7 +623,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 <input className="mt-input" value={nameEn} onChange={e => setNameEn(e.target.value)} style={{ width: "100%" }} />
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                <button className="btn-primary" disabled={isSaving || (nameZh === ws?.name_zh && nameEn === ws?.name_en)} onClick={async () => {
+                <Button variant="primary" disabled={isSaving || (nameZh === ws?.name_zh && nameEn === ws?.name_en)} loading={isSaving} onClick={async () => {
                   setIsSaving(true);
                   try {
                     await workspaces.update(wsId, { name_zh: nameZh, name_en: nameEn });
@@ -638,7 +634,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                   } finally {
                     setIsSaving(false);
                   }
-                }}>{t('ws_settings.save')}</button>
+                }}>{t('ws_settings.save')}</Button>
               </div>
             </div>
           </SectionCard>
@@ -733,6 +729,141 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
               </select>
             </div>
           </SectionCard>
+          
+          {/* P4.8-S9-5: Node Complexity & Auto-split */}
+          <SectionCard>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                    {t('ws_settings.auto_split')}
+                    <span className="tag" style={{ background: "var(--color-primary-subtle)", color: "var(--color-primary)" }}>Pro</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 400 }}>
+                    {zh ? "當節點內容過長或包含多個獨立主題時，AI 將自動提議拆分為多個原子節點。" : "Automatically suggest splitting long or multi-topic nodes into smaller atomic ones."}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <label className="mt-switch">
+                    <input 
+                      type="checkbox" 
+                      checked={ws?.auto_split ?? false} 
+                      onChange={async (e) => {
+                        try {
+                          await workspaces.update(wsId, { auto_split: e.target.checked });
+                          await loadData();
+                          toast({ message: t('common.save'), variant: "success" });
+                        } catch (err) {
+                          toast({ message: String(err), variant: "error" });
+                        }
+                      }} 
+                    />
+                    <span className="mt-switch-slider round"></span>
+                  </label>
+                </div>
+              </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 12, marginBottom: 6, color: "var(--text-muted)" }}>
+                    {t('ws_settings.complexity_threshold')}
+                  </label>
+                  <input 
+                    className="mt-input" 
+                    type="number" 
+                    value={ws?.settings?.node_complexity?.char_threshold ?? 600} 
+                    style={{ width: "100%" }}
+                    onChange={async (e) => {
+                      const val = parseInt(e.target.value);
+                      if (isNaN(val)) return;
+                      const newSettings = { 
+                        ...ws?.settings, 
+                        node_complexity: { ...ws?.settings?.node_complexity, char_threshold: val } 
+                      };
+                      try {
+                        await workspaces.update(wsId, { settings: newSettings });
+                        await loadData();
+                      } catch (err) { toast({ message: String(err), variant: "error" }); }
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 12, marginBottom: 6, color: "var(--text-muted)" }}>
+                    {t('ws_settings.dedup_threshold')}
+                  </label>
+                  <input 
+                    className="mt-input" 
+                    type="number" 
+                    step="0.01"
+                    value={ws?.settings?.auto_dedup_threshold ?? 0.92} 
+                    style={{ width: "100%" }}
+                    onChange={async (e) => {
+                      const val = parseFloat(e.target.value);
+                      if (isNaN(val)) return;
+                      const newSettings = { ...ws?.settings, auto_dedup_threshold: val };
+                      try {
+                        await workspaces.update(wsId, { settings: newSettings });
+                        await loadData();
+                      } catch (err) { toast({ message: String(err), variant: "error" }); }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* P4.8-S9-7: MCP Ingestion Settings */}
+          <SectionCard>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>{t('ws_settings.mcp_ingestion')}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 400 }}>
+                    {zh ? "允許透過 MCP 協定 (如 IDE 插件) 直接將內容寫入此工作區。" : "Allow direct content ingestion via MCP protocol (e.g., from IDE plugins)."}
+                  </div>
+                </div>
+                <label className="mt-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={ws?.settings?.mcp_ingest_enabled ?? false} 
+                    onChange={async (e) => {
+                      const newSettings = { ...ws?.settings, mcp_ingest_enabled: e.target.checked };
+                      try {
+                        await workspaces.update(wsId, { settings: newSettings });
+                        await loadData();
+                        toast({ message: t('common.save'), variant: "success" });
+                      } catch (err) { toast({ message: String(err), variant: "error" }); }
+                    }} 
+                  />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+              
+              {ws?.settings?.mcp_ingest_enabled && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
+                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                     {t('ws_settings.mcp_daily_quota')}
+                   </div>
+                   <input 
+                     className="mt-input" 
+                     type="number" 
+                     value={ws?.settings?.mcp_ingest_daily_quota ?? 5} 
+                     style={{ width: 80 }}
+                     onChange={async (e) => {
+                       const val = parseInt(e.target.value);
+                       if (isNaN(val)) return;
+                       const newSettings = { ...ws?.settings, mcp_ingest_daily_quota: val };
+                       try {
+                         await workspaces.update(wsId, { settings: newSettings });
+                         await loadData();
+                       } catch (err) { toast({ message: String(err), variant: "error" }); }
+                     }}
+                   />
+                </div>
+              )}
+            </div>
+          </SectionCard>
+
 
           <SectionCard>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

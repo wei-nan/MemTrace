@@ -16,6 +16,10 @@ const resources = {
         ingest: '文件攝入',
         ws_settings: '工作區管理'
       },
+      nav: {
+        settings: '個人設定',
+        logout: '登出系統'
+      },
       header: {
         title: '捕捉知識',
         subtitle: '在您的本地圖譜中建立一個新的記憶節點。'
@@ -148,7 +152,12 @@ const resources = {
         qa_archive_mode: 'Q&A 歸檔模式',
         qa_archive_mode_desc: '決定從對話中萃取的知識點是否需要經過審核佇列。',
         manual_review: '手動審核 (推薦)',
-        auto_active: '自動生效'
+        auto_active: '自動生效',
+        auto_split: '自動節點拆分 (Auto-split)',
+        complexity_threshold: '複雜度閾值 (字數)',
+        dedup_threshold: '重複偵測閾值',
+        mcp_ingestion: 'MCP 遠端攝入',
+        mcp_daily_quota: '每日攝入配額 (文件數)'
       },
       common: {
         enable: '啟用',
@@ -454,6 +463,10 @@ const resources = {
         ingest: 'Ingest',
         ws_settings: 'Workspace'
       },
+      nav: {
+        settings: 'Settings',
+        logout: 'Log Out'
+      },
       header: {
         title: 'Capture Knowledge',
         subtitle: 'Create a new memory node in your local knowledge graph.'
@@ -586,7 +599,12 @@ const resources = {
         qa_archive_mode: 'Q&A Archive Mode',
         qa_archive_mode_desc: 'Decide if knowledge extracted from conversations should pass through the review queue.',
         manual_review: 'Manual Review (Recommended)',
-        auto_active: 'Auto Active'
+        auto_active: 'Auto Active',
+        auto_split: 'Auto-split Nodes',
+        complexity_threshold: 'Complexity Threshold (chars)',
+        dedup_threshold: 'Deduplication Threshold',
+        mcp_ingestion: 'MCP Remote Ingestion',
+        mcp_daily_quota: 'Daily Ingestion Quota (docs)'
       },
       common: {
         enable: 'Enable',

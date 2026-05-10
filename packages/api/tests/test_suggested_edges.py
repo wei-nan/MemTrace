@@ -6,9 +6,9 @@ from unittest.mock import MagicMock, patch
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pytest
-from routers.kb import _create_edges_directly
+from services.nodes import create_edges_directly as _create_edges_directly
 
-@patch("routers.kb.generate_id")
+@patch("services.nodes.generate_id")
 def test_create_edges_directly_admin(mock_gen_id):
     mock_gen_id.return_value = "edge_123"
     cur = MagicMock()
@@ -28,13 +28,12 @@ def test_create_edges_directly_admin(mock_gen_id):
     
     _create_edges_directly(cur, ws_id, from_id, suggested_edges)
     
-    # Check if INSERT was called
     cur.execute.assert_any_call(
-        "INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight) VALUES (%s, %s, %s, %s, %s, %s)",
+        "INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight) VALUES (%s,%s,%s,%s,%s,%s)",
         ("edge_123", ws_id, from_id, "mem_2", "extends", 0.9)
     )
 
-@patch("routers.kb.generate_id")
+@patch("services.nodes.generate_id")
 def test_create_edges_directly_skips_invalid(mock_gen_id):
     cur = MagicMock()
     ws_id = "ws_test"
@@ -58,7 +57,7 @@ def test_create_edges_directly_skips_invalid(mock_gen_id):
     for call in cur.execute.call_args_list:
         assert "INSERT INTO edges" not in str(call)
 
-@patch("routers.kb.generate_id")
+@patch("services.nodes.generate_id")
 def test_create_edges_directly_skips_existing(mock_gen_id):
     mock_gen_id.return_value = "edge_123"
     cur = MagicMock()
@@ -82,20 +81,21 @@ def test_create_edges_directly_skips_existing(mock_gen_id):
     for call in cur.execute.call_args_list:
         assert "INSERT INTO edges" not in str(call)
 
-@patch("routers.kb._create_edges_directly")
-@patch("routers.kb._create_node_in_db")
-@patch("routers.kb._write_node_revision")
-@patch("routers.kb._propose_change")
-@patch("routers.kb._get_effective_role")
-@patch("routers.kb._require_ws_access")
-@patch("routers.kb.db_cursor")
-@patch("routers.kb.BackgroundTasks")
+@patch("services.nodes.create_edges_directly")
+@patch("services.nodes.create_node_in_db")
+@patch("services.nodes.write_node_revision")
+@patch("services.nodes.propose_change")
+@patch("services.workspaces.get_effective_role")
+@patch("services.workspaces.require_ws_access")
+@patch("core.database.db_cursor")
+@patch("fastapi.BackgroundTasks")
 def test_create_node_role_behavior(mock_bg, mock_db_ctx, mock_ws, mock_role, mock_propose, mock_rev, mock_create_db, mock_create_edges):
-    from routers.kb import create_node
+    from services.nodes import create_node_full_in_db as create_node
     from models.kb import NodeCreate
     
     ws_id = "ws_123"
     user = {"sub": "user_1"}
+    mock_cur = mock_db_ctx.return_value.__enter__.return_value
     body = NodeCreate(
         title_en="Test",
         content_type="factual",
@@ -114,7 +114,7 @@ def test_create_node_role_behavior(mock_bg, mock_db_ctx, mock_ws, mock_role, moc
     mock_role.return_value = "admin"
     mock_create_db.return_value = {"id": "new_node", "signature": "sig", "title_zh": "", "title_en": "Test", "body_zh": "", "body_en": ""}
     
-    create_node(ws_id, body, mock_bg(), user)
+    create_node(mock_cur, ws_id, body.model_dump(), user)
     
     mock_create_edges.assert_called_once_with(mock_cur, ws_id, "new_node", [{"to_id": "mem_2", "relation": "extends", "weight": 1.0}])
     mock_propose.assert_not_called()
@@ -124,7 +124,7 @@ def test_create_node_role_behavior(mock_bg, mock_db_ctx, mock_ws, mock_role, moc
     
     # 2. Test Editor Role (Queueing)
     mock_role.return_value = "editor"
-    create_node(ws_id, body, mock_bg(), user)
+    create_node(mock_cur, ws_id, body.model_dump(), user)
     
     mock_propose.assert_called_once()
     args, kwargs = mock_propose.call_args

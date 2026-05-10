@@ -19,6 +19,10 @@ class CsrfMiddleware(BaseHTTPMiddleware):
         self.header_name = header_name
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        # Skip CSRF check in test environment
+        if getattr(settings, "app_env", "prod") == "test":
+            return await call_next(request)
+
         # 1. Skip GET/HEAD/OPTIONS — issue / refresh token on these
         if request.method in ("GET", "HEAD", "OPTIONS"):
             response = await call_next(request)

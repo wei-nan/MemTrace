@@ -46,11 +46,21 @@ docs/dev/
 
 # Data & Storage
 packages/api/data/
+test.db
 
 # Temporary files
 scratch/
 backups/
 
+# One-off dev scripts at repo root (refactor_*.py, list_*.py, etc.)
+refactor_*.py
+list_*.py
+cleanup_helpers.py
+gen_analytics.py
+prune_mcp.py
+
+# Local incremental migration staging area (canonical source: schema/sql/)
+packages/api/migrations/
 
 docker-compose.sim.yml
 .codex/config.toml

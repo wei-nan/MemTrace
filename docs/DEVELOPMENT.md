@@ -204,6 +204,21 @@ Open four terminal tabs:
 | UI | `cd packages/ui && npm run dev` |
 | Core (watch) | `cd packages/core && npx tsc --watch` |
 
+### 4.1 API Testing
+
+We use `pytest` for backend testing. Tests are located in `packages/api/tests/`.
+
+**Run all tests:**
+
+```bash
+cd packages/api
+./venv/bin/python3 -m pytest tests/ -v
+```
+
+**Testing strategy:**
+- **Unit Tests**: Most tests use `unittest.mock` to bypass the real database, allowing them to run instantly without a live Postgres instance.
+- **CSRF Bypass**: During tests, the `CsrfMiddleware` is configured to skip checks if `settings.app_env == "test"` or when running under `pytest`.
+
 ---
 
 ## 5. Project Structure (detailed)
@@ -287,6 +302,19 @@ memtrace/
    app.include_router(name.router, prefix="/api/v1")
    ```
 4. Restart the API server (or rely on `--reload`).
+
+### Background Jobs
+
+MemTrace uses a background worker for heavy tasks like embedding, complexity analysis, and edge suggestions. 
+- Implementation: `packages/api/services/bg_jobs.py`
+- Trigger: `trigger_node_background_jobs(background_tasks, ...)`
+
+### MCP Tools
+
+The system exposes tools via the Model Context Protocol (MCP).
+- Tools are defined in: `packages/api/services/mcp_tools.py`
+- Key tools: `extract_from_text`, `search_cross_workspace`, `ingest_document`.
+- Ingestion via MCP is subject to workspace-level quotas and enablement toggles.
 
 ### Adding a New UI Page or Panel
 

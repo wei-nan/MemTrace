@@ -34,50 +34,11 @@ from core.deps import get_current_user
 from core.security import generate_id
 from core.constants import FAQ_CACHE_HIT, CONTRADICTION_CHECK
 
-# ---------------------------------------------------------------------------
-# Hybrid retrieval constants & helpers
-# ---------------------------------------------------------------------------
-_MIN_SIMILARITY = 0.25   # cosine similarity threshold for vector results
-_VECTOR_LIMIT   = 10     # max nodes from vector search
-_FALLBACK_LIMIT = 10     # max nodes from full-text / keyword fallback
+from services.search import extract_search_terms, hybrid_retrieval_for_chat
+from services.review import parse_ai_proposals, apply_ai_proposals_to_db
+from services.ai_config import list_user_ai_keys, upsert_user_ai_key, delete_user_ai_key
 
 import re as _re
-
-def _extract_search_terms(text: str) -> list[str]:
-    """
-    Extract meaningful search terms for a LIKE-based fallback that handles
-    CJK text (Chinese / Japanese / Korean) and ASCII English.
-    """
-    # 1. Strip common natural language fillers to focus on keywords
-    fillers = ["幫我", "了解一下", "請問", "關於", "這個", "我想知道", "相關", "內容", "訊息", "資料"]
-    clean_text = text
-    for f in fillers:
-        clean_text = clean_text.replace(f, "")
-
-    # 2. CJK runs (Chinese, Japanese, Korean)
-    cjk_runs = _re.findall(r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]+', clean_text)
-    
-    # If a CJK run is very long, it might be a sentence. Break it down.
-    extra_cjk = []
-    for run in cjk_runs:
-        if len(run) > 5:
-            # Add chunks to increase match probability
-            extra_cjk.append(run[:4])
-            extra_cjk.append(run[-4:])
-            if len(run) > 8:
-                mid = len(run) // 2
-                extra_cjk.append(run[mid-2:mid+2])
-
-    # 3. English words (2+ chars)
-    eng_words = _re.findall(r'[A-Za-z0-9]{2,}', text)
-    
-    terms = list(dict.fromkeys(cjk_runs + extra_cjk + eng_words))
-    # Filter out empty or single char CJK (unless it's the only term)
-    if len(terms) > 1:
-        terms = [t for t in terms if len(t) > 1]
-        
-    terms.sort(key=len, reverse=True)
-    return terms[:10]
 
 router = APIRouter(prefix="/api/v1/ai", tags=["ai"])
 
@@ -208,57 +169,25 @@ class TestConnectionRequest(BaseModel):
 @router.get("/keys", response_model=list[AIKeyResponse])
 def list_ai_keys(user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
-        cur.execute(
-            "SELECT id, provider, key_hint, created_at, last_used_at, "
-            "base_url, auth_mode, auth_token, default_chat_model, default_embedding_model "
-            "FROM user_ai_keys WHERE user_id = %s ORDER BY created_at DESC",
-            (user["sub"],),
-        )
-        rows = cur.fetchall()
-        return [dict(row) for row in rows]
+        return list_user_ai_keys(cur, user["sub"])
 
 
 @router.post("/keys", response_model=AIKeyResponse, status_code=201)
 def create_ai_key(body: AIKeyCreate, user: dict = Depends(get_current_user)):
     try:
         body.validate_provider()
-        key_hint = body.api_key[-4:] if body.api_key else ""
-        key_enc  = encrypt_api_key(body.api_key) if body.api_key else None
-        key_id   = generate_id("uak")
-
         with db_cursor(commit=True) as cur:
-            cur.execute(
-                """
-                INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint, base_url, auth_mode, auth_token, default_chat_model, default_embedding_model)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (user_id, provider) DO UPDATE
-                  SET key_enc               = COALESCE(EXCLUDED.key_enc, user_ai_keys.key_enc),
-                      key_hint              = COALESCE(NULLIF(EXCLUDED.key_hint, ''), user_ai_keys.key_hint),
-                      base_url              = EXCLUDED.base_url,
-                      auth_mode             = EXCLUDED.auth_mode,
-                      auth_token            = EXCLUDED.auth_token,
-                      default_chat_model    = EXCLUDED.default_chat_model,
-                      default_embedding_model = EXCLUDED.default_embedding_model,
-                      last_used_at          = NULL
-                RETURNING id, provider, key_hint, created_at, last_used_at
-                """,
-                (
-                    key_id,
-                    user["sub"],
-                    body.provider,
-                    key_enc,
-                    key_hint,
-                    body.base_url,
-                    body.auth_mode,
-                    body.auth_token,
-                    body.default_chat_model,
-                    body.default_embedding_model
-                ),
+            return upsert_user_ai_key(
+                cur, 
+                user["sub"], 
+                body.provider, 
+                body.api_key,
+                body.base_url,
+                body.auth_mode or "none",
+                body.auth_token,
+                body.default_chat_model,
+                body.default_embedding_model
             )
-            row = cur.fetchone()
-            if not row:
-                raise HTTPException(status_code=500, detail="Failed to save key")
-            return dict(row)
     except HTTPException:
         raise
     except Exception as e:
@@ -271,11 +200,7 @@ def delete_ai_key(
     user: dict = Depends(get_current_user),
 ):
     with db_cursor(commit=True) as cur:
-        cur.execute(
-            "DELETE FROM user_ai_keys WHERE user_id = %s AND provider = %s",
-            (user["sub"], provider),
-        )
-        if cur.rowcount == 0:
+        if not delete_user_ai_key(cur, user["sub"], provider):
             raise HTTPException(status_code=404, detail="No key found for this provider")
 
 @router.get("/models/{provider}")
@@ -565,180 +490,7 @@ async def restructure_nodes(
     return RestructureResponse(changes=changes, tokens_used=tokens, source=resolved.source)
 
 
-async def _archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str, source_node_ids: list[str], force_auto_active: bool = False):
-    """
-    Background task to distill a Q&A interaction into structured Memory Nodes.
-    """
-    try:
-        from core.ai import chat_completion, resolve_provider, strip_fences
-        from core.database import db_cursor
-        from core.security import generate_id
-        from routers.kb import _propose_change, _create_node_in_db
-        # 1. Resolve AI provider for distillation
-        resolved = resolve_provider(user_id, "extraction")
-        
-        system_prompt = (
-            "You are a Knowledge Archiver. Distill the following Q&A into a set of MemTrace nodes.\n"
-            "RULES:\n"
-            "1. The question itself MUST be one 'inquiry' node.\n"
-            "2. Each independent piece of knowledge in the answer should be a separate node (factual/procedural/preference).\n"
-            "3. If the answer has conditions (version, environment), create 'context' nodes for them.\n"
-            "4. Return a JSON array of nodes with 'title_zh', 'title_en', 'content_type', 'body_zh', 'body_en', 'tags'.\n"
-            "Example: [{\"title_zh\": \"...\", \"content_type\": \"inquiry\", ...}, {\"title_zh\": \"...\", \"content_type\": \"factual\", ...}]"
-        )
-        user_prompt = f"QUESTION: {question}\n\nANSWER: {answer}"
-        
-        raw, _ = await chat_completion(resolved, [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}])
-        nodes_data = json.loads(strip_fences(raw))
-        
-        if not isinstance(nodes_data, list) or not nodes_data:
-            return
-
-        with db_cursor(commit=True) as cur:
-            cur.execute("SELECT qa_archive_mode FROM workspaces WHERE id = %s", (ws_id,))
-            row = cur.fetchone()
-            mode = "auto_active" if force_auto_active else (row["qa_archive_mode"] if row else "manual_review")
-            initial_status = "active" if mode == "auto_active" else "archived"
-
-            # 2. Extract inquiry node and knowledge nodes
-            inquiry_nodes = [n for n in nodes_data if n.get("content_type") == "inquiry"]
-            knowledge_nodes = [n for n in nodes_data if n.get("content_type") != "inquiry"]
-
-            if not inquiry_nodes:
-                print(f"[qa-archiver] No inquiry node found; skipping")
-                return
-            
-            # 3. Create nodes and edges
-            inquiry_data = inquiry_nodes[0]
-            inquiry_data["source_type"] = "qa_conversation"
-            inquiry_status = "answered" if knowledge_nodes else "gap"
-            inquiry_data["status"] = inquiry_status if mode == "auto_active" else "archived"
-            
-            if mode == "auto_active":
-                # Create Inquiry node
-                inquiry_created = _create_node_in_db(cur, ws_id, inquiry_data)
-                inquiry_id = inquiry_created["id"]
-
-                # P4.5-3A-7: Similar Inquiry Linking
-                # We need embedding for the inquiry node to find similar ones
-                try:
-                    from core.ai import embed
-                    from core.constants import SIMILAR_INQUIRY_LINK, FAQ_CACHE_HIT
-                    embed_prov = resolve_provider(user_id, "embedding")
-                    inquiry_vector, _ = await embed(embed_prov, inquiry_data["title_zh"] + " " + inquiry_data["body_zh"])
-                    
-                    # Update the node with embedding first so it's available
-                    cur.execute("UPDATE memory_nodes SET embedding = %s::vector WHERE id = %s", (inquiry_vector, inquiry_id))
-                    
-                    cur.execute("""
-                        SELECT id, (1 - (embedding <=> %s::vector)) AS similarity
-                        FROM memory_nodes
-                        WHERE workspace_id = %s
-                          AND content_type = 'inquiry'
-                          AND id != %s
-                          AND embedding IS NOT NULL
-                          AND (1 - (embedding <=> %s::vector)) >= %s
-                          AND (1 - (embedding <=> %s::vector)) < %s
-                        ORDER BY similarity DESC LIMIT 5
-                    """, (inquiry_vector, ws_id, inquiry_id, inquiry_vector, SIMILAR_INQUIRY_LINK, inquiry_vector, FAQ_CACHE_HIT))
-                    
-                    for similar in cur.fetchall():
-                        cur.execute("""
-                            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status)
-                            VALUES (%s, %s, %s, %s, 'similar_to', %s, 'active')
-                            ON CONFLICT DO NOTHING
-                        """, (generate_id("edge"), ws_id, inquiry_id, similar["id"], similar["similarity"]))
-                except Exception as _sim_err:
-                    print(f"[qa-archiver] Similar inquiry linking failed: {_sim_err}")
-                
-                # Create Knowledge nodes and link them
-                for kn in knowledge_nodes:
-                    kn["source_type"] = "qa_conversation"
-                    kn["status"] = "active"
-                    kn_created = _create_node_in_db(cur, ws_id, kn)
-                    
-                    # Link answer to inquiry
-                    cur.execute("""
-                        INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status)
-                        VALUES (%s, %s, %s, %s, 'answered_by', 0.7, 'active')
-                    """, (generate_id("edge"), ws_id, inquiry_id, kn_created["id"]))
-
-                    # P4.5-3C-1: Contradiction Detection
-                    # Check against existing active factual/preference nodes
-                    kn_vector = kn_created.get("embedding")
-                    if kn_vector:
-                        cur.execute("""
-                            SELECT id, title_zh, body_zh, content_type
-                            FROM memory_nodes
-                            WHERE workspace_id = %s
-                              AND id != %s
-                              AND content_type IN ('factual', 'preference')
-                              AND status = 'active'
-                              AND embedding IS NOT NULL
-                              AND (1 - (embedding <=> %s::vector)) >= %s
-                            ORDER BY (1 - (embedding <=> %s::vector)) DESC LIMIT 5
-                        """, (ws_id, kn_created["id"], kn_vector, CONTRADICTION_CHECK, kn_vector))
-                        candidates = cur.fetchall()
-                        
-                        if candidates:
-                            for cand in candidates:
-                                # Use LLM to judge contradiction
-                                try:
-                                    prompt = f"""判斷以下兩段陳述是否互相矛盾：
-A: {kn['body_zh']}
-B: {cand['body_zh']}
-
-請以 JSON 格式回傳，包含 'contradicts' (boolean) 與 'reason' (string)。
-"""
-                                    raw, _ = await chat_completion(resolved, [{"role": "user", "content": prompt}])
-                                    res = json.loads(strip_fences(raw))
-                                    if res.get("contradicts"):
-                                        # Create contradicts edge
-                                        cur.execute("""
-                                            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, status, metadata)
-                                            VALUES (%s, %s, %s, %s, 'contradicts', 0.5, 'active', %s)
-                                        """, (generate_id("edge"), ws_id, kn_created["id"], cand["id"], json.dumps({"reason": res.get("reason")})))
-                                        
-                                        # Mark inquiry as conflicted
-                                        cur.execute("""
-                                            UPDATE memory_nodes SET status = 'conflicted' WHERE id = %s
-                                        """, (inquiry_id,))
-                                        inquiry_status = "conflicted"
-
-                                        # P4.5-3C: Propose to review queue even in auto-active mode if conflicted
-                                        inquiry_data["status"] = "conflicted"
-                                        _propose_change(
-                                            cur, ws_id, "update", inquiry_id, inquiry_data, "ai", "qa_archiver",
-                                            proposer_meta={"source": "contradiction_detector", "conflict_reason": res.get("reason")},
-                                            source_info=f"Conflict detected! Reason: {res.get('reason')}"
-                                        )
-                                except Exception as exc:
-                                    print(f"[qa-archiver] Contradiction check failed: {exc}")
-                
-                print(f"[qa-archiver] Processed inquiry {inquiry_id} (status={inquiry_status}) and {len(knowledge_nodes)} knowledge nodes")
-            else:
-                # manual_review: propose all nodes to review queue
-                inquiry_data["status"] = inquiry_status # The status in proposal
-                inquiry_rev_id = _propose_change(cur, ws_id, "create", None, inquiry_data, "ai", "qa_archiver", source_info="Q&A Archive (Inquiry)")
-                
-                for kn in knowledge_nodes:
-                    kn["source_type"] = "qa_conversation"
-                    kn["status"] = "archived"
-                    _propose_change(cur, ws_id, "create", None, kn, "ai", "qa_archiver", source_info=f"Q&A Archive (Answer for {inquiry_rev_id})")
-                
-                print(f"[qa-archiver] Proposed inquiry ({inquiry_status}) and {len(knowledge_nodes)} answers to review queue")
-
-    except Exception as e:
-        print(f"[qa-archiver] Failed to archive Q&A: {e}")
-
-
-async def _increment_ask_count(node_id: str):
-    """Background task to increment ask_count for an inquiry node."""
-    try:
-        with db_cursor(commit=True) as cur:
-            cur.execute("UPDATE memory_nodes SET ask_count = ask_count + 1 WHERE id = %s", (node_id,))
-    except Exception as e:
-        print(f"[ask_count] Failed to increment for {node_id}: {e}")
+# Note: _archive_qa_to_kb and _increment_ask_count moved to services.nodes
 
 
 @router.post("/chat-stream")
@@ -748,16 +500,17 @@ async def chat_with_kb_stream(
     user: dict = Depends(get_current_user),
 ):
     from core.ai import CHAT_SYSTEM, chat_stream, embed
-    from routers.kb import _propose_change
+    from services.nodes import propose_change as _propose_change
     from fastapi.responses import StreamingResponse
 
     async def event_generator():
         try:
             with db_cursor() as cur:
                 # P4.1: Fetch workspace's locked embedding model for retrieval
-                cur.execute("SELECT embedding_model FROM workspaces WHERE id = %s", (body.workspace_id,))
+                cur.execute("SELECT embedding_model, embedding_provider FROM workspaces WHERE id = %s", (body.workspace_id,))
                 ws_row = cur.fetchone()
                 ws_embed_model = ws_row["embedding_model"] if ws_row else None
+                ws_embed_prov = ws_row["embedding_provider"] if ws_row else None
 
                 # D5: Association-aware search + cross_kb_ids
                 cur.execute("SELECT target_ws_id FROM workspace_associations WHERE source_ws_id = %s", (body.workspace_id,))
@@ -769,106 +522,17 @@ async def chat_with_kb_stream(
             resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
 
             # --- Hybrid node retrieval ---
-            source_nodes: list = []
-            faq_hit_id = None
-
-            # Step 0: FAQ 快取 — 先搜尋相似的 inquiry 節點
-            try:
-                embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
-                vector, _ = await embed(embed_prov, body.message)
+            from services.nodes import increment_ask_count
+            with db_cursor() as cur:
+                source_nodes = await hybrid_retrieval_for_chat(
+                    cur, list(target_ids), body.message, user["sub"],
+                    ws_embed_prov=ws_embed_prov, ws_embed_model=ws_embed_model
+                )
                 
-                with db_cursor() as cur:
-                    cur.execute("""
-                        SELECT id, title_zh, title_en, ask_count,
-                               (1 - (embedding <=> %s::vector)) AS similarity
-                        FROM memory_nodes
-                        WHERE workspace_id = ANY(%s)
-                          AND content_type = 'inquiry'
-                          AND status IN ('answered', 'answered-low-trust')
-                          AND embedding IS NOT NULL
-                          AND (1 - (embedding <=> %s::vector)) >= %s
-                        ORDER BY similarity DESC LIMIT 1
-                    """, (vector, list(target_ids), vector, FAQ_CACHE_HIT))
-                    faq_hit = cur.fetchone()
-                    
-                    if faq_hit:
-                        faq_hit_id = faq_hit["id"]
-                        print(f"[chat-stream] FAQ hit! inquiry_id={faq_hit_id}, sim={faq_hit['similarity']:.4f}")
-                        
-                        # 取得此 inquiry 連結的所有 answered_by 知識節點
-                        cur.execute("""
-                            SELECT n.id, n.title_zh, n.title_en, n.body_zh, n.body_en, n.workspace_id, 1.0 AS similarity
-                            FROM edges e
-                            JOIN memory_nodes n ON n.id = e.to_id
-                            WHERE e.from_id = %s
-                              AND e.relation = 'answered_by'
-                              AND e.status = 'active'
-                              AND n.status = 'active'
-                        """, (faq_hit_id,))
-                        source_nodes = list(cur.fetchall())
-                        
-                        # 如果命中 FAQ，背景遞增 ask_count
-                        background_tasks.add_task(_increment_ask_count, faq_hit_id)
-            except Exception as _faq_err:
-                print(f"[chat-stream] FAQ cache search failed: {_faq_err}")
-
-            if not source_nodes:
-                # Step 1: vector search (skip gracefully when no embedding provider)
-                try:
-                    embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
-                    vector, _ = await embed(embed_prov, body.message)
-                    with db_cursor() as cur:
-                        cur.execute("""
-                            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                                   (1 - (embedding <=> %s::vector)) AS similarity
-                            FROM memory_nodes
-                            WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
-                              AND (1 - (embedding <=> %s::vector)) >= %s
-                            ORDER BY similarity DESC LIMIT %s
-                        """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
-                        source_nodes = list(cur.fetchall())
-                        print(f"[chat-stream] Vector search found {len(source_nodes)} nodes")
-                except Exception as _vec_err:
-                    print(f"[chat-stream] Vector search skipped or failed: {_vec_err}")
-
-                # Step 2: keyword / full-text fallback when vector results are sparse
-                if len(source_nodes) < 3:
-                    print(f"[chat-stream] Sparse results ({len(source_nodes)}), starting fallback...")
-                    seen_ids = {n["id"] for n in source_nodes}
-                    needed = _FALLBACK_LIMIT - len(source_nodes)
-                    terms = _extract_search_terms(body.message)
-                    print(f"[chat-stream] Extracted terms: {terms}")
-                    try:
-                        with db_cursor() as cur:
-                            ft_nodes: list = []
-                            is_pg = settings.database_url.startswith("postgresql")
-
-                            # Combine FT search and ILIKE for robustness
-                            or_conds = ["search_vector @@ plainto_tsquery('simple', %s)"]
-                            params = [body.message[:200]]
-                            
-                            if terms:
-                                for t in terms:
-                                    or_conds.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)")
-                                    like_t = f"%{t}%"
-                                    params += [like_t, like_t, like_t]
-                            
-                            sql = f"""
-                                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                                       0.0::{'float' if is_pg else 'real'} AS similarity
-                                FROM memory_nodes
-                                WHERE workspace_id = ANY(%s) AND status = 'active'
-                                  AND ({" OR ".join(or_conds)})
-                                LIMIT %s
-                            """
-                            print(f"[chat-stream] Fallback SQL params: {[list(target_ids)] + params + [needed]}")
-                            cur.execute(sql, [list(target_ids)] + params + [needed])
-                            ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
-                            print(f"[chat-stream] Fallback found {len(ft_nodes)} additional nodes")
-
-                        source_nodes = source_nodes + ft_nodes
-                    except Exception as _ft_err:
-                        print(f"[chat-stream] Full-text fallback failed: {_ft_err}")
+                # If FAQ hit, increment ask count
+                faq_hit_id = next((n["_faq_hit_id"] for n in source_nodes if "_faq_hit_id" in n), None)
+                if faq_hit_id:
+                    background_tasks.add_task(increment_ask_count, faq_hit_id)
 
             # Send source nodes first
             yield json.dumps({"type": "source_nodes", "nodes": [dict(n) for n in source_nodes]}) + "\n"
@@ -894,44 +558,23 @@ async def chat_with_kb_stream(
 
             # Handle proposals after stream is done
             proposals = []
-            final_answer = full_answer
-            if "```json" in full_answer:
-                parts = full_answer.split("```json")
-                final_answer = parts[0].strip()
-                json_part = parts[1].split("```")[0].strip()
-                try:
-                    raw_proposals = json.loads(json_part)
-                    if body.allow_edits:
-                        with db_cursor(commit=True) as cur:
-                            for p in raw_proposals:
-                                op = p.get("operation", "update")
-                                if op not in ("create", "update", "delete"):
-                                    op = "update"
-                                    
-                                rid = _propose_change(
-                                    cur,
-                                    body.workspace_id,
-                                    op,
-                                    p.get("target_node_ids", [None])[0],
-                                    p.get("proposed"),
-                                    "ai",
-                                    "chat_assistant",
-                                    proposer_meta={"source": "chat", "original_query": body.message},
-                                    source_info=f"AI Chat Proposal: {p.get('reason', 'No reason provided')}"
-                                )
-                                proposals.append({"review_queue_id": rid, "operation": op, "reason": p.get("reason")})
-                    else:
-                        proposals = raw_proposals
-                except Exception as e:
-                    print(f"Failed to parse or save chat proposals: {e}")
+            final_answer, raw_proposals = parse_ai_proposals(full_answer)
+            
+            if raw_proposals:
+                if body.allow_edits:
+                    with db_cursor(commit=True) as cur:
+                        proposals = apply_ai_proposals_to_db(cur, body.workspace_id, raw_proposals, body.message)
+                else:
+                    proposals = raw_proposals
 
             if proposals:
                 yield json.dumps({"type": "proposals", "proposals": proposals}) + "\n"
             
             # ACTIVE ARCHIVING
             if len(body.message) > 10:
+                from services.nodes import archive_qa_to_kb
                 background_tasks.add_task(
-                    _archive_qa_to_kb,
+                    archive_qa_to_kb,
                     body.workspace_id,
                     user["sub"],
                     body.message,
@@ -959,12 +602,13 @@ async def chat_with_kb(
 ):
     try:
         from core.ai import CHAT_SYSTEM, chat_completion, embed
-        from routers.kb import _propose_change
+        from services.nodes import propose_change as _propose_change
 
         with db_cursor() as cur:
-            cur.execute("SELECT embedding_model FROM workspaces WHERE id = %s", (body.workspace_id,))
+            cur.execute("SELECT embedding_model, embedding_provider FROM workspaces WHERE id = %s", (body.workspace_id,))
             ws_row = cur.fetchone()
             ws_embed_model = ws_row["embedding_model"] if ws_row else None
+            ws_embed_prov = ws_row["embedding_provider"] if ws_row else None
 
             cur.execute("SELECT target_ws_id FROM workspace_associations WHERE source_ws_id = %s", (body.workspace_id,))
             target_ids = {body.workspace_id} | {r["target_ws_id"] for r in cur.fetchall()}
@@ -974,117 +618,17 @@ async def chat_with_kb(
         resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
 
         # --- Hybrid node retrieval ---
-        source_nodes: list = []
-        faq_hit_id = None
-
-        # Step 0: FAQ 快取 — 先搜尋相似的 inquiry 節點
-        try:
-            embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
-            vector, _ = await embed(embed_prov, body.message)
+        from services.nodes import increment_ask_count
+        with db_cursor() as cur:
+            source_nodes = await hybrid_retrieval_for_chat(
+                cur, list(target_ids), body.message, user["sub"],
+                ws_embed_prov=ws_embed_prov, ws_embed_model=ws_embed_model
+            )
             
-            with db_cursor() as cur:
-                cur.execute("""
-                    SELECT id, title_zh, title_en, ask_count,
-                            (1 - (embedding <=> %s::vector)) AS similarity
-                    FROM memory_nodes
-                    WHERE workspace_id = ANY(%s)
-                      AND content_type = 'inquiry'
-                      AND status IN ('answered', 'answered-low-trust')
-                      AND embedding IS NOT NULL
-                      AND (1 - (embedding <=> %s::vector)) >= %s
-                    ORDER BY similarity DESC LIMIT 1
-                """, (vector, list(target_ids), vector, FAQ_CACHE_HIT))
-                faq_hit = cur.fetchone()
-                
-                if faq_hit:
-                    faq_hit_id = faq_hit["id"]
-                    print(f"[chat] FAQ hit! inquiry_id={faq_hit_id}, sim={faq_hit['similarity']:.4f}")
-                    
-                    # 取得此 inquiry 連結的所有 answered_by 知識節點
-                    cur.execute("""
-                        SELECT n.id, n.title_zh, n.title_en, n.body_zh, n.body_en, n.workspace_id, 1.0 AS similarity
-                        FROM edges e
-                        JOIN memory_nodes n ON n.id = e.to_id
-                        WHERE e.from_id = %s
-                          AND e.relation = 'answered_by'
-                          AND e.status = 'active'
-                          AND n.status = 'active'
-                    """, (faq_hit_id,))
-                    source_nodes = list(cur.fetchall())
-                    
-                    # 背景遞增 ask_count
-                    background_tasks.add_task(_increment_ask_count, faq_hit_id)
-        except Exception as _faq_err:
-            print(f"[chat] FAQ cache search failed: {_faq_err}")
-
-        if not source_nodes:
-            # Step 1: vector search (skip gracefully when no embedding provider)
-            try:
-                embed_prov = resolve_provider(user["sub"], "embedding", preferred_model=ws_embed_model)
-                vector, _ = await embed(embed_prov, body.message)
-                with db_cursor() as cur:
-                    cur.execute("""
-                        SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                               (1 - (embedding <=> %s::vector)) AS similarity
-                        FROM memory_nodes
-                        WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
-                          AND (1 - (embedding <=> %s::vector)) >= %s
-                        ORDER BY similarity DESC LIMIT %s
-                    """, (vector, list(target_ids), vector, _MIN_SIMILARITY, _VECTOR_LIMIT))
-                    source_nodes = list(cur.fetchall())
-            except Exception as _vec_err:
-                print(f"[chat] Vector search skipped: {_vec_err}")
-
-            # Step 2: keyword / full-text fallback when vector results are sparse
-            if len(source_nodes) < 3:
-                seen_ids = {n["id"] for n in source_nodes}
-                needed = _FALLBACK_LIMIT - len(source_nodes)
-                terms = _extract_search_terms(body.message)
-                try:
-                    with db_cursor() as cur:
-                        ft_nodes: list = []
-                        is_pg = settings.database_url.startswith("postgresql")
-
-                        # 2a. PostgreSQL plainto_tsquery (good for English / ASCII)
-                        if is_pg:
-                            cur.execute("""
-                                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                                       0.0::float AS similarity
-                                FROM memory_nodes
-                                WHERE workspace_id = ANY(%s) AND status = 'active'
-                                  AND search_vector @@ plainto_tsquery('simple', %s)
-                                LIMIT %s
-                            """, (list(target_ids), body.message[:200], needed))
-                            ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
-
-                        # 2b. CJK/keyword ILIKE fallback (handles Chinese & short queries)
-                        if len(ft_nodes) < needed and terms:
-                            still_need = needed - len(ft_nodes)
-                            ft_seen = seen_ids | {n["id"] for n in ft_nodes}
-                            conds = " OR ".join(
-                                "(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)"
-                                for _ in terms
-                            )
-                            ilike_params: list = []
-                            for t in terms:
-                                like_t = f"%{t}%"
-                                ilike_params += [like_t, like_t, like_t]
-                            cur.execute(
-                                f"""
-                                SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
-                                       0.0::{'float' if is_pg else 'real'} AS similarity
-                                FROM memory_nodes
-                                WHERE workspace_id = ANY(%s) AND status = 'active'
-                                  AND ({conds})
-                                LIMIT %s
-                                """,
-                                [list(target_ids)] + ilike_params + [still_need],
-                            )
-                            ft_nodes += [n for n in cur.fetchall() if n["id"] not in ft_seen]
-
-                    source_nodes = source_nodes + ft_nodes
-                except Exception as _ft_err:
-                    print(f"[chat] Full-text fallback failed: {_ft_err}")
+            # If FAQ hit, increment ask count
+            faq_hit_id = next((n["_faq_hit_id"] for n in source_nodes if "_faq_hit_id" in n), None)
+            if faq_hit_id:
+                background_tasks.add_task(increment_ask_count, faq_hit_id)
 
         context_str = json.dumps([dict(n) for n in source_nodes], ensure_ascii=False, indent=2)
         messages = [{"role": "system", "content": CHAT_SYSTEM}]
@@ -1095,38 +639,15 @@ async def chat_with_kb(
 
         raw, tokens = await chat_completion(resolved, messages)
         
-        answer = raw
+        answer, raw_proposals = parse_ai_proposals(raw)
         proposals = []
         
-        if "```json" in raw:
-            parts = raw.split("```json")
-            answer = parts[0].strip()
-            json_part = parts[1].split("```")[0].strip()
-            try:
-                raw_proposals = json.loads(json_part)
-                if body.allow_edits:
-                    with db_cursor(commit=True) as cur:
-                        for p in raw_proposals:
-                            op = p.get("operation", "update")
-                            if op not in ("create", "update", "delete"):
-                                op = "update"
-                                
-                            rid = _propose_change(
-                                cur,
-                                body.workspace_id,
-                                op,
-                                p.get("target_node_ids", [None])[0],
-                                p.get("proposed"),
-                                "ai",
-                                "chat_assistant",
-                                proposer_meta={"source": "chat", "original_query": body.message},
-                                source_info=f"AI Chat Proposal: {p.get('reason', 'No reason provided')}"
-                            )
-                            proposals.append({"review_queue_id": rid, "operation": op, "reason": p.get("reason")})
-                else:
-                    proposals = raw_proposals
-            except Exception as e:
-                print(f"Failed to parse or save chat proposals: {e}")
+        if raw_proposals:
+            if body.allow_edits:
+                with db_cursor(commit=True) as cur:
+                    proposals = apply_ai_proposals_to_db(cur, body.workspace_id, raw_proposals, body.message)
+            else:
+                proposals = raw_proposals
         
         if len(body.message) > 10:
             background_tasks.add_task(

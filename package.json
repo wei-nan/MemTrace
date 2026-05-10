@@ -8,9 +8,10 @@
   ],
   "scripts": {
     "bootstrap": "npm install",
-    "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces",
-    "lint": "npm run lint --workspaces"
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:api": "docker compose exec -T api python -m pytest tests/ -v 2>/dev/null || env APP_ENV=test DATABASE_URL=sqlite:///test.db SECRET_KEY=test-secret-key-with-at-least-32-characters PYTHONPYCACHEPREFIX=/private/tmp/pycache packages/api/venv/bin/python -m pytest packages/api/tests -v || (cd packages/api && python3 -m pytest tests/ -v)",
+    "lint": "npm run lint --workspaces --if-present"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

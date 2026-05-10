@@ -12,7 +12,7 @@ from core.database import db_cursor
 from core.deps import get_current_user
 from core.security import generate_id
 from models.exports import KBExportRequest, KBExportResponse, KBImportResponse
-from routers.kb import _require_ws_access
+from services.workspaces import require_ws_access as _require_ws_access
 
 router = APIRouter(tags=["Exports"])
 logger = logging.getLogger(__name__)

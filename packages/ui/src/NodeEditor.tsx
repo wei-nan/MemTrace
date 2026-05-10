@@ -6,6 +6,7 @@ import { Archive, Bot, Calendar, CheckCircle2, Compass, Copy, Edit3, History, Li
 import { ai as aiApi, edges as edgesApi, nodes as nodesApi, review as reviewApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta, type ReviewItem } from "./api";
 import DiffPreviewModal from "./components/DiffPreviewModal";
 import { useModal } from "./components/ModalContext";
+import { Button, Input, Card } from "./components/ui";
 
 interface Props {
   wsId: string;
@@ -391,8 +392,14 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
           )}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          {!isCreate && !isEditing && !isViewerLocked && <button className="nav-item" style={{ padding: 6, margin: 0 }} onClick={() => setIsEditing(true)}><Edit3 size={18} /></button>}
-          <button className="nav-item" style={{ padding: 6, margin: 0 }} onClick={onClose}><X size={18} /></button>
+          {!isCreate && !isEditing && !isViewerLocked && (
+            <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+              <Edit3 size={18} />
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X size={18} />
+          </Button>
         </div>
       </div>
 
@@ -400,7 +407,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         {tab === "history" && node ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {revisions.map((revision) => (
-              <div key={revision.id} style={{ border: "1px solid var(--border-default)", borderRadius: 12, padding: 14, background: "var(--bg-surface)" }}>
+              <Card key={revision.id} padding="sm" style={{ border: "1px solid var(--border-default)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                   <div>
                     <div style={{ fontWeight: 600 }}>{t("node.revision_no")} {revision.revision_no}</div>
@@ -409,11 +416,11 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn-secondary" onClick={() => handleShowRevisionDiff(revision.revision_no)}>{t("node.compare")}</button>
-                    <button className="btn-primary" onClick={() => handleRestoreRevision(revision.revision_no)}>{t("node.restore")}</button>
+                    <Button variant="secondary" onClick={() => handleShowRevisionDiff(revision.revision_no)}>{t("node.compare")}</Button>
+                    <Button variant="primary" onClick={() => handleRestoreRevision(revision.revision_no)}>{t("node.restore")}</Button>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
             {selectedRevisionDiff && (
               <div style={{ marginTop: 8 }}>
@@ -426,8 +433,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
             <div>
               <label className="form-label">{t("node.titles")}</label>
               <div style={{ display: "grid", gap: 8 }}>
-                <input className="mt-input" value={titleEn} onChange={(e) => setTitleEn(e.target.value)} placeholder={t("node.en_title_ph")} />
-                <input className="mt-input" value={titleZh} onChange={(e) => setTitleZh(e.target.value)} placeholder={t("node.zh_title_ph")} />
+                <Input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} placeholder={t("node.en_title_ph")} />
+                <Input value={titleZh} onChange={(e) => setTitleZh(e.target.value)} placeholder={t("node.zh_title_ph")} />
               </div>
             </div>
 
@@ -481,16 +488,20 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
             <div>
               <label className="form-label">{t("node.tags_label")}</label>
-              <input className="mt-input" value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("node.tags_ph")} />
+              <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("node.tags_ph")} />
             </div>
 
             {error && <div style={{ color: "var(--color-error)", fontSize: 13 }}>{error}</div>}
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="btn-primary" style={{ flex: 1 }} onClick={handleSaveClick} disabled={saving}>
-                <Save size={16} /> {saving ? t("node.saving") : t("node.save")}
-              </button>
-              {!isCreate && <button className="btn-danger" onClick={handleDelete}><Trash2 size={16} /></button>}
+              <Button variant="primary" style={{ flex: 1 }} onClick={handleSaveClick} loading={saving} leftIcon={<Save size={16} />}>
+                {saving ? t("node.saving") : t("node.save")}
+              </Button>
+              {!isCreate && (
+                <Button variant="danger" onClick={handleDelete}>
+                  <Trash2 size={16} />
+                </Button>
+              )}
             </div>
           </div>
         ) : (
@@ -524,9 +535,9 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                     </div>
                   </div>
                   {!isViewerLocked && (
-                    <button className="btn-secondary" onClick={handleConfirmValidity} disabled={confirmingValidity}>
+                    <Button variant="secondary" onClick={handleConfirmValidity} loading={confirmingValidity}>
                       {confirmingValidity ? t("node.confirming") : t("node.confirm_validity")}
-                    </button>
+                    </Button>
                   )}
                 </div>
                 {!validityConfirmedAt && (
@@ -555,13 +566,13 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontWeight: 600 }}>{t("node.trust_dimensions")}</div>
                   {!isViewerLocked && (
-                    <button 
-                      className="btn-secondary" 
-                      style={{ padding: "4px 10px", fontSize: 12 }} 
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
                       onClick={() => setIsVoting(!isVoting)}
                     >
                       {isVoting ? t("node.cancel_vote") : t("node.vote_trust")}
-                    </button>
+                    </Button>
                   )}
                 </div>
 
@@ -585,14 +596,14 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                         style={{ accentColor: "var(--color-primary)" }}
                       />
                     </div>
-                    <button 
-                      className="btn-primary" 
+                    <Button 
+                      variant="primary" 
                       onClick={handleVoteTrust} 
-                      disabled={submittingVote}
+                      loading={submittingVote}
                       style={{ marginTop: 4 }}
                     >
                       {submittingVote ? t("node.saving") : t("node.submit_vote")}
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <>
@@ -651,19 +662,19 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               </div>
               
               {node && !isViewerLocked && (
-                <button
-                  className="btn-primary"
-                  style={{ width: '100%', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 10, height: 42 }}
+                <Button
+                  variant="primary"
+                  style={{ width: '100%', marginBottom: 16, height: 42 }}
                   onClick={() => {
                     if (node?.id && (window as any).mt_trigger_explore) {
                       (window as any).mt_trigger_explore(node.id);
                       onClose();
                     }
                   }}
+                  leftIcon={<Compass size={18} />}
                 >
-                  <Compass size={18} />
                   {t("node.explore_in_graph", { defaultValue: "Explore in Graph" })}
-                </button>
+                </Button>
               )}
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {nodeEdges.filter(e => e.relation !== 'queried_via_mcp').map((edge) => {
@@ -723,8 +734,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                         <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "var(--bg-surface)", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
                           <span style={{ fontSize: 13 }}>{otherNode ? otherNode.title_en : otherId} ({item.node_data.relation})</span>
                           <div style={{ display: "flex", gap: 6 }}>
-                            <button className="btn-primary" style={{ padding: "4px 8px", fontSize: 11 }} onClick={() => handleAcceptReview(item.id)}>{t('node.accept')}</button>
-                            <button className="btn-secondary" style={{ padding: "4px 8px", fontSize: 11 }} onClick={() => handleRejectReview(item.id)}>{t('node.skip')}</button>
+                            <Button variant="primary" size="sm" onClick={() => handleAcceptReview(item.id)}>{t('node.accept')}</Button>
+                            <Button variant="secondary" size="sm" onClick={() => handleRejectReview(item.id)}>{t('node.skip')}</Button>
                           </div>
                         </div>
                       );
@@ -735,7 +746,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
               {!isViewerLocked && node && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 8, marginTop: 12 }}>
-                  <input className="mt-input" value={linkTarget} onChange={(e) => setLinkTarget(e.target.value)} list="memtrace-node-list" placeholder={t("node.search_node_ph")} />
+                  <Input value={linkTarget} onChange={(e) => setLinkTarget(e.target.value)} list="memtrace-node-list" placeholder={t("node.search_node_ph")} />
                   <datalist id="memtrace-node-list">
                     {relatedNodes.slice(0, 20).map((candidate) => <option key={candidate.id} value={candidate.title_en}>{candidate.title_zh}</option>)}
                     {relatedNodes.slice(0, 20).map((candidate) => <option key={`${candidate.id}-id`} value={candidate.id}>{candidate.title_en}</option>)}
@@ -743,25 +754,24 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                   <select className="mt-input" value={linkRelation} onChange={(e) => setLinkRelation(e.target.value)}>
                     {RELATIONS.map((relation) => <option key={relation}>{relation}</option>)}
                   </select>
-                  <button className="btn-secondary" onClick={handleAddEdge}>{t("node.link")}</button>
+                  <Button variant="secondary" onClick={handleAddEdge}>{t("node.link")}</Button>
                 </div>
               )}
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               {!isViewerLocked && node && (
-                <button
-                  className={isArchived ? "btn-secondary" : "btn-secondary"}
-                  style={{ color: isArchived ? 'var(--color-primary)' : 'var(--text-muted)' }}
+                <Button
+                  variant="secondary"
                   onClick={handleArchive}
-                  disabled={archiving}
+                  loading={archiving}
                   title={isArchived ? t('node.restore_title') : t('node.archive_title')}
-                >
-                  {isArchived ? <RotateCcw size={16} /> : <Archive size={16} />}
-                </button>
+                  style={{ color: isArchived ? 'var(--color-primary)' : 'var(--text-muted)' }}
+                  leftIcon={isArchived ? <RotateCcw size={16} /> : <Archive size={16} />}
+                />
               )}
               {!isViewerLocked && node && (
-                <button
-                  className="btn-secondary"
+                <Button
+                  variant="secondary"
                   style={{ flex: 1 }}
                   onClick={async () => {
                     const wsList = await workspacesApi.list();
@@ -794,9 +804,10 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                       toast({ message: String(e), variant: "error" });
                     }
                   }}
+                  leftIcon={<Copy size={16} />}
                 >
-                  <Copy size={16} /> {t("node.copy_to_workspace")}
-                </button>
+                  {t("node.copy_to_workspace")}
+                </Button>
               )}
             </div>
           </div>

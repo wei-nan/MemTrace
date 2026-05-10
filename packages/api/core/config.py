@@ -17,6 +17,7 @@ _WEAK_KEYS = {
 
 
 class Settings(BaseSettings):
+    app_env: str = "prod"  # dev | test | prod
     database_url: str
     secret_key: str
     # Short-lived access token (default 60 min).

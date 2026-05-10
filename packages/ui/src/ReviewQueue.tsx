@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bot, Check, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
-import { review, nodes as nodesApi, type ReviewItem } from "./api";
+import { review, nodes as nodesApi, kb, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
+import { Button, Card } from "./components/ui";
 
 function TagChip({ label, variant }: { label: string; variant: "add" | "remove" | "neutral" }) {
   const colors = {
@@ -28,7 +29,7 @@ function DiffSummaryBlock({ item }: { item: ReviewItem }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
       {Object.entries(item.diff_summary.fields).map(([field, entry]) => (
-        <div key={field} style={{ background: "var(--bg-base)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 12 }}>
+        <Card key={field} padding="sm" style={{ border: "1px solid var(--border-default)" }}>
           <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{field}</div>
 
           {entry.type === "scalar" && (() => {
@@ -79,7 +80,7 @@ function DiffSummaryBlock({ item }: { item: ReviewItem }) {
               )}
             </div>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   );
@@ -155,12 +156,16 @@ function ReviewCard({
   canReview,
   onAccept,
   onReject,
+  onApplySplit,
+  zh,
 }: {
   wsId: string;
   item: ReviewItem;
   canReview: boolean;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
+  onApplySplit: (item: ReviewItem) => void;
+  zh: boolean;
 }) {
   const { t } = useTranslation();
   const { alert } = useModal();
@@ -187,7 +192,7 @@ function ReviewCard({
   };
 
   return (
-    <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
+    <Card variant="surface" padding="md" style={{ border: "1px solid var(--border-default)", borderRadius: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -219,23 +224,52 @@ function ReviewCard({
       </div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
-        <button className="btn-secondary" onClick={() => setExpanded((prev) => !prev)}>{expanded ? t('review.hideDiff') : t('review.showDiff')}</button>
-        {hasSource && (
-          <button
-            className="btn-secondary"
-            onClick={handleViewSource}
-            style={{ display: "flex", alignItems: "center", gap: 6 }}
-          >
-            <FileText size={14} />
-            {t('review.viewSource')}
-          </button>
+        {item.change_type !== "split_suggestion" && (
+          <Button variant="secondary" onClick={() => setExpanded((prev) => !prev)}>{expanded ? t('review.hideDiff') : t('review.showDiff')}</Button>
         )}
-        {canReview && <button className="btn-primary" onClick={() => onAccept(item.id)}><Check size={16} /> {t('review.accept')}</button>}
-        {canReview && <button className="btn-secondary" onClick={() => onReject(item.id)}><X size={16} /> {t('review.reject')}</button>}
+        {item.change_type === "split_suggestion" && (
+          <Button variant="secondary" onClick={() => setExpanded((prev) => !prev)}>
+            {expanded ? (zh ? "隱藏建議" : "Hide Suggestions") : (zh ? "查看拆分建議" : "View Split Suggestions")}
+          </Button>
+        )}
+        {hasSource && (
+          <Button
+            variant="secondary"
+            onClick={handleViewSource}
+            leftIcon={<FileText size={14} />}
+          >
+            {t('review.viewSource')}
+          </Button>
+        )}
+        {canReview && item.change_type !== "split_suggestion" && (
+          <Button variant="primary" onClick={() => onAccept(item.id)} leftIcon={<Check size={16} />}>
+            {t('review.accept')}
+          </Button>
+        )}
+        {canReview && item.change_type === "split_suggestion" && (
+          <Button variant="primary" onClick={() => onApplySplit(item)} leftIcon={<Check size={16} />}>
+            {zh ? "執行拆分" : "Apply Split"}
+          </Button>
+        )}
+        {canReview && (
+          <Button variant="secondary" onClick={() => onReject(item.id)} leftIcon={<X size={16} />}>
+            {t('review.reject')}
+          </Button>
+        )}
       </div>
 
-      {expanded && <DiffSummaryBlock item={item} />}
-    </div>
+      {expanded && item.change_type === "split_suggestion" && (
+        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+          {((item.proposer_meta?.split_suggestion as any[]) || []).map((p, i) => (
+            <Card key={i} padding="sm" style={{ border: "1px solid var(--border-default)" }}>
+               <div style={{ fontWeight: 600, fontSize: 14 }}>{p.title_en || p.title_zh}</div>
+               <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{p.body_en || p.body_zh}</div>
+            </Card>
+          ))}
+        </div>
+      )}
+      {expanded && item.change_type !== "split_suggestion" && <DiffSummaryBlock item={item} />}
+    </Card>
   );
 }
 
@@ -339,13 +373,43 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
     }
   };
 
+  const handleApplySplit = async (item: ReviewItem) => {
+    const ok = await confirm({ 
+      title: zh ? "執行拆分" : "Apply Split", 
+      message: zh ? "這將會把原始記憶存檔並建立多個原子化的新記憶。確定執行？" : "This will archive the original memory and create multiple atomic new memories. Proceed?", 
+      variant: "warning",
+      confirmLabel: zh ? "執行" : "Apply"
+    });
+    if (!ok) return;
+    try {
+      // PROPOSALS can be in proposer_meta.split_suggestion
+      const proposals = (item.proposer_meta?.split_suggestion as any[]) || [];
+      await kb.applySplit(wsId, item.id, { proposals });
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+      toast({ message: zh ? "拆分執行成功" : "Split applied successfully", variant: "success" });
+    } catch (e) {
+      toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    }
+  };
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--bg-base)" }}>
       {createPortal(
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          {canReviewAny && <button className="btn-secondary" style={{ height: 38 }} onClick={handleRunAIPrescreen}><Bot size={16} /> {t('review.aiPrescreen')}</button>}
-          {canReviewAny && <button className="btn-secondary" style={{ height: 38 }} onClick={handleRejectAll}><X size={16} /> {zh ? '全部拒絕' : 'Reject All'}</button>}
-          {canReviewAny && <button className="btn-primary" style={{ height: 38 }} onClick={handleAcceptAll}><Check size={16} /> {t('review.acceptAll')}</button>}
+          {canReviewAny && (
+            <Button variant="secondary" onClick={handleRunAIPrescreen} leftIcon={<Bot size={16} />}>
+              {t('review.aiPrescreen')}
+            </Button>
+          )}
+          {canReviewAny && (
+            <Button variant="secondary" onClick={handleRejectAll} leftIcon={<X size={16} />}>
+              {zh ? '全部拒絕' : 'Reject All'}
+            </Button>
+          )}
+          {canReviewAny && (
+            <Button variant="primary" onClick={handleAcceptAll} leftIcon={<Check size={16} />}>
+              {t('review.acceptAll')}
+            </Button>
+          )}
         </div>,
         document.getElementById('header-actions')!
       )}
@@ -360,20 +424,25 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
             ["gap", t('review.gap')],
             ["conflicted", t('review.conflicted')],
           ] as Array<[typeof changeType, string]>).map(([value, label]) => (
-            <button
+            <Button
               key={value}
-              className={`tag ${changeType === value ? "tag-active" : ""}`}
+              variant={changeType === value ? "primary" : "secondary"}
               onClick={() => setChangeType(value)}
-              style={{ cursor: "pointer", height: 38, border: "none" }}
+              style={{ height: 42, padding: "0 16px" }}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
         <div style={{ width: 1, height: 20, background: "var(--border-subtle)", margin: "0 4px" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <User size={14} style={{ color: "var(--text-muted)" }} />
-          <select className="mt-input" style={{ width: 140, height: 38, fontSize: 13 }} value={proposerType} onChange={(e) => setProposerType(e.target.value as typeof proposerType)}>
+          <select 
+            className="mt-input" 
+            style={{ width: 140, height: 42, fontSize: 13, padding: "0 12px", background: "var(--bg-surface)" }} 
+            value={proposerType} 
+            onChange={(e) => setProposerType(e.target.value as typeof proposerType)}
+          >
             <option value="all">{t('review.allProposers')}</option>
             <option value="human">{t('review.human')}</option>
             <option value="ai">{t('review.ai')}</option>
@@ -383,12 +452,12 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
         <div style={{ flex: 1 }} />
 
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn-secondary" style={{ height: 38, padding: "0 16px", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }} onClick={loadItems}>
-            <RefreshCw size={14} /> {t('review.refresh')}
-          </button>
-          <button className="btn-secondary" style={{ height: 38, padding: "0 16px", fontSize: 13 }} onClick={onClose}>
+          <Button variant="secondary" onClick={loadItems} leftIcon={<RefreshCw size={14} />}>
+            {t('review.refresh')}
+          </Button>
+          <Button variant="secondary" onClick={onClose}>
             {t('review.backToGraph')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -400,7 +469,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
         ) : (
           <div style={{ display: "grid", gap: 16 }}>
             {filteredItems.map((item) => (
-              <ReviewCard key={item.id} wsId={wsId} item={item} canReview={item.can_review} onAccept={handleAccept} onReject={handleReject} />
+              <ReviewCard key={item.id} wsId={wsId} item={item} canReview={item.can_review} onAccept={handleAccept} onReject={handleReject} onApplySplit={handleApplySplit} zh={zh} />
             ))}
           </div>
         )}

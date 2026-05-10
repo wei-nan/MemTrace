@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileUp, Globe, Link as LinkIcon, Loader2, Database } from 'lucide-react';
+import { FileUp, Globe, Link as LinkIcon, Database } from 'lucide-react';
 import { ingest } from './api';
 import { useModal } from './components/ModalContext';
 import IngestButton from './IngestButton';
 import IngestionHistory from './IngestionHistory';
 import ImportSourcesList from './components/ImportSourcesList';
+import { Button, Input, Card } from './components/ui';
 
 export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoToReview: () => void }) {
   const { t } = useTranslation();
@@ -44,48 +45,33 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
           background: 'var(--bg-surface)', padding: 4, borderRadius: 12, 
           border: '1px solid var(--border-default)', width: 'fit-content', margin: '0 auto 32px' 
         }}>
-          <button 
+          <Button 
+            variant={tab === 'file' ? 'primary' : 'ghost'}
+            size="sm"
             onClick={() => setTab('file')}
-            style={{
-              padding: '8px 20px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600,
-              background: tab === 'file' ? 'var(--color-primary)' : 'transparent',
-              color: tab === 'file' ? 'white' : 'var(--text-secondary)',
-              transition: 'all 0.2s'
-            }}
+            leftIcon={<FileUp size={16} />}
           >
-            <FileUp size={16} />
             {t('ingest.tab_file')}
-          </button>
-          <button 
+          </Button>
+          <Button 
+            variant={tab === 'url' ? 'primary' : 'ghost'}
+            size="sm"
             onClick={() => setTab('url')}
-            style={{
-              padding: '8px 20px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600,
-              background: tab === 'url' ? 'var(--color-primary)' : 'transparent',
-              color: tab === 'url' ? 'white' : 'var(--text-secondary)',
-              transition: 'all 0.2s'
-            }}
+            leftIcon={<Globe size={16} />}
           >
-            <Globe size={16} />
             {t('ingest.tab_url')}
-          </button>
-          <button 
+          </Button>
+          <Button 
+            variant={tab === 'sources' ? 'primary' : 'ghost'}
+            size="sm"
             onClick={() => setTab('sources')}
-            style={{
-              padding: '8px 20px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600,
-              background: tab === 'sources' ? 'var(--color-primary)' : 'transparent',
-              color: tab === 'sources' ? 'white' : 'var(--text-secondary)',
-              transition: 'all 0.2s'
-            }}
+            leftIcon={<Database size={16} />}
           >
-            <Database size={16} />
             來源稽核 (Sources)
-          </button>
+          </Button>
         </div>
 
-        <div className="glass-panel animate-slide-up" style={{ padding: 40, border: '1px solid var(--border-subtle)' }}>
+        <Card variant="surface" padding="lg" className="animate-slide-up" style={{ border: '1px solid var(--border-subtle)' }}>
           {tab === 'file' ? (
             <div style={{ maxWidth: 500, margin: '0 auto' }}>
               <IngestButton 
@@ -99,20 +85,16 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
           ) : tab === 'url' ? (
             <div style={{ maxWidth: 500, margin: '0 auto' }}>
               <form onSubmit={handleUrlSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ position: 'relative' }}>
-                  <LinkIcon size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input 
-                    className="mt-input"
-                    style={{ paddingLeft: 48, height: 48 }}
-                    placeholder={t('ingest.url_ph')}
-                    value={url}
-                    onChange={e => setUrl(e.target.value)}
-                    disabled={urlLoading}
-                  />
-                </div>
-                <button className="btn-primary" style={{ height: 48, width: '100%' }} disabled={urlLoading || !url.trim()}>
-                  {urlLoading ? <Loader2 size={18} className="animate-spin" /> : t('ingest.start_ingest')}
-                </button>
+                <Input
+                  leftIcon={<LinkIcon size={18} />}
+                  placeholder={t('ingest.url_ph')}
+                  value={url}
+                  onChange={e => setUrl(e.target.value)}
+                  disabled={urlLoading}
+                />
+                <Button variant="primary" style={{ height: 48, width: '100%' }} loading={urlLoading} disabled={!url.trim()}>
+                  {t('ingest.start_ingest')}
+                </Button>
               </form>
               <div style={{ marginTop: 24, fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
                 {t('ingest.web_auto_extract')}
@@ -121,7 +103,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
           ) : (
             <ImportSourcesList wsId={wsId} />
           )}
-        </div>
+        </Card>
 
         <IngestionHistory 
           wsId={wsId} 
@@ -129,14 +111,14 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
           onGoToReview={onGoToReview}
         />
 
-        <div style={{ marginTop: 60, padding: 24, background: 'var(--bg-elevated)', borderRadius: 16, border: '1px solid var(--border-subtle)' }}>
+        <Card variant="surface" padding="md" style={{ marginTop: 60, border: '1px solid var(--border-subtle)' }}>
           <h4 style={{ fontSize: 14, marginBottom: 12, fontWeight: 700 }}>{t('ingest.tips_title')}</h4>
           <ul style={{ fontSize: 13, color: 'var(--text-secondary)', paddingLeft: 20, lineHeight: 1.8, margin: 0 }}>
             <li>{t('ingest.tip_1')}</li>
             <li>{t('ingest.tip_2')}</li>
             <li>{t('ingest.tip_3')}</li>
           </ul>
-        </div>
+        </Card>
       </div>
     </div>
   );

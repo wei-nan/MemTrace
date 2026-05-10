@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
-import type { ModalVariant } from './Modal';
+import type { ModalVariant } from './ui';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

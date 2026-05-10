@@ -1,0 +1,110 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  padding: 16px;
+  animation: mt-fade-in 0.12s ease;
+  backdrop-filter: blur(4px);
+}
+
+.modal-panel {
+  max-width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  animation: mt-scale-in 0.14s cubic-bezier(0.34,1.56,0.64,1);
+  outline: none;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ── Alert/Confirm Variants ── */
+.modal-alert-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 24px 24px 0;
+}
+
+.modal-alert-icon-wrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.variant-info    { background: var(--color-info-subtle);    color: var(--color-info); }
+.variant-success { background: var(--color-success-subtle); color: var(--color-success); }
+.variant-warning { background: var(--color-warning-subtle); color: var(--color-warning); }
+.variant-danger  { background: var(--color-error-subtle);   color: var(--color-error); }
+.variant-error   { background: var(--color-error-subtle);   color: var(--color-error); }
+
+.modal-alert-title-container {
+  flex: 1;
+  min-width: 0;
+  padding-top: 8px;
+}
+
+.modal-alert-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.modal-alert-body {
+  padding: 12px 24px 0 78px;
+}
+
+.modal-alert-message {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.modal-custom-element {
+  margin-top: 16px;
+}
+
+.modal-alert-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 20px 24px 24px;
+}

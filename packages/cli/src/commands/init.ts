@@ -47,7 +47,7 @@ export function cmdInit(): Command {
         return;
       }
 
-      // ── Fresh init ──────────────────────────────────────────────
+      // ── Fresh init ────────────────────────────────────────────────
       console.log(chalk.cyan("\nWelcome to MemTrace! Let\'s get you set up.\n"));
 
       // Step 0 — Version Check (P4-D10)
@@ -73,14 +73,15 @@ export function cmdInit(): Command {
       }
 
       // Step 1 — Auth
+      // Use `existing` (which is an empty Config object for fresh init) as the mutable config
       console.log(chalk.bold("\nStep 1/3 — Authentication"));
-      await stepAuth(cfg);
+      await stepAuth(existing);
 
       // Step 2 — AI Provider
       console.log(chalk.bold("\nStep 2/3 — AI Provider") + chalk.dim("  (optional, Enter to skip)"));
-      await stepAI(cfg);
+      await stepAI(existing);
 
-      writeConfig(cfg);
+      writeConfig(existing);
 
       console.log(chalk.green("\n✓ Setup complete!"));
       console.log(`  Config saved to ${chalk.cyan(CONFIG_FILE)}`);

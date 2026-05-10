@@ -4,7 +4,7 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 
-ChangeType = Literal["create", "update", "delete"]
+ChangeType = Literal["create", "update", "delete", "split_suggestion"]
 ActorType = Literal["human", "ai"]
 ReviewDecision = Literal["accept", "reject", "comment"]
 
@@ -90,3 +90,7 @@ class NodeRevisionMetaResponse(BaseModel):
 
 class NodeRevisionResponse(NodeRevisionMetaResponse):
     snapshot: dict[str, Any]
+
+class ApplySplitRequest(BaseModel):
+    # Optional override of the suggested split proposals
+    proposals: list[dict[str, Any]]

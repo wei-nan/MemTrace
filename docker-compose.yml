@@ -41,6 +41,7 @@ services:
         condition: service_healthy
     volumes:
       - ./packages/api/data:/app/data
+      - ./packages/api/tests:/app/tests
       - ./backups:/backups
     user: "1000:1000"
     security_opt:

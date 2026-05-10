@@ -1,7 +1,8 @@
-import type { RelationType } from "./types";
+import type { RelationType, ContentType } from "./types";
+// Re-export ContentType for convenience so callers can import from this module
+export type { ContentType } from "./types";
 
 export type KbType = "evergreen" | "operational" | "ephemeral";
-export type ContentType = "factual" | "procedural" | "preference" | "context";
 
 /**
  * Calculates the new weight based on decay formula.
@@ -27,10 +28,13 @@ export function calculateDecayedWeight(
  */
 export function coAccessBoost(relation: RelationType): number {
   const boosts: Record<RelationType, number> = {
-    depends_on:  0.30,
-    extends:     0.20,
-    related_to:  0.15,
-    contradicts: 0.10,
+    depends_on:       0.30,
+    extends:          0.20,
+    related_to:       0.15,
+    contradicts:      0.10,
+    answered_by:      0.25,
+    similar_to:       0.12,
+    queried_via_mcp:  0.08,
   };
   return boosts[relation] ?? 0.10;
 }
@@ -62,6 +66,7 @@ export function contentTypeHalfLife(contentType: ContentType, kbType: KbType): n
       procedural: 14,
       preference:  7,
       context:     3,
+      inquiry:     7,  // inquiry nodes decay at same rate as preference in ephemeral KBs
     };
     return halfLives[contentType] ?? 14;
   }
@@ -71,6 +76,7 @@ export function contentTypeHalfLife(contentType: ContentType, kbType: KbType): n
     procedural: 180,
     preference:  90,
     context:     60,
+    inquiry:     30,  // inquiry nodes have shorter half-life even in evergreen KBs
   };
   return halfLives[contentType] ?? 180;
 }

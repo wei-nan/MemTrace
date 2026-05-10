@@ -137,7 +137,7 @@ async def search_public(workspace_id: str, request: Request, background_tasks: B
     # Exclude system nodes
     filters.append("(metadata->>'source' IS NULL OR metadata->>'source' <> 'mcp')")
     
-    from routers.kb import _apply_text_search
+    from services.search import apply_text_search as _apply_text_search
     _apply_text_search(filters, params, q)
     
     query = f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT 50"

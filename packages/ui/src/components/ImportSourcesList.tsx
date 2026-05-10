@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Database, ShieldCheck, ShieldAlert, ChevronDown, ChevronUp, Clock, FileText } from 'lucide-react';
-import { authHeaders } from '../api';
+import { ingest } from '../api';
 
 interface ImportSource {
   id: string;
@@ -25,13 +25,8 @@ export default function ImportSourcesList({ wsId }: { wsId: string }) {
 
   const fetchSources = async () => {
     try {
-      const resp = await fetch(`http://localhost:8000/api/v1/workspaces/${wsId}/sources`, {
-        headers: authHeaders()
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setSources(data);
-      }
+      const data = await ingest.listSources(wsId);
+      setSources(data);
     } catch (e) {
       console.error('Failed to fetch sources', e);
     } finally {
@@ -45,14 +40,9 @@ export default function ImportSourcesList({ wsId }: { wsId: string }) {
 
   const handleAudit = async (sourceId: string) => {
     try {
-      const resp = await fetch(`http://localhost:8000/api/v1/workspaces/${wsId}/audit/${sourceId}`, {
-        headers: authHeaders()
-      });
-      if (resp.ok) {
-        const result = await resp.json();
-        setAudits(prev => ({ ...prev, [sourceId]: result }));
-        setExpanded(sourceId);
-      }
+      const result = await ingest.auditSource(wsId, sourceId);
+      setAudits(prev => ({ ...prev, [sourceId]: result }));
+      setExpanded(sourceId);
     } catch (e) {
       console.error('Audit failed', e);
     }
@@ -62,19 +52,8 @@ export default function ImportSourcesList({ wsId }: { wsId: string }) {
     if (!missingHeadings.length) return;
     
     try {
-      const resp = await fetch(`http://localhost:8000/api/v1/workspaces/${wsId}/audit/${sourceId}/retry`, {
-        method: 'POST',
-        headers: {
-          ...authHeaders(),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ headings: missingHeadings })
-      });
-      
-      if (resp.ok) {
-        const result = await resp.json();
-        alert(`已啟動補缺任務 (Job ID: ${result.job_id})，請至進度清單查看。`);
-      }
+      const result = await ingest.retryAudit(wsId, sourceId, missingHeadings);
+      alert(`已啟動補缺任務 (Job ID: ${result.job_id})，請至進度清單查看。`);
     } catch (e) {
       console.error('Retry failed', e);
     }

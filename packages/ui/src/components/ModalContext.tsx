@@ -24,7 +24,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { AlertModal, ConfirmModal, type ModalVariant } from './Modal';
+import { AlertModal, ConfirmModal, type ModalVariant } from './ui';
 import { ToastContainer, type ToastItem } from './Toast';
 
 // ── Types ─────────────────────────────────────────────────────────────────────

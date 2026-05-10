@@ -117,3 +117,15 @@ def compute_signature(title: dict, content: dict, tags: list, author: str) -> st
         "author":  author,
     }, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(payload.encode()).hexdigest()
+
+import hashlib
+import hmac
+from core.config import settings
+
+def preview_id(node_id: str) -> str:
+    digest = hmac.new(
+        settings.secret_key.encode(),
+        node_id.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return "p_" + digest[:20]

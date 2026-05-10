@@ -1241,22 +1241,32 @@ async def chat_completion(
 
 async def extract_nodes_structured(
     resolved: ResolvedProvider,
-    system: str,
-    user_message,
+    text: str,
+    context: Optional[Union[str, List[str]]] = None,
+    doc_type: str = "generic",
     max_tokens: int = 4096,
     temperature: float = 0.2,
     _retries: int = 3,
 ) -> tuple[list[dict], int]:
     """
     Extract memory nodes via the provider's native tool/function calling.
-    Returns (list_of_node_dicts, tokens_used).
-
-    Raises NotImplementedError if the provider does not support structured output —
-    callers should fall back to text mode in that case.
-    Other errors (timeout, network) are retried with exponential backoff.
+    Automatically resolves the system prompt based on doc_type.
     """
     import asyncio as _asyncio
     import logging as _logging
+    
+    system = get_extraction_prompt(doc_type)
+    
+    # Construct user message from text and context
+    ctx_str = ""
+    if context:
+        if isinstance(context, list):
+            ctx_str = f"\nContext: {' > '.join(context)}"
+        else:
+            ctx_str = f"\nContext: {context}"
+    
+    user_message = f"{text}{ctx_str}"
+    
     delay = 5.0
     for attempt in range(_retries + 1):
         try:
@@ -1460,3 +1470,24 @@ Proposal JSON format (same as restructure):
 
 Return only the text answer followed by the JSON block in ```json ... ``` fences.
 If no proposals are needed, do not include the JSON block."""
+
+_KNOWN_DIMS = {
+    "text-embedding-3-small": 1536,
+    "text-embedding-3-large": 3072,
+    "text-embedding-ada-002": 1536,
+    "text-embedding-004":     768,   # Gemini
+    "nomic-embed-text":       768,
+    "mxbai-embed-large":      1024,
+    "all-minilm":             384,
+    "bge-m3":                 1024,
+    "bge-large-en-v1.5":      1024,
+    "snowflake-arctic-embed":  1024,
+    "e5-mistral-7b-instruct":  4096,
+}
+
+def get_embedding_dim(model: str) -> int:
+    lower = model.lower()
+    for known, dim in _KNOWN_DIMS.items():
+        if lower.startswith(known) or known in lower:
+            return dim
+    return 1536  # Safe default
