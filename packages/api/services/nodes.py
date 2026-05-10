@@ -784,8 +784,8 @@ def update_node_full_in_db(cur, ws_id: str, node_id: str, payload: dict, user: d
             source_info=f"Proposed update by {proposer_id}",
         )
         return None, review_id
-        
-    node = update_node_in_db(cur, ws_id, node_id, payload)
+
+    node = update_node_in_db(cur, ws_id, node_id, payload, proposer_id)
     return node, None
 
 def delete_node_full_in_db(cur, ws_id: str, node_id: str, user: dict) -> tuple[dict, str]:
@@ -884,8 +884,8 @@ def restore_node_revision_in_db(cur, ws_id: str, node_id: str, revision_no: int,
             source_info=f"Proposed restore to rev {revision_no} by {proposer_id}",
         )
         return None, review_id
-        
-    node = update_node_in_db(cur, ws_id, node_id, payload)
+
+    node = update_node_in_db(cur, ws_id, node_id, payload, proposer_id)
     return node, None
 
 def vote_trust_in_db(cur, ws_id: str, node_id: str, body_dict: dict, user: dict) -> dict:
@@ -899,14 +899,14 @@ def vote_trust_in_db(cur, ws_id: str, node_id: str, body_dict: dict, user: dict)
          
     cur.execute(
         """
-        INSERT INTO node_trust_votes (node_id, voter_id, accuracy, utility)
-        VALUES (%s, %s, %s, %s)
-        ON CONFLICT (node_id, voter_id) 
+        INSERT INTO node_trust_votes (id, node_id, user_id, workspace_id, accuracy, utility)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON CONFLICT (node_id, user_id)
         DO UPDATE SET accuracy = EXCLUDED.accuracy, utility = EXCLUDED.utility
         """,
-        (node_id, user["sub"], body_dict["accuracy"], body_dict["utility"])
+        (generate_id("vote"), node_id, user["sub"], ws_id, body_dict["accuracy"], body_dict["utility"])
     )
-    
+
     cur.execute(
         """
         SELECT AVG(accuracy)::float / 5 as avg_acc, AVG(utility)::float / 5 as avg_util
