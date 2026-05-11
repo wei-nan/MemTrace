@@ -105,12 +105,56 @@ def register(body: MagicLinkRegisterRequest):
 
     return {"message": "Success"}
 
+@router.post("/magic-link/request", status_code=200)
+def request_magic_link(body: MagicLinkRegisterRequest):
+    """
+    S1-1a: Request a magic link. Only available in invite_only mode.
+    """
+    if settings.registration_mode != "invite_only":
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "magic_link_unavailable", "message": "Magic link is only available in invite-only mode"},
+        )
+    # Delegate to the same logic as /register in invite_only scenario
+    email = body.email.lower().strip()
+    with db_cursor() as cur:
+        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user = cur.fetchone()
+        purpose = "login" if user else "registration"
+
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+
+    with db_cursor(commit=True) as cur:
+        cur.execute("""
+            SELECT created_at FROM magic_link_tokens
+            WHERE email = %s AND created_at > now() - INTERVAL '1 minute'
+            LIMIT 1
+        """, (email,))
+        if cur.fetchone():
+            return {"message": "已寄送連結至您的信箱，請於 15 分鐘內完成"}
+        cur.execute("""
+            INSERT INTO magic_link_tokens (email, token_hash, purpose, expires_at)
+            VALUES (%s, %s, %s, %s)
+        """, (email, token_hash, purpose, expires_at))
+
+    send_magic_link_email(email, token, purpose)
+    return {"message": "已寄送連結至您的信箱，請於 15 分鐘內完成"}
+
+
 @router.post("/magic-link/verify", response_model=TokenResponse)
 def verify_magic_link(body: MagicLinkVerifyRequest):
     """
-    Verifies the magic link token and creates a session.
+    S1-1b: Verifies the magic link token and creates a session.
+    Only available in invite_only mode.
     If purpose is registration and user doesn't exist, it creates the user.
     """
+    if settings.registration_mode != "invite_only":
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "magic_link_unavailable", "message": "Magic link is only available in invite-only mode"},
+        )
     token_hash = hashlib.sha256(body.token.encode()).hexdigest()
 
     with db_cursor(commit=True) as cur:

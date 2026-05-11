@@ -17,7 +17,13 @@ export default function JoinInvitationPage() {
       await auth.registerWithInvite(token, { email });
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message);
+      // S1-3b: If server returns 403 magic_link_unavailable, show explicit error
+      const msg: string = err.message || '';
+      if (msg.includes('magic_link_unavailable') || msg.includes('403')) {
+        setError('目前系統設定不允許透過 Magic Link 加入，請聯繫管理員');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

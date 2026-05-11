@@ -26,15 +26,13 @@ def require_ws_access(
     ws_id: str,
     user: Optional[dict],
     write: bool = False,
+    required_role: Optional[str] = None,
     required_scope: Optional[str] = None,
 ) -> dict:
     """
     Verify the caller has access to the workspace.
-
-    - For API key callers: validates workspace scoping + required OAuth scope.
-    - For regular users: validates workspace visibility rules and membership.
-    - Raises HTTPException(403/404) on failure.
-    - Returns the workspace row on success.
+    - required_role: enforces a minimum role ("viewer"|"contributor"|"editor"|"admin")
+    - required_scope: legacy (§29 workspace service tokens)
     """
     # API key scope and workspace validation
     if user and "api_key_id" in user:
@@ -58,10 +56,20 @@ def require_ws_access(
     user_id = user["sub"] if user else None
     role = get_effective_role(cur, ws_id, ws["owner_id"], user_id)
 
+    # Role hierarchy validation
+    if required_role:
+        from core.deps import ROLE_HIERARCHY
+        if not role:
+            raise HTTPException(status_code=403, detail={"error": "no_membership", "message": "No membership in this workspace"})
+        if ROLE_HIERARCHY.get(role, -1) < ROLE_HIERARCHY.get(required_role, 0):
+            raise HTTPException(status_code=403, detail={"error": "insufficient_role", "required": required_role, "actual": role})
+
     if user_id == ws["owner_id"]:
         pass # Owner has access
     elif vis == "private":
-        raise HTTPException(status_code=403, detail="Access denied")
+        if not required_role:  # If we didn't check required_role above, at least ensure they have access
+            if not role:
+                raise HTTPException(status_code=403, detail="Access denied")
     elif vis in ("public", "conditional_public") and not write:
         pass # Public read access
     elif vis == "restricted" or write:
@@ -69,7 +77,7 @@ def require_ws_access(
             raise HTTPException(status_code=401, detail="Authentication required")
         if not role:
             raise HTTPException(status_code=403, detail="Access denied")
-        if write and role not in ("editor", "admin"):
+        if write and role not in ("editor", "admin") and not required_role:
             raise HTTPException(status_code=403, detail="Editor or Admin role required")
 
     ws = dict(ws)
@@ -247,7 +255,7 @@ def delete_workspace_in_db(cur, ws_id: str, user: dict) -> None:
     cur.execute("DELETE FROM workspaces WHERE id = %s", (ws_id,))
 
 def purge_workspace_in_db(cur, ws_id: str, user: dict) -> dict:
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     if ws["owner_id"] != user["sub"]:
         raise HTTPException(status_code=403, detail="Only workspace owner can purge it")
     cur.execute("DELETE FROM edges WHERE workspace_id = %s", (ws_id,))

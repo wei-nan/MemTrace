@@ -69,6 +69,16 @@ async function _doRefresh(): Promise<string | null> {
   }
 }
 
+/** Decode JWT payload and return true if token is expired or expires within `bufferSecs` seconds. */
+export function isTokenStale(token: string, bufferSecs = 60): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return typeof payload.exp !== 'number' || Date.now() / 1000 >= payload.exp - bufferSecs;
+  } catch {
+    return true;
+  }
+}
+
 export async function refreshAccessToken(): Promise<string | null> {
   if (_refreshing) return _refreshing;
   _refreshing = (async () => {

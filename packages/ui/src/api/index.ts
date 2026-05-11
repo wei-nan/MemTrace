@@ -22,7 +22,7 @@ export * from './system';
 export const users = {
   apiKeys: {
     list: () => request<PersonalApiKey[]>("GET", `/api/v1/users/me/api-keys`),
-    create: (data: { name: string; scopes: string[]; workspace_id?: string }) =>
+    create: (data: { name: string; expires_at?: string }) =>
       request<PersonalApiKeyCreateResponse>("POST", `/api/v1/users/me/api-keys`, data),
     revoke: (id: string) => request("DELETE", `/api/v1/users/me/api-keys/${id}`),
     rotate: (id: string) => request<PersonalApiKeyCreateResponse>("POST", `/api/v1/users/me/api-keys/${id}/rotate`),

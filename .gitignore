@@ -50,6 +50,7 @@ test.db
 
 # Temporary files
 scratch/
+scratch.py
 backups/
 
 # One-off dev scripts at repo root (refactor_*.py, list_*.py, etc.)

@@ -420,7 +420,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
     if name == "create_edge":
         ws_id = args["workspace_id"]
         with db_cursor(commit=True) as cur:
-            require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+            require_ws_access(cur, ws_id, user, write=True, required_role="admin")
             return create_edge_in_db(cur, ws_id, args)
 
     # ── traverse ──────────────────────────────────────────────────────────────

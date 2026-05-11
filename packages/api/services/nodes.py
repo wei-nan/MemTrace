@@ -569,7 +569,7 @@ def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
 
 def suggest_edges_for_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> dict:
     from services.workspaces import require_ws_access, get_effective_role
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     if role not in ("admin",):
         raise HTTPException(status_code=403, detail="Admin only")
@@ -622,7 +622,7 @@ def get_node_in_db(cur, ws_id: str, node_id: str, user: Optional[dict]) -> dict:
 
 def bulk_archive_nodes_in_db(cur, ws_id: str, node_ids: list, user: dict) -> int:
     from services.workspaces import require_ws_access, get_effective_role
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     if role not in ("editor", "admin"):
         raise HTTPException(status_code=403, detail="Editor or Admin role required")
@@ -640,7 +640,7 @@ def bulk_archive_nodes_in_db(cur, ws_id: str, node_ids: list, user: dict) -> int
 
 def archive_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
     from services.workspaces import require_ws_access, get_effective_role
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     if role not in ("editor", "admin"):
         raise HTTPException(status_code=403, detail="Editor or Admin role required")
@@ -653,7 +653,7 @@ def archive_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
 
 def restore_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
     from services.workspaces import require_ws_access, get_effective_role
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     if role not in ("editor", "admin"):
         raise HTTPException(status_code=403, detail="Editor or Admin role required")
@@ -705,7 +705,7 @@ def create_node_full_in_db(cur, ws_id: str, payload: dict, user: dict) -> tuple[
     from services.workspaces import require_ws_access, get_effective_role
     from services.nodes import validate_node_payload, propose_change, create_node_in_db
     validate_node_payload(payload)
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     
     if payload.get("copied_from_ws"):
         require_ws_access(cur, payload["copied_from_ws"], user)
@@ -772,7 +772,7 @@ async def create_node_full_with_dedup(
 def update_node_full_in_db(cur, ws_id: str, node_id: str, payload: dict, user: dict) -> tuple[dict, str]:
     from services.workspaces import require_ws_access, get_effective_role
     from services.nodes import propose_change, update_node_in_db
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     proposer_id = user["sub"]
     
@@ -791,7 +791,7 @@ def update_node_full_in_db(cur, ws_id: str, node_id: str, payload: dict, user: d
 def delete_node_full_in_db(cur, ws_id: str, node_id: str, user: dict) -> tuple[dict, str]:
     from services.workspaces import require_ws_access, get_effective_role
     from services.nodes import propose_change, delete_node_in_db
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     proposer_id = user["sub"]
     
@@ -859,7 +859,7 @@ def restore_node_revision_in_db(cur, ws_id: str, node_id: str, revision_no: int,
     from services.nodes import propose_change, update_node_in_db
     from fastapi import HTTPException
     
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     proposer_id = user["sub"]
     
@@ -950,7 +950,7 @@ def reembed_all_nodes_in_db(cur, ws_id: str, user: dict) -> int:
 
 def backfill_embeddings_in_db(cur, ws_id: str, user: dict) -> list[dict]:
     from services.workspaces import require_ws_access, get_effective_role
-    ws = require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+    ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     if role not in ("admin",):
         from fastapi import HTTPException

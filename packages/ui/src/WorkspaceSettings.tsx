@@ -480,7 +480,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
             <div>
               <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                 {k.name} 
-                <span className="tag" style={{ color: "var(--color-primary)", background: "var(--color-primary-subtle)" }}>{k.scopes.join(', ')}</span>
+                <span className="tag" style={{ color: "var(--color-primary)", background: "var(--color-primary-subtle)" }}>{((k as any).scopes || []).join(', ')}</span>
               </div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 4 }}>{k.prefix}********************</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>

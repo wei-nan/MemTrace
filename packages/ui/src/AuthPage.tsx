@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { auth } from './api';
 import { Button, Input } from './components/ui';
 
@@ -6,10 +6,11 @@ interface Props {
   onAuthenticated: () => void;
 }
 
-type Mode = 'login' | 'register' | 'forgot' | 'sent';
+type Mode = 'login' | 'register' | 'forgot' | 'sent' | 'magic_sent';
 
 export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
   const [mode, setMode] = useState<Mode>('login');
+  const [registrationMode, setRegistrationMode] = useState<string>('open');
 
   const [email, setEmail]             = useState('');
   const [password, setPassword]       = useState('');
@@ -17,7 +18,18 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [message, setMessage]         = useState('');
-  const [usePassword] = useState(true);
+  const [useMagicLink, setUseMagicLink] = useState(false);
+
+  // S1-2d: Fetch registration mode on mount
+  useEffect(() => {
+    auth.getConfig().then(cfg => {
+      setRegistrationMode(cfg.registration_mode);
+    }).catch(() => {
+      // Default to 'open' on error — magic link will be hidden
+    });
+  }, []);
+
+  const isMagicLinkAvailable = registrationMode === 'invite_only';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +41,18 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
         setMessage('If an account exists, a reset link has been sent.');
         return;
       }
-      
-      if (mode === 'login' && usePassword && password) {
+
+      if (mode === 'login' && useMagicLink && isMagicLinkAvailable) {
+        const resp = await auth.requestMagicLink({ email });
+        setMode('magic_sent');
+        setMessage(resp.message || 'Check your email for the magic link!');
+        return;
+      }
+
+      if (mode === 'login' && password) {
         const resp = await auth.login({ email, password });
         localStorage.setItem('mt_token', resp.access_token);
-        window.location.reload(); 
+        window.location.reload();
         return;
       }
 
@@ -47,7 +66,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
     }
   };
 
-  const switchMode = (m: Mode) => { setMode(m); setError(''); setMessage(''); setPassword(''); };
+  const switchMode = (m: Mode) => { setMode(m); setError(''); setMessage(''); setPassword(''); setUseMagicLink(false); };
 
   const bgStyles: React.CSSProperties = {
     position: 'fixed',
@@ -67,7 +86,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
     animation: 'auth-blob-float 20s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95)',
   };
 
-  if (mode === 'sent') {
+  if (mode === 'sent' || mode === 'magic_sent') {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}>
         <div style={bgStyles}>
@@ -106,11 +125,10 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
         padding: '48px', 
         minWidth: '400px', 
         maxWidth: '440px', 
-        backdropFilter: 'none', 
-        background: '#FFFFFF',
-        color: '#0F172A',
-        border: '1px solid rgba(0, 0, 0, 0.1)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)',
+        backdropFilter: 'blur(24px)', 
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        boxShadow: 'var(--glass-shadow)',
         animation: 'mt-scale-in 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
       }}>
 
@@ -124,7 +142,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
           }}>
             MemTrace
           </div>
-          <p style={{ fontSize: 14, color: '#475569', margin: 0, fontWeight: 400 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0, fontWeight: 400 }}>
             {mode === 'forgot' ? 'Secure password recovery' : 'The intelligence layer for your ideas'}
           </p>
         </div>
@@ -132,11 +150,11 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
         {(mode === 'login' || mode === 'register') && (
           <div style={{ 
             display: 'flex', 
-            background: '#FFFFFF', 
+            background: '#ffffff',
             padding: '4px',
             borderRadius: '12px',
             marginBottom: 32,
-            border: '1px solid var(--border-default)'
+            border: '1px solid var(--border-subtle)'
           }}>
             {(['login', 'register'] as const).map(m => (
               <Button key={m} variant="ghost" onClick={() => switchMode(m)}
@@ -144,7 +162,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
                   flex: 1, padding: '10px 0',
                   borderRadius: '8px',
                   background: mode === m ? 'var(--color-primary)' : 'transparent',
-                  color: mode === m ? '#FFFFFF' : 'var(--text-muted)',
+                  color: mode === m ? 'var(--text-on-primary)' : 'var(--text-muted)',
                   fontWeight: mode === m ? 600 : 500, fontSize: 13,
                 }}>
                 {m === 'login' ? 'Sign In' : 'Register'}
@@ -163,11 +181,11 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
             required
           />
 
-          {mode === 'login' && usePassword && (
+          {mode === 'login' && !useMagicLink && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</span>
-                <Button variant="link" onClick={() => switchMode('forgot')} style={{ fontSize: 12, color: 'var(--color-primary)' }}>
+                <Button variant="link" onClick={() => switchMode('forgot')} style={{ fontSize: 12 }}>
                   Forgot?
                 </Button>
               </div>
@@ -176,8 +194,24 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
                 value={password}
                 placeholder="••••••••"
                 onChange={e => setPassword(e.target.value)}
-                required={usePassword}
+                required={!useMagicLink}
               />
+            </div>
+          )}
+
+          {/* S1-2d: Only show magic link option when registration_mode === 'invite_only' */}
+          {mode === 'login' && isMagicLinkAvailable && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                id="use-magic-link"
+                type="checkbox"
+                checked={useMagicLink}
+                onChange={e => setUseMagicLink(e.target.checked)}
+                style={{ accentColor: 'var(--color-primary)', width: 16, height: 16 }}
+              />
+              <label htmlFor="use-magic-link" style={{ fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                以 Email 連結登入（Magic Link）
+              </label>
             </div>
           )}
 
@@ -221,10 +255,11 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
               marginTop: 8,
               boxShadow: '0 10px 15px -3px var(--color-primary-subtle)',
               background: 'var(--color-primary)',
-              color: '#FFFFFF'
+              color: 'var(--text-on-primary)'
             }}
           >
-            {mode === 'login' ? 'Sign In'
+            {mode === 'login'
+              ? (useMagicLink && isMagicLinkAvailable ? 'Send Magic Link' : 'Sign In')
               : mode === 'register' ? 'Create Account'
               : 'Reset Password'}
           </Button>

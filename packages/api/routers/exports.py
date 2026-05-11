@@ -229,7 +229,7 @@ def import_kb(
     conflict_mode: "skip" (default) keeps existing nodes; "overwrite" replaces them.
     """
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
 
     imported_nodes = 0
     skipped = 0

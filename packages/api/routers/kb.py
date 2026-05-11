@@ -20,7 +20,7 @@ from core.config import settings
 
 
 
-from core.deps import get_current_user, get_current_user_optional, RequireScope
+from core.deps import get_current_user, get_current_user_optional, RequireScope, RequireRole
 from core.ratelimit import TraversalGuard
 from core.diff import build_node_diff
 from core.security import compute_signature, generate_id
@@ -497,12 +497,12 @@ async def connect_orphans(ws_id: str, background_tasks: BackgroundTasks, user: d
 @router.post("/workspaces/{ws_id}/edges", response_model=EdgeResponse, status_code=201)
 def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         return _create_edge_in_db(cur, ws_id, body.model_dump())
 
 
 @router.post("/nodes/{node_id}/traverse", status_code=204)
-def traverse_node(node_id: str, background_tasks: BackgroundTasks, user: dict = Depends(RequireScope("node:traverse"))):
+def traverse_node(node_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     from services.nodes import traverse_node_in_db
     with db_cursor() as cur:
         ws_id = traverse_node_in_db(cur, node_id, user)
@@ -516,7 +516,7 @@ def traverse_node(node_id: str, background_tasks: BackgroundTasks, user: dict = 
 )
 def confirm_node_validity(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user, write=True, required_scope="kb:write")
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         _confirm_node_validity_in_db(cur, ws_id, node_id, user["email"])
         return {"confirmed_at": datetime.now(timezone.utc).isoformat(), "confirmed_by": user["email"]}
 
@@ -529,7 +529,7 @@ def traverse_edge(edge_id: str, body: TraverseEdgeRequest, user: dict = Depends(
 
 
 @router.post("/edges/{edge_id}/rate", status_code=204)
-def rate_edge(edge_id: str, body: RateEdgeRequest, user: dict = Depends(RequireScope("node:rate"))):
+def rate_edge(edge_id: str, body: RateEdgeRequest, user: dict = Depends(get_current_user)):
     from services.edges import rate_edge_in_db
     with db_cursor(commit=True) as cur:
         rate_edge_in_db(cur, edge_id, body.rating, body.note, user)

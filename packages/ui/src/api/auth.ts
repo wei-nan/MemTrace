@@ -12,6 +12,10 @@ export interface Onboarding {
   first_kb_id: string | null;
 }
 
+export interface AuthConfig {
+  registration_mode: 'open' | 'domain' | 'approval' | 'invite_only' | 'closed';
+}
+
 export const auth = {
   register: (data: { email: string; purpose_note?: string }) =>
     request<{ message: string }>("POST", "/auth/register", data),
@@ -23,10 +27,13 @@ export const auth = {
   verifyEmail: (token: string) => request("POST", `/auth/verify-email/${token}`),
   resendVerification: () => request("POST", "/auth/resend-verification-email"),
   registerWithInvite: (token: string, data: { email: string }) => request("POST", `/auth/register/invite/${token}`, data),
+  requestMagicLink: (data: { email: string }) => request<{ message: string }>("POST", "/auth/magic-link/request", data),
   verifyMagicLink: (token: string) => request<TokenResponse>("POST", "/auth/magic-link/verify", { token }),
   forgotPassword: (email: string) => request("POST", "/auth/forgot-password", { email }),
   resetPassword: (token: string, password: string) => request("POST", "/auth/reset-password", { token, new_password: password }),
   getOnboarding: () => request<Onboarding>("GET", "/auth/me/onboarding"),
   updateOnboarding: (data: Partial<Onboarding>) => request<Onboarding>("PATCH", "/auth/me/onboarding", data),
   updatePassword: (password: string) => request("POST", "/auth/me/password", { new_password: password }),
+  getConfig: () => request<AuthConfig>("GET", "/auth/config"),
 };
+

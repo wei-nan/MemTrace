@@ -105,12 +105,11 @@ export interface PersonalApiKey {
   id: string;
   name: string;
   prefix: string;
-  scopes: string[];
-  workspace_id: string | null;
   created_at: string;
   last_used_at: string | null;
   expires_at: string | null;
   revoked_at: string | null;
+  // Note: scopes and workspace_id removed in Phase 4.10 — role is inherited from workspace_members.
 }
 
 export interface BackupConfig {

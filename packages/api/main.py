@@ -86,6 +86,10 @@ app.include_router(mcp_router)
 app.include_router(public_router)
 app.include_router(registration_router)
 
+# Top-level /mcp alias for Streamable HTTP (cleaner URL for MCP clients)
+from routers.mcp import mcp_streamable
+app.add_api_route("/mcp", mcp_streamable, methods=["POST"])
+
 import pathlib as _pathlib
 _mcp_pkg_dir = _pathlib.Path(__file__).parent / "data" / "mcp"
 _mcp_pkg_dir.mkdir(parents=True, exist_ok=True)

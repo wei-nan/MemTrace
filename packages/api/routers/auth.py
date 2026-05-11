@@ -54,6 +54,17 @@ def _clear_refresh_cookie(response: Response) -> None:
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
+# ─── Public Config ────────────────────────────────────────────────────────────
+
+@router.get("/config")
+def get_auth_config():
+    """
+    S1-2b: Return public auth configuration.
+    No auth required — used by the UI to discover registration_mode.
+    """
+    return {"registration_mode": settings.registration_mode}
+
 # ─── Register ─────────────────────────────────────────────────────────────────
 
 # Legacy registration disabled in Phase 4.6 (logic moved to registration.py)

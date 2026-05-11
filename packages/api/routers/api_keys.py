@@ -14,10 +14,27 @@ router = APIRouter(tags=["api-keys"])
 
 class ApiKeyCreate(BaseModel):
     name: str
+    expires_at: Optional[datetime] = None
+
+class ApiKeyCreateWorkspace(BaseModel):
+    """Used only for workspace-level service tokens (§29)."""
+    name: str
     scopes: List[str]
     workspace_id: Optional[str] = None
 
 class ApiKeyResponse(BaseModel):
+    id: str
+    name: str
+    prefix: str
+    created_at: datetime
+    last_used_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+
+class ApiKeyCreateResponse(ApiKeyResponse):
+    key: str  # The one-time plaintext key
+
+class ApiKeyResponseLegacy(BaseModel):
+    """Legacy response for workspace service tokens that still carry scopes."""
     id: str
     name: str
     prefix: str
@@ -27,14 +44,16 @@ class ApiKeyResponse(BaseModel):
     last_used_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
 
-class ApiKeyCreateResponse(ApiKeyResponse):
+class ApiKeyCreateResponseLegacy(ApiKeyResponseLegacy):
     key: str  # The one-time plaintext key
+
 
 @router.post("/users/me/api-keys", response_model=ApiKeyCreateResponse)
 def create_api_key(
     data: ApiKeyCreate,
     current_user: dict = Depends(get_current_user)
 ):
+    """S3-6a: Create an account-level API key (no scopes/workspace_id — role inherited dynamically)."""
     raw_key = "mt_" + secrets.token_hex(20)
     key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
     prefix = raw_key[:8]
@@ -43,20 +62,18 @@ def create_api_key(
     with db_cursor(commit=True) as cur:
         cur.execute(
             """
-            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, scopes, workspace_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, expires_at, key_type)
+            VALUES (%s, %s, %s, %s, %s, %s, 'account')
             RETURNING created_at
             """,
-            (key_id, current_user["sub"], data.name, key_hash, prefix, data.scopes, data.workspace_id)
+            (key_id, current_user["sub"], data.name, key_hash, prefix, data.expires_at)
         )
         row = cur.fetchone()
-        
+
     return {
         "id": key_id,
         "name": data.name,
         "prefix": prefix,
-        "scopes": data.scopes,
-        "workspace_id": data.workspace_id,
         "created_at": row["created_at"],
         "key": raw_key
     }
@@ -68,9 +85,9 @@ def list_api_keys(
     with db_cursor() as cur:
         cur.execute(
             """
-            SELECT id, name, prefix, scopes, workspace_id, created_at, last_used_at, expires_at
+            SELECT id, name, prefix, created_at, last_used_at, expires_at
             FROM api_keys
-            WHERE user_id = %s
+            WHERE user_id = %s AND key_type = 'account'
             ORDER BY created_at DESC
             """,
             (current_user["sub"],)
@@ -100,10 +117,10 @@ def rotate_api_key(
     key_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """G3: Rotate an API key — revoke the old one and generate a new key with the same scopes."""
+    """S3-7a: Rotate a personal API key — only copy name and expires_at (no scopes/workspace_id)."""
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "SELECT id, name, scopes, workspace_id FROM api_keys WHERE id = %s AND user_id = %s",
+            "SELECT id, name, expires_at FROM api_keys WHERE id = %s AND user_id = %s",
             (key_id, current_user["sub"])
         )
         old_key = cur.fetchone()
@@ -116,7 +133,7 @@ def rotate_api_key(
             (key_id,)
         )
 
-        # Generate new key with the same name, scopes, workspace
+        # Generate new key with the same name and expiry only
         raw_key = "mt_" + secrets.token_hex(20)
         key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
         prefix = raw_key[:8]
@@ -124,11 +141,11 @@ def rotate_api_key(
 
         cur.execute(
             """
-            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, scopes, workspace_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, expires_at, key_type)
+            VALUES (%s, %s, %s, %s, %s, %s, 'account')
             RETURNING created_at
             """,
-            (new_id, current_user["sub"], old_key["name"], key_hash, prefix, old_key["scopes"], old_key["workspace_id"])
+            (new_id, current_user["sub"], old_key["name"], key_hash, prefix, old_key["expires_at"])
         )
         row = cur.fetchone()
 
@@ -136,8 +153,6 @@ def rotate_api_key(
         "id": new_id,
         "name": old_key["name"],
         "prefix": prefix,
-        "scopes": old_key["scopes"],
-        "workspace_id": old_key["workspace_id"],
         "created_at": row["created_at"],
         "key": raw_key,
     }
@@ -163,7 +178,7 @@ def list_workspace_api_keys(
             """
             SELECT id, name, prefix, scopes, workspace_id, created_at, last_used_at, expires_at
             FROM api_keys
-            WHERE workspace_id = %s
+            WHERE workspace_id = %s AND key_type = 'service'
             ORDER BY created_at DESC
             """,
             (ws_id,)
@@ -174,7 +189,7 @@ def list_workspace_api_keys(
 @router.post("/workspaces/{ws_id}/api-keys", response_model=ApiKeyCreateResponse)
 def create_workspace_api_key(
     ws_id: str,
-    data: ApiKeyCreate,
+    data: ApiKeyCreateWorkspace,
     current_user: dict = Depends(get_current_user)
 ):
     with db_cursor(commit=True) as cur:
@@ -190,23 +205,21 @@ def create_workspace_api_key(
         key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
         prefix = raw_key[:8]
         key_id = generate_id("apikey")
-        
+
         cur.execute(
             """
-            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, scopes, workspace_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, scopes, workspace_id, key_type)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'service')
             RETURNING created_at
             """,
             (key_id, current_user["sub"], data.name, key_hash, prefix, data.scopes, ws_id)
         )
         row = cur.fetchone()
-        
+
     return {
         "id": key_id,
         "name": data.name,
         "prefix": prefix,
-        "scopes": data.scopes,
-        "workspace_id": ws_id,
         "created_at": row["created_at"],
         "key": raw_key
     }
@@ -249,8 +262,8 @@ def rotate_workspace_api_key(
 
         cur.execute(
             """
-            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, scopes, workspace_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO api_keys (id, user_id, name, key_hash, prefix, scopes, workspace_id, key_type)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'service')
             RETURNING created_at
             """,
             (new_id, current_user["sub"], old_key["name"], key_hash, prefix, old_key["scopes"], ws_id)

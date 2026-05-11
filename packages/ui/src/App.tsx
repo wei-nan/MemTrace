@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Brain, RefreshCw } from 'lucide-react';
 import './index.css';
-import { auth, workspaces, type Workspace, type Node as ApiNode, type Onboarding, type WorkspaceCloneJob } from './api';
+import { auth, workspaces, refreshAccessToken, isTokenStale, type Workspace, type Node as ApiNode, type Onboarding, type WorkspaceCloneJob } from './api';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import AppRouter from './AppRouter';
@@ -55,9 +55,34 @@ export default function App() {
   };
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const [authenticated, setAuthenticated] = useState<boolean>(!!localStorage.getItem('mt_token'));
+  const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
   const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
+
+  // Validate token before any data loads — prevents race condition where
+  // workspaces.list() fires with an expired token and gets public-only data (200, not 401).
+  useEffect(() => {
+    const init = async () => {
+      const stored = localStorage.getItem('mt_token');
+      if (!stored) { setAuthChecking(false); return; }
+
+      if (isTokenStale(stored)) {
+        // Token expired or expiring soon — refresh before setting authenticated
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          localStorage.removeItem('mt_token');
+          setAuthChecking(false);
+          return;
+        }
+      }
+
+      // Token is valid — now safe to set authenticated and load data
+      setAuthenticated(true);
+      setAuthChecking(false);
+    };
+    init();
+  }, []);
 
   useEffect(() => {
     if (authenticated) {
@@ -198,6 +223,14 @@ export default function App() {
     window.addEventListener('mt:update-header', handler);
     return () => window.removeEventListener('mt:update-header', handler);
   }, []);
+
+  if (authChecking) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-base)' }}>
+        <RefreshCw size={24} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">

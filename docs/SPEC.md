@@ -919,13 +919,14 @@ The following fields are appended to `node.v1.json` to support manual creation a
 
 ### 13.1 Overview
 
-MemTrace supports two registration and login paths:
+MemTrace supports two authentication mechanisms:
 
-| Path | Description |
-|------|-------------|
-| **Email + Password** | Traditional credential-based registration with email verification |
+| Mechanism | Availability |
+|-----------|-------------|
+| **Email + Password** | Always available — all deployment modes |
+| **Magic Link** (passwordless email link) | **Only available when `registration_mode = invite_only`** |
 
-Both paths produce the same internal `User` object and session token. Features and permissions are identical regardless of how the user signed up.
+Both mechanisms produce the same internal `User` object and session token on success.
 
 ---
 
@@ -967,6 +968,31 @@ Both paths produce the same internal `User` object and session token. Features a
 
 ---
 
+### 13.3 Magic Link (Invite-Only Mode)
+
+Magic Link is a passwordless authentication path that is **only active when `MEMTRACE_REGISTRATION_MODE=invite_only`**. In all other modes (`open`, `domain`, `approval`, `closed`), the endpoints return 403 and the UI hides the option.
+
+#### 13.3.1 Use Cases
+
+- **Invitation acceptance** — a workspace admin invites a user by email; the system sends a Magic Link that simultaneously authenticates and completes workspace onboarding.
+- **Passwordless login** — in a closed/invite-only deployment, users who have not set a password can authenticate via email link.
+
+#### 13.3.2 Token Flow
+
+1. Client posts email to `POST /auth/magic-link/request`.
+2. Server checks `registration_mode == "invite_only"`; rejects with 403 otherwise.
+3. A single-use token (`secrets.token_urlsafe(32)`) is generated, SHA-256 hashed, stored in `magic_link_tokens` with a 15-minute TTL, and emailed to the user.
+4. Rate limit: max 1 token per email per minute (to prevent flooding).
+5. User clicks the link → `POST /auth/magic-link/verify` with the raw token.
+6. Server hashes token → looks up `magic_link_tokens` → validates `used_at IS NULL` and `expires_at > now()`.
+7. Marks token as used, creates user if `purpose = registration`, signs JWT + refresh token.
+
+#### 13.3.3 Security Properties
+
+- Raw token is never stored; only SHA-256 hash persists.
+- One-time use enforced via `used_at` timestamp (prevents replay).
+- 15-minute expiry window.
+- Response is identical whether or not the email is registered (prevents enumeration).
 
 ---
 
@@ -1012,15 +1038,17 @@ Both paths produce the same internal `User` object and session token. Features a
 
 ### 13.6 API Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/auth/register` | Email + password registration |
-| `POST` | `/auth/login` | Email + password login |
-| `POST` | `/auth/logout` | Invalidate current session |
-| `POST` | `/auth/refresh` | Refresh session token |
-| `POST` | `/auth/forgot-password` | Request password reset email |
-| `POST` | `/auth/reset-password` | Submit new password with reset token |
-| `GET` | `/auth/me` | Return current authenticated user |
+| Method | Path | Mode | Description |
+|--------|------|------|-------------|
+| `POST` | `/auth/register` | all | Email + password registration |
+| `POST` | `/auth/login` | all | Email + password login |
+| `POST` | `/auth/logout` | all | Invalidate current session |
+| `POST` | `/auth/refresh` | all | Refresh session token |
+| `POST` | `/auth/forgot-password` | all | Request password reset email |
+| `POST` | `/auth/reset-password` | all | Submit new password with reset token |
+| `GET` | `/auth/me` | all | Return current authenticated user |
+| `POST` | `/auth/magic-link/request` | `invite_only` only | Request a Magic Link email |
+| `POST` | `/auth/magic-link/verify` | `invite_only` only | Verify token and issue session |
 
 ## 14. External API Access & MCP Integration
 
@@ -1037,45 +1065,48 @@ Both mechanisms share the same authorization model (API keys, §14.2) and enforc
 
 ---
 
-### 14.2 API Keys for External Access
+### 14.2 Account-Level API Keys
 
-External actors (services, agents, scripts) authenticate using **API keys** rather than session tokens. API keys are scoped to a specific user account and optionally to a specific Knowledge Base.
+External actors (services, agents, MCP-connected AI tools) authenticate using **account-level API keys**. These keys are tied to a specific user account and carry **no fixed scope**; instead, they inherit the key owner's membership role in each workspace at request time.
 
-#### 14.2.1 Key Properties
+#### 14.2.1 Key Model
 
 ```json
 {
   "id": "apikey_abc123",
   "name": "My Agent",
   "prefix": "mt_live_xxxx",
-  "scopes": ["kb:read", "kb:write", "node:traverse", "node:rate"],
-  "workspace_id": "ws_abc123 | null",
   "created_at": "<date-time>",
   "last_used_at": "<date-time> | null",
   "expires_at": "<date-time> | null"
 }
 ```
 
-- `workspace_id: null` means the key is valid across all workspaces the user owns or has access to.
-- The full key value is shown **once** at creation and never again. Only the prefix is stored server-side (hashed).
-- Keys are passed in the `Authorization: Bearer mt_live_xxxx...` header (same header as session tokens; the server distinguishes by prefix).
+- The key carries **no workspace binding** and **no static scope**. It acts as the owning user across every workspace they are a member of.
+- When the key is used to access workspace `ws_X`, the server resolves the owner's membership role in `ws_X` and enforces that role's capabilities. If the owner is an admin in `ws_X`, the key has admin access; if the owner is a viewer, the key has read-only access; if the owner has no membership, the key is denied.
+- The full key value is shown **once** at creation and never again. Only a short prefix is stored server-side (as a SHA-256 hash).
+- Keys are passed in the `Authorization: Bearer mt_live_xxxx...` header.
 
-#### 14.2.2 Scopes
+#### 14.2.2 Permission Resolution
 
-| Scope | Grants |
-|-------|--------|
-| `kb:read` | List and read Knowledge Bases, nodes, and edges |
-| `kb:write` | Create and edit nodes and edges within accessible KBs |
-| `node:traverse` | Record a traversal event on a node or edge |
-| `node:rate` | Submit an explicit path rating on an edge |
+At every authenticated request, the server performs the following resolution when the caller presents an account-level key:
+
+1. Look up the key by hash → resolve owning `user_id`.
+2. Look up `workspace_members` for `(user_id, workspace_id)` → read the member's `role`.
+3. Apply the capabilities of that role (viewer / contributor / admin) to the current request.
+
+This means a single key gives the user exactly the right level of access to each knowledge base — no over-provisioning, no manual scope management.
 
 #### 14.2.3 Management Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/keys` | List all API keys for the authenticated user |
-| `POST` | `/api/keys` | Create a new API key |
-| `DELETE` | `/api/keys/{id}` | Revoke an API key |
+| `GET` | `/api/v1/users/me/api-keys` | List all account-level API keys |
+| `POST` | `/api/v1/users/me/api-keys` | Create a new account-level API key |
+| `POST` | `/api/v1/users/me/api-keys/{id}/rotate` | Rotate a key (invalidates old, issues new) |
+| `DELETE` | `/api/v1/users/me/api-keys/{id}` | Revoke an API key |
+
+> **Note:** Workspace service tokens (for CI/CD pipelines and shared automation with a fixed scope) are described separately in §29.
 
 ---
 
@@ -1687,9 +1718,22 @@ The workspace **owner** is always an admin and cannot be demoted.
 - `DELETE /workspaces/{ws_id}` — initiate soft-delete (§12)
 - `POST /workspaces/{ws_id}/restore` — cancel pending deletion
 
-### 10.4 API Key Scopes
+### 10.4 API Key Authorization
 
-API keys (used by AI tools and CLI integrations) carry a role encoded as a scope:
+MemTrace supports two categories of API key, each with a different authorization model:
+
+#### Account-Level Keys (personal, §14.2)
+
+These keys carry **no fixed scope**. Authorization is resolved dynamically at each request:
+
+- The server looks up the key's owning user, then reads that user's membership role in the target workspace.
+- The key is granted exactly the capabilities of that role (viewer / contributor / admin).
+- A single key automatically has the right level of access in every workspace the owner belongs to — admin in some, viewer in others.
+- MCP tools that connect via an account-level key operate as the owning user; they cannot exceed the user's actual permissions in any workspace.
+
+#### Workspace Service Tokens (shared automation, §29)
+
+These tokens carry a **fixed scope** that is set at creation time and does not vary per workspace:
 
 | Scope | Role | Description |
 |-------|------|-------------|
@@ -1697,7 +1741,7 @@ API keys (used by AI tools and CLI integrations) carry a role encoded as a scope
 | `kb:propose` | contributor | All read + submit proposals |
 | `kb:write` | admin | Full write access |
 
-An API key may hold exactly one of these three scopes. MCP tools respect the key's scope identically to a human user of the same role — a `kb:read` key cannot call `create_node`, a `kb:propose` key can call `propose_node`, and a `kb:write` key can call `create_node` directly.
+A service token is workspace-owned, not tied to any user account, and is intended for CI/CD pipelines and shared MCP integrations where a personal identity is inappropriate.
 
 ### 10.5 Default Role on Join
 
@@ -3035,12 +3079,16 @@ RESEND_API_KEY=re_xxxx      # if using Resend
 
 ## 29. Workspace API Keys (Service Tokens)
 
-Distinct from personal AI provider keys (for LLM calls), Workspace API Keys are **service-account tokens** scoped to a specific workspace and used for programmatic access — MCP tools, CI/CD pipelines, and API ingestion.
+Workspace API Keys are **service-account tokens** scoped to a specific workspace and used for shared programmatic access — CI/CD pipelines, ingestion automation, and MCP integrations that should not be tied to any individual user identity.
+
+> **When to use which key type:**
+> - Use an **account-level key** (§14.2) when the caller represents a specific user — e.g., a personal MCP agent that should respect that user's role in each workspace, or a personal CLI tool.
+> - Use a **workspace service token** (this section) when the caller is infrastructure — e.g., a CI pipeline that ingests documents, or a shared MCP server used by the whole team, where no individual identity is appropriate.
 
 ### 29.1 Ownership Model
-- A Workspace API Key is owned by the workspace, created by an admin.
-- It is **not tied to a specific user account**.
-- Multiple keys may exist per workspace (e.g., one for MCP, one for CI).
+- A Workspace API Key is owned by the workspace, not any individual user.
+- It is created and managed by workspace admins.
+- Multiple keys may exist per workspace (e.g., one for ingestion, one for MCP read access).
 
 ### 29.2 Scopes
 

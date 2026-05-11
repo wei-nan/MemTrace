@@ -135,12 +135,13 @@ async def mcp_sse(
     proto = request.headers.get("x-forwarded-proto") or request.url.scheme
     host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
     base = f"{proto}://{host}"
-    post_url = f"{base}/messages?sessionId={session_id}"
+    messages_path = request.url.path.rsplit("/", 1)[0] + "/messages"
+    post_url = f"{base}{messages_path}?sessionId={session_id}"
 
     async def event_stream():
         try:
-            # 1 — Tell client where to POST
-            yield f"event: endpoint\ndata: {json.dumps({'uri': post_url})}\n\n"
+            # 1 — Tell client where to POST (data must be plain URI string per MCP SSE spec)
+            yield f"event: endpoint\ndata: {post_url}\n\n"
 
             # 2 — Relay responses from the queue
             while True:
