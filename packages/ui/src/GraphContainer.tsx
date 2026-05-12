@@ -309,15 +309,13 @@ export default function GraphContainer({
                   setGraphMode(mode);
                   if (mode !== 'explore') setExploreRootNodeId(null);
                 }}
-                disabled={mode === 'explore' && !exploreRootNodeId}
                 style={{
                   padding: '0 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   border: 'none', height: '100%',
                   background: graphMode === mode ? 'var(--color-primary)' : 'transparent',
-                  color: graphMode === mode ? 'white' : (mode === 'explore' && !exploreRootNodeId ? 'var(--text-disabled)' : 'var(--text-muted)'),
+                  color: graphMode === mode ? 'white' : 'var(--text-muted)',
                   transition: 'all 0.15s',
                   display: 'flex', alignItems: 'center', gap: 5,
-                  opacity: mode === 'explore' && !exploreRootNodeId ? 0.5 : 1,
                 }}
               >
                 {mode === '2d' ? <Network size={12} /> : mode === '3d' ? <Layers size={12} /> : mode === 'table' ? <Table2 size={12} /> : <Compass size={12} />}

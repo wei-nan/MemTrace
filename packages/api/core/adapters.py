@@ -44,15 +44,44 @@ class TextAdapter:
         return ext in ["txt", "md"] or mime_type.startswith("text/")
 
     async def parse(self, stream: BinaryIO, filename: str) -> NormalizedDocument:
-        raw_text = stream.read().decode("utf-8", errors="replace")
-        
+        raw_bytes = stream.read()
+        raw_text = self._safe_decode(raw_bytes)
+
         # For now, we use a simple single-segment representation.
-        # The complex chunking logic remains in ingest.py for now, 
+        # The complex chunking logic remains in ingest.py for now,
         # or we could move it here later.
         return NormalizedDocument(
             filename=filename,
             segments=[NormalizedSegment(content=raw_text)]
         )
+
+    @staticmethod
+    def _safe_decode(raw_bytes: bytes) -> str:
+        """
+        Decode raw bytes to str, using chardet to detect non-UTF-8 encodings
+        (e.g. Big5, GB2312) before falling back to UTF-8 with replacement.
+        This prevents the garbled-character bug where Big5-encoded bytes are
+        misinterpreted as UTF-8 sequences (I-103).
+        """
+        # Fast path: valid UTF-8
+        try:
+            return raw_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            pass
+
+        # Try chardet detection (requires the 'chardet' package)
+        try:
+            import chardet
+            detected = chardet.detect(raw_bytes)
+            enc = detected.get("encoding") or "utf-8"
+            confidence = detected.get("confidence", 0)
+            if confidence >= 0.7 and enc.lower() not in ("utf-8", "ascii"):
+                return raw_bytes.decode(enc, errors="replace")
+        except ImportError:
+            pass
+
+        # Final fallback: UTF-8 with replacement chars
+        return raw_bytes.decode("utf-8", errors="replace")
 
 # ── Excel / CSV Adapter ────────────────────────────────────────────────────────
 

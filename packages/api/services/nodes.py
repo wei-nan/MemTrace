@@ -995,19 +995,49 @@ CONNECT_SYSTEM = (
     "4. No markdown, no fences, no explanations."
 )
 
-def list_review_queue_in_db(cur, ws_id: str, limit: int, user: dict) -> list[dict]:
+def list_review_queue_in_db(cur, ws_id: str, limit: int, user: dict) -> dict:
     from services.workspaces import require_ws_access
     require_ws_access(cur, ws_id, user, write=False)
+
+    # 1. Fetch pending proposals from review_queue table
     cur.execute(
-        """SELECT id, title_zh, title_en, content_type, trust_score,
-                  updated_at, validity_confirmed_at
-           FROM memory_nodes
-           WHERE workspace_id = %s AND status = 'active'
-             AND (trust_score < 0.3 OR status = 'answered-low-trust')
-           ORDER BY trust_score ASC LIMIT %s""",
+        """SELECT id, change_type, target_node_id, status, created_at, proposer_type,
+                  COALESCE(node_data->>'title_en', '') as title_en, 
+                  COALESCE(node_data->>'title_zh', '') as title_zh
+           FROM review_queue
+           WHERE workspace_id = %s AND status = 'pending'
+           ORDER BY created_at DESC
+           LIMIT %s""",
         (ws_id, limit),
     )
-    return cur.fetchall()
+    proposals = [dict(r) for r in cur.fetchall()]
+
+    # 2. Fetch anomalous nodes from memory_nodes (quality issues)
+    cur.execute(
+        """SELECT id, title_zh, title_en, content_type, trust_score,
+                  source_type, updated_at, validity_confirmed_at,
+                  char_length(COALESCE(body_zh, '')) AS body_zh_len
+           FROM memory_nodes
+           WHERE workspace_id = %s AND status = 'active'
+             AND (
+               -- Low trust
+               trust_score < 0.7
+               -- AI-generated node with very short body AND low traversal (atomic facts are OK if well-used)
+               OR (source_type = 'ai' AND char_length(COALESCE(body_zh, '')) < 80 AND traversal_count < 3)
+               -- Body contains unfilled placeholders
+               OR body_zh LIKE '%%??%%'
+               OR body_en LIKE '%%??%%'
+             )
+           ORDER BY trust_score ASC, updated_at DESC
+           LIMIT %s""",
+        (ws_id, limit),
+    )
+    anomalous = [dict(r) for r in cur.fetchall()]
+
+    return {
+        "pending_proposals": proposals,
+        "anomalous_nodes": anomalous
+    }
 
 async def find_similar_node_in_db(cur, ws_id: str, text: str, user_id: str, threshold: float = 0.92) -> Optional[dict]:
     """Find a node in the database that is semantically similar to the given text."""

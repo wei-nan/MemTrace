@@ -142,8 +142,8 @@ async def perform_semantic_search(
     except (HTTPException, AIProviderUnavailable):
         raise
     except Exception as exc:
-        print(f"Semantic search failed: {exc}")
-        return []
+        logger.error(f"Semantic search failed for workspace {ws_id}: {exc}")
+        raise RuntimeError(f"Semantic search failed: {str(exc)}")
 
 
 # ─── Text Search ──────────────────────────────────────────────────────────────
@@ -193,13 +193,15 @@ async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Opti
     )
     text_results = cur.fetchall()
     
-    # 2. Semantic Search
+    # 2. Semantic Search (gracefully degrade if no provider key configured)
     semantic_results = []
     user_id = user["sub"] if user else "system"
     ws_model = ws.get("embedding_model")
     ws_prov = ws.get("embedding_provider")
-    
-    semantic_results = await perform_semantic_search(cur, ws_id, query, user_id, limit, ws_model, ws_prov)
+    try:
+        semantic_results = await perform_semantic_search(cur, ws_id, query, user_id, limit, ws_model, ws_prov)
+    except (AIProviderUnavailable, RuntimeError, Exception):
+        pass  # fall through to keyword-only results
     
     # 3. Combine and De-duplicate
     seen_ids = set()

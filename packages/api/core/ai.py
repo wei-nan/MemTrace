@@ -759,18 +759,23 @@ class GeminiProvider(AIProvider):
                         continue
 
     async def embed(self, resolved, text):
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{resolved.model}:embedContent?key={resolved.api_key}",
-                json={
-                    "model": f"models/{resolved.model}",
-                    "content": {"parts": [{"text": text}]}
-                }
-            )
-        if not resp.is_success:
-            raise AIProviderError(f"Gemini embed {resp.status_code}: {resp.text[:400]}")
-        data = resp.json()
-        return data["embedding"]["values"], 0 # Gemini embedding usage unknown
+        # text-embedding-004 (and later stable models) lives under /v1/, not /v1beta/.
+        # We try /v1/ first and fall back to /v1beta/ for experimental models.
+        for api_ver in ("v1", "v1beta"):
+            async with httpx.AsyncClient(timeout=60) as client:
+                resp = await client.post(
+                    f"https://generativelanguage.googleapis.com/{ api_ver}/models/{resolved.model}:embedContent?key={resolved.api_key}",
+                    json={
+                        "model": f"models/{resolved.model}",
+                        "content": {"parts": [{"text": text}]}
+                    }
+                )
+            if resp.status_code == 404 and api_ver == "v1":
+                continue  # retry with v1beta
+            if not resp.is_success:
+                raise AIProviderError(f"Gemini embed {resp.status_code}: {resp.text[:400]}")
+            data = resp.json()
+            return data["embedding"]["values"], 0  # Gemini embedding usage unknown
 
     async def extract_structured(self, resolved, system, user_message,
                                   max_tokens=4096, temperature=0.2):
@@ -1082,9 +1087,24 @@ def resolve_provider(
         if preferred_provider:
             query += " AND provider = %s"
             params.append(preferred_provider)
-        
+
         cur.execute(query, params)
         rows = cur.fetchall()
+
+        # Fallback: if the caller has no key, try the system-level key pool
+        # (user_id = 'system') — set up by workspace admins for shared embedding access.
+        if not rows and user_id != "system":
+            fallback_query = (
+                "SELECT provider, key_enc, base_url, auth_mode, auth_token, "
+                "default_chat_model, default_embedding_model, last_used_at "
+                "FROM user_ai_keys WHERE user_id = 'system'"
+            )
+            fallback_params: list = []
+            if preferred_provider:
+                fallback_query += " AND provider = %s"
+                fallback_params.append(preferred_provider)
+            cur.execute(fallback_query, fallback_params)
+            rows = cur.fetchall()
 
     if not rows:
         if feature == "embedding" and not preferred_provider:

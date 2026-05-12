@@ -27,6 +27,36 @@ from services.ingest.persistence import persist_nodes
 
 logger = logging.getLogger(__name__)
 
+# ─── Schema Metadata (P4.11-I-106) ───────────────────────────────────────────
+
+RELATION_DESCRIPTIONS = {
+    "depends_on": "The source node requires the target node's information to be complete or valid.",
+    "extends": "The source node provides additional details or builds upon the target node.",
+    "related_to": "Generic connection between two relevant concepts.",
+    "contradicts": "The source node contains information that conflicts with the target node.",
+    "answered_by": "The source node (inquiry) is answered or resolved by the target node (factual/procedural).",
+    "similar_to": "Both nodes cover similar topics or concepts.",
+    "queried_via_mcp": "The node was involved in a query made through the MCP interface.",
+}
+
+CONTENT_TYPE_DESCRIPTIONS = {
+    "factual": "Concrete, verifiable information and definitions.",
+    "procedural": "Step-by-step instructions, guides, or workflows.",
+    "preference": "User preferences, style guides, or subjective choices.",
+    "context": "Background information necessary to understand other nodes.",
+    "inquiry": "Questions, issues, or gaps in knowledge that need answering.",
+}
+
+RELATION_WEIGHTS = {
+    "depends_on": 0.8,
+    "extends": 0.7,
+    "related_to": 0.5,
+    "contradicts": -1.0,
+    "answered_by": 1.0,
+    "similar_to": 0.4,
+    "queried_via_mcp": 0.2,
+}
+
 # ─── JSON-RPC Helpers ─────────────────────────────────────────────────────────
 
 def jsonrpc_error(id: Any, code: int, message: str) -> dict:
@@ -343,29 +373,51 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         include_archived = args.get("include_archived", False)
         
         results = []
+        warnings = []
         with db_cursor() as cur:
             workspaces = list_workspaces_in_db(cur, search=None, user=user)
+            
+            # Group by (prov, model) to minimize embedding calls and detect dim issues early
+            model_groups = {}
             for ws in workspaces:
                 ws_id = ws["id"]
-                # Get workspace config for provider locking
                 cur.execute("SELECT embedding_model, embedding_provider FROM workspaces WHERE id = %s", (ws_id,))
-                ws_row = cur.fetchone()
-                ws_model = ws_row["embedding_model"] if ws_row else None
-                ws_prov = ws_row["embedding_provider"] if ws_row else None
+                row = cur.fetchone()
+                key = (row["embedding_provider"], row["embedding_model"]) if row else (None, None)
+                if key not in model_groups: model_groups[key] = []
+                model_groups[key].append(ws)
                 
-                ws_res = await perform_semantic_search(
-                    cur, ws_id, query_text, user["sub"], 
-                    limit=limit_per, ws_model=ws_model, ws_prov=ws_prov,
-                    include_archived=include_archived
-                )
-                for r in ws_res:
-                    r["workspace_name"] = ws["name"]
-                results.extend(ws_res)
+            for (prov, model), group_wss in model_groups.items():
+                try:
+                    # Search each workspace in the group. perform_semantic_search will
+                    # call embed() for the first one in the group (internally cached or per-call).
+                    # Note: perform_semantic_search now raises RuntimeError on failure.
+                    for ws in group_wss:
+                        try:
+                            ws_res = await perform_semantic_search(
+                                cur, ws["id"], query_text, user["sub"], 
+                                limit=limit_per, ws_model=model, ws_prov=prov,
+                                include_archived=include_archived
+                            )
+                            for r in ws_res:
+                                r["workspace_name"] = ws["name"]
+                            results.extend(ws_res)
+                        except Exception as e:
+                            warnings.append(f"Skipped workspace '{ws['name']}': {str(e)}")
+                except Exception as group_err:
+                    # This shouldn't happen usually as the inner loop catches, but just in case
+                    warnings.append(f"Model group {model} failed: {str(group_err)}")
         
         # Sort combined results by similarity
         results.sort(key=lambda x: x.get("similarity", 0), reverse=True)
-        log_mcp_interaction(background_tasks, "all", name, query_text=query_text, result_count=len(results))
-        return results[:20]
+        final_res = results[:20]
+        
+        log_mcp_interaction(background_tasks, "all", name, query_text=query_text, result_count=len(final_res))
+        
+        output = {"results": final_res}
+        if warnings:
+            output["warnings"] = warnings
+        return output
 
     # ── create_node ───────────────────────────────────────────────────────────
     if name == "create_node":
@@ -438,7 +490,6 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 direction="both",
                 include_source=False,
                 viewer_role=viewer_role,
-                viewer_id=user["sub"]
             )
             log_mcp_interaction(background_tasks, ws_id, name, node_id=root_id)
             return result
@@ -452,21 +503,49 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
 
     # ── get_schema ────────────────────────────────────────────────────────────
     if name == "get_schema":
+        relation_info = {
+            r: {
+                "description": RELATION_DESCRIPTIONS.get(r, ""),
+                "default_weight": RELATION_WEIGHTS.get(r, 1.0)
+            } for r in VALID_RELATIONS
+        }
+        content_type_info = {
+            ct: CONTENT_TYPE_DESCRIPTIONS.get(ct, "") for ct in VALID_CONTENT_T
+        }
         return {
-            "content_types": sorted(VALID_CONTENT_T),
-            "relations":     sorted(VALID_RELATIONS),
+            "content_types": content_type_info,
+            "relations":     relation_info,
             "fields": {
-                "id":            "string — unique node ID",
-                "title_zh":      "string — Chinese title",
-                "title_en":      "string — English title",
-                "body_zh":       "string — Chinese body",
-                "body_en":       "string — English body",
-                "content_type":  "one of content_types",
-                "tags":          "array of strings",
-                "trust_score":   "float 0.0–1.0",
-                "status":        "active | archived",
-                "created_at":    "ISO8601 datetime",
-                "updated_at":    "ISO8601 datetime",
+                "id":             "string — unique node ID (mem_...)",
+                "workspace_id":   "string — workspace identifier",
+                "title_zh":       "string — Chinese title",
+                "title_en":       "string — English title",
+                "body_zh":        "string — Chinese body content",
+                "body_en":        "string — English body content",
+                "content_type":   "string — classification (factual, procedural, inquiry, etc.)",
+                "content_format": "string — 'plain' or 'markdown'",
+                "tags":           "array of strings — keywords and categories",
+                "visibility":     "string — 'public', 'team', or 'private'",
+                "trust_score":    "float 0.0–1.0 — composite reliability score",
+                "dim_accuracy":   "float 0.0–1.0 — accuracy dimension of trust",
+                "dim_freshness":  "float 0.0–1.0 — freshness dimension of trust",
+                "dim_utility":    "float 0.0–1.0 — utility dimension of trust",
+                "dim_author_rep": "float 0.0–1.0 — author reputation dimension",
+                "source_type":    "string — 'human', 'ai', 'mcp', 'document', etc.",
+                "source_doc_node_id": "string — ID of the source document node (if extracted)",
+                "source_paragraph_ref": "string — reference to specific paragraph in source",
+                "validity_confirmed_at": "datetime — last manual confirmation of validity",
+                "validity_confirmed_by": "string — email of the confirmer",
+                "ask_count":      "integer — number of times this node was explicitly requested",
+                "miss_count":     "integer — number of times this node was a candidate but dismissed",
+                "traversal_count": "integer — number of times this node was traversed via edges",
+                "unique_traverser_count": "integer — number of unique users who traversed this node",
+                "status":         "string — 'active', 'archived', 'gap', etc.",
+                "archived_at":    "datetime — when the node was archived",
+                "created_at":     "datetime — node creation time",
+                "updated_at":     "datetime — last update time",
+                "author":         "string — email or ID of the creator",
+                "signature":      "string — SHA-256 content signature",
             },
         }
 

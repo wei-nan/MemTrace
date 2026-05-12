@@ -80,7 +80,8 @@ from services.nodes import (
 )
 from services.edges import (
     write_mcp_interaction_edge as _write_mcp_interaction_edge,
-    record_traversal as _record_traversal
+    record_traversal as _record_traversal,
+    create_edge_in_db as _create_edge_in_db,
 )
 from services.search import (
     bfs_neighborhood as _bfs_neighborhood,
@@ -299,7 +300,6 @@ async def get_neighborhood(
             cur, workspace_id, node_id, depth, relation, direction,
             include_source=include_source,
             viewer_role=viewer_role,
-            viewer_id=viewer_id,
         )
 
         return result
