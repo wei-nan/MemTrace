@@ -50,6 +50,18 @@ export interface Node {
   validity_confirmed_by?: string | null;
   content_stripped?: boolean;
   ask_count: number;
+  cluster_id?: string | null;
+}
+
+export interface NodeCluster {
+  id: string;
+  workspace_id: string;
+  name_zh: string;
+  name_en: string;
+  color: string;
+  node_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface NodeCreatePayload {

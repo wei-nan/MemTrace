@@ -280,7 +280,7 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `schema_version` | TEXT            | `'1.0'`                            |
 | `title_zh`     | TEXT              | Bilingual title (zh-TW)            |
 | `title_en`     | TEXT              | Bilingual title (en)               |
-| `content_type` | ENUM              | factual / procedural / preference / context |
+| `content_type` | ENUM              | factual / procedural / preference / context / inquiry |
 | `body_zh`      | TEXT              | Bilingual body (zh-TW)             |
 | `body_en`      | TEXT              | Bilingual body (en)                |
 | `tags`         | TEXT[]            | GIN-indexed                        |
@@ -302,6 +302,22 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `status`       | ENUM              | active / archived; archived nodes are hidden from default views |
 | `archived_at`  | TIMESTAMPTZ       | Null unless status = 'archived'    |
 | `embedding`    | vector            | Cosine similarity; Phase 4.1 uses dynamic dimensions (sequential scan with workspace filter) |
+| `cluster_id`   | TEXT FK           | → `node_clusters.id` ON DELETE SET NULL; nullable — null means unclustered |
+
+**`node_clusters`**
+
+| Column         | Type              | Notes                              |
+|----------------|-------------------|------------------------------------|
+| `id`           | TEXT PK           | e.g. `cl_abc123`                   |
+| `workspace_id` | TEXT FK           | → `workspaces.id`                  |
+| `name_zh`      | TEXT              | Cluster display name (zh-TW)       |
+| `name_en`      | TEXT              | Cluster display name (en)          |
+| `color`        | TEXT              | UI accent key: blue / teal / violet / amber / rose / primary / green / red |
+| `created_at`   | TIMESTAMPTZ       |                                    |
+| `updated_at`   | TIMESTAMPTZ       |                                    |
+
+Clusters are per-workspace and created on demand by the AI extraction pipeline or manually via the API. Deleting a cluster sets `cluster_id = NULL` on all its nodes (FK `ON DELETE SET NULL`).
+
 **`edges`**
 
 | Column            | Type          | Notes                          |
@@ -309,7 +325,7 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `id`              | TEXT PK       | e.g. `edge_xyz789`             |
 | `from_id`         | TEXT FK       | → `memory_nodes.id`            |
 | `to_id`           | TEXT FK       | → `memory_nodes.id`            |
-| `relation`        | ENUM          | depends_on / extends / related_to / contradicts |
+| `relation`        | ENUM          | depends_on / extends / related_to / contradicts / answered_by / similar_to / queried_via_mcp |
 | `weight`          | NUMERIC(6,5)  | 0–1, updated by decay          |
 | `status`          | ENUM          | active / faded / pinned; faded edges are hidden from default traversal |
 | `co_access_count` | INTEGER       |                                |
@@ -686,21 +702,62 @@ The AI provider receives a structured prompt that includes:
    > "You are a knowledge graph extraction assistant. Your goal is to convert source material into the smallest possible set of atomic Memory Nodes connected by the richest possible set of typed edges. A node must contain exactly one idea — if you find two ideas in a segment, split them. An edge is not optional: every node you produce must have at least one proposed edge to another node in the output, unless it is the only node extracted. The design goal is that a human or AI agent can reach any answer by following the shortest possible path through the graph."
 
 2. **Segment text**: The raw text of the chunk being processed (or transcript segment, slide text, etc.).
-3. **Workspace context**: The `kb_type` (`evergreen` or `ephemeral`), existing node titles in the workspace (to avoid duplication), and the edge type vocabulary (`depends_on`, `extends`, `related_to`, `contradicts`).
+3. **Workspace context**: The `kb_type` (`evergreen` or `ephemeral`), existing node titles in the workspace (to avoid duplication), the edge type vocabulary (`depends_on`, `extends`, `related_to`, `contradicts`, `answered_by`, `similar_to`, `queried_via_mcp`), and the existing cluster names in the workspace (to guide cluster assignment or propose a new cluster name).
 4. **Quality constraints** (included in the prompt):
    - A node body must not repeat information already expressed in the title.
    - A node body should be as short as possible while remaining self-contained.
    - Prefer `depends_on` and `extends` over `related_to` when a more specific relationship can be inferred.
    - If two candidate nodes could be merged without losing specificity, merge them.
-5. **Output schema**: A JSON array of candidate nodes, each with `title_zh`, `title_en`, `content_type`, `body_zh`, `body_en`, `tags`, and a `suggested_edges[]` array referencing other nodes in the same output by their array index.
+5. **Output schema**: A JSON array of candidate nodes, each with `title_zh`, `title_en`, `content_type` (one of the five valid values), `body_zh`, `body_en`, `tags`, `cluster_name_zh`, `cluster_name_en` (the cluster this node belongs to — use an existing cluster name when applicable, otherwise propose a new short name), and a `suggested_edges[]` array referencing other nodes in the same output by their array index.
 
 The prompt is sent once per segment. The provider must return a valid JSON array. If it does not, the segment is flagged as an extraction failure and shown to the user for manual handling.
 
-### 11.4 Copying a Node to Another Knowledge Base
+### 11.4 Dynamic Cluster System
+
+Each workspace has a set of **node clusters** (`node_clusters` table). A cluster is a named topic group (e.g. "API Design", "Security Rules") that organises nodes for visual grouping and filtering in the graph view.
+
+#### 11.4.1 AI Assignment
+
+During ingestion the extraction prompt includes the workspace's existing cluster names. The model is instructed to:
+
+1. Assign each extracted node to the **best-matching existing cluster** by returning `cluster_name_zh` and `cluster_name_en` in the node output.
+2. **Propose a new cluster name** (short, 1–3 words) only when the node clearly does not fit any existing cluster.
+
+The pipeline resolves the proposed name to a cluster id via `get_or_create_cluster` (case-insensitive match on `name_en`). The resolved `cluster_id` is stored on the node before it enters the review queue.
+
+#### 11.4.2 Human Override
+
+Users and editors can reassign any node to a different cluster (or remove its cluster assignment) at any time via:
+
+```
+PATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}/cluster
+{ "cluster_id": "cl_xxx" | null }
+```
+
+Cluster metadata itself (name, colour) is editable via:
+
+```
+GET    /api/v1/workspaces/{ws_id}/clusters
+POST   /api/v1/workspaces/{ws_id}/clusters
+PATCH  /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
+DELETE /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
+```
+
+Deleting a cluster sets `cluster_id = NULL` on all its nodes; nodes are not deleted.
+
+#### 11.4.3 Unclustered Nodes
+
+Nodes with `cluster_id = NULL` are considered unclustered. In the 2D graph view they are rendered in a separate area after all cluster groups. The cluster filter chip row shows only assigned clusters; selecting no chip displays all nodes.
+
+#### 11.4.4 Backfill
+
+Existing nodes created before the cluster system was introduced will have `cluster_id = NULL`. They can be reassigned manually or via a future batch backfill job.
+
+### 11.5 Copying a Node to Another Knowledge Base
 
 Any individual Memory Node can be copied to a different Knowledge Base. Edges are **not** copied — only the node's content, metadata, and trust snapshot are transferred.
 
-#### 11.4.1 Behavior
+#### 11.5.1 Behavior
 
 - The copied node receives a **new `id`** in the target Knowledge Base.
 - `provenance.created_at` is set to the time of the copy operation.
@@ -709,11 +766,11 @@ Any individual Memory Node can be copied to a different Knowledge Base. Edges ar
 - The original node and its Edges are unaffected.
 - The `signature` (SHA-256) is recomputed from the copied content in the target workspace context.
 
-#### 11.4.2 Trust on Copy
+#### 11.5.2 Trust on Copy
 
 Trust scores are carried over as a snapshot. They are not linked — subsequent votes or verifications in either workspace do not affect the other copy.
 
-#### 11.4.3 Visibility on Copy
+#### 11.5.3 Visibility on Copy
 
 The copied node's `visibility` defaults to `private` in the target Knowledge Base, regardless of its visibility in the source. The user may change it after copying.
 

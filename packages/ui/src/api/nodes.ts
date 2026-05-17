@@ -32,6 +32,7 @@ export interface Node {
   validity_confirmed_by?: string | null;
   content_stripped?: boolean;
   ask_count: number;
+  cluster_id?: string | null;
 }
 
 export interface NodeCreatePayload {

@@ -1264,6 +1264,7 @@ async def extract_nodes_structured(
     text: str,
     context: Optional[Union[str, List[str]]] = None,
     doc_type: str = "generic",
+    cluster_context: Optional[str] = None,
     max_tokens: int = 4096,
     temperature: float = 0.2,
     _retries: int = 3,
@@ -1274,9 +1275,9 @@ async def extract_nodes_structured(
     """
     import asyncio as _asyncio
     import logging as _logging
-    
+
     system = get_extraction_prompt(doc_type)
-    
+
     # Construct user message from text and context
     ctx_str = ""
     if context:
@@ -1284,8 +1285,9 @@ async def extract_nodes_structured(
             ctx_str = f"\nContext: {' > '.join(context)}"
         else:
             ctx_str = f"\nContext: {context}"
-    
-    user_message = f"{text}{ctx_str}"
+
+    cluster_str = f"\n{cluster_context}" if cluster_context else ""
+    user_message = f"{text}{ctx_str}{cluster_str}"
     
     delay = 5.0
     for attempt in range(_retries + 1):
@@ -1398,11 +1400,16 @@ CRITICAL JSON FORMATTING RULES — failure to follow these will break the output
   paraphrase them in plain language instead.
 - If you are unsure whether a character needs escaping, escape it.
 
-content_type MUST be exactly one of these four values (no other values allowed):
+content_type MUST be exactly one of these five values (no other values allowed):
 - "factual"    — a fact, rule, definition, data model, business rule, requirement, constraint
 - "procedural" — a step-by-step process, workflow, API endpoint, use case, user story
 - "preference" — a non-functional requirement, config choice, design decision, performance target
 - "context"    — background info, overview, rationale, note
+- "inquiry"    — an open question, unknown, or unresolved decision that needs follow-up
+
+cluster_name_en: Assign each node to a logical topic cluster. If the user message lists existing \
+clusters, prefer those names. Only propose a new cluster name when the node clearly does not fit \
+any existing cluster. Keep cluster names short (1-3 words).
 
 Output a JSON array of nodes. Each node:
 {
@@ -1412,6 +1419,8 @@ Output a JSON array of nodes. Each node:
   "body_zh": "...",
   "body_en": "...",
   "tags": ["..."],
+  "cluster_name_zh": "功能需求",
+  "cluster_name_en": "Requirements",
   "suggested_edges": [{"to_index": 1, "relation": "depends_on"}],
   "source_segment": "brief paraphrase of the source passage (not a verbatim copy)",
   "confidence_score": 0.95

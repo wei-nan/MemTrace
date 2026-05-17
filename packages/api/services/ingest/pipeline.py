@@ -124,7 +124,19 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
             resolved = resolve_provider(user_id, "extraction", preferred_provider=ws_extraction_provider)
         else:
             resolved = resolve_with_fallback(user_id, "extraction")
-        
+
+        # Build cluster context string for the AI prompt
+        from services.clusters import fetch_clusters_for_prompt
+        cluster_list = fetch_clusters_for_prompt(ws_id)
+        cluster_context: str = ""
+        if cluster_list:
+            names = ", ".join(f'{c["name_en"]} ({c["name_zh"]})' for c in cluster_list)
+            cluster_context = (
+                f"Existing clusters in this workspace: [{names}]. "
+                "Assign each node to the best-matching cluster using its exact name, "
+                "or propose a new short cluster name only when no existing cluster fits."
+            )
+
         total_tokens = 0
 
         # 4. API Seed nodes
@@ -166,7 +178,10 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                     cur.execute("""UPDATE ingestion_logs SET progress = %s WHERE id = %s""", (progress, job_id))
 
                 # Extract
-                raw_nodes, tokens = await extract_nodes_structured(resolved, chunk_text_data, headings, doc_type=doc_type)
+                raw_nodes, tokens = await extract_nodes_structured(
+                    resolved, chunk_text_data, headings,
+                    doc_type=doc_type, cluster_context=cluster_context or None,
+                )
                 total_tokens += tokens
                 record_usage(resolved, "extraction", tokens, workspace_id=ws_id)
 
@@ -178,6 +193,21 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
 
                 for n in nodes_data:
                     n["source_segment"] = chunk_text_data[:2000]
+
+                # Resolve cluster_id from AI-proposed names
+                if nodes_data:
+                    from services.clusters import get_or_create_cluster
+                    with db_cursor(commit=True) as cl_cur:
+                        for n in nodes_data:
+                            cname_zh = n.pop("cluster_name_zh", None) or ""
+                            cname_en = n.pop("cluster_name_en", None) or ""
+                            if cname_en:
+                                try:
+                                    n["cluster_id"] = get_or_create_cluster(
+                                        cl_cur, ws_id, cname_zh or cname_en, cname_en
+                                    )
+                                except Exception:
+                                    pass
 
                 # Persist
                 para_ref = f"Chunk {i+1}"

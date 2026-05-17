@@ -635,15 +635,79 @@ def apply_split(ws_id: str, rev_id: str, body: ApplySplitRequest, user: dict = D
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Review record not found")
-        
+
         target_node_id = row["target_node_id"]
         # Use provided proposals if any, otherwise use from DB
         proposals = body.proposals or row["split_suggestion"]
-        
+
         if not proposals:
             raise HTTPException(status_code=400, detail="No split proposals found")
-            
+
         return apply_split_in_db(cur, ws_id, rev_id, target_node_id, proposals, user["sub"])
 
+
+# ── Node Clusters ─────────────────────────────────────────────────────────────
+
+class ClusterCreate(BaseModel):
+    name_zh: str
+    name_en: str
+    color: str = "blue"
+
+class ClusterUpdate(BaseModel):
+    name_zh: Optional[str] = None
+    name_en: Optional[str] = None
+    color: Optional[str] = None
+
+class NodeClusterAssign(BaseModel):
+    cluster_id: Optional[str] = None
+
+
+@router.get("/workspaces/{ws_id}/clusters")
+def list_clusters(ws_id: str, user: dict = Depends(get_current_user)):
+    _require_ws_access(ws_id, user["sub"], "viewer")
+    from services.clusters import list_clusters as _list_clusters
+    return _list_clusters(ws_id)
+
+
+@router.post("/workspaces/{ws_id}/clusters", status_code=201)
+def create_cluster(ws_id: str, body: ClusterCreate, user: dict = Depends(get_current_user)):
+    _require_ws_access(ws_id, user["sub"], "editor")
+    from services.clusters import get_or_create_cluster
+    with db_cursor(commit=True) as cur:
+        cluster_id = get_or_create_cluster(cur, ws_id, body.name_zh, body.name_en, body.color)
+    from services.clusters import list_clusters as _list_clusters
+    rows = _list_clusters(ws_id)
+    return next((r for r in rows if r["id"] == cluster_id), {"id": cluster_id})
+
+
+@router.patch("/workspaces/{ws_id}/clusters/{cluster_id}")
+def update_cluster(ws_id: str, cluster_id: str, body: ClusterUpdate, user: dict = Depends(get_current_user)):
+    _require_ws_access(ws_id, user["sub"], "editor")
+    from services.clusters import update_cluster as _update_cluster
+    try:
+        return _update_cluster(ws_id, cluster_id, body.model_dump(exclude_none=True))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete("/workspaces/{ws_id}/clusters/{cluster_id}", status_code=204)
+def delete_cluster(ws_id: str, cluster_id: str, user: dict = Depends(get_current_user)):
+    _require_ws_access(ws_id, user["sub"], "editor")
+    from services.clusters import delete_cluster as _delete_cluster
+    _delete_cluster(ws_id, cluster_id)
+
+
+@router.patch("/workspaces/{ws_id}/nodes/{node_id}/cluster")
+def assign_node_cluster(ws_id: str, node_id: str, body: NodeClusterAssign, user: dict = Depends(get_current_user)):
+    _require_ws_access(ws_id, user["sub"], "editor")
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "UPDATE memory_nodes SET cluster_id = %s, updated_at = now() "
+            "WHERE id = %s AND workspace_id = %s RETURNING id",
+            (body.cluster_id, node_id, ws_id),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Node not found")
+    return {"ok": True}
 
 

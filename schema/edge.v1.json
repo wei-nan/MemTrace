@@ -17,7 +17,16 @@
     },
     "relation": {
       "type": "string",
-      "enum": ["depends_on", "extends", "related_to", "contradicts"]
+      "enum": [
+        "depends_on",
+        "extends",
+        "related_to",
+        "contradicts",
+        "answered_by",
+        "similar_to",
+        "queried_via_mcp"
+      ],
+      "description": "depends_on: requires target. extends: specialises target. related_to: weak semantic link. contradicts: logical conflict. answered_by: inquiry resolved by target. similar_to: semantically parallel. queried_via_mcp: created by MCP traversal."
     },
     "weight": {
       "type": "number",

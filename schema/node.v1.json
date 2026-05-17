@@ -25,7 +25,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["factual", "procedural", "preference", "context"]
+          "enum": ["factual", "procedural", "preference", "context", "inquiry"]
         },
         "format": {
           "type": "string",
@@ -151,5 +151,6 @@
     "trust",
     "traversal"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "_note_cluster": "cluster_id is stored in the DB column memory_nodes.cluster_id (FK → node_clusters.id). It is not part of the immutable content hash but is returned in all node API responses."
 }

@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <title>MemTrace · 知識圖譜</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:        oklch(0.985 0.004 90);
+      --bg-2:      oklch(0.972 0.005 90);
+      --bg-3:      oklch(0.96 0.006 90);
+      --line:      oklch(0.91 0.006 90);
+      --line-2:    oklch(0.86 0.008 90);
+      --ink:       oklch(0.32 0.014 250);
+      --ink-strong:oklch(0.18 0.018 250);
+      --ink-mute:  oklch(0.55 0.014 250);
+      --ink-faint: oklch(0.72 0.012 250);
+      --dot:       oklch(0.92 0.006 90);
+      --edge:      oklch(0.75 0.014 250);
+
+      --c-primary: oklch(0.58 0.13 165);
+      --c-blue:    oklch(0.62 0.13 240);
+      --c-teal:    oklch(0.66 0.11 195);
+      --c-violet:  oklch(0.60 0.16 295);
+      --c-amber:   oklch(0.74 0.13 80);
+      --c-rose:    oklch(0.65 0.16 15);
+
+      --sans: "Geist", "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
+      --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    }
+
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+    body { font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; }
+    button { font: inherit; color: inherit; }
+
+    /* ───── Shell ───── */
+    .shell {
+      display: grid;
+      grid-template-columns: 252px 1fr;
+      grid-template-rows: 56px 52px 1fr;
+      grid-template-areas:
+        "side head"
+        "side tool"
+        "side main";
+      height: 100vh;
+      width: 100vw;
+    }
+    .shell.has-detail {
+      grid-template-columns: 252px 1fr 360px;
+      grid-template-areas:
+        "side head detail"
+        "side tool detail"
+        "side main detail";
+    }
+    .shell > .side { grid-area: side; }
+    .shell > .head { grid-area: head; }
+    .shell > .tool { grid-area: tool; }
+    .shell > .main { grid-area: main; overflow: hidden; position: relative; min-width: 0; }
+    .shell > .detail { grid-area: detail; }
+
+    /* ───── Sidebar ───── */
+    .side {
+      background: var(--bg-2);
+      border-right: 1px solid var(--line);
+      padding: 18px 14px;
+      display: flex; flex-direction: column; gap: 16px;
+      overflow-y: auto;
+    }
+    .side::-webkit-scrollbar { width: 6px; }
+    .side::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 3px; }
+    .side-brand { display: flex; align-items: center; gap: 10px; padding: 2px 4px; }
+    .side-logo { width: 32px; height: 32px; border-radius: 9px;
+      background: var(--c-primary); color: white;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .side-brand-text b { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; display: block; color: var(--ink-strong); }
+    .side-brand-text span { font-size: 10.5px; font-family: var(--mono); color: var(--ink-mute); letter-spacing: 0.04em; }
+
+    .side-workspace-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ink-mute); margin-bottom: 6px; padding: 0 4px;
+    }
+    .side-workspace-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; border-radius: 9px; border: 1px solid var(--line-2);
+      background: var(--bg); color: var(--ink-strong); cursor: default;
+      font-weight: 500; font-size: 13px;
+    }
+    .side-workspace-btn:hover { border-color: var(--c-primary); }
+
+    .side-search {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 9px;
+      background: var(--bg); border: 1px solid var(--line);
+    }
+    .side-search svg { color: var(--ink-mute); flex-shrink: 0; }
+    .side-search input {
+      flex: 1; border: 0; background: transparent; outline: none;
+      font: 12.5px/1 var(--sans); color: var(--ink-strong); min-width: 0;
+    }
+    .side-search input::placeholder { color: var(--ink-faint); }
+    .side-search button {
+      width: 16px; height: 16px; border-radius: 50%; border: 0;
+      background: var(--line); color: var(--ink); cursor: default;
+      font-size: 11px; line-height: 1; padding: 0;
+    }
+
+    .side-nav { display: flex; flex-direction: column; gap: 1px; }
+    .side-nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 8px 12px;
+      border-radius: 8px; border: 0; background: transparent; cursor: default;
+      color: var(--ink); text-align: left;
+    }
+    .side-nav-item:hover { background: var(--bg-3); }
+    .side-nav-item.is-active { background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-strong); }
+    .side-nav-item.is-active svg { color: var(--c-primary); }
+    .side-nav-text { display: flex; flex-direction: column; line-height: 1.15; flex: 1; }
+    .side-nav-text .label { font-size: 13px; font-weight: 500; }
+    .side-nav-badge {
+      min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+      background: var(--c-primary); color: white; font-size: 10px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; font-family: var(--mono);
+    }
+
+    .side-section { display: flex; flex-direction: column; }
+    .side-section-h {
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding: 0 6px; margin-bottom: 6px;
+    }
+    .side-section-h span:first-child { font-size: 11px; font-weight: 600; color: var(--ink-strong); }
+
+    .side-clusters { display: flex; flex-direction: column; gap: 1px; }
+    .side-cluster {
+      display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center;
+      padding: 6px 10px; border-radius: 7px; border: 0; background: transparent;
+      cursor: default; text-align: left;
+    }
+    .side-cluster:hover { background: var(--bg-3); }
+    .side-cluster:not(.is-on) { opacity: 0.42; }
+    .side-cluster:not(.is-on):hover { opacity: 0.7; }
+    .side-cluster-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .side-cluster-label b { font-size: 12.5px; font-weight: 500; color: var(--ink-strong); display: block; line-height: 1.2; }
+    .side-clusters-compact .side-cluster { padding: 4px 10px; }
+    .side-clusters-compact .side-cluster-label b { font-size: 12px; }
+    .side-cluster-count { font-size: 10px; font-family: var(--mono); color: var(--ink-mute); }
+
+    .side-edges { display: flex; flex-direction: column; gap: 1px; }
+    .side-edge {
+      display: grid; grid-template-columns: 14px 28px 1fr; gap: 8px; align-items: center;
+      padding: 5px 6px; border-radius: 6px; cursor: default; font-size: 12px;
+    }
+    .side-edge:hover { background: var(--bg-3); }
+    .side-edge input { accent-color: var(--c-primary); cursor: default; margin: 0; }
+    .side-edge .side-edge-zh { color: var(--ink-strong); }
+    .side-edge:not(.is-on) .side-edge-zh { color: var(--ink-faint); }
+
+    .side-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+    .side-foot-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; }
+    .side-foot-row:hover { background: var(--bg-3); }
+    .side-foot-row > span { width: 28px; height: 28px; border-radius: 50%; background: var(--c-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+    .side-foot-row > div { flex: 1; line-height: 1.15; min-width: 0; }
+    .side-foot-row b { font-size: 12.5px; color: var(--ink-strong); display: block; font-weight: 500; }
+    .side-foot-row em { font-size: 10px; font-family: var(--mono); color: var(--ink-mute); font-style: normal; }
+
+    /* ───── Header row ───── */
+    .head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; border-bottom: 1px solid var(--line); background: var(--bg);
+      gap: 16px; min-width: 0;
+    }
+    .head-l { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .head h1 { font-size: 15px; font-weight: 600; margin: 0; color: var(--ink-strong); }
+    .head-meta { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--ink-mute); font-family: var(--mono); }
+    .head-meta-num { color: var(--ink); }
+    .head-dot { width: 3px; height: 3px; background: var(--ink-faint); border-radius: 50%; }
+    .head-r { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .head-user {
+      display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px;
+      border-radius: 999px; background: var(--bg-2);
+      font-size: 13px; color: var(--ink-strong);
+    }
+    .head-avatar {
+      width: 24px; height: 24px; border-radius: 50%; background: var(--c-primary);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600;
+    }
+
+    /* ───── Toolbar row ───── */
+    .tool {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center; padding: 0 24px; gap: 14px;
+      border-bottom: 1px solid var(--line); background: var(--bg-2);
+    }
+    .tool-l { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .tool-c { display: flex; justify-content: center; }
+    .tool-r { display: flex; align-items: center; gap: 6px; justify-content: flex-end; min-width: 0; }
+
+    .tool-warn {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+      border-radius: 999px;
+      background: oklch(0.96 0.04 80);
+      color: oklch(0.42 0.12 70); font-weight: 500; font-size: 11.5px;
+      border: 1px solid oklch(0.86 0.10 80);
+    }
+    .tool-warn svg { color: oklch(0.55 0.13 70); }
+    .tool-limit { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-mute); }
+    .tool-limit select {
+      font: 12px var(--sans); padding: 4px 8px 4px 10px; border-radius: 7px;
+      border: 1px solid var(--line); background: var(--bg); color: var(--ink-strong);
+      cursor: default;
+    }
+
+    .tool-view {
+      display: flex; background: var(--bg); border-radius: 9px; padding: 3px;
+      border: 1px solid var(--line);
+    }
+    .tool-view button {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 10px; border-radius: 6px; border: 0; background: transparent;
+      font: 600 10.5px/1 var(--mono); letter-spacing: 0.06em; color: var(--ink-mute); cursor: default;
+    }
+    .tool-view button svg { color: currentColor; }
+    .tool-view button.is-on { background: var(--c-primary); color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+    .tool-view button:not(.is-on):hover { color: var(--ink-strong); background: var(--bg-3); }
+
+    .tool-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 11px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--bg); color: var(--ink-strong); cursor: default; font-size: 12.5px; font-weight: 500;
+      transition: border-color .15s, background .15s, color .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tool-btn svg { color: var(--ink-mute); }
+    .tool-btn:hover { border-color: var(--c-primary); color: var(--c-primary); }
+    .tool-btn:hover svg { color: var(--c-primary); }
+    .tool-btn.is-on {
+      background: var(--c-primary); color: white; border-color: var(--c-primary);
+    }
+    .tool-btn.is-on svg { color: white; }
+    .tool-btn.is-on:hover { filter: brightness(1.06); }
+    .tool-btn:disabled { opacity: 0.4; cursor: default; }
+    .tool-btn:disabled:hover { border-color: var(--line); color: var(--ink-strong); }
+    .tool-btn:disabled:hover svg { color: var(--ink-mute); }
+    .tool-btn.is-primary {
+      background: var(--c-primary); color: white; border-color: var(--c-primary);
+      padding: 6px 14px;
+    }
+    .tool-btn.is-primary:hover { filter: brightness(1.06); }
+    .tool-btn-plus { font-size: 14px; font-weight: 400; line-height: 1; }
+
+    /* Responsive collapse */
+    @media (max-width: 1280px) {
+      .tool-btn .tool-btn-zh { display: none; }
+      .tool-btn.is-primary { padding: 6px 10px; }
+    }
+    @media (max-width: 1180px) {
+      .tool-warn span { display: none; }
+      .tool-view button span { display: none; }
+      .tool-limit-label { display: none; }
+    }
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 220px 1fr; }
+      .shell.has-detail { grid-template-columns: 220px 1fr 320px; }
+      .head, .tool { padding-left: 14px; padding-right: 14px; }
+      .tool { grid-template-columns: auto 1fr auto; gap: 8px; }
+    }
+
+    /* ───── Main canvas ───── */
+    .main { background: var(--bg); }
+    .gc-wrap { position: absolute; inset: 0; overflow: hidden; }
+    .gc-svg { display: block; user-select: none; }
+    .gc-svg text { font-family: var(--sans); }
+    .gc-hint {
+      position: absolute; left: 16px; bottom: 14px; display: flex; gap: 14px; align-items: center;
+      font-size: 11px; color: var(--ink-mute); pointer-events: none;
+    }
+    .gc-hint kbd {
+      font-family: var(--mono); font-size: 9.5px; padding: 2px 5px; border-radius: 3px;
+      background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); margin-right: 4px;
+    }
+    .gc-hint-en { font-family: var(--mono); color: var(--ink-faint); margin-left: 4px; }
+
+    .gc-zoom {
+      position: absolute; left: 16px; top: 16px;
+      display: flex; flex-direction: column; gap: 1px;
+      background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+      padding: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .gc-zoom button {
+      width: 28px; height: 28px; border: 0; background: transparent; border-radius: 6px;
+      cursor: default; color: var(--ink); font-size: 13px;
+    }
+    .gc-zoom button:hover { background: var(--bg-3); }
+    .gc-zoom-pct {
+      font: 9.5px/1 var(--mono); text-align: center; color: var(--ink-mute);
+      padding: 3px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    }
+
+    .gc-mini {
+      position: absolute; right: 16px; bottom: 16px;
+      border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06); background: var(--bg);
+    }
+
+    /* ───── 3D canvas ───── */
+    .gc3-wrap {
+      position: absolute; inset: 0; overflow: hidden;
+      user-select: none;
+      transition: background .3s;
+    }
+    .gc3-wrap svg { user-select: none; }
+    .gc3-wrap text { font-family: var(--sans); user-select: none; }
+    .gc3-legend {
+      position: absolute; top: 16px; left: 16px;
+      display: flex; flex-direction: column; gap: 4px;
+      pointer-events: none; font-size: 11px;
+      font-feature-settings: "tnum";
+    }
+    .gc3-legend-row {
+      display: grid; grid-template-columns: 14px auto auto; gap: 7px; align-items: center;
+    }
+    .gc3-legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .gc3-legend em {
+      font-style: normal; font-family: var(--mono); font-size: 9px; opacity: 0.55;
+      letter-spacing: 0.02em;
+    }
+    .gc3-badge {
+      position: absolute; top: 16px; right: 16px;
+      display: flex; gap: 14px; padding: 7px 13px;
+      border: 1px solid; border-radius: 999px;
+      font-size: 11.5px; pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+    .gc3-badge em { font-style: normal; font-family: var(--mono); font-size: 9.5px; opacity: 0.55; margin-left: 4px; }
+    .gc3-hint {
+      position: absolute; bottom: 16px; left: 16px;
+      font-size: 11px; pointer-events: none; letter-spacing: 0.02em;
+    }
+
+    /* ───── Detail panel ───── */
+    .detail {
+      border-left: 1px solid var(--line);
+      background: var(--bg-2);
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+    .detail::-webkit-scrollbar { width: 6px; }
+    .detail::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 3px; }
+    .detail-hd { display: flex; align-items: flex-start; gap: 10px; padding: 22px 22px 18px; border-bottom: 1px solid var(--line); }
+    .detail-hd-l { flex: 1; min-width: 0; }
+    .detail-cluster { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-mute); margin-bottom: 8px; }
+    .detail-cluster-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .detail h2 { font-size: 17px; font-weight: 600; line-height: 1.3; margin: 0 0 4px; color: var(--ink-strong); }
+    .detail-x {
+      width: 26px; height: 26px; border-radius: 7px; border: 0; background: var(--bg-3);
+      color: var(--ink-mute); cursor: default; font-size: 12px; flex-shrink: 0;
+    }
+    .detail-x:hover { background: var(--line); color: var(--ink-strong); }
+
+    .detail-meta { padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--line); }
+    .detail-meta > div { display: grid; grid-template-columns: 70px 1fr auto; gap: 12px; align-items: center; font-size: 12px; }
+    .detail-meta-k { font: 10.5px/1 var(--mono); color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; }
+    .detail-meta-v { color: var(--ink-strong); font-family: var(--mono); font-size: 11.5px; }
+    .detail-meta code { font: 11px/1 var(--mono); color: var(--ink-strong); background: var(--bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); }
+    .detail-meta-bar { height: 4px; background: var(--bg-3); border-radius: 2px; overflow: hidden; }
+    .detail-meta-bar > div { height: 100%; }
+    .detail-meta em { font-style: normal; font-family: var(--mono); font-size: 10px; color: var(--ink-mute); }
+
+    .detail-section { padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .detail-section-h {
+      display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;
+    }
+    .detail-section-h span { font-size: 11px; font-weight: 600; color: var(--ink-strong); }
+    .detail-section-h em { font-style: normal; font: 9.5px/1 var(--mono); color: var(--ink-faint); }
+    .detail-summary { font-size: 13px; line-height: 1.55; color: var(--ink); margin: 0 0 6px; text-wrap: pretty; }
+
+    .detail-neighbors { display: flex; flex-direction: column; gap: 2px; }
+    .detail-neighbor {
+      display: grid; grid-template-columns: 8px 1fr auto; gap: 10px; align-items: center;
+      padding: 8px 10px; border-radius: 7px; border: 0; background: transparent;
+      cursor: default; text-align: left; width: 100%;
+    }
+    .detail-neighbor:hover { background: var(--bg); }
+    .detail-neighbor-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .detail-neighbor-text { min-width: 0; }
+    .detail-neighbor-text b { display: block; font-size: 12.5px; font-weight: 500; color: var(--ink-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-neighbor-kind { font: 9.5px/1 var(--mono); padding: 2px 6px; border-radius: 3px; background: var(--bg); border: 1px solid var(--line); }
+    .detail-empty { padding: 8px 10px; font-size: 12px; color: var(--ink-mute); font-style: italic; }
+
+    .detail-foot { padding: 14px 22px 22px; display: flex; gap: 8px; }
+    .detail-act {
+      flex: 1; padding: 9px 0; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--bg); color: var(--ink-strong); cursor: default; font-size: 12.5px; font-weight: 500;
+      display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .detail-act:hover { border-color: var(--c-primary); color: var(--c-primary); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="graph-data.jsx"></script>
+  <script type="text/babel" src="graph-canvas.jsx"></script>
+  <script type="text/babel" src="graph-3d.jsx"></script>
+  <script type="text/babel" src="app-chrome.jsx"></script>
+
+  <script type="text/babel">
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "graphView": "3D",
+      "density": "regular",
+      "showHalos": true,
+      "showEdgeLabels": true,
+      "dof": false,
+      "darkMode3D": true,
+      "language": "zh"
+    }/*EDITMODE-END*/;
+
+    function App() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      const data = window.MEMTRACE_DATA;
+
+      const [search, setSearch] = React.useState("");
+      const [viewMode, setViewMode] = React.useState(t.graphView || "3D");
+      const [limit, setLimit] = React.useState(500);
+      const [dof, setDof] = React.useState(t.dof);
+      const [activeClusters, setActiveClusters] = React.useState(new Set(data.CLUSTERS.map(c => c.id)));
+      const [activeContentTypes, setActiveContentTypes] = React.useState(new Set(data.CONTENT_TYPES.map(c => c.id)));
+      const [edgeKinds, setEdgeKinds] = React.useState(new Set(data.RELATIONS.map(r => r.id)));
+      const [selected, setSelected] = React.useState(null);
+      const [hovered, setHovered] = React.useState(null);
+      const [layoutSeed, setLayoutSeed] = React.useState(0);
+
+      const lang = t.language || "zh";
+
+      React.useEffect(() => { setTweak("graphView", viewMode); }, [viewMode]);
+      React.useEffect(() => { setTweak("dof", dof); }, [dof]);
+
+      React.useEffect(() => {
+        const r = document.documentElement.style;
+        if (t.density === "compact") r.setProperty("font-size", "13px");
+        else if (t.density === "comfy") r.setProperty("font-size", "15px");
+        else r.removeProperty("font-size");
+      }, [t.density]);
+
+      const clusterCounts = React.useMemo(() => {
+        const c = {};
+        for (const n of data.NODES) c[n.cluster] = (c[n.cluster] || 0) + 1;
+        return c;
+      }, [data]);
+      const ctCounts = React.useMemo(() => {
+        const c = {};
+        for (const n of data.NODES) c[n.ct] = (c[n.ct] || 0) + 1;
+        return c;
+      }, [data]);
+
+      const shownNodes = React.useMemo(() => {
+        return data.NODES.filter(n => {
+          if (!activeClusters.has(n.cluster)) return false;
+          if (!activeContentTypes.has(n.ct)) return false;
+          if (!search) return true;
+          const q = search.toLowerCase();
+          return n.label.toLowerCase().includes(q) || n.en.toLowerCase().includes(q);
+        }).slice(0, limit);
+      }, [data, activeClusters, activeContentTypes, search, limit]);
+
+      const shownEdges = React.useMemo(() => {
+        const ids = new Set(shownNodes.map(n => n.id));
+        return data.EDGES.filter(([a,b,k]) => ids.has(a) && ids.has(b) && edgeKinds.has(k));
+      }, [shownNodes, data.EDGES, edgeKinds]);
+
+      const isolated = React.useMemo(() => {
+        const connected = new Set();
+        for (const [a,b] of shownEdges) { connected.add(a); connected.add(b); }
+        return shownNodes.filter(n => !connected.has(n.id)).length;
+      }, [shownEdges, shownNodes]);
+
+      const selectedNode = selected ? data.NODES.find(n => n.id === selected) : null;
+      const selectedCT = selectedNode ? data.CONTENT_TYPES.find(c => c.id === selectedNode.ct) : null;
+      const neighbors = React.useMemo(() => {
+        if (!selectedNode) return [];
+        const out = [];
+        for (const [a,b,k] of data.EDGES) {
+          if (a === selectedNode.id) out.push({ n: data.NODES.find(n => n.id === b), kind: k });
+          else if (b === selectedNode.id) out.push({ n: data.NODES.find(n => n.id === a), kind: k });
+        }
+        return out.filter(x => x.n).map(x => ({
+          ...x,
+          ct: data.CONTENT_TYPES.find(c => c.id === x.n.ct),
+          rel: data.RELATIONS.find(r => r.id === x.kind),
+        }));
+      }, [selectedNode, data]);
+
+      const hasDetail = !!selectedNode;
+
+      React.useEffect(() => {
+        if (viewMode !== "3D" && dof) setDof(false);
+      }, [viewMode]);
+
+      const handleAction = (action) => {
+        if (action === "relayout") setLayoutSeed(s => s + 1);
+      };
+
+      const renderMain = () => {
+        if (viewMode === "table") return (
+          <TableView
+            nodes={shownNodes}
+            ctById={Object.fromEntries(data.CONTENT_TYPES.map(c=>[c.id,c]))}
+            setSelected={setSelected}
+          />
+        );
+        if (viewMode === "explore") return (
+          <ComingSoon mode="Explore" zh="Explore 模式" en="Explore mode — coming soon" setViewMode={setViewMode} />
+        );
+        if (viewMode === "3D") return (
+          <GraphCanvas3D
+            key={`3d-${layoutSeed}`}
+            data={data}
+            edgeKinds={edgeKinds}
+            activeContentTypes={activeContentTypes}
+            search={search}
+            selected={selected} setSelected={setSelected}
+            hovered={hovered} setHovered={setHovered}
+            dof={dof}
+            dark={t.darkMode3D}
+          />
+        );
+        return (
+          <GraphCanvas
+            data={data}
+            search={search}
+            activeClusters={activeClusters}
+            edgeKinds={edgeKinds}
+            selected={selected} setSelected={setSelected}
+            hovered={hovered} setHovered={setHovered}
+            density={t.density}
+            showHalos={t.showHalos}
+            showEdgeLabels={t.showEdgeLabels}
+          />
+        );
+      };
+
+      return (
+        <div className={`shell ${hasDetail ? "has-detail" : ""}`}>
+          <Sidebar
+            lang={lang}
+            data={data}
+            search={search} setSearch={setSearch}
+            activeContentTypes={activeContentTypes} setActiveContentTypes={setActiveContentTypes}
+            activeClusters={activeClusters} setActiveClusters={setActiveClusters}
+            edgeKinds={edgeKinds} setEdgeKinds={setEdgeKinds}
+            counts={clusterCounts} ctCounts={ctCounts}
+          />
+          <HeaderBar
+            lang={lang}
+            counts={{ shown: shownNodes.length, edges: shownEdges.length }}
+          />
+          <Toolbar
+            lang={lang}
+            isolated={isolated}
+            limit={limit} setLimit={setLimit}
+            viewMode={viewMode} setViewMode={setViewMode}
+            dof={dof} setDof={setDof}
+            onAction={handleAction}
+          />
+          <main className="main">{renderMain()}</main>
+          {hasDetail && (
+            <DetailPanel
+              lang={lang}
+              node={selectedNode}
+              contentType={selectedCT}
+              neighbors={neighbors}
+              onClose={() => setSelected(null)}
+              onJump={(id) => setSelected(id)}
+            />
+          )}
+
+          <TweaksPanel>
+            <TweakSection label="Language" />
+            <TweakRadio
+              label="Display"
+              value={lang}
+              options={["zh", "en"]}
+              onChange={(v) => setTweak("language", v)}
+            />
+            <TweakSection label="View" />
+            <TweakRadio
+              label="Mode"
+              value={viewMode}
+              options={["2D", "3D"]}
+              onChange={setViewMode}
+            />
+            <TweakToggle
+              label="Dark canvas (3D)"
+              value={t.darkMode3D}
+              onChange={(v) => setTweak("darkMode3D", v)}
+            />
+            <TweakToggle
+              label="Depth-of-field (3D)"
+              value={dof}
+              onChange={setDof}
+            />
+            <TweakSection label="2D Layout" />
+            <TweakRadio
+              label="Density"
+              value={t.density}
+              options={["compact", "regular", "comfy"]}
+              onChange={(v) => setTweak("density", v)}
+            />
+            <TweakToggle
+              label="Cluster halos"
+              value={t.showHalos}
+              onChange={(v) => setTweak("showHalos", v)}
+            />
+            <TweakToggle
+              label="Edge labels (on focus)"
+              value={t.showEdgeLabels}
+              onChange={(v) => setTweak("showEdgeLabels", v)}
+            />
+          </TweaksPanel>
+        </div>
+      );
+    }
+
+    function TableView({ nodes, ctById, setSelected }) {
+      return (
+        <div style={{ padding: "20px 24px", overflowY: "auto", height: "100%" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ textAlign: "left", color: "var(--ink-mute)", fontFamily: "var(--mono)", fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <th style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>Label · 名稱</th>
+                <th style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>Type</th>
+                <th style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>Cluster</th>
+                <th style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)", textAlign: "right" }}>Trust</th>
+                <th style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              {nodes.map(n => {
+                const ct = ctById[n.ct];
+                const rgb = ct.rgb;
+                return (
+                  <tr key={n.id} onClick={() => setSelected(n.id)} style={{ cursor: "default" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-2)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                    <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>
+                      <div style={{ color: "var(--ink-strong)", fontWeight: 500 }}>{n.label}</div>
+                      <div style={{ color: "var(--ink-mute)", fontSize: 10.5, fontFamily: "var(--mono)" }}>{n.en}</div>
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: `rgb(${rgb.join(",")})` }} />
+                        <span>{ct.zh}</span>
+                        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--ink-mute)", marginLeft: 4 }}>{ct.id}</span>
+                      </span>
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--ink-mute)" }}>{n.cluster}</td>
+                    <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)", textAlign: "right", fontFamily: "var(--mono)", fontSize: 11.5 }}>{n.trust.toFixed(2)}</td>
+                    <td style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-mute)" }}>{n.id}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function ComingSoon({ mode, zh, en, setViewMode }) {
+      return (
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, color: "var(--ink-mute)" }}>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <circle cx="24" cy="24" r="20" strokeDasharray="3 4" />
+            <circle cx="24" cy="24" r="3" />
+          </svg>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink-strong)" }}>{zh}</div>
+            <div style={{ fontFamily: "var(--mono)", fontSize: 11, marginTop: 4 }}>{en}</div>
+          </div>
+          <button onClick={() => setViewMode("3D")} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--bg)", cursor: "default", fontSize: 13 }}>
+            回到 3D · Back to 3D
+          </button>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

@@ -49,13 +49,13 @@ NODE_PUBLIC_COLUMNS = """
     signature, source_type, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
     traversal_count, unique_traverser_count, status, archived_at,
     copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
-    ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref
+    ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref, cluster_id
 """
 
 NODE_EDITABLE_FIELDS = [
     "title_zh", "title_en", "content_type", "content_format",
     "body_zh", "body_en", "tags", "visibility",
-    "source_doc_node_id", "source_paragraph_ref"
+    "source_doc_node_id", "source_paragraph_ref", "cluster_id"
 ]
 
 
@@ -180,8 +180,8 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             id, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en,
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
             status, dim_author_rep, trust_score, source_id,
-            source_doc_node_id, source_paragraph_ref
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            source_doc_node_id, source_paragraph_ref, cluster_id
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
@@ -195,6 +195,7 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             node_data.get("status", "active"),
             payload["dim_author_rep"], payload["trust_score"], node_data.get("source_id"),
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
+            node_data.get("cluster_id"),
         ),
     )
     return cur.fetchone()
@@ -217,7 +218,8 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
         UPDATE memory_nodes
         SET title_zh = %s, title_en = %s, content_type = %s, content_format = %s,
             body_zh = %s, body_en = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s,
-            source_id = %s, source_doc_node_id = %s, source_paragraph_ref = %s
+            source_id = %s, source_doc_node_id = %s, source_paragraph_ref = %s,
+            cluster_id = COALESCE(%s, cluster_id)
         WHERE id = %s AND workspace_id = %s
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
@@ -229,6 +231,7 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
             payload["signature"], datetime.now(timezone.utc),
             node_data.get("source_id", existing.get("source_id")),
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
+            payload.get("cluster_id"),
             node_id, ws_id,
         ),
     )

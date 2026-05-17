@@ -8,13 +8,24 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Archive, RefreshCw, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, FileUp, Compass } from 'lucide-react';
-import { nodes as nodesApi, edges as edgesApi, workspaces, type Node as ApiNode, type Edge as ApiEdge } from './api';
+import { nodes as nodesApi, edges as edgesApi, workspaces, clusters as clustersApi, type Node as ApiNode, type Edge as ApiEdge, type NodeCluster } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
 import TableView from './TableView';
 import NeighborhoodView from './NeighborhoodView';
 
 type GraphMode = '2d' | '3d' | 'table' | 'explore';
+
+const CLUSTER_ACCENT: Record<string, string> = {
+  blue:    '#3b82f6',
+  teal:    '#14b8a6',
+  violet:  '#8b5cf6',
+  amber:   '#f59e0b',
+  rose:    '#f43f5e',
+  primary: '#6366f1',
+  green:   '#10b981',
+  red:     '#ef4444',
+};
 
 const RELATION_COLORS: Record<string, string> = {
   depends_on:  'var(--color-primary)',
@@ -71,6 +82,18 @@ export default function GraphContainer({
   // ── Archive toggle (must precede load so it's in scope for the callback) ──
   const [showArchived, setShowArchived] = useState(false);
 
+  // ── Clusters ──────────────────────────────────────────────────────────────
+  const [wsClusters, setWsClusters] = useState<NodeCluster[]>([]);
+  const [activeClusters, setActiveClusters] = useState<Set<string>>(new Set());
+
+  const toggleCluster = useCallback((id: string) => {
+    setActiveClusters(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
   // ── Display limit ─────────────────────────────────────────────────────────
   const LIMIT_OPTIONS = [50, 100, 200, 500] as const;
   type LimitOption = typeof LIMIT_OPTIONS[number];
@@ -85,17 +108,19 @@ export default function GraphContainer({
     setError('');
     try {
       const queryLimit = String(displayLimit);
-      const [rawNodes, rawEdges, ws, analytics] = await Promise.all([
+      const [rawNodes, rawEdges, ws, analytics, clusterList] = await Promise.all([
         nodesApi.list(wsId, showArchived ? { status: 'all', limit: queryLimit } : { limit: queryLimit }),
         edgesApi.list(wsId),
         workspaces.get(wsId),
         workspaces.analytics(wsId).catch(() => null),
+        clustersApi.list(wsId).catch(() => [] as NodeCluster[]),
       ]);
       setApiNodes(rawNodes);
       setApiEdges(rawEdges);
       setWorkspace(ws);
       setTotalNodes(analytics?.total_nodes ?? null);
       setTotalOrphans(analytics?.orphan_node_count ?? 0);
+      setWsClusters(clusterList);
     } catch (e: any) {
       if (e.message.includes('403') || e.message.includes('401')) {
         try {
@@ -214,172 +239,191 @@ export default function GraphContainer({
         </div>
       )}
 
-      {/* ── Toolbar — left group (filters) + right group (view & actions) ───── */}
+      {/* ── Toolbar ────────────────────────────────────────────────────────── */}
       <header
         className="page-header animate-fade-in"
         style={{
-          padding: '16px 40px',
+          padding: '8px 24px',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          rowGap: 10,
-          columnGap: 16,
-          minHeight: 38,
+          rowGap: 6,
+          columnGap: 12,
           background: 'var(--bg-base)',
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        {/* ─── LEFT GROUP: badges + display limit ─────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {/* ─── LEFT: badges + limit ───────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {orphanCount > 0 && (
             <div
               onClick={() => { setOrphanFilter('orphan'); setGraphMode('table'); }}
               style={{
-                fontSize: 11, padding: '0 10px', borderRadius: 20, height: 28,
+                fontSize: 11, padding: '0 8px', borderRadius: 20, height: 26,
                 background: 'var(--color-warning-subtle)', color: 'var(--color-warning)',
-                cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-                border: '1px solid var(--color-warning)', whiteSpace: 'nowrap'
+                cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4,
+                border: '1px solid var(--color-warning)', whiteSpace: 'nowrap',
               }}
             >
-              <TriangleAlert size={14} />
-              {orphanCount} {zh ? '個孤立節點' : 'Orphans'}
+              <TriangleAlert size={12} />
+              {orphanCount} {zh ? '孤立' : 'Orphans'}
             </div>
           )}
           {atDisplayCap && (
             <div
               onClick={() => setGraphMode('table')}
-              title={zh ? '圖形視圖最多顯示 200 個節點，點擊切換至表格視圖以查看全部' : 'Graph view shows up to 200 nodes. Click to switch to Table view for all nodes.'}
+              title={zh ? '已達顯示上限，點擊切換表格視圖' : 'Display cap reached, click for table view'}
               style={{
-                fontSize: 11, padding: '0 10px', borderRadius: 20, height: 28,
+                fontSize: 11, padding: '0 8px', borderRadius: 20, height: 26,
                 background: 'var(--color-error-subtle)', color: 'var(--color-error)',
-                cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-                border: '1px solid var(--color-error)', whiteSpace: 'nowrap'
+                cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4,
+                border: '1px solid var(--color-error)', whiteSpace: 'nowrap',
               }}
             >
-              <TriangleAlert size={14} />
-              {zh ? `圖形上限 ${displayLimit}` : `Graph cap ${displayLimit}`}
+              <TriangleAlert size={12} />
+              {displayLimit}
             </div>
           )}
-          {(orphanCount > 0 || atDisplayCap) && (
-            <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
-          )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-              {zh ? '顯示上限' : 'Show'}
-            </span>
-            <select
-              value={displayLimit}
-              onChange={(e) => setDisplayLimit(Number(e.target.value) as LimitOption)}
-              style={{
-                padding: '0 28px 0 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
-                borderRadius: 8, color: 'var(--text-primary)', outline: 'none', height: 38,
-                boxShadow: 'var(--shadow-sm)',
-                appearance: 'none',
-                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 8px center',
-                backgroundSize: '14px',
-              }}
-            >
-              {LIMIT_OPTIONS.map(opt => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={displayLimit}
+            onChange={(e) => setDisplayLimit(Number(e.target.value) as LimitOption)}
+            title={zh ? '顯示上限' : 'Display limit'}
+            style={{
+              padding: '0 24px 0 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+              borderRadius: 7, color: 'var(--text-primary)', outline: 'none', height: 32,
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 7px center', backgroundSize: '12px',
+            }}
+          >
+            {LIMIT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
         </div>
 
-        {/* ─── RIGHT GROUP: view mode + tools + actions ───────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          {/* 2D / 3D / Table toggle */}
+        {/* ─── RIGHT: view toggle + tools + actions ───────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {/* View mode tabs */}
           <div style={{
-            display: 'flex',
-            background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
-            borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-sm)',
-            height: 38
+            display: 'flex', background: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)', borderRadius: 7,
+            overflow: 'hidden', height: 32,
           }}>
             {(['2d', '3d', 'table', 'explore'] as GraphMode[]).map(mode => (
               <button
                 key={mode}
-                onClick={() => {
-                  setGraphMode(mode);
-                  if (mode !== 'explore') setExploreRootNodeId(null);
-                }}
+                onClick={() => { setGraphMode(mode); if (mode !== 'explore') setExploreRootNodeId(null); }}
+                disabled={mode === 'explore' && !exploreRootNodeId}
                 style={{
-                  padding: '0 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  padding: '0 11px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                   border: 'none', height: '100%',
                   background: graphMode === mode ? 'var(--color-primary)' : 'transparent',
-                  color: graphMode === mode ? 'white' : 'var(--text-muted)',
-                  transition: 'all 0.15s',
-                  display: 'flex', alignItems: 'center', gap: 5,
+                  color: graphMode === mode ? 'white' : (mode === 'explore' && !exploreRootNodeId ? 'var(--text-disabled)' : 'var(--text-muted)'),
+                  transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4,
+                  opacity: mode === 'explore' && !exploreRootNodeId ? 0.4 : 1,
                 }}
               >
-                {mode === '2d' ? <Network size={12} /> : mode === '3d' ? <Layers size={12} /> : mode === 'table' ? <Table2 size={12} /> : <Compass size={12} />}
+                {mode === '2d' ? <Network size={11} /> : mode === '3d' ? <Layers size={11} /> : mode === 'table' ? <Table2 size={11} /> : <Compass size={11} />}
                 {mode.toUpperCase()}
               </button>
             ))}
           </div>
 
-          <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
+          <div style={{ width: 1, height: 20, background: 'var(--border-default)' }} />
 
-          {/* Tool toggles */}
           <button
-            className={showArchived ? "btn-primary" : "btn-secondary"}
+            className={showArchived ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setShowArchived(!showArchived)}
-            style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ height: 32, width: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             title={zh ? '顯示/隱藏已歸檔節點' : 'Toggle archived nodes'}
           >
-            <Archive size={16} />
-            {zh ? '歸檔' : 'Archived'}
+            <Archive size={14} />
           </button>
 
           {graphMode === '3d' && (
             <button
-              className={dofEnabled ? "btn-primary" : "btn-secondary"}
+              className={dofEnabled ? 'btn-primary' : 'btn-secondary'}
               onClick={() => setDofEnabled(!dofEnabled)}
-              style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
-              title={zh ? '景深模糊效果（Depth of Field）' : 'Depth of Field blur effect'}
+              style={{ height: 32, width: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title={zh ? '景深效果' : 'Depth of Field'}
             >
-              <Sparkles size={16} />
-              {zh ? '景深' : 'DOF'}
+              <Sparkles size={14} />
             </button>
           )}
 
           {!isPreview && wsId && (
-            <ConnectOrphansButton wsId={wsId} zh={zh} onDone={load} />
+            <ConnectOrphansButton wsId={wsId} zh={zh} onDone={load} compact />
           )}
 
           <button
             className="btn-secondary"
             onClick={load}
             disabled={loading}
-            style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ height: 32, width: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title={zh ? '重新整理' : 'Refresh'}
           >
-            <RefreshCw
-              size={16}
-              style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }}
-            />
-            {zh ? '重新整理' : 'Refresh'}
+            <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           </button>
 
-          <div style={{ width: 1, height: 24, background: 'var(--border-default)' }} />
+          <div style={{ width: 1, height: 20, background: 'var(--border-default)' }} />
 
           {!isPreview && (
             <button
               className="btn-primary"
               onClick={onNewNode}
-              style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+              style={{ height: 32, display: 'flex', alignItems: 'center', gap: 5, padding: '0 12px', whiteSpace: 'nowrap', fontSize: 12 }}
             >
-              <PlusCircle size={15} />
+              <PlusCircle size={13} />
               {zh ? '新增節點' : 'New Node'}
             </button>
           )}
         </div>
       </header>
+
+      {/* ── Cluster filter chips (shown when clusters exist, 2D/3D mode) ─── */}
+      {wsClusters.length > 0 && (graphMode === '2d' || graphMode === '3d') && (
+        <div style={{
+          padding: '6px 24px',
+          display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+          background: 'var(--bg-base)', borderBottom: '1px solid var(--border-subtle)',
+        }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginRight: 2 }}>
+            {zh ? '群組' : 'Clusters'}
+          </span>
+          {activeClusters.size > 0 && (
+            <button
+              onClick={() => setActiveClusters(new Set())}
+              style={{ fontSize: 10, color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}
+            >
+              {zh ? '顯示全部' : 'Show all'}
+            </button>
+          )}
+          {wsClusters.map(cl => {
+            const accent = CLUSTER_ACCENT[cl.color] ?? 'var(--color-primary)';
+            const isActive = activeClusters.size === 0 || activeClusters.has(cl.id);
+            return (
+              <button
+                key={cl.id}
+                onClick={() => toggleCluster(cl.id)}
+                style={{
+                  height: 22, padding: '0 9px', borderRadius: 11, fontSize: 11, fontWeight: 600,
+                  border: `1px solid ${accent}`,
+                  background: isActive ? `${accent}20` : 'transparent',
+                  color: isActive ? accent : 'var(--text-muted)',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                  transition: 'all 0.15s', opacity: isActive ? 1 : 0.45,
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: accent, flexShrink: 0 }} />
+                {zh ? cl.name_zh : cl.name_en}
+                <span style={{ opacity: 0.6, fontSize: 10 }}>{cl.node_count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Canvas area ── */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -421,6 +465,8 @@ export default function GraphContainer({
             healthScores={healthScores}
             kbType={workspace?.kb_type}
             isPreview={isPreview}
+            clusters={wsClusters}
+            activeClusters={activeClusters}
           />
         ) : graphMode === '3d' ? (
           <GraphView3D
@@ -455,7 +501,7 @@ export default function GraphContainer({
   );
 }
 
-function ConnectOrphansButton({ wsId, zh, onDone }: { wsId: string; zh: boolean; onDone: () => void }) {
+function ConnectOrphansButton({ wsId, zh, onDone, compact = false }: { wsId: string; zh: boolean; onDone: () => void; compact?: boolean }) {
   const [state, setState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const [msg, setMsg] = useState('');
 
@@ -484,11 +530,13 @@ function ConnectOrphansButton({ wsId, zh, onDone }: { wsId: string; zh: boolean;
         className="btn-secondary"
         onClick={handleClick}
         disabled={state === 'running'}
-        style={{ height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
+        style={compact
+          ? { height: 32, width: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+          : { height: 38, display: 'flex', alignItems: 'center', gap: 6 }}
         title={zh ? '讓 AI 為孤立節點自動建立關聯' : 'Let AI connect orphan nodes'}
       >
-        <GitMerge size={15} style={{ animation: state === 'running' ? 'spin 1s linear infinite' : 'none' }} />
-        {zh ? '補邊' : 'Connect'}
+        <GitMerge size={compact ? 14 : 15} style={{ animation: state === 'running' ? 'spin 1s linear infinite' : 'none' }} />
+        {!compact && (zh ? '補邊' : 'Connect')}
       </button>
       {msg && (
         <div style={{
