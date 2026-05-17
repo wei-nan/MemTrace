@@ -486,13 +486,25 @@ def list_edges(ws_id: str, node_id: Optional[str] = Query(None), user: dict = De
 
 
 @router.post("/workspaces/{ws_id}/nodes/connect-orphans", status_code=202)
+@router.post("/workspaces/{ws_id}/edges/connect-orphans", status_code=202)
 async def connect_orphans(ws_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     from services.workspaces import require_ws_access
     with db_cursor() as cur:
         require_ws_access(cur, ws_id, user, write=True)
+        # Count orphans (nodes with no active edges) to surface in the UI
+        cur.execute("""
+            SELECT count(*) AS orphan_count FROM memory_nodes mn
+            WHERE mn.workspace_id = %s AND mn.status = 'active'
+              AND NOT EXISTS (
+                SELECT 1 FROM edges e
+                WHERE e.workspace_id = %s AND e.status = 'active'
+                  AND (e.from_id = mn.id OR e.to_id = mn.id)
+              )
+        """, (ws_id, ws_id))
+        orphan_count = cur.fetchone()["orphan_count"]
     from services.bg_jobs import run_connect_orphans as _run_connect_orphans
     background_tasks.add_task(_run_connect_orphans, ws_id)
-    return {"message": "Connecting orphans in background"}
+    return {"message": "Connecting orphans in background", "orphan_count": orphan_count}
 
 
 
@@ -687,16 +699,17 @@ class NodeClusterAssign(BaseModel):
 
 @router.get("/workspaces/{ws_id}/clusters")
 def list_clusters(ws_id: str, user: dict = Depends(get_current_user)):
-    _require_ws_access(ws_id, user["sub"], "viewer")
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, required_role="viewer")
     from services.clusters import list_clusters as _list_clusters
     return _list_clusters(ws_id)
 
 
 @router.post("/workspaces/{ws_id}/clusters", status_code=201)
 def create_cluster(ws_id: str, body: ClusterCreate, user: dict = Depends(get_current_user)):
-    _require_ws_access(ws_id, user["sub"], "editor")
     from services.clusters import get_or_create_cluster
     with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, required_role="editor")
         cluster_id = get_or_create_cluster(cur, ws_id, body.name_zh, body.name_en, body.color)
     from services.clusters import list_clusters as _list_clusters
     rows = _list_clusters(ws_id)
@@ -705,7 +718,8 @@ def create_cluster(ws_id: str, body: ClusterCreate, user: dict = Depends(get_cur
 
 @router.patch("/workspaces/{ws_id}/clusters/{cluster_id}")
 def update_cluster(ws_id: str, cluster_id: str, body: ClusterUpdate, user: dict = Depends(get_current_user)):
-    _require_ws_access(ws_id, user["sub"], "editor")
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, required_role="editor")
     from services.clusters import update_cluster as _update_cluster
     try:
         return _update_cluster(ws_id, cluster_id, body.model_dump(exclude_none=True))
@@ -715,15 +729,16 @@ def update_cluster(ws_id: str, cluster_id: str, body: ClusterUpdate, user: dict 
 
 @router.delete("/workspaces/{ws_id}/clusters/{cluster_id}", status_code=204)
 def delete_cluster(ws_id: str, cluster_id: str, user: dict = Depends(get_current_user)):
-    _require_ws_access(ws_id, user["sub"], "editor")
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, required_role="editor")
     from services.clusters import delete_cluster as _delete_cluster
     _delete_cluster(ws_id, cluster_id)
 
 
 @router.patch("/workspaces/{ws_id}/nodes/{node_id}/cluster")
 def assign_node_cluster(ws_id: str, node_id: str, body: NodeClusterAssign, user: dict = Depends(get_current_user)):
-    _require_ws_access(ws_id, user["sub"], "editor")
     with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, required_role="editor")
         cur.execute(
             "UPDATE memory_nodes SET cluster_id = %s, updated_at = now() "
             "WHERE id = %s AND workspace_id = %s RETURNING id",

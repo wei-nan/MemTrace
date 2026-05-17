@@ -1,7 +1,12 @@
+import json
+import logging
+from typing import Dict
+
 from core.ai import chat_completion, resolve_provider, RESTRUCTURE_SYSTEM, strip_fences
 from core.database import db_cursor
 
 logger = logging.getLogger(__name__)
+
 
 CHAR_THRESHOLD = 600
 
@@ -58,4 +63,3 @@ async def estimate_complexity(node_data: Dict, ws_id: str, user_id: str, thresho
     
     return {"is_complex": True, "char_count": total_chars, "split_proposals": []}
 
-import json
