@@ -62,7 +62,7 @@ async def cleanup_job():
                     INSERT INTO ai_usage_summary (workspace_id, year_month, token_count)
                     SELECT workspace_id, TO_CHAR(created_at, 'YYYY-MM') as ym, SUM(tokens_used)
                     FROM ai_credit_ledger
-                    WHERE TO_CHAR(created_at, 'YYYY-MM') = %s
+                    WHERE TO_CHAR(created_at, 'YYYY-MM') = %s AND workspace_id IS NOT NULL
                     GROUP BY workspace_id, ym
                     ON CONFLICT (workspace_id, year_month) DO UPDATE
                     SET token_count = EXCLUDED.token_count, last_updated = now()

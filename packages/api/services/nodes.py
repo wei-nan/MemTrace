@@ -18,6 +18,7 @@ Key exports:
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from typing import Literal, Optional
 
@@ -26,6 +27,9 @@ from fastapi import HTTPException
 from core.constants import VALID_CONTENT_T, VALID_FORMAT, VALID_NODE_VIS, VALID_RELATIONS
 from core.diff import build_node_diff
 from core.security import compute_signature, generate_id
+from services.audit import log_audit_event
+
+logger = logging.getLogger(__name__)
 
 
 class NodeValidationError(HTTPException):
@@ -120,22 +124,30 @@ def prepare_node_data(
     """
     payload = {field: data.get(field) for field in NODE_EDITABLE_FIELDS}
     payload["tags"] = list(payload.get("tags") or [])
-    validate_node_payload(payload)
-    payload["author"] = data.get("author") or author
-    payload["source_type"] = data.get("source_type") or source_type
-    payload["dim_author_rep"] = data.get("dim_author_rep") or _initial_author_rep(payload["source_type"], status)
-
-    # Ensure mandatory text fields are not None
+    
+    # Set defaults before validation (S2-T01/T02)
+    payload["content_format"] = payload.get("content_format") or "plain"
+    payload["visibility"] = payload.get("visibility") or "private"
     payload["title_zh"] = payload.get("title_zh") or ""
     payload["title_en"] = payload.get("title_en") or ""
     payload["body_zh"] = payload.get("body_zh") or ""
     payload["body_en"] = payload.get("body_en") or ""
-    payload["content_format"] = payload.get("content_format") or "plain"
-    payload["visibility"] = payload.get("visibility") or "private"
+
+    validate_node_payload(payload)
+    
+    author_id = data.get("author") or author
+    if not author_id:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Node author identity binding is required (S2-T01)")
+    payload["author"] = author_id
+
+    payload["source_type"] = data.get("source_type") or source_type
+    payload["dim_author_rep"] = data.get("dim_author_rep") or _initial_author_rep(payload["source_type"], status)
 
     # Compute initial trust_score
     if payload["source_type"] in ("ai", "mcp"):
-        payload["trust_score"] = 0.7
+        # P5-S2-T02: AI nodes default to 0.65 trust until verified
+        payload["trust_score"] = 0.65
     else:
         acc   = 0.5
         fresh = 1.0
@@ -179,9 +191,9 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
         INSERT INTO memory_nodes (
             id, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en,
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
-            status, dim_author_rep, trust_score, source_id,
-            source_doc_node_id, source_paragraph_ref, cluster_id
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            status, dim_author_rep, trust_score, dim_freshness, source_id,
+            source_doc_node_id, source_paragraph_ref, cluster_id, updated_at
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,1.0,%s,%s,%s,%s,now())
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
@@ -211,31 +223,95 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
     if not existing:
         raise HTTPException(status_code=404, detail="Node not found")
 
+    # P5-S2-T04: Concurrency control
+    expected_ts = node_data.get("expected_updated_at")
+    if expected_ts:
+        # DB returns datetime object, compare with ISO string
+        db_ts = existing["updated_at"].isoformat().replace("+00:00", "Z") if existing["updated_at"] else None
+        # Clean up expected_ts if it has +00:00
+        clean_expected = expected_ts.replace("+00:00", "Z")
+        if db_ts and db_ts != clean_expected:
+            raise HTTPException(
+                status_code=409, 
+                detail=f"Concurrency conflict: Node has been updated since your last read (DB: {db_ts}, Expected: {clean_expected})."
+            )
+
     merged = {**dict(existing), **{field: node_data.get(field, existing.get(field)) for field in NODE_EDITABLE_FIELDS}}
     payload = prepare_node_data(merged, actor_id, merged.get("source_type", "human"))
+    # S5-T01: Optimistic Locking
+    expected_version = payload.get("version")
+    version_cond = ""
+    if expected_version is not None:
+        version_cond = " AND version = %s"
+        
     cur.execute(
         f"""
         UPDATE memory_nodes
         SET title_zh = %s, title_en = %s, content_type = %s, content_format = %s,
             body_zh = %s, body_en = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s,
+            dim_freshness = 1.0, trust_score = %s,
             source_id = %s, source_doc_node_id = %s, source_paragraph_ref = %s,
-            cluster_id = COALESCE(%s, cluster_id)
-        WHERE id = %s AND workspace_id = %s
+            cluster_id = COALESCE(%s, cluster_id),
+            version = version + 1
+        WHERE id = %s AND workspace_id = %s {version_cond}
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
             payload["title_zh"], payload["title_en"],
             payload["content_type"], payload["content_format"],
             payload["body_zh"], payload["body_en"],
-            payload["tags"], payload["visibility"],
-            payload["signature"], datetime.now(timezone.utc),
+            payload["tags"], payload["visibility"], payload["signature"], datetime.now(timezone.utc),
+            payload["trust_score"],
             node_data.get("source_id", existing.get("source_id")),
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
             payload.get("cluster_id"),
             node_id, ws_id,
+            *( [expected_version] if expected_version is not None else [] )
         ),
     )
-    return cur.fetchone()
+    updated = cur.fetchone()
+    if not updated and expected_version is not None:
+        # Check if the node exists at all
+        cur.execute("SELECT version FROM memory_nodes WHERE id = %s", (node_id,))
+        curr = cur.fetchone()
+        if curr:
+            raise HTTPException(status_code=412, detail=f"Node version mismatch. Current: {curr['version']}, Provided: {expected_version}")
+        else:
+            raise HTTPException(status_code=404, detail="Node not found")
+
+    # S3-T02: Notify copies in other workspaces
+    if updated:
+        cur.execute(
+            "SELECT id, workspace_id FROM memory_nodes WHERE copied_from_node = %s",
+            (node_id,)
+        )
+        copies = cur.fetchall()
+        for copy in copies:
+            # Check if there's already a pending source_updated for this copy to avoid flood
+            cur.execute(
+                "SELECT 1 FROM review_queue WHERE target_node_id = %s AND workspace_id = %s AND change_type = 'source_updated' AND status = 'pending'",
+                (copy["id"], copy["workspace_id"])
+            )
+            if not cur.fetchone():
+                try:
+                    propose_change(
+                        cur,
+                        copy["workspace_id"],
+                        "source_updated",
+                        copy["id"],
+                        payload, # Snapshot of new content from source
+                        "system",
+                        actor_id,
+                        source_info=f"Source node {node_id} was updated in workspace {ws_id}."
+                    )
+                    logger.info(f"Notified copy {copy['id']} in ws {copy['workspace_id']} about source update.")
+                except Exception as e:
+                    logger.error(f"Failed to notify copy {copy['id']}: {e}")
+
+        # S3-T05: Audit Log
+        log_audit_event(cur, ws_id, "update_node", "node", node_id, actor_id, {"title": updated["title_en"]})
+
+    return updated
 
 
 def delete_node_in_db(cur, ws_id: str, node_id: str) -> dict:
@@ -266,7 +342,7 @@ def confirm_node_validity_in_db(cur, ws_id: str, node_id: str, user_email: str) 
     if not node:
         raise HTTPException(status_code=404, detail="Node not found")
         
-    freshness = float(node["dim_freshness"])
+    freshness = 1.0
     utility = float(node["dim_utility"])
     author_rep = float(node["dim_author_rep"])
     
@@ -276,10 +352,10 @@ def confirm_node_validity_in_db(cur, ws_id: str, node_id: str, user_email: str) 
     cur.execute(
         """
         UPDATE memory_nodes
-        SET dim_accuracy = %s, trust_score = %s
+        SET dim_accuracy = %s, dim_freshness = %s, trust_score = %s
         WHERE id = %s
         """,
-        (new_accuracy, trust_score, node_id)
+        (new_accuracy, freshness, trust_score, node_id)
     )
 
 
@@ -332,7 +408,7 @@ def write_node_revision(
 def propose_change(
     cur,
     ws_id: str,
-    change_type: Literal["create", "update", "delete"],
+    change_type: Literal["create", "update", "delete", "source_updated", "conflict"],
     target_node_id: Optional[str],
     node_data: Optional[dict],
     proposer_type: Literal["human", "ai"],
@@ -426,6 +502,18 @@ def create_edges_directly(cur, ws_id: str, from_id: str, suggested_edges: list[d
         )
         if cur.fetchone():
             continue
+            
+        # S3-T04: Automatic arbitration for contradicts
+        if relation == "contradicts":
+            from services.nodes import propose_change
+            from services.audit import log_audit_event
+            propose_change(
+                cur, ws_id, "conflict", from_id, None, "system", "system",
+                proposer_meta={"contradicts_with": to_id},
+                source_info=f"Contradiction detected between {from_id} and {to_id}."
+            )
+            log_audit_event(cur, ws_id, "create_conflict", "edge", f"{from_id}:{to_id}", "system")
+
         cur.execute(
             "INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight) VALUES (%s,%s,%s,%s,%s,%s)",
             (generate_id("edge"), ws_id, from_id, to_id, relation, weight),
@@ -625,6 +713,7 @@ def get_node_in_db(cur, ws_id: str, node_id: str, user: Optional[dict]) -> dict:
 
 def bulk_archive_nodes_in_db(cur, ws_id: str, node_ids: list, user: dict) -> int:
     from services.workspaces import require_ws_access, get_effective_role
+    from services.audit import log_audit_event
     ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     if role not in ("editor", "admin"):
@@ -639,10 +728,13 @@ def bulk_archive_nodes_in_db(cur, ws_id: str, node_ids: list, user: dict) -> int
         """,
         (node_ids, ws_id),
     )
+    for nid in node_ids:
+        log_audit_event(cur, ws_id, "archive_node", "node", nid, user["sub"])
     return cur.rowcount
 
 def archive_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
     from services.workspaces import require_ws_access, get_effective_role
+    from services.audit import log_audit_event
     ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     if role not in ("editor", "admin"):
@@ -653,6 +745,7 @@ def archive_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
     )
     if not cur.fetchone():
         raise HTTPException(status_code=404, detail="Node not found")
+    log_audit_event(cur, ws_id, "archive_node", "node", node_id, user["sub"])
 
 def restore_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
     from services.workspaces import require_ws_access, get_effective_role
@@ -814,7 +907,7 @@ def list_node_revisions_in_db(cur, ws_id: str, node_id: str, user: Optional[dict
     require_ws_access(cur, ws_id, user)
     cur.execute(
         """
-        SELECT id, revision_no, created_at, created_by, change_type, change_source
+        SELECT id, node_id, workspace_id, revision_no, signature, proposer_type, proposer_id, review_id, created_at
         FROM node_revisions
         WHERE workspace_id = %s AND node_id = %s
         ORDER BY revision_no DESC
@@ -910,24 +1003,34 @@ def vote_trust_in_db(cur, ws_id: str, node_id: str, body_dict: dict, user: dict)
         (generate_id("vote"), node_id, user["sub"], ws_id, body_dict["accuracy"], body_dict["utility"])
     )
 
+    # S3-T01: Weighted average with time decay (30-day half-life)
     cur.execute(
         """
-        SELECT AVG(accuracy)::float / 5 as avg_acc, AVG(utility)::float / 5 as avg_util
-        FROM node_trust_votes
-        WHERE node_id = %s
+        WITH weighted_votes AS (
+            SELECT 
+                accuracy, 
+                utility,
+                POWER(0.5, EXTRACT(EPOCH FROM (now() - created_at)) / (86400.0 * 30.0)) as weight
+            FROM node_trust_votes
+            WHERE node_id = %s
+        )
+        SELECT 
+            CASE WHEN SUM(weight) > 0 THEN SUM(accuracy * weight) / SUM(weight) / 5.0 ELSE 0 END as avg_acc,
+            CASE WHEN SUM(weight) > 0 THEN SUM(utility * weight) / SUM(weight) / 5.0 ELSE 0 END as avg_util
+        FROM weighted_votes
         """,
         (node_id,)
     )
     stats = cur.fetchone()
-    avg_acc = stats["avg_acc"]
-    avg_util = stats["avg_util"]
+    avg_acc = float(stats["avg_acc"])
+    avg_util = float(stats["avg_util"])
     
     cur.execute("SELECT dim_freshness, dim_author_rep FROM memory_nodes WHERE id = %s", (node_id,))
     node = cur.fetchone()
     if not node:
          raise HTTPException(status_code=404, detail="Node not found")
          
-    freshness = float(node["dim_freshness"])
+    freshness = 1.0
     author_rep = float(node["dim_author_rep"])
     
     trust_score = (avg_acc * 0.4) + (avg_util * 0.25) + (freshness * 0.25) + (author_rep * 0.1)
@@ -935,10 +1038,10 @@ def vote_trust_in_db(cur, ws_id: str, node_id: str, body_dict: dict, user: dict)
     cur.execute(
         """
         UPDATE memory_nodes
-        SET dim_accuracy = %s, dim_utility = %s, trust_score = %s
+        SET dim_accuracy = %s, dim_utility = %s, dim_freshness = %s, trust_score = %s
         WHERE id = %s
         """,
-        (avg_acc, avg_util, trust_score, node_id)
+        (avg_acc, avg_util, freshness, trust_score, node_id)
     )
     return {"status": "ok", "trust_score": trust_score}
 
@@ -1269,3 +1372,126 @@ async def increment_ask_count(node_id: str):
             cur.execute("UPDATE memory_nodes SET ask_count = ask_count + 1 WHERE id = %s", (node_id,))
     except Exception as e:
         print(f"[ask_count] Failed to increment for {node_id}: {e}")
+
+def sync_node_from_source_in_db(cur, ws_id: str, node_id: str, user: dict) -> tuple[Optional[dict], Optional[str]]:
+    """
+    S3-T02: Manually sync a copy node from its original source.
+    Returns (updated_node, review_id).
+    """
+    from services.workspaces import require_ws_access, get_effective_role
+    ws = require_ws_access(cur, ws_id, user, write=True)
+    
+    # 1. Fetch current node to get source reference
+    cur.execute("SELECT copied_from_node, copied_from_ws FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+    row = cur.fetchone()
+    if not row or not row["copied_from_node"]:
+        raise HTTPException(status_code=400, detail="Node is not a copy or source reference is missing.")
+        
+    source_id = row["copied_from_node"]
+    source_ws = row["copied_from_ws"]
+    
+    # 2. Fetch source node data
+    # We use a system-level check or assume the user has access to source if they have the ID?
+    # Usually, if it was copied before, the user should have access, but let's check.
+    try:
+        require_ws_access(cur, source_ws, user, write=False)
+    except HTTPException:
+        # Fallback: if user can't access source ws, we might need a system-level bypass 
+        # or just deny. Let's deny for security unless it's a public node.
+        cur.execute("SELECT visibility FROM memory_nodes WHERE id = %s", (source_id,))
+        s_row = cur.fetchone()
+        if not s_row or s_row["visibility"] != "public":
+            raise HTTPException(status_code=403, detail="Access denied to source workspace and source node is not public.")
+
+    cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE id = %s", (source_id,))
+    source_node = cur.fetchone()
+    if not source_node:
+        raise HTTPException(status_code=404, detail="Source node not found.")
+        
+    # 3. Apply update (reuse update_node_full_in_db logic)
+    payload = node_row_to_snapshot(source_node)
+    # We keep the local ID and workspace_id
+    return update_node_full_in_db(cur, ws_id, node_id, payload, user)
+
+def transfer_authorship_in_db(cur, ws_id: str, node_ids: list[str], new_author_id: str, user: dict) -> int:
+    """
+    S3-T03: Transfer authorship of specific nodes to a new user.
+    Records the transfer in author_tombstones if the old author is leaving.
+    """
+    from services.workspaces import require_ws_access
+    require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+    
+    if not node_ids:
+        return 0
+        
+    cur.execute(
+        """
+        UPDATE memory_nodes
+        SET author = %s, updated_at = NOW()
+        WHERE id = ANY(%s) AND workspace_id = %s
+        """,
+        (new_author_id, node_ids, ws_id)
+    )
+    count = cur.rowcount
+    if count > 0:
+        log_audit_event(cur, ws_id, "transfer_authorship", "nodes", f"{len(node_ids)} nodes", user["sub"], {"to": new_author_id})
+    return count
+
+def resolve_conflict_in_db(cur, ws_id: str, review_id: str, resolution: Literal["keep_a", "keep_b", "merge", "both_valid"], user_id: str, merge_data: Optional[dict] = None) -> dict:
+    """
+    S3-T04: Resolve a contradiction conflict.
+    - keep_a: Keep node A, archive node B.
+    - keep_b: Keep node B, archive node A.
+    - merge: Merge both into node A (using merge_data), archive node B.
+    - both_valid: Both are correct, remove the contradicts edge.
+    """
+    cur.execute(
+        "SELECT target_node_id, proposer_meta FROM review_queue WHERE id = %s AND workspace_id = %s",
+        (review_id, ws_id)
+    )
+    rev = cur.fetchone()
+    if not rev:
+        raise HTTPException(status_code=404, detail="Review item not found")
+        
+    node_a_id = rev["target_node_id"]
+    node_b_id = rev["proposer_meta"].get("contradicts_with")
+    edge_id = rev["proposer_meta"].get("edge_id")
+    
+    if not node_a_id or not node_b_id:
+        raise HTTPException(status_code=400, detail="Invalid conflict review item: missing node references.")
+
+    result = {"status": "resolved", "resolution": resolution}
+
+    if resolution == "keep_a":
+        delete_node_in_db(cur, ws_id, node_b_id)
+        # Boost A's accuracy
+        cur.execute("UPDATE memory_nodes SET dim_accuracy = LEAST(1.0, dim_accuracy + 0.1) WHERE id = %s", (node_a_id,))
+    elif resolution == "keep_b":
+        delete_node_in_db(cur, ws_id, node_a_id)
+        # Boost B's accuracy
+        cur.execute("UPDATE memory_nodes SET dim_accuracy = LEAST(1.0, dim_accuracy + 0.1) WHERE id = %s", (node_b_id,))
+    elif resolution == "merge":
+        if not merge_data:
+            raise HTTPException(status_code=400, detail="merge_data is required for merge resolution.")
+        update_node_in_db(cur, ws_id, node_a_id, merge_data, user_id)
+        delete_node_in_db(cur, ws_id, node_b_id)
+    elif resolution == "both_valid":
+        # Remove the contradicts edge if it exists
+        if edge_id:
+            cur.execute("DELETE FROM edges WHERE id = %s", (edge_id,))
+        else:
+            cur.execute(
+                "DELETE FROM edges WHERE workspace_id = %s AND ((from_id = %s AND to_id = %s) OR (from_id = %s AND to_id = %s)) AND relation = 'contradicts'",
+                (ws_id, node_a_id, node_b_id, node_b_id, node_a_id)
+            )
+
+    # Mark review as accepted
+    cur.execute(
+        "UPDATE review_queue SET status = 'accepted', reviewed_at = now(), reviewer_id = %s, review_notes = %s WHERE id = %s",
+        (user_id, f"Resolved via {resolution}", review_id)
+    )
+    
+    # S3-T05: Audit Log
+    log_audit_event(cur, ws_id, "resolve_conflict", "review", review_id, user_id, {"resolution": resolution})
+    
+    return result

@@ -14,16 +14,21 @@ from services.analytics import handle_search_miss, log_mcp_query_internal
 from services.nodes import (
     list_nodes_in_db, 
     get_node_in_db, 
-    update_node_in_db, 
+    update_node_in_db,
     delete_node_in_db, 
     create_node_full_with_dedup,
     confirm_node_validity_in_db,
-    list_review_queue_in_db
+    list_review_queue_in_db,
+    sync_node_from_source_in_db,
+    transfer_authorship_in_db,
+    resolve_conflict_in_db
 )
+from services.synthesis import generate_cluster_summary, complement_languages, suggest_missing_edges
 from services.bg_jobs import trigger_node_background_jobs
 from core.ai import extract_nodes_structured
-from services.ingest.pipeline import resolve_with_fallback, process_ingestion, safe_parse_nodes_with_repair
+from services.ingest.pipeline import resolve_with_fallback, process_ingestion, safe_parse_nodes_with_repair, resolve_provider
 from services.ingest.persistence import persist_nodes
+from services.audit import verify_audit_chain
 
 logger = logging.getLogger(__name__)
 
@@ -321,6 +326,92 @@ TOOLS = [
                 "job_id": {"type": "string"},
             },
             "required": ["workspace_id", "job_id"],
+        },
+    },
+    {
+        "name": "sync_from_source",
+        "description": "Manually pull and sync a copy node from its original source.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_id": {"type": "string", "description": "ID of the copy node"},
+            },
+            "required": ["workspace_id", "node_id"],
+        },
+    },
+    {
+        "name": "transfer_authorship",
+        "description": "Transfer authorship of nodes to a new user (useful when an author leaves).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_ids": {"type": "array", "items": {"type": "string"}},
+                "new_author_id": {"type": "string", "description": "User ID of the new author"},
+            },
+            "required": ["workspace_id", "node_ids", "new_author_id"],
+        },
+    },
+    {
+        "name": "resolve_conflict",
+        "description": "Resolve a contradiction conflict between two nodes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "review_id": {"type": "string", "description": "ID of the conflict review item"},
+                "resolution": {"type": "string", "enum": ["keep_a", "keep_b", "merge", "both_valid"]},
+                "merge_data": {"type": "object", "description": "New node data if resolution is 'merge'"},
+            },
+            "required": ["workspace_id", "review_id", "resolution"],
+        },
+    },
+    {
+        "name": "verify_audit",
+        "description": "Verify the integrity of the workspace audit trail (hash chain).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "summarize_cluster",
+        "description": "Generate a hierarchical summary node for a group of related nodes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_ids": {"type": "array", "items": {"type": "string"}, "description": "List of node IDs to summarize"},
+            },
+            "required": ["workspace_id", "node_ids"],
+        },
+    },
+    {
+        "name": "complement_node_languages",
+        "description": "Automatically translate or complete missing ZH/EN content for a node.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_id": {"type": "string"},
+            },
+            "required": ["workspace_id", "node_id"],
+        },
+    },
+    {
+        "name": "suggest_edges",
+        "description": "Find and suggest missing 'similar_to' edges based on semantic similarity.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "threshold": {"type": "number", "description": "Similarity threshold (default 0.85)", "default": 0.85},
+            },
+            "required": ["workspace_id"],
         },
     },
 ]
@@ -658,7 +749,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor() as cur:
             require_ws_access(cur, ws_id, user)
             cur.execute(
-                """SELECT status, progress, error_message, started_at, created_at, 
+                """SELECT status, progress, error_msg, started_at, created_at, 
                           nodes_created, nodes_skipped, source, chunks_total, chunks_done
                    FROM ingestion_logs WHERE id = %s AND workspace_id = %s""", 
                 (job_id, ws_id)
@@ -667,6 +758,71 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             if not row:
                 raise HTTPException(status_code=404, detail="Job not found")
             return dict(row)
+            
+    # ── sync_from_source ──────────────────────────────────────────────────────
+    if name == "sync_from_source":
+        ws_id = args["workspace_id"]
+        node_id = args["node_id"]
+        with db_cursor(commit=True) as cur:
+            node, review_id = sync_node_from_source_in_db(cur, ws_id, node_id, user)
+            if review_id:
+                return {"review_id": review_id, "status": "pending_review", "detail": "Sync request submitted for review."}
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+            return node
+
+    # ── transfer_authorship ───────────────────────────────────────────────────
+    if name == "transfer_authorship":
+        ws_id = args["workspace_id"]
+        node_ids = args["node_ids"]
+        new_author_id = args["new_author_id"]
+        with db_cursor(commit=True) as cur:
+            count = transfer_authorship_in_db(cur, ws_id, node_ids, new_author_id, user)
+            log_mcp_interaction(background_tasks, ws_id, name, query_text=f"Transferred {count} nodes to {new_author_id}")
+            return {"transferred_count": count}
+
+    # ── resolve_conflict ──────────────────────────────────────────────────────
+    if name == "resolve_conflict":
+        ws_id = args["workspace_id"]
+        review_id = args["review_id"]
+        resolution = args["resolution"]
+        merge_data = args.get("merge_data")
+        with db_cursor(commit=True) as cur:
+            res = resolve_conflict_in_db(cur, ws_id, review_id, resolution, user["sub"], merge_data)
+            log_mcp_interaction(background_tasks, ws_id, name, query_text=f"Resolved conflict {review_id} via {resolution}")
+            return res
+
+    # ── verify_audit ──────────────────────────────────────────────────────────
+    if name == "verify_audit":
+        ws_id = args["workspace_id"]
+        with db_cursor() as cur:
+            return verify_audit_chain(cur, ws_id)
+
+    # ── summarize_cluster ─────────────────────────────────────────────────────
+    if name == "summarize_cluster":
+        ws_id = args["workspace_id"]
+        node_ids = args["node_ids"]
+        with db_cursor(commit=True) as cur:
+            summary_id = await generate_cluster_summary(cur, ws_id, node_ids, user["sub"])
+            if not summary_id:
+                return {"error": "Failed to generate summary."}
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=summary_id, query_text=f"Summarized {len(node_ids)} nodes")
+            return {"summary_node_id": summary_id, "status": "created"}
+
+    # ── complement_node_languages ─────────────────────────────────────────────
+    if name == "complement_node_languages":
+        ws_id = args["workspace_id"]
+        node_id = args["node_id"]
+        with db_cursor(commit=True) as cur:
+            success = await complement_languages(cur, ws_id, node_id, user["sub"])
+            return {"success": success, "status": "updated" if success else "failed"}
+
+    # ── suggest_edges ─────────────────────────────────────────────────────────
+    if name == "suggest_edges":
+        ws_id = args["workspace_id"]
+        threshold = float(args.get("threshold", 0.85))
+        with db_cursor() as cur:
+            suggestions = await suggest_missing_edges(cur, ws_id, threshold)
+            return {"suggestions": suggestions}
 
     raise ValueError(f"Unknown tool: {name}")
 

@@ -30,7 +30,7 @@ def get_ingest_logs(ws_id: str, limit: int = 50, user: dict = Depends(get_curren
         )
         return cur.fetchall()
 
-@router.post("/{ws_id}/ingest/file")
+@router.post("/{ws_id}/ingest")
 async def ingest_file(
     ws_id: str,
     background_tasks: BackgroundTasks,
@@ -44,17 +44,22 @@ async def ingest_file(
         filename = file.filename
         
         try:
-            adapter = get_adapter_for_file(filename, content_bytes)
-            doc = adapter.parse()
+            # Fix: Pass content_type instead of bytes, and await the async parse()
+            adapter = get_adapter_for_file(filename, file.content_type or "application/octet-stream")
+            
+            import io
+            stream = io.BytesIO(content_bytes)
+            doc = await adapter.parse(stream, filename)
             text_content = "" # process_ingestion will rebuild from segments if doc is passed
         except Exception as e:
+            logger.exception(f"Failed to parse file {filename}")
             raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
 
         job_id = generate_id("ing")
         cur.execute(
-            """INSERT INTO ingestion_logs (id, workspace_id, filename, status, created_at)
-               VALUES (%s, %s, %s, 'pending', now())""",
-            (job_id, ws_id, filename),
+            """INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status, created_at)
+               VALUES (%s, %s, %s, %s, 'pending', now())""",
+            (job_id, ws_id, user["sub"], filename),
         )
         
         background_tasks.add_task(process_ingestion, job_id, ws_id, text_content, user["sub"], filename, doc_type, doc=doc)
@@ -72,9 +77,9 @@ async def ingest_url(
         require_ws_access(cur, ws_id, user, write=True)
         job_id = generate_id("ing")
         cur.execute(
-            """INSERT INTO ingestion_logs (id, workspace_id, filename, status, created_at)
-               VALUES (%s, %s, %s, 'pending', now())""",
-            (job_id, ws_id, url),
+            """INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status, created_at)
+               VALUES (%s, %s, %s, %s, 'pending', now())""",
+            (job_id, ws_id, user["sub"], url),
         )
 
     async def fetch_and_process():
@@ -87,12 +92,12 @@ async def ingest_url(
         except Exception as e:
             logger.error(f"Failed to fetch URL {url}: {e}")
             with db_cursor(commit=True) as cur:
-                cur.execute("""UPDATE ingestion_logs SET status = 'failed', error_message = %s WHERE id = %s""", (str(e), job_id))
+                cur.execute("""UPDATE ingestion_logs SET status = 'failed', error_msg = %s WHERE id = %s""", (str(e), job_id))
 
     background_tasks.add_task(fetch_and_process)
     return {"job_id": job_id, "status": "pending"}
 
-@router.post("/{ws_id}/ingest/cancel/{job_id}")
+@router.delete("/{ws_id}/ingest/{job_id}")
 def cancel_ingest(ws_id: str, job_id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         require_ws_access(cur, ws_id, user, write=True)

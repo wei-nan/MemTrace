@@ -364,13 +364,31 @@ class OpenAIProvider(AIProvider):
         data = resp.json()
         msg = data["choices"][0]["message"]
         tool_calls = msg.get("tool_calls") or []
+        nodes = []
         if not tool_calls:
-            raise AIProviderError(f"OpenAI structured: no tool_call in response: {msg}")
-        try:
-            args = _json.loads(tool_calls[0]["function"]["arguments"])
-        except _json.JSONDecodeError as e:
-            raise AIProviderError(f"OpenAI structured: invalid tool args JSON: {e}")
-        nodes = args.get("nodes", []) or []
+            # Fallback to parsing content directly (often needed for Ollama/DeepSeek which don't support tool calls well)
+            content = msg.get("content")
+            if content:
+                import re
+                content_clean = re.sub(r'^```(json)?\n', '', content.strip(), flags=re.IGNORECASE)
+                content_clean = re.sub(r'\n```$', '', content_clean)
+                try:
+                    parsed = _json.loads(content_clean)
+                    if isinstance(parsed, list):
+                        nodes = parsed
+                    elif isinstance(parsed, dict) and "nodes" in parsed:
+                        nodes = parsed.get("nodes", []) or []
+                except _json.JSONDecodeError as e:
+                    raise AIProviderError(f"OpenAI structured: no tool_call and failed to parse content: {msg}. Error: {e}")
+            else:
+                raise AIProviderError(f"OpenAI structured: no tool_call and no content in response: {msg}")
+        else:
+            try:
+                args = _json.loads(tool_calls[0]["function"]["arguments"])
+                nodes = args.get("nodes", []) or []
+            except _json.JSONDecodeError as e:
+                raise AIProviderError(f"OpenAI structured: invalid tool args JSON: {e}")
+        
         tokens = data.get("usage", {}).get("total_tokens", 0)
         return nodes, tokens
 
@@ -592,7 +610,7 @@ class AnthropicProvider(AIProvider):
 
 class GeminiProvider(AIProvider):
     name                    = "gemini"
-    default_chat_model      = "gemini-2.0-flash"
+    default_chat_model      = "gemini-2.5-flash-preview-05-20"
     default_embedding_model = "text-embedding-004"
 
     def get_known_models(self) -> list[dict]:
@@ -863,7 +881,7 @@ class OllamaProvider(OpenAIProvider):
     Requires base_url and optionally auth_token (passed via ResolvedProvider).
     """
     name                    = "ollama"
-    default_chat_model      = "llama3"
+    default_chat_model      = "qwen2.5:7b"
     default_embedding_model = "nomic-embed-text"
 
     def __init__(self):
@@ -1220,6 +1238,49 @@ def record_usage(
             (resolved.user_id, resolved.provider.name),
         )
 
+
+def estimate_tokens(text: str, model_name: str = "gpt-4o-mini") -> int:
+    """Roughly estimate token count using tiktoken (OpenAI) or simple heuristic."""
+    try:
+        import tiktoken
+        try:
+            encoding = tiktoken.encoding_for_model(model_name)
+        except (KeyError, ValueError):
+            encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+    except (ImportError, Exception):
+        # Fallback heuristic: 1 token per 3 chars
+        return len(text) // 3
+
+
+def record_retrieval_log(
+    workspace_id: str,
+    mode: str,
+    query: Optional[str] = None,
+    user_id: Optional[str] = None,
+    top_k: Optional[int] = None,
+    hit_node_ids: Optional[list[str]] = None,
+    similarities: Optional[list[float]] = None,
+    tokens_query: Optional[int] = None,
+    tokens_context: Optional[int] = None,
+    tokens_answer: Optional[int] = None,
+    trace_id: Optional[str] = None,
+) -> None:
+    """Log a retrieval event for token telemetry and quality measurement."""
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            INSERT INTO retrieval_logs
+              (workspace_id, mode, query, user_id, top_k, hit_node_ids, similarities,
+               tokens_query, tokens_context, tokens_answer, trace_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                workspace_id, mode, query, user_id, top_k, hit_node_ids, similarities,
+                tokens_query, tokens_context, tokens_answer, trace_id
+            ),
+        )
+
 # ── Convenience wrappers (called by routers) ──────────────────────────────────
 
 async def chat_completion(
@@ -1262,7 +1323,7 @@ async def chat_completion(
 async def extract_nodes_structured(
     resolved: ResolvedProvider,
     text: str,
-    context: Optional[Union[str, List[str]]] = None,
+    context: Optional[str | list[str]] = None,
     doc_type: str = "generic",
     cluster_context: Optional[str] = None,
     max_tokens: int = 4096,

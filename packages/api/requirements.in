@@ -26,3 +26,4 @@ requests>=2.33.0
 PyYAML>=6.0.0
 pytest
 pytest-asyncio
+tiktoken

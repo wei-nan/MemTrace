@@ -40,10 +40,13 @@ def resolve_with_fallback(user_id: str, feature: str):
             continue
     raise last_exc
 
-async def safe_parse_nodes_with_repair(raw: str, resolved, filename: str) -> Tuple[List[dict], int]:
+async def safe_parse_nodes_with_repair(raw: str | list, resolved, filename: str) -> Tuple[List[dict], int]:
     """Parse the LLM response as a JSON node array with repair logic."""
     from services.ingest.normalize import normalize_nodes, extract_objects_partial
     
+    if isinstance(raw, list):
+        return normalize_nodes(raw, filename), 0
+
     cleaned = strip_fences(raw)
     if not cleaned.strip():
         return [], 0
@@ -116,12 +119,15 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
 
         # 3. Resolve AI provider
         with db_cursor() as cur:
-            cur.execute("""SELECT extraction_provider FROM workspaces WHERE id = %s""", (ws_id,))
+            cur.execute("""SELECT extraction_provider, embedding_provider FROM workspaces WHERE id = %s""", (ws_id,))
             ws_row = cur.fetchone()
         ws_extraction_provider = ws_row["extraction_provider"] if ws_row else None
+        ws_embedding_provider = ws_row["embedding_provider"] if ws_row else None
 
         if ws_extraction_provider:
             resolved = resolve_provider(user_id, "extraction", preferred_provider=ws_extraction_provider)
+        elif ws_embedding_provider:
+            resolved = resolve_provider(user_id, "extraction", preferred_provider=ws_embedding_provider)
         else:
             resolved = resolve_with_fallback(user_id, "extraction")
 
@@ -172,10 +178,9 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
 
         for i, (chunk_text_data, headings) in enumerate(chunks):
             try:
-                # Update progress
+                # Update progress using chunks
                 with db_cursor(commit=True) as cur:
-                    progress = int(((i + 1) / len(chunks)) * 100)
-                    cur.execute("""UPDATE ingestion_logs SET progress = %s WHERE id = %s""", (progress, job_id))
+                    cur.execute("""UPDATE ingestion_logs SET chunks_done = %s, chunks_total = %s WHERE id = %s""", (i + 1, len(chunks), job_id))
 
                 # Extract
                 raw_nodes, tokens = await extract_nodes_structured(
@@ -243,19 +248,17 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                 # For now, we'll follow the requirement to trigger it.
                 scheduler.add_job(bg_check_complexity, args=[ws_id, rid, user_id])
 
-        # 8. Finalize
         with db_cursor(commit=True) as cur:
             cur.execute(
                 """UPDATE ingestion_logs 
-                   SET status = 'completed', completed_at = now(), progress = 100,
-                       estimated_tokens = %s
+                   SET status = 'completed', completed_at = now(), chunks_done = %s, chunks_total = %s
                    WHERE id = %s""",
-                (total_tokens, job_id),
+                (len(chunks), len(chunks), job_id),
             )
 
     except Exception as e:
         logger.exception(f"Ingestion failed for {filename}: {e}")
         with db_cursor(commit=True) as cur:
-            cur.execute("""UPDATE ingestion_logs SET status = 'failed', error_message = %s WHERE id = %s""", (str(e), job_id))
+            cur.execute("""UPDATE ingestion_logs SET status = 'failed', error_msg = %s WHERE id = %s""", (str(e), job_id))
     finally:
         AI_SEMAPHORE.release()

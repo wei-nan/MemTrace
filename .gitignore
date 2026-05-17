@@ -6,6 +6,7 @@ env/
 __pycache__/
 *.py[cod]
 *$py.class
+**/__init__.py
 
 # Environment — never commit real credentials
 .env
@@ -52,6 +53,12 @@ test.db
 scratch/
 scratch.py
 backups/
+reports/
+tests/
+test_update.py
+packages/api/test_update.py
+update_settings.sql
+packages/api/scripts/eval_report*.txt
 
 # One-off dev scripts at repo root (refactor_*.py, list_*.py, etc.)
 refactor_*.py

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Brain } from "lucide-react";
+import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Brain, Sparkles, Languages, Wand2 } from "lucide-react";
 import { ai, aiReviewers, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
@@ -499,8 +499,95 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   );
 }
 
-type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys";
+type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys" | "maintenance";
 type AccessTab = "members" | "invites" | "requests";
+
+function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
+  const { toast } = useModal();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const runMaintenance = async (task: string, action: () => Promise<any>) => {
+    setLoading(task);
+    try {
+      await action();
+      toast({ message: zh ? `${task} 執行成功` : `${task} completed`, variant: "success" });
+    } catch (e) {
+      toast({ message: String(e), variant: "error" });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <SectionCard>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Sparkles size={20} color="var(--color-primary)" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "智慧階層綜整" : "Intelligent Hierarchical Synthesis"}</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+              {zh ? "自動掃描孤立或零散節點並產生摘要節點，優化知識結構。" : "Automatically scan isolated nodes and generate summaries to optimize graph structure."}
+            </div>
+          </div>
+          <Button 
+            variant="secondary" 
+            loading={loading === "summary"} 
+            onClick={() => runMaintenance("summary", async () => {
+              const res = await workspaces.summarizeCluster(wsId, []); 
+              return res;
+            })}
+          >
+            {zh ? "執行掃描" : "Run Scan"}
+          </Button>
+        </div>
+      </SectionCard>
+
+      <SectionCard>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Languages size={20} color="var(--color-primary)" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "跨語言內容對齊" : "Cross-language Reconcile"}</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+              {zh ? "檢查並補完缺失的 ZH/EN 內容，確保全球化檢索一致性。" : "Check and complement missing ZH/EN content for better retrieval consistency."}
+            </div>
+          </div>
+          <Button 
+            variant="secondary" 
+            loading={loading === "lang"} 
+            onClick={() => runMaintenance("lang", () => workspaces.complementLanguages(wsId, []))}
+          >
+            {zh ? "開始校閱" : "Start Reconcile"}
+          </Button>
+        </div>
+      </SectionCard>
+
+      <SectionCard>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Wand2 size={20} color="var(--color-primary)" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "潛在關聯預測" : "Predict Potential Edges"}</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+              {zh ? "基於語義相似度主動發現並建立節點間的關聯邊。" : "Discover and create potential edges between nodes based on semantic similarity."}
+            </div>
+          </div>
+          <Button 
+            variant="secondary" 
+            loading={loading === "edges"} 
+            onClick={() => runMaintenance("edges", () => workspaces.suggestEdges(wsId, ""))}
+          >
+            {zh ? "執行預測" : "Run Prediction"}
+          </Button>
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
 
 export default function WorkspaceSettings({ wsId, userId }: { wsId: string; userId?: string }) {
   const { t, i18n } = useTranslation();
@@ -526,6 +613,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [isSaving, setIsSaving] = useState(false);
   const [decayStats, setDecayStats] = useState<any>(null);
   const [healthReport, setHealthReport] = useState<any>(null);
+  const isOwner = ws?.owner_id === userId;
 
   const loadData = async () => {
     try {
@@ -604,6 +692,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
         <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
         <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.aiReviewers')}</button>
+        <button onClick={() => setTab("maintenance")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "maintenance" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "maintenance" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "智慧維護" : "Maintenance"}</button>
         {ws?.owner_id === userId && (
           <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
         )}
@@ -611,19 +700,24 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
 
       {tab === "general" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {!isOwner && ws && (
+            <div style={{ padding: "12px 16px", background: "var(--color-warning-subtle)", color: "var(--color-warning)", borderRadius: 8, fontSize: 13, fontWeight: 500, border: "1px solid var(--border-warning-subtle)" }}>
+              {zh ? "⚠️ 您不是此工作區的擁有者，無法修改設定。" : "⚠️ You are not the owner of this workspace and cannot modify settings."}
+            </div>
+          )}
           <SectionCard>
             <h3 style={{ fontSize: 16, margin: "0 0 16px" }}>{t('ws_settings.general')}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{t('ws_settings.kbNameZh')}</label>
-                <input className="mt-input" value={nameZh} onChange={e => setNameZh(e.target.value)} style={{ width: "100%" }} />
+                <input className="mt-input" value={nameZh} onChange={e => setNameZh(e.target.value)} disabled={!isOwner} style={{ width: "100%" }} />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{t('ws_settings.kbNameEn')}</label>
-                <input className="mt-input" value={nameEn} onChange={e => setNameEn(e.target.value)} style={{ width: "100%" }} />
+                <input className="mt-input" value={nameEn} onChange={e => setNameEn(e.target.value)} disabled={!isOwner} style={{ width: "100%" }} />
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                <Button variant="primary" disabled={isSaving || (nameZh === ws?.name_zh && nameEn === ws?.name_en)} loading={isSaving} onClick={async () => {
+                <Button variant="primary" disabled={!isOwner || isSaving || (nameZh === ws?.name_zh && nameEn === ws?.name_en)} loading={isSaving} onClick={async () => {
                   setIsSaving(true);
                   try {
                     await workspaces.update(wsId, { name_zh: nameZh, name_en: nameEn });
@@ -659,7 +753,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t('ws_settings.visibilityDesc')}</div>
               </div>
-              <select className="mt-input" value={ws?.visibility ?? "private"} style={{ width: 180 }} onChange={async (e) => {
+              <select className="mt-input" value={ws?.visibility ?? "private"} disabled={!isOwner} style={{ width: 180 }} onChange={async (e) => {
                 try {
                   await workspaces.update(wsId, { visibility: e.target.value });
                   await loadData();
@@ -684,7 +778,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 400 }}>{t('ws_settings.qa_archive_mode_desc')}</div>
               </div>
-              <select className="mt-input" value={ws?.qa_archive_mode ?? "manual_review"} style={{ width: 180 }} onChange={async (e) => {
+              <select className="mt-input" value={ws?.qa_archive_mode ?? "manual_review"} disabled={!isOwner} style={{ width: 180 }} onChange={async (e) => {
                 try {
                   await workspaces.update(wsId, { qa_archive_mode: e.target.value as any });
                   await loadData();
@@ -710,6 +804,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
               <select
                 className="mt-input"
                 value={ws?.extraction_provider ?? ""}
+                disabled={!isOwner}
                 style={{ width: 160 }}
                 onChange={async (e) => {
                   try {
@@ -744,10 +839,11 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <label className="mt-switch">
+                  <label className="mt-switch" style={{ opacity: isOwner ? 1 : 0.5 }}>
                     <input 
                       type="checkbox" 
                       checked={ws?.auto_split ?? false} 
+                      disabled={!isOwner}
                       onChange={async (e) => {
                         try {
                           await workspaces.update(wsId, { auto_split: e.target.checked });
@@ -772,6 +868,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                     className="mt-input" 
                     type="number" 
                     value={ws?.settings?.node_complexity?.char_threshold ?? 600} 
+                    disabled={!isOwner}
                     style={{ width: "100%" }}
                     onChange={async (e) => {
                       const val = parseInt(e.target.value);
@@ -781,8 +878,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                         node_complexity: { ...ws?.settings?.node_complexity, char_threshold: val } 
                       };
                       try {
-                        await workspaces.update(wsId, { settings: newSettings });
-                        await loadData();
+                        const updatedWs = await workspaces.update(wsId, { settings: newSettings });
+                        setWs(updatedWs);
                       } catch (err) { toast({ message: String(err), variant: "error" }); }
                     }}
                   />
@@ -796,14 +893,15 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                     type="number" 
                     step="0.01"
                     value={ws?.settings?.auto_dedup_threshold ?? 0.92} 
+                    disabled={!isOwner}
                     style={{ width: "100%" }}
                     onChange={async (e) => {
                       const val = parseFloat(e.target.value);
                       if (isNaN(val)) return;
                       const newSettings = { ...ws?.settings, auto_dedup_threshold: val };
                       try {
-                        await workspaces.update(wsId, { settings: newSettings });
-                        await loadData();
+                        const updatedWs = await workspaces.update(wsId, { settings: newSettings });
+                        setWs(updatedWs);
                       } catch (err) { toast({ message: String(err), variant: "error" }); }
                     }}
                   />
@@ -822,15 +920,16 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                     {zh ? "允許透過 MCP 協定 (如 IDE 插件) 直接將內容寫入此工作區。" : "Allow direct content ingestion via MCP protocol (e.g., from IDE plugins)."}
                   </div>
                 </div>
-                <label className="mt-switch">
+                <label className="mt-switch" style={{ opacity: isOwner ? 1 : 0.5 }}>
                   <input 
                     type="checkbox" 
                     checked={ws?.settings?.mcp_ingest_enabled ?? false} 
+                    disabled={!isOwner} 
                     onChange={async (e) => {
                       const newSettings = { ...ws?.settings, mcp_ingest_enabled: e.target.checked };
                       try {
-                        await workspaces.update(wsId, { settings: newSettings });
-                        await loadData();
+                        const updatedWs = await workspaces.update(wsId, { settings: newSettings });
+                        setWs(updatedWs);
                         toast({ message: t('common.save'), variant: "success" });
                       } catch (err) { toast({ message: String(err), variant: "error" }); }
                     }} 
@@ -848,14 +947,15 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                      className="mt-input" 
                      type="number" 
                      value={ws?.settings?.mcp_ingest_daily_quota ?? 5} 
+                     disabled={!isOwner}
                      style={{ width: 80 }}
                      onChange={async (e) => {
                        const val = parseInt(e.target.value);
                        if (isNaN(val)) return;
                        const newSettings = { ...ws?.settings, mcp_ingest_daily_quota: val };
                        try {
-                         await workspaces.update(wsId, { settings: newSettings });
-                         await loadData();
+                         const updatedWs = await workspaces.update(wsId, { settings: newSettings });
+                         setWs(updatedWs);
                        } catch (err) { toast({ message: String(err), variant: "error" }); }
                      }}
                    />
@@ -1095,6 +1195,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <AIReviewerSettings wsId={wsId} />
       ) : tab === "apikeys" ? (
         <APIKeysSettings wsId={wsId} />
+      ) : tab === "maintenance" ? (
+        <MaintenanceSettings wsId={wsId} zh={zh} />
       ) : (
         <>
           {renderAccessTabs}

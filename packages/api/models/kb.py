@@ -87,6 +87,7 @@ class NodeUpdate(BaseModel):
     visibility: Optional[str] = None
     source_type: Literal["human", "ai"] = "human"
     suggested_edges: list[SuggestedEdge] = []
+    expected_updated_at: Optional[str] = None # P5-S2-T04: ETag/Concurrency control
 
 
 class NodeResponse(BaseModel):
@@ -272,3 +273,17 @@ class BulkArchiveRequest(BaseModel):
 
 class BulkArchiveResponse(BaseModel):
     archived_count: int
+
+
+class KBHealthResponse(BaseModel):
+    workspace_id: str
+    date: Optional[str] = None
+    token_savings_ratio: float
+    retrieval_recall_at_5: float
+    retrieval_mrr: float
+    decay_runs_last_14d: int
+    duplicate_pairs_unlinked: int
+    avg_trust_active: float
+    active_users_7d: int
+    review_queue_depth: int
+    ai_nodes_unverified_ratio: float

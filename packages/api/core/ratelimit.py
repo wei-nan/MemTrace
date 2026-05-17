@@ -24,6 +24,7 @@ from typing import DefaultDict, Deque, Tuple
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 _LIMITS: dict[str, tuple[int, int]] = {
     # group       window(s)  max_requests
     "search":    (60,  30),
-    "write":     (60,  60),
+    "write":     (60, 120),
     "global":    (60, 600),
 }
 
@@ -76,7 +77,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if path in ("/", "/health") or not path.startswith("/api/"):
             return await call_next(request)
 
-        ip: str = request.client.host if request.client else "unknown"
+        # Detect actual client IP (proxy-aware)
+        forwarded_for = request.headers.get("x-forwarded-for")
+        if forwarded_for:
+            # X-Forwarded-For can be a comma-separated list; the first one is the original client
+            ip = forwarded_for.split(",")[0].strip()
+        else:
+            ip = request.client.host if request.client else "unknown"
+
         group: str = _classify_request(request.method, path)
         window_s, max_req = _LIMITS[group]
 

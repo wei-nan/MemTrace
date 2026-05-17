@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 import json
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 from core.ai_review import DEFAULT_AI_REVIEW_PROMPT, require_owner, run_ai_review_for_item
 from core.database import db_cursor
@@ -31,6 +31,7 @@ from services.workspaces import (
     require_ws_access as _require_ws_access,
     strip_body_if_viewer as _strip_body_if_viewer,
 )
+from services.bg_jobs import trigger_node_background_jobs
 
 router = APIRouter(prefix="/api/v1/workspaces", tags=["review"])
 
@@ -180,7 +181,7 @@ def _create_suggested_edges(cur, ws_id: str, from_node_id: str, suggested_edges:
 
 
 @router.post("/review-queue/{id}/accept", response_model=Optional[NodeResponse])
-def accept_review_item(id: str, user: dict = Depends(get_current_user)):
+def accept_review_item(id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT * FROM review_queue WHERE id = %s", (id,))
         item = cur.fetchone()
@@ -223,6 +224,8 @@ def accept_review_item(id: str, user: dict = Depends(get_current_user)):
             suggested = item.get("suggested_edges") or []
             if suggested:
                 _create_suggested_edges(cur, item["workspace_id"], node["id"], suggested)
+            # Trigger background embedding, edge suggestion, and complexity checks
+            trigger_node_background_jobs(background_tasks, item["workspace_id"], node["id"], user["sub"], node)
         cur.execute(
             "UPDATE review_queue SET status = 'accepted', reviewer_type = 'human', reviewer_id = %s, reviewed_at = now() WHERE id = %s",
             (user["sub"], id),
@@ -248,7 +251,7 @@ def reject_review_item(id: str, user: dict = Depends(get_current_user)):
 
 
 @router.post("/{ws_id}/review-queue/accept-all")
-def accept_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
+def accept_all_review_items(ws_id: str, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         cur.execute("SELECT id FROM review_queue WHERE workspace_id = %s AND status = 'pending'", (ws_id,))
@@ -256,7 +259,7 @@ def accept_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
     count = 0
     for rid in ids:
         try:
-            accept_review_item(rid, user)
+            accept_review_item(rid, background_tasks, user)
             count += 1
         except Exception:
             continue

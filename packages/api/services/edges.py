@@ -147,7 +147,18 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
             """,
             (edge_id, ws_id, from_id, to_id, relation, weight, half_life_days, pinned),
         )
-        return cur.fetchone()
+        edge = cur.fetchone()
+
+        # S3-T04: Automatic arbitration for contradicts
+        if relation == "contradicts":
+            from services.nodes import propose_change
+            propose_change(
+                cur, ws_id, "conflict", from_id, None, "system", "system",
+                proposer_meta={"contradicts_with": to_id, "edge_id": edge_id},
+                source_info=f"Contradiction detected between {from_id} and {to_id}."
+            )
+            
+        return edge
     except Exception as exc:
         if "unique_edge" in str(exc):
             raise HTTPException(status_code=409, detail="Edge with this relation already exists")

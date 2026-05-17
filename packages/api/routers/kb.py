@@ -51,12 +51,14 @@ from models.kb import (
     BulkArchiveRequest,
     BulkArchiveResponse,
     TableViewRequest,
+    KBHealthResponse,
 )
 from core.agent import get_or_create_agent_node
 from models.review import NodeRevisionMetaResponse, NodeRevisionResponse, ApplySplitRequest
 
 
 from services.bg_jobs import bg_embed_node as _bg_embed_node, bg_suggest_edges as _bg_suggest_edges, bg_clone_workspace as _bg_clone_workspace, run_connect_orphans as _run_connect_orphans, trigger_node_background_jobs as _trigger_node_background_jobs
+from services.synthesis import generate_cluster_summary, complement_languages, suggest_missing_edges as run_suggest_edges
 from services.workspaces import (
     require_ws_access as _require_ws_access,
     get_effective_role as _get_effective_role,
@@ -228,7 +230,7 @@ def get_graph_preview(ws_id: str, limit: int = 100, user: dict = Depends(get_cur
 def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get_current_user)):
     from services.workspaces import update_workspace_in_db
     with db_cursor(commit=True) as cur:
-        return update_workspace_in_db(cur, ws_id, user["sub"], body.model_dump())
+        return update_workspace_in_db(cur, ws_id, user["sub"], body.model_dump(exclude_unset=True))
 
 
 @router.get("/workspaces/{ws_id}/associations", response_model=list[WorkspaceAssociationResponse])
@@ -293,8 +295,11 @@ async def get_neighborhood(
     with db_cursor() as cur:
         workspace = _require_ws_access(cur, workspace_id, current_user)
         
-        viewer_id = current_user["sub"] if current_user else None
-        viewer_role = _get_effective_role(cur, workspace_id, workspace["owner_id"], viewer_id)
+        viewer_id = current_user["sub"] if current_user else "anonymous"
+        if current_user:
+            TraversalGuard.check(viewer_id)
+            
+        viewer_role = _get_effective_role(cur, workspace_id, workspace["owner_id"], viewer_id if current_user else None)
 
         result = _bfs_neighborhood(
             cur, workspace_id, node_id, depth, relation, direction,
@@ -340,10 +345,10 @@ def get_table_view(
 
 
 @router.get("/workspaces/{ws_id}/nodes-search", response_model=List[NodeResponse])
-def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dict = Depends(get_current_user_optional)):
+async def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dict = Depends(get_current_user_optional)):
     from services.nodes import search_nodes_in_db
     with db_cursor() as cur:
-        return search_nodes_in_db(cur, ws_id, query, limit, user)
+        return await search_nodes_in_db(cur, ws_id, query, limit, user)
 
 
 @router.post("/workspaces/{ws_id}/nodes/search-semantic", response_model=List[NodeResponse])
@@ -565,6 +570,24 @@ def get_workspace_token_efficiency(ws_id: str, user: dict = Depends(get_current_
         return get_workspace_token_efficiency_in_db(cur, ws_id, user)
 
 
+@router.get("/workspaces/{ws_id}/analytics/tokens")
+def get_token_analytics(
+    ws_id: str,
+    period: str = Query("7d"),
+    user: dict = Depends(get_current_user_optional)
+):
+    from services.analytics import get_token_analytics_in_db
+    with db_cursor() as cur:
+        return get_token_analytics_in_db(cur, ws_id, period, user)
+
+
+@router.get("/workspaces/{ws_id}/analytics/health", response_model=KBHealthResponse)
+def get_kb_health(ws_id: str, user: dict = Depends(get_current_user_optional)):
+    from services.analytics import get_kb_health_in_db
+    with db_cursor() as cur:
+        return get_kb_health_in_db(cur, ws_id, user)
+
+
 # ─── A4 / D4: Archive & Restore ───────────────────────────────────────────────
 
 
@@ -711,3 +734,53 @@ def assign_node_cluster(ws_id: str, node_id: str, body: NodeClusterAssign, user:
     return {"ok": True}
 
 
+
+# ─── S4: Intelligent Maintenance ──────────────────────────────────────────────
+
+@router.post("/workspaces/{ws_id}/maintenance/summarize-cluster")
+async def maintenance_summarize_cluster(ws_id: str, body: dict, user: dict = Depends(get_current_user)):
+    """S4-T01: Generate a hierarchical summary for a set of nodes."""
+    node_ids = body.get("node_ids")
+    # If no node_ids, maybe auto-find a cluster? 
+    # For now, require it from UI.
+    if not node_ids:
+        # Fallback: find clusters by tag if none provided
+        with db_cursor() as cur:
+            from services.synthesis import find_clusters_by_tag
+            clusters = await find_clusters_by_tag(cur, ws_id)
+            if not clusters:
+                raise HTTPException(status_code=400, detail="No clusters found and no node_ids provided")
+            node_ids = clusters[0]
+
+    with db_cursor() as cur:
+        summary_id = await generate_cluster_summary(cur, ws_id, node_ids, user["sub"])
+        return {"summary_node_id": summary_id}
+
+
+@router.post("/workspaces/{ws_id}/maintenance/complement-languages")
+async def maintenance_complement_languages(ws_id: str, body: dict, user: dict = Depends(get_current_user)):
+    """S4-T02: Reconcile missing ZH/EN content for nodes."""
+    node_ids = body.get("node_ids", [])
+    with db_cursor() as cur:
+        if not node_ids:
+            # Auto-find nodes with missing content
+            cur.execute(
+                "SELECT id FROM memory_nodes WHERE workspace_id = %s AND (title_en IS NULL OR title_zh IS NULL OR body_en IS NULL OR body_zh IS NULL) LIMIT 10",
+                (ws_id,)
+            )
+            node_ids = [r["id"] for r in cur.fetchall()]
+        
+        success_count = 0
+        for nid in node_ids:
+            if await complement_languages(cur, ws_id, nid, user["sub"]):
+                success_count += 1
+        return {"processed": len(node_ids), "success": success_count}
+
+
+@router.post("/workspaces/{ws_id}/maintenance/suggest-edges")
+async def maintenance_suggest_edges(ws_id: str, body: dict, user: dict = Depends(get_current_user)):
+    """S4-T03: Suggest potential edges based on semantic similarity."""
+    threshold = body.get("threshold", 0.85)
+    with db_cursor() as cur:
+        suggestions = await run_suggest_edges(cur, ws_id, threshold=threshold)
+        return {"suggestions": suggestions}

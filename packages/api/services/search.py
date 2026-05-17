@@ -8,8 +8,11 @@ from __future__ import annotations
 from typing import Optional
 
 from fastapi import HTTPException
+import logging
 
-from core.ai import embed, record_usage, resolve_provider
+logger = logging.getLogger(__name__)
+
+from core.ai import embed, record_usage, resolve_provider, estimate_tokens, record_retrieval_log
 from core.database import db_cursor
 from core.ai import AIProviderUnavailable
 from services.workspaces import strip_body_if_viewer
@@ -138,7 +141,8 @@ async def perform_semantic_search(
             """,
             (vector, ws_id, limit),
         )
-        return cur.fetchall()
+        res = cur.fetchall()
+        return res
     except (HTTPException, AIProviderUnavailable):
         raise
     except Exception as exc:
@@ -188,7 +192,7 @@ async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Opti
     apply_text_search(filters, params, query)
     
     cur.execute(
-        f"SELECT *, 1.0 as similarity FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY updated_at DESC, created_at DESC LIMIT %s",
+        f"SELECT *, 0.5 as similarity FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY updated_at DESC, created_at DESC LIMIT %s",
         params + [limit],
     )
     text_results = cur.fetchall()
@@ -217,7 +221,25 @@ async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Opti
     
     viewer_id = user["sub"] if user else None
     viewer_role = get_effective_role(cur, ws_id, ws["owner_id"], viewer_id)
-    return [strip_body_if_viewer(r, viewer_role) for r in combined[:limit]]
+    results = [strip_body_if_viewer(r, viewer_role) for r in combined[:limit]]
+    
+    # S1-T01: Log search retrieval
+    try:
+        record_retrieval_log(
+            workspace_id=ws_id,
+            mode='search',
+            query=query,
+            user_id=user["sub"] if user else None,
+            top_k=len(results),
+            hit_node_ids=[r["id"] for r in results],
+            similarities=[r.get("similarity", 0.0) for r in results],
+            tokens_query=estimate_tokens(query),
+            tokens_context=sum(estimate_tokens((r.get("body_zh") or "") + (r.get("body_en") or "")) for r in results),
+        )
+    except Exception as e:
+        print(f"Failed to log retrieval: {e}")
+        
+    return results
 
 
 def extract_search_terms(text: str) -> list[str]:
@@ -345,9 +367,25 @@ async def hybrid_retrieval_for_chat(
             LIMIT %s
         """
         cur.execute(sql, [target_ws_ids] + params + [needed])
-        ft_nodes = [n for n in cur.fetchall() if n["id"] not in seen_ids]
         source_nodes.extend(ft_nodes)
         
+    # S1-T01: Log chat retrieval
+    try:
+        context_text = "\n".join([n.get("body_zh", "") + n.get("body_en", "") for n in source_nodes])
+        record_retrieval_log(
+            workspace_id=target_ws_ids[0] if target_ws_ids else "multiple",
+            mode='chat',
+            query=message,
+            user_id=user_id,
+            top_k=len(source_nodes),
+            hit_node_ids=[n["id"] for n in source_nodes],
+            similarities=[n.get("similarity", 0.0) for n in source_nodes],
+            tokens_query=estimate_tokens(message),
+            tokens_context=estimate_tokens(context_text),
+        )
+    except Exception as e:
+        print(f"Failed to log chat retrieval: {e}")
+
     return source_nodes
 
 

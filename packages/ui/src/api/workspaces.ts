@@ -242,4 +242,7 @@ export const workspaces = {
   getDecayStats: (wsId: string) => request<any>("GET", `${BASE}/workspaces/${wsId}/decay-stats`),
   getHealthReport: (ws_id: string) => request<any>("GET", `${BASE}/workspaces/${ws_id}/nodes/health`),
   topGaps: (ws_id: string) => request<Array<{ id: string; title_zh: string; title_en: string; status: string; ask_count: number }>>("GET", `${BASE}/workspaces/${ws_id}/stats/top-gaps`),
+  summarizeCluster: (wsId: string, nodeIds: string[]) => request<Node>("POST", `${BASE}/workspaces/${wsId}/maintenance/summarize-cluster`, { node_ids: nodeIds }),
+  complementLanguages: (wsId: string, nodeIds: string[]) => request<{ results: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/complement-languages`, { node_ids: nodeIds }),
+  suggestEdges: (wsId: string, nodeId: string, limit = 5) => request<{ suggestions: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/suggest-edges`, { node_id: nodeId, limit }),
 };
