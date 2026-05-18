@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AlertTriangle, BarChart3, Network, Route, ShieldCheck } from "lucide-react";
-import { workspaces, type TokenEfficiency, type WorkspaceAnalytics } from "./api";
+import { workspaces, type WorkspaceAnalytics } from "./api";
 import { useTranslation } from "react-i18next";
 
 function formatPercent(value: number) {
@@ -72,7 +72,6 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
   const [data, setData] = useState<WorkspaceAnalytics | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [tokenEfficiency, setTokenEfficiency] = useState<TokenEfficiency | null>(null);
   const [topGaps, setTopGaps] = useState<Array<{ id: string; title_zh: string; title_en: string; status: string; ask_count: number }>>([]);
 
   useEffect(() => {
@@ -91,7 +90,6 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
       .finally(() => {
         if (active) setLoading(false);
       });
-    workspaces.tokenEfficiency(wsId).then(setTokenEfficiency).catch(() => {});
     workspaces.topGaps(wsId).then(setTopGaps).catch(() => {});
     return () => {
       active = false;
@@ -219,31 +217,6 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
         </section>
       </div>
 
-      <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 18 }}>
-        <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.tokenEfficiency')}</div>
-        {!tokenEfficiency || tokenEfficiency.monthly_query_count === 0 ? (
-          <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t('analytics.noMcpData')}</div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.avgTokensPerQuery')}</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{tokenEfficiency.avg_tokens_per_query}</div>
-            </div>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.fullDocTokens')}</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{tokenEfficiency.estimated_full_doc_tokens}</div>
-            </div>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.savingsRatio')}</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{formatPercent(tokenEfficiency.savings_ratio)}</div>
-            </div>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.monthlyMcpQueries')}</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{tokenEfficiency.monthly_query_count}</div>
-            </div>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
