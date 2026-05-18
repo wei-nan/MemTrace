@@ -101,7 +101,7 @@ export default function NodeHealthManager({
         ))}
       </div>
 
-      <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, overflow: "hidden" }}>
+      <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, overflow: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "48px 1.5fr 120px 120px", padding: "12px 16px", fontSize: 12, color: "var(--text-muted)", borderBottom: "1px solid var(--border-default)" }}>
           <div><input type="checkbox" checked={currentItems.length > 0 && currentItems.every((item) => selected[item.id])} onChange={toggleAll} /></div>
           <div>{t('health.node')}</div>

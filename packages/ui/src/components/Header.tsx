@@ -85,18 +85,18 @@ const Header: React.FC<HeaderProps> = ({
               <div style={{ 
                 width: 28, height: 28, borderRadius: '50%', background: 'var(--color-primary-subtle)',
                 color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, fontWeight: 700
+                fontSize: 12, fontWeight: 700
               }}>
                 {user.display_name?.[0]?.toUpperCase()}
               </div>
-              <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{user.display_name}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{user.display_name}</span>
             </div>
 
             {userMenuOpen && (
               <div style={{ 
                 position: 'absolute', top: 'calc(100% + 8px)', right: 0, 
                 width: 200, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)',
-                borderRadius: 12, boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
+                borderRadius: 10, boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
                 animation: 'fade-in-down 0.2s ease-out', zIndex: 1100
               }}>
                 <div 

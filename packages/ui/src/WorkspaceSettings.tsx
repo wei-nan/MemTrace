@@ -26,7 +26,7 @@ function DeleteWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onC
             <AlertTriangle size={20} color="var(--color-error)" />
           </div>
           <div style={{ flex: 1, paddingTop: 8 }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{zh ? "確認刪除工作區" : "Delete Workspace"}</h3>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>{zh ? "確認刪除工作區" : "Delete Workspace"}</h3>
           </div>
         </div>
         <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 16 }}>
@@ -90,7 +90,7 @@ function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onCo
             <Copy size={20} color="var(--color-primary)" />
           </div>
           <div style={{ flex: 1, paddingTop: 8 }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{zh ? "複製工作區 (Clone & Rebuild)" : "Clone Workspace"}</h3>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>{zh ? "複製工作區 (Clone & Rebuild)" : "Clone Workspace"}</h3>
           </div>
         </div>
         
@@ -313,7 +313,7 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <SectionCard>
-        <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> {t('ws_settings.create_reviewer_title')}</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 600, marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> {t('ws_settings.create_reviewer_title')}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: 10 }}>
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('ws_settings.members')} />
           <select className="mt-input" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })}>
@@ -343,7 +343,7 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
 
       <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item) => (
-          <div key={item.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12, padding: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <div key={item.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
             <div>
               <div style={{ fontWeight: 600 }}>{item.name}</div>
               <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{item.provider} / {item.model}</div>
@@ -459,7 +459,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <SectionCard>
-        <h3 style={{ margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Key size={18} /> {t('ws_settings.service_tokens')}</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Key size={18} /> {t('ws_settings.service_tokens')}</h3>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
           {zh ? "服務 Token 用於自動化任務，如 API 攝入或外部整合。" : "Service tokens are used for automated tasks like API ingestion or external integrations."}
         </p>
@@ -476,7 +476,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {keys.map(k => (
-          <div key={k.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12, padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={k.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                 {k.name} 
@@ -687,14 +687,14 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   return (
     <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", gap: 20, borderBottom: "1px solid var(--border-subtle)", marginBottom: 8, flexWrap: "wrap" }}>
-        <button onClick={() => setTab("general")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "general" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "general" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.general')}</button>
-        <button onClick={() => setTab("members")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "members" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "members" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.membersAccess')}</button>
-        <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
-        <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
-        <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.aiReviewers')}</button>
-        <button onClick={() => setTab("maintenance")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "maintenance" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "maintenance" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "智慧維護" : "Maintenance"}</button>
+        <button onClick={() => setTab("general")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "general" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "general" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.general')}</button>
+        <button onClick={() => setTab("members")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "members" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "members" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.membersAccess')}</button>
+        <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
+        <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
+        <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.aiReviewers')}</button>
+        <button onClick={() => setTab("maintenance")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "maintenance" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "maintenance" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "智慧維護" : "Maintenance"}</button>
         {ws?.owner_id === userId && (
-          <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
+          <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
         )}
       </div>
 
@@ -706,7 +706,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
             </div>
           )}
           <SectionCard>
-            <h3 style={{ fontSize: 16, margin: "0 0 16px" }}>{t('ws_settings.general')}</h3>
+            <h3 style={{ fontSize: 14, margin: "0 0 16px" }}>{t('ws_settings.general')}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{t('ws_settings.kbNameZh')}</label>
@@ -1042,7 +1042,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
           {/* P6 - Decay Status */}
           {decayStats && (
             <SectionCard>
-              <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Clock size={18} /> {t('ws_settings.edge_decay_status')}</h3>
+              <h3 style={{ fontSize: 14, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Clock size={18} /> {t('ws_settings.edge_decay_status')}</h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                 <div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t('ws_settings.last_decay_run')}</div>
@@ -1063,7 +1063,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
           {/* P3 - Health Report */}
           {healthReport && (
             <SectionCard>
-              <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><ShieldAlert size={18} /> {t('ws_settings.health_report')}</h3>
+              <h3 style={{ fontSize: 14, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><ShieldAlert size={18} /> {t('ws_settings.health_report')}</h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
                   <span>{t('ws_settings.total_nodes')}</span>
@@ -1096,7 +1096,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
 
           {ws?.owner_id === userId && (
             <SectionCard>
-              <h3 style={{ fontSize: 16, margin: "0 0 12px", color: "var(--color-error)", display: "flex", alignItems: "center", gap: 8 }}>
+              <h3 style={{ fontSize: 14, margin: "0 0 12px", color: "var(--color-error)", display: "flex", alignItems: "center", gap: 8 }}>
                 <ShieldAlert size={18} /> {zh ? "危險區域" : "Danger Zone"}
               </h3>
               <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
@@ -1135,7 +1135,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
       ) : tab === "assoc" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <SectionCard>
-            <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><ExternalLink size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.add_assoc_title')}</h3>
+            <h3 style={{ fontSize: 14, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><ExternalLink size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.add_assoc_title')}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ position: "relative" }}>
                 <Search size={15} style={{ position: "absolute", left: 12, top: 12, color: "var(--text-muted)" }} />
@@ -1175,7 +1175,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
 
           <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {associations.map((association) => (
-              <div key={association.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12 }}>
+              <div key={association.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10 }}>
                 <div>
                   <div style={{ fontWeight: 600 }}>{association.target_name_en}</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>ID: {association.target_ws_id}</div>
@@ -1203,10 +1203,10 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
 
           {accessTab === "members" && (
             <section>
-              <h3 style={{ fontSize: 16, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><Users size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.ws_members')}</h3>
+              <h3 style={{ fontSize: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><Users size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.ws_members')}</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {members.map((member) => (
-                  <div key={member.user_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12 }}>
+                  <div key={member.user_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10 }}>
                     <div>
                       <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                         {member.display_name}
@@ -1251,7 +1251,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
           {accessTab === "invites" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <SectionCard>
-                <h3 style={{ fontSize: 16, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Link2 size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.create_invite_link')}</h3>
+                <h3 style={{ fontSize: 14, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Link2 size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.create_invite_link')}</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10 }}>
                   <select className="mt-input" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
                     <option value="viewer">Viewer</option>
@@ -1322,10 +1322,10 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
 
           {accessTab === "requests" && (
             <section>
-              <h3 style={{ fontSize: 16, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><UserPlus size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.join_requests')}</h3>
+              <h3 style={{ fontSize: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><UserPlus size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.join_requests')}</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {joinRequests.map((req) => (
-                  <div key={req.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12 }}>
+                  <div key={req.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10 }}>
                     <div>
                       <div style={{ fontWeight: 600 }}>User: {req.user_id}</div>
                       <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{new Date(req.requested_at).toLocaleString()}</div>

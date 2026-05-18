@@ -193,7 +193,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
       {/* Header */}
       <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10 }}>
         <Sparkles size={18} style={{ color: 'var(--color-primary)' }} />
-        <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>
           {zh ? 'AI 助手' : 'AI Assistant'}
         </h3>
         
@@ -331,7 +331,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             </div>
             <div style={{ maxWidth: '85%' }}>
               <div style={{
-                padding: '12px 16px', borderRadius: 16, fontSize: 14, lineHeight: 1.5,
+                padding: '10px 14px', borderRadius: 12, fontSize: 13, lineHeight: 1.5,
                 background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-base)',
                 color: m.role === 'user' ? 'white' : 'var(--text-primary)',
                 border: m.role === 'assistant' ? '1px solid var(--border-default)' : 'none',
@@ -401,7 +401,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             <div style={{ width: 32, height: 32, borderRadius: 16, background: 'var(--color-primary-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <SpinnerIcon />
             </div>
-            <div style={{ padding: '12px 16px', borderRadius: 16, background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontSize: 14 }}>
+            <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontSize: 13 }}>
               <span className="animate-pulse">...</span>
             </div>
           </div>

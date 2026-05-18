@@ -44,10 +44,10 @@
   border: none;
   color: var(--text-primary);
   flex: 1;
-  padding: 10px 0;
+  padding: 8px 0;
   outline: none;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-family: inherit;
+  font-size: 13px;
 }
 
 .mt-input-field:disabled,

@@ -42,7 +42,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
         {/* ── Tabs ────────────────────────────────────────────────────────── */}
         <div style={{ 
           display: 'flex', gap: 8, marginBottom: 32, 
-          background: 'var(--bg-surface)', padding: 4, borderRadius: 12, 
+          background: 'var(--bg-surface)', padding: 4, borderRadius: 10,
           border: '1px solid var(--border-default)', width: 'fit-content', margin: '0 auto 32px' 
         }}>
           <Button 
@@ -92,7 +92,7 @@ export default function IngestPage({ wsId, onGoToReview }: { wsId: string, onGoT
                   onChange={e => setUrl(e.target.value)}
                   disabled={urlLoading}
                 />
-                <Button variant="primary" style={{ height: 48, width: '100%' }} loading={urlLoading} disabled={!url.trim()}>
+                <Button variant="primary" style={{ height: 36, width: '100%' }} loading={urlLoading} disabled={!url.trim()}>
                   {t('ingest.start_ingest')}
                 </Button>
               </form>

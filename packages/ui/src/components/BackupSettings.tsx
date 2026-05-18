@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { HardDrive } from 'lucide-react';
 import { system } from '../api';
 import { useModal } from './ModalContext';
 
@@ -61,17 +60,9 @@ export default function BackupSettings({ zh }: { zh: boolean }) {
 
 
   return (
-    <section style={{ marginBottom: 40 }}>
-      <h3 style={{ fontSize: 15, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <HardDrive size={16} style={{ color: 'var(--color-primary)' }} />
-        {zh ? '資料備份' : 'Data Backup'}
-      </h3>
-      <div style={{
-        background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
-        borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 16,
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 14 }}>{zh ? '啟用自動備份' : 'Enable automatic backup'}</span>
+          <span style={{ fontSize: 13 }}>{zh ? '啟用自動備份' : 'Enable automatic backup'}</span>
           <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} />
         </label>
 
@@ -118,7 +109,6 @@ export default function BackupSettings({ zh }: { zh: boolean }) {
             {running ? (zh ? '備份中…' : 'Running…') : (zh ? '立即備份' : 'Backup Now')}
           </button>
         </div>
-      </div>
-    </section>
+    </div>
   );
 }

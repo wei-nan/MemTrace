@@ -239,8 +239,8 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
       </div>
 
       {/* Table */}
-      <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 12, boxShadow: 'var(--shadow-sm)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
+      <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 10, boxShadow: 'var(--shadow-sm)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
           <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 1, borderBottom: '1px solid var(--border-default)' }}>
             <tr>
               <th style={{ padding: '12px 16px', width: 40 }}>
@@ -309,7 +309,7 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
                   </div>
                 </td>
                 <td style={{ padding: '12px 16px' }}>
-                  <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 12, background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
                     {node.content_type}
                   </span>
                 </td>

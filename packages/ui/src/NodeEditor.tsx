@@ -381,7 +381,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--border-default)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{isCreate ? t("node.title_new") : isEditing ? t("node.title_edit") : t("node.title_detail")}</div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>{isCreate ? t("node.title_new") : isEditing ? t("node.title_edit") : t("node.title_detail")}</div>
           {!isCreate && (
             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
               <button className={`tag ${tab === "details" ? "tag-active" : ""}`} onClick={() => setTab("details")}>{t("node.tab_details")}</button>
@@ -522,7 +522,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
             </div>
 
             {node && (
-              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
@@ -553,7 +553,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <button className={`tag ${displayLang === "zh" ? "tag-active" : ""}`} onClick={() => setDisplayLang("zh")}>{t("node.lang_zh")}</button>
             </div>
 
-            <div className="markdown-body" style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 12, border: "1px solid var(--border-default)" }}>
+            <div className="markdown-body" style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 10, border: "1px solid var(--border-default)" }}>
               {isViewerLocked ? (
                 <div style={{ color: "var(--text-muted)" }}>{t('node.private_locked')}</div>
               ) : (
@@ -562,7 +562,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
             </div>
 
             {node && (
-              <div style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 12, border: "1px solid var(--border-default)", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 10, border: "1px solid var(--border-default)", display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontWeight: 600 }}>{t("node.trust_dimensions")}</div>
                   {!isViewerLocked && (
@@ -664,7 +664,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               {node && !isViewerLocked && (
                 <Button
                   variant="primary"
-                  style={{ width: '100%', marginBottom: 16, height: 42 }}
+                  style={{ width: '100%', marginBottom: 16, height: 36 }}
                   onClick={() => {
                     if (node?.id && (window as any).mt_trigger_explore) {
                       (window as any).mt_trigger_explore(node.id);
@@ -722,7 +722,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
               {/* AI Suggested Edges */}
               {suggestedReviewItems.length > 0 && (
-                <div style={{ marginTop: 12, background: "rgba(124, 58, 237, 0.05)", border: "1px dashed var(--color-primary)", borderRadius: 12, padding: 14 }}>
+                <div style={{ marginTop: 12, background: "rgba(124, 58, 237, 0.05)", border: "1px dashed var(--color-primary)", borderRadius: 10, padding: 14 }}>
                   <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 10, color: "var(--color-primary)" }}>
                     <Bot size={16} /> {t('node.suggested_by_ai')}
                   </div>

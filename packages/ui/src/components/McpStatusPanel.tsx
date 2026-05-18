@@ -29,7 +29,7 @@ export default function McpStatusPanel({ onClose }: { onClose: () => void }) {
             <Network size={20} />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: 16 }}>{zh ? 'MCP 實時狀態' : 'MCP Live Status'}</h3>
+            <h3 style={{ margin: 0, fontSize: 14 }}>{zh ? 'MCP 實時狀態' : 'MCP Live Status'}</h3>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
               Model Context Protocol Gateway
             </div>
@@ -47,11 +47,11 @@ export default function McpStatusPanel({ onClose }: { onClose: () => void }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Global Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ background: 'var(--bg-elevated)', padding: 16, borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+              <div style={{ background: 'var(--bg-elevated)', padding: 16, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase' }}>{zh ? '當前總連線' : 'Total Sessions'}</div>
                 <div style={{ fontSize: 24, fontWeight: 700 }}>{status.active_sessions_total}</div>
               </div>
-              <div style={{ background: 'var(--bg-elevated)', padding: 16, borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+              <div style={{ background: 'var(--bg-elevated)', padding: 16, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase' }}>{zh ? '伺服器版本' : 'Server Ver'}</div>
                 <div style={{ fontSize: 24, fontWeight: 700 }}>{status.server_info?.version}</div>
               </div>
@@ -69,7 +69,7 @@ export default function McpStatusPanel({ onClose }: { onClose: () => void }) {
                     {zh ? '尚無活躍的 MCP 連線' : 'No active MCP sessions'}
                   </div>
                 ) : status.user_sessions.map((s: any) => (
-                  <div key={s.session_id} style={{ background: 'var(--bg-elevated)', padding: 12, borderRadius: 10, border: '1px solid var(--border-subtle)' }}>
+                  <div key={s.session_id} style={{ background: 'var(--bg-elevated)', padding: 12, borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace' }}>{s.session_id.slice(0, 8)}...</div>
                       <div style={{ fontSize: 10, padding: '2px 6px', background: 'var(--color-success-subtle)', color: 'var(--color-success)', borderRadius: 4 }}>ACTIVE</div>
@@ -90,8 +90,8 @@ export default function McpStatusPanel({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* MCP Download Link */}
-            <div style={{ marginTop: 'auto', background: 'var(--color-primary-subtle)', padding: 16, borderRadius: 12, border: '1px solid var(--color-primary)' }}>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-primary)', marginBottom: 4 }}>
+            <div style={{ marginTop: 'auto', background: 'var(--color-primary-subtle)', padding: 16, borderRadius: 10, border: '1px solid var(--color-primary)' }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--color-primary)', marginBottom: 4 }}>
                 {zh ? '整合至 Claude Code?' : 'Integrate with Claude Code?'}
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 12 }}>

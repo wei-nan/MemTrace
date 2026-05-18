@@ -51,7 +51,7 @@ function MetricCard({ icon, label, value, tone = "default" }: { icon: ReactNode;
     <div style={{
       background: tone === "warning" ? "color-mix(in srgb, var(--color-warning) 10%, var(--bg-surface))" : "var(--bg-surface)",
       border: `1px solid ${tone === "warning" ? "var(--color-warning)" : "var(--border-default)"}`,
-      borderRadius: 16,
+      borderRadius: 10,
       padding: 18,
       display: "flex",
       flexDirection: "column",
@@ -130,7 +130,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
           alignItems: "center",
           gap: 10,
           padding: "14px 16px",
-          borderRadius: 14,
+          borderRadius: 10,
           border: "1px solid var(--color-warning)",
           background: "color-mix(in srgb, var(--color-warning) 10%, var(--bg-surface))",
           color: "var(--text-primary)",
@@ -154,7 +154,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr 0.9fr", gap: 16 }}>
-        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
+        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontWeight: 600 }}>
             <BarChart3 size={17} /> {t('analytics.traversalTrend')}
           </div>
@@ -164,7 +164,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
           </div>
         </section>
 
-        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ fontWeight: 600 }}>{t('analytics.topNodes')}</div>
           {data.top_nodes.map((node) => (
             <div key={node.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13 }}>
@@ -177,7 +177,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
+        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 18 }}>
           <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.topGaps')}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {topGaps.map((gap) => (
@@ -204,11 +204,11 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
           </div>
         </section>
 
-        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
+        <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 18 }}>
           <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.kbTypeMetrics')}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
             {Object.entries(data.kb_type_metrics).map(([key, value]) => (
-              <div key={key} style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
+              <div key={key} style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t(`analytics.metrics.${key}`, { defaultValue: key })}</div>
                 <div style={{ fontSize: 20, fontWeight: 700 }}>
                   {key.includes("ratio") ? formatPercent(value) : Number(value).toFixed(key.includes("avg_days") ? 1 : 2).replace(".00", "")}
@@ -219,25 +219,25 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
         </section>
       </div>
 
-      <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 16, padding: 18 }}>
+      <section style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 18 }}>
         <div style={{ fontWeight: 600, marginBottom: 12 }}>{t('analytics.tokenEfficiency')}</div>
         {!tokenEfficiency || tokenEfficiency.monthly_query_count === 0 ? (
           <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t('analytics.noMcpData')}</div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
+            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.avgTokensPerQuery')}</div>
               <div style={{ fontSize: 20, fontWeight: 700 }}>{tokenEfficiency.avg_tokens_per_query}</div>
             </div>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
+            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.fullDocTokens')}</div>
               <div style={{ fontSize: 20, fontWeight: 700 }}>{tokenEfficiency.estimated_full_doc_tokens}</div>
             </div>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
+            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.savingsRatio')}</div>
               <div style={{ fontSize: 20, fontWeight: 700 }}>{formatPercent(tokenEfficiency.savings_ratio)}</div>
             </div>
-            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 12, padding: 14 }}>
+            <div style={{ border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 14 }}>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t('analytics.monthlyMcpQueries')}</div>
               <div style={{ fontSize: 20, fontWeight: 700 }}>{tokenEfficiency.monthly_query_count}</div>
             </div>

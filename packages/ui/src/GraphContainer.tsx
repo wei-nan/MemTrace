@@ -216,7 +216,7 @@ export default function GraphContainer({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Sparkles size={18} />
-            <span style={{ fontSize: 14, fontWeight: 500 }}>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>
               {zh ? '您正在預覽有條件公開的圖譜結構' : 'You are previewing a conditional public graph structure'}
             </span>
           </div>
@@ -444,12 +444,12 @@ export default function GraphContainer({
                   : 'This workspace is currently empty. You can manually add nodes or upload documents to let AI extract knowledge for you.'}
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-                <button className="btn-primary" onClick={onNewNode} style={{ padding: '10px 24px', height: 44, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10 }}>
-                  <PlusCircle size={18} />
+                <button className="btn-primary" onClick={onNewNode} style={{ padding: '8px 16px', height: 36, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 8 }}>
+                  <PlusCircle size={16} />
                   {zh ? '手動新增' : 'Add Node'}
                 </button>
-                <button className="btn-secondary" onClick={() => onSwitchView('ingest')} style={{ padding: '10px 24px', height: 44, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10 }}>
-                  <FileUp size={18} />
+                <button className="btn-secondary" onClick={() => onSwitchView('ingest')} style={{ padding: '8px 16px', height: 36, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 8 }}>
+                  <FileUp size={16} />
                   {zh ? '上傳文件' : 'Ingest Docs'}
                 </button>
               </div>

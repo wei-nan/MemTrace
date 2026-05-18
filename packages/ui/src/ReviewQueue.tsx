@@ -192,7 +192,7 @@ function ReviewCard({
   };
 
   return (
-    <Card variant="surface" padding="md" style={{ border: "1px solid var(--border-default)", borderRadius: 16 }}>
+    <Card variant="surface" padding="md" style={{ border: "1px solid var(--border-default)", borderRadius: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -206,7 +206,7 @@ function ReviewCard({
             </span>
             {item.ai_review && <span className="tag">{item.ai_review.decision} · {(item.ai_review.confidence * 100).toFixed(0)}%</span>}
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{String(item.node_data.title_en ?? item.node_data.title_zh ?? "Untitled change")}</div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>{String(item.node_data.title_en ?? item.node_data.title_zh ?? "Untitled change")}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
             {item.source_info || "Review proposal"} · {new Date(item.created_at).toLocaleString()}
           </div>
@@ -262,7 +262,7 @@ function ReviewCard({
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
           {((item.proposer_meta?.split_suggestion as any[]) || []).map((p, i) => (
             <Card key={i} padding="sm" style={{ border: "1px solid var(--border-default)" }}>
-               <div style={{ fontWeight: 600, fontSize: 14 }}>{p.title_en || p.title_zh}</div>
+               <div style={{ fontWeight: 600, fontSize: 13 }}>{p.title_en || p.title_zh}</div>
                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{p.body_en || p.body_zh}</div>
             </Card>
           ))}
@@ -428,7 +428,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
               key={value}
               variant={changeType === value ? "primary" : "secondary"}
               onClick={() => setChangeType(value)}
-              style={{ height: 42, padding: "0 16px" }}
+              style={{ height: 32, padding: "0 12px" }}
             >
               {label}
             </Button>
@@ -439,7 +439,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
           <User size={14} style={{ color: "var(--text-muted)" }} />
           <select 
             className="mt-input" 
-            style={{ width: 140, height: 42, fontSize: 13, padding: "0 12px", background: "var(--bg-surface)" }} 
+            style={{ width: 140, height: 32, fontSize: 13, padding: "0 10px", background: "var(--bg-surface)" }} 
             value={proposerType} 
             onChange={(e) => setProposerType(e.target.value as typeof proposerType)}
           >

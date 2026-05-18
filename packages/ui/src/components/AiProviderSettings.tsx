@@ -96,36 +96,36 @@ export default function AiProviderSettings({ zh, onSaved }: { zh: boolean, onSav
   };
 
   return (
-    <div className="card" style={{ padding: 24 }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       {savedKeys.length > 0 && (
-        <div style={{ marginBottom: 32 }}>
-          <h4 style={{ marginBottom: 16 }}>{zh ? '已配置的 AI 供應商' : 'Configured Providers'}</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ marginBottom: 4 }}>
+          <h4 style={{ fontSize: 13, fontWeight: 600, margin: '0 0 10px' }}>{zh ? '已配置的 AI 供應商' : 'Configured Providers'}</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {savedKeys.map(k => (
-              <div key={k.provider} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--color-bg-secondary)', borderRadius: 8 }}>
-                <div>
-                  <div style={{ fontWeight: 600, textTransform: 'capitalize' }}>{k.provider}</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+              <div key={k.provider} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{k.provider}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                     {k.key_hint || k.base_url || 'Configured'}
                   </div>
                   {k.default_chat_model && (
-                    <div style={{ fontSize: 13, color: 'var(--color-primary)', marginTop: 4 }}>
+                    <div style={{ fontSize: 12, color: 'var(--color-primary)', marginTop: 2 }}>
                       Model: {k.default_chat_model}
                     </div>
                   )}
                 </div>
-                <button className="btn-secondary" style={{ color: 'var(--color-error)' }} onClick={() => handleDeleteKey(k.provider)}>
+                <button className="btn-secondary" style={{ color: 'var(--color-error)', flexShrink: 0 }} onClick={() => handleDeleteKey(k.provider)}>
                   {zh ? '移除' : 'Remove'}
                 </button>
               </div>
             ))}
           </div>
-          <hr style={{ margin: '32px 0 24px', borderColor: 'var(--color-border)' }} />
+          <hr style={{ margin: '16px 0 4px', border: 'none', borderTop: '1px solid var(--border-subtle)' }} />
         </div>
       )}
 
-      <h4 style={{ marginBottom: 16 }}>{zh ? '新增或更新設定' : 'Add or Update Configuration'}</h4>
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+      <h4 style={{ fontSize: 13, fontWeight: 600, margin: '0 0 10px' }}>{zh ? '新增或更新設定' : 'Add or Update Configuration'}</h4>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
         {['openai', 'anthropic', 'gemini', 'ollama'].map((p: any) => (
           <button
             key={p}
@@ -166,9 +166,9 @@ export default function AiProviderSettings({ zh, onSaved }: { zh: boolean, onSav
         )}
       </div>
 
-      {error && <div style={{ color: 'var(--color-error)', marginTop: 12, fontSize: 13 }}>{error}</div>}
-      
-      <button className="btn-primary" onClick={handleSaveKey} disabled={saving} style={{ marginTop: 20, width: '100%' }}>
+      {error && <div style={{ color: 'var(--color-error)', marginTop: 8, fontSize: 12 }}>{error}</div>}
+
+      <button className="btn-primary" onClick={handleSaveKey} disabled={saving} style={{ marginTop: 14, alignSelf: 'flex-start' }}>
         {saving ? t('common.saving') : (zh ? '2. 儲存設定' : '2. Save Settings')}
       </button>
     </div>

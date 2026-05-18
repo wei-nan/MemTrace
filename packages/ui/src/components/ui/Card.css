@@ -1,5 +1,5 @@
 .card {
-  border-radius: 16px;
+  border-radius: 10px;
   overflow: hidden;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -37,9 +37,9 @@
 }
 
 .card-padding-none { padding: 0; }
-.card-padding-sm { padding: 12px; }
-.card-padding-md { padding: 20px; }
-.card-padding-lg { padding: 32px; }
+.card-padding-sm { padding: 10px; }
+.card-padding-md { padding: 16px; }
+.card-padding-lg { padding: 24px; }
 
 .card-header {
   margin-bottom: 16px;
