@@ -934,7 +934,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                       } catch (err) { toast({ message: String(err), variant: "error" }); }
                     }} 
                   />
-                  <span className="slider round"></span>
+                  <span className="mt-switch-slider round"></span>
                 </label>
               </div>
               
