@@ -448,6 +448,14 @@ h1, h2, h3, h4, h5, h6 {
   min-width: 360px; /* Keep content size stable during collapse */
 }
 
+.side-panel-wide {
+  width: 450px;
+}
+
+.side-panel-wide > * {
+  min-width: 450px;
+}
+
 .tag {
   background: var(--color-primary-subtle);
   color: var(--color-primary);
