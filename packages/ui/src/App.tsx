@@ -372,7 +372,7 @@ export default function App() {
 
       <aside className={`side-panel ${(!showChat || currentView !== 'graph') ? 'hidden' : ''}`} style={{ zIndex: 90 }}>
         <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative', borderLeft: (showChat && currentView === 'graph') ? '1px solid var(--border-default)' : 'none' }}>
-          <div style={{ width: 450, height: '100%' }}>
+          <div style={{ width: '100%', height: '100%' }}>
             <Suspense fallback={<div className="loading-overlay"><RefreshCw className="animate-spin" /></div>}>
               {selectedWs && <AiChatPanel wsId={selectedWs.id} zh={i18n.language === 'zh-TW'} />}
             </Suspense>
