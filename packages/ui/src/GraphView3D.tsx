@@ -600,14 +600,10 @@ export default function GraphView3D({
             }}
             nodeThreeObject={nodeThreeObject}
             nodeThreeObjectExtend={false}
-            linkWidth={(link: any) => {
-              if (mode === 'explore' && link.co_access_count !== undefined) {
-                return Math.max(0.5, Math.log((link.co_access_count ?? 0) + 1) * 2);
-              }
-              return Math.max(0.3, (link.weight ?? 1) * 3);
-            }}
-            linkColor={(link: any) => link.status === 'faded' ? '#94a3b830' : link.color}
-            linkDirectionalArrowLength={5}
+            linkWidth={0.1}
+            linkMaterial={() => new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })}
+            linkColor={(link: any) => link.status === 'faded' ? '#94a3b820' : link.color}
+            linkDirectionalArrowLength={0}
             linkDirectionalArrowRelPos={1}
             linkLabel={(link: any) => {
               const label = zh ? (RELATION_LABELS_ZH[link.relation] || link.relation) : link.relation.replace('_', ' ');
@@ -625,7 +621,7 @@ export default function GraphView3D({
                 ${extra}
               </div>`;
             }}
-            linkOpacity={0.5}
+            linkOpacity={1}
             onNodeClick={handleNodeClick}
             onNodeHover={setHoveredNode}
             // @ts-ignore - onCameraPositionChange exists at runtime but might be missing in types
@@ -651,12 +647,12 @@ export default function GraphView3D({
               if (apiNodes.length > 100) return 2;
               return 4;
             }}
-            linkDirectionalParticleSpeed={() => {
-              // Faster particles for fewer nodes
-              if (apiNodes.length > 300) return 0.002;
-              return 0.004;
+            linkDirectionalParticleSpeed={(link: any) => {
+              const base = apiNodes.length > 300 ? 0.002 : 0.004;
+              const w = Math.max(0.1, Math.min(1.0, link.weight ?? 1));
+              return base * (0.25 + w * 0.75);
             }}
-            linkDirectionalParticleWidth={1.5}
+            linkDirectionalParticleWidth={1.0}
             onRenderFramePost={() => {
               if (dofEnabled && composerRef.current) {
                 composerRef.current.render();
