@@ -41,8 +41,8 @@ export default function OnboardingWizard({
   const [error, setError] = useState('');
   
   // KB State
-  const [kbNameZh, setKbNameZh] = useState('');
-  const [kbNameEn, setKbNameEn] = useState('');
+  const [kbName, setKbName] = useState('');
+  const [kbLanguage, setKbLanguage] = useState<'zh-TW' | 'en'>(i18n.language === 'en' ? 'en' : 'zh-TW');
   const [kbVisibility, setKbVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
   const [qaArchiveMode, setQaArchiveMode] = useState<'auto_active' | 'manual_review'>('manual_review');
   
@@ -121,15 +121,15 @@ export default function OnboardingWizard({
   };
 
   const handleCreateKb = async () => {
-    if (!kbNameZh.trim() || !kbNameEn.trim()) {
-      setError(t('onboarding.kb_name_zh') + ' & ' + t('onboarding.kb_name_en'));
+    if (!kbName.trim()) {
+      setError(zh ? '請填寫知識庫名稱' : 'Please enter a knowledge base name');
       return;
     }
     setLoading(true);
     try {
       const ws = await workspaces.create({
-        name_zh: kbNameZh.trim(),
-        name_en: kbNameEn.trim(),
+        name: kbName.trim(),
+        language: kbLanguage,
         visibility: kbVisibility,
         kb_type: 'evergreen',
         embedding_model: selectedKbEmbedModel || undefined,  // P4.1-E
@@ -314,14 +314,21 @@ export default function OnboardingWizard({
       <h3>{t('onboarding.create_kb')}</h3>
       <p>{t('onboarding.kb_subtitle')}</p>
       <div className="onboard-form mt-24">
-        <Input 
-          placeholder={t('onboarding.kb_name_zh')} 
-          value={kbNameZh} onChange={e => setKbNameZh(e.target.value)}
-        />
-        <Input 
-          placeholder={t('onboarding.kb_name_en')} 
-          value={kbNameEn} onChange={e => setKbNameEn(e.target.value)}
-        />
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
+          <Input
+            placeholder={zh ? '例：我的知識庫' : 'e.g. My Knowledge Base'}
+            value={kbName} onChange={e => setKbName(e.target.value)}
+          />
+          <select
+            className="mt-input"
+            style={{ padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 8, background: 'var(--bg-surface)' }}
+            value={kbLanguage}
+            onChange={e => setKbLanguage(e.target.value as 'zh-TW' | 'en')}
+          >
+            <option value="zh-TW">繁體中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
         
         {/* Visibility toggle */}
         <div style={{ textAlign: 'left' }}>

@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             }}
           >
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {selectedWs ? (zh ? selectedWs.name_zh : selectedWs.name_en) : (zh ? '選擇工作區…' : 'Select workspace…')}
+              {selectedWs ? selectedWs.name : (zh ? '選擇工作區…' : 'Select workspace…')}
             </span>
             <ChevronDown size={14} />
           </button>
@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     transition: 'all 0.15s'
                   }}
                 >
-                  {zh ? ws.name_zh : ws.name_en}
+                  {ws.name}
                   <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 6 }}>{ws.kb_type}</span>
                 </div>
               ))}
@@ -138,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     >
                       <Globe size={11} style={{ opacity: 0.5, flexShrink: 0 }} />
                       <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {zh ? ws.name_zh : ws.name_en}
+                        {ws.name}
                       </span>
                       <span style={{ fontSize: 10, opacity: 0.6 }}>{ws.kb_type}</span>
                       {user && ws.owner_id !== user.id && (

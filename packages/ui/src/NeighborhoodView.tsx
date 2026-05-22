@@ -45,7 +45,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
     if (rootNodeId) {
       const rootNode = nodes.find(n => n.id === rootNodeId);
       if (rootNode) {
-        const title = zh ? rootNode.title_zh : rootNode.title_en;
+        const title = rootNode.title;
         setHistory(prev => {
           if (prev.length > 0 && prev[prev.length - 1].id === rootNodeId) return prev;
           const next = [...prev, { id: rootNodeId, title }];
@@ -102,7 +102,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                       borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s'
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>{zh ? node.title_zh : node.title_en}</div>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{node.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{node.content_type}</div>
                   </div>
                 ))}
@@ -124,7 +124,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                       borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s'
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>{zh ? node.title_zh : node.title_en}</div>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{node.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
                       <span>{node.content_type}</span>
                       <span style={{ color: 'var(--color-primary)' }}>Trust: {node.trust_score.toFixed(2)}</span>
@@ -150,7 +150,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                       borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s'
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>{zh ? node.title_zh : node.title_en}</div>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{node.title}</div>
                     <div style={{ fontSize: 11, color: '#b45309', marginTop: 4 }}>{zh ? '從未走訪過的知識' : 'Knowledge never traversed'}</div>
                   </div>
                 ))}
@@ -243,7 +243,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
         {rootNode && (
           <div className="animate-fade-in">
             <h1 style={{ fontSize: 32, margin: '0 0 16px 0', fontWeight: 800, letterSpacing: '-0.02em' }}>
-              {zh ? rootNode.title_zh : rootNode.title_en}
+              {rootNode.title}
             </h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               <span className="tag" style={{ background: 'var(--bg-app)', border: '1px solid var(--border-default)' }}>
@@ -321,7 +321,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                     </div>
 
                     <h3 style={{ margin: 0, fontSize: 19, fontWeight: 700, lineHeight: 1.4, color: 'var(--text-default)' }}>
-                      {zh ? node.title_zh : node.title_en}
+                      {node.title}
                     </h3>
 
                     <div style={{ 
@@ -330,7 +330,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                       WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
                       minHeight: '4.8em'
                     }}>
-                      {zh ? node.body_zh : node.body_en}
+                      {node.body}
                     </div>
 
                     <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: 8 }}>

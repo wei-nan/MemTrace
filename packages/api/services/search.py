@@ -88,8 +88,8 @@ def bfs_neighborhood(
     # Fetch nodes
     ph = ",".join(["%s"] * len(visited_nodes))
     node_query = f"""
-        SELECT id, schema_version, workspace_id, title_zh, title_en, content_type, content_format,
-               body_zh, body_en, tags, visibility, author, created_at, updated_at,
+        SELECT id, schema_version, workspace_id, title, content_type, content_format,
+               body, tags, visibility, author, created_at, updated_at,
                signature, source_type, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
                traversal_count, unique_traverser_count, status, archived_at,
                copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
@@ -169,17 +169,17 @@ def apply_text_search(filters: list, params: list, q: str) -> None:
             or_conds = ["search_vector @@ plainto_tsquery('simple', %s)"]
             params.append(q)
             for t in terms:
-                or_conds.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)")
+                or_conds.append("(title ILIKE %s OR body ILIKE %s)")
                 like_t = f"%{t}%"
-                params += [like_t, like_t, like_t]
+                params += [like_t, like_t]
             filters.append(f"({' OR '.join(or_conds)})")
         else:
             filters.append("search_vector @@ plainto_tsquery('simple', %s)")
             params.append(q)
     else:
         like_q = f"%{q}%"
-        filters.append("(title_zh LIKE %s OR title_en LIKE %s OR body_zh LIKE %s OR body_en LIKE %s)")
-        params.extend([like_q, like_q, like_q, like_q])
+        filters.append("(title LIKE %s OR body LIKE %s)")
+        params.extend([like_q, like_q])
 
 
 async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Optional[dict]) -> list[dict]:
@@ -234,7 +234,7 @@ async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Opti
             hit_node_ids=[r["id"] for r in results],
             similarities=[r.get("similarity", 0.0) for r in results],
             tokens_query=estimate_tokens(query),
-            tokens_context=sum(estimate_tokens((r.get("body_zh") or "") + (r.get("body_en") or "")) for r in results),
+            tokens_context=sum(estimate_tokens(r.get("body") or "") for r in results),
         )
     except Exception as e:
         print(f"Failed to log retrieval: {e}")
@@ -306,13 +306,13 @@ async def hybrid_retrieval_for_chat(
     cur.execute("""
         SELECT id FROM memory_nodes 
         WHERE workspace_id = ANY(%s) AND content_type = 'inquiry' AND status = 'active'
-          AND (title_zh = %s OR title_en = %s)
+          AND title = %s
         LIMIT 1
-    """, (target_ws_ids, message, message))
+    """, (target_ws_ids, message))
     faq_hit = cur.fetchone()
     if faq_hit:
         cur.execute("""
-            SELECT n.id, n.title_zh, n.title_en, n.body_zh, n.body_en, n.workspace_id, 1.0 AS similarity
+            SELECT n.id, n.title, n.body, n.workspace_id, 1.0 AS similarity
             FROM edges e
             JOIN memory_nodes n ON n.id = e.to_id
             WHERE e.from_id = %s
@@ -331,7 +331,7 @@ async def hybrid_retrieval_for_chat(
         embed_prov = resolve_provider(user_id, "embedding", preferred_provider=ws_embed_prov, preferred_model=ws_embed_model)
         vector, _ = await embed(embed_prov, message)
         cur.execute(f"""
-            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+            SELECT id, title, body, workspace_id,
                    (1 - (embedding <=> %s::vector)) AS similarity
             FROM memory_nodes
             WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
@@ -353,13 +353,13 @@ async def hybrid_retrieval_for_chat(
         
         if terms:
             for t in terms:
-                or_conds.append("(title_zh ILIKE %s OR title_en ILIKE %s OR body_zh ILIKE %s)")
+                or_conds.append("(title ILIKE %s OR body ILIKE %s)")
                 like_t = f"%{t}%"
-                params += [like_t, like_t, like_t]
+                params += [like_t, like_t]
         
         is_pg = settings.database_url.startswith("postgresql")
         sql = f"""
-            SELECT id, title_zh, title_en, body_zh, body_en, workspace_id,
+            SELECT id, title, body, workspace_id,
                    0.0::{'float' if is_pg else 'real'} AS similarity
             FROM memory_nodes
             WHERE workspace_id = ANY(%s) AND status = 'active'
@@ -367,11 +367,12 @@ async def hybrid_retrieval_for_chat(
             LIMIT %s
         """
         cur.execute(sql, [target_ws_ids] + params + [needed])
+        ft_nodes = list(cur.fetchall())
         source_nodes.extend(ft_nodes)
         
     # S1-T01: Log chat retrieval
     try:
-        context_text = "\n".join([n.get("body_zh", "") + n.get("body_en", "") for n in source_nodes])
+        context_text = "\n".join([n.get("body", "") for n in source_nodes])
         record_retrieval_log(
             workspace_id=target_ws_ids[0] if target_ws_ids else "multiple",
             mode='chat',

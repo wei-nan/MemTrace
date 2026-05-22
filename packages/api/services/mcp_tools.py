@@ -23,7 +23,7 @@ from services.nodes import (
     transfer_authorship_in_db,
     resolve_conflict_in_db
 )
-from services.synthesis import generate_cluster_summary, complement_languages, suggest_missing_edges
+from services.synthesis import generate_cluster_summary, suggest_missing_edges
 from services.bg_jobs import trigger_node_background_jobs
 from core.ai import extract_nodes_structured
 from services.ingest.pipeline import resolve_with_fallback, process_ingestion, safe_parse_nodes_with_repair, resolve_provider
@@ -180,10 +180,8 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "workspace_id": {"type": "string"},
-                "title_zh": {"type": "string"},
-                "title_en": {"type": "string"},
-                "body_zh": {"type": "string"},
-                "body_en": {"type": "string"},
+                "title": {"type": "string"},
+                "body": {"type": "string"},
                 "content_type": {"type": "string", "enum": sorted(list(VALID_CONTENT_T))},
                 "content_format": {"type": "string", "enum": ["plain", "markdown"], "default": "plain"},
                 "tags": {"type": "array", "items": {"type": "string"}},
@@ -191,7 +189,7 @@ TOOLS = [
                 "source_type": {"type": "string", "enum": ["human", "ai"], "default": "human"},
                 "trust_score": {"type": "number", "description": "0.0–1.0"},
             },
-            "required": ["workspace_id", "title_en", "content_type"],
+            "required": ["workspace_id", "title", "content_type"],
         },
     },
     {
@@ -202,10 +200,8 @@ TOOLS = [
             "properties": {
                 "workspace_id": {"type": "string"},
                 "node_id": {"type": "string"},
-                "title_zh": {"type": "string"},
-                "title_en": {"type": "string"},
-                "body_zh": {"type": "string"},
-                "body_en": {"type": "string"},
+                "title": {"type": "string"},
+                "body": {"type": "string"},
                 "content_type": {"type": "string"},
                 "content_format": {"type": "string", "enum": ["plain", "markdown"]},
                 "tags": {"type": "array", "items": {"type": "string"}},
@@ -414,6 +410,44 @@ TOOLS = [
             "required": ["workspace_id"],
         },
     },
+    # ── Phase 6: Document tools ────────────────────────────────────────────────
+    {
+        "name": "list_documents",
+        "description": "List all uploaded documents in a workspace. Documents are first-class citizens that can be linked to multiple knowledge nodes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "limit":  {"type": "integer", "description": "Max results (default 20, max 100)"},
+                "offset": {"type": "integer", "description": "Pagination offset"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "get_document",
+        "description": "Retrieve a document's metadata and its list of linked knowledge nodes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "document_id": {"type": "string", "description": "Document ID (doc_...)"},
+            },
+            "required": ["workspace_id", "document_id"],
+        },
+    },
+    {
+        "name": "get_node_sources",
+        "description": "Return the source documents linked to a knowledge node, including excerpt and paragraph reference.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "node_id": {"type": "string", "description": "Node ID (mem_...)"},
+            },
+            "required": ["workspace_id", "node_id"],
+        },
+    },
 ]
 
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
@@ -534,10 +568,10 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             if review_id:
                 from core.ai_review import run_ai_review_for_item
                 background_tasks.add_task(run_ai_review_for_item, review_id)
-                log_mcp_interaction(background_tasks, ws_id, name, query_text=f"Create pending: {args.get('title_en') or args.get('title_zh')}")
+                log_mcp_interaction(background_tasks, ws_id, name, query_text=f"Create pending: {args.get('title')}")
                 return {"review_id": review_id, "status": "pending_review"}
             
-            log_mcp_interaction(background_tasks, ws_id, name, node_id=node["id"], query_text=f"Created: {node.get('title_en') or node.get('title_zh')}")
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node["id"], query_text=f"Created: {node.get('title')}")
             trigger_node_background_jobs(background_tasks, ws_id, node["id"], user["sub"], node)
             return node
 
@@ -609,10 +643,8 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             "fields": {
                 "id":             "string — unique node ID (mem_...)",
                 "workspace_id":   "string — workspace identifier",
-                "title_zh":       "string — Chinese title",
-                "title_en":       "string — English title",
-                "body_zh":        "string — Chinese body content",
-                "body_en":        "string — English body content",
+                "title":          "string — title of the node",
+                "body":           "string — body content of the node",
                 "content_type":   "string — classification (factual, procedural, inquiry, etc.)",
                 "content_format": "string — 'plain' or 'markdown'",
                 "tags":           "array of strings — keywords and categories",
@@ -685,13 +717,12 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                     background_tasks.add_task(bg_check_complexity, ws_id, rid, user["sub"])
                     extracted_info.append({
                         "review_id": rid,
-                        "title_zh": node_data.get("title_zh"),
-                        "title_en": node_data.get("title_en"),
+                        "title": node_data.get("title"),
                         "status": "pending_review"
                     })
                 else:
                     extracted_info.append({
-                        "title_en": node_data.get("title_en"),
+                        "title": node_data.get("title"),
                         "status": "skipped_duplicate"
                     })
             
@@ -810,11 +841,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
 
     # ── complement_node_languages ─────────────────────────────────────────────
     if name == "complement_node_languages":
-        ws_id = args["workspace_id"]
-        node_id = args["node_id"]
-        with db_cursor(commit=True) as cur:
-            success = await complement_languages(cur, ws_id, node_id, user["sub"])
-            return {"success": success, "status": "updated" if success else "failed"}
+        raise HTTPException(status_code=410, detail="This tool is obsolete under single-language schema")
 
     # ── suggest_edges ─────────────────────────────────────────────────────────
     if name == "suggest_edges":
@@ -823,6 +850,46 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor() as cur:
             suggestions = await suggest_missing_edges(cur, ws_id, threshold)
             return {"suggestions": suggestions}
+
+    # ── list_documents ────────────────────────────────────────────────────────
+    if name == "list_documents":
+        ws_id  = args["workspace_id"]
+        limit  = min(int(args.get("limit", 20)), 100)
+        offset = int(args.get("offset", 0))
+        from services.documents import list_documents_in_db
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user)
+            return list(list_documents_in_db(cur, ws_id, limit=limit, offset=offset))
+
+    # ── get_document ──────────────────────────────────────────────────────────
+    if name == "get_document":
+        ws_id   = args["workspace_id"]
+        doc_id  = args["document_id"]
+        from services.documents import get_document_in_db, get_document_linked_nodes
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user)
+            doc = get_document_in_db(cur, doc_id)
+            if not doc or doc["workspace_id"] != ws_id:
+                raise HTTPException(status_code=404, detail="Document not found")
+            nodes = get_document_linked_nodes(cur, doc_id)
+            return {**dict(doc), "linked_nodes": list(nodes)}
+
+    # ── get_node_sources ──────────────────────────────────────────────────────
+    if name == "get_node_sources":
+        ws_id   = args["workspace_id"]
+        node_id = args["node_id"]
+        from services.documents import get_node_sources
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user)
+            cur.execute(
+                "SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s",
+                (node_id, ws_id),
+            )
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Node not found")
+            sources = get_node_sources(cur, node_id)
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+            return list(sources)
 
     raise ValueError(f"Unknown tool: {name}")
 

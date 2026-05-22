@@ -140,8 +140,8 @@ function computeClusterLayout(
       y: originY - 10,
       w: haloW + 20,
       h: haloH + 20,
-      color: CLUSTER_ACCENT[cl.color] ?? '#6366f1',
-      label: cl.name_zh || cl.name_en,
+      color: CLUSTER_ACCENT[cl.color] ?? 'var(--color-primary)',
+      label: cl.name,
     });
 
     clusterIdx++;
@@ -234,10 +234,10 @@ function GraphViewInner({
           type: 'memoryNode',
           position: pos,
           data: {
-            title: isPreview ? (zh ? '受保護的節點' : 'Protected Node') : (zh ? n.title_zh : n.title_en),
+            title: isPreview ? (zh ? '受保護的節點' : 'Protected Node') : n.title,
             type: isPreview ? 'hidden' : n.content_type,
             tags: isPreview ? [] : n.tags,
-            isEmpty: !isPreview && !n.body_zh && !n.body_en,
+            isEmpty: !isPreview && !n.body,
             healthColor: !isPreview && healthMode && health ? HEALTH_COLORS[health.label] : (isPreview ? '#94a3b8' : undefined),
             healthTooltip: !isPreview && healthMode && health ? `Health ${(health.score * 100).toFixed(0)}% · ${health.reason}` : undefined,
             validityExpired: !isPreview && isExpired,
@@ -311,7 +311,6 @@ function GraphViewInner({
           isSpacePressed={isSpacePressed}
           zh={zh}
           apiNodes={apiNodes}
-          i18n={i18n}
           relationColors={relationColors}
         />
       </div>
@@ -329,13 +328,12 @@ interface GraphCanvasProps {
   isSpacePressed: boolean;
   zh: boolean;
   apiNodes: ApiNode[];
-  i18n: any;
   relationColors: Record<string, string>;
 }
 
 function GraphCanvas({
   rfNodes, rfEdges, onNodesChange, onEdgesChange, onConnect, onNodeClick,
-  isSpacePressed, zh, apiNodes, i18n, relationColors
+  isSpacePressed, zh, apiNodes, relationColors
 }: GraphCanvasProps) {
   const lod = useLod();
   const [showLegend, setShowLegend] = useState(false);
@@ -349,7 +347,7 @@ function GraphCanvas({
         ...n.data,
         lod,
         bodyPreview: apiNode
-          ? (i18n.language === 'zh-TW' ? apiNode.body_zh : apiNode.body_en) ?? ''
+          ? apiNode.body ?? ''
           : '',
       },
     };

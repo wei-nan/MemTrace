@@ -68,7 +68,7 @@ def get_graph_preview_in_db(cur, ws_id: str, limit: int, user: Optional[dict]) -
 def get_top_gaps_in_db(cur, ws_id: str, limit: int, user: Optional[dict]) -> list:
     require_ws_access(cur, ws_id, user)
     cur.execute(
-        "SELECT id, title_en as title, traversal_count FROM memory_nodes "
+        "SELECT id, title, traversal_count FROM memory_nodes "
         "WHERE workspace_id = %s AND status = 'gap' ORDER BY traversal_count DESC LIMIT %s",
         (ws_id, limit),
     )
@@ -82,7 +82,7 @@ def get_workspace_token_efficiency_in_db(cur, ws_id: str, user: Optional[dict]) 
     # EN/ZH content. tiktoken cl100k_base gives accurate counts (~4 chars/token EN,
     # ~2 chars/token ZH). This makes the savings_ratio comparable to ab_token_compare.py.
     cur.execute(
-        "SELECT COALESCE(body_zh,'') || ' ' || COALESCE(body_en,'') as combined "
+        "SELECT COALESCE(body,'') as combined "
         "FROM memory_nodes WHERE workspace_id = %s AND status = 'active'",
         (ws_id,)
     )
@@ -229,12 +229,12 @@ async def handle_search_miss(ws_id: str, query_text: str, user_id: str):
         node_id = generate_id("node")
         cur.execute(
             """INSERT INTO memory_nodes
-                 (id, workspace_id, title_zh, title_en, body_zh, body_en,
+                 (id, workspace_id, title, body,
                   content_type, tags, trust_score, status, source_type, dim_author_rep, embedding)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector)""",
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector)""",
             (
                 node_id, ws_id,
-                query_text, query_text, "", "",
+                query_text, "",
                 "inquiry", ["auto:search-miss"], 0.0, "gap", "mcp", 0.0, vector
             )
         )

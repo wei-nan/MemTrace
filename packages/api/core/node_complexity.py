@@ -15,9 +15,8 @@ async def estimate_complexity(node_data: Dict, ws_id: str, user_id: str, thresho
     P4.8-S9-3b: Estimate if a node is too complex/large and suggest a split if so.
     Uses RESTRUCTURE_SYSTEM prompt for the decomposition proposal.
     """
-    body_zh = node_data.get("body_zh") or ""
-    body_en = node_data.get("body_en") or ""
-    total_chars = len(body_zh) + len(body_en)
+    body = node_data.get("body") or ""
+    total_chars = len(body)
     
     if total_chars < threshold:
         return {"is_complex": False, "char_count": total_chars}
@@ -34,10 +33,8 @@ async def estimate_complexity(node_data: Dict, ws_id: str, user_id: str, thresho
         # Prepare content for LLM
         node_json = json.dumps([{
             "id": node_data.get("id"),
-            "title_zh": node_data.get("title_zh"),
-            "title_en": node_data.get("title_en"),
-            "body_zh": body_zh,
-            "body_en": body_en,
+            "title": node_data.get("title"),
+            "body": body,
             "content_type": node_data.get("content_type")
         }], ensure_ascii=False)
         

@@ -5,8 +5,9 @@ export interface TokenResponse {
 
 export interface Workspace {
   id: string;
-  name_zh: string;
-  name_en: string;
+  name: string;
+  language: "zh-TW" | "en";
+  linked_workspace_id: string | null;
   visibility: string;
   kb_type: "evergreen" | "ephemeral";
   owner_id: string;
@@ -22,12 +23,10 @@ export interface Workspace {
 export interface Node {
   id: string;
   workspace_id: string;
-  title_zh: string;
-  title_en: string;
+  title: string;
   content_type: string;
   content_format: string;
-  body_zh: string;
-  body_en: string;
+  body: string;
   tags: string[];
   visibility: string;
   author: string;
@@ -56,8 +55,7 @@ export interface Node {
 export interface NodeCluster {
   id: string;
   workspace_id: string;
-  name_zh: string;
-  name_en: string;
+  name: string;
   color: string;
   node_count: number;
   created_at: string;
@@ -65,12 +63,10 @@ export interface NodeCluster {
 }
 
 export interface NodeCreatePayload {
-  title_zh: string;
-  title_en: string;
+  title: string;
   content_type: string;
   content_format: string;
-  body_zh: string;
-  body_en: string;
+  body: string;
   tags: string[];
   visibility: string;
   copied_from_node?: string;

@@ -107,8 +107,7 @@ def strip_body_if_viewer(node_row: dict, role: Optional[str]) -> dict:
     if role not in ("editor", "admin"):
         if node_row.get("visibility") == "public":
             return node_row
-        node_row["body_zh"] = None
-        node_row["body_en"] = None
+        node_row["body"] = None
         node_row["content_stripped"] = True
     return node_row
 
@@ -145,9 +144,9 @@ def list_workspaces_in_db(cur, search: Optional[str], user: Optional[dict]) -> l
         query_params.append(user["workspace_id"])
 
     if search:
-        filters.append("(w.name_zh ILIKE %s OR w.name_en ILIKE %s)")
+        filters.append("w.name ILIKE %s")
         like = f"%{search}%"
-        query_params.extend([like, like])
+        query_params.append(like)
 
     cur.execute(
         f"""
@@ -196,10 +195,15 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
         embedding_dim = get_embedding_dim(embedding_model)
 
     ws_id = generate_id("ws")
+    name = body_dict.get("name") or body_dict.get("name_zh") or body_dict.get("name_en") or ""
+    language = body_dict.get("language")
+    if not language:
+        raise HTTPException(status_code=400, detail="language is required")
+    
     cur.execute(
         """
         INSERT INTO workspaces (
-            id, name_zh, name_en, visibility, kb_type, owner_id,
+            id, name, language, visibility, kb_type, owner_id,
             archive_window_days, min_traversals, embedding_model, embedding_dim,
             qa_archive_mode, extraction_provider, embedding_provider, auto_split, settings
         )
@@ -207,7 +211,8 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
         RETURNING *
         """,
         (
-            ws_id, body_dict.get("name_zh"), body_dict.get("name_en"), body_dict.get("visibility"), body_dict.get("kb_type"),
+            ws_id, name, language,
+            body_dict.get("visibility"), body_dict.get("kb_type"),
             uid, body_dict.get("archive_window_days", 90), body_dict.get("min_traversals", 1),
             embedding_model, embedding_dim, body_dict.get("qa_archive_mode", "auto_active"),
             body_dict.get("extraction_provider", "gemini"), embedding_provider,
@@ -274,8 +279,8 @@ def clone_workspace_in_db(cur, ws_id: str, body_dict: dict, user: dict) -> dict:
     # from routers.kb import VALID_KB_VIS
     source = require_ws_access(cur, ws_id, user)
     
-    name_zh = body_dict.get("name_zh") or f"{source['name_zh']} (副本)"
-    name_en = body_dict.get("name_en") or f"{source['name_en']} (Clone)"
+    name = body_dict.get("name") or (f"{source.get('name')} (Clone)")
+    language = body_dict.get("language") or source.get("language")
     
     new_model = body_dict.get("new_embedding_model")
     if new_model:
@@ -291,14 +296,14 @@ def clone_workspace_in_db(cur, ws_id: str, body_dict: dict, user: dict) -> dict:
     cur.execute(
         """
         INSERT INTO workspaces (
-            id, name_zh, name_en, visibility, kb_type, owner_id,
+            id, name, language, visibility, kb_type, owner_id,
             archive_window_days, min_traversals, embedding_model, embedding_dim,
             qa_archive_mode, extraction_provider, embedding_provider
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (
-            target_ws_id, name_zh, name_en, new_visibility, source["kb_type"],
+            target_ws_id, name, language, new_visibility, source["kb_type"],
             user["sub"], source["archive_window_days"], source["min_traversals"],
             new_model, new_dim, new_qa_mode, new_extraction, source["embedding_provider"]
         ),
@@ -325,6 +330,9 @@ def fork_workspace_in_db(cur, ws_id: str, body_dict: dict, user: dict) -> dict:
     from core.ai import get_embedding_dim
     source = require_ws_access(cur, ws_id, user, write=False)
 
+    name = body_dict.get("name") or (f"{source.get('name')} (Fork)")
+    language = body_dict.get("language") or source.get("language")
+
     new_model = body_dict.get("embedding_model") or source["embedding_model"]
     new_dim   = get_embedding_dim(new_model)
 
@@ -334,15 +342,14 @@ def fork_workspace_in_db(cur, ws_id: str, body_dict: dict, user: dict) -> dict:
     cur.execute(
         """
         INSERT INTO workspaces (
-            id, name_zh, name_en, visibility, kb_type, owner_id,
+            id, name, language, visibility, kb_type, owner_id,
             archive_window_days, min_traversals, embedding_model, embedding_dim,
             qa_archive_mode, extraction_provider, embedding_provider
         )
-        VALUES (%s, %s, %s, 'private', %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (
-            target_ws_id, body_dict.get("name_zh"), body_dict.get("name_en"),
-            source["kb_type"], user["sub"],
+            target_ws_id, name, language, 'private', source["kb_type"], user["sub"],
             source["archive_window_days"], source["min_traversals"],
             new_model, new_dim, fork_qa_mode, fork_extraction, source["embedding_provider"],
         ),
@@ -387,7 +394,7 @@ def list_associations_in_db(cur, ws_id: str, user: dict) -> list[dict]:
     cur.execute(
         """
         SELECT a.target_ws_id as workspace_id, a.created_at,
-               w.name_zh, w.name_en, w.visibility
+               w.name, w.visibility
         FROM workspace_associations a
         JOIN workspaces w ON w.id = a.target_ws_id
         WHERE a.source_ws_id = %s

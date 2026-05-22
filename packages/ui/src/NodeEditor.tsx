@@ -26,22 +26,18 @@ function isNodeResponse(value: unknown): value is Node {
 }
 
 function buildPayload(state: {
-  titleZh: string;
-  titleEn: string;
+  title: string;
   contentType: string;
   format: "plain" | "markdown";
-  bodyZh: string;
-  bodyEn: string;
+  body: string;
   tags: string;
   visibility: string;
 }): NodeCreatePayload {
   return {
-    title_zh: state.titleZh.trim(),
-    title_en: state.titleEn.trim(),
+    title: state.title.trim(),
     content_type: state.contentType,
     content_format: state.format,
-    body_zh: state.bodyZh.trim(),
-    body_en: state.bodyEn.trim(),
+    body: state.body.trim(),
     tags: state.tags.split(",").map((t) => t.trim()).filter(Boolean),
     visibility: state.visibility,
   };
@@ -66,7 +62,7 @@ function buildDiff(before: Partial<NodeCreatePayload> | null, after: NodeCreateP
       }
       continue;
     }
-    if (key === "body_zh" || key === "body_en") {
+    if (key === "body") {
       const beforeText = String(prev ?? "");
       const afterText = String(next ?? "");
       if (changeType === "create" || beforeText !== afterText) {
@@ -96,15 +92,12 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const isViewerLocked = Boolean(node?.content_stripped);
   const [tab, setTab] = useState<"details" | "history">("details");
   const [isEditing, setIsEditing] = useState(isCreate);
-  const [titleZh, setTitleZh] = useState(node?.title_zh ?? "");
-  const [titleEn, setTitleEn] = useState(node?.title_en ?? "");
+  const [title, setTitle] = useState(node?.title ?? "");
   const [contentType, setContentType] = useState(node?.content_type ?? "factual");
   const [format, setFormat] = useState<"plain" | "markdown">((node?.content_format as "plain" | "markdown") ?? "markdown");
-  const [bodyZh, setBodyZh] = useState(node?.body_zh ?? "");
-  const [bodyEn, setBodyEn] = useState(node?.body_en ?? "");
+  const [body, setBody] = useState(node?.body ?? "");
   const [tags, setTags] = useState((node?.tags ?? []).join(", "));
   const [visibility, setVisibility] = useState(node?.visibility ?? "private");
-  const [displayLang, setDisplayLang] = useState<"zh" | "en">("en");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [pendingDiff, setPendingDiff] = useState<DiffSummary | null>(null);
@@ -133,12 +126,10 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   useEffect(() => {
     setTab("details");
     setIsEditing(isCreate);
-    setTitleZh(node?.title_zh ?? "");
-    setTitleEn(node?.title_en ?? "");
+    setTitle(node?.title ?? "");
     setContentType(node?.content_type ?? "factual");
     setFormat((node?.content_format as "plain" | "markdown") ?? "markdown");
-    setBodyZh(node?.body_zh ?? "");
-    setBodyEn(node?.body_en ?? "");
+    setBody(node?.body ?? "");
     setTags((node?.tags ?? []).join(", "));
     setVisibility(node?.visibility ?? "private");
     setValidityConfirmedAt(node?.validity_confirmed_at ?? null);
@@ -168,8 +159,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     setVoteUtility(5);
   }, [wsId, node, isCreate]);
 
-  const payload = useMemo(() => buildPayload({ titleZh, titleEn, contentType, format, bodyZh, bodyEn, tags, visibility }), [titleZh, titleEn, contentType, format, bodyZh, bodyEn, tags, visibility]);
-  const relatedNodes = allNodes.filter((candidate) => candidate.id !== node?.id && candidate.title_en.toLowerCase().includes(linkTarget.toLowerCase()));
+  const payload = useMemo(() => buildPayload({ title, contentType, format, body, tags, visibility }), [title, contentType, format, body, tags, visibility]);
+  const relatedNodes = allNodes.filter((candidate) => candidate.id !== node?.id && candidate.title.toLowerCase().includes(linkTarget.toLowerCase()));
   const trustDimensions = node ? [
     { key: "accuracy", label: t("node.dim_accuracy"), value: node.dim_accuracy, help: "AI 擷取初始較低，人工建立通常較高。" },
     { key: "freshness", label: t("node.dim_freshness"), value: node.dim_freshness, help: "內容更新後會重置，之後再隨時間衰減。" },
@@ -198,8 +189,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     const ok = await confirm({
       title: isArchived ? t('node.restore_title') : t('node.archive_title'),
       message: isArchived
-        ? t('node.restore_confirm', { title: node.title_en })
-        : t('node.archive_confirm', { title: node.title_en }),
+        ? t('node.restore_confirm', { title: node.title })
+        : t('node.archive_confirm', { title: node.title }),
       variant: isArchived ? 'info' : 'danger',
       confirmLabel: isArchived ? t('node.restore_btn') : t('node.archive_btn'),
     });
@@ -224,20 +215,19 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   };
 
   const handleAIComplete = async () => {
-    if (!titleEn && !titleZh) {
+    if (!title) {
       toast({ message: "Please provide a title first", variant: "warning" });
       return;
     }
     setCompleting(true);
     try {
-      const prompt = `Based on the title "${titleEn || titleZh}", please generate a concise knowledge node content (around 100-200 words) in both English and Chinese. 
-      Format the output as a JSON object: {"body_en": "...", "body_zh": "..."}.
+      const prompt = `Based on the title "${title}", please generate a concise knowledge node content (around 100-200 words). 
+      Format the output as a JSON object: {"body": "..."}.
       Do not include any other text or markdown fences.`;
       
       const res = await aiApi.chat({ workspace_id: wsId, message: prompt });
       const data = JSON.parse(res.answer.replace(/```json|```/g, "").trim());
-      if (data.body_en) setBodyEn(data.body_en);
-      if (data.body_zh) setBodyZh(data.body_zh);
+      if (data.body) setBody(data.body);
       toast({ message: "Content generated", variant: "success" });
     } catch (e) {
       toast({ message: "AI completion failed: " + String(e), variant: "error" });
@@ -284,7 +274,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   };
 
   const submitSave = async () => {
-    if (!payload.title_zh || !payload.title_en) {
+    if (!payload.title) {
       setError(t("node.titles_required"));
       return;
     }
@@ -313,12 +303,10 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
   const handleSaveClick = () => {
     const diff = buildDiff(node ? {
-      title_zh: node.title_zh,
-      title_en: node.title_en,
+      title: node.title,
       content_type: node.content_type,
       content_format: node.content_format,
-      body_zh: node.body_zh,
-      body_en: node.body_en,
+      body: node.body,
       tags: node.tags,
       visibility: node.visibility,
     } : null, payload, node ? "update" : "create");
@@ -329,7 +317,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     if (!node) return;
     const ok = await confirm({
       title: t("node.delete_title"),
-      message: t("node.delete_confirm", { title: node.title_en }),
+      message: t("node.delete_confirm", { title: node.title }),
       variant: "danger",
       confirmLabel: t("node.delete_btn"),
     });
@@ -345,7 +333,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
   const handleAddEdge = async () => {
     if (!node) return;
-    const target = allNodes.find((candidate) => candidate.id === linkTarget || candidate.title_en === linkTarget || candidate.title_zh === linkTarget);
+    const target = allNodes.find((candidate) => candidate.id === linkTarget || candidate.title === linkTarget);
     if (!target) return;
     try {
       const edge = await edgesApi.create(wsId, { from_id: node.id, to_id: target.id, relation: linkRelation, weight: 1, half_life_days: 30 });
@@ -431,11 +419,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         ) : isEditing ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label className="form-label">{t("node.titles")}</label>
-              <div style={{ display: "grid", gap: 8 }}>
-                <Input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} placeholder={t("node.en_title_ph")} />
-                <Input value={titleZh} onChange={(e) => setTitleZh(e.target.value)} placeholder={t("node.zh_title_ph")} />
-              </div>
+              <label className="form-label">{t("node.title")}</label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("node.title_ph", { defaultValue: "Enter title" })} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -463,23 +448,19 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <label className="form-label" style={{ margin: 0 }}>{t("node.content")}</label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button 
-                    className="tag" 
-                    onClick={handleAIComplete} 
-                    disabled={completing}
-                    style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                  >
-                    <Bot size={12} /> {completing ? "..." : t('node.ai_complete')}
-                  </button>
-                  <button className={`tag ${displayLang === "en" ? "tag-active" : ""}`} onClick={() => setDisplayLang("en")}>{t("node.lang_en")}</button>
-                  <button className={`tag ${displayLang === "zh" ? "tag-active" : ""}`} onClick={() => setDisplayLang("zh")}>{t("node.lang_zh")}</button>
-                </div>
+                <button 
+                  className="tag" 
+                  onClick={handleAIComplete} 
+                  disabled={completing}
+                  style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                >
+                  <Bot size={12} /> {completing ? "..." : t('node.ai_complete')}
+                </button>
               </div>
               <div data-color-mode="dark">
                 <MDEditor
-                  value={displayLang === "zh" ? bodyZh : bodyEn}
-                  onChange={(value) => displayLang === "zh" ? setBodyZh(value ?? "") : setBodyEn(value ?? "")}
+                  value={body}
+                  onChange={(value) => setBody(value ?? "")}
                   height={280}
                   preview="edit"
                 />
@@ -507,7 +488,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: 26 }}>{displayLang === "zh" ? node?.title_zh : node?.title_en}</h1>
+              <h1 style={{ margin: 0, fontSize: 26 }}>{node?.title}</h1>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                 <span className="tag"><Shield size={12} /> {t(`content_type.${node?.content_type}`, { defaultValue: node?.content_type })}</span>
                 {node?.content_type === 'inquiry' && node?.ask_count > 0 && (
@@ -548,16 +529,11 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               </div>
             )}
 
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className={`tag ${displayLang === "en" ? "tag-active" : ""}`} onClick={() => setDisplayLang("en")}>{t("node.lang_en")}</button>
-              <button className={`tag ${displayLang === "zh" ? "tag-active" : ""}`} onClick={() => setDisplayLang("zh")}>{t("node.lang_zh")}</button>
-            </div>
-
             <div className="markdown-body" style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 10, border: "1px solid var(--border-default)" }}>
               {isViewerLocked ? (
                 <div style={{ color: "var(--text-muted)" }}>{t('node.private_locked')}</div>
               ) : (
-                <ReactMarkdown>{displayLang === "zh" ? node?.body_zh || "" : node?.body_en || ""}</ReactMarkdown>
+                <ReactMarkdown>{node?.body || ""}</ReactMarkdown>
               )}
             </div>
 
@@ -625,7 +601,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
             {node?.content_type === 'inquiry' && nodeEdges.some(e => e.relation === 'answered_by') && (
               <div>
                 <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <Bot size={16} /> {displayLang === 'zh' ? '答案節點' : 'Answers'}
+                  <Bot size={16} /> {t("node.answers", { defaultValue: "Answers" })}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {nodeEdges.filter(e => e.relation === 'answered_by').map(edge => {
@@ -645,7 +621,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                           cursor: answerNode ? "pointer" : "default",
                         }}
                       >
-                        <span>{answerNode ? (displayLang === 'zh' ? answerNode.title_zh : answerNode.title_en) : edge.to_id}</span>
+                        <span>{answerNode ? answerNode.title : edge.to_id}</span>
                         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
                           trust: {(answerNode?.trust_score ?? 0).toFixed(2)}
                         </span>
@@ -695,7 +671,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                         cursor: otherNode ? "pointer" : "default",
                       }}
                     >
-                      <span>{otherNode ? `${otherNode.title_en} (${t(`relation.${edge.relation}`, { defaultValue: edge.relation })})` : `${otherId} (${t(`relation.${edge.relation}`, { defaultValue: edge.relation })})`}</span>
+                      <span>{otherNode ? `${otherNode.title} (${t(`relation.${edge.relation}`, { defaultValue: edge.relation })})` : `${otherId} (${t(`relation.${edge.relation}`, { defaultValue: edge.relation })})`}</span>
                     </button>
                   );
                 })}
@@ -732,7 +708,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                       const otherNode = allNodes.find(n => n.id === otherId);
                       return (
                         <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "var(--bg-surface)", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
-                          <span style={{ fontSize: 13 }}>{otherNode ? otherNode.title_en : otherId} ({item.node_data.relation})</span>
+                          <span style={{ fontSize: 13 }}>{otherNode ? otherNode.title : otherId} ({item.node_data.relation})</span>
                           <div style={{ display: "flex", gap: 6 }}>
                             <Button variant="primary" size="sm" onClick={() => handleAcceptReview(item.id)}>{t('node.accept')}</Button>
                             <Button variant="secondary" size="sm" onClick={() => handleRejectReview(item.id)}>{t('node.skip')}</Button>
@@ -748,8 +724,8 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 8, marginTop: 12 }}>
                   <Input value={linkTarget} onChange={(e) => setLinkTarget(e.target.value)} list="memtrace-node-list" placeholder={t("node.search_node_ph")} />
                   <datalist id="memtrace-node-list">
-                    {relatedNodes.slice(0, 20).map((candidate) => <option key={candidate.id} value={candidate.title_en}>{candidate.title_zh}</option>)}
-                    {relatedNodes.slice(0, 20).map((candidate) => <option key={`${candidate.id}-id`} value={candidate.id}>{candidate.title_en}</option>)}
+                    {relatedNodes.slice(0, 20).map((candidate) => <option key={candidate.id} value={candidate.title}>{candidate.title}</option>)}
+                    {relatedNodes.slice(0, 20).map((candidate) => <option key={`${candidate.id}-id`} value={candidate.id}>{candidate.title}</option>)}
                   </datalist>
                   <select className="mt-input" value={linkRelation} onChange={(e) => setLinkRelation(e.target.value)}>
                     {RELATIONS.map((relation) => <option key={relation}>{relation}</option>)}
@@ -786,7 +762,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                       confirmLabel: t("node.copy"),
                       customElement: (
                         <select className="mt-input" id="copy-target-ws">
-                          {available.map((w: any) => <option key={w.id} value={w.id}>{w.name_en} ({w.name_zh})</option>)}
+                          {available.map((w: any) => <option key={w.id} value={w.id}>{w.name}</option>)}
                         </select>
                       )
                     });

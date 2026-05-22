@@ -91,7 +91,7 @@ def chunk_text_fallback(text: str, chunk_size: int, overlap: int) -> List[str]:
         start = next_start
     return chunks
 
-def scan_api_endpoints(content: str) -> List[dict]:
+def scan_api_endpoints(content: str, language: str = "zh-TW") -> List[dict]:
     """
     Regex scan for API endpoints (e.g. GET /api/v1/users).
     Returns a list of seed node dicts.
@@ -109,11 +109,16 @@ def scan_api_endpoints(content: str) -> List[dict]:
             
     nodes = []
     for api in found:
+        if language == "zh-TW":
+            title = f"API 接口: {api}"
+            body = f"自動掃描發現的 API 接口種子節點: {api}。請在提取過程中補充詳細參數與邏輯。"
+        else:
+            title = f"API Endpoint: {api}"
+            body = f"Auto-scanned API endpoint seed: {api}. Please complement with parameters and logic during extraction."
         nodes.append({
-            "title_en": api,
-            "title_zh": f"API 接口: {api}",
+            "title": title,
             "content_type": "factual",
-            "body_zh": f"自動掃描發現的 API 接口種子節點: {api}。請在提取過程中補充詳細參數與邏輯。",
+            "body": body,
             "tags": ["api", "auto-scan"],
         })
     return nodes

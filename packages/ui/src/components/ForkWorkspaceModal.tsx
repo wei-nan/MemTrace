@@ -28,8 +28,7 @@ export default function ForkWorkspaceModal({
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
   const { toast } = useModal();
-  const [nameZh, setNameZh] = useState(`${sourceWs.name_zh} (Fork)`);
-  const [nameEn, setNameEn] = useState(`${sourceWs.name_en} (Fork)`);
+  const [name, setName] = useState(`${sourceWs.name} (Fork)`);
   const [embedModels, setEmbedModels] = useState<{ id: string; dim: number; provider: string }[]>([]);
   const [selectedEmbedModel, setSelectedEmbedModel] = useState<string>(sourceWs.embedding_model);
   const [loading, setLoading] = useState(false);
@@ -70,16 +69,15 @@ export default function ForkWorkspaceModal({
   }, [sourceWs.embedding_model, sourceWs.embedding_dim]);
 
   const handleFork = async () => {
-    if (!nameZh.trim() || !nameEn.trim()) {
-      setError(zh ? '請填寫中英文名稱' : 'Both names are required');
+    if (!name.trim()) {
+      setError(zh ? '請填寫工作區名稱' : 'Workspace name is required');
       return;
     }
     setLoading(true);
     setError('');
     try {
       const job = await workspaces.fork(sourceWs.id, {
-        name_zh: nameZh.trim(),
-        name_en: nameEn.trim(),
+        name: name.trim(),
         embedding_model: selectedEmbedModel || undefined,
       });
       const allWs = await workspaces.list();
@@ -121,7 +119,7 @@ export default function ForkWorkspaceModal({
         <div style={{ background: 'var(--bg-elevated)', padding: '8px 14px', borderRadius: 8, marginBottom: 20, border: '1px solid var(--border-subtle)', fontSize: 12, color: 'var(--text-muted)' }}>
           {zh ? '來源：' : 'Source: '}
           <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-            {zh ? sourceWs.name_zh : sourceWs.name_en}
+            {sourceWs.name}
           </span>
           {' '}
           <span style={{ opacity: 0.6 }}>· {sourceWs.embedding_model} ({sourceWs.embedding_dim}d)</span>
@@ -130,15 +128,9 @@ export default function ForkWorkspaceModal({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-              {zh ? '新名稱（中文）' : 'New Name (Chinese)'}
+              {zh ? '新工作區名稱' : 'New Workspace Name'}
             </label>
-            <input className="mt-input" value={nameZh} onChange={e => setNameZh(e.target.value)} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-              {zh ? '新名稱（英文）' : 'New Name (English)'}
-            </label>
-            <input className="mt-input" value={nameEn} onChange={e => setNameEn(e.target.value)} />
+            <input className="mt-input" value={name} onChange={e => setName(e.target.value)} />
           </div>
 
           <div>
@@ -172,7 +164,7 @@ export default function ForkWorkspaceModal({
             <button className="btn-secondary" onClick={onClose} disabled={loading}>
               {zh ? '取消' : 'Cancel'}
             </button>
-            <button className="btn-primary" onClick={handleFork} disabled={loading || !nameZh.trim() || !nameEn.trim()}>
+            <button className="btn-primary" onClick={handleFork} disabled={loading || !name.trim()}>
               {loading ? (zh ? 'Fork 中…' : 'Forking…') : (zh ? '開始 Fork' : 'Start Fork')}
             </button>
           </div>

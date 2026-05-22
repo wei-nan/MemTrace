@@ -55,15 +55,13 @@ EXTRACTION_NODE_SCHEMA = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "title_zh": {"type": "string", "description": "繁體中文標題（必填，至少其中之一）"},
-                    "title_en": {"type": "string", "description": "English title"},
+                    "title": {"type": "string", "description": "The title of the node in the workspace's target language"},
                     "content_type": {
                         "type": "string",
                         "enum": VALID_NODE_CONTENT_TYPES,
                         "description": "Node category"
                     },
-                    "body_zh": {"type": "string", "description": "繁體中文內容（必填，至少其中之一）"},
-                    "body_en": {"type": "string", "description": "English body"},
+                    "body": {"type": "string", "description": "The body content of the node in the workspace's target language"},
                     "tags":    {"type": "array", "items": {"type": "string"}},
                     "suggested_edges": {
                         "type": "array",
@@ -79,7 +77,7 @@ EXTRACTION_NODE_SCHEMA = {
                     "source_segment":   {"type": "string", "description": "Brief paraphrase of the source passage"},
                     "confidence_score": {"type": "number"}
                 },
-                "required": ["title_zh", "content_type", "body_zh"]
+                "required": ["title", "content_type", "body"]
             }
         }
     },
@@ -1315,7 +1313,6 @@ async def chat_completion(
                 )
                 await _asyncio.sleep(wait)
                 continue
-            # Re-raise as AIProviderError so callers get a consistent type
             if not isinstance(exc, AIProviderError):
                 raise AIProviderError(f"{exc_type}: {msg}") from exc
             raise
@@ -1329,6 +1326,7 @@ async def extract_nodes_structured(
     max_tokens: int = 4096,
     temperature: float = 0.2,
     _retries: int = 3,
+    language: str = "zh-TW",
 ) -> tuple[list[dict], int]:
     """
     Extract memory nodes via the provider's native tool/function calling.
@@ -1337,7 +1335,7 @@ async def extract_nodes_structured(
     import asyncio as _asyncio
     import logging as _logging
 
-    system = get_extraction_prompt(doc_type)
+    system = get_extraction_prompt(doc_type, language)
 
     # Construct user message from text and context
     ctx_str = ""
@@ -1400,38 +1398,23 @@ async def embed(
 
 # ── AI Prompts ────────────────────────────────────────────────────────────────
 
-# ── AI Prompts ────────────────────────────────────────────────────────────────
+def get_extraction_prompt(doc_type: str = "generic", language: str = "zh-TW") -> str:
+    """Return a specialized system prompt based on the document type and target language."""
+    # Define language instruction and localized example values
+    if language == "en":
+        lang_instruction = "All fields (title, body) MUST be written in English."
+        title_val = "User Authentication Workflow"
+        body_val = "Users authenticate by providing their username and password via the login endpoint. A JWT token is returned upon success."
+        cluster_val_zh = "User Authentication" # fallback
+        cluster_val_en = "User Authentication"
+    else:
+        lang_instruction = "All fields (title, body) MUST be written in Traditional Chinese (繁體中文). Never use Simplified Chinese (简体中文)."
+        title_val = "使用者身份驗證流程"
+        body_val = "使用者透過登入端點提供使用者名稱與密碼進行驗證。驗證成功後會回傳 JWT 憑證。"
+        cluster_val_zh = "身份驗證"
+        cluster_val_en = "Authentication"
 
-def get_extraction_prompt(doc_type: str = "generic") -> str:
-    """Return a specialized system prompt based on the document type."""
-    base = EXTRACTION_SYSTEM
-    
-    if doc_type == "FRD":
-        return base + "\n\nSPECIAL INSTRUCTION for FRD:\n" \
-               "CRITICAL: You MUST output ONLY the standard node format shown above. " \
-               "Do NOT invent custom keys like 'transitions', 'rules', 'api_endpoints', 'endpoints', 'section_title', 'success', 'data', etc. " \
-               "ALL content must go into body_zh / body_en as plain text or markdown.\n" \
-               "- Every API Endpoint (METHOD /path) → Procedural node. title_en: \"API: {METHOD} {path}\", title_zh: description in Chinese.\n" \
-               "- Every Business Rule (BR-xxx), Business Logic (BL-xxx), User Story (US-xxx) → independent Factual node.\n" \
-               "- Security items (reCAPTCHA, OTP, permissions) → independent nodes.\n" \
-               "- State machines, workflows → Procedural node with transitions described in body_zh as text.\n" \
-               "- These mandatory items must be extracted even if a similar title appears in 'existing_titles'."
-    
-    if doc_type == "TSD":
-        return base + "\n\nSPECIAL INSTRUCTION for TSD:\n" \
-               "- Prioritize extracting Data Models, Database Schemas, and System Components.\n" \
-               "- Use 'depends_on' edges to represent architectural dependencies.\n" \
-               "- Extract performance requirements or constraints as Preference nodes."
-    
-    if doc_type == "ADR":
-        return base + "\n\nSPECIAL INSTRUCTION for ADR:\n" \
-               "- Extract the 'Decision' as a Preference node.\n" \
-               "- Extract 'Context' and 'Status' as Context nodes.\n" \
-               "- Extract 'Consequences' as Factual nodes, linked to the decision via 'depends_on'."
-               
-    return base
-
-EXTRACTION_SYSTEM = """\
+    base = f"""\
 You are a knowledge graph extraction assistant. Your goal is to convert source \
 material into the smallest possible set of atomic Memory Nodes connected by the \
 richest possible set of typed edges.
@@ -1444,9 +1427,7 @@ Rules:
 - Keep bodies concise — the minimum text needed to be self-contained.
 - Prefer specific edge types (depends_on > extends > related_to > contradicts).
 - Cross-segment edges are encouraged.
-- title_zh and body_zh MUST use Traditional Chinese (繁體中文). Never use Simplified Chinese. \
-  Use 節點 not 节点, 圖 not 图, 規則 not 规则, 關聯 not 关联, 時間 not 时间, 邊 not 边, \
-  設定 not 设定, 實作 not 实现, 連結 not 连接, 語言 not 语言.
+- {lang_instruction}
 
 The design goal: a human or AI agent must be able to reach any answer by \
 following the shortest possible path through the graph.
@@ -1468,25 +1449,52 @@ content_type MUST be exactly one of these five values (no other values allowed):
 - "context"    — background info, overview, rationale, note
 - "inquiry"    — an open question, unknown, or unresolved decision that needs follow-up
 
-cluster_name_en: Assign each node to a logical topic cluster. If the user message lists existing \
-clusters, prefer those names. Only propose a new cluster name when the node clearly does not fit \
+cluster_name: Assign each node to a logical topic cluster. If the user message lists existing \
+clusters, prefer those exact names. Only propose a new cluster name when the node clearly does not fit \
 any existing cluster. Keep cluster names short (1-3 words).
 
 Output a JSON array of nodes. Each node:
-{
-  "title_zh": "...",
-  "title_en": "...",
+{{
+  "title": "{title_val}",
   "content_type": "factual",
-  "body_zh": "...",
-  "body_en": "...",
-  "tags": ["..."],
-  "cluster_name_zh": "功能需求",
-  "cluster_name_en": "Requirements",
-  "suggested_edges": [{"to_index": 1, "relation": "depends_on"}],
+  "body": "{body_val}",
+  "tags": ["auth", "security"],
+  "cluster_name": "{cluster_val}",
+  "suggested_edges": [{{"to_index": 1, "relation": "depends_on"}}],
   "source_segment": "brief paraphrase of the source passage (not a verbatim copy)",
   "confidence_score": 0.95
-}
+}}
 Return ONLY the JSON array, no markdown fences."""
+
+    if doc_type == "FRD":
+        if language == "en":
+            api_instr = '- Every API Endpoint (METHOD /path) → Procedural node. title: "API: {METHOD} {path}", body: description of the endpoint.'
+        else:
+            api_instr = '- Every API Endpoint (METHOD /path) → Procedural node. title: "API: {METHOD} {path}", body: 中文的端點說明。'
+            
+        return base + f"\n\nSPECIAL INSTRUCTION for FRD:\n" \
+               "CRITICAL: You MUST output ONLY the standard node format shown above. " \
+               "Do NOT invent custom keys like 'transitions', 'rules', 'api_endpoints', 'endpoints', 'section_title', 'success', 'data', etc. " \
+               "ALL content must go into body as plain text or markdown.\n" \
+               f"{api_instr}\n" \
+               "- Every Business Rule (BR-xxx), Business Logic (BL-xxx), User Story (US-xxx) → independent Factual node.\n" \
+               "- Security items (reCAPTCHA, OTP, permissions) → independent nodes.\n" \
+               "- State machines, workflows → Procedural node with transitions described in body as text.\n" \
+               "- These mandatory items must be extracted even if a similar title appears in 'existing_titles'."
+    
+    if doc_type == "TSD":
+        return base + "\n\nSPECIAL INSTRUCTION for TSD:\n" \
+               "- Prioritize extracting Data Models, Database Schemas, and System Components.\n" \
+               "- Use 'depends_on' edges to represent architectural dependencies.\n" \
+               "- Extract performance requirements or constraints as Preference nodes."
+    
+    if doc_type == "ADR":
+        return base + "\n\nSPECIAL INSTRUCTION for ADR:\n" \
+               "- Extract the 'Decision' as a Preference node.\n" \
+               "- Extract 'Context' and 'Status' as Context nodes.\n" \
+               "- Extract 'Consequences' as Factual nodes, linked to the decision via 'depends_on'."
+               
+    return base
 
 
 RESTRUCTURE_SYSTEM = """\

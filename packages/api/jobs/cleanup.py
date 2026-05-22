@@ -170,7 +170,7 @@ def _run_deletion_notifications() -> None:
     with db_cursor(commit=True) as cur:
         # ── Purge workspaces past the grace period ────────────────────────────
         cur.execute("""
-            SELECT w.id, w.name_en, w.name_zh, u.email, u.display_name,
+            SELECT w.id, w.name, u.email, u.display_name,
                    w.kb_type,
                    CASE w.kb_type
                      WHEN 'ephemeral' THEN 7
@@ -188,16 +188,16 @@ def _run_deletion_notifications() -> None:
         for ws in to_purge:
             try:
                 send_workspace_deletion_notice(
-                    ws["email"], ws["name_zh"] or ws["name_en"], days_left=0
+                    ws["email"], ws["name"], days_left=0
                 )
-                logger.info("Purging workspace %s (%s)", ws["id"], ws["name_en"])
+                logger.info("Purging workspace %s (%s)", ws["id"], ws["name"])
             except Exception as e:
                 logger.warning("Failed to send purge notice for %s: %s", ws["id"], e)
             cur.execute("DELETE FROM workspaces WHERE id = %s", (ws["id"],))
 
         # ── 5-day urgent warning ──────────────────────────────────────────────
         cur.execute("""
-            SELECT w.id, w.name_en, w.name_zh, u.email,
+            SELECT w.id, w.name, u.email,
                    w.kb_type,
                    CASE w.kb_type WHEN 'ephemeral' THEN 7 ELSE 30 END AS grace_days
             FROM workspaces w
@@ -217,7 +217,7 @@ def _run_deletion_notifications() -> None:
             try:
                 send_workspace_deletion_notice(
                     ws["email"],
-                    ws["name_zh"] or ws["name_en"],
+                    ws["name"],
                     days_left=days_left,
                     restore_url=restore_url,
                 )

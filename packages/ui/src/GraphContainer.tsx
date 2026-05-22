@@ -127,8 +127,7 @@ export default function GraphContainer({
           const preview = await workspaces.graphPreview(wsId);
           setApiNodes(preview.nodes.map((n: any) => ({
              id: n.preview_id,
-             title_en: '***',
-             title_zh: '***',
+             title: '***',
              content_type: n.content_type,
              trust_score: 0.5,
              tags: [],
@@ -417,7 +416,7 @@ export default function GraphContainer({
                 }}
               >
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: accent, flexShrink: 0 }} />
-                {zh ? cl.name_zh : cl.name_en}
+                {cl.name}
                 <span style={{ opacity: 0.6, fontSize: 10 }}>{cl.node_count}</span>
               </button>
             );

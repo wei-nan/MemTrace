@@ -3,8 +3,9 @@ import type { Node } from './nodes';
 
 export interface Workspace {
   id: string;
-  name_zh: string;
-  name_en: string;
+  name: string;
+  language: "zh-TW" | "en";
+  linked_workspace_id: string | null;
   visibility: string;
   kb_type: "evergreen" | "ephemeral";
   owner_id: string;
@@ -72,8 +73,7 @@ export interface WorkspaceAssociation {
   id: string;
   source_ws_id: string;
   target_ws_id: string;
-  target_name_en: string;
-  target_name_zh: string;
+  target_name: string;
   created_at: string;
 }
 
@@ -154,8 +154,8 @@ export interface PersonalApiKeyCreateResponse extends PersonalApiKey {
 export const workspaces = {
   list: (search?: string) => request<Workspace[]>("GET", `${BASE}/workspaces${search ? `?search=${encodeURIComponent(search)}` : ""}`),
   create: (data: {
-    name_zh: string;
-    name_en: string;
+    name: string;
+    language: "zh-TW" | "en";
     visibility: string;
     kb_type: "evergreen" | "ephemeral";
     embedding_model?: string;
@@ -176,8 +176,8 @@ export const workspaces = {
   detectLinks: (wsId: string) =>
     request<{ message: string; nodes_checked: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/detect-links`),
   update: (wsId: string, data: Partial<{ 
-    name_zh: string; 
-    name_en: string; 
+    name: string; 
+    language: "zh-TW" | "en"; 
     visibility: string; 
     qa_archive_mode: string;
     auto_split: boolean;
@@ -185,9 +185,9 @@ export const workspaces = {
   }>) =>
     request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
   delete: (wsId: string) => request("DELETE", `${BASE}/workspaces/${wsId}`),
-  clone: (wsId: string, data: { name_zh?: string; name_en?: string; new_embedding_model?: string; visibility?: string }) =>
+  clone: (wsId: string, data: { name?: string; new_embedding_model?: string; visibility?: string }) =>
     request<WorkspaceCloneJob>("POST", `${BASE}/workspaces/${wsId}/clone`, data),
-  fork: (wsId: string, data: { name_zh: string; name_en: string; embedding_model?: string }) =>
+  fork: (wsId: string, data: { name: string; embedding_model?: string }) =>
     request<WorkspaceCloneJob>("POST", `${BASE}/workspaces/${wsId}/fork`, data),
   cancelCloneJob: (jobId: string) =>
     request("POST", `${BASE}/clone-jobs/${jobId}/cancel`),
@@ -241,7 +241,7 @@ export const workspaces = {
     request("DELETE", `${BASE}/workspaces/${wsId}/api-keys/${keyId}`),
   getDecayStats: (wsId: string) => request<any>("GET", `${BASE}/workspaces/${wsId}/decay-stats`),
   getHealthReport: (ws_id: string) => request<any>("GET", `${BASE}/workspaces/${ws_id}/nodes/health`),
-  topGaps: (ws_id: string) => request<Array<{ id: string; title_zh: string; title_en: string; status: string; ask_count: number }>>("GET", `${BASE}/workspaces/${ws_id}/stats/top-gaps`),
+  topGaps: (ws_id: string) => request<Array<{ id: string; title: string; status: string; ask_count: number }>>("GET", `${BASE}/workspaces/${ws_id}/stats/top-gaps`),
   summarizeCluster: (wsId: string, nodeIds: string[]) => request<Node>("POST", `${BASE}/workspaces/${wsId}/maintenance/summarize-cluster`, { node_ids: nodeIds }),
   complementLanguages: (wsId: string, nodeIds: string[]) => request<{ results: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/complement-languages`, { node_ids: nodeIds }),
   suggestEdges: (wsId: string, nodeId: string, limit = 5) => request<{ suggestions: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/suggest-edges`, { node_id: nodeId, limit }),

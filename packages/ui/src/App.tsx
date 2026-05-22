@@ -187,12 +187,12 @@ export default function App() {
 
   useEffect(() => {
     if (selectedWs) {
-      const name = i18n.language === 'zh-TW' ? selectedWs.name_zh : selectedWs.name_en;
+      const name = selectedWs.name;
       document.title = `${name} - MemTrace`;
     } else {
       document.title = 'MemTrace';
     }
-  }, [selectedWs, i18n.language]);
+  }, [selectedWs]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

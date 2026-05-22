@@ -1,7 +1,9 @@
 import asyncio
 import json
 import logging
-from typing import List, Tuple, Optional
+import hashlib
+import os
+from typing import List, Tuple, Optional, Union
 from core.ai import (
     chat_completion, extract_nodes_structured,
     record_usage, resolve_provider, strip_fences, AIProviderUnavailable
@@ -40,12 +42,12 @@ def resolve_with_fallback(user_id: str, feature: str):
             continue
     raise last_exc
 
-async def safe_parse_nodes_with_repair(raw: str | list, resolved, filename: str) -> Tuple[List[dict], int]:
+async def safe_parse_nodes_with_repair(raw: Union[str, list], resolved, filename: str, language: str = "zh-TW") -> Tuple[List[dict], int]:
     """Parse the LLM response as a JSON node array with repair logic."""
     from services.ingest.normalize import normalize_nodes, extract_objects_partial
     
     if isinstance(raw, list):
-        return normalize_nodes(raw, filename), 0
+        return normalize_nodes(raw, filename, language), 0
 
     cleaned = strip_fences(raw)
     if not cleaned.strip():
@@ -55,16 +57,16 @@ async def safe_parse_nodes_with_repair(raw: str | list, resolved, filename: str)
     try:
         result = json.loads(cleaned)
         if isinstance(result, list):
-            return normalize_nodes(result, filename), 0
+            return normalize_nodes(result, filename, language), 0
         if isinstance(result, dict):
-            return normalize_nodes([result], filename), 0
+            return normalize_nodes([result], filename, language), 0
     except json.JSONDecodeError:
         pass
 
     # Pass 2: partial object extraction
     partial = extract_objects_partial(cleaned)
     if partial:
-        return normalize_nodes(partial, filename), 0
+        return normalize_nodes(partial, filename, language), 0
 
     # Pass 3: LLM repair
     try:
@@ -76,9 +78,9 @@ async def safe_parse_nodes_with_repair(raw: str | list, resolved, filename: str)
         repaired_cleaned = strip_fences(repaired_raw)
         result = json.loads(repaired_cleaned)
         if isinstance(result, list):
-            return normalize_nodes(result, filename), repair_tokens
+            return normalize_nodes(result, filename, language), repair_tokens
         if isinstance(result, dict):
-            return normalize_nodes([result], filename), repair_tokens
+            return normalize_nodes([result], filename, language), repair_tokens
     except Exception as e:
         logger.error(f"JSON repair failed for {filename}: {e}")
 
@@ -101,13 +103,15 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                 return # cancelled or already running
 
         source_id = generate_id("src")
-        src_node_id = generate_id("mem")
         
         # 1. Normalize content for storage
         if doc:
             content = "\n\n".join([f"{' '.join(s.heading_chain + ([s.heading] if s.heading else []))}\n{s.content}" for s in doc.segments])
         
-        # 2. Record source
+        content_bytes = content.encode("utf-8")
+        content_hash = hashlib.sha256(content_bytes).hexdigest()
+
+        # 2. Record source (import_sources)
         with db_cursor(commit=True) as cur:
             page_count = doc.metadata.get("page_count") if doc else None
             has_ocr    = doc.metadata.get("has_ocr")    if doc else False
@@ -117,12 +121,13 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                 (source_id, ws_id, filename, doc_type, content, page_count, has_ocr)
             )
 
-        # 3. Resolve AI provider
+        # 3. Resolve AI provider & language
         with db_cursor() as cur:
-            cur.execute("""SELECT extraction_provider, embedding_provider FROM workspaces WHERE id = %s""", (ws_id,))
+            cur.execute("""SELECT extraction_provider, embedding_provider, language FROM workspaces WHERE id = %s""", (ws_id,))
             ws_row = cur.fetchone()
         ws_extraction_provider = ws_row["extraction_provider"] if ws_row else None
         ws_embedding_provider = ws_row["embedding_provider"] if ws_row else None
+        ws_lang = ws_row["language"] if (ws_row and ws_row["language"]) else "zh-TW"
 
         if ws_extraction_provider:
             resolved = resolve_provider(user_id, "extraction", preferred_provider=ws_extraction_provider)
@@ -131,12 +136,42 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         else:
             resolved = resolve_with_fallback(user_id, "extraction")
 
+        # 4. Create document in DB and save to disk
+        storage_root = os.environ.get("DOCUMENT_STORAGE_PATH", "./data/documents")
+        from services.documents import create_document_in_db, get_existing_document
+        with db_cursor(commit=True) as cur:
+            existing_doc = get_existing_document(cur, ws_id, content_hash)
+            if existing_doc:
+                doc_id = existing_doc["id"]
+            else:
+                doc_id = generate_id("doc")
+                storage_path = os.path.join(storage_root, ws_id, f"{doc_id}.txt")
+                
+                # Write file to disk
+                os.makedirs(os.path.dirname(storage_path), exist_ok=True)
+                with open(storage_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                
+                create_document_in_db(
+                    cur,
+                    workspace_id=ws_id,
+                    filename=filename,
+                    file_bytes=content_bytes,
+                    mime_type="text/plain",
+                    storage_path=storage_path,
+                    uploaded_by=user_id,
+                    ingestion_job_id=job_id,
+                    title=filename
+                )
+
+        src_node_id = doc_id  # Align with documents table, passed to persist_nodes as source_doc_node_id
+
         # Build cluster context string for the AI prompt
         from services.clusters import fetch_clusters_for_prompt
         cluster_list = fetch_clusters_for_prompt(ws_id)
         cluster_context: str = ""
         if cluster_list:
-            names = ", ".join(f'{c["name_en"]} ({c["name_zh"]})' for c in cluster_list)
+            names = ", ".join(c["name"] for c in cluster_list)
             cluster_context = (
                 f"Existing clusters in this workspace: [{names}]. "
                 "Assign each node to the best-matching cluster using its exact name, "
@@ -145,27 +180,14 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
 
         total_tokens = 0
 
-        # 4. API Seed nodes
-        seed_nodes = scan_api_endpoints(content)
+        # 5. API Seed nodes
+        seed_nodes = scan_api_endpoints(content, language=ws_lang)
         if approved_seeds is not None:
-            seed_nodes = [n for n in seed_nodes if n["title_en"] in approved_seeds]
+            seed_nodes = [n for n in seed_nodes if n["title"] in approved_seeds]
 
         if seed_nodes:
             with db_cursor(commit=True) as cur:
                 persist_nodes_sync(cur, ws_id, seed_nodes, job_id, filename, user_id, resolved, source_id=source_id, is_seed=True, source_doc_node_id=src_node_id)
-
-        # 5. Source document node
-        with db_cursor(commit=True) as cur:
-            cur.execute(
-                """INSERT INTO memory_nodes
-                    (id, workspace_id, title_zh, title_en, content_type, content_format,
-                     body_zh, body_en, tags, visibility, author, signature, source_type, source_file, status)
-                VALUES
-                    (%s, %s, %s, %s, 'source_document', 'plain',
-                     %s, '', ARRAY[]::text[], 'private', %s, 'source', 'human', %s, 'active')
-                ON CONFLICT (id) DO NOTHING""",
-                (src_node_id, ws_id, f"來源文件：{filename}", f"Source: {filename}", content[:50000], user_id, filename)
-            )
 
         # 6. Extraction loop
         all_review_ids = []
@@ -191,7 +213,7 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                 record_usage(resolved, "extraction", tokens, workspace_id=ws_id)
 
                 # Parse & Normalize
-                nodes_data, repair_tokens = await safe_parse_nodes_with_repair(raw_nodes, resolved, filename)
+                nodes_data, repair_tokens = await safe_parse_nodes_with_repair(raw_nodes, resolved, filename, language=ws_lang)
                 total_tokens += repair_tokens
                 if repair_tokens:
                     record_usage(resolved, "extraction", repair_tokens, workspace_id=ws_id)
@@ -204,12 +226,15 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                     from services.clusters import get_or_create_cluster
                     with db_cursor(commit=True) as cl_cur:
                         for n in nodes_data:
-                            cname_zh = n.pop("cluster_name_zh", None) or ""
-                            cname_en = n.pop("cluster_name_en", None) or ""
-                            if cname_en:
+                            # Support both old bilingual keys and new single-name key
+                            cname = (n.pop("cluster_name", None)
+                                     or n.pop("cluster_name_en", None)
+                                     or n.pop("cluster_name_zh", None)
+                                     or "")
+                            if cname:
                                 try:
                                     n["cluster_id"] = get_or_create_cluster(
-                                        cl_cur, ws_id, cname_zh or cname_en, cname_en
+                                        cl_cur, ws_id, cname
                                     )
                                 except Exception:
                                     pass

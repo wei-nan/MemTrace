@@ -107,7 +107,7 @@ function SourceDocumentModal({
     }
     setLoading(true);
     nodesApi.get(wsId, nodeId)
-      .then(n => setBody(n.body_zh || n.body_en || ""))
+      .then(n => setBody(n.body || ""))
       .catch(() => setBody(segment ?? "Failed to load source document"))
       .finally(() => setLoading(false));
   }, [wsId, nodeId, segment]);
@@ -206,7 +206,7 @@ function ReviewCard({
             </span>
             {item.ai_review && <span className="tag">{item.ai_review.decision} · {(item.ai_review.confidence * 100).toFixed(0)}%</span>}
           </div>
-          <div style={{ fontSize: 15, fontWeight: 600 }}>{String(item.node_data.title_en ?? item.node_data.title_zh ?? "Untitled change")}</div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>{String(item.node_data.title ?? "Untitled change")}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
             {item.source_info || "Review proposal"} · {new Date(item.created_at).toLocaleString()}
           </div>
@@ -262,8 +262,8 @@ function ReviewCard({
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
           {((item.proposer_meta?.split_suggestion as any[]) || []).map((p, i) => (
             <Card key={i} padding="sm" style={{ border: "1px solid var(--border-default)" }}>
-               <div style={{ fontWeight: 600, fontSize: 13 }}>{p.title_en || p.title_zh}</div>
-               <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{p.body_en || p.body_zh}</div>
+               <div style={{ fontWeight: 600, fontSize: 13 }}>{p.title}</div>
+               <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{p.body}</div>
             </Card>
           ))}
         </div>

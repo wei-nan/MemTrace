@@ -24,7 +24,7 @@ export default function PublicWorkspaceView() {
         
         // Fetch public metadata
         const ws = await api.kb.getPublicInfo(wsId);
-        setWsName(ws.name_zh || ws.name_en || 'Public Workspace');
+        setWsName(ws.name || 'Public Workspace');
       } catch (err: any) {
         console.error('Failed to load public workspace:', err);
         setError(err.message || 'Unable to load workspace. It may not be public.');

@@ -30,7 +30,7 @@ async def test_search_nodes_falls_back_to_keyword_when_no_ai_key():
     from services.search import search_nodes_in_db
 
     keyword_hits = [
-        {"id": "mem_g004", "title_en": "Trust Score", "title_zh": "Trust Score 四維評分",
+        {"id": "mem_g004", "title": "Trust Score 四維評分",
          "content_type": "factual", "tags": [], "visibility": "public", "similarity": 1.0}
     ]
 
@@ -44,7 +44,7 @@ async def test_search_nodes_falls_back_to_keyword_when_no_ai_key():
 
     cur.fetchall.return_value = keyword_hits
 
-    with patch("services.search.require_ws_access", return_value=ws_row), \
+    with patch("services.workspaces.require_ws_access", return_value=ws_row), \
          patch("services.search.perform_semantic_search",
                new_callable=AsyncMock,
                side_effect=AIProviderUnavailable("No key configured")):
@@ -61,9 +61,9 @@ async def test_search_nodes_uses_semantic_when_key_available():
     """When semantic search succeeds, results are merged with keyword results."""
     from services.search import search_nodes_in_db
 
-    keyword_hits = [{"id": "mem_a", "title_en": "A", "title_zh": "", "content_type": "factual",
+    keyword_hits = [{"id": "mem_a", "title": "A", "content_type": "factual",
                      "tags": [], "visibility": "public", "similarity": 1.0}]
-    semantic_hits = [{"id": "mem_b", "title_en": "B", "title_zh": "", "content_type": "factual",
+    semantic_hits = [{"id": "mem_b", "title": "B", "content_type": "factual",
                       "tags": [], "visibility": "public", "similarity": 0.88}]
 
     cur = MagicMock()
@@ -75,7 +75,7 @@ async def test_search_nodes_uses_semantic_when_key_available():
         "embedding_provider": "openai",
     }
 
-    with patch("services.search.require_ws_access", return_value=ws_row), \
+    with patch("services.workspaces.require_ws_access", return_value=ws_row), \
          patch("services.search.perform_semantic_search",
                new_callable=AsyncMock, return_value=semantic_hits):
 
@@ -93,12 +93,12 @@ def test_resolve_provider_falls_back_to_system_key(monkeypatch):
     When the caller user has no keys, resolve_provider must attempt
     user_id = 'system' before raising AIProviderUnavailable.
     """
-    from core.ai import resolve_provider, PROVIDER_REGISTRY
+    from core.ai import resolve_provider, PROVIDER_REGISTRY, encrypt_api_key
 
     # Build a fake 'openai' provider entry
     system_key_row = {
         "provider": "openai",
-        "key_enc": "enc_test",
+        "key_enc": encrypt_api_key("fake_system_key"),
         "base_url": None,
         "auth_mode": "bearer",
         "auth_token": None,

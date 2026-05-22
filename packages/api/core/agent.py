@@ -11,18 +11,18 @@ def get_or_create_agent_node(ws_id: str, cur) -> str:
     title = "(Workspace Agent)"
     # P4.5-2B-1: Compute signature for agent node
     sig = compute_signature(
-        {"en": title, "zh": title},
-        {"type": "context", "format": "plain", "body": {"en": "", "zh": ""}},
+        title,
+        {"type": "context", "format": "plain", "body": ""},
         [],
         "system"
     )
     
     cur.execute("""
         INSERT INTO memory_nodes
-            (id, workspace_id, title_zh, title_en, content_type, status,
+            (id, workspace_id, title, body, content_type, status,
              source_type, dim_author_rep, author, visibility, content_format, signature)
-        VALUES (%s, %s, %s, %s, 'context', 'active', 'mcp', 0.0, 'system', 'private', 'plain', %s)
-    """, (agent_id, ws_id, title, title, sig))
+        VALUES (%s, %s, %s, '', 'context', 'active', 'mcp', 0.0, 'system', 'private', 'plain', %s)
+    """, (agent_id, ws_id, title, sig))
     
     cur.execute("UPDATE workspaces SET agent_node_id = %s WHERE id = %s", (agent_id, ws_id))
     return agent_id

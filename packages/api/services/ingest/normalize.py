@@ -34,10 +34,12 @@ VALID_CONTENT_TYPES = {"factual", "procedural", "preference", "context", "inquir
 
 # Standard keys in the extraction flat format
 EXTRACTION_STANDARD_KEYS = {
-    "title_zh", "title_en", "content_type", "content_format",
-    "body_zh", "body_en", "tags", "visibility",
+    "title", "content_type", "content_format",
+    "body", "tags", "visibility",
     "suggested_edges", "source_segment", "confidence_score",
-    "title", "content",
+    "content",
+    # cluster assignment (Phase 6 single-lang; also accept legacy bilingual keys for compat)
+    "cluster_name", "cluster_name_en", "cluster_name_zh",
 }
 
 # Priority order of keys to try as a title source
@@ -46,46 +48,46 @@ TITLE_CANDIDATE_KEYS = [
     "heading", "description", "summary", "api_version",
 ]
 
-def split_bilingual_title(title: str) -> Tuple[str, str]:
-    """Split 'Chinese text (English text)' → (title_zh, title_en)."""
-    m = re.match(r"^(.+?)\s*\(([A-Za-z][^)]{2,})\)\s*$", title)
-    if m:
-        left = m.group(1).strip()
-        right = m.group(2).strip()
-        has_zh = any("一" <= c <= "鿿" for c in left)
-        if has_zh:
-            return left, right
-    has_zh = any("一" <= c <= "鿿" for c in title)
-    return (title, "") if has_zh else ("", title)
-
-def normalize_nodes(nodes: List[dict], filename: str) -> List[dict]:
+def normalize_nodes(nodes: List[dict], filename: str, language: str = "zh-TW") -> List[dict]:
     """Flatten nested/structured nodes and remap AI-invented content_type values."""
     normalized = []
     for n in nodes:
         # 1. Flatten spec-as-kb nested format
         if "title" in n and isinstance(n["title"], dict):
             t = n.pop("title")
-            n = {**n,
-                 "title_zh": t.get("zh-TW") or t.get("zh") or "",
-                 "title_en": t.get("en") or ""}
+            n["title"] = t.get(language) or t.get("zh-TW") or t.get("zh") or t.get("en") or ""
+        elif "title" in n:
+            pass
+        elif "title_zh" in n or "title_en" in n:
+            n["title"] = n.get("title_zh") if language == "zh-TW" else n.get("title_en")
+            if not n.get("title"):
+                n["title"] = n.get("title_zh") or n.get("title_en") or ""
+                
         if "content" in n and isinstance(n["content"], dict):
             c = n.pop("content")
             body = c.get("body", {})
-            n = {**n,
-                 "content_type":   c.get("type", ""),
-                 "content_format": c.get("format", "markdown"),
-                 "body_zh": body.get("zh-TW") or body.get("zh") or "",
-                 "body_en": body.get("en") or ""}
+            n["content_type"] = c.get("type", "")
+            n["content_format"] = c.get("format", "markdown")
+            if isinstance(body, dict):
+                n["body"] = body.get(language) or body.get("zh-TW") or body.get("zh") or body.get("en") or ""
+            else:
+                n["body"] = str(body)
+        elif "body" in n:
+            pass
+        elif "body_zh" in n or "body_en" in n:
+            n["body"] = n.get("body_zh") if language == "zh-TW" else n.get("body_en")
+            if not n.get("body"):
+                n["body"] = n.get("body_zh") or n.get("body_en") or ""
 
         # 2. Derive title from any available candidate key
-        if not (n.get("title_zh") or n.get("title_en")):
+        if not n.get("title"):
             method   = str(n.get("method", "")).strip()
             endpoint = str(n.get("endpoint", "")).strip()
             if method and endpoint:
-                t_en = f"{method} {endpoint}"
+                n["title"] = f"{method} {endpoint}"
                 desc = str(n.get("description", "") or "").strip()
-                t_zh = desc if desc else t_en
-                n = {**n, "title_zh": t_zh, "title_en": t_en}
+                if desc and language == "zh-TW":
+                    n["title"] = desc
             else:
                 raw = ""
                 for key in TITLE_CANDIDATE_KEYS:
@@ -94,28 +96,23 @@ def normalize_nodes(nodes: List[dict], filename: str) -> List[dict]:
                         raw = v.strip()
                         break
                 if raw:
-                    t_zh, t_en = split_bilingual_title(raw)
-                    if not t_zh and not t_en:
-                        t_zh = raw
-                    n = {**n, "title_zh": t_zh, "title_en": t_en}
+                    n["title"] = raw
 
         # 3. Build body from non-standard payload keys if body still missing
-        if not (n.get("body_zh") or n.get("body_en")):
+        if not n.get("body"):
             extra = {k: v for k, v in n.items() if k not in EXTRACTION_STANDARD_KEYS}
             if extra:
-                n = {**n, "body_zh": json.dumps(extra, ensure_ascii=False, indent=2), "body_en": ""}
+                n["body"] = json.dumps(extra, ensure_ascii=False, indent=2)
 
         # 4. Drop nodes that still lack title OR body
-        if not (n.get("title_zh") or n.get("title_en")):
-            continue
-        if not (n.get("body_zh") or n.get("body_en")):
+        if not n.get("title") or not n.get("body"):
             continue
 
         # 5. Normalise content_type
         ct = (n.get("content_type") or "").lower().strip()
         if ct not in VALID_CONTENT_TYPES:
             mapped = CONTENT_TYPE_MAP.get(ct, "factual")
-            n = {**n, "content_type": mapped}
+            n["content_type"] = mapped
         normalized.append(n)
     return normalized
 

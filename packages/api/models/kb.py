@@ -6,8 +6,8 @@ from datetime import datetime
 # ── Workspace ─────────────────────────────────────────────────────────────────
 
 class WorkspaceCreate(BaseModel):
-    name_zh: str
-    name_en: str
+    name: str
+    language: str                                        # Phase 6: 'zh-TW' | 'en' (now required)
     visibility: str = "private"                          # public | restricted | private
     kb_type: Literal["evergreen", "ephemeral"] = "evergreen"  # immutable after creation
     archive_window_days: int = 90
@@ -19,8 +19,9 @@ class WorkspaceCreate(BaseModel):
 
 class WorkspaceResponse(BaseModel):
     id: str
-    name_zh: str
-    name_en: str
+    name: str
+    language: str                                        # Phase 6: 'zh-TW' | 'en'
+    linked_workspace_id: Optional[str] = None            # Phase 6: paired mono-language workspace
     visibility: str
     kb_type: str
     owner_id: str
@@ -43,8 +44,7 @@ class WorkspaceAssociationResponse(BaseModel):
     id: str
     source_ws_id: str
     target_ws_id: str
-    target_name_en: str
-    target_name_zh: str
+    target_name: str
     created_at: datetime
 
 
@@ -61,12 +61,10 @@ class SuggestedEdge(BaseModel):
     weight: float = 1.0
 
 class NodeCreate(BaseModel):
-    title_zh: str = ""
-    title_en: str
+    title: str
     content_type: str
     content_format: str = "plain"
-    body_zh: str = ""
-    body_en: str = ""
+    body: str = ""
     tags: list[str] = []
     visibility: str = "private"
     copied_from_node: Optional[str] = None
@@ -77,12 +75,10 @@ class NodeCreate(BaseModel):
 
 
 class NodeUpdate(BaseModel):
-    title_zh: Optional[str] = None
-    title_en: Optional[str] = None
+    title: Optional[str] = None
     content_type: Optional[str] = None
     content_format: Optional[str] = None
-    body_zh: Optional[str] = None
-    body_en: Optional[str] = None
+    body: Optional[str] = None
     tags: Optional[list[str]] = None
     visibility: Optional[str] = None
     source_type: Literal["human", "ai"] = "human"
@@ -94,12 +90,10 @@ class NodeResponse(BaseModel):
     id: str
     schema_version: str
     workspace_id: str
-    title_zh: str
-    title_en: str
+    title: str
     content_type: str
     content_format: str
-    body_zh: Optional[str]
-    body_en: Optional[str]
+    body: Optional[str]
     tags: list[str]
     visibility: str
     author: str
@@ -184,8 +178,8 @@ class GraphPreviewResponse(BaseModel):
     edges: list[EdgePreview]
 
 class WorkspaceUpdate(BaseModel):
-    name_zh: Optional[str] = None
-    name_en: Optional[str] = None
+    name: Optional[str] = None
+    language: Optional[str] = None                       # Phase 6: settable until Stage 2 Gate enforces NOT NULL
     visibility: Optional[str] = None
     archive_window_days: Optional[int] = None
     min_traversals: Optional[int] = None
@@ -233,8 +227,7 @@ class VoteTrustRequest(BaseModel):
 
 
 class WorkspaceCloneRequest(BaseModel):
-    name_zh: Optional[str] = None
-    name_en: Optional[str] = None
+    name: Optional[str] = None
     new_embedding_model: Optional[str] = None
     visibility: Optional[str] = None            # None = 'private'
     qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None   # None = inherit
@@ -257,8 +250,7 @@ class WorkspaceCloneJobResponse(BaseModel):
 
 class ForkWorkspaceRequest(BaseModel):
     """P4.1-F: Fork a public workspace into the current user's account."""
-    name_zh: str
-    name_en: str
+    name: str
     embedding_model: Optional[str] = None       # None = inherit source
     qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None  # None = inherit
     extraction_provider: Optional[str] = None   # None = inherit

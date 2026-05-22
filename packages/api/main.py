@@ -32,6 +32,7 @@ from routers.internal     import router as internal_router
 from routers.mcp          import router as mcp_router
 from routers.public       import router as public_router
 from routers.registration import router as registration_router
+from routers.documents    import router as documents_router  # Phase 6: document first-class
 
 # ── Background jobs ───────────────────────────────────────────────────────────
 from jobs.ingest import recover_stale_on_startup
@@ -85,6 +86,7 @@ app.include_router(internal_router, prefix="/api/v1")
 app.include_router(mcp_router)
 app.include_router(public_router)
 app.include_router(registration_router)
+app.include_router(documents_router)  # Phase 6: document CRUD
 
 # Top-level /mcp alias for Streamable HTTP (cleaner URL for MCP clients)
 from routers.mcp import mcp_streamable

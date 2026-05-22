@@ -367,7 +367,7 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
                 <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {m.response.source_nodes.slice(0, 3).map((sn, j) => (
                     <div key={j} style={{ fontSize: 11, padding: '2px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 4, color: 'var(--text-muted)' }}>
-                      {zh ? sn.title_zh : sn.title_en}
+                      {sn.title}
                     </div>
                   ))}
                   {m.response.source_nodes.length > 3 && (

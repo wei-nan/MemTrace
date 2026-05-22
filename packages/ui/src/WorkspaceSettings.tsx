@@ -11,11 +11,12 @@ const DEFAULT_AI_REVIEW_PROMPT = `You are an AI reviewer for a collaborative kno
 Return JSON with decision, confidence, and reasoning.
 Accept only low-risk, well-supported changes.`;
 
+
 function DeleteWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onConfirm: () => void, onCancel: () => void }) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
   const [typedName, setTypedName] = useState("");
-  const expectedName = ws.name_zh || ws.name_en;
+  const expectedName = ws.name;
   const isValid = typedName === expectedName;
 
   return (
@@ -54,11 +55,10 @@ function DeleteWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onC
   );
 }
 
-function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onConfirm: (data: { name_zh?: string; name_en?: string; new_embedding_model?: string; visibility?: string }) => void, onCancel: () => void }) {
+function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onConfirm: (data: { name?: string; new_embedding_model?: string; visibility?: string }) => void, onCancel: () => void }) {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
-  const [nameZh, setNameZh] = useState(`${ws.name_zh} (副本)`);
-  const [nameEn, setNameEn] = useState(`${ws.name_en} (Clone)`);
+  const [name, setName] = useState(`${ws.name} (Clone)`);
   const [selectedModel, setSelectedModel] = useState(ws.embedding_model);
   const [visibility, setVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
   const [models, setModels] = useState<any[]>([]);
@@ -96,14 +96,9 @@ function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onCo
         
         <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
           <Input 
-            label={zh ? "中文名稱" : "Chinese Name"} 
-            value={nameZh} 
-            onChange={e => setNameZh(e.target.value)} 
-          />
-          <Input 
-            label={zh ? "英文名稱" : "English Name"} 
-            value={nameEn} 
-            onChange={e => setNameEn(e.target.value)} 
+            label={zh ? "工作區名稱" : "Workspace Name"} 
+            value={name} 
+            onChange={e => setName(e.target.value)} 
           />
           <div>
             <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>{zh ? "向量模型 (Embedding Model)" : "Embedding Model"}</label>
@@ -150,7 +145,7 @@ function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onCo
           <Button variant="secondary" onClick={onCancel}>{zh ? "取消" : "Cancel"}</Button>
           <Button
             variant="primary"
-            onClick={() => onConfirm({ name_zh: nameZh, name_en: nameEn, new_embedding_model: selectedModel, visibility })}
+            onClick={() => onConfirm({ name, new_embedding_model: selectedModel, visibility })}
           >
             {zh ? "開始複製" : "Start Clone"}
           </Button>
@@ -608,8 +603,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [tab, setTab] = useState<MainTab>("general");
   const [accessTab, setAccessTab] = useState<AccessTab>("members");
 
-  const [nameZh, setNameZh] = useState("");
-  const [nameEn, setNameEn] = useState("");
+  const [name, setName] = useState("");
+  const [language, setLanguage] = useState<"zh-TW" | "en">("zh-TW");
   const [isSaving, setIsSaving] = useState(false);
   const [decayStats, setDecayStats] = useState<any>(null);
   const [healthReport, setHealthReport] = useState<any>(null);
@@ -627,8 +622,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
       setMembers(m);
       setInvites(i);
       setWs(w);
-      setNameZh(w.name_zh);
-      setNameEn(w.name_en);
+      setName(w.name);
+      setLanguage(w.language);
       setJoinRequests(reqs);
       setAssociations(as);
 
@@ -708,21 +703,32 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
           <SectionCard>
             <h3 style={{ fontSize: 14, margin: "0 0 16px" }}>{t('ws_settings.general')}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{t('ws_settings.kbNameZh')}</label>
-                <input className="mt-input" value={nameZh} onChange={e => setNameZh(e.target.value)} disabled={!isOwner} style={{ width: "100%" }} />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{t('ws_settings.kbNameEn')}</label>
-                <input className="mt-input" value={nameEn} onChange={e => setNameEn(e.target.value)} disabled={!isOwner} style={{ width: "100%" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{zh ? "工作區名稱" : "Workspace Name"}</label>
+                  <input className="mt-input" value={name} onChange={e => setName(e.target.value)} disabled={!isOwner} style={{ width: "100%" }} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{zh ? "語言" : "Language"}</label>
+                  <select
+                    className="mt-input"
+                    value={language}
+                    disabled={!isOwner}
+                    onChange={e => setLanguage(e.target.value as any)}
+                    style={{ width: "100%", height: 38 }}
+                  >
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                <Button variant="primary" disabled={!isOwner || isSaving || (nameZh === ws?.name_zh && nameEn === ws?.name_en)} loading={isSaving} onClick={async () => {
+                <Button variant="primary" disabled={!isOwner || isSaving || (name === ws?.name && language === ws?.language)} loading={isSaving} onClick={async () => {
                   setIsSaving(true);
                   try {
-                    await workspaces.update(wsId, { name_zh: nameZh, name_en: nameEn });
+                    await workspaces.update(wsId, { name, language });
                     await loadData();
-                    toast({ message: "Workspace name updated", variant: "success" });
+                    toast({ message: "Workspace settings updated", variant: "success" });
                   } catch (err) {
                     toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
                   } finally {
@@ -1122,7 +1128,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 setShowDeleteDialog(false);
                 try {
                   await workspaces.delete(wsId);
-                  toast({ message: zh ? `工作區「${ws.name_zh || ws.name_en}」已刪除` : `Workspace "${ws.name_zh || ws.name_en}" deleted`, variant: "success" });
+                  toast({ message: zh ? `工作區「${ws.name}」已刪除` : `Workspace "${ws.name}" deleted`, variant: "success" });
                   // Trigger a global refresh or navigation - App.tsx should handle the state update
                   window.dispatchEvent(new CustomEvent('workspace-deleted', { detail: { wsId } }));
                 } catch (e) {
@@ -1146,8 +1152,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                   {workspaceResults.slice(0, 8).map((result) => (
                     <div key={result.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, border: "1px solid var(--border-subtle)", borderRadius: 10, padding: "10px 12px" }}>
                       <div>
-                        <div style={{ fontWeight: 600 }}>{result.name_en}</div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{result.name_zh} / {result.visibility}</div>
+                        <div style={{ fontWeight: 600 }}>{result.name}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{result.language} / {result.visibility}</div>
                       </div>
                       <button
                         className="btn-primary"
@@ -1177,7 +1183,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
             {associations.map((association) => (
               <div key={association.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10 }}>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{association.target_name_en}</div>
+                  <div style={{ fontWeight: 600 }}>{association.target_name}</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>ID: {association.target_ws_id}</div>
                 </div>
                 <button className="btn-secondary" onClick={async () => {

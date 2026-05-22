@@ -91,8 +91,7 @@ def _bg_export_kb(export_id: str, ws_id: str, req: KBExportRequest):
 
                 ws_data = {
                     "id": workspace["id"],
-                    "name_en": workspace["name_en"],
-                    "name_zh": workspace["name_zh"],
+                    "name": workspace["name"],
                     "kb_type": workspace["kb_type"],
                 }
                 zf.writestr("workspace.json", json.dumps(ws_data, indent=2, ensure_ascii=False))
@@ -119,12 +118,11 @@ def _bg_export_kb(export_id: str, ws_id: str, req: KBExportRequest):
 
                 if req.include_markdown:
                     for n in nodes:
-                        content = f"# {n['title_en'] or n['title_zh']}\n\n"
+                        content = f"# {n['title']}\n\n"
                         if n["tags"]:
                             content += f"Tags: {', '.join(n['tags'])}\n\n"
-                        content += "## English\n" + (n["body_en"] or "")
-                        content += "\n\n## 中文\n" + (n["body_zh"] or "")
-                        safe_title = (n["title_en"] or n["title_zh"]).replace("/", "_").replace("\\", "_")
+                        content += n["body"] or ""
+                        safe_title = n["title"].replace("/", "_").replace("\\", "_")
                         zf.writestr(f"markdown/{n['id']}_{safe_title}.md", content)
 
             download_url = f"/exports/{filename}"
@@ -293,14 +291,14 @@ def import_kb(
                             cur.execute(
                                 """
                                 UPDATE memory_nodes
-                                SET title_zh = %s, title_en = %s, body_zh = %s, body_en = %s,
+                                SET title = %s, body = %s,
                                     content_type = %s, tags = %s, trust_score = %s,
                                     updated_at = NOW()
                                 WHERE id = %s AND workspace_id = %s
                                 """,
                                 (
-                                    node.get("title_zh"), node.get("title_en"),
-                                    node.get("body_zh"), node.get("body_en"),
+                                    node.get("title") or node.get("title_zh") or node.get("title_en") or "",
+                                    node.get("body") or node.get("body_zh") or node.get("body_en") or "",
                                     node.get("content_type", "factual"),
                                     node.get("tags", []),
                                     node.get("trust_score", 0.8),
@@ -314,18 +312,18 @@ def import_kb(
                             cur.execute(
                                 """
                                 INSERT INTO memory_nodes
-                                  (id, workspace_id, title_zh, title_en, body_zh, body_en,
+                                  (id, workspace_id, title, body,
                                    content_type, content_format, tags, trust_score,
                                    dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
                                    status, source_type, visibility,
                                    copied_from_node, copied_from_ws)
-                                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'active','imported','private',%s,%s)
+                                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'active','imported','private',%s,%s)
                                 ON CONFLICT (id) DO NOTHING
                                 """,
                                 (
                                     new_id, ws_id,
-                                    node.get("title_zh"), node.get("title_en"),
-                                    node.get("body_zh"), node.get("body_en"),
+                                    node.get("title") or node.get("title_zh") or node.get("title_en") or "",
+                                    node.get("body") or node.get("body_zh") or node.get("body_en") or "",
                                     node.get("content_type", "factual"),
                                     node.get("content_format", "markdown"),
                                     node.get("tags", []),

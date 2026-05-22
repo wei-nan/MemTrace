@@ -35,7 +35,7 @@ export interface ProposedChange {
 export interface ChatResponse {
   answer: string;
   proposals: ProposedChange[];
-  source_nodes: Array<{ title_zh?: string; title_en?: string }>;
+  source_nodes: Array<{ title?: string }>;
   tokens_used: number;
 }
 

@@ -97,10 +97,10 @@ def test_create_node_role_behavior(mock_bg, mock_db_ctx, mock_ws, mock_role, moc
     user = {"sub": "user_1"}
     mock_cur = mock_db_ctx.return_value.__enter__.return_value
     body = NodeCreate(
-        title_en="Test",
+        title="Test",
         content_type="factual",
         content_format="plain",
-        body_en="Test body",
+        body="Test body",
         source_type="ai",
         suggested_edges=[{"to_id": "mem_2", "relation": "extends"}]
     )
@@ -112,7 +112,7 @@ def test_create_node_role_behavior(mock_bg, mock_db_ctx, mock_ws, mock_role, moc
     
     # 1. Test Admin Role (Direct creation)
     mock_role.return_value = "admin"
-    mock_create_db.return_value = {"id": "new_node", "signature": "sig", "title_zh": "", "title_en": "Test", "body_zh": "", "body_en": ""}
+    mock_create_db.return_value = {"id": "new_node", "signature": "sig", "title": "Test", "body": "Test body"}
     
     create_node(mock_cur, ws_id, body.model_dump(), user)
     

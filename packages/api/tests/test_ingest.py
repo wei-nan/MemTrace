@@ -45,8 +45,8 @@ def test_cancel_ingest(client, override_auth, mock_db):
     with patch("routers.ingest.require_ws_access"):
         # Bypass CSRF via headers if possible, or just mock the middleware
         with patch("core.csrf.CsrfMiddleware.dispatch", side_effect=lambda request, call_next: call_next(request)):
-            response = client.post(
-                "/api/v1/workspaces/ws_1/ingest/cancel/ing_1", 
+            response = client.delete(
+                "/api/v1/workspaces/ws_1/ingest/ing_1", 
                 headers={"X-CSRF-Token": "test"},
                 cookies={"mt_csrf": "test"}
             )
@@ -72,3 +72,26 @@ async def test_process_ingestion_pipeline():
                 with patch("services.ingest.pipeline.persist_nodes", return_value=[]) as mock_persist:
                     await process_ingestion("job_1", "ws_1", "content", "user_1", "file.txt")
                     assert mock_cur.execute.called
+
+@pytest.mark.asyncio
+async def test_process_ingestion_failure_rollback():
+    from services.ingest.pipeline import process_ingestion
+    
+    with patch("services.ingest.pipeline.db_cursor") as mock_db:
+        mock_cur = mock_db.return_value.__enter__.return_value
+        
+        # 1. Update status to processing (rowcount=1)
+        # 2. SELECT extraction_provider (raises exception to simulate failure)
+        mock_cur.rowcount = 1
+        mock_cur.fetchone.side_effect = Exception("Database connection lost")
+        
+        # We expect process_ingestion to handle the exception, log it, 
+        # and update status to 'failed'
+        await process_ingestion("job_1", "ws_1", "content", "user_1", "file.txt")
+        
+        # Verify that UPDATE ingestion_logs SET status = 'failed' was called
+        # The last execute call should be setting status to failed
+        calls = mock_cur.execute.call_args_list
+        assert any("SET status = 'failed'" in call[0][0] for call in calls)
+        assert any("Database connection lost" in str(call[0][1]) for call in calls)
+

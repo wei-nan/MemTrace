@@ -72,7 +72,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
   const [data, setData] = useState<WorkspaceAnalytics | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [topGaps, setTopGaps] = useState<Array<{ id: string; title_zh: string; title_en: string; status: string; ask_count: number }>>([]);
+  const [topGaps, setTopGaps] = useState<Array<{ id: string; title: string; status: string; ask_count: number }>>([]);
 
   useEffect(() => {
     let active = true;
@@ -182,7 +182,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
               <div key={gap.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, fontSize: 13 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>
                   <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>
-                    {gap.title_zh || gap.title_en || gap.id}
+                    {gap.title || gap.id}
                   </div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{gap.status}</div>
                 </div>

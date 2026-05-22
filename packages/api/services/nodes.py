@@ -48,8 +48,8 @@ class AICapacityExceeded(HTTPException):
 # ─── Column lists (single source, shared with BFS query) ─────────────────────
 
 NODE_PUBLIC_COLUMNS = """
-    id, schema_version, workspace_id, title_zh, title_en, content_type, content_format,
-    body_zh, body_en, tags, visibility, author, created_at, updated_at,
+    id, schema_version, workspace_id, title, content_type, content_format,
+    body, tags, visibility, author, created_at, updated_at,
     signature, source_type, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
     traversal_count, unique_traverser_count, status, archived_at,
     copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
@@ -57,8 +57,8 @@ NODE_PUBLIC_COLUMNS = """
 """
 
 NODE_EDITABLE_FIELDS = [
-    "title_zh", "title_en", "content_type", "content_format",
-    "body_zh", "body_en", "tags", "visibility",
+    "title", "content_type", "content_format",
+    "body", "tags", "visibility",
     "source_doc_node_id", "source_paragraph_ref", "cluster_id"
 ]
 
@@ -85,17 +85,17 @@ def validate_node_payload(data: dict) -> None:
             "visibility", 
             "Must be 'public', 'private', or 'internal'"
         )
-    if not (data.get("title_zh") or data.get("title_en")):
+    if not data.get("title"):
         raise NodeValidationError(
             "Missing title", 
-            "title_en", 
-            "At least one of 'title_zh' or 'title_en' must be provided."
+            "title", 
+            "Title must be provided."
         )
-    if not (data.get("body_zh") or data.get("body_en")):
+    if data.get("body") is None:
         raise NodeValidationError(
             "Missing body", 
-            "body_en", 
-            "At least one of 'body_zh' or 'body_en' must be provided."
+            "body", 
+            "Body must be provided."
         )
 
 
@@ -128,10 +128,8 @@ def prepare_node_data(
     # Set defaults before validation (S2-T01/T02)
     payload["content_format"] = payload.get("content_format") or "plain"
     payload["visibility"] = payload.get("visibility") or "private"
-    payload["title_zh"] = payload.get("title_zh") or ""
-    payload["title_en"] = payload.get("title_en") or ""
-    payload["body_zh"] = payload.get("body_zh") or ""
-    payload["body_en"] = payload.get("body_en") or ""
+    payload["title"] = payload.get("title") or ""
+    payload["body"] = payload.get("body") or ""
 
     validate_node_payload(payload)
     
@@ -156,11 +154,11 @@ def prepare_node_data(
         payload["trust_score"] = (acc * 0.4) + (fresh * 0.25) + (util * 0.25) + (rep * 0.1)
 
     payload["signature"] = compute_signature(
-        {"zh-TW": payload["title_zh"], "en": payload["title_en"]},
+        payload["title"],
         {
             "type": payload["content_type"],
             "format": payload["content_format"],
-            "body": {"zh-TW": payload["body_zh"], "en": payload["body_en"]},
+            "body": payload["body"],
         },
         payload["tags"],
         payload["author"],
@@ -189,18 +187,18 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
     cur.execute(
         f"""
         INSERT INTO memory_nodes (
-            id, workspace_id, title_zh, title_en, content_type, content_format, body_zh, body_en,
+            id, workspace_id, title, content_type, content_format, body,
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
             status, dim_author_rep, trust_score, dim_freshness, source_id,
             source_doc_node_id, source_paragraph_ref, cluster_id, updated_at
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,1.0,%s,%s,%s,%s,now())
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,1.0,%s,%s,%s,%s,now())
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
             node_id, ws_id,
-            payload["title_zh"], payload["title_en"],
+            payload["title"],
             payload["content_type"], payload["content_format"],
-            payload["body_zh"], payload["body_en"],
+            payload["body"],
             payload["tags"], payload["visibility"],
             payload["author"], payload["signature"], payload["source_type"],
             node_data.get("copied_from_node"), node_data.get("copied_from_ws"),
@@ -247,8 +245,8 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
     cur.execute(
         f"""
         UPDATE memory_nodes
-        SET title_zh = %s, title_en = %s, content_type = %s, content_format = %s,
-            body_zh = %s, body_en = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s,
+        SET title = %s, content_type = %s, content_format = %s,
+            body = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s,
             dim_freshness = 1.0, trust_score = %s,
             source_id = %s, source_doc_node_id = %s, source_paragraph_ref = %s,
             cluster_id = COALESCE(%s, cluster_id),
@@ -257,9 +255,9 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
-            payload["title_zh"], payload["title_en"],
+            payload["title"],
             payload["content_type"], payload["content_format"],
-            payload["body_zh"], payload["body_en"],
+            payload["body"],
             payload["tags"], payload["visibility"], payload["signature"], datetime.now(timezone.utc),
             payload["trust_score"],
             node_data.get("source_id", existing.get("source_id")),
@@ -309,7 +307,7 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
                     logger.error(f"Failed to notify copy {copy['id']}: {e}")
 
         # S3-T05: Audit Log
-        log_audit_event(cur, ws_id, "update_node", "node", node_id, actor_id, {"title": updated["title_en"]})
+        log_audit_event(cur, ws_id, "update_node", "node", node_id, actor_id, {"title": updated["title"]})
 
     return updated
 
@@ -440,7 +438,7 @@ def propose_change(
             raise HTTPException(status_code=404, detail="Target node not found")
         before_snapshot = node_row_to_snapshot(existing)
 
-    if change_type != "delete":
+    if change_type not in ("delete", "conflict"):
         payload = dict(node_data or {})
         if change_type == "update" and before_snapshot:
             payload = {**before_snapshot, **payload}
@@ -560,7 +558,7 @@ def list_nodes_in_db(
     elif filter == "never_traversed":
         filters.append("traversal_count = 0")
     elif filter == "empty_body":
-        filters.append("(body_zh IS NULL OR body_zh = '') AND (body_en IS NULL OR body_en = '')")
+        filters.append("(body IS NULL OR body = '')")
     else:
         if status != "all":
             filters.append("status = %s")
@@ -599,8 +597,8 @@ def get_table_view_in_db(cur, ws_id: str, q: Optional[str], filter: Optional[str
     total = cur.fetchone()["count"]
     
     sort_col = "created_at"
-    if sort_by in ("title", "title_en", "title_zh"):
-        sort_col = "title_en"
+    if sort_by in ("title",):
+        sort_col = "title"
     elif sort_by == "content_type":
         sort_col = "content_type"
     elif sort_by == "trust_score":
@@ -626,8 +624,8 @@ def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
         """
         SELECT
             COUNT(*) FILTER (WHERE status = 'active') AS total,
-            COUNT(*) FILTER (WHERE status = 'active' AND (body_zh IS NULL OR body_zh = '') AND (body_en IS NULL OR body_en = '')) AS empty_body,
-            COUNT(*) FILTER (WHERE status = 'active' AND (((body_zh IS NULL OR body_zh = '') AND (body_en IS NOT NULL AND body_en != '')) OR ((body_en IS NULL OR body_en = '') AND (body_zh IS NOT NULL AND body_zh != '')))) AS single_language_only,
+            COUNT(*) FILTER (WHERE status = 'active' AND (body IS NULL OR body = '')) AS empty_body,
+            0 AS single_language_only,
             COUNT(*) FILTER (WHERE status = 'active' AND trust_score < 0.3) AS low_trust,
             COUNT(*) FILTER (WHERE status = 'active' AND embedding IS NULL) AS no_embedding
         FROM memory_nodes
@@ -800,11 +798,28 @@ def get_health_scores_in_db(cur, ws_id: str, user: Optional[dict]) -> list:
 def create_node_full_in_db(cur, ws_id: str, payload: dict, user: dict) -> tuple[dict, str]:
     from services.workspaces import require_ws_access, get_effective_role
     from services.nodes import validate_node_payload, propose_change, create_node_in_db
+    # Populate defaults before validation
+    payload["content_format"] = payload.get("content_format") or "plain"
+    payload["visibility"] = payload.get("visibility") or "private"
+    payload["title"] = payload.get("title") or ""
+    payload["body"] = payload.get("body") or ""
+    
     validate_node_payload(payload)
     ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
     
     if payload.get("copied_from_ws"):
-        require_ws_access(cur, payload["copied_from_ws"], user)
+        try:
+            require_ws_access(cur, payload["copied_from_ws"], user)
+        except HTTPException:
+            source_node_id = payload.get("copied_from_node")
+            if source_node_id:
+                cur.execute("SELECT visibility FROM memory_nodes WHERE id = %s AND workspace_id = %s", (source_node_id, payload["copied_from_ws"]))
+                s_row = cur.fetchone()
+                if not s_row or s_row["visibility"] != "public":
+                    raise HTTPException(status_code=403, detail="Access denied to source workspace and source node is not public.")
+            else:
+                raise
+
         
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     proposer_id = user["sub"]
@@ -825,6 +840,9 @@ def create_node_full_in_db(cur, ws_id: str, payload: dict, user: dict) -> tuple[
         return None, review_id
 
     node = create_node_in_db(cur, ws_id, payload | {"author": proposer_id, "source_type": payload.get("source_type", "human")})
+    
+    from services.audit import log_audit_event
+    log_audit_event(cur, ws_id, "create_node", "node", node["id"], proposer_id, {"title": node["title"]})
     
     if payload.get("suggested_edges"):
         create_edges_directly(cur, ws_id, node["id"], payload["suggested_edges"])
@@ -849,14 +867,14 @@ async def create_node_full_with_dedup(
     threshold = settings.get("auto_dedup_threshold", 0.92)
 
     if not force_create:
-        text_to_check = f"{payload.get('title_en', '')}\n{payload.get('body_en', '')}".strip()
+        text_to_check = f"{payload.get('title', '')}\n{payload.get('body', '')}".strip()
         if text_to_check:
             similar = await find_similar_node_in_db(cur, ws_id, text_to_check, user["sub"], threshold=threshold)
             if similar:
                 dup_info = {
                     "action": "duplicate_found",
                     "existing_node_id": similar["id"],
-                    "existing_title": similar["title_en"],
+                    "existing_title": similar["title"],
                     "similarity": round(float(similar["similarity"]), 3),
                     "message": "A highly similar node already exists. Use force_create=true to override."
                 }
@@ -1062,7 +1080,7 @@ def backfill_embeddings_in_db(cur, ws_id: str, user: dict) -> list[dict]:
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Admin only")
     cur.execute(
-        "SELECT id, title_zh, title_en, body_zh, body_en FROM memory_nodes "
+        "SELECT id, title, body FROM memory_nodes "
         "WHERE workspace_id = %s AND embedding IS NULL AND status = 'active'",
         (ws_id,),
     )
@@ -1108,8 +1126,7 @@ def list_review_queue_in_db(cur, ws_id: str, limit: int, user: dict) -> dict:
     # 1. Fetch pending proposals from review_queue table
     cur.execute(
         """SELECT id, change_type, target_node_id, status, created_at, proposer_type,
-                  COALESCE(node_data->>'title_en', '') as title_en, 
-                  COALESCE(node_data->>'title_zh', '') as title_zh
+                  COALESCE(node_data->>'title', '') as title
            FROM review_queue
            WHERE workspace_id = %s AND status = 'pending'
            ORDER BY created_at DESC
@@ -1120,19 +1137,18 @@ def list_review_queue_in_db(cur, ws_id: str, limit: int, user: dict) -> dict:
 
     # 2. Fetch anomalous nodes from memory_nodes (quality issues)
     cur.execute(
-        """SELECT id, title_zh, title_en, content_type, trust_score,
+        """SELECT id, title, content_type, trust_score,
                   source_type, updated_at, validity_confirmed_at,
-                  char_length(COALESCE(body_zh, '')) AS body_zh_len
+                  char_length(COALESCE(body, '')) AS body_len
            FROM memory_nodes
            WHERE workspace_id = %s AND status = 'active'
              AND (
                -- Low trust
                trust_score < 0.7
                -- AI-generated node with very short body AND low traversal (atomic facts are OK if well-used)
-               OR (source_type = 'ai' AND char_length(COALESCE(body_zh, '')) < 80 AND traversal_count < 3)
+               OR (source_type = 'ai' AND char_length(COALESCE(body, '')) < 80 AND traversal_count < 3)
                -- Body contains unfilled placeholders
-               OR body_zh LIKE '%%??%%'
-               OR body_en LIKE '%%??%%'
+               OR body LIKE '%%??%%'
              )
            ORDER BY trust_score ASC, updated_at DESC
            LIMIT %s""",
@@ -1183,10 +1199,8 @@ def apply_split_in_db(cur, ws_id: str, rev_id: Optional[str], node_id: str, prop
         data = p.get("proposed") or p
         
         node_payload = {
-            "title_zh": data.get("title_zh"),
-            "title_en": data.get("title_en"),
-            "body_zh": data.get("body_zh"),
-            "body_en": data.get("body_en"),
+            "title": data.get("title") or data.get("title_zh") or data.get("title_en") or "",
+            "body": data.get("body") or data.get("body_zh") or data.get("body_en") or "",
             "content_type": data.get("content_type") or original["content_type"],
             "content_format": original["content_format"],
             "tags": list(set(original.get("tags", []) + data.get("tags", []))),
@@ -1224,17 +1238,21 @@ async def archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str,
         from services.nodes import propose_change as _propose_change, create_node_in_db as _create_node_in_db
         import json
         
-        # 1. Resolve AI provider for distillation
+        # 1. Resolve AI provider for distillation and fetch workspace language
         resolved = resolve_provider(user_id, "extraction")
+        with db_cursor() as cur:
+            cur.execute("SELECT language FROM workspaces WHERE id = %s", (ws_id,))
+            ws_row = cur.fetchone()
+            ws_lang = ws_row["language"] if ws_row else "zh-TW"
         
         system_prompt = (
-            "You are a Knowledge Archiver. Distill the following Q&A into a set of MemTrace nodes.\n"
+            f"You are a Knowledge Archiver. Distill the following Q&A into a set of MemTrace nodes in workspace language '{ws_lang}'.\n"
             "RULES:\n"
             "1. The question itself MUST be one 'inquiry' node.\n"
             "2. Each independent piece of knowledge in the answer should be a separate node (factual/procedural/preference).\n"
             "3. If the answer has conditions (version, environment), create 'context' nodes for them.\n"
-            "4. Return a JSON array of nodes with 'title_zh', 'title_en', 'content_type', 'body_zh', 'body_en', 'tags'.\n"
-            "Example: [{\"title_zh\": \"...\", \"content_type\": \"inquiry\", ...}, {\"title_zh\": \"...\", \"content_type\": \"factual\", ...}]"
+            f"4. Return a JSON array of nodes with 'title', 'content_type', 'body', 'tags'. All translated/written in '{ws_lang}'.\n"
+            "Example: [{\"title\": \"...\", \"content_type\": \"inquiry\", ...}, {\"title\": \"...\", \"content_type\": \"factual\", ...}]"
         )
         user_prompt = f"QUESTION: {question}\n\nANSWER: {answer}"
         
@@ -1259,8 +1277,13 @@ async def archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str,
                 return
             
             # 3. Create nodes and edges
-            inquiry_data = inquiry_nodes[0]
-            inquiry_data["source_type"] = "qa_conversation"
+            inquiry_raw = inquiry_nodes[0]
+            inquiry_data = {
+                "title": inquiry_raw.get("title") or inquiry_raw.get("title_zh") or inquiry_raw.get("title_en") or "",
+                "body": inquiry_raw.get("body") or inquiry_raw.get("body_zh") or inquiry_raw.get("body_en") or "",
+                "content_type": "inquiry",
+                "source_type": "qa_conversation",
+            }
             inquiry_status = "answered" if knowledge_nodes else "gap"
             inquiry_data["status"] = inquiry_status if mode == "auto_active" else "archived"
             
@@ -1274,7 +1297,7 @@ async def archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str,
                     from core.ai import embed
                     from core.constants import SIMILAR_INQUIRY_LINK, FAQ_CACHE_HIT
                     embed_prov = resolve_provider(user_id, "embedding")
-                    inquiry_vector, _ = await embed(embed_prov, inquiry_data["title_zh"] + " " + inquiry_data["body_zh"])
+                    inquiry_vector, _ = await embed(embed_prov, inquiry_data["title"] + " " + inquiry_data["body"])
                     
                     cur.execute("UPDATE memory_nodes SET embedding = %s::vector WHERE id = %s", (inquiry_vector, inquiry_id))
                     
@@ -1300,9 +1323,14 @@ async def archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str,
                     print(f"[qa-archiver] Similar inquiry linking failed: {_sim_err}")
                 
                 # Create Knowledge nodes and link them
-                for kn in knowledge_nodes:
-                    kn["source_type"] = "qa_conversation"
-                    kn["status"] = "active"
+                for kn_raw in knowledge_nodes:
+                    kn = {
+                        "title": kn_raw.get("title") or kn_raw.get("title_zh") or kn_raw.get("title_en") or "",
+                        "body": kn_raw.get("body") or kn_raw.get("body_zh") or kn_raw.get("body_en") or "",
+                        "content_type": kn_raw.get("content_type") or "factual",
+                        "source_type": "qa_conversation",
+                        "status": "active"
+                    }
                     kn_created = _create_node_in_db(cur, ws_id, kn)
                     
                     # Link answer to inquiry
@@ -1316,7 +1344,7 @@ async def archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str,
                     if kn_vector:
                         from core.constants import CONTRADICTION_CHECK
                         cur.execute("""
-                            SELECT id, title_zh, body_zh, content_type
+                            SELECT id, title, body, content_type
                             FROM memory_nodes
                             WHERE workspace_id = %s
                               AND id != %s
@@ -1331,7 +1359,7 @@ async def archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str,
                         if candidates:
                             for cand in candidates:
                                 try:
-                                    prompt = f"判斷以下兩段陳述是否互相矛盾：\nA: {kn['body_zh']}\nB: {cand['body_zh']}\n\n請以 JSON 格式回傳，包含 'contradicts' (boolean) 與 'reason' (string)。"
+                                    prompt = f"判斷以下兩段陳述是否互相矛盾：\nA: {kn['body']}\nB: {cand['body']}\n\n請以 JSON 格式回傳，包含 'contradicts' (boolean) 與 'reason' (string)。"
                                     raw, _ = await chat_completion(resolved, [{"role": "user", "content": prompt}])
                                     res = json.loads(strip_fences(raw))
                                     if res.get("contradicts"):
@@ -1355,9 +1383,14 @@ async def archive_qa_to_kb(ws_id: str, user_id: str, question: str, answer: str,
                 inquiry_data["status"] = inquiry_status
                 inquiry_rev_id = _propose_change(cur, ws_id, "create", None, inquiry_data, "ai", "qa_archiver", source_info="Q&A Archive (Inquiry)")
                 
-                for kn in knowledge_nodes:
-                    kn["source_type"] = "qa_conversation"
-                    kn["status"] = "archived"
+                for kn_raw in knowledge_nodes:
+                    kn = {
+                        "title": kn_raw.get("title") or kn_raw.get("title_zh") or kn_raw.get("title_en") or "",
+                        "body": kn_raw.get("body") or kn_raw.get("body_zh") or kn_raw.get("body_en") or "",
+                        "content_type": kn_raw.get("content_type") or "factual",
+                        "source_type": "qa_conversation",
+                        "status": "archived"
+                    }
                     _propose_change(cur, ws_id, "create", None, kn, "ai", "qa_archiver", source_info=f"Q&A Archive (Answer for {inquiry_rev_id})")
                 
     except Exception as e:
@@ -1463,18 +1496,27 @@ def resolve_conflict_in_db(cur, ws_id: str, review_id: str, resolution: Literal[
     result = {"status": "resolved", "resolution": resolution}
 
     if resolution == "keep_a":
-        delete_node_in_db(cur, ws_id, node_b_id)
+        cur.execute(
+            "UPDATE memory_nodes SET status = 'archived', archived_at = NOW() WHERE id = %s AND workspace_id = %s",
+            (node_b_id, ws_id)
+        )
         # Boost A's accuracy
         cur.execute("UPDATE memory_nodes SET dim_accuracy = LEAST(1.0, dim_accuracy + 0.1) WHERE id = %s", (node_a_id,))
     elif resolution == "keep_b":
-        delete_node_in_db(cur, ws_id, node_a_id)
+        cur.execute(
+            "UPDATE memory_nodes SET status = 'archived', archived_at = NOW() WHERE id = %s AND workspace_id = %s",
+            (node_a_id, ws_id)
+        )
         # Boost B's accuracy
         cur.execute("UPDATE memory_nodes SET dim_accuracy = LEAST(1.0, dim_accuracy + 0.1) WHERE id = %s", (node_b_id,))
     elif resolution == "merge":
         if not merge_data:
             raise HTTPException(status_code=400, detail="merge_data is required for merge resolution.")
         update_node_in_db(cur, ws_id, node_a_id, merge_data, user_id)
-        delete_node_in_db(cur, ws_id, node_b_id)
+        cur.execute(
+            "UPDATE memory_nodes SET status = 'archived', archived_at = NOW() WHERE id = %s AND workspace_id = %s",
+            (node_b_id, ws_id)
+        )
     elif resolution == "both_valid":
         # Remove the contradicts edge if it exists
         if edge_id:

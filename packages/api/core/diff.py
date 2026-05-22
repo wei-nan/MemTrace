@@ -3,12 +3,10 @@ from typing import Any, Optional
 
 
 NODE_DIFF_FIELDS = [
-    "title_zh",
-    "title_en",
+    "title",
     "content_type",
     "content_format",
-    "body_zh",
-    "body_en",
+    "body",
     "tags",
     "visibility",
 ]
@@ -17,12 +15,10 @@ NODE_DIFF_FIELDS = [
 def _normalize_snapshot(snapshot: Optional[dict[str, Any]]) -> dict[str, Any]:
     data = snapshot or {}
     return {
-        "title_zh": data.get("title_zh", ""),
-        "title_en": data.get("title_en", ""),
+        "title": data.get("title", ""),
         "content_type": data.get("content_type", ""),
         "content_format": data.get("content_format", ""),
-        "body_zh": data.get("body_zh", ""),
-        "body_en": data.get("body_en", ""),
+        "body": data.get("body", ""),
         "tags": list(data.get("tags") or []),
         "visibility": data.get("visibility", "private"),
     }
@@ -57,7 +53,7 @@ def build_node_diff(
         prev = before.get(field)
         nxt = after.get(field)
         if change_type == "create":
-            if field in ("body_zh", "body_en"):
+            if field == "body":
                 fields[field] = {
                     "type": "text",
                     "before": "",
@@ -72,7 +68,7 @@ def build_node_diff(
             continue
 
         if change_type == "delete":
-            if field in ("body_zh", "body_en"):
+            if field == "body":
                 fields[field] = {
                     "type": "text",
                     "before": prev,
@@ -94,7 +90,7 @@ def build_node_diff(
                 changed_fields.append(field)
             continue
 
-        if field in ("body_zh", "body_en"):
+        if field == "body":
             if (prev or "") != (nxt or ""):
                 fields[field] = {
                     "type": "text",

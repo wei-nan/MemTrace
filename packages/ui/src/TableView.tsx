@@ -89,7 +89,7 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
   const handleArchive = async (node: ApiNode) => {
     const ok = await confirm({
       title: zh ? '歸檔節點' : 'Archive Node',
-      message: zh ? `確定要歸檔「${zh ? node.title_zh : node.title_en}」嗎？` : `Archive "${zh ? node.title_zh : node.title_en}"?`,
+      message: zh ? `確定要歸檔「${node.title}」嗎？` : `Archive "${node.title}"?`,
       confirmLabel: zh ? '歸檔' : 'Archive',
     });
     if (!ok) return;
@@ -298,10 +298,10 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
                 </td>
                 <td style={{ padding: '12px 16px', maxWidth: 300 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={zh ? node.title_zh : node.title_en}>
-                      {zh ? node.title_zh : node.title_en}
+                    <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={node.title}>
+                      {node.title}
                     </div>
-                    {!node.body_zh && !node.body_en && (
+                    {!node.body && (
                       <span title={t('node.empty_body_desc')} style={{ flexShrink: 0, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: 'var(--color-warning-subtle, #fef3c7)', color: 'var(--color-warning, #d97706)', lineHeight: 1.4 }}>
                         {t('node.empty_body_badge')}
                       </span>

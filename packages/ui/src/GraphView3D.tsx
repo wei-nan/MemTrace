@@ -270,7 +270,7 @@ export default function GraphView3D({
 
     const nodes = apiNodes.map(n => ({
       id:    n.id,
-      name:  zh ? (n.title_zh || n.title_en) : (n.title_en || n.title_zh),
+      name:  n.title,
       ctype: n.content_type,
       trust: Math.max(0.2, Math.min(1.0, n.trust_score ?? 0.7)),
       _api:  n,
@@ -543,18 +543,15 @@ export default function GraphView3D({
               const n = node._api;
               if (!n) return node.name;
               const edges = edgeCounts[n.id] ?? 0;
-              const typeLabel = zh ? (NODE_LABELS_ZH[n.content_type] || n.content_type) : n.content_type;
-              const title = zh ? (n.title_zh || n.title_en) : (n.title_en || n.title_zh);
-              const subtitle = zh ? n.title_en : n.title_zh;
+              const title = n.title;
 
               const confirmedAt = n.validity_confirmed_at ? new Date(n.validity_confirmed_at) : null;
               const isExpired = (!confirmedAt || (Date.now() - confirmedAt.getTime() > 90 * 24 * 3600 * 1000));
 
               return `<div style="background:${palette.tooltipBg};border:1px solid ${palette.tooltipBorder};border-radius:8px;padding:8px 12px;font-size:12px;line-height:1.5;max-width:260px;color:${palette.tooltipText}">
                 <div style="font-weight:600;font-size:13px;margin-bottom:4px">${title}</div>
-                ${subtitle ? `<div style="opacity:0.5;font-size:11px;margin-bottom:6px">${subtitle}</div>` : ''}
                 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-                  <span style="background:rgba(99,102,241,0.25);padding:1px 6px;border-radius:4px;font-size:10px">${typeLabel}</span>
+                  <span style="background:rgba(99,102,241,0.25);padding:1px 6px;border-radius:4px;font-size:10px">${zh ? (NODE_LABELS_ZH[n.content_type] || n.content_type) : n.content_type}</span>
                   <span style="opacity:0.5;font-size:10px">${zh ? '總信任' : 'trust'}: ${(n.trust_score ?? 0).toFixed(2)}</span>
                   <span style="opacity:0.5;font-size:10px">${edges} ${zh ? '關聯' : 'edges'}</span>
                 </div>
@@ -592,7 +589,7 @@ export default function GraphView3D({
                 ` : ''}
 
                 ${isExpired ? `<div style="color:#eab308;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '有效性已過期' : 'Validity Expired'}</div>` : ''}
-                ${(!n.body_zh && !n.body_en) ? `<div style="color:#ef4444;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '內容為空' : 'Empty Body'}</div>` : ''}
+                ${!n.body ? `<div style="color:#ef4444;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '內容為空' : 'Empty Body'}</div>` : ''}
                 <div style="border-top:1px solid ${palette.legendDivider};margin-top:8px;padding-top:6px;font-size:9px;opacity:0.4;text-align:center">
                   ${zh ? '雙擊以鄰域探索' : 'Double-click to explore neighborhood'}
                 </div>

@@ -24,7 +24,6 @@ from core.ai import (
     encrypt_api_key,
     record_usage,
     resolve_provider,
-    EXTRACTION_SYSTEM,
     RESTRUCTURE_SYSTEM,
     strip_fences,
 )
@@ -82,11 +81,9 @@ class ExtractionRequest(BaseModel):
 
 
 class ExtractedNode(BaseModel):
-    title_zh:        str
-    title_en:        str
+    title:           str
     content_type:    str
-    body_zh:         str
-    body_en:         str
+    body:            str
     tags:            list[str]
     suggested_edges: list[dict]   # [{to_index: int, relation: str}]
 
@@ -450,7 +447,7 @@ async def restructure_nodes(
     with db_cursor() as cur:
         cur.execute(
             """
-            SELECT id, title_zh, title_en, content_type, body_zh, body_en, tags
+            SELECT id, title, content_type, body, tags
             FROM memory_nodes
             WHERE id = ANY(%s) AND workspace_id = %s
             """,

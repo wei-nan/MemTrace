@@ -15,8 +15,8 @@ export default function CreateWorkspaceModal({
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
   
-  const [nameZh, setNameZh] = useState('');
-  const [nameEn, setNameEn] = useState('');
+  const [name, setName] = useState('');
+  const [language, setLanguage] = useState<'zh-TW' | 'en'>('zh-TW');
   const [kbType, setKbType] = useState<'evergreen' | 'ephemeral'>('evergreen');
   const [visibility, setVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
   const [loading, setLoading] = useState(false);
@@ -26,22 +26,28 @@ export default function CreateWorkspaceModal({
   const [selectedEmbedModel, setSelectedEmbedModel] = useState<string>('');
 
   useEffect(() => {
+    if (i18n.language === 'zh-TW' || i18n.language === 'en') {
+      setLanguage(i18n.language as any);
+    }
+  }, [i18n.language]);
+
+  useEffect(() => {
     if (embedModels.length > 0 && !selectedEmbedModel) {
       setSelectedEmbedModel(embedModels[0].id);
     }
   }, [embedModels]);
 
   const handleSubmit = async () => {
-    if (!nameZh.trim() || !nameEn.trim()) {
-      setError(zh ? '請填寫中英文名稱' : 'Both names are required');
+    if (!name.trim()) {
+      setError(zh ? '請填寫工作區名稱' : 'Workspace name is required');
       return;
     }
     setLoading(true);
     setError('');
     try {
       const ws = await workspaces.create({
-        name_zh: nameZh.trim(),
-        name_en: nameEn.trim(),
+        name: name.trim(),
+        language,
         visibility,
         kb_type: kbType,
         embedding_model: selectedEmbedModel || undefined,
@@ -91,19 +97,27 @@ export default function CreateWorkspaceModal({
       footer={footer}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
           <Input
-            label={zh ? '中文名稱' : 'Chinese Name'}
+            label={zh ? '工作區名稱' : 'Workspace Name'}
             placeholder={zh ? '例：我的知識庫' : 'e.g. My Knowledge Base'}
-            value={nameZh}
-            onChange={e => setNameZh(e.target.value)}
+            value={name}
+            onChange={e => setName(e.target.value)}
           />
-          <Input
-            label={zh ? '英文名稱' : 'English Name'}
-            placeholder="e.g. MemTrace Spec"
-            value={nameEn}
-            onChange={e => setNameEn(e.target.value)}
-          />
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}>
+              {zh ? '語言' : 'Language'}
+            </label>
+            <select
+              className="mt-input-field"
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 8, background: 'var(--bg-surface)', height: 40 }}
+              value={language}
+              onChange={e => setLanguage(e.target.value as any)}
+            >
+              <option value="zh-TW">繁體中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
         </div>
 
         <div>

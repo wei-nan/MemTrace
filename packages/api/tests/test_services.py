@@ -74,3 +74,32 @@ def test_bfs_neighborhood_not_found():
     
     assert len(result["nodes"]) == 0
     assert len(result["edges"]) == 0
+
+@pytest.mark.asyncio
+async def test_bg_reindex_workspace_embeddings():
+    from services.bg_jobs import bg_reindex_workspace_embeddings
+    from unittest.mock import patch, MagicMock
+
+    mock_resolved = MagicMock()
+    mock_resolved.provider.name = "test_provider"
+    mock_resolved.model = "test_model"
+
+    with patch("core.database.db_cursor") as mock_db:
+        mock_cur = mock_db.return_value.__enter__.return_value
+        
+        # 1. Fetch workspace embedding config
+        # 2. Fetch all active memory nodes
+        mock_cur.fetchone.return_value = {"embedding_model": "text-embedding-3-small", "embedding_provider": "openai"}
+        mock_cur.fetchall.return_value = [
+            {"id": "node_1", "title": "Node 1", "body": "Body 1"}
+        ]
+        
+        with patch("core.ai.resolve_provider", return_value=mock_resolved):
+            with patch("core.ai.embed", return_value=([0.1, 0.2], 50)) as mock_embed:
+                with patch("core.ai.record_usage") as mock_usage:
+                    await bg_reindex_workspace_embeddings("ws_1", "user_1")
+                    
+                    mock_embed.assert_called_once_with(mock_resolved, "Node 1\nBody 1")
+                    mock_usage.assert_called_once()
+                    assert mock_cur.execute.called
+

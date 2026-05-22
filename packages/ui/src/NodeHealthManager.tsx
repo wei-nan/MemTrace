@@ -124,7 +124,7 @@ export default function NodeHealthManager({
                 />
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title_zh || item.title_en}</div>
+                <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title}</div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{item.id}</div>
               </div>
               <div style={{ fontSize: 13 }}>{t(`content_type.${item.content_type}`, { defaultValue: item.content_type })}</div>

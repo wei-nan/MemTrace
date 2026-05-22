@@ -6,18 +6,17 @@ from services.nodes import propose_change as _propose_change
 
 def find_similar_node(cur, ws_id: str, node_data: dict, vector: List[float] = None):
     """Check memory_nodes AND pending review_queue for a duplicate."""
-    title_zh = node_data.get("title_zh", "") or ""
-    title_en = node_data.get("title_en", "") or ""
+    title = node_data.get("title", "") or ""
     
     # 1. Exact title match in memory_nodes
     cur.execute(
         """
         SELECT id FROM memory_nodes
         WHERE workspace_id = %s AND status = 'active'
-          AND (LOWER(title_zh) = LOWER(%s) OR LOWER(title_en) = LOWER(%s))
+          AND LOWER(title) = LOWER(%s)
         ORDER BY updated_at DESC NULLS LAST LIMIT 1
         """,
-        (ws_id, title_zh, title_en),
+        (ws_id, title),
     )
     row = cur.fetchone()
     if row:
@@ -45,11 +44,10 @@ def find_similar_node(cur, ws_id: str, node_data: dict, vector: List[float] = No
         """
         SELECT id FROM review_queue
         WHERE workspace_id = %s AND status = 'pending'
-          AND (LOWER(node_data->>'title_zh') = LOWER(%s)
-            OR LOWER(node_data->>'title_en') = LOWER(%s))
+          AND LOWER(node_data->>'title') = LOWER(%s)
         LIMIT 1
         """,
-        (ws_id, title_zh, title_en),
+        (ws_id, title),
     )
     row = cur.fetchone()
     if row:
@@ -73,7 +71,7 @@ async def persist_nodes(cur, ws_id: str, nodes_data: List[dict], job_id: str,
     except AIProviderUnavailable:
         pass
 
-    titles = [n.get("title_en") or n.get("title_zh") or "" for n in nodes_data]
+    titles = [n.get("title", "") for n in nodes_data]
     review_ids: List[Tuple[str, dict]] = []
     
     for i, n in enumerate(nodes_data):
@@ -82,7 +80,7 @@ async def persist_nodes(cur, ws_id: str, nodes_data: List[dict], job_id: str,
 
         vector = None
         if embed_resolved:
-            text_to_embed = f"{n.get('title_zh', '')} {n.get('title_en', '')} {n.get('body_zh', '')}".strip()
+            text_to_embed = f"{n.get('title', '')}\n{n.get('body', '')}".strip()
             if text_to_embed:
                 try:
                     vector, _ = await embed(embed_resolved, text_to_embed)
@@ -107,11 +105,13 @@ async def persist_nodes(cur, ws_id: str, nodes_data: List[dict], job_id: str,
             idx = e.get("to_index")
             rel = e.get("relation", "related_to")
             if idx is not None and 0 <= idx < len(titles) and idx != i:
-                resolved_edges.append({"to_title_en": titles[idx], "relation": rel})
+                resolved_edges.append({"to_title": titles[idx], "relation": rel})
         
         for e in raw_edges:
-            if "to_title_en" in e:
+            if "to_title" in e:
                 resolved_edges.append(e)
+            elif "to_title_en" in e:
+                resolved_edges.append({"to_title": e["to_title_en"], "relation": e.get("relation", "related_to")})
 
         node_payload = {
             "content_format": "markdown",
@@ -190,7 +190,7 @@ def detect_cross_file_associations_for_nodes(ws_id: str, node_ids: List[str], is
         return
         
     with db_cursor(commit=True) as cur:
-        cur.execute("""SELECT id, title_zh, title_en FROM memory_nodes 
+        cur.execute("""SELECT id, title FROM memory_nodes 
                        WHERE workspace_id = %s AND status = 'active'""", (ws_id,))
         existing_nodes = cur.fetchall()
         if not existing_nodes:
@@ -201,7 +201,7 @@ def detect_cross_file_associations_for_nodes(ws_id: str, node_ids: List[str], is
                            WHERE id = ANY(%s)""", (node_ids,))
             targets = cur.fetchall()
         else:
-            cur.execute("""SELECT id, body_zh, body_en, title_zh, title_en, tags 
+            cur.execute("""SELECT id, body, title, tags 
                            FROM memory_nodes WHERE id = ANY(%s)""", (node_ids,))
             targets = cur.fetchall()
         
@@ -209,28 +209,26 @@ def detect_cross_file_associations_for_nodes(ws_id: str, node_ids: List[str], is
             t_id = t_obj["id"]
             if is_proposal:
                 node_data = t_obj["node_data"]
-                body = f"{node_data.get('body_zh', '')} {node_data.get('body_en', '')}"
-                current_titles = [node_data.get("title_zh"), node_data.get("title_en")]
+                body = node_data.get('body') or ""
+                current_titles = [node_data.get("title")]
             else:
-                body = f"{t_obj.get('body_zh', '')} {t_obj.get('body_en', '')}"
-                current_titles = [t_obj.get("title_zh"), t_obj.get("title_en")]
+                body = t_obj.get('body') or ""
+                current_titles = [t_obj.get("title")]
             
             found_links = []
             for existing in existing_nodes:
-                if existing["id"] == t_id or any(existing[k] in current_titles for k in ["title_zh", "title_en"] if existing[k]):
+                if existing["id"] == t_id or existing["title"] in current_titles:
                     continue
-                titles = [t for t in [existing["title_zh"], existing["title_en"]] if t and len(t) > 2]
-                for t in titles:
-                    if t in body:
-                        found_links.append(existing)
-                        break
+                t = existing["title"]
+                if t and len(t) > 2 and t in body:
+                    found_links.append(existing)
                         
             if found_links:
                 if is_proposal:
                     edges = node_data.get("suggested_edges", [])
                     for link in found_links:
-                        if not any(e.get("to_title_en") == link["title_en"] for e in edges):
-                            edges.append({"to_title_en": link["title_en"], "relation": "related_to", "meta": {"auto_detected": True}})
+                        if not any(e.get("to_title") == link["title"] for e in edges):
+                            edges.append({"to_title": link["title"], "relation": "related_to", "meta": {"auto_detected": True}})
                     cur.execute("""UPDATE review_queue SET node_data = %s WHERE id = %s""", 
                                 (json.dumps(node_data), t_id))
                 else:

@@ -58,7 +58,7 @@ from models.review import NodeRevisionMetaResponse, NodeRevisionResponse, ApplyS
 
 
 from services.bg_jobs import bg_embed_node as _bg_embed_node, bg_suggest_edges as _bg_suggest_edges, bg_clone_workspace as _bg_clone_workspace, run_connect_orphans as _run_connect_orphans, trigger_node_background_jobs as _trigger_node_background_jobs
-from services.synthesis import generate_cluster_summary, complement_languages, suggest_missing_edges as run_suggest_edges
+from services.synthesis import generate_cluster_summary, suggest_missing_edges as run_suggest_edges
 from services.workspaces import (
     require_ws_access as _require_ws_access,
     get_effective_role as _get_effective_role,
@@ -187,11 +187,11 @@ async def reembed_all_nodes(ws_id: str, background_tasks: BackgroundTasks, user:
     # We need to fetch node info again if we want to add background tasks in router
     # but let's just move the task adding to service or handle it here
     with db_cursor() as cur:
-        cur.execute("SELECT id, title_zh, title_en, body_zh, body_en FROM memory_nodes WHERE workspace_id = %s AND embedding IS NULL AND status = 'active'", (ws_id,))
+        cur.execute("SELECT id, title, body FROM memory_nodes WHERE workspace_id = %s AND embedding IS NULL AND status = 'active'", (ws_id,))
         nodes = cur.fetchall()
     from services.bg_jobs import bg_embed_node as _bg_embed_node
     for node in nodes:
-        text = f"{node['title_zh']}\n{node['title_en']}\n{node['body_zh']}\n{node['body_en']}"
+        text = f"{node['title']}\n{node['body']}"
         background_tasks.add_task(_bg_embed_node, ws_id, node["id"], text, user["sub"])
     return {"queued": len(nodes)}
 
@@ -208,8 +208,15 @@ def list_workspaces(search: Optional[str] = Query(None), user: Optional[dict] = 
 @router.post("/workspaces", response_model=WorkspaceResponse, status_code=201)
 def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_user)):
     from services.workspaces import create_workspace_in_db
+    # Phase 6 S2-T08: language is required for single-language architecture
+    if not body.language:
+        raise HTTPException(
+            status_code=400,
+            detail="'language' is required. Accepted values: 'zh-TW', 'en'."
+        )
     with db_cursor(commit=True) as cur:
         return create_workspace_in_db(cur, user["sub"], body.model_dump())
+
 
 
 @router.get("/workspaces/{ws_id}/decay-stats")
@@ -376,7 +383,7 @@ async def backfill_embeddings(ws_id: str, background_tasks: BackgroundTasks, use
         nodes = backfill_embeddings_in_db(cur, ws_id, user)
     from services.bg_jobs import bg_embed_node as _bg_embed_node
     for node in nodes:
-        text = " ".join(filter(None, [node["title_zh"], node["title_en"], node["body_zh"], node["body_en"]]))
+        text = f"{node['title']}\n{node['body']}"
         background_tasks.add_task(_bg_embed_node, ws_id, node["id"], text, user["sub"])
     return {"queued": len(nodes)}
 
@@ -423,7 +430,7 @@ def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: Ba
             return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your update has been submitted for review"})
             
         from services.bg_jobs import bg_embed_node as _bg_embed_node
-        text = " ".join(filter(None, [node["title_zh"], node["title_en"], node["body_zh"], node["body_en"]]))
+        text = f"{node['title']}\n{node['body']}"
         background_tasks.add_task(_bg_embed_node, ws_id, node["id"], text, user["sub"])
         return node
 
@@ -473,7 +480,7 @@ def restore_node_revision(ws_id: str, node_id: str, revision_no: int, background
             return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your restoration request has been submitted for review"})
             
         from services.bg_jobs import bg_embed_node as _bg_embed_node
-        text = " ".join(filter(None, [node["title_zh"], node["title_en"], node["body_zh"], node["body_en"]]))
+        text = f"{node['title']}\n{node['body']}"
         background_tasks.add_task(_bg_embed_node, ws_id, node["id"], text, user["sub"])
         return node
 
@@ -684,13 +691,11 @@ def apply_split(ws_id: str, rev_id: str, body: ApplySplitRequest, user: dict = D
 # ── Node Clusters ─────────────────────────────────────────────────────────────
 
 class ClusterCreate(BaseModel):
-    name_zh: str
-    name_en: str
+    name: str
     color: str = "blue"
 
 class ClusterUpdate(BaseModel):
-    name_zh: Optional[str] = None
-    name_en: Optional[str] = None
+    name: Optional[str] = None
     color: Optional[str] = None
 
 class NodeClusterAssign(BaseModel):
@@ -710,7 +715,7 @@ def create_cluster(ws_id: str, body: ClusterCreate, user: dict = Depends(get_cur
     from services.clusters import get_or_create_cluster
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, required_role="editor")
-        cluster_id = get_or_create_cluster(cur, ws_id, body.name_zh, body.name_en, body.color)
+        cluster_id = get_or_create_cluster(cur, ws_id, body.name, body.color)
     from services.clusters import list_clusters as _list_clusters
     rows = _list_clusters(ws_id)
     return next((r for r in rows if r["id"] == cluster_id), {"id": cluster_id})
@@ -774,22 +779,8 @@ async def maintenance_summarize_cluster(ws_id: str, body: dict, user: dict = Dep
 
 @router.post("/workspaces/{ws_id}/maintenance/complement-languages")
 async def maintenance_complement_languages(ws_id: str, body: dict, user: dict = Depends(get_current_user)):
-    """S4-T02: Reconcile missing ZH/EN content for nodes."""
-    node_ids = body.get("node_ids", [])
-    with db_cursor() as cur:
-        if not node_ids:
-            # Auto-find nodes with missing content
-            cur.execute(
-                "SELECT id FROM memory_nodes WHERE workspace_id = %s AND (title_en IS NULL OR title_zh IS NULL OR body_en IS NULL OR body_zh IS NULL) LIMIT 10",
-                (ws_id,)
-            )
-            node_ids = [r["id"] for r in cur.fetchall()]
-        
-        success_count = 0
-        for nid in node_ids:
-            if await complement_languages(cur, ws_id, nid, user["sub"]):
-                success_count += 1
-        return {"processed": len(node_ids), "success": success_count}
+    """S4-T02: Deprecated under single-language architecture."""
+    raise HTTPException(status_code=410, detail="This endpoint is obsolete under single-language schema")
 
 
 @router.post("/workspaces/{ws_id}/maintenance/suggest-edges")

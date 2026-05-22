@@ -18,17 +18,21 @@ async def generate_cluster_summary(cur, ws_id: str, node_ids: List[str], user_id
         
     # 1. Fetch node content
     cur.execute(
-        "SELECT id, title_en, title_zh, body_en, body_zh FROM memory_nodes WHERE id = ANY(%s) AND workspace_id = %s",
+        "SELECT id, title, body FROM memory_nodes WHERE id = ANY(%s) AND workspace_id = %s",
         (node_ids, ws_id)
     )
     nodes = cur.fetchall()
     if not nodes:
         return None
+
+    cur.execute("SELECT language FROM workspaces WHERE id = %s", (ws_id,))
+    ws_row = cur.fetchone()
+    ws_lang = ws_row["language"] if ws_row else "zh-TW"
         
     # 2. Prepare prompt for LLM
     context = ""
     for n in nodes:
-        context += f"Node ID: {n['id']}\nTitle (EN): {n['title_en']}\nTitle (ZH): {n['title_zh']}\nBody (EN): {n['body_en']}\nBody (ZH): {n['body_zh']}\n---\n"
+        context += f"Node ID: {n['id']}\nTitle: {n['title']}\nBody: {n['body']}\n---\n"
         
     prompt = f"""
 You are a knowledge architect. Below is a group of related knowledge nodes from a graph.
@@ -38,7 +42,8 @@ GUIDELINES:
 1. Provide a title that encompasses the entire cluster.
 2. The body should be a coherent summary that integrates the information from all nodes.
 3. Preserve key technical terms.
-4. Return the result in JSON format with fields: title_en, title_zh, body_en, body_zh.
+4. Return the result in JSON format with fields: title, body.
+5. Write the summary in language: {ws_lang}.
 
 CONTEXT:
 {context}
@@ -53,10 +58,8 @@ CONTEXT:
         
         # 3. Create the summary node
         node_payload = {
-            "title_en": data.get("title_en", "Summary Node"),
-            "title_zh": data.get("title_zh", "摘要節點"),
-            "body_en": data.get("body_en", ""),
-            "body_zh": data.get("body_zh", ""),
+            "title": data.get("title", "Summary Node"),
+            "body": data.get("body", ""),
             "content_type": "context",
             "source_type": "ai",
             "tags": ["summary", "hierarchical"],
@@ -106,57 +109,7 @@ async def find_clusters_by_tag(cur, ws_id: str, min_nodes: int = 3) -> List[List
     clusters = [ids for tag, ids in tag_map.items() if len(ids) >= min_nodes and tag not in ["summary", "hierarchical"]]
     return clusters
 
-async def complement_languages(cur, ws_id: str, node_id: str, user_id: str) -> bool:
-    """
-    S4-T02: Reconcile ZH/EN content. If one is missing, use AI to translate/generate.
-    """
-    cur.execute(
-        "SELECT title_zh, title_en, body_zh, body_en FROM memory_nodes WHERE id = %s AND workspace_id = %s",
-        (node_id, ws_id)
-    )
-    node = cur.fetchone()
-    if not node: return False
-    
-    # Check if anything is missing
-    missing_en = not node["title_en"] or not node["body_en"]
-    missing_zh = not node["title_zh"] or not node["body_zh"]
-    
-    if not missing_en and not missing_zh:
-        return True # Nothing to do
-        
-    prompt = f"""
-You are a translation and localization expert.
-Below is a knowledge node with content in only one language (or partially missing).
-Please provide the missing parts to ensure the node has complete ZH (Traditional Chinese) and EN (English) content.
 
-CURRENT CONTENT:
-Title (ZH): {node['title_zh']}
-Title (EN): {node['title_en']}
-Body (ZH): {node['body_zh']}
-Body (EN): {node['body_en']}
-
-Return the result in JSON format with fields: title_en, title_zh, body_en, body_zh.
-Maintain the same meaning and technical accuracy.
-"""
-
-    try:
-        resolved = resolve_provider(user_id, "chat")
-        messages = [{"role": "user", "content": prompt}]
-        response_text, _ = await chat_completion(resolved, messages)
-        data = json.loads(strip_fences(response_text))
-        
-        cur.execute(
-            """
-            UPDATE memory_nodes 
-            SET title_en = %s, title_zh = %s, body_en = %s, body_zh = %s, updated_at = NOW()
-            WHERE id = %s AND workspace_id = %s
-            """,
-            (data["title_en"], data["title_zh"], data["body_en"], data["body_zh"], node_id, ws_id)
-        )
-        return True
-    except Exception as e:
-        logger.error(f"Failed to complement languages for {node_id}: {e}")
-        return False
 
 async def suggest_missing_edges(cur, ws_id: str, threshold: float = 0.85) -> List[dict]:
     """

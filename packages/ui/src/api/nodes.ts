@@ -4,12 +4,10 @@ import type { Edge } from './edges';
 export interface Node {
   id: string;
   workspace_id: string;
-  title_zh: string;
-  title_en: string;
+  title: string;
   content_type: string;
   content_format: string;
-  body_zh: string;
-  body_en: string;
+  body: string;
   tags: string[];
   visibility: string;
   author: string;
@@ -36,12 +34,10 @@ export interface Node {
 }
 
 export interface NodeCreatePayload {
-  title_zh: string;
-  title_en: string;
+  title: string;
   content_type: string;
   content_format: string;
-  body_zh: string;
-  body_en: string;
+  body: string;
   tags: string[];
   visibility: string;
   copied_from_node?: string;

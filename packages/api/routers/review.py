@@ -46,11 +46,10 @@ def _strip_review_for_role(item: dict, role: Optional[str]) -> dict:
     for target in [node_data, before]:
         if target is None:
             continue
-        target["body_zh"] = ""
-        target["body_en"] = ""
+        target["body"] = ""
     diff_summary = dict(item.get("diff_summary") or {})
     fields = dict(diff_summary.get("fields") or {})
-    for body_field in ("body_zh", "body_en"):
+    for body_field in ("body",):
         if body_field in fields:
             fields[body_field] = {
                 "type": "text",
@@ -135,9 +134,9 @@ def update_review_item(id: str, body: ReviewUpdate, user: dict = Depends(get_cur
 # VALID_EDGE_RELATIONS is imported from core.constants as VALID_RELATIONS (single source of truth)
 
 def _create_suggested_edges(cur, ws_id: str, from_node_id: str, suggested_edges: list):
-    """Resolve to_title_en references and insert edges where target node exists."""
+    """Resolve to_title references and insert edges where target node exists."""
     for e in suggested_edges:
-        to_title = e.get("to_title_en")
+        to_title = e.get("to_title") or e.get("to_title_en")
         relation = e.get("relation", "related_to")
         # Normalize unsupported relation types to avoid DB enum violation
         if relation not in VALID_RELATIONS:
@@ -148,7 +147,7 @@ def _create_suggested_edges(cur, ws_id: str, from_node_id: str, suggested_edges:
             """
             SELECT id FROM memory_nodes
             WHERE workspace_id = %s
-              AND LOWER(title_en) = LOWER(%s)
+              AND LOWER(title) = LOWER(%s)
             LIMIT 1
             """,
             (ws_id, to_title),
@@ -220,10 +219,20 @@ def accept_review_item(id: str, background_tasks: BackgroundTasks, user: dict = 
                 """,
                 (dim_accuracy, dim_accuracy, node["id"]),
             )
-            # Create edges from suggested_edges (to_title_en resolved at ingest time)
+            # Create edges from suggested_edges (to_title resolved at ingest time)
             suggested = item.get("suggested_edges") or []
             if suggested:
                 _create_suggested_edges(cur, item["workspace_id"], node["id"], suggested)
+            
+            # P6: Link document if source_doc_node_id or document_id is present
+            node_data = item.get("node_data") or {}
+            doc_id = node_data.get("source_doc_node_id") or node_data.get("document_id")
+            if doc_id:
+                from services.documents import create_node_document_link
+                excerpt = node_data.get("source_segment") or node.get("body")
+                para_ref = node_data.get("source_paragraph_ref") or ""
+                create_node_document_link(cur, node["id"], doc_id, para_ref, excerpt)
+
             # Trigger background embedding, edge suggestion, and complexity checks
             trigger_node_background_jobs(background_tasks, item["workspace_id"], node["id"], user["sub"], node)
         cur.execute(

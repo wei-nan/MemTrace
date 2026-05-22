@@ -9,7 +9,7 @@ def trigger_node_background_jobs(background_tasks: BackgroundTasks, ws_id: str, 
     P4.8-S3-2: Unified background job trigger for nodes.
     Fires embedding, edge suggestion, and complexity checks.
     """
-    text = " ".join(filter(None, [node_data.get("title_zh"), node_data.get("title_en"), node_data.get("body_zh"), node_data.get("body_en")]))
+    text = " ".join(filter(None, [node_data.get("title"), node_data.get("body")]))
     background_tasks.add_task(bg_embed_node, ws_id, node_id, text, user_id)
     background_tasks.add_task(bg_suggest_edges, ws_id, node_id, user_id)
     background_tasks.add_task(bg_check_complexity, ws_id, node_id, user_id)
@@ -152,21 +152,21 @@ async def bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, 
                 cur.execute(
                     """
                     INSERT INTO memory_nodes (
-                        id, workspace_id, title_zh, title_en, content_type, content_format,
-                        body_zh, body_en, tags, visibility, author, trust_score,
+                        id, workspace_id, title, content_type, content_format,
+                        body, tags, visibility, author, trust_score,
                         dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
                         traversal_count, unique_traverser_count, created_at, updated_at,
                         signature, source_type, status, archived_at, embedding,
                         validity_confirmed_at, validity_confirmed_by
                     ) VALUES (
                         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s
                     )
                     """,
                     (
-                        new_node_id, target_ws_id, node["title_zh"], node["title_en"],
-                        node["content_type"], node["content_format"], node["body_zh"],
-                        node["body_en"], node["tags"], node["visibility"], node["author"],
+                        new_node_id, target_ws_id, node["title"],
+                        node["content_type"], node["content_format"], node["body"],
+                        node["tags"], node["visibility"], node["author"],
                         node["trust_score"], node["dim_accuracy"], node["dim_freshness"],
                         node["dim_utility"], node["dim_author_rep"], node["traversal_count"],
                         node["unique_traverser_count"], node["created_at"], node["updated_at"],
@@ -178,7 +178,7 @@ async def bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, 
 
             # Re-embed if necessary
             if needs_reembed:
-                text = f"{node['title_zh']} {node['title_en']} {node['body_zh']} {node['body_en']}"
+                text = f"{node['title']} {node['body']}"
                 try:
                     resolved = resolve_provider(user_id, "embedding", preferred_provider=target_ws["embedding_provider"], preferred_model=target_ws["embedding_model"])
                     vector, tokens = await embed(resolved, text)
@@ -346,3 +346,53 @@ async def bg_check_complexity(ws_id: str, node_id: str, user_id: str):
                     json.dumps(result["split_proposals"])
                 )
             )
+
+async def bg_reindex_workspace_embeddings(ws_id: str, user_id: str):
+    """
+    Background task to recalculate embeddings for all active nodes in a workspace.
+    Typically triggered after workspace migration or settings change.
+    """
+    from core.database import db_cursor
+    from core.ai import resolve_provider, embed, record_usage
+    
+    # 1. Fetch workspace embedding config
+    with db_cursor() as cur:
+        cur.execute("SELECT embedding_model, embedding_provider FROM workspaces WHERE id = %s", (ws_id,))
+        row = cur.fetchone()
+        if not row:
+            return
+        ws_model = row["embedding_model"]
+        ws_prov = row["embedding_provider"]
+        
+    try:
+        resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
+    except Exception as exc:
+        print(f"BG Reindex: Failed to resolve provider: {exc}")
+        return
+
+    # 2. Fetch all active memory nodes in workspace
+    with db_cursor() as cur:
+        cur.execute(
+            "SELECT id, title, body FROM memory_nodes WHERE workspace_id = %s AND status = 'active'",
+            (ws_id,)
+        )
+        nodes = cur.fetchall()
+
+    print(f"BG Reindex: Recalculating embeddings for {len(nodes)} nodes in workspace {ws_id}")
+
+    # 3. Recalculate and update each node's embedding
+    for node in nodes:
+        text_to_embed = f"{node['title']}\n{node['body']}".strip()
+        if not text_to_embed:
+            continue
+        try:
+            vector, tokens = await embed(resolved, text_to_embed)
+            with db_cursor(commit=True) as cur:
+                cur.execute(
+                    "UPDATE memory_nodes SET embedding = %s WHERE id = %s AND workspace_id = %s",
+                    (vector, node["id"], ws_id)
+                )
+            record_usage(resolved, "embedding", tokens, ws_id, node["id"])
+        except Exception as exc:
+            print(f"BG Reindex: Failed to embed node {node['id']}: {exc}")
+

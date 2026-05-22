@@ -26,7 +26,7 @@ def test_apply_text_search_sqlite():
         
     assert len(filters) == 1
     assert "LIKE" in filters[0]
-    assert len(params) == 4
+    assert len(params) == 2
     assert params[0] == "%hello%"
 
 @pytest.mark.asyncio
@@ -78,7 +78,7 @@ async def test_hybrid_retrieval_for_chat_faq_hit(mock_resolve, mock_embed):
     cur.fetchone.return_value = {"id": "faq_node_id"}
     # Mock result nodes from FAQ
     cur.fetchall.return_value = [
-        {"id": "result_node_1", "title_zh": "Ans", "title_en": "Ans", "body_zh": "...", "body_en": "...", "workspace_id": "ws_1"}
+        {"id": "result_node_1", "title": "Ans", "body": "...", "workspace_id": "ws_1"}
     ]
     
     from services.search import hybrid_retrieval_for_chat
@@ -108,8 +108,8 @@ async def test_hybrid_retrieval_for_chat_vector_fallback(mock_settings, mock_res
     # 2. Vector search (fetchall returns 1 node)
     # 3. Keyword search (fetchall returns 1 node)
     cur.fetchall.side_effect = [
-        [{"id": "vec_node", "title_zh": "V", "title_en": "V", "body_zh": "V", "body_en": "V", "workspace_id": "ws_1", "similarity": 0.8}],
-        [{"id": "kw_node", "title_zh": "K", "title_en": "K", "body_zh": "K", "body_en": "K", "workspace_id": "ws_1", "similarity": 0.0}]
+        [{"id": "vec_node", "title": "V", "body": "V", "workspace_id": "ws_1", "similarity": 0.8}],
+        [{"id": "kw_node", "title": "K", "body": "K", "workspace_id": "ws_1", "similarity": 0.0}]
     ]
     
     mock_resolve.return_value = MagicMock()
