@@ -77,6 +77,7 @@ function PrefCard({
         borderRadius: 8,
         cursor: 'pointer',
         background: 'var(--bg-surface)',
+        color: 'var(--text-primary)',
         textAlign: 'left',
         transition: 'border-color 0.15s, background 0.15s',
         width: '100%',
