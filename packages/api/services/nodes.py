@@ -572,8 +572,7 @@ def list_nodes_in_db(
     if content_type:
         filters.append("content_type = %s")
         params.append(content_type)
-    if not include_source and not content_type:
-        filters.append("content_type != 'source_document'")
+    # Note: 'source_document' was removed from content_type enum in migration 056
         
     params += [limit, offset]
     cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params)
@@ -585,7 +584,7 @@ def get_table_view_in_db(cur, ws_id: str, q: Optional[str], filter: Optional[str
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
     from services.search import apply_text_search
     ws = require_ws_access(cur, ws_id, user)
-    filters = ["workspace_id = %s", "status = 'active'", "content_type != 'source_document'"]
+    filters = ["workspace_id = %s", "status = 'active'"]
     params = [ws_id]
     if q:
         apply_text_search(filters, params, q)
@@ -676,7 +675,6 @@ def suggest_edges_for_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> d
             FROM memory_nodes
             WHERE workspace_id = %s AND id != %s
               AND embedding IS NOT NULL AND status = 'active'
-              AND content_type != 'source_document'
             ORDER BY sim DESC LIMIT 5
             """,
             (row["embedding"], ws_id, node_id),

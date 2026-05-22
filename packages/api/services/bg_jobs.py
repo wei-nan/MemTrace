@@ -55,7 +55,6 @@ def bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
                 FROM memory_nodes
                 WHERE workspace_id = %s AND id != %s
                   AND embedding IS NOT NULL AND status IN ('active', 'answered', 'answered-low-trust')
-                  AND content_type != 'source_document'
                 ORDER BY sim DESC
                 LIMIT 5
                 """,

@@ -97,9 +97,6 @@ def bfs_neighborhood(
         FROM memory_nodes
         WHERE workspace_id = %s AND id IN ({ph})
     """
-    if not include_source:
-        node_query += " AND content_type != 'source_document'"
-
     cur.execute(node_query, [ws_id] + list(visited_nodes))
     nodes_found = [strip_body_if_viewer(dict(r), viewer_role) for r in cur.fetchall()]
 

@@ -27,7 +27,7 @@ def _bg_export_kb(export_id: str, ws_id: str, req: KBExportRequest):
             cur.execute("UPDATE kb_exports SET status = 'processing' WHERE id = %s", (export_id,))
 
             # Build node query based on filter params
-            conditions = ["workspace_id = %s", "content_type != 'source_document'"]
+            conditions = ["workspace_id = %s"]
             params: list = [ws_id]
 
             if not req.include_archived:
