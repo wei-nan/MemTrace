@@ -14,6 +14,7 @@ const NodeHealthManager = lazy(() => import('./NodeHealthManager'));
 const ReviewQueue = lazy(() => import('./ReviewQueue'));
 const WorkspaceSettings = lazy(() => import('./WorkspaceSettings'));
 const IngestPage = lazy(() => import('./IngestPage'));
+const DocumentsPage = lazy(() => import('./DocumentsPage'));
 const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 const GraphContainer = lazy(() => import('./GraphContainer'));
 
@@ -114,9 +115,17 @@ const AppRouter: React.FC<AppRouterProps> = ({
                 )}
                 {currentView === 'ingest' && selectedWs && (
                   <div style={{ flex: 1, overflowY: 'auto' }}>
-                    <IngestPage 
-                      wsId={selectedWs.id} 
-                      onGoToReview={() => setCurrentView('review')} 
+                    <IngestPage
+                      wsId={selectedWs.id}
+                      onGoToReview={() => setCurrentView('review')}
+                    />
+                  </div>
+                )}
+                {currentView === 'documents' && selectedWs && (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <DocumentsPage
+                      wsId={selectedWs.id}
+                      onEditNode={(nodeId: string) => setEditingNode({ id: nodeId } as any)}
                     />
                   </div>
                 )}

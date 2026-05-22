@@ -13,17 +13,20 @@ Endpoints:
 """
 from __future__ import annotations
 
+import hashlib
 import logging
-import os
+import uuid as _uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
 from core.database import db_cursor
 from core.deps import get_current_user
 from services.workspaces import require_ws_access
+from core.security import generate_id
+from core.storage import get_storage, Storage
 from services.documents import (
     list_documents_in_db,
     get_document_in_db,
@@ -31,6 +34,8 @@ from services.documents import (
     get_node_sources,
     delete_document_in_db,
     create_node_document_link,
+    create_document_in_db,
+    get_existing_document,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,6 +47,7 @@ router = APIRouter(prefix="/api/v1/workspaces", tags=["documents"])
 class DocumentUpdate(BaseModel):
     title: Optional[str] = None
     summary: Optional[str] = None
+    filename: Optional[str] = None   # S5-T21: allow renaming via dedup dialog
 
 
 class DocumentLinkCreate(BaseModel):
@@ -51,6 +57,73 @@ class DocumentLinkCreate(BaseModel):
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
+
+@router.post("/{ws_id}/documents/upload", status_code=201)
+async def upload_document_direct(
+    ws_id: str,
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+    storage: Storage = Depends(get_storage),
+):
+    """
+    Upload a raw file as a document record WITHOUT AI extraction (S5-T19).
+    Stores the file via the configured storage backend (S5-T22) and creates
+    a `documents` table entry.
+    Duplicate files (same content hash within the workspace) return 409
+    so the UI can present the dedup dialog (S5-T21).
+    """
+    with db_cursor() as cur:
+        require_ws_access(cur, ws_id, user, write=True)
+
+    file_bytes = await file.read()
+    content_hash = hashlib.sha256(file_bytes).hexdigest()
+    filename = file.filename or "upload"
+    mime_type = file.content_type or "application/octet-stream"
+
+    # If a document with identical content already exists in this workspace,
+    # return 409 so the UI can present the dedup dialog (S5-T21).
+    with db_cursor() as cur:
+        existing = get_existing_document(cur, ws_id, content_hash)
+        if existing:
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "code": "DUPLICATE_CONTENT",
+                    "message": (
+                        f"A document with the same content already exists: "
+                        f"'{existing['filename']}'"
+                    ),
+                    "existing_document": {
+                        k: (v.isoformat() if hasattr(v, "isoformat") else v)
+                        for k, v in dict(existing).items()
+                    },
+                },
+            )
+
+    # Persist bytes via storage backend (S5-T22)
+    storage_path = storage.make_path(ws_id, f"{_uuid.uuid4().hex}_{filename}")
+    storage.put(storage_path, file_bytes)
+
+    # Create the documents record
+    with db_cursor(commit=True) as cur:
+        row = create_document_in_db(
+            cur,
+            workspace_id=ws_id,
+            filename=filename,
+            file_bytes=file_bytes,
+            mime_type=mime_type,
+            storage_path=storage_path,
+            uploaded_by=user["sub"],
+        )
+        if row is None:
+            # Concurrent duplicate — fetch the winner
+            row = get_existing_document(cur, ws_id, content_hash)
+
+    # Re-fetch with computed linked_node_count
+    with db_cursor() as cur:
+        full = get_document_in_db(cur, row["id"])
+    return dict(full)
+
 
 @router.get("/{ws_id}/documents")
 def list_documents(
@@ -90,6 +163,7 @@ def download_document(
     ws_id: str,
     doc_id: str,
     user: dict = Depends(get_current_user),
+    storage: Storage = Depends(get_storage),
 ):
     """Download the raw document file."""
     with db_cursor() as cur:
@@ -99,7 +173,7 @@ def download_document(
             raise HTTPException(status_code=404, detail="Document not found")
         storage_path = doc["storage_path"]
 
-    if not os.path.exists(storage_path):
+    if not storage.exists(storage_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
     return FileResponse(
@@ -115,6 +189,7 @@ def preview_document(
     doc_id: str,
     max_chars: int = 8000,
     user: dict = Depends(get_current_user),
+    storage: Storage = Depends(get_storage),
 ):
     """Return a plain-text preview of the document (up to max_chars characters)."""
     with db_cursor() as cur:
@@ -125,21 +200,14 @@ def preview_document(
         storage_path = doc["storage_path"]
         mime_type    = doc["mime_type"]
 
-    if not os.path.exists(storage_path):
+    if not storage.exists(storage_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
-    # Text-based formats: read directly
-    if mime_type in ("text/plain", "text/markdown", "text/csv", "application/json"):
-        with open(storage_path, "r", encoding="utf-8", errors="replace") as f:
-            content = f.read(max_chars)
-        return PlainTextResponse(content)
-
-    # For binary formats (PDF, DOCX) that were stored as .txt by the ingest pipeline,
-    # we also try to read the storage_path directly (it's already been extracted to text).
-    if storage_path.endswith(".txt"):
+    # Text-based formats and ingest-extracted .txt files: read via storage
+    if mime_type in ("text/plain", "text/markdown", "text/csv", "application/json") or storage_path.endswith(".txt"):
         try:
-            with open(storage_path, "r", encoding="utf-8", errors="replace") as f:
-                content = f.read(max_chars)
+            raw = storage.get(storage_path)
+            content = raw.decode("utf-8", errors="replace")[:max_chars]
             return PlainTextResponse(content)
         except OSError:
             pass
@@ -157,7 +225,7 @@ def update_document(
     body: DocumentUpdate,
     user: dict = Depends(get_current_user),
 ):
-    """Update the document's editable metadata (title, summary)."""
+    """Update the document's editable metadata (title, summary, filename)."""
     with db_cursor(commit=True) as cur:
         require_ws_access(cur, ws_id, user, write=True)
         doc = get_document_in_db(cur, doc_id)
@@ -181,26 +249,23 @@ def delete_document(
     ws_id: str,
     doc_id: str,
     user: dict = Depends(get_current_user),
+    storage: Storage = Depends(get_storage),
 ):
     """Delete a document (owner or admin only). Cascades to node_document_links."""
     with db_cursor(commit=True) as cur:
-        ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         doc = get_document_in_db(cur, doc_id)
         if not doc or doc["workspace_id"] != ws_id:
             raise HTTPException(status_code=404, detail="Document not found")
 
-        # Also delete the physical file if it exists
         storage_path = doc["storage_path"]
         deleted = delete_document_in_db(cur, doc_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="Document not found")
 
-    # File deletion outside transaction (best-effort)
-    if storage_path and os.path.exists(storage_path):
-        try:
-            os.remove(storage_path)
-        except OSError as e:
-            logger.warning("Could not delete file %s: %s", storage_path, e)
+    # File deletion outside transaction — best-effort via storage backend
+    if storage_path:
+        storage.delete(storage_path)
 
 
 # ─── Node ↔ Document link endpoints ──────────────────────────────────────────

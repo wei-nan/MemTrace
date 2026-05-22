@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import Literal, Optional
 from datetime import datetime
 
@@ -6,7 +6,7 @@ from datetime import datetime
 # ── Workspace ─────────────────────────────────────────────────────────────────
 
 class WorkspaceCreate(BaseModel):
-    name: str
+    name: Optional[str] = None                           # filled by validator below if absent
     language: str                                        # Phase 6: 'zh-TW' | 'en' (now required)
     visibility: str = "private"                          # public | restricted | private
     kb_type: Literal["evergreen", "ephemeral"] = "evergreen"  # immutable after creation
@@ -15,6 +15,19 @@ class WorkspaceCreate(BaseModel):
     embedding_model: Optional[str] = None                # P4.1-E: user-chosen model; None = auto-resolve
     qa_archive_mode: str = "manual_review"               # auto_active | manual_review
     extraction_provider: Optional[str] = None            # preferred LLM for ingestion; None = user default
+    # ── Phase 6 backward-compat aliases (deprecated; removed in Phase 6.1) ──
+    name_zh: Optional[str] = None
+    name_en: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_legacy_aliases(cls, values: dict) -> dict:
+        if isinstance(values, dict):
+            if not values.get("name"):
+                values["name"] = (
+                    values.get("name_zh") or values.get("name_en") or ""
+                )
+        return values
 
 
 class WorkspaceResponse(BaseModel):
@@ -61,7 +74,7 @@ class SuggestedEdge(BaseModel):
     weight: float = 1.0
 
 class NodeCreate(BaseModel):
-    title: str
+    title: Optional[str] = None          # filled by validator below if absent
     content_type: str
     content_format: str = "plain"
     body: str = ""
@@ -72,6 +85,25 @@ class NodeCreate(BaseModel):
     source_type: Literal["human", "ai"] = "human"
     suggested_edges: list[SuggestedEdge] = []
     force_create: bool = False
+    # ── Phase 6 backward-compat aliases (deprecated; removed in Phase 6.1) ──
+    title_zh: Optional[str] = None
+    title_en: Optional[str] = None
+    body_zh: Optional[str] = None
+    body_en: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_legacy_aliases(cls, values: dict) -> dict:
+        if isinstance(values, dict):
+            if not values.get("title"):
+                values["title"] = (
+                    values.get("title_zh") or values.get("title_en") or ""
+                )
+            if not values.get("body"):
+                values["body"] = (
+                    values.get("body_zh") or values.get("body_en") or ""
+                )
+        return values
 
 
 class NodeUpdate(BaseModel):
@@ -84,6 +116,25 @@ class NodeUpdate(BaseModel):
     source_type: Literal["human", "ai"] = "human"
     suggested_edges: list[SuggestedEdge] = []
     expected_updated_at: Optional[str] = None # P5-S2-T04: ETag/Concurrency control
+    # ── Phase 6 backward-compat aliases (deprecated; removed in Phase 6.1) ──
+    title_zh: Optional[str] = None
+    title_en: Optional[str] = None
+    body_zh: Optional[str] = None
+    body_en: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_legacy_aliases(cls, values: dict) -> dict:
+        if isinstance(values, dict):
+            if not values.get("title"):
+                legacy = values.get("title_zh") or values.get("title_en")
+                if legacy:
+                    values["title"] = legacy
+            if not values.get("body"):
+                legacy = values.get("body_zh") or values.get("body_en")
+                if legacy:
+                    values["body"] = legacy
+        return values
 
 
 class NodeResponse(BaseModel):
@@ -188,6 +239,19 @@ class WorkspaceUpdate(BaseModel):
     auto_split: Optional[bool] = None
     allow_anonymous_view: Optional[bool] = None
     settings: Optional[dict] = None
+    # ── Phase 6 backward-compat aliases (deprecated; removed in Phase 6.1) ──
+    name_zh: Optional[str] = None
+    name_en: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_legacy_aliases(cls, values: dict) -> dict:
+        if isinstance(values, dict):
+            if not values.get("name"):
+                legacy = values.get("name_zh") or values.get("name_en")
+                if legacy:
+                    values["name"] = legacy
+        return values
 
 
 class TableViewResponse(BaseModel):

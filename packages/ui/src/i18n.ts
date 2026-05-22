@@ -14,7 +14,8 @@ const resources = {
         health: '健康狀態',
         review: '審核佇列',
         ingest: '文件攝入',
-        ws_settings: '工作區管理'
+        ws_settings: '工作區管理',
+        documents: '文件庫'
       },
       nav: {
         settings: '個人設定',
@@ -461,7 +462,8 @@ const resources = {
         health: 'Health',
         review: 'Review Queue',
         ingest: 'Ingest',
-        ws_settings: 'Workspace'
+        ws_settings: 'Workspace',
+        documents: 'Documents'
       },
       nav: {
         settings: 'Settings',

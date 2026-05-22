@@ -143,20 +143,18 @@ def check_source_doc_migration(cur, ws_id: Optional[str], verbose: bool) -> dict
     ws_filter = "AND workspace_id = %s" if ws_id else ""
     params = [ws_id] if ws_id else []
 
-    # Check no source_document nodes remain
-    try:
-        cur.execute(
-            f"""
-            SELECT count(*) AS cnt FROM memory_nodes
-            WHERE content_type = 'source_document' AND status = 'active'
-              {ws_filter}
-            """,
-            params,
-        )
-        remaining = cur.fetchone()["cnt"]
-    except Exception:
-        # source_document may have been removed from enum already
-        remaining = 0
+    # Check no source_document nodes remain.
+    # Cast content_type to text to avoid InvalidTextRepresentation when the
+    # enum value 'source_document' has been removed (migration 056).
+    cur.execute(
+        f"""
+        SELECT count(*) AS cnt FROM memory_nodes
+        WHERE content_type::text = 'source_document' AND status = 'active'
+          {ws_filter}
+        """,
+        params,
+    )
+    remaining = cur.fetchone()["cnt"]
 
     if remaining > 0:
         result["status"] = "FAIL"

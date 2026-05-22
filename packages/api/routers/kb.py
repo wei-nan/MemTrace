@@ -8,7 +8,7 @@ import hmac
 import json
 from collections import defaultdict, deque
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -91,6 +91,7 @@ from services.search import (
     perform_semantic_search
 )
 from core.ai import get_embedding_dim as _get_embedding_dim
+from core.compat import had_legacy_fields, inject_deprecation_headers
 router = APIRouter(prefix="/api/v1", tags=["knowledge-base"])
 
 from core.constants import (
@@ -206,7 +207,7 @@ def list_workspaces(search: Optional[str] = Query(None), user: Optional[dict] = 
 
 
 @router.post("/workspaces", response_model=WorkspaceResponse, status_code=201)
-def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_user)):
+def create_workspace(body: WorkspaceCreate, response: Response, user: dict = Depends(get_current_user)):
     from services.workspaces import create_workspace_in_db
     # Phase 6 S2-T08: language is required for single-language architecture
     if not body.language:
@@ -214,6 +215,7 @@ def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_use
             status_code=400,
             detail="'language' is required. Accepted values: 'zh-TW', 'en'."
         )
+    inject_deprecation_headers(response.headers, used=had_legacy_fields(body.model_fields_set))
     with db_cursor(commit=True) as cur:
         return create_workspace_in_db(cur, user["sub"], body.model_dump())
 
@@ -234,8 +236,9 @@ def get_graph_preview(ws_id: str, limit: int = 100, user: dict = Depends(get_cur
 
 
 @router.patch("/workspaces/{ws_id}", response_model=WorkspaceResponse)
-def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get_current_user)):
+def update_workspace(ws_id: str, body: WorkspaceUpdate, response: Response, user: dict = Depends(get_current_user)):
     from services.workspaces import update_workspace_in_db
+    inject_deprecation_headers(response.headers, used=had_legacy_fields(body.model_fields_set))
     with db_cursor(commit=True) as cur:
         return update_workspace_in_db(cur, ws_id, user["sub"], body.model_dump(exclude_unset=True))
 
@@ -403,35 +406,45 @@ def get_node(ws_id: str, node_id: str, user: dict = Depends(get_current_user_opt
 
 
 @router.post("/workspaces/{ws_id}/nodes", response_model=NodeResponse, status_code=201)
-async def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+async def create_node(ws_id: str, body: NodeCreate, background_tasks: BackgroundTasks, response: Response, user: dict = Depends(get_current_user)):
+    _legacy = had_legacy_fields(body.model_fields_set)
     with db_cursor(commit=True) as cur:
         node, review_id, dup_info = await _create_node_full_with_dedup(cur, ws_id, body.model_dump(), user, force_create=body.force_create)
-        
+
         if dup_info:
-            return JSONResponse(status_code=409, content=dup_info)
+            jr = JSONResponse(status_code=409, content=dup_info)
+            inject_deprecation_headers(jr.headers, used=_legacy)
+            return jr
 
         if review_id:
             from core.ai_review import run_ai_review_for_item
             background_tasks.add_task(run_ai_review_for_item, review_id)
-            return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your new node has been submitted for review"})
-            
+            jr = JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your new node has been submitted for review"})
+            inject_deprecation_headers(jr.headers, used=_legacy)
+            return jr
+
         _trigger_node_background_jobs(background_tasks, ws_id, node["id"], user["sub"], node)
+        inject_deprecation_headers(response.headers, used=_legacy)
         return node
 
 
 @router.patch("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)
-def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+def update_node(ws_id: str, node_id: str, body: NodeUpdate, background_tasks: BackgroundTasks, response: Response, user: dict = Depends(get_current_user)):
     from services.nodes import update_node_full_in_db
+    _legacy = had_legacy_fields(body.model_fields_set)
     with db_cursor(commit=True) as cur:
         node, review_id = update_node_full_in_db(cur, ws_id, node_id, body.model_dump(exclude_unset=True), user)
         if review_id:
             from core.ai_review import run_ai_review_for_item
             background_tasks.add_task(run_ai_review_for_item, review_id)
-            return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your update has been submitted for review"})
-            
+            jr = JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your update has been submitted for review"})
+            inject_deprecation_headers(jr.headers, used=_legacy)
+            return jr
+
         from services.bg_jobs import bg_embed_node as _bg_embed_node
         text = f"{node['title']}\n{node['body']}"
         background_tasks.add_task(_bg_embed_node, ws_id, node["id"], text, user["sub"])
+        inject_deprecation_headers(response.headers, used=_legacy)
         return node
 
 

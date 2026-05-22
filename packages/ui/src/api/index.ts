@@ -7,6 +7,7 @@ import { review, aiReviewers } from './review';
 import { ingest } from './ingest';
 import { system, kb } from './system';
 import { clusters } from './clusters';
+import { documents } from './documents';
 import { request } from './client';
 import type { PersonalApiKey, PersonalApiKeyCreateResponse } from './workspaces';
 
@@ -20,6 +21,7 @@ export * from './review';
 export * from './ingest';
 export * from './system';
 export * from './clusters';
+export * from './documents';
 
 export const users = {
   apiKeys: {
@@ -44,4 +46,5 @@ export const api = {
   system,
   kb,
   clusters,
+  documents,
 };

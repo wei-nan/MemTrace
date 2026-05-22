@@ -136,7 +136,7 @@ def update_review_item(id: str, body: ReviewUpdate, user: dict = Depends(get_cur
 def _create_suggested_edges(cur, ws_id: str, from_node_id: str, suggested_edges: list):
     """Resolve to_title references and insert edges where target node exists."""
     for e in suggested_edges:
-        to_title = e.get("to_title") or e.get("to_title_en")
+        to_title = e.get("to_title")
         relation = e.get("relation", "related_to")
         # Normalize unsupported relation types to avoid DB enum violation
         if relation not in VALID_RELATIONS:

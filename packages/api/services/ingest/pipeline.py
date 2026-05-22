@@ -11,6 +11,7 @@ from core.ai import (
 from core.database import db_cursor
 from core.security import generate_id
 from core.adapters import NormalizedDocument
+from core.storage import default_storage as _storage
 from services.ingest.parser import chunk_text, scan_api_endpoints
 from services.ingest.persistence import persist_nodes, persist_nodes_sync, detect_cross_file_associations_for_nodes
 
@@ -136,8 +137,7 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         else:
             resolved = resolve_with_fallback(user_id, "extraction")
 
-        # 4. Create document in DB and save to disk
-        storage_root = os.environ.get("DOCUMENT_STORAGE_PATH", "./data/documents")
+        # 4. Create document in DB and save via storage backend (S5-T22)
         from services.documents import create_document_in_db, get_existing_document
         with db_cursor(commit=True) as cur:
             existing_doc = get_existing_document(cur, ws_id, content_hash)
@@ -145,13 +145,11 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                 doc_id = existing_doc["id"]
             else:
                 doc_id = generate_id("doc")
-                storage_path = os.path.join(storage_root, ws_id, f"{doc_id}.txt")
-                
-                # Write file to disk
-                os.makedirs(os.path.dirname(storage_path), exist_ok=True)
-                with open(storage_path, "w", encoding="utf-8") as f:
-                    f.write(content)
-                
+                storage_path = _storage.make_path(ws_id, f"{doc_id}.txt")
+
+                # Write extracted text via storage abstraction
+                _storage.put(storage_path, content.encode("utf-8"))
+
                 create_document_in_db(
                     cur,
                     workspace_id=ws_id,

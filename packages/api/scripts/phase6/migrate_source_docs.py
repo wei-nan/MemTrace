@@ -150,21 +150,17 @@ def run(
         ws_filter = "AND workspace_id = %s" if ws_id else ""
         params = [ws_id] if ws_id else []
 
-        try:
-            cur.execute(
-                f"""
-                SELECT * FROM memory_nodes
-                WHERE content_type = 'source_document'
-                  {ws_filter}
-                ORDER BY workspace_id, created_at
-                """,
-                params,
-            )
-        except Exception as e:
-            logger.error(
-                "Could not query source_document nodes (enum may already be removed): %s", e
-            )
-            return
+        # Cast to text to avoid InvalidTextRepresentation when enum value
+        # 'source_document' has been removed (migration 056).
+        cur.execute(
+            f"""
+            SELECT * FROM memory_nodes
+            WHERE content_type::text = 'source_document'
+              {ws_filter}
+            ORDER BY workspace_id, created_at
+            """,
+            params,
+        )
 
         nodes = cur.fetchall()
         logger.info(
