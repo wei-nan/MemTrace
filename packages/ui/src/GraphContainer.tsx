@@ -67,16 +67,12 @@ export default function GraphContainer({
   const [workspace, setWorkspace]   = useState<any>(null);
   const [exploreRootNodeId, setExploreRootNodeId] = useState<string | null>(null);
 
-  // Expose onExplore to parent via imperative-like prop update if needed,
-  // but here we just handle it if passed.
   useEffect(() => {
-    if (onExplore) {
-      // This is a bit hacky, but lets the parent trigger explore mode
-      (window as any).mt_trigger_explore = (nodeId: string) => {
-        setExploreRootNodeId(nodeId);
-        setGraphMode('explore');
-      };
-    }
+    (window as any).mt_trigger_explore = (nodeId: string) => {
+      setExploreRootNodeId(nodeId);
+      setGraphMode('explore');
+      onExplore?.(nodeId);
+    };
   }, [onExplore]);
 
   // ── Archive toggle (must precede load so it's in scope for the callback) ──
@@ -310,18 +306,16 @@ export default function GraphContainer({
             border: '1px solid var(--border-default)', borderRadius: 7,
             overflow: 'hidden', height: 32,
           }}>
-            {(['2d', '3d', 'table', 'explore'] as GraphMode[]).map(mode => (
+            {(['2d', '3d', 'table'] as GraphMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => { setGraphMode(mode); if (mode !== 'explore') setExploreRootNodeId(null); }}
-                disabled={mode === 'explore' && !exploreRootNodeId}
                 style={{
                   padding: '0 11px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                   border: 'none', height: '100%',
                   background: graphMode === mode ? 'var(--color-primary)' : 'transparent',
-                  color: graphMode === mode ? 'white' : (mode === 'explore' && !exploreRootNodeId ? 'var(--text-disabled)' : 'var(--text-muted)'),
+                  color: graphMode === mode ? 'white' : 'var(--text-muted)',
                   transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4,
-                  opacity: mode === 'explore' && !exploreRootNodeId ? 0.4 : 1,
                 }}
               >
                 {mode === '2d' ? <Network size={11} /> : mode === '3d' ? <Layers size={11} /> : mode === 'table' ? <Table2 size={11} /> : <Compass size={11} />}

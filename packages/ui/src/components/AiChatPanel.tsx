@@ -14,7 +14,7 @@ interface ProposalState {
   status: 'pending' | 'accepted' | 'rejected';
 }
 
-export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean }) {
+export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: boolean; onClose?: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -243,6 +243,18 @@ export default function AiChatPanel({ wsId, zh }: { wsId: string; zh: boolean })
             {forceAutoActive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
           </Button>
         </div>
+
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            title={zh ? '關閉' : 'Close'}
+            style={{ marginLeft: 8, padding: 4 }}
+          >
+            <X size={16} />
+          </Button>
+        )}
       </div>
 
       {/* Selector Bar */}

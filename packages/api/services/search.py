@@ -218,7 +218,11 @@ async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Opti
     
     viewer_id = user["sub"] if user else None
     viewer_role = get_effective_role(cur, ws_id, ws["owner_id"], viewer_id)
-    results = [strip_body_if_viewer(r, viewer_role) for r in combined[:limit]]
+    _STRIP_FIELDS = {"embedding", "search_vector"}
+    results = [
+        {k: v for k, v in strip_body_if_viewer(r, viewer_role).items() if k not in _STRIP_FIELDS}
+        for r in combined[:limit]
+    ]
     
     # S1-T01: Log search retrieval
     try:

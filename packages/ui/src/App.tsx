@@ -374,7 +374,7 @@ export default function App() {
         <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative', borderLeft: (showChat && currentView === 'graph') ? '1px solid var(--border-default)' : 'none' }}>
           <div style={{ width: '100%', height: '100%' }}>
             <Suspense fallback={<div className="loading-overlay"><RefreshCw className="animate-spin" /></div>}>
-              {selectedWs && <AiChatPanel wsId={selectedWs.id} zh={i18n.language === 'zh-TW'} />}
+              {selectedWs && <AiChatPanel wsId={selectedWs.id} zh={i18n.language === 'zh-TW'} onClose={() => setShowChat(false)} />}
             </Suspense>
           </div>
         </div>

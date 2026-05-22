@@ -103,13 +103,14 @@ function useThemePalette(): ThemePalette {
 
 // ── Node colours ───────────────────────────────────────────────────────────────
 const NODE_BASE: Record<string, [number, number, number]> = {
-  factual:    [99,  102, 241],   // indigo
-  procedural: [34,  197,  94],   // green
-  preference: [245, 158,  11],   // amber
-  context:    [100, 116, 139],   // slate
-  inquiry:    [148, 163, 184],   // light slate-blue
+  factual:    [120, 122, 195],   // muted indigo   — sphere
+  procedural: [85,  172, 128],   // muted teal-green — sphere
+  preference: [192, 158,  88],   // muted gold     — torus
+  context:    [128, 145, 165],   // muted slate    — octahedron
+  inquiry:    [152, 165, 182],   // muted cool-gray — cone
+  document:   [88,  168, 208],   // muted sky blue — box
 };
-const FALLBACK_RGB: [number, number, number] = [99, 102, 241];
+const FALLBACK_RGB: [number, number, number] = [120, 122, 195];
 
 // ── i18n labels ────────────────────────────────────────────────────────────────
 const NODE_LABELS_ZH: Record<string, string> = {
@@ -118,7 +119,39 @@ const NODE_LABELS_ZH: Record<string, string> = {
   preference: '偏好',
   context:    '情境',
   inquiry:    '詢問',
+  document:   '文件',
 };
+
+/** Shape symbol for each content_type (used in legend) */
+const NODE_SHAPE_SYMBOL: Record<string, string> = {
+  factual:    '●',
+  procedural: '⬡',
+  preference: '◎',
+  context:    '◆',
+  inquiry:    '▲',
+  document:   '■',
+};
+
+// ── Node geometry factory ──────────────────────────────────────────────────────
+function getNodeGeometry(ctype: string, r: number): THREE.BufferGeometry {
+  switch (ctype) {
+    case 'preference':
+      // Torus — cyclic / personal loop
+      return new THREE.TorusGeometry(r * 0.72, r * 0.28, 12, 28);
+    case 'context':
+      // Octahedron — structured, multi-faceted
+      return new THREE.OctahedronGeometry(r * 1.15, 0);
+    case 'inquiry':
+      // Cone — pointing / questioning
+      return new THREE.ConeGeometry(r * 0.82, r * 1.8, 14);
+    case 'document':
+      // Box — file / solid container
+      return new THREE.BoxGeometry(r * 1.5, r * 1.5, r * 1.5);
+    case 'factual':
+    default:
+      return new THREE.SphereGeometry(r, 22, 22);
+  }
+}
 
 const EDGE_COLORS: Record<string, string> = {
   depends_on:  '#818cf8',
@@ -264,6 +297,10 @@ export default function GraphView3D({
   // ── Label visibility tracking ────────────────────────────────────────────
   const labelGroupsRef = useRef<Map<string, THREE.Sprite>>(new Map());
 
+  // ── Node body material refs for imperative opacity updates ───────────────
+  // Stored here so hover changes don't trigger full node re-render
+  const nodeBodyMatsRef = useRef<Map<string, THREE.MeshPhongMaterial>>(new Map());
+
   // ── Convert API data → graph format ──────────────────────────────────────
   const graphData = useMemo(() => {
     const visibleNodeIds = new Set(apiNodes.map(n => n.id));
@@ -292,9 +329,10 @@ export default function GraphView3D({
     return { nodes: nodes as any[], links: links as any[] };
   }, [apiNodes, apiEdges, zh]);
 
-  // Cleanup label refs on data change to prevent memory leaks
+  // Cleanup label & material refs on data change to prevent memory leaks
   useEffect(() => {
     labelGroupsRef.current.clear();
+    nodeBodyMatsRef.current.clear();
   }, [graphData]);
 
   // ── Space key → pan mode ──────────────────────────────────────────────────
@@ -359,6 +397,62 @@ export default function GraphView3D({
     }, 1250);
   }, [onEditNode, dofEnabled]);
 
+  // ── Imperative node opacity on hover ────────────────────────────────────
+  useEffect(() => {
+    nodeBodyMatsRef.current.forEach((mat, nodeId) => {
+      if (!hoveredNode) {
+        mat.opacity = 0.35;             // default: semi-transparent
+      } else if (hoveredNode.id === nodeId) {
+        mat.opacity = 0.95;             // hovered: fully clear
+      } else {
+        mat.opacity = 0.15;             // others: fade further back
+      }
+      mat.needsUpdate = true;
+    });
+  }, [hoveredNode]);
+
+  // ── Hover link material (the only reliable way to change line appearance) ─
+  // THREE.Color only reads 6-digit hex; alpha must go through material.opacity.
+  // linkMaterial reference-change triggers three-forcegraph to re-apply to all links.
+  const getLinkMaterial = useCallback((link: any): THREE.Material => {
+    const baseColor = new THREE.Color(link.color ?? '#64748b');
+    const faded = link.status === 'faded';
+
+    if (!hoveredNode) {
+      // Idle: dim lines always visible
+      return new THREE.MeshBasicMaterial({
+        color: baseColor,
+        transparent: true,
+        opacity: faded ? 0.04 : 0.15,
+        depthWrite: false,
+      });
+    }
+
+    const src = typeof link.source === 'object' ? (link.source as any).id : link.source;
+    const tgt = typeof link.target === 'object' ? (link.target as any).id : link.target;
+    const connected = src === hoveredNode.id || tgt === hoveredNode.id;
+
+    return new THREE.MeshBasicMaterial({
+      color: connected ? baseColor : new THREE.Color('#334155'),
+      transparent: true,
+      opacity: connected ? (faded ? 0.4 : 0.88) : 0.04,
+      depthWrite: false,
+    });
+  }, [hoveredNode]);
+
+  const getLinkParticles = useCallback((link: any): number => {
+    if (link.status === 'faded') return 0;
+    if (!hoveredNode) {
+      if (apiNodes.length > 300) return 1;
+      if (apiNodes.length > 100) return 2;
+      return 3;
+    }
+    const src = typeof link.source === 'object' ? (link.source as any).id : link.source;
+    const tgt = typeof link.target === 'object' ? (link.target as any).id : link.target;
+    const connected = src === hoveredNode.id || tgt === hoveredNode.id;
+    return connected ? 6 : 0;
+  }, [hoveredNode, apiNodes.length]);
+
   const handleCameraPositionChange = useCallback(() => {
     const cam = fgRef.current?.camera();
     if (!cam) return;
@@ -396,72 +490,91 @@ export default function GraphView3D({
 
     const group = new THREE.Group();
 
-    // Main sphere
-    const sphereGeo = new THREE.SphereGeometry(isSelected ? 5 : 4, 24, 24);
-    const sphereMat = new THREE.MeshLambertMaterial({
+    // ── Main body — shape by content_type ─────────────────────────────────
+    const r = isSelected ? 1.25 : 1;
+    const geo = getNodeGeometry(node.ctype, r);
+    const mat = new THREE.MeshPhongMaterial({
       color,
       transparent: true,
-      opacity: 0.9,
+      opacity: isPending ? 0.25 : 0.35,   // default: semi-transparent; hover updates this imperatively
+      shininess: 40,
+      specular: new THREE.Color(0x555555),
     });
-    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-    group.add(sphere);
+    // Store material ref for imperative hover opacity updates
+    nodeBodyMatsRef.current.set(node.id, mat);
 
-    // Pulse effect for pending nodes
+    // Draft/pending nodes: wireframe overlay
     if (isPending) {
-      const pulseGeo = new THREE.SphereGeometry(isSelected ? 7 : 6, 24, 24);
-      const pulseMat = new THREE.MeshBasicMaterial({
+      const wireMat = new THREE.MeshBasicMaterial({
+        color,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25,
+      });
+      group.add(new THREE.Mesh(geo, wireMat));
+    }
+    const body = new THREE.Mesh(geo, mat);
+    group.add(body);
+
+    // ── Sci-fi glow: 3-layer additive-blended spheres ─────────────────────
+    // Outer layers use sphere regardless of body shape for smooth falloff
+    const glowLayers: { scale: number; opacity: number }[] = isSelected
+      ? [{ scale: 3.5, opacity: 0.05 }, { scale: 2.4, opacity: 0.10 }, { scale: 1.6, opacity: 0.18 }]
+      : [{ scale: 3.2, opacity: 0.03 }, { scale: 2.2, opacity: 0.07 }, { scale: 1.5, opacity: 0.13 }];
+
+    for (const { scale, opacity } of glowLayers) {
+      const glowGeo = new THREE.SphereGeometry(r * scale, 14, 14);
+      const glowMat = new THREE.MeshBasicMaterial({
         color,
         transparent: true,
-        opacity: 0.2,
+        opacity,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
       });
-      const pulse = new THREE.Mesh(pulseGeo, pulseMat);
-      // We can't easily animate in nodeThreeObject because it's called once, 
-      // but force-graph will re-use the object. We'll use a custom property 
-      // to let the global raf know.
-      (pulse as any)._isPulse = true; 
-      group.add(pulse);
+      group.add(new THREE.Mesh(glowGeo, glowMat));
     }
 
-    // Glow ring for selected node
+    // Selected node: bright accent ring (r-relative)
     if (isSelected) {
-      const ringGeo = new THREE.RingGeometry(6, 7.5, 32);
+      const ringGeo = new THREE.RingGeometry(r * 1.6, r * 2.0, 32);
       const ringMat = new THREE.MeshBasicMaterial({
         color: '#818cf8',
         transparent: true,
-        opacity: 0.6,
+        opacity: 0.7,
         side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
       });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      group.add(ring);
+      group.add(new THREE.Mesh(ringGeo, ringMat));
     }
 
-    // Lock icon for protected nodes
+    // Lock icon for protected nodes (r-relative)
     if (isProtected) {
-      const lockGeo = new THREE.PlaneGeometry(3, 3);
-      const lockTex = new THREE.TextureLoader().load('https://cdn-icons-png.flaticon.com/512/61/61457.png'); // Lock icon
+      const lockGeo = new THREE.PlaneGeometry(r * 0.75, r * 0.75);
+      const lockTex = new THREE.TextureLoader().load('https://cdn-icons-png.flaticon.com/512/61/61457.png');
       const lockMat = new THREE.MeshBasicMaterial({ map: lockTex, transparent: true, color: '#f87171' });
       const lock = new THREE.Mesh(lockGeo, lockMat);
-      lock.position.set(3, 3, 0);
+      lock.position.set(r * 0.9, r * 0.9, 0);
       group.add(lock);
     }
 
-    // Document icon for nodes with source
+    // Document icon for nodes with source (r-relative)
     if (hasSource) {
-      const docGeo = new THREE.PlaneGeometry(3, 3);
-      const docTex = new THREE.TextureLoader().load('https://cdn-icons-png.flaticon.com/512/2991/2991108.png'); // Doc icon
+      const docGeo = new THREE.PlaneGeometry(r * 0.75, r * 0.75);
+      const docTex = new THREE.TextureLoader().load('https://cdn-icons-png.flaticon.com/512/2991/2991108.png');
       const docMat = new THREE.MeshBasicMaterial({ map: docTex, transparent: true, color: '#60a5fa' });
       const doc = new THREE.Mesh(docGeo, docMat);
-      doc.position.set(-3, 3, 0);
+      doc.position.set(-r * 0.9, r * 0.9, 0);
       group.add(doc);
     }
 
-    // Label sprite (theme-aware stroke + fill)
+    // Label sprite (theme-aware stroke + fill, r-relative)
     const label = makeNodeSprite(
       (node.name || '').slice(0, 20),
       isSelected ? palette.labelSelectedColor : palette.labelColor,
       palette.labelStroke,
     );
-    label.position.set(0, isSelected ? -8 : -7, 0);
+    label.position.set(0, -(r + 1.4), 0);
     label.visible = true; // Initial visibility
     group.add(label);
 
@@ -597,9 +710,9 @@ export default function GraphView3D({
             }}
             nodeThreeObject={nodeThreeObject}
             nodeThreeObjectExtend={false}
-            linkWidth={0.1}
-            linkMaterial={() => new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })}
-            linkColor={(link: any) => link.status === 'faded' ? '#94a3b820' : link.color}
+            linkWidth={0.8}
+            linkMaterial={getLinkMaterial}
+            linkColor={(link: any) => link.color ?? '#64748b'}
             linkDirectionalArrowLength={0}
             linkDirectionalArrowRelPos={1}
             linkLabel={(link: any) => {
@@ -618,7 +731,6 @@ export default function GraphView3D({
                 ${extra}
               </div>`;
             }}
-            linkOpacity={1}
             onNodeClick={handleNodeClick}
             onNodeHover={setHoveredNode}
             // @ts-ignore - onCameraPositionChange exists at runtime but might be missing in types
@@ -637,19 +749,23 @@ export default function GraphView3D({
             d3VelocityDecay={0.3}
             warmupTicks={80}
             cooldownTime={3000}
-            linkDirectionalParticles={(link: any) => {
-              if (link.status === 'faded') return 0;
-              // P4.7-S4-2: Scale particles by node count to maintain FPS
-              if (apiNodes.length > 300) return 1;
-              if (apiNodes.length > 100) return 2;
-              return 4;
-            }}
+            linkCurvature={0.2}
+            linkDirectionalParticles={getLinkParticles}
             linkDirectionalParticleSpeed={(link: any) => {
               const base = apiNodes.length > 300 ? 0.002 : 0.004;
               const w = Math.max(0.1, Math.min(1.0, link.weight ?? 1));
               return base * (0.25 + w * 0.75);
             }}
-            linkDirectionalParticleWidth={1.0}
+            linkDirectionalParticleWidth={0.5}
+            linkDirectionalParticleColor={(link: any) => {
+              // Use source node's colour so particles feel like they "flow from" origin
+              const srcNode = typeof link.source === 'object' ? link.source : null;
+              if (srcNode?.ctype) {
+                const rgb = NODE_BASE[srcNode.ctype] ?? FALLBACK_RGB;
+                return trustColor(rgb, srcNode.trust ?? 0.7);
+              }
+              return link.color ?? '#64748b';
+            }}
             onRenderFramePost={() => {
               if (dofEnabled && composerRef.current) {
                 composerRef.current.render();
@@ -666,11 +782,16 @@ export default function GraphView3D({
         }}>
           {Object.entries(NODE_BASE).map(([type, rgb]) => (
             <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <div style={{
-                width: 9, height: 9, borderRadius: '50%',
-                background: trustColor(rgb, 1.0),
+              <span style={{
+                fontSize: 11,
+                color: trustColor(rgb, 1.0),
                 flexShrink: 0,
-              }} />
+                lineHeight: 1,
+                width: 12,
+                textAlign: 'center',
+              }}>
+                {NODE_SHAPE_SYMBOL[type] ?? '●'}
+              </span>
               <span style={{ fontSize: 11, color: palette.textMuted }}>{zh ? (NODE_LABELS_ZH[type] || type) : type}</span>
             </div>
           ))}
