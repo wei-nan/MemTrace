@@ -97,7 +97,8 @@ function project(p, yaw, pitch, zoom, w, h) {
 
 function GraphCanvas3D({
   data, selected, setSelected, hovered, setHovered,
-  edgeKinds, activeContentTypes, search, dof, dark
+  edgeKinds, activeContentTypes, search, dof, dark,
+  auditOverlay, auditSevFilter
 }) {
   const { NODES, EDGES, CONTENT_TYPES, RELATIONS } = data;
   const wrapRef = use3Ref(null);
@@ -285,17 +286,23 @@ function GraphCanvas3D({
             const isFocus = focusId === n.id;
             const isNeighbor = neighborIds && neighborIds.has(n.id);
             const isSelected = selected === n.id;
-            const dim = neighborIds && !isNeighbor;
+            // Audit Overlay (T23): 非 flagged 或不符合 severity filter 的節點降透明
+            const auditFlagged = auditOverlay
+              ? (n.audit_max_severity && (!auditSevFilter || auditSevFilter.has(n.audit_max_severity)))
+              : true;
+            const dim = (neighborIds && !isNeighbor) || (auditOverlay && !auditFlagged);
             const trust = n.trust || 0.5;
             const baseR = 4 + trust * 6;
             const r = baseR * p.scale * (isSelected ? 1.4 : isFocus ? 1.25 : 1);
             const color = rgbToCss(ct.rgb, 0.55 + trust * 0.45);
-            const labelOpacity = dim ? 0.18 : isFocus || isSelected ? 1 : Math.max(0.25, (1 - p.depth) * 0.95);
+            const labelOpacity = dim ? 0.08 : isFocus || isSelected ? 1 : Math.max(0.25, (1 - p.depth) * 0.95);
             const showLabel = (1 - p.depth) > 0.35 || isFocus || isSelected || trust > 0.7;
             const blur = dof ? Math.max(0, Math.abs(p.depth - 0.5) * 4 - 0.3) : 0;
+            // Audit overlay: 非 flagged 節點透明度降至 0.12
+            const nodeOpacity = (auditOverlay && !auditFlagged) ? 0.12 : (dim ? 0.28 : 1);
             return (
               <g key={n.id} data-node transform={`translate(${p.x} ${p.y})`}
-                 style={{ cursor: "pointer", opacity: dim ? 0.28 : 1, filter: blur ? `blur(${blur}px)` : null }}
+                 style={{ cursor: "pointer", opacity: nodeOpacity, filter: blur ? `blur(${blur}px)` : null }}
                  onMouseEnter={() => setHovered(n.id)}
                  onMouseLeave={() => setHovered(null)}
                  onClick={() => setSelected(n.id)}>
@@ -346,6 +353,36 @@ function GraphCanvas3D({
             );
           })}
         </g>
+
+        {/* T24: Audit 熱區疊圖 — zoom < 0.75 時，在 flagged 節點上渲染淡色 blob */}
+        {auditOverlay && zoom < 0.75 && (() => {
+          const SEV_BLOB = { high: "#f59e0b", mid: "#fbbf24", low: "#38bdf8" };
+          return (
+            <g style={{ pointerEvents: "none" }}>
+              {visibleNodes
+                .filter(n => n.audit_max_severity && (!auditSevFilter || auditSevFilter.has(n.audit_max_severity)))
+                .map(n => {
+                  const p = projected[n.id];
+                  if (!p) return null;
+                  const blobR = Math.max(28, 40 * p.scale);
+                  const bColor = SEV_BLOB[n.audit_max_severity] || "#94a3b8";
+                  const gId = `blob3d_${n.id}`;
+                  return (
+                    <g key={gId}>
+                      <defs>
+                        <radialGradient id={gId} cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor={bColor} stopOpacity="0.35" />
+                          <stop offset="100%" stopColor={bColor} stopOpacity="0" />
+                        </radialGradient>
+                      </defs>
+                      <circle cx={p.x} cy={p.y} r={blobR}
+                        fill={`url(#${gId})`} />
+                    </g>
+                  );
+                })}
+            </g>
+          );
+        })()}
       </svg>
 
       <div className="gc3-legend" style={{ color: pal.badgeText }}>

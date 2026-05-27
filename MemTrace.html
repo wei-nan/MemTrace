@@ -268,6 +268,66 @@
       color: oklch(0.42 0.14 80); box-shadow: 0 0 0 1px #f59e0b40;
     }
     .tool-btn.is-audit.is-on:hover { filter: brightness(1.04); }
+
+    /* ───── Audit Overlay Panel (T23) ───── */
+    .audit-panel {
+      position: absolute; top: 16px; right: 16px; z-index: 20;
+      width: 220px; background: var(--bg);
+      border: 1px solid oklch(0.82 0.10 80);
+      border-radius: 12px; padding: 14px 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      display: flex; flex-direction: column; gap: 12px;
+      animation: auditPanelIn .2s ease;
+    }
+    @keyframes auditPanelIn {
+      from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+      to   { opacity: 1; transform: none; }
+    }
+    .audit-panel-hd {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .audit-panel-title {
+      font-size: 12.5px; font-weight: 700; color: oklch(0.42 0.14 80);
+    }
+    .audit-panel-stats {
+      display: flex; gap: 6px; font-size: 11px; font-family: var(--mono);
+      color: var(--ink-mute); flex-wrap: wrap;
+    }
+    .audit-stat-total { color: oklch(0.42 0.14 80); font-weight: 600; }
+    .audit-stat-unread { color: #f59e0b; font-weight: 600; }
+    .audit-panel-filter-h {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ink-mute);
+    }
+    .audit-panel-filter { display: flex; flex-direction: column; gap: 6px; }
+    .audit-sev-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; cursor: default; padding: 5px 8px;
+      border-radius: 7px; border: 1px solid transparent;
+      transition: background .12s;
+    }
+    .audit-sev-label:hover { background: var(--bg-3); }
+    .audit-sev-label.is-on { background: oklch(0.97 0.04 85); border-color: oklch(0.88 0.08 85); }
+    .audit-sev-label input { display: none; }
+    .audit-sev-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .audit-sev-label span:nth-child(3) { flex: 1; color: var(--ink-strong); font-weight: 500; }
+    .audit-sev-label em { font-style: normal; font-family: var(--mono); font-size: 10px;
+      color: var(--ink-mute); background: var(--bg-3); padding: 1px 5px; border-radius: 4px; }
+    .audit-next-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 9px 0; border-radius: 9px;
+      border: 1px solid oklch(0.82 0.10 80);
+      background: oklch(0.96 0.06 85); color: oklch(0.38 0.14 80);
+      font-size: 12.5px; font-weight: 600; cursor: default;
+      transition: filter .15s;
+    }
+    .audit-next-btn:hover { filter: brightness(0.96); }
+    .audit-next-badge {
+      min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+      background: #f59e0b; color: white; font-size: 10px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+    }
     .tool-btn.is-primary {
       background: var(--c-primary); color: white; border-color: var(--c-primary);
       padding: 6px 14px;
@@ -462,6 +522,8 @@
       const [hovered, setHovered] = React.useState(null);
       const [layoutSeed, setLayoutSeed] = React.useState(0);
       const [auditOverlay, setAuditOverlay] = React.useState(false);
+      const [auditSevFilter, setAuditSevFilter] = React.useState(new Set(["high", "mid", "low"]));
+      const auditTourRef = React.useRef(0); // 已展示的圖漸索引
 
       const lang = t.language || "zh";
 
@@ -512,6 +574,27 @@
         data.NODES.filter(n => n.audit_max_severity).length
       , [data]);
 
+      // Flagged nodes (for AuditOverlayPanel stats)
+      const flaggedNodes = React.useMemo(() =>
+        data.NODES.filter(n => n.audit_max_severity && auditSevFilter.has(n.audit_max_severity))
+      , [data, auditSevFilter]);
+
+      // T23 巡迴：找下一個未讀 flagged 節點（按 severity high→mid→low）
+      const handleNextFlagged = React.useCallback(() => {
+        const SEV_ORDER = ["high", "mid", "low"];
+        const candidates = data.NODES
+          .filter(n => n.audit_max_severity && auditSevFilter.has(n.audit_max_severity))
+          .filter(n => (n.audit_unread_count || 0) > 0)
+          .sort((a, b) => {
+            const sd = SEV_ORDER.indexOf(a.audit_max_severity) - SEV_ORDER.indexOf(b.audit_max_severity);
+            return sd !== 0 ? sd : 0;
+          });
+        if (candidates.length === 0) return;
+        const idx = auditTourRef.current % candidates.length;
+        auditTourRef.current += 1;
+        setSelected(candidates[idx].id);
+      }, [data, auditSevFilter]);
+
       const selectedNode = selected ? data.NODES.find(n => n.id === selected) : null;
       const selectedCT = selectedNode ? data.CONTENT_TYPES.find(c => c.id === selectedNode.ct) : null;
       const neighbors = React.useMemo(() => {
@@ -560,6 +643,8 @@
             hovered={hovered} setHovered={setHovered}
             dof={dof}
             dark={t.darkMode3D}
+            auditOverlay={auditOverlay}
+            auditSevFilter={auditSevFilter}
           />
         );
         return (
@@ -573,6 +658,8 @@
             density={t.density}
             showHalos={t.showHalos}
             showEdgeLabels={t.showEdgeLabels}
+            auditOverlay={auditOverlay}
+            auditSevFilter={auditSevFilter}
           />
         );
       };
@@ -602,7 +689,19 @@
             auditOverlay={auditOverlay} setAuditOverlay={setAuditOverlay}
             onAction={handleAction}
           />
-          <main className="main">{renderMain()}</main>
+          <main className="main" style={{ position: "relative" }}>
+            {renderMain()}
+            {/* T23: Audit Overlay 浮窗 */}
+            {auditOverlay && (
+              <AuditOverlayPanel
+                lang={lang}
+                flaggedNodes={flaggedNodes}
+                auditSevFilter={auditSevFilter}
+                setAuditSevFilter={setAuditSevFilter}
+                onNextFlagged={handleNextFlagged}
+              />
+            )}
+          </main>
           {hasDetail && (
             <DetailPanel
               lang={lang}

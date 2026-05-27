@@ -17,7 +17,8 @@ const AUDIT_SEV_COLOR_2D = { high: "#f59e0b", mid: "#fbbf24", low: "#38bdf8" };
 
 function GraphCanvas({
   data, search, activeClusters, edgeKinds,
-  selected, setSelected, hovered, setHovered, density, showHalos, showEdgeLabels
+  selected, setSelected, hovered, setHovered, density, showHalos, showEdgeLabels,
+  auditOverlay, auditSevFilter
 }) {
   const { CLUSTERS, NODES, EDGES } = data;
   const svgRef = useRef(null);
@@ -124,9 +125,14 @@ function GraphCanvas({
     const cy = my + (dx / len) * off;
     const isFocused = neighborIds && (neighborIds.has(a) && neighborIds.has(b) && (a === focusId || b === focusId));
     const isDimmed = neighborIds && !isFocused;
+    // T23: audit overlay 時邊同步降透明
+    const auditEdgeDim = auditOverlay && (() => {
+      const na = nodeById[a], nb = nodeById[b];
+      return !na?.audit_max_severity && !nb?.audit_max_severity;
+    })();
     const dashed = kind !== "extends";
     return (
-      <g key={i} style={{ opacity: isDimmed ? 0.08 : (neighborIds ? 0.9 : 0.42) }}>
+      <g key={i} style={{ opacity: auditEdgeDim ? 0.05 : isDimmed ? 0.08 : (neighborIds ? 0.9 : 0.42) }}>
         <path
           d={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`}
           fill="none"
@@ -225,13 +231,18 @@ function GraphCanvas({
               const isNeighbor = neighborIds && neighborIds.has(n.id);
               const dim = neighborIds && !isNeighbor;
               const isSelected = selected === n.id;
+              // T23 audit overlay: 非 flagged 或不符合 filter 的節點降至 0.1
+              const auditFlagged = auditOverlay
+                ? (n.audit_max_severity && (!auditSevFilter || auditSevFilter.has(n.audit_max_severity)))
+                : true;
+              const nodeOpacity = (auditOverlay && !auditFlagged) ? 0.10 : (dim ? 0.22 : 1);
               const label = labelFor(n, view.k);
               return (
                 <g
                   key={n.id}
                   data-node
                   transform={`translate(${x} ${y})`}
-                  style={{ cursor: "pointer", opacity: dim ? 0.22 : 1, transition: "opacity .18s" }}
+                  style={{ cursor: "pointer", opacity: nodeOpacity, transition: "opacity .18s" }}
                   onMouseEnter={() => setHovered(n.id)}
                   onMouseLeave={() => setHovered(null)}
                   onClick={() => setSelected(n.id)}
@@ -305,6 +316,32 @@ function GraphCanvas({
               );
             })}
           </g>
+
+          {/* T24: Audit 熱區 blob — view.k < 0.6 時顔現 radialGradient */}
+          {auditOverlay && view.k < 0.6 && (
+            <g style={{ pointerEvents: "none" }}>
+              {visibleNodes
+                .filter(n => n.audit_max_severity && (!auditSevFilter || auditSevFilter.has(n.audit_max_severity)))
+                .map(n => {
+                  const bx = toX(n.x), by = toY(n.y);
+                  const SEV_C = { high: "#f59e0b", mid: "#fbbf24", low: "#38bdf8" };
+                  const bColor = SEV_C[n.audit_max_severity] || "#94a3b8";
+                  const blobR = Math.max(40, (sizeFor(n) * 3) / view.k);
+                  const gId = `blob2d_${n.id}`;
+                  return (
+                    <g key={gId}>
+                      <defs>
+                        <radialGradient id={gId} cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor={bColor} stopOpacity="0.38" />
+                          <stop offset="100%" stopColor={bColor} stopOpacity="0" />
+                        </radialGradient>
+                      </defs>
+                      <circle cx={bx} cy={by} r={blobR} fill={`url(#${gId})`} />
+                    </g>
+                  );
+                })}
+            </g>
+          )}
         </g>
       </svg>
 

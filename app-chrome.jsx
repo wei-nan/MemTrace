@@ -381,8 +381,59 @@ const SUMMARIES_EN = {
   n_doc: "Source-node validation + storage across file / URL / snippet kinds.",
 };
 
+/**
+ * AuditOverlayPanel — T23 side panel：嚴重度 filter + 統計 + 巡迴按鈕
+ */
+function AuditOverlayPanel({ lang, flaggedNodes, auditSevFilter, setAuditSevFilter, onNextFlagged }) {
+  const SEV = ["high", "mid", "low"];
+  const SEV_LABEL = { high: T(lang, "高", "High"), mid: T(lang, "中", "Mid"), low: T(lang, "低", "Low") };
+  const SEV_COLOR = { high: "#f59e0b", mid: "#fbbf24", low: "#38bdf8" };
+  const total = flaggedNodes.length;
+  const unread = flaggedNodes.filter(n => (n.audit_unread_count || 0) > 0).length;
+  const read = total - unread;
+
+  return (
+    <div className="audit-panel">
+      <div className="audit-panel-hd">
+        <span className="audit-panel-title">🛡 {T(lang, "Audit Overlay", "Audit Overlay")}</span>
+        <div className="audit-panel-stats">
+          <span className="audit-stat-total">⚠ {total} {T(lang, "筆", "")}</span>
+          <span className="audit-stat-unread">· {unread} {T(lang, "未讀", "unread")}</span>
+          <span className="audit-stat-read">· {read} {T(lang, "已讀", "read")}</span>
+        </div>
+      </div>
+
+      <div className="audit-panel-filter-h">{T(lang, "嚴重度篩選", "Filter by severity")}</div>
+      <div className="audit-panel-filter">
+        {SEV.map(s => (
+          <label key={s} className={`audit-sev-label ${auditSevFilter.has(s) ? "is-on" : ""}`}>
+            <input type="checkbox"
+              checked={auditSevFilter.has(s)}
+              onChange={() => {
+                const ns = new Set(auditSevFilter);
+                ns.has(s) ? ns.delete(s) : ns.add(s);
+                setAuditSevFilter(ns);
+              }}
+            />
+            <span className="audit-sev-dot" style={{ background: SEV_COLOR[s] }} />
+            <span>{SEV_LABEL[s]}</span>
+            <em>{flaggedNodes.filter(n => n.audit_max_severity === s).length}</em>
+          </label>
+        ))}
+      </div>
+
+      <button className="audit-next-btn" onClick={onNextFlagged}
+        title={T(lang, "飛到下一個未讀提案節點", "Jump to next unread flagged node")}>
+        ▶ {T(lang, "下一個未讀", "Next unread")}
+        {unread > 0 && <span className="audit-next-badge">{unread}</span>}
+      </button>
+    </div>
+  );
+}
+
 window.Sidebar = Sidebar;
 window.HeaderBar = HeaderBar;
 window.Toolbar = Toolbar;
 window.DetailPanel = DetailPanel;
+window.AuditOverlayPanel = AuditOverlayPanel;
 window.MT_T = T;
