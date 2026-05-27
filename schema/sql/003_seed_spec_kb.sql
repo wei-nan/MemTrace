@@ -7,6 +7,8 @@
 
 SET client_encoding = 'UTF8';
 
+ALTER TYPE source_type ADD VALUE IF NOT EXISTS 'ai';
+
 -- System user (idempotent)
 INSERT INTO users (id, email, display_name, email_verified)
 VALUES ('system', 'system@memtrace.internal', 'MemTrace System', true)

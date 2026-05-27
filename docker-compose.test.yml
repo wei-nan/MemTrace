@@ -1,0 +1,61 @@
+# docker-compose.test.yml
+# Phase 6.1 T03: CI integration test profile
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+#   docker compose -f docker-compose.test.yml down -v
+#
+# The test-runner container:
+#   1. Waits for db-test to be healthy
+#   2. Applies all schema migrations
+#   3. Applies the P61 migration
+#   4. Runs the migration script
+#   5. Runs pytest (unit + integration tests)
+#   6. Exits with pytest's exit code
+
+services:
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: memtrace_test
+      POSTGRES_USER: memtrace
+      POSTGRES_PASSWORD: memtrace_test_pw
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - ./schema/sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memtrace -d memtrace_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  test-runner:
+    build:
+      context: ./packages/api
+      dockerfile: Dockerfile
+    depends_on:
+      db-test:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://memtrace:memtrace_test_pw@db-test:5432/memtrace_test
+      TEST_DATABASE_URL: postgresql://memtrace:memtrace_test_pw@db-test:5432/memtrace_test
+      SECRET_KEY: test_secret_key_for_ci_only
+      ALLOW_WEAK_SECRET_KEY: "1"
+      MEMTRACE_ANON_LOG_SALT: test_salt
+      REGISTRATION_MODE: open
+      PYTHONPATH: /app
+    volumes:
+      - ./packages/api:/app:ro
+    user: "0"                          # root for test runner (write to /tmp etc.)
+    command: >
+      sh -c "
+        echo '=== Applying all migrations ===' &&
+        python -c \"from core.database import run_migrations; run_migrations()\" &&
+        echo '=== Running P61 migration script ===' &&
+        python -m scripts.migrate_doc_links_to_edges &&
+        echo '=== Running unit + integration tests ===' &&
+        pytest tests/ -v --tb=short -m 'not integration or integration' --ignore=tests/test_ai_locking.py --ignore=tests/test_multi_user_workflow.py
+      "

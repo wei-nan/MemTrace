@@ -228,10 +228,25 @@ def accept_review_item(id: str, background_tasks: BackgroundTasks, user: dict = 
             node_data = item.get("node_data") or {}
             doc_id = node_data.get("source_doc_node_id") or node_data.get("document_id")
             if doc_id:
-                from services.documents import create_node_document_link
+                from services.documents import (
+                    create_node_document_link,
+                    create_extracted_from_edge,
+                )
                 excerpt = node_data.get("source_segment") or node.get("body")
                 para_ref = node_data.get("source_paragraph_ref") or ""
+
+                # Legacy dual-write: keep node_document_links for backwards compat
                 create_node_document_link(cur, node["id"], doc_id, para_ref, excerpt)
+
+                # P61-T01: Create extracted_from edge (knowledge node → document node)
+                cur.execute("SELECT node_id FROM documents WHERE id = %s", (doc_id,))
+                doc_row = cur.fetchone()
+                if doc_row and doc_row["node_id"]:
+                    create_extracted_from_edge(
+                        cur, item["workspace_id"],
+                        node["id"], doc_row["node_id"],
+                        para_ref, excerpt,
+                    )
 
             # Trigger background embedding, edge suggestion, and complexity checks
             trigger_node_background_jobs(background_tasks, item["workspace_id"], node["id"], user["sub"], node)

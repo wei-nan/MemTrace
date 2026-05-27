@@ -21,6 +21,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS trg_update_clone_job_timestamp ON workspace_clone_jobs;
+
 CREATE TRIGGER trg_update_clone_job_timestamp
     BEFORE UPDATE ON workspace_clone_jobs
     FOR EACH ROW

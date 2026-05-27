@@ -23,6 +23,7 @@ VALID_RELATIONS: frozenset = frozenset({
     "answered_by",
     "similar_to",
     "queried_via_mcp",
+    "extracted_from",   # P61-T01: knowledge node → document node
 })
 
 VALID_CONTENT_T: frozenset = frozenset({
@@ -31,6 +32,7 @@ VALID_CONTENT_T: frozenset = frozenset({
     "preference",
     "context",
     "inquiry",
+    "document",         # P61-T01: document node (first-class in graph)
 })
 
 VALID_KB_VIS: frozenset = frozenset({

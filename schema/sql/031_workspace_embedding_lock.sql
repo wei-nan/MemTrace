@@ -11,7 +11,9 @@ ALTER TABLE memory_nodes
   ALTER COLUMN embedding TYPE vector
   USING embedding::vector;
 
-CREATE INDEX IF NOT EXISTS idx_nodes_embedding
-  ON memory_nodes
-  USING hnsw (embedding vector_cosine_ops)
-  WITH (m = 16, ef_construction = 64);
+-- HNSW indexing on dimensionless vector column is not supported by pgvector.
+-- Sequential scan with workspace_id filtering is used instead.
+-- CREATE INDEX IF NOT EXISTS idx_nodes_embedding
+--   ON memory_nodes
+--   USING hnsw (embedding vector_cosine_ops)
+--   WITH (m = 16, ef_construction = 64);

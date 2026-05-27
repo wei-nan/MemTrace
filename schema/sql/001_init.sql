@@ -123,6 +123,20 @@ CREATE TABLE workspaces (
   agent_node_id TEXT
 );
 
+CREATE TABLE IF NOT EXISTS import_sources (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    doc_type TEXT NOT NULL DEFAULT 'generic',
+    raw_content TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    page_count INTEGER,
+    has_ocr BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_import_sources_ws ON import_sources(workspace_id);
+
 CREATE TABLE workspace_members (
   workspace_id  TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

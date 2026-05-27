@@ -137,12 +137,20 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         else:
             resolved = resolve_with_fallback(user_id, "extraction")
 
-        # 4. Create document in DB and save via storage backend (S5-T22)
-        from services.documents import create_document_in_db, get_existing_document
+        # 4. Create document in DB, save via storage backend, and ensure a document
+        #    memory_node exists (P61-T01: documents as first-class graph nodes).
+        from services.documents import (
+            create_document_in_db, get_existing_document,
+            create_document_node_in_db,
+        )
         with db_cursor(commit=True) as cur:
             existing_doc = get_existing_document(cur, ws_id, content_hash)
             if existing_doc:
                 doc_id = existing_doc["id"]
+                # Ensure document node exists even for re-ingested docs
+                if not existing_doc.get("node_id"):
+                    doc_summary = existing_doc.get("summary") or None
+                    create_document_node_in_db(cur, ws_id, doc_id, filename, user_id, summary=doc_summary)
             else:
                 doc_id = generate_id("doc")
                 storage_path = _storage.make_path(ws_id, f"{doc_id}.txt")
@@ -161,6 +169,8 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                     ingestion_job_id=job_id,
                     title=filename
                 )
+                # P61-T01: Create the document's memory_node (title=filename, body=summary placeholder)
+                create_document_node_in_db(cur, ws_id, doc_id, filename, user_id)
 
         src_node_id = doc_id  # Align with documents table, passed to persist_nodes as source_doc_node_id
 
