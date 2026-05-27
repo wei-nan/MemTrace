@@ -451,8 +451,140 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
     }
   };
 
+  const mcpUrl  = `${window.location.origin}/mcp`;
+  const sseUrl  = `${window.location.origin}/sse`;
+
+  const claudeSnippet = JSON.stringify({
+    mcpServers: {
+      memtrace: {
+        type: "streamable-http",
+        url: mcpUrl,
+        headers: { Authorization: "Bearer YOUR_API_KEY" },
+      }
+    }
+  }, null, 2);
+
+  const sseSnippet = JSON.stringify({
+    mcpServers: {
+      memtrace: {
+        type: "sse",
+        url: sseUrl,
+        headers: { Authorization: "Bearer YOUR_API_KEY" },
+      }
+    }
+  }, null, 2);
+
+  const copyText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ message: zh ? "已複製" : "Copied", variant: "success" });
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+      {/* ── MCP 接入指引 ────────────────────────────────────────────── */}
+      <SectionCard>
+        <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
+          <Link2 size={18} style={{ color: "var(--color-primary)" }} />
+          {zh ? "MCP 接入指引" : "MCP Connection Guide"}
+        </h3>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 18px" }}>
+          {zh
+            ? "將以下設定貼入 Claude Code（或其他 MCP 客戶端）的 settings.json，再替換 API 金鑰後即可連線。"
+            : "Paste the config below into your MCP client's settings.json, then replace the API key."}
+        </p>
+
+        {/* Streamable HTTP (recommended) */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>
+              {zh ? "Streamable HTTP（推薦）" : "Streamable HTTP (Recommended)"}
+            </span>
+            <span style={{ fontSize: 11, padding: "1px 7px", borderRadius: 20, background: "var(--color-primary-subtle)", color: "var(--color-primary)", fontWeight: 600 }}>
+              Claude Code / Cursor / Windsurf
+            </span>
+          </div>
+          <div style={{ position: "relative" }}>
+            <pre style={{
+              margin: 0, padding: "12px 14px", borderRadius: 8, fontSize: 12,
+              background: "var(--bg-app)", border: "1px solid var(--border-default)",
+              overflowX: "auto", color: "var(--text-primary)", lineHeight: 1.6,
+            }}>
+              {claudeSnippet}
+            </pre>
+            <button
+              onClick={() => copyText(claudeSnippet)}
+              style={{
+                position: "absolute", top: 8, right: 8,
+                background: "var(--bg-surface)", border: "1px solid var(--border-default)",
+                borderRadius: 6, cursor: "pointer", padding: "4px 8px",
+                fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4,
+              }}
+            >
+              <Copy size={12} /> {zh ? "複製" : "Copy"}
+            </button>
+          </div>
+        </div>
+
+        {/* SSE fallback */}
+        <details style={{ marginBottom: 16 }}>
+          <summary style={{ fontSize: 12, color: "var(--text-muted)", cursor: "pointer", userSelect: "none" }}>
+            {zh ? "SSE 設定（舊版客戶端）" : "SSE config (legacy clients)"}
+          </summary>
+          <div style={{ position: "relative", marginTop: 8 }}>
+            <pre style={{
+              margin: 0, padding: "12px 14px", borderRadius: 8, fontSize: 12,
+              background: "var(--bg-app)", border: "1px solid var(--border-default)",
+              overflowX: "auto", color: "var(--text-primary)", lineHeight: 1.6,
+            }}>
+              {sseSnippet}
+            </pre>
+            <button
+              onClick={() => copyText(sseSnippet)}
+              style={{
+                position: "absolute", top: 8, right: 8,
+                background: "var(--bg-surface)", border: "1px solid var(--border-default)",
+                borderRadius: 6, cursor: "pointer", padding: "4px 8px",
+                fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4,
+              }}
+            >
+              <Copy size={12} /> {zh ? "複製" : "Copy"}
+            </button>
+          </div>
+        </details>
+
+        {/* Scope table */}
+        <div style={{ background: "var(--bg-app)", borderRadius: 8, border: "1px solid var(--border-subtle)", overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ background: "var(--bg-surface)" }}>
+                <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 700, color: "var(--text-muted)", borderBottom: "1px solid var(--border-subtle)" }}>{zh ? "權限" : "Scope"}</th>
+                <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 700, color: "var(--text-muted)", borderBottom: "1px solid var(--border-subtle)" }}>{zh ? "說明" : "Description"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { scope: "kb:read",    desc: zh ? "唯讀：搜尋、讀取節點" : "Read-only: search and retrieve nodes" },
+                { scope: "kb:propose", desc: zh ? "可提案：新增節點須人工審核" : "Propose: node additions go to review queue" },
+                { scope: "kb:write",   desc: zh ? "完整寫入：直接新增/修改節點" : "Full write: create and edit nodes directly" },
+              ].map(({ scope, desc }, i) => (
+                <tr key={scope} style={{ borderBottom: i < 2 ? "1px solid var(--border-subtle)" : "none" }}>
+                  <td style={{ padding: "8px 12px", fontFamily: "monospace", color: "var(--color-primary)", fontWeight: 600 }}>{scope}</td>
+                  <td style={{ padding: "8px 12px", color: "var(--text-secondary)" }}>{desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "12px 0 0", display: "flex", alignItems: "center", gap: 6 }}>
+          <Info size={13} />
+          {zh
+            ? "在下方「服務 Token」區塊產生金鑰，再將 YOUR_API_KEY 替換成實際金鑰值。"
+            : 'Generate a key in the "Service Tokens" section below, then replace YOUR_API_KEY.'}
+        </p>
+      </SectionCard>
+
       <SectionCard>
         <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Key size={18} /> {t('ws_settings.service_tokens')}</h3>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>

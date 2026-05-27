@@ -448,6 +448,35 @@ TOOLS = [
             "required": ["workspace_id", "node_id"],
         },
     },
+    {
+        "name": "attach_url",
+        "description": "Register an external URL as a source document and optionally link it to a knowledge node. Use this to permanently associate a web page, data source, or reference link with a node so it can be retrieved later.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "url":          {"type": "string", "description": "The external URL to attach (must start with http:// or https://)"},
+                "node_id":      {"type": "string", "description": "Node ID to link this URL to (optional)"},
+                "title":        {"type": "string", "description": "Human-readable title for the link (optional)"},
+            },
+            "required": ["workspace_id", "url"],
+        },
+    },
+    {
+        "name": "upload_file",
+        "description": "Upload a file as a source document (base64-encoded, max 30 MB) and optionally link it to a knowledge node. Suitable for attaching CSV, Excel, PDF, or other data files that should be retrievable later.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id":   {"type": "string", "description": "Workspace ID"},
+                "filename":       {"type": "string", "description": "Original filename including extension (e.g. data.csv)"},
+                "content_base64": {"type": "string", "description": "File content encoded as base64"},
+                "mime_type":      {"type": "string", "description": "MIME type (e.g. text/csv, application/pdf). Inferred from filename if omitted."},
+                "node_id":        {"type": "string", "description": "Node ID to link this file to (optional)"},
+            },
+            "required": ["workspace_id", "filename", "content_base64"],
+        },
+    },
 ]
 
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
@@ -550,9 +579,10 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor() as cur:
             cur.execute("SELECT settings FROM workspaces WHERE id = %s", (ws_id,))
             ws_row = cur.fetchone()
-            settings = ws_row["settings"] if ws_row else {}
+            settings = (ws_row["settings"] if ws_row else {}) or {}
             if not settings.get("mcp_ingest_enabled"):
-                raise HTTPException(status_code=403, detail="MCP ingestion is not enabled for this workspace. Enable it in Workspace Settings.")
+                logger.warning(f"MCP Ingestion blocked: ws_id={ws_id}, settings={settings}, row_exists={ws_row is not None}")
+                raise HTTPException(status_code=403, detail=f"MCP ingestion is not enabled for workspace '{ws_id}'. Enable it in Workspace Settings.")
 
         force_create = args.get("force_create", False)
         # S9-1c: Force source_type to 'mcp'
@@ -690,9 +720,10 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor() as cur:
             cur.execute("SELECT settings, extraction_provider FROM workspaces WHERE id = %s", (ws_id,))
             ws_row = cur.fetchone()
-            settings = ws_row["settings"] if ws_row else {}
+            settings = (ws_row["settings"] if ws_row else {}) or {}
             if not settings.get("mcp_ingest_enabled"):
-                raise HTTPException(status_code=403, detail="MCP ingestion is not enabled for this workspace. Enable it in Workspace Settings.")
+                logger.warning(f"MCP Ingestion blocked: ws_id={ws_id}, settings={settings}, row_exists={ws_row is not None}")
+                raise HTTPException(status_code=403, detail=f"MCP ingestion is not enabled for workspace '{ws_id}'. Enable it in Workspace Settings.")
             ws_extraction_provider = ws_row["extraction_provider"] if ws_row else None
 
         if ws_extraction_provider:
@@ -748,9 +779,10 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             # P4.8-S9-7f: Workspace check mcp_ingest_enabled
             cur.execute("SELECT settings FROM workspaces WHERE id = %s", (ws_id,))
             ws_row = cur.fetchone()
-            settings = ws_row["settings"] if ws_row else {}
+            settings = (ws_row["settings"] if ws_row else {}) or {}
             if not settings.get("mcp_ingest_enabled"):
-                raise HTTPException(status_code=403, detail="MCP ingestion is not enabled for this workspace. Enable it in Workspace Settings.")
+                logger.warning(f"MCP Ingestion blocked: ws_id={ws_id}, settings={settings}, row_exists={ws_row is not None}")
+                raise HTTPException(status_code=403, detail=f"MCP ingestion is not enabled for workspace '{ws_id}'. Enable it in Workspace Settings.")
             
             # P4.8-S9-7g: Quota check
             quota = settings.get("mcp_ingest_daily_quota", 5)
@@ -763,9 +795,9 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 raise HTTPException(status_code=429, detail=f"Daily MCP ingestion quota ({quota}) exceeded for this workspace.")
 
             cur.execute(
-                """INSERT INTO ingestion_logs (id, workspace_id, filename, status, created_at, source)
-                   VALUES (%s, %s, %s, 'pending', now(), 'mcp')""",
-                (job_id, ws_id, title),
+                """INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status, created_at, source)
+                   VALUES (%s, %s, %s, %s, 'pending', now(), 'mcp')""",
+                (job_id, ws_id, user["sub"], title),
             )
         
         # We always run it via background_tasks to avoid MCP timeout
@@ -891,6 +923,85 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
             return list(sources)
 
+    # ── attach_url ────────────────────────────────────────────────────────────
+    if name == "attach_url":
+        ws_id   = args["workspace_id"]
+        url     = args["url"]
+        node_id = args.get("node_id")
+        title   = args.get("title")
+        if not url.startswith(("http://", "https://")):
+            raise ValueError("url must start with http:// or https://")
+        from services.documents import (
+            create_url_document_in_db, create_node_document_link,
+            get_existing_document, get_document_in_db,
+        )
+        import hashlib as _hl
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True)
+            row = create_url_document_in_db(cur, ws_id, url, user["sub"], title=title)
+            if row is None:
+                row = get_existing_document(cur, ws_id, _hl.sha256(url.encode()).hexdigest())
+            if node_id:
+                cur.execute(
+                    "SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s",
+                    (node_id, ws_id),
+                )
+                if cur.fetchone():
+                    create_node_document_link(cur, node_id, row["id"])
+        with db_cursor() as cur:
+            doc = get_document_in_db(cur, row["id"])
+        result = {k: v for k, v in dict(doc).items() if k != "embedding"}
+        log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+        return result
+
+    # ── upload_file ───────────────────────────────────────────────────────────
+    if name == "upload_file":
+        import base64, mimetypes as _mt, uuid as _uuid
+        ws_id    = args["workspace_id"]
+        filename = args["filename"]
+        b64      = args["content_base64"]
+        node_id  = args.get("node_id")
+        mime     = args.get("mime_type") or _mt.guess_type(filename)[0] or "application/octet-stream"
+        try:
+            file_bytes = base64.b64decode(b64)
+        except Exception:
+            raise ValueError("content_base64 is not valid base64")
+        if len(file_bytes) > 30 * 1024 * 1024:
+            raise ValueError("File exceeds 30 MB limit")
+        from services.documents import (
+            create_document_in_db, create_node_document_link,
+            get_existing_document, get_document_in_db,
+        )
+        from core.storage import default_storage
+        import hashlib as _hl
+        content_hash = _hl.sha256(file_bytes).hexdigest()
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True)
+            existing = get_existing_document(cur, ws_id, content_hash)
+            if existing:
+                doc_id = existing["id"]
+            else:
+                storage_path = default_storage.make_path(ws_id, f"{_uuid.uuid4().hex}_{filename}")
+                default_storage.put(storage_path, file_bytes)
+                row = create_document_in_db(
+                    cur, workspace_id=ws_id, filename=filename,
+                    file_bytes=file_bytes, mime_type=mime,
+                    storage_path=storage_path, uploaded_by=user["sub"],
+                )
+                doc_id = row["id"] if row else existing["id"]
+            if node_id:
+                cur.execute(
+                    "SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s",
+                    (node_id, ws_id),
+                )
+                if cur.fetchone():
+                    create_node_document_link(cur, node_id, doc_id)
+        with db_cursor() as cur:
+            doc = get_document_in_db(cur, doc_id)
+        result = {k: v for k, v in dict(doc).items() if k not in ("embedding", "storage_path")}
+        log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+        return result
+
     raise ValueError(f"Unknown tool: {name}")
 
 async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks) -> dict:
@@ -906,7 +1017,7 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks)
         if method == "tools/call":
              tool_name = params.get("name")
              tool_args = params.get("arguments", {})
-             logger.info(f"MCP Call: {tool_name} with args {tool_args}")
+             logger.warning(f"MCP Call: {tool_name} with args {tool_args}")
              result = await execute_tool(tool_name, tool_args, user, background_tasks)
              return jsonrpc_ok(msg_id, {"content": [{"type": "text", "text": json.dumps(serialize(result), indent=2, ensure_ascii=False)}]})
         

@@ -48,9 +48,11 @@ export interface NodeSource {
   filename: string;
   title: string | null;
   mime_type: string;
+  size_bytes: number;
   uploaded_at: string;
   paragraph_ref: string;
   excerpt: string | null;
+  source_url: string | null;
 }
 
 export const documents = {
@@ -79,8 +81,21 @@ export const documents = {
       excerpt,
     }),
 
+  detachFromNode: (wsId: string, nodeId: string, docId: string) =>
+    request('DELETE', `${BASE}/workspaces/${wsId}/nodes/${nodeId}/document-links/${docId}`),
+
   contentUrl: (wsId: string, docId: string) =>
     `${BASE}/workspaces/${wsId}/documents/${docId}/content`,
+
+  /**
+   * Register an external URL as a document and optionally attach it to a node immediately.
+   */
+  linkUrl: (wsId: string, url: string, opts?: { title?: string; nodeId?: string }): Promise<Document> =>
+    request<Document>('POST', `${BASE}/workspaces/${wsId}/documents/link-url`, {
+      url,
+      title: opts?.title,
+      node_id: opts?.nodeId,
+    }),
 
   /**
    * Upload a raw file as a document WITHOUT AI extraction (S5-T19).

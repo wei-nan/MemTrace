@@ -341,12 +341,13 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
             }}>
               {m.role === 'user' ? <User size={16} /> : <Sparkles size={16} style={{ color: 'var(--color-primary)' }} />}
             </div>
-            <div style={{ maxWidth: '85%' }}>
+            <div style={{ maxWidth: '85%', minWidth: 0 }}>
               <div style={{
                 padding: '10px 14px', borderRadius: 12, fontSize: 13, lineHeight: 1.5,
                 background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-base)',
                 color: m.role === 'user' ? 'white' : 'var(--text-primary)',
                 border: m.role === 'assistant' ? '1px solid var(--border-default)' : 'none',
+                wordBreak: 'break-word', overflowWrap: 'anywhere',
               }}>
                 <ReactMarkdown>{m.content}</ReactMarkdown>
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  FileText, Download, Trash2, RefreshCw, Search, ChevronRight,
+  FileText, Download, ExternalLink, Trash2, RefreshCw, Search, ChevronRight,
   Link, Calendar, HardDrive, X, Edit2, Check, AlertTriangle, Upload, Plus,
 } from 'lucide-react';
 import { documents, DuplicateDocumentError, nodes, type Document, type DocumentDetail } from './api';
@@ -203,15 +203,28 @@ function DocumentDetailPanel({
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          <a
-            href={documents.contentUrl(wsId, docId)}
-            download={doc.filename}
-            className="btn-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '5px 10px', textDecoration: 'none' }}
-          >
-            <Download size={12} />
-            {zh ? '下載' : 'Download'}
-          </a>
+          {doc.source_url && !doc.size_bytes ? (
+            <a
+              href={doc.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '5px 10px', textDecoration: 'none' }}
+            >
+              <ExternalLink size={12} />
+              {zh ? '開啟連結' : 'Open Link'}
+            </a>
+          ) : (
+            <a
+              href={documents.contentUrl(wsId, docId)}
+              download={doc.filename}
+              className="btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '5px 10px', textDecoration: 'none' }}
+            >
+              <Download size={12} />
+              {zh ? '下載' : 'Download'}
+            </a>
+          )}
           <button className="btn-secondary" style={{ color: 'var(--color-error)', borderColor: 'var(--color-error)', padding: '5px 8px' }} onClick={handleDelete}>
             <Trash2 size={13} />
           </button>

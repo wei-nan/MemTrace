@@ -301,6 +301,11 @@ export default function GraphView3D({
   // Stored here so hover changes don't trigger full node re-render
   const nodeBodyMatsRef = useRef<Map<string, THREE.MeshPhongMaterial>>(new Map());
 
+  // ── Particle-arrival pulse halo refs ─────────────────────────────────────
+  const nodeHaloMatsRef  = useRef<Map<string, THREE.SpriteMaterial>>(new Map());
+  const nodeHaloMeshRef  = useRef<Map<string, THREE.Sprite>>(new Map());
+  const activePulsesRef  = useRef<Map<string, number>>(new Map()); // nodeId → startTime (ms)
+
   // ── Convert API data → graph format ──────────────────────────────────────
   const graphData = useMemo(() => {
     const visibleNodeIds = new Set(apiNodes.map(n => n.id));
@@ -333,7 +338,52 @@ export default function GraphView3D({
   useEffect(() => {
     labelGroupsRef.current.clear();
     nodeBodyMatsRef.current.clear();
+    nodeHaloMatsRef.current.clear();
+    nodeHaloMeshRef.current.clear();
+    activePulsesRef.current.clear();
   }, [graphData]);
+
+  // ── Particle-arrival pulse scheduler ────────────────────────────────────
+  useEffect(() => {
+    if (isPreview) return;
+    const base = apiNodes.length > 300 ? 0.002 : 0.004;
+
+    // Collect the highest-weight incoming edge per target node
+    const targetWeights = new Map<string, number>();
+    for (const link of graphData.links) {
+      if (link.status === 'faded') continue;
+      const rawTarget = link.target;
+      const targetId = typeof rawTarget === 'object' ? (rawTarget as any).id : rawTarget;
+      if (!targetId) continue;
+      const w = Math.max(0.1, Math.min(1.0, link.weight ?? 1));
+      if ((targetWeights.get(targetId) ?? 0) < w) targetWeights.set(targetId, w);
+    }
+
+    let cancelled = false;
+    const intervals: ReturnType<typeof setInterval>[] = [];
+
+    targetWeights.forEach((w, targetId) => {
+      const speed      = base * (0.25 + w * 0.75);
+      const travelMs   = Math.round((1 / speed) / 60 * 1000);  // exact particle travel time
+      const intervalMs = Math.min(travelMs, 2800);              // cap at 2.8 s so effect stays visible
+      const startDelay = Math.random() * intervalMs;            // stagger initial burst
+
+      setTimeout(() => {
+        if (cancelled) return;
+        activePulsesRef.current.set(targetId, Date.now());
+        const id = setInterval(() => {
+          activePulsesRef.current.set(targetId, Date.now());
+        }, intervalMs);
+        intervals.push(id);
+      }, startDelay);
+    });
+
+    return () => {
+      cancelled = true;
+      intervals.forEach(clearInterval);
+      activePulsesRef.current.clear();
+    };
+  }, [graphData, isPreview, apiNodes.length]);
 
   // ── Space key → pan mode ──────────────────────────────────────────────────
   const [isSpacePressed, setIsSpacePressed] = useState(false);
@@ -444,13 +494,13 @@ export default function GraphView3D({
     if (link.status === 'faded') return 0;
     if (!hoveredNode) {
       if (apiNodes.length > 300) return 1;
-      if (apiNodes.length > 100) return 2;
-      return 3;
+      if (apiNodes.length > 100) return 1;
+      return 2;
     }
     const src = typeof link.source === 'object' ? (link.source as any).id : link.source;
     const tgt = typeof link.target === 'object' ? (link.target as any).id : link.target;
     const connected = src === hoveredNode.id || tgt === hoveredNode.id;
-    return connected ? 6 : 0;
+    return connected ? 3 : 0;
   }, [hoveredNode, apiNodes.length]);
 
   const handleCameraPositionChange = useCallback(() => {
@@ -567,6 +617,37 @@ export default function GraphView3D({
       doc.position.set(-r * 0.9, r * 0.9, 0);
       group.add(doc);
     }
+
+    // Particle-arrival pulse halo — billboard sprite so it's visible from any angle
+    const haloCanvas = document.createElement('canvas');
+    haloCanvas.width = 128; haloCanvas.height = 128;
+    const hCtx = haloCanvas.getContext('2d')!;
+    const sz = 128, cx2 = sz / 2;
+    // Ring gradient: transparent centre → bright ring peak → transparent edge
+    const grad = hCtx.createRadialGradient(cx2, cx2, sz * 0.25, cx2, cx2, sz * 0.5);
+    grad.addColorStop(0,    'rgba(255,255,255,0)');
+    grad.addColorStop(0.55, 'rgba(255,255,255,0.95)');
+    grad.addColorStop(0.75, 'rgba(255,255,255,0.4)');
+    grad.addColorStop(1.0,  'rgba(255,255,255,0)');
+    hCtx.fillStyle = grad;
+    hCtx.fillRect(0, 0, sz, sz);
+    const haloTex = new THREE.CanvasTexture(haloCanvas);
+    const haloMat = new THREE.SpriteMaterial({
+      map: haloTex,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+      color: new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.4),
+    });
+    const haloSprite = new THREE.Sprite(haloMat);
+    // r*8 → sprite diameter 8, ring visible at ~6r (outside outermost glow at r*3.2)
+    haloSprite.scale.setScalar(r * 8);
+    haloSprite.userData.haloBase = r * 8;
+    nodeHaloMatsRef.current.set(node.id, haloMat);
+    nodeHaloMeshRef.current.set(node.id, haloSprite);
+    group.add(haloSprite);
 
     // Label sprite (theme-aware stroke + fill, r-relative)
     const label = makeNodeSprite(
@@ -770,6 +851,23 @@ export default function GraphView3D({
               if (dofEnabled && composerRef.current) {
                 composerRef.current.render();
               }
+              // Drive particle-arrival glow pulses
+              const now = Date.now();
+              activePulsesRef.current.forEach((startTime, nodeId) => {
+                const mat  = nodeHaloMatsRef.current.get(nodeId);
+                const mesh = nodeHaloMeshRef.current.get(nodeId);
+                if (!mat || !mesh) { activePulsesRef.current.delete(nodeId); return; }
+                const t = Math.min(1, (now - startTime) / 900);
+                if (t >= 1) {
+                  mat.opacity = 0;
+                  mesh.scale.setScalar(mesh.userData.haloBase ?? 1);
+                  activePulsesRef.current.delete(nodeId);
+                } else {
+                  const base = mesh.userData.haloBase ?? 1;
+                  mesh.scale.setScalar(base * (1 + t * 2.0)); // expand 1× → 3× (r*8 → r*24)
+                  mat.opacity = 0.85 * (1 - t) * (1 - t);    // quadratic fade: 0.85 → 0
+                }
+              });
             }}
           />
         )}

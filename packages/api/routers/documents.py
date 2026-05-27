@@ -19,7 +19,7 @@ import uuid as _uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from pydantic import BaseModel
 
 from core.database import db_cursor
@@ -35,6 +35,7 @@ from services.documents import (
     delete_document_in_db,
     create_node_document_link,
     create_document_in_db,
+    create_url_document_in_db,
     get_existing_document,
 )
 
@@ -54,6 +55,12 @@ class DocumentLinkCreate(BaseModel):
     document_ids: list[str]
     paragraph_ref: Optional[str] = ""
     excerpt: Optional[str] = None
+
+
+class UrlDocumentCreate(BaseModel):
+    url: str
+    title: Optional[str] = None
+    node_id: Optional[str] = None  # attach to node immediately if given
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -76,6 +83,8 @@ async def upload_document_direct(
         require_ws_access(cur, ws_id, user, write=True)
 
     file_bytes = await file.read()
+    if len(file_bytes) > 30 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="File too large (max 30 MB)")
     content_hash = hashlib.sha256(file_bytes).hexdigest()
     filename = file.filename or "upload"
     mime_type = file.content_type or "application/octet-stream"
@@ -120,6 +129,34 @@ async def upload_document_direct(
             row = get_existing_document(cur, ws_id, content_hash)
 
     # Re-fetch with computed linked_node_count
+    with db_cursor() as cur:
+        full = get_document_in_db(cur, row["id"])
+    return dict(full)
+
+
+@router.post("/{ws_id}/documents/link-url", status_code=201)
+def attach_url_document(
+    ws_id: str,
+    body: UrlDocumentCreate,
+    user: dict = Depends(get_current_user),
+):
+    """Register an external URL as a document and optionally attach it to a node."""
+    if not body.url.startswith(("http://", "https://")):
+        raise HTTPException(status_code=422, detail="URL must start with http:// or https://")
+    with db_cursor(commit=True) as cur:
+        require_ws_access(cur, ws_id, user, write=True)
+        row = create_url_document_in_db(cur, ws_id, body.url, user["sub"], title=body.title)
+        if row is None:
+            import hashlib as _hl
+            ch = _hl.sha256(body.url.encode()).hexdigest()
+            row = get_existing_document(cur, ws_id, ch)
+        if body.node_id:
+            cur.execute(
+                "SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s",
+                (body.node_id, ws_id),
+            )
+            if cur.fetchone():
+                create_node_document_link(cur, body.node_id, row["id"])
     with db_cursor() as cur:
         full = get_document_in_db(cur, row["id"])
     return dict(full)
@@ -172,6 +209,11 @@ def download_document(
         if not doc or doc["workspace_id"] != ws_id:
             raise HTTPException(status_code=404, detail="Document not found")
         storage_path = doc["storage_path"]
+        source_url = doc.get("source_url")
+
+    # URL-only document — redirect to the external link
+    if not storage_path and source_url:
+        return RedirectResponse(url=source_url, status_code=302)
 
     if not storage.exists(storage_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
@@ -199,6 +241,13 @@ def preview_document(
             raise HTTPException(status_code=404, detail="Document not found")
         storage_path = doc["storage_path"]
         mime_type    = doc["mime_type"]
+
+    # URL-only documents have no file to preview
+    if not storage_path:
+        raise HTTPException(
+            status_code=415,
+            detail="Preview not available for URL-only documents.",
+        )
 
     if not storage.exists(storage_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
@@ -286,6 +335,25 @@ def get_node_source_docs(
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Node not found")
         return list(get_node_sources(cur, node_id))
+
+
+@router.delete("/{ws_id}/nodes/{node_id}/document-links/{doc_id}", status_code=204)
+def detach_document_from_node(
+    ws_id: str,
+    node_id: str,
+    doc_id: str,
+    user: dict = Depends(get_current_user),
+):
+    """Remove a document ↔ node link without deleting either record."""
+    with db_cursor(commit=True) as cur:
+        require_ws_access(cur, ws_id, user, write=True)
+        cur.execute(
+            """
+            DELETE FROM node_document_links
+            WHERE node_id = %s AND document_id = %s
+            """,
+            (node_id, doc_id),
+        )
 
 
 @router.post("/{ws_id}/nodes/{node_id}/document-links", status_code=201)

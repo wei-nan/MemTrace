@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
-import { Archive, Bot, Calendar, CheckCircle2, Compass, Copy, Edit3, History, Link as LinkIcon, RotateCcw, Save, Shield, Trash2, TriangleAlert, User, X } from "lucide-react";
-import { ai as aiApi, edges as edgesApi, nodes as nodesApi, review as reviewApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta, type ReviewItem } from "./api";
+import { Archive, Bot, Calendar, CheckCircle2, Compass, Copy, Edit3, ExternalLink, FileUp, History, Link as LinkIcon, Paperclip, RotateCcw, Save, Shield, Trash2, TriangleAlert, User, X } from "lucide-react";
+import { ai as aiApi, documents as documentsApi, edges as edgesApi, nodes as nodesApi, review as reviewApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta, type NodeSource, type ReviewItem } from "./api";
 import DiffPreviewModal from "./components/DiffPreviewModal";
 import { useModal } from "./components/ModalContext";
 import { Button, Input, Card } from "./components/ui";
@@ -113,6 +113,10 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const [archiving, setArchiving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [suggestedReviewItems, setSuggestedReviewItems] = useState<ReviewItem[]>([]);
+  const [nodeSources, setNodeSources] = useState<NodeSource[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [linkingUrl, setLinkingUrl] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
   const [voteAccuracy, setVoteAccuracy] = useState(5);
   const [voteUtility, setVoteUtility] = useState(5);
@@ -157,6 +161,11 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     setIsVoting(false);
     setVoteAccuracy(5);
     setVoteUtility(5);
+    setNodeSources([]);
+    setUrlInput('');
+    if (node?.id) {
+      documentsApi.getNodeSources(wsId, node.id).then(setNodeSources).catch(() => {});
+    }
   }, [wsId, node, isCreate]);
 
   const payload = useMemo(() => buildPayload({ title, contentType, format, body, tags, visibility }), [title, contentType, format, body, tags, visibility]);
@@ -391,7 +400,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: 22 }}>
+      <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: 22, minWidth: 0 }}>
         {tab === "history" && node ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {revisions.map((revision) => (
@@ -488,7 +497,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: 26 }}>{node?.title}</h1>
+              <h1 style={{ margin: 0, fontSize: 19, lineHeight: 1.4 }}>{node?.title}</h1>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                 <span className="tag"><Shield size={12} /> {t(`content_type.${node?.content_type}`, { defaultValue: node?.content_type })}</span>
                 {node?.content_type === 'inquiry' && node?.ask_count > 0 && (
@@ -529,7 +538,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               </div>
             )}
 
-            <div className="markdown-body" style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 10, border: "1px solid var(--border-default)" }}>
+            <div className="markdown-body" style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 10, border: "1px solid var(--border-default)", wordBreak: "break-word", overflowWrap: "anywhere", overflowX: "auto", minWidth: 0 }}>
               {isViewerLocked ? (
                 <div style={{ color: "var(--text-muted)" }}>{t('node.private_locked')}</div>
               ) : (
@@ -668,6 +677,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                         borderRadius: 10,
                         border: `1px solid ${otherId === sourceNodeId ? "var(--color-primary)" : "var(--border-default)"}`,
                         background: otherId === sourceNodeId ? "var(--color-primary-subtle)" : "var(--bg-surface)",
+                        color: "var(--text-primary)",
                         cursor: otherNode ? "pointer" : "default",
                       }}
                     >
@@ -734,6 +744,136 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 </div>
               )}
             </div>
+            {/* ── 原始資料附件 ─────────────────────────────────── */}
+            {node && (
+              <div>
+                <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <Paperclip size={16} /> {t("node.attachments", { defaultValue: "原始資料" })}
+                </div>
+
+                {/* Existing sources */}
+                {nodeSources.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                    {nodeSources.map(src => (
+                      <div key={src.id} style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "8px 10px", borderRadius: 8,
+                        border: "1px solid var(--border-default)",
+                        background: "var(--bg-surface)", fontSize: 13,
+                      }}>
+                        {src.source_url && !src.size_bytes ? (
+                          <ExternalLink size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                        ) : (
+                          <FileUp size={13} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+                        )}
+                        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {src.title || src.filename}
+                        </span>
+                        {src.size_bytes > 0 && (
+                          <span style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>
+                            {(src.size_bytes / 1024 / 1024).toFixed(1)} MB
+                          </span>
+                        )}
+                        <a
+                          href={src.source_url && !src.size_bytes ? src.source_url : documentsApi.contentUrl(wsId, src.id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "var(--color-primary)", fontSize: 11, flexShrink: 0 }}
+                        >
+                          {src.source_url && !src.size_bytes ? t("node.open_link", { defaultValue: "開啟" }) : t("node.download", { defaultValue: "下載" })}
+                        </a>
+                        {!isViewerLocked && (
+                          <button
+                            title={t("node.detach_doc", { defaultValue: "移除關聯" })}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2, flexShrink: 0, display: "flex", alignItems: "center" }}
+                            onClick={async () => {
+                              if (!node?.id) return;
+                              try {
+                                await documentsApi.detachFromNode(wsId, node.id, src.id);
+                                setNodeSources(prev => prev.filter(s => s.id !== src.id));
+                              } catch (err: any) {
+                                toast({ message: err.message ?? "Failed to detach", variant: "error" });
+                              }
+                            }}
+                          >
+                            <X size={13} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload file */}
+                {!isViewerLocked && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <label style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "8px 12px", borderRadius: 8, cursor: uploadingFile ? "default" : "pointer",
+                      border: "1px dashed var(--border-default)", fontSize: 13,
+                      color: "var(--text-muted)", background: "var(--bg-surface)",
+                      opacity: uploadingFile ? 0.6 : 1,
+                    }}>
+                      <FileUp size={14} />
+                      {uploadingFile ? t("node.uploading", { defaultValue: "上傳中…" }) : t("node.upload_file", { defaultValue: "附加檔案（最大 30 MB）" })}
+                      <input
+                        type="file"
+                        style={{ display: "none" }}
+                        disabled={uploadingFile}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !node?.id) return;
+                          setUploadingFile(true);
+                          try {
+                            const doc = await documentsApi.upload(wsId, file);
+                            await documentsApi.attachToNode(wsId, node.id, [doc.id]);
+                            const sources = await documentsApi.getNodeSources(wsId, node.id);
+                            setNodeSources(sources);
+                          } catch (err: any) {
+                            toast({ message: err.message ?? "Upload failed", variant: "error" });
+                          } finally {
+                            setUploadingFile(false);
+                            e.target.value = "";
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {/* Attach URL */}
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <Input
+                        value={urlInput}
+                        onChange={e => setUrlInput(e.target.value)}
+                        placeholder={t("node.url_placeholder", { defaultValue: "https://… 外部連結" })}
+                        style={{ flex: 1, fontSize: 13 }}
+                      />
+                      <Button
+                        variant="secondary"
+                        disabled={!urlInput.startsWith("http") || linkingUrl}
+                        loading={linkingUrl}
+                        onClick={async () => {
+                          if (!node?.id) return;
+                          setLinkingUrl(true);
+                          try {
+                            await documentsApi.linkUrl(wsId, urlInput, { nodeId: node.id });
+                            const sources = await documentsApi.getNodeSources(wsId, node.id);
+                            setNodeSources(sources);
+                            setUrlInput('');
+                          } catch (err: any) {
+                            toast({ message: err.message ?? "Failed to attach URL", variant: "error" });
+                          } finally {
+                            setLinkingUrl(false);
+                          }
+                        }}
+                      >
+                        {t("node.attach_url", { defaultValue: "附加" })}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: 10 }}>
               {!isViewerLocked && node && (
                 <Button

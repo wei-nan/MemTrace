@@ -95,6 +95,34 @@ def create_document_in_db(
     return cur.fetchone()
 
 
+def create_url_document_in_db(
+    cur,
+    workspace_id: str,
+    source_url: str,
+    uploaded_by: str,
+    title: Optional[str] = None,
+) -> dict:
+    """Insert a URL-only document (no file). content_hash = sha256(url)."""
+    import urllib.parse
+    doc_id = generate_id("doc")
+    content_hash = hashlib.sha256(source_url.encode()).hexdigest()
+    filename = urllib.parse.urlparse(source_url).netloc or source_url[:80]
+
+    cur.execute(
+        """
+        INSERT INTO documents (
+            id, workspace_id, filename, content_hash, mime_type,
+            size_bytes, storage_path, title, source_url, uploaded_by
+        )
+        VALUES (%s, %s, %s, %s, 'text/uri-list', 0, '', %s, %s, %s)
+        ON CONFLICT (workspace_id, content_hash) DO NOTHING
+        RETURNING *
+        """,
+        (doc_id, workspace_id, filename, content_hash, title, source_url, uploaded_by),
+    )
+    return cur.fetchone()
+
+
 def get_existing_document(cur, workspace_id: str, content_hash: str) -> Optional[dict]:
     """Return existing document by content hash within a workspace."""
     cur.execute(
@@ -182,8 +210,8 @@ def get_node_sources(cur, node_id: str) -> List[dict]:
     """Return documents linked to a node."""
     cur.execute(
         """
-        SELECT d.id, d.filename, d.title, d.mime_type, d.uploaded_at,
-               ndl.paragraph_ref, ndl.excerpt
+        SELECT d.id, d.filename, d.title, d.mime_type, d.size_bytes,
+               d.source_url, d.uploaded_at, ndl.paragraph_ref, ndl.excerpt
         FROM node_document_links ndl
         JOIN documents d ON d.id = ndl.document_id
         WHERE ndl.node_id = %s

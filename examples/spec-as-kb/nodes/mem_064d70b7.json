@@ -1,0 +1,50 @@
+{
+  "id": "mem_064d70b7",
+  "schema_version": "1.0",
+  "title": {
+    "zh-TW": "Phase 4 P4-G：自管 Ollama Provider 規劃決策",
+    "en": "Phase 4 P4-G: Self-hosted Ollama Provider Planning Decisions"
+  },
+  "content": {
+    "type": "preference",
+    "format": "markdown",
+    "body": {
+      "zh-TW": "**決策日期：** 2026-04-27\n**狀態：** 已寫入 `docs/dev/phase4-plan.md`，等待實作排程\n**原因：** 與 P4-F「代管 AI 額度」互補，形成「免費代管／付費代管／完全自管」三層商業模式；同時呼應 MemTrace「知識主權」哲學，讓 token 不離開使用者環境。\n\n## 六項已敲定的設計決策\n\n| # | 決策點 | 採用方案 |\n|---|--------|---------|\n| 1 | API 風格 | OpenAI 相容端點（`/v1/chat/completions`、`/v1/embeddings`），最大化複用既有 `OpenAIProvider` |\n| 2 | 連線範圍 | per-user：與 `user_ai_keys` 同層級；多人共用工作區時各自連各自的 |\n| 3 | 認證模式 | None / Bearer 雙支援：個人本機無認證、reverse proxy 後加 token |\n| 4 | 模型發現 | 自動列表（呼叫 Ollama `/api/tags`）+ 手動 fallback |\n| 5 | Embedding 維度 | 沿用既有規則：工作區建立時鎖定 `embedding_dim`，使用者選擇 Ollama embedding 模型時 UI 顯示維度提示 |\n| 6 | 網路可達性 | 文件化三情境（本機 host network / LAN / reverse proxy），不在程式碼鎖定 |\n\n## 關鍵任務（節錄）\n\n- **DB**：Migration `024_ollama_provider.sql`，`user_ai_keys` 新增 `base_url` / `auth_mode` / `auth_token` 三欄\n- **API/Core**：`OllamaProvider` 繼承 `OpenAIProvider`，新增 `test-connection` 與 `models` 兩個端點\n- **UI**：Settings → AI Provider 第四張卡片；新色票 `--ai-ollama: #6B7280`（暗）/ `#374151`（亮）\n- **Docs**：新建 `docs/dev/ollama-deployment.md`；SPEC.md §16 表格新增一列\n\n## 排程與依賴\n\n- 與 P4-D（CLI 殘留）並行，不卡介紹現場\n- 唯一前置：現有 `AIProvider` Protocol（已就位）\n- 與 P4-A 共享 `mcp_query_logs.provider` 欄位（A 落地時請順手加上）\n\n## 主要風險\n\n地端小模型（< 8B、低於 Q5 量化）的 JSON 格式幻覺率偏高，會增加 Review Queue 的拒絕率；緩解策略包括 UI 提示、Review Queue 顯示來源 model、後續用 `mcp_query_logs` 累積品質訊號做雲端 vs 地端比較報表。",
+      "en": "**Decision date:** 2026-04-27\n**Status:** Recorded in `docs/dev/phase4-plan.md`, awaiting implementation scheduling.\n**Why:** Complements P4-F (managed AI credits) to form a three-tier business model (free managed / paid managed / fully self-hosted), and aligns with MemTrace's \"knowledge sovereignty\" philosophy by keeping tokens inside the user's environment.\n\n## Six finalized design decisions\n\n| # | Decision | Choice |\n|---|---------|--------|\n| 1 | API style | OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/embeddings`) — maximizes reuse of existing `OpenAIProvider` |\n| 2 | Connection scope | per-user: same layer as `user_ai_keys`; each member of a shared workspace connects to their own Ollama |\n| 3 | Auth mode | both none and Bearer: localhost without auth, reverse-proxied with token |\n| 4 | Model discovery | auto-list via Ollama `/api/tags` + manual fallback |\n| 5 | Embedding dimension | follow existing rule: workspace `embedding_dim` is locked at creation; UI shows the dim hint when user picks an Ollama embedding model |\n| 6 | Network reachability | documented (local host network / LAN / reverse proxy), not hard-coded in source |\n\n## Key tasks (excerpt)\n\n- **DB**: migration `024_ollama_provider.sql` adds `base_url`, `auth_mode`, `auth_token` to `user_ai_keys`\n- **API/Core**: `OllamaProvider` extends `OpenAIProvider`; two new endpoints (`test-connection`, `models`)\n- **UI**: fourth card in Settings → AI Provider; new color token `--ai-ollama: #6B7280` (dark) / `#374151` (light)\n- **Docs**: new `docs/dev/ollama-deployment.md`; SPEC.md §16 provider table gains a row\n\n## Schedule & dependencies\n\n- Runs in parallel with P4-D (CLI residuals); does not block the demo\n- Only prerequisite: the existing `AIProvider` Protocol (already in place)\n- Shared with P4-A: the `mcp_query_logs.provider` column should be added when A lands so G can use it without further DB changes\n\n## Main risk\n\nSmall local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON schema, raising Review Queue rejection rates. Mitigations: UI hint to use ≥ 8B / Q5+, Review Queue surfaces the source provider/model, and longer-term `mcp_query_logs` lets the Analytics page show a cloud-vs-local extraction success-rate comparison."
+    }
+  },
+  "tags": [
+    "phase-4",
+    "ollama",
+    "ai-provider",
+    "knowledge-sovereignty",
+    "planning",
+    "roadmap",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-04-27T13:20:55.037625+00:00",
+    "signature": "9a07537effbb587826c7d8e3b6a303f1dd6274459d91c1d45db99427c5bc5fd3",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.925,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 0.908,
+      "utility": 0.98,
+      "author_rep": 0.929
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 12,
+    "unique_traversers": 1
+  }
+}
