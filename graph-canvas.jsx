@@ -12,6 +12,9 @@ const TYPE_COLORS = {
   rose:    "var(--c-rose)",
 };
 
+// Audit severity colour map (shared with graph-3d.jsx)
+const AUDIT_SEV_COLOR_2D = { high: "#f59e0b", mid: "#fbbf24", low: "#38bdf8" };
+
 function GraphCanvas({
   data, search, activeClusters, edgeKinds,
   selected, setSelected, hovered, setHovered, density, showHalos, showEdgeLabels
@@ -248,6 +251,32 @@ function GraphCanvas({
                     strokeWidth={isSelected || isFocus ? 2 : 1.3}
                   />
                   <circle r={r * 0.36} fill={color} opacity={isSelected ? 0.0 : 0.85} />
+
+                  {/* ── Audit badge (T21 / T22) ── */}
+                  {n.audit_max_severity && (() => {
+                    const sev = n.audit_max_severity;
+                    const bColor = AUDIT_SEV_COLOR_2D[sev] || "#94a3b8";
+                    const bx = r * 0.75, by = -r * 0.75;
+                    const br = Math.max(5, r * 0.5);
+                    const unread = n.audit_unread_count > 0;
+                    return (
+                      <g>
+                        {unread && (
+                          <circle
+                            cx={bx} cy={by}
+                            fill={bColor} opacity={0.5}
+                            className="audit-pulse"
+                            style={{ "--pr": `${br + 4}px` }}
+                            r={br + 4}
+                          />
+                        )}
+                        <circle cx={bx} cy={by} r={br} fill={bColor} opacity={unread ? 0.95 : 0.5} />
+                        <text x={bx} y={by + br * 0.42}
+                          textAnchor="middle" fontSize={br * 1.15}
+                          fontWeight="700" fill="#1e293b">⚠</text>
+                      </g>
+                    );
+                  })()}
 
                   {label && (
                     <g transform={`translate(0 ${r + 10})`}>

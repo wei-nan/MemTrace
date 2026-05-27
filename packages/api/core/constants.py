@@ -33,6 +33,7 @@ VALID_CONTENT_T: frozenset = frozenset({
     "context",
     "inquiry",
     "document",         # P61-T01: document node (first-class in graph)
+    "gap",              # Phase 6.2: gap node for knowledge gaps
 })
 
 VALID_KB_VIS: frozenset = frozenset({

@@ -9,6 +9,23 @@ function rgbToCss([r, g, b], factor = 1) {
   return `rgb(${Math.round(r*f)}, ${Math.round(g*f)}, ${Math.round(b*f)})`;
 }
 
+// Audit severity -> colour map
+const AUDIT_SEV_COLOR = { high: "#f59e0b", mid: "#fbbf24", low: "#38bdf8" };
+
+// Inject pulse keyframes once
+if (!document.getElementById("audit-pulse-style")) {
+  const s = document.createElement("style");
+  s.id = "audit-pulse-style";
+  s.textContent = `
+    @keyframes auditPulse {
+      0%,100% { opacity: 0.55; r: var(--pr); }
+      50%      { opacity: 0.90; r: calc(var(--pr) * 1.35); }
+    }
+    .audit-pulse { animation: auditPulse 2.2s ease-in-out infinite; }
+  `;
+  document.head.appendChild(s);
+}
+
 function simulate3D(nodes, edges, opts = {}) {
   const { iterations = 280, k = 28, c = 800, gravity = 0.04, damping = 0.85 } = opts;
   let seed = 1337;
@@ -290,6 +307,30 @@ function GraphCanvas3D({
                 )}
                 <circle r={r} fill={color} opacity={0.88} />
                 <circle r={r * 0.45} cx={-r * 0.18} cy={-r * 0.18} fill="white" opacity="0.32" />
+                {/* ── Audit badge (T21 / T22) ── */}
+                {n.audit_max_severity && (() => {
+                  const sev = n.audit_max_severity;
+                  const badgeColor = AUDIT_SEV_COLOR[sev] || "#94a3b8";
+                  const bx = r * 0.7, by = -r * 0.7;
+                  const br = Math.max(4, r * 0.45);
+                  const unread = n.audit_unread_count > 0;
+                  return (
+                    <g>
+                      {unread && (
+                        <circle
+                          cx={bx} cy={by} fill={badgeColor} opacity={0.55}
+                          className="audit-pulse"
+                          style={{ "--pr": `${br + 3}px` }}
+                          r={br + 3}
+                        />
+                      )}
+                      <circle cx={bx} cy={by} r={br} fill={badgeColor} opacity={unread ? 1 : 0.55} />
+                      <text x={bx} y={by + br * 0.38}
+                        textAnchor="middle" fontSize={br * 1.1}
+                        fontWeight="700" fill="#1e293b">⚠</text>
+                    </g>
+                  );
+                })()}
                 {showLabel && (
                   <text y={r + 12} textAnchor="middle"
                     fontSize={Math.max(9, 10 * p.scale)}

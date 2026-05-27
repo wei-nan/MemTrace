@@ -143,6 +143,8 @@ TOOLS = [
             "properties": {
                 "workspace_id": {"type": "string", "description": "Workspace ID"},
                 "node_id": {"type": "string"},
+                "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
+                "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
             },
             "required": ["workspace_id", "node_id"],
         },
@@ -156,6 +158,8 @@ TOOLS = [
                 "workspace_id": {"type": "string", "description": "Workspace ID"},
                 "query": {"type": "string", "description": "Search query"},
                 "limit": {"type": "integer", "description": "Max results (default 20)"},
+                "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
+                "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
             },
             "required": ["workspace_id", "query"],
         },
@@ -248,6 +252,8 @@ TOOLS = [
                 "node_id": {"type": "string", "description": "Starting node ID"},
                 "depth": {"type": "integer", "description": "Max traversal depth (default 2)"},
                 "relation": {"type": "string", "description": "Filter by relation type (optional)"},
+                "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
+                "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
             },
             "required": ["workspace_id", "node_id"],
         },
@@ -477,7 +483,235 @@ TOOLS = [
             "required": ["workspace_id", "filename", "content_base64"],
         },
     },
+    {
+        "name": "record_path",
+        "description": "Record an agent inquiry session exploration path including query text, node sequence, and outcome.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "query_text": {"type": "string", "description": "The search query that started the exploration"},
+                "node_sequence": {"type": "array", "items": {"type": "string"}, "description": "List of node IDs visited during the exploration"},
+                "outcome": {"type": "string", "enum": ["success", "partial", "failed", "gap"], "description": "Exploration result outcome"},
+                "started_at": {"type": "string", "description": "ISO datetime string when the exploration session started"},
+                "token_used": {"type": "integer", "description": "Approximate token count consumed (optional)"},
+                "rating": {"type": "integer", "description": "Optional human rating or agent rating of the path usefulness"},
+                "metadata": {"type": "object", "description": "Arbitrary metadata associated with the path (optional)"},
+            },
+            "required": ["workspace_id", "query_text", "node_sequence", "outcome", "started_at"],
+        },
+    },
+    {
+        "name": "search_with_history",
+        "description": "Search for highly similar past inquiry paths to reuse or replay successful exploration trajectories.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "query_text": {"type": "string", "description": "The search query to match against history"},
+                "similarity_threshold": {"type": "number", "description": "Minimum similarity score 0.0-1.0 (default 0.85)"},
+                "limit": {"type": "integer", "description": "Max results to return (default 3)"},
+            },
+            "required": ["workspace_id", "query_text"],
+        },
+    },
 ]
+
+# ─── Token Budget & Detail Level Helpers ──────────────────────────────────────
+USER_CAPABILITIES: dict[str, dict] = {}
+LEVEL_ORDER = ["full", "brief", "probe"]
+
+try:
+    import tiktoken
+    _encoder = tiktoken.get_encoding("cl100k_base")
+    def estimate_tokens(text: str) -> int:
+        return len(_encoder.encode(text))
+except Exception:
+    def estimate_tokens(text: str) -> int:
+        return len(text) // 4 + 1
+
+def serialize_and_estimate_tokens(obj: Any) -> tuple[str, int]:
+    serialized_str = json.dumps(serialize(obj), ensure_ascii=False)
+    return serialized_str, estimate_tokens(serialized_str)
+
+def get_default_detail_level(user_sub: Optional[str]) -> str:
+    if not user_sub:
+        return "brief"
+    cap = USER_CAPABILITIES.get(user_sub, {})
+    model_size = cap.get("model_size", "medium")
+    if model_size == "small":
+        return "probe"
+    elif model_size == "large":
+        return "full"
+    return "brief"
+
+def optimize_node_response(cur, ws_id: str, node: dict, initial_level: str, max_tokens: Optional[int]) -> dict:
+    from services.node_projection import project_node, get_node_top_edges
+    
+    top_edges = get_node_top_edges(cur, ws_id, node["id"])
+    
+    current_level = initial_level
+    level_idx = LEVEL_ORDER.index(current_level) if current_level in LEVEL_ORDER else 1
+    
+    projected = None
+    while level_idx < len(LEVEL_ORDER):
+        lvl = LEVEL_ORDER[level_idx]
+        projected = project_node(node, lvl, top_edges)
+        if max_tokens is None:
+            return projected
+        
+        _, token_count = serialize_and_estimate_tokens(projected)
+        if token_count <= max_tokens:
+            return projected
+        
+        level_idx += 1
+        
+    original_size = serialize_and_estimate_tokens(projected)[1]
+    
+    if "top_edges" in projected and projected["top_edges"]:
+        projected = dict(projected)
+        projected["top_edges"] = []
+        _, token_count = serialize_and_estimate_tokens(projected)
+        if token_count <= max_tokens:
+            projected["truncated"] = True
+            projected["original_size"] = original_size
+            return projected
+            
+    if "tags" in projected and projected["tags"]:
+        projected = dict(projected)
+        projected["tags"] = []
+        _, token_count = serialize_and_estimate_tokens(projected)
+        if token_count <= max_tokens:
+            projected["truncated"] = True
+            projected["original_size"] = original_size
+            return projected
+            
+    if "summary_1line" in projected and len(projected["summary_1line"]) > 10:
+        projected = dict(projected)
+        summary = projected["summary_1line"]
+        while len(summary) > 10:
+            summary = summary[:-10]
+            projected["summary_1line"] = summary + "..."
+            _, token_count = serialize_and_estimate_tokens(projected)
+            if token_count <= max_tokens:
+                projected["truncated"] = True
+                projected["original_size"] = original_size
+                return projected
+                
+    min_node = {
+        "id": node.get("id"),
+        "title": node.get("title"),
+        "truncated": True,
+        "original_size": original_size
+    }
+    return min_node
+
+def optimize_nodes_list_response(cur, ws_id: str, nodes: list[dict], initial_level: str, max_tokens: Optional[int]) -> Any:
+    from services.node_projection import project_node, get_node_top_edges
+    
+    if not nodes:
+        return []
+        
+    current_level = initial_level
+    level_idx = LEVEL_ORDER.index(current_level) if current_level in LEVEL_ORDER else 1
+    
+    projected_list = []
+    while level_idx < len(LEVEL_ORDER):
+        lvl = LEVEL_ORDER[level_idx]
+        projected_list = []
+        for n in nodes:
+            top_edges = get_node_top_edges(cur, ws_id, n["id"]) if lvl in ('probe', 'brief') else None
+            projected_list.append(project_node(n, lvl, top_edges))
+            
+        if max_tokens is None:
+            return projected_list
+            
+        _, token_count = serialize_and_estimate_tokens(projected_list)
+        if token_count <= max_tokens:
+            return projected_list
+            
+        level_idx += 1
+        
+    original_size = serialize_and_estimate_tokens(projected_list)[1]
+    
+    while len(projected_list) > 1:
+        projected_list.pop()
+        resp = {
+            "results": projected_list,
+            "truncated": True,
+            "original_size": original_size
+        }
+        _, token_count = serialize_and_estimate_tokens(resp)
+        if token_count <= max_tokens:
+            return resp
+            
+    min_single_node = optimize_node_response(cur, ws_id, nodes[0], "probe", max_tokens)
+    return {
+        "results": [min_single_node],
+        "truncated": True,
+        "original_size": original_size
+    }
+
+def optimize_traverse_response(cur, ws_id: str, traverse_result: dict, initial_level: str, max_tokens: Optional[int]) -> dict:
+    from services.node_projection import project_node, get_node_top_edges
+    
+    nodes = traverse_result.get("nodes", [])
+    edges = traverse_result.get("edges", [])
+    orig_truncated = traverse_result.get("truncated", False)
+    
+    current_level = initial_level
+    level_idx = LEVEL_ORDER.index(current_level) if current_level in LEVEL_ORDER else 1
+    
+    projected_result = {}
+    
+    while level_idx < len(LEVEL_ORDER):
+        lvl = LEVEL_ORDER[level_idx]
+        projected_nodes = []
+        for n in nodes:
+            top_edges = get_node_top_edges(cur, ws_id, n["id"]) if lvl in ('probe', 'brief') else None
+            projected_nodes.append(project_node(n, lvl, top_edges))
+            
+        projected_result = {
+            "nodes": projected_nodes,
+            "edges": edges,
+            "truncated": orig_truncated,
+            "total_nodes": len(projected_nodes)
+        }
+        
+        if max_tokens is None:
+            return projected_result
+            
+        _, token_count = serialize_and_estimate_tokens(projected_result)
+        if token_count <= max_tokens:
+            return projected_result
+            
+        level_idx += 1
+        
+    original_size = serialize_and_estimate_tokens(projected_result)[1]
+    
+    if edges:
+        projected_result["edges"] = []
+        projected_result["truncated"] = True
+        projected_result["original_size"] = original_size
+        _, token_count = serialize_and_estimate_tokens(projected_result)
+        if token_count <= max_tokens:
+            return projected_result
+            
+    p_nodes = projected_result["nodes"]
+    while len(p_nodes) > 1:
+        p_nodes.pop()
+        projected_result["nodes"] = p_nodes
+        projected_result["truncated"] = True
+        projected_result["original_size"] = original_size
+        _, token_count = serialize_and_estimate_tokens(projected_result)
+        if token_count <= max_tokens:
+            return projected_result
+            
+    min_single_node = optimize_node_response(cur, ws_id, nodes[0], "probe", max_tokens)
+    projected_result["nodes"] = [min_single_node]
+    projected_result["truncated"] = True
+    projected_result["original_size"] = original_size
+    return projected_result
 
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
     # ── list_workspaces ───────────────────────────────────────────────────────
@@ -499,10 +733,15 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
     if name == "get_node":
         ws_id   = args["workspace_id"]
         node_id = args["node_id"]
+        detail_level = args.get("detail_level") or get_default_detail_level(user.get("sub"))
+        max_tokens = args.get("max_response_tokens")
+        if max_tokens is not None:
+            max_tokens = int(max_tokens)
         with db_cursor() as cur:
             node = get_node_in_db(cur, ws_id, node_id, user)
             if node:
                 log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+                return optimize_node_response(cur, ws_id, node, detail_level, max_tokens)
             return node
 
     # ── search_nodes ──────────────────────────────────────────────────────────
@@ -510,6 +749,10 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         query = args.get("query", "")
         limit = min(int(args.get("limit", 20)), 100)
+        detail_level = args.get("detail_level") or get_default_detail_level(user.get("sub"))
+        max_tokens = args.get("max_response_tokens")
+        if max_tokens is not None:
+            max_tokens = int(max_tokens)
         with db_cursor() as cur:
             results = await search_nodes_in_db(cur, ws_id, query, limit, user)
             if not results and query:
@@ -518,6 +761,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 log_mcp_interaction(background_tasks, ws_id, name, query_text=query, result_count=len(results))
                 for r in results[:3]:
                     background_tasks.add_task(write_mcp_interaction_edge, ws_id, r["id"], name, query)
+                results = optimize_nodes_list_response(cur, ws_id, results, detail_level, max_tokens)
             return results
 
     # ── search_cross_workspace ────────────────────────────────────────────────
@@ -635,6 +879,10 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id     = args["workspace_id"]
         root_id   = args["node_id"]
         depth     = min(int(args.get("depth", 2)), 4)
+        detail_level = args.get("detail_level") or get_default_detail_level(user.get("sub"))
+        max_tokens = args.get("max_response_tokens")
+        if max_tokens is not None:
+            max_tokens = int(max_tokens)
         with db_cursor() as cur:
             workspace = require_ws_access(cur, ws_id, user, write=False)
             viewer_role = get_effective_role(cur, ws_id, workspace["owner_id"], user["sub"])
@@ -647,7 +895,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 viewer_role=viewer_role,
             )
             log_mcp_interaction(background_tasks, ws_id, name, node_id=root_id)
-            return result
+            return optimize_traverse_response(cur, ws_id, result, detail_level, max_tokens)
 
     # ── list_by_tag ───────────────────────────────────────────────────────────
     if name == "list_by_tag":
@@ -1002,6 +1250,27 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
         return result
 
+    # ── record_path ───────────────────────────────────────────────────────────
+    if name == "record_path":
+        ws_id = args["workspace_id"]
+        from services.inquiry_paths import record_path_in_db
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+            res = await record_path_in_db(cur, ws_id, user["sub"], args)
+            return res
+
+    # ── search_with_history ───────────────────────────────────────────────────
+    if name == "search_with_history":
+        ws_id = args["workspace_id"]
+        query_text = args["query_text"]
+        similarity_threshold = float(args.get("similarity_threshold", 0.85))
+        limit = int(args.get("limit", 3))
+        from services.inquiry_paths import search_with_history_in_db
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+            res = await search_with_history_in_db(cur, ws_id, query_text, similarity_threshold, limit, user["sub"])
+            return res
+
     raise ValueError(f"Unknown tool: {name}")
 
 async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks) -> dict:
@@ -1011,15 +1280,200 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks)
 
     try:
         if method == "initialize":
-             return jsonrpc_ok(msg_id, {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "memtrace", "version": "1.0.0"}})
+             user_sub = user.get("sub")
+             if user_sub:
+                 client_capabilities = params.get("capabilities", {})
+                 model_size = client_capabilities.get("model_size") or params.get("model_size")
+                 context_limit = client_capabilities.get("context_limit") or params.get("context_limit")
+                 prefer_format = client_capabilities.get("prefer_format") or params.get("prefer_format")
+                 
+                 USER_CAPABILITIES[user_sub] = {
+                     "model_size": model_size or "medium",
+                     "context_limit": context_limit or 8192,
+                     "prefer_format": prefer_format or "json"
+                 }
+             return jsonrpc_ok(msg_id, {
+                 "protocolVersion": "2024-11-05", 
+                 "capabilities": {
+                     "tools": {},
+                     "resources": {}
+                 }, 
+                 "serverInfo": {
+                     "name": "memtrace", 
+                     "version": "1.0.0"
+                 }
+             })
+             
         if method == "tools/list":
              return jsonrpc_ok(msg_id, {"tools": TOOLS})
+             
         if method == "tools/call":
              tool_name = params.get("name")
              tool_args = params.get("arguments", {})
              logger.warning(f"MCP Call: {tool_name} with args {tool_args}")
              result = await execute_tool(tool_name, tool_args, user, background_tasks)
              return jsonrpc_ok(msg_id, {"content": [{"type": "text", "text": json.dumps(serialize(result), indent=2, ensure_ascii=False)}]})
+
+        # ── Markdown Resource Handlers (A2-T03) ──────────────────────────────────
+        if method == "resources/list":
+             return jsonrpc_ok(msg_id, {"resources": []})
+
+        if method == "resources/templates/list":
+             return jsonrpc_ok(msg_id, {
+                 "resourceTemplates": [
+                     {
+                         "uriTemplate": "memtrace://node/{id}",
+                         "name": "Node Markdown",
+                         "description": "Concise Markdown of a knowledge node by ID.",
+                         "mimeType": "text/markdown"
+                     },
+                     {
+                         "uriTemplate": "memtrace://workspace/{workspace_id}/summary",
+                         "name": "Workspace Summary",
+                         "description": "Overview of a workspace.",
+                         "mimeType": "text/markdown"
+                     }
+                 ]
+             })
+
+        if method == "resources/read":
+             uri = params.get("uri", "")
+             
+             node_match = re.match(r"^memtrace://node/([^/]+)$", uri)
+             if node_match:
+                 node_id = node_match.group(1)
+                 with db_cursor() as cur:
+                     from services.workspaces import list_workspaces_in_db
+                     workspaces = list_workspaces_in_db(cur, search=None, user=user)
+                     ws_ids = [w["id"] for w in workspaces]
+                     
+                     cur.execute(
+                         "SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = ANY(%s) AND status = 'active'",
+                         (node_id, ws_ids)
+                     )
+                     node = cur.fetchone()
+                     if not node:
+                         return jsonrpc_error(msg_id, -32602, f"Node {node_id} not found or no access")
+                         
+                     cur.execute(
+                         """
+                         SELECT e.relation, e.from_id, e.to_id, 
+                                n.title AS target_title, n.id AS target_id
+                         FROM edges e
+                         JOIN memory_nodes n ON n.id = CASE WHEN e.from_id = %s THEN e.to_id ELSE e.from_id END
+                         WHERE e.workspace_id = %s AND e.status = 'active' AND (e.from_id = %s OR e.to_id = %s)
+                         """,
+                         (node_id, node["workspace_id"], node_id, node_id)
+                     )
+                     edges = cur.fetchall()
+                     
+                     depends_on_list = []
+                     extends_list = []
+                     contradicts_list = []
+                     
+                     for e in edges:
+                         link = f"[{e['target_title']}](memtrace://node/{e['target_id']})"
+                         if e["from_id"] == node_id and e["relation"] == "depends_on":
+                             depends_on_list.append(link)
+                         elif e["relation"] == "extends":
+                             extends_list.append(link)
+                         elif e["relation"] == "contradicts":
+                             contradicts_list.append(link)
+                             
+                     depends_str = ", ".join(depends_on_list) if depends_on_list else "無"
+                     extends_str = ", ".join(extends_list) if extends_list else "無"
+                     contradicts_str = ", ".join(contradicts_list) if contradicts_list else "無"
+                     
+                     body = node.get("body") or ""
+                     body_excerpt = body[:300] + ("..." if len(body) > 300 else "")
+                     
+                     tags_str = ", ".join(node.get("tags") or []) if node.get("tags") else "無"
+                     
+                     markdown_content = f"""# {node['title']}
+
+**類型**：{node['content_type']} ｜ **信任**：{node['trust_score'] or 0.0} ｜ **標籤**：{tags_str}
+
+{body_excerpt}
+
+## 關聯
+- **依賴**：{depends_str}
+- **延伸**：{extends_str}
+- **矛盾**：{contradicts_str}
+"""
+                     return jsonrpc_ok(msg_id, {
+                         "contents": [
+                             {
+                                 "uri": uri,
+                                 "mimeType": "text/markdown",
+                                 "text": markdown_content
+                             }
+                         ]
+                     })
+                     
+             ws_match = re.match(r"^memtrace://workspace/([^/]+)/summary$", uri)
+             if ws_match:
+                 ws_id = ws_match.group(1)
+                 with db_cursor() as cur:
+                     from services.workspaces import require_ws_access
+                     workspace = require_ws_access(cur, ws_id, user, write=False)
+                     
+                     cur.execute("SELECT COUNT(*) as count FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+                     nodes_count = cur.fetchone()["count"]
+                     
+                     cur.execute("SELECT COUNT(*) as count FROM edges WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+                     edges_count = cur.fetchone()["count"]
+                     
+                     cur.execute("SELECT tags FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+                     rows = cur.fetchall()
+                     import collections
+                     tag_counter = collections.Counter()
+                     for r in rows:
+                         if r["tags"]:
+                             tag_counter.update(r["tags"])
+                             
+                     most_common_tags = tag_counter.most_common(10)
+                     tags_summary = "\n".join([f"- **{t}** (出現 {c} 次)" for t, c in most_common_tags]) if most_common_tags else "無標籤"
+                     
+                     cur.execute(
+                         "SELECT id, title, content_type, created_at FROM memory_nodes WHERE workspace_id = %s AND status = 'active' ORDER BY created_at DESC LIMIT 5",
+                         (ws_id,)
+                     )
+                     latest_nodes = cur.fetchall()
+                     latest_nodes_list = ""
+                     for ln in latest_nodes:
+                         created_str = ln["created_at"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(ln["created_at"], datetime.datetime) else str(ln["created_at"])
+                         latest_nodes_list += f"- [{ln['title']}](memtrace://node/{ln['id']}) ({ln['content_type']}) - {created_str}\n"
+                         
+                     if not latest_nodes_list:
+                         latest_nodes_list = "無節點"
+                         
+                     created_at_str = workspace["created_at"].strftime("%Y-%m-%d") if isinstance(workspace["created_at"], datetime.datetime) else str(workspace["created_at"])
+                     
+                     markdown_content = f"""# Workspace 概覽：{workspace['name']}
+
+**語言**：{workspace.get('language') or 'zh-TW'} ｜ **創立時間**：{created_at_str}
+
+## 統計資訊
+- **節點總數**：{nodes_count}
+- **關聯總數**：{edges_count}
+
+## 主要標籤 (Tags)
+{tags_summary}
+
+## 最新節點 (前 5 筆)
+{latest_nodes_list}
+"""
+                     return jsonrpc_ok(msg_id, {
+                         "contents": [
+                             {
+                                 "uri": uri,
+                                 "mimeType": "text/markdown",
+                                 "text": markdown_content
+                             }
+                         ]
+                     })
+                     
+             return jsonrpc_error(msg_id, -32602, f"Unknown resource URI: {uri}")
         
         return jsonrpc_error(msg_id, -32601, f"Method not found: {method}")
     except Exception as e:

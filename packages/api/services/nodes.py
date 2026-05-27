@@ -143,7 +143,9 @@ def prepare_node_data(
     payload["dim_author_rep"] = data.get("dim_author_rep") or _initial_author_rep(payload["source_type"], status)
 
     # Compute initial trust_score
-    if payload["source_type"] in ("ai", "mcp"):
+    if data.get("content_type") == "gap":
+        payload["trust_score"] = data.get("trust_score", 0.3)
+    elif payload["source_type"] in ("ai", "mcp"):
         # P5-S2-T02: AI nodes default to 0.65 trust until verified
         payload["trust_score"] = 0.65
     else:
@@ -454,6 +456,7 @@ def propose_change(
             "signature": prepared["signature"],
             "copied_from_node": payload.get("copied_from_node"),
             "copied_from_ws": payload.get("copied_from_ws"),
+            "trust_score": prepared.get("trust_score"),
         }
 
     diff_summary = build_node_diff(before_snapshot, after_snapshot, change_type)

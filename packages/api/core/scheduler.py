@@ -4,6 +4,13 @@ from typing import Callable, Coroutine, Any
 
 logger = logging.getLogger(__name__)
 
+
+def _wrap_sync(fn: Callable) -> Callable[[], Coroutine[Any, Any, None]]:
+    """將同步函式包裝成 async coroutine，方便傳入 register_loop。"""
+    async def _wrapper():
+        fn()
+    return _wrapper
+
 class Scheduler:
     def __init__(self):
         self._tasks = []
@@ -44,7 +51,9 @@ class Scheduler:
         from jobs.cleanup import cleanup_job, CLEANUP_INTERVAL_SECONDS, deletion_notification_job
         from jobs.ingest  import stale_ingest_job, STALE_INGEST_CHECK_INTERVAL_SECONDS
         from jobs.backup  import backup_job, BACKUP_CHECK_INTERVAL_SECONDS
-        from core.audit   import audit_writer_loop
+        from jobs.path_reinforcement import path_reinforcement_job, PATH_REINFORCEMENT_INTERVAL_SECONDS
+        from jobs.audit_reviewers    import audit_reviewers_job
+        from core.audit              import audit_writer_loop
 
         self.register_loop("decay",           decay_job,           DECAY_INTERVAL_SECONDS)
         self.register_loop("ephemeral_decay", ephemeral_decay_job, EPHEMERAL_DECAY_INTERVAL_SECONDS)
@@ -52,10 +61,10 @@ class Scheduler:
         self.register_loop("deletion_notify", deletion_notification_job, DECAY_INTERVAL_SECONDS)
         self.register_loop("backup",          backup_job,          BACKUP_CHECK_INTERVAL_SECONDS)
         self.register_loop("stale_ingest",    stale_ingest_job,    STALE_INGEST_CHECK_INTERVAL_SECONDS)
+        self.register_loop("path_reinforcement", path_reinforcement_job, PATH_REINFORCEMENT_INTERVAL_SECONDS)
+        self.register_loop("audit_reviewers", _wrap_sync(audit_reviewers_job), 86400)  # daily
         
-        # audit_writer_loop is special because it has internal while True and queue.
-        # We still register it but with a very long interval or we'll need to refactor it.
-        # For now, register it as is.
+        # audit_writer_loop 內部含 while True 與 queue，interval 設為 5s 作為心跳。
         self.register_loop("audit_writer",    audit_writer_loop,   5)
 
 # Global instance

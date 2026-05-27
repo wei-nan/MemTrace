@@ -214,29 +214,53 @@ async def handle_search_miss(ws_id: str, query_text: str, user_id: str):
         return
 
     with db_cursor(commit=True) as cur:
+        # Check if a highly similar active gap node (similarity >= 0.90) or legacy gap exists
         cur.execute(
             """SELECT id FROM memory_nodes 
                WHERE workspace_id = %s 
-                 AND status = 'gap'
-                 AND content_type = 'inquiry'
-                 AND embedding <=> %s::vector < 0.1
+                 AND (
+                   (status = 'active' AND content_type = 'gap') OR
+                   (status = 'gap' AND content_type = 'inquiry')
+                 )
+                 AND (embedding <=> %s::vector) <= 0.10
                LIMIT 1""",
             (ws_id, vector),
         )
         if cur.fetchone():
             return
             
-        node_id = generate_id("node")
+        # Check if a pending review item with source = 'search-miss' already exists
         cur.execute(
-            """INSERT INTO memory_nodes
-                 (id, workspace_id, title, body,
-                  content_type, tags, trust_score, status, source_type, dim_author_rep, embedding)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector)""",
-            (
-                node_id, ws_id,
-                query_text, "",
-                "inquiry", ["auto:search-miss"], 0.0, "gap", "mcp", 0.0, vector
-            )
+            """SELECT id FROM review_queue
+               WHERE workspace_id = %s
+                 AND status = 'pending'
+                 AND source_info = 'search-miss'
+                 AND (node_data->>'body' = %s OR node_data->>'title' = %s)
+               LIMIT 1""",
+            (ws_id, query_text, query_text[:60]),
+        )
+        if cur.fetchone():
+            return
+
+        from services.nodes import propose_change
+        node_data = {
+            "title": query_text[:60],
+            "body": query_text,
+            "content_type": "gap",
+            "trust_score": 0.3,
+            "tags": ["auto:search-miss"]
+        }
+        propose_change(
+            cur=cur,
+            ws_id=ws_id,
+            change_type="create",
+            target_node_id=None,
+            node_data=node_data,
+            proposer_type="ai",
+            proposer_id="system",
+            proposer_meta={"source": "search-miss"},
+            source_info="search-miss",
+            confidence_score=0.3
         )
 
 def log_mcp_query_internal(ws_id: str, tool: str, query: str, result_count: int, tokens: int = 0):

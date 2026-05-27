@@ -204,21 +204,33 @@ def accept_review_item(id: str, background_tasks: BackgroundTasks, user: dict = 
             # Set initial dim_accuracy based on source_type, recompute trust_score
             source_type = (item.get("node_data") or {}).get("source_type", item.get("proposer_type", "human"))
             dim_accuracy = 0.8 if source_type in ("ai_generated", "ai") else 1.0
-            cur.execute(
-                """
-                UPDATE memory_nodes
-                SET
-                    dim_accuracy = %s,
-                    trust_score = (
-                        %s             * 0.40 +
-                        dim_freshness  * 0.25 +
-                        dim_utility    * 0.25 +
-                        dim_author_rep * 0.10
-                    )
-                WHERE id = %s
-                """,
-                (dim_accuracy, dim_accuracy, node["id"]),
-            )
+            if (item.get("node_data") or {}).get("content_type") == "gap":
+                cur.execute(
+                    """
+                    UPDATE memory_nodes
+                    SET
+                        dim_accuracy = %s,
+                        trust_score = %s
+                    WHERE id = %s
+                    """,
+                    (dim_accuracy, (item.get("node_data") or {}).get("trust_score", 0.3), node["id"]),
+                )
+            else:
+                cur.execute(
+                    """
+                    UPDATE memory_nodes
+                    SET
+                        dim_accuracy = %s,
+                        trust_score = (
+                            %s             * 0.40 +
+                            dim_freshness  * 0.25 +
+                            dim_utility    * 0.25 +
+                            dim_author_rep * 0.10
+                        )
+                    WHERE id = %s
+                    """,
+                    (dim_accuracy, dim_accuracy, node["id"]),
+                )
             # Create edges from suggested_edges (to_title resolved at ingest time)
             suggested = item.get("suggested_edges") or []
             if suggested:

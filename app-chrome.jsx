@@ -163,7 +163,7 @@ function NavIcon({ name }) {
   }
 }
 
-function HeaderBar({ lang, counts }) {
+function HeaderBar({ lang, counts, auditCount = 0 }) {
   return (
     <header className="head">
       <div className="head-l">
@@ -172,6 +172,14 @@ function HeaderBar({ lang, counts }) {
           <span className="head-meta-num">{counts.shown} {T(lang, "節點", "nodes")}</span>
           <span className="head-dot" />
           <span>{counts.edges} {T(lang, "連結", "edges")}</span>
+          {auditCount > 0 && (
+            <>
+              <span className="head-dot" />
+              <span className="head-audit-badge" title={T(lang, `${auditCount} 個待審提案`, `${auditCount} pending proposals`)}>
+                ⚠ {auditCount}
+              </span>
+            </>
+          )}
         </div>
       </div>
       <div className="head-r">
@@ -184,7 +192,7 @@ function HeaderBar({ lang, counts }) {
   );
 }
 
-function Toolbar({ lang, isolated, limit, setLimit, viewMode, setViewMode, dof, setDof, onAction }) {
+function Toolbar({ lang, isolated, limit, setLimit, viewMode, setViewMode, dof, setDof, auditOverlay, setAuditOverlay, onAction }) {
   return (
     <div className="tool">
       <div className="tool-l">
@@ -250,6 +258,17 @@ function Toolbar({ lang, isolated, limit, setLimit, viewMode, setViewMode, dof, 
             <path d="M2 7 A5 5 0 1 1 7 12 M2 7 L4 5 M2 7 L0.5 5"/>
           </svg>
           <span className="tool-btn-label"><span className="tool-btn-zh">{T(lang, "重新整理", "Re-layout")}</span></span>
+        </button>
+        {/* T23: Audit Overlay 切換按鈕 */}
+        <button
+          id="btn-audit-overlay"
+          className={`tool-btn ${auditOverlay ? "is-on is-audit" : ""}`}
+          onClick={() => setAuditOverlay && setAuditOverlay(!auditOverlay)}
+          title={T(lang, "Audit Overlay：高亮有提案的節點", "Audit Overlay: highlight flagged nodes")}
+          style={auditOverlay ? { color: "#f59e0b", borderColor: "#f59e0b" } : {}}
+        >
+          <span style={{ fontSize: 14 }}>🛡</span>
+          <span className="tool-btn-label"><span className="tool-btn-zh">{T(lang, "審查", "Audit")}</span></span>
         </button>
         <button className="tool-btn is-primary" onClick={() => onAction("add")}>
           <span className="tool-btn-plus">＋</span>
