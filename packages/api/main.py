@@ -34,6 +34,7 @@ from routers.public       import router as public_router
 from routers.registration import router as registration_router
 from routers.documents       import router as documents_router   # Phase 6: document first-class
 from routers.audit_proposals import router as audit_proposals_router  # Phase 6.2: audit badges
+from routers.openai_compat   import router as openai_compat_router
 
 # ── Background jobs ───────────────────────────────────────────────────────────
 from jobs.ingest import recover_stale_on_startup
@@ -89,6 +90,7 @@ app.include_router(public_router)
 app.include_router(registration_router)
 app.include_router(documents_router)          # Phase 6: document CRUD
 app.include_router(audit_proposals_router)    # Phase 6.2: audit proposals
+app.include_router(openai_compat_router)
 
 # Top-level /mcp alias for Streamable HTTP (cleaner URL for MCP clients)
 from routers.mcp import mcp_streamable

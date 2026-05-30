@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+memtrace/__init__.py
+memtrace/client.py
+memtrace/exceptions.py
+memtrace/models.py
+memtrace.egg-info/PKG-INFO
+memtrace.egg-info/SOURCES.txt
+memtrace.egg-info/dependency_links.txt
+memtrace.egg-info/requires.txt
+memtrace.egg-info/top_level.txt
