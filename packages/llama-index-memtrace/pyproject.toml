@@ -7,7 +7,7 @@ name = "llama-index-memtrace"
 version = "0.1.0"
 description = "LlamaIndex integration for MemTrace knowledge graph memory network."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
