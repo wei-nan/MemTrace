@@ -380,6 +380,7 @@ export default function DocumentsPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -444,6 +445,7 @@ export default function DocumentsPage({
   };
 
   const filtered = docs.filter(d => {
+    if (filterType !== 'all' && d.evidence_type !== filterType) return false;
     const q = search.toLowerCase();
     return !q || (d.title || d.filename).toLowerCase().includes(q);
   });
@@ -471,6 +473,16 @@ export default function DocumentsPage({
               onChange={e => setSearch(e.target.value)}
             />
           </div>
+          <select 
+            className="mt-input" 
+            style={{ padding: '6px', fontSize: 12 }}
+            value={filterType}
+            onChange={e => setFilterType(e.target.value)}
+          >
+            <option value="all">{zh ? '全部類型' : 'All Types'}</option>
+            <option value="human_upload">{zh ? '人類上傳' : 'Human Upload'}</option>
+            <option value="agent_attached">{zh ? 'Agent 附加' : 'Agent Evidence'}</option>
+          </select>
           <input
             ref={fileInputRef}
             type="file"

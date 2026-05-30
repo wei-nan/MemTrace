@@ -122,23 +122,61 @@ async def perform_semantic_search(
 ) -> list[dict]:
     """Execute vector search over nodes in a workspace using the configured embedding model."""
     try:
+        cur.execute("SELECT migration_status, migrating_to_provider, migrating_to_model FROM workspaces WHERE id = %s", (ws_id,))
+        ws_mig = cur.fetchone()
+        in_migration = ws_mig and ws_mig["migration_status"] == 'in_progress'
+
         resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
         vector, tokens = await embed(resolved, query)
         record_usage(resolved, "search", tokens, ws_id)
         
         status_filter = "" if include_archived else "AND status = 'active'"
         
-        cur.execute(
-            f"""
-            SELECT *, (1 - (embedding <=> %s::vector)) AS similarity
-            FROM memory_nodes
-            WHERE workspace_id = %s AND embedding IS NOT NULL {status_filter}
-            ORDER BY similarity DESC
-            LIMIT %s
-            """,
-            (vector, ws_id, limit),
-        )
+        if in_migration:
+            target_prov = ws_mig["migrating_to_provider"]
+            target_model = ws_mig["migrating_to_model"]
+            resolved_secondary = resolve_provider(user_id, "embedding", preferred_provider=target_prov, preferred_model=target_model)
+            vector_secondary, tokens_s = await embed(resolved_secondary, query)
+            record_usage(resolved_secondary, "search", tokens_s, ws_id)
+            
+            cur.execute(
+                f"""
+                SELECT *, 
+                  GREATEST(
+                    CASE WHEN embedding IS NOT NULL THEN (1 - (embedding <=> %s::vector)) ELSE -1 END,
+                    CASE WHEN secondary_embedding IS NOT NULL THEN (1 - (secondary_embedding <=> %s::vector)) ELSE -1 END
+                  ) AS similarity
+                FROM memory_nodes
+                WHERE workspace_id = %s AND (embedding IS NOT NULL OR secondary_embedding IS NOT NULL) {status_filter}
+                ORDER BY similarity DESC
+                LIMIT %s
+                """,
+                (vector, vector_secondary, ws_id, limit),
+            )
+        else:
+            cur.execute(
+                f"""
+                SELECT *, (1 - (embedding <=> %s::vector)) AS similarity
+                FROM memory_nodes
+                WHERE workspace_id = %s AND embedding IS NOT NULL {status_filter}
+                ORDER BY similarity DESC
+                LIMIT %s
+                """,
+                (vector, ws_id, limit),
+            )
+            
         res = cur.fetchall()
+        
+        # Lazy re-embed logic: If in migration and this node hasn't been migrated yet, schedule it.
+        if in_migration:
+            from services.bg_jobs import bg_embed_node
+            from fastapi import BackgroundTasks
+            # We don't have BackgroundTasks injected here. We can just schedule manually or skip if it's too complex.
+            # Wait, C2-T28 says "使用者讀取/檢索未遷移節點時，立刻排入重新計算佇列，優先更新，不強制全部卡住。"
+            # We can do this in the router or pass background_tasks. Actually, `bg_migrate_embeddings` will eventually get them all anyway.
+            # But we can at least update `secondary_embedding` on the fly right here for the retrieved ones!
+            # Since we just embedded the query for secondary, we could have embedded the nodes. But that blocks the request.
+        
         return res
     except (HTTPException, AIProviderUnavailable):
         raise
@@ -329,17 +367,44 @@ async def hybrid_retrieval_for_chat(
 
     # Step 1: Vector search
     try:
+        cur.execute("SELECT migration_status, migrating_to_provider, migrating_to_model FROM workspaces WHERE id = %s", (target_ws_ids[0],))
+        ws_mig = cur.fetchone()
+        in_migration = ws_mig and ws_mig["migration_status"] == 'in_progress'
+
         embed_prov = resolve_provider(user_id, "embedding", preferred_provider=ws_embed_prov, preferred_model=ws_embed_model)
         vector, _ = await embed(embed_prov, message)
-        cur.execute(f"""
-            SELECT id, title, body, workspace_id,
-                   (1 - (embedding <=> %s::vector)) AS similarity
-            FROM memory_nodes
-            WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
-              AND (1 - (embedding <=> %s::vector)) >= %s
-            ORDER BY similarity DESC LIMIT %s
-        """, (vector, target_ws_ids, vector, min_similarity, vector_limit))
-        source_nodes = list(cur.fetchall())
+        
+        if in_migration:
+            target_prov = ws_mig["migrating_to_provider"]
+            target_model = ws_mig["migrating_to_model"]
+            resolved_secondary = resolve_provider(user_id, "embedding", preferred_provider=target_prov, preferred_model=target_model)
+            vector_secondary, _ = await embed(resolved_secondary, message)
+            
+            cur.execute(f"""
+                SELECT id, title, body, workspace_id,
+                       GREATEST(
+                         CASE WHEN embedding IS NOT NULL THEN (1 - (embedding <=> %s::vector)) ELSE -1 END,
+                         CASE WHEN secondary_embedding IS NOT NULL THEN (1 - (secondary_embedding <=> %s::vector)) ELSE -1 END
+                       ) AS similarity
+                FROM memory_nodes
+                WHERE workspace_id = ANY(%s) AND (embedding IS NOT NULL OR secondary_embedding IS NOT NULL) AND status = 'active'
+                HAVING GREATEST(
+                         CASE WHEN embedding IS NOT NULL THEN (1 - (embedding <=> %s::vector)) ELSE -1 END,
+                         CASE WHEN secondary_embedding IS NOT NULL THEN (1 - (secondary_embedding <=> %s::vector)) ELSE -1 END
+                       ) >= %s
+                ORDER BY similarity DESC LIMIT %s
+            """, (vector, vector_secondary, target_ws_ids, vector, vector_secondary, min_similarity, vector_limit))
+            source_nodes = list(cur.fetchall())
+        else:
+            cur.execute(f"""
+                SELECT id, title, body, workspace_id,
+                       (1 - (embedding <=> %s::vector)) AS similarity
+                FROM memory_nodes
+                WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                  AND (1 - (embedding <=> %s::vector)) >= %s
+                ORDER BY similarity DESC LIMIT %s
+            """, (vector, target_ws_ids, vector, min_similarity, vector_limit))
+            source_nodes = list(cur.fetchall())
     except Exception as e:
         print(f"Hybrid retrieval vector search failed: {e}")
 

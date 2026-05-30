@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Handle, Position } from 'reactflow';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Clock } from 'lucide-react';
 
 const TYPE_COLORS: Record<string, string> = {
   factual:    '#6366f1',
@@ -74,15 +74,17 @@ const MemoryNode = ({ data }: { data: any }) => {
   const isExpired = data.validityExpired;
   const isExpanded = lod === 'expanded';
   const bodyPreview = (data.bodyPreview || '').slice(0, 80);
+  // T21: audit status
+  const isPendingReview = data.status === 'pending_review';
 
   return (
     <div
-      className="glass-panel"
+      className={`glass-panel${isPendingReview ? ' node-pending-review' : ''}`}
       title={data.healthTooltip || undefined}
       style={{
         padding: '12px 16px',
         minWidth: isExpanded ? '220px' : '200px',
-        border: `1px solid ${data.healthColor || 'var(--border-strong)'}`,
+        border: `1px solid ${data.healthColor || (isPendingReview ? 'var(--color-warning)' : 'var(--border-strong)')}`,
         boxShadow: data.healthColor ? `0 0 0 1px ${data.healthColor}40, var(--shadow-md)` : 'var(--shadow-md)',
         background: data.healthColor ? `color-mix(in srgb, ${data.healthColor} 8%, var(--bg-surface))` : undefined,
         position: 'relative',
@@ -90,6 +92,13 @@ const MemoryNode = ({ data }: { data: any }) => {
       }}
     >
       <Handle type="target" position={Position.Top} style={{ background: 'var(--color-primary)' }} />
+
+      {/* T21: Audit badge — shown for pending_review nodes */}
+      {isPendingReview && (
+        <div className="audit-badge" title="Pending review">
+          <Clock size={9} />
+        </div>
+      )}
 
       {isExpired && (
         <div style={{ position: 'absolute', top: -10, left: -10, color: '#eab308', background: 'var(--bg-surface)', borderRadius: '50%', padding: 2, boxShadow: 'var(--shadow-sm)', zIndex: 5 }}>

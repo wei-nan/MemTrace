@@ -7,11 +7,10 @@ from fastapi import BackgroundTasks
 def trigger_node_background_jobs(background_tasks: BackgroundTasks, ws_id: str, node_id: str, user_id: str, node_data: dict):
     """
     P4.8-S3-2: Unified background job trigger for nodes.
-    Fires embedding, edge suggestion, and complexity checks.
+    Fires embedding and complexity checks. (Edge suggestion is now event-driven).
     """
     text = " ".join(filter(None, [node_data.get("title"), node_data.get("body")]))
     background_tasks.add_task(bg_embed_node, ws_id, node_id, text, user_id)
-    background_tasks.add_task(bg_suggest_edges, ws_id, node_id, user_id)
     background_tasks.add_task(bg_check_complexity, ws_id, node_id, user_id)
 
 async def bg_embed_node(ws_id: str, node_id: str, text: str, user_id: str):
@@ -27,22 +26,44 @@ async def bg_embed_node(ws_id: str, node_id: str, text: str, user_id: str):
         vector, tokens = await embed(resolved, text)
         with db_cursor(commit=True) as cur:
             cur.execute("UPDATE memory_nodes SET embedding = %s WHERE id = %s AND workspace_id = %s", (vector, node_id, ws_id))
+            # S1-T01: Clear from retry queue if it was there
+            cur.execute("DELETE FROM embed_retry_queue WHERE node_id = %s", (node_id,))
         record_usage(resolved, "embedding", tokens, ws_id, node_id)
     except Exception as exc:
         print(f"BG Embedding failed for node {node_id}: {exc}")
+        # Insert into retry queue with exponential backoff
+        from datetime import datetime, timedelta, timezone
+        with db_cursor(commit=True) as cur:
+            cur.execute("SELECT retry_count FROM embed_retry_queue WHERE node_id = %s", (node_id,))
+            row = cur.fetchone()
+            retry_count = (row["retry_count"] + 1) if row else 1
+            delay_minutes = min(2 ** (retry_count - 1), 1440) # Max 24 hours
+            next_retry_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes)
+            
+            cur.execute("""
+                INSERT INTO embed_retry_queue (node_id, workspace_id, retry_count, next_retry_at, last_error)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (node_id) DO UPDATE SET
+                    retry_count = EXCLUDED.retry_count,
+                    next_retry_at = EXCLUDED.next_retry_at,
+                    last_error = EXCLUDED.last_error,
+                    updated_at = EXCLUDED.updated_at
+            """, (node_id, ws_id, retry_count, next_retry_at, str(exc)))
 
 
 def bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
-    """After a node is created, find semantically similar nodes and propose edges via review_queue."""
-    import time
-    # Wait briefly for the embedding background task to likely finish
-    time.sleep(3)
+    """After a node is created/updated, find semantically similar nodes and propose edges via review_queue.
+    
+    Called by process_node_events_job when an 'embedding_updated' event fires — the embedding
+    is guaranteed to exist at this point, so no sleep is needed.
+    """
     try:
         with db_cursor() as cur:
             cur.execute("SELECT embedding FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
             row = cur.fetchone()
             if not row or row["embedding"] is None:
                 return
+
 
         with db_cursor() as cur:
             cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (node_id,))
@@ -235,6 +256,78 @@ async def bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, 
             cur.execute("UPDATE workspace_clone_jobs SET status = 'failed', error_msg = %s WHERE id = %s", (str(e), job_id))
 
 
+async def bg_migrate_embeddings(ws_id: str, user_id: str):
+    """
+    C2-T27, C2-T28: Run background embedding migration.
+    Re-embeds all nodes into secondary_embedding.
+    Once all are done, swaps secondary to primary and clears secondary.
+    """
+    from datetime import datetime, timezone
+    
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM workspace_migrations WHERE workspace_id = %s AND status = 'in_progress' ORDER BY started_at DESC LIMIT 1", (ws_id,))
+        migration = cur.fetchone()
+        
+        cur.execute("SELECT * FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        
+    if not migration or not ws:
+        return
+
+    try:
+        with db_cursor() as cur:
+            cur.execute("SELECT id, title, body FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+            nodes = cur.fetchall()
+
+        target_provider = migration["target_provider"]
+        target_model = migration["target_model"]
+        resolved = resolve_provider(user_id, "embedding", preferred_provider=target_provider, preferred_model=target_model)
+
+        for node in nodes:
+            text = f"{node['title']}\n{node['body']}"
+            vector, tokens = await embed(resolved, text)
+            with db_cursor(commit=True) as cur:
+                cur.execute(
+                    "UPDATE memory_nodes SET secondary_embedding = %s, secondary_embedding_model = %s, secondary_embedding_provider = %s WHERE id = %s",
+                    (vector, target_model, target_provider, node["id"])
+                )
+                record_usage(resolved, "embedding", tokens, workspace_id=ws_id, node_id=node["id"])
+
+        # Swap primary and secondary
+        with db_cursor(commit=True) as cur:
+            # We don't change dim here in workspaces yet, but pgvector vector column has no typmod now so it accepts any dim!
+            cur.execute("""
+                UPDATE memory_nodes 
+                SET embedding = secondary_embedding,
+                    secondary_embedding = NULL,
+                    secondary_embedding_model = NULL,
+                    secondary_embedding_provider = NULL
+                WHERE workspace_id = %s
+            """, (ws_id,))
+            
+            cur.execute("""
+                UPDATE workspaces
+                SET embedding_model = %s,
+                    embedding_provider = %s,
+                    migrating_to_model = NULL,
+                    migrating_to_provider = NULL,
+                    migration_status = 'completed'
+                WHERE id = %s
+            """, (target_model, target_provider, ws_id))
+            
+            cur.execute("""
+                UPDATE workspace_migrations
+                SET status = 'completed', completed_at = %s
+                WHERE id = %s
+            """, (datetime.now(timezone.utc), migration["id"]))
+
+    except Exception as e:
+        print(f"Migration {migration['id']} failed: {e}")
+        with db_cursor(commit=True) as cur:
+            cur.execute("UPDATE workspace_migrations SET status = 'failed', error = %s WHERE id = %s", (str(e), migration["id"]))
+            cur.execute("UPDATE workspaces SET migration_status = 'paused' WHERE id = %s", (ws_id,))
+
+
 def run_connect_orphans(ws_id: str, batch_size: int = 50):
     """
     P4.5-2C: Connect orphans (nodes with no active edges) to semantically similar nodes.
@@ -395,3 +488,69 @@ async def bg_reindex_workspace_embeddings(ws_id: str, user_id: str):
         except Exception as exc:
             print(f"BG Reindex: Failed to embed node {node['id']}: {exc}")
 
+
+async def retry_failed_embeddings_job():
+    """
+    C3-T30: Periodically check embed_retry_queue and trigger bg_embed_node for nodes
+    whose next_retry_at has passed.
+    """
+    from datetime import datetime, timezone
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            SELECT r.node_id, r.workspace_id, n.title, n.body
+            FROM embed_retry_queue r
+            JOIN memory_nodes n ON n.id = r.node_id
+            WHERE r.next_retry_at <= %s
+            """,
+            (datetime.now(timezone.utc),)
+        )
+        jobs = cur.fetchall()
+
+    for job in jobs:
+        text = f"{job['title']}\n{job['body']}"
+        with db_cursor() as cur:
+            cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (job["workspace_id"],))
+            ws_row = cur.fetchone()
+            user_id = ws_row["owner_id"] if ws_row else "system"
+            
+        await bg_embed_node(job["workspace_id"], job["node_id"], text, user_id)
+
+async def process_node_events_job():
+    """
+    C3-T31: Periodically process node events (e.g. suggesting edges after embedding updates).
+    """
+    from datetime import datetime, timezone
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, workspace_id, node_id, event_type
+            FROM node_events
+            WHERE processed_at IS NULL
+            ORDER BY created_at ASC
+            LIMIT 50
+            """
+        )
+        events = cur.fetchall()
+
+    if not events:
+        return
+
+    for event in events:
+        try:
+            if event["event_type"] in ('created', 'embedding_updated'):
+                with db_cursor() as cur:
+                    cur.execute("SELECT author FROM memory_nodes WHERE id = %s", (event["node_id"],))
+                    n_row = cur.fetchone()
+                    user_id = n_row["author"] if n_row else "system"
+                
+                # bg_suggest_edges does DB operations but it's synchronous.
+                # In a real async job we could run it in a threadpool, but for now we just call it.
+                bg_suggest_edges(event["workspace_id"], event["node_id"], user_id)
+            
+            with db_cursor(commit=True) as cur:
+                cur.execute("UPDATE node_events SET processed_at = %s WHERE id = %s", (datetime.now(timezone.utc), event["id"]))
+        except Exception as e:
+            print(f"Failed to process node event {event['id']}: {e}")
+            with db_cursor(commit=True) as cur:
+                cur.execute("UPDATE node_events SET processed_at = %s WHERE id = %s", (datetime.now(timezone.utc), event["id"]))

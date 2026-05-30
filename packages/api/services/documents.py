@@ -68,6 +68,7 @@ def create_document_in_db(
     title: Optional[str] = None,
     summary: Optional[str] = None,
     source_url: Optional[str] = None,
+    evidence_type: str = "human_upload",
 ) -> dict:
     """Insert a document record. Returns the inserted row as dict.
     Raises nothing on duplicate hash — caller should check first.
@@ -81,16 +82,16 @@ def create_document_in_db(
         INSERT INTO documents (
             id, workspace_id, filename, content_hash, mime_type,
             size_bytes, storage_path, title, summary, source_url,
-            uploaded_by, ingestion_job_id
+            uploaded_by, ingestion_job_id, evidence_type
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (workspace_id, content_hash) DO NOTHING
         RETURNING *
         """,
         (
             doc_id, workspace_id, filename, content_hash, mime_type,
             size_bytes, storage_path, title, summary, source_url,
-            uploaded_by, ingestion_job_id,
+            uploaded_by, ingestion_job_id, evidence_type
         ),
     )
     return cur.fetchone()
@@ -220,7 +221,7 @@ def get_node_sources(cur, node_id: str) -> List[dict]:
     cur.execute(
         """
         SELECT d.id, d.filename, d.title, d.mime_type, d.size_bytes,
-               d.source_url, d.uploaded_at, ndl.paragraph_ref, ndl.excerpt
+               d.source_url, d.uploaded_at, d.evidence_type, ndl.paragraph_ref, ndl.excerpt
         FROM node_document_links ndl
         JOIN documents d ON d.id = ndl.document_id
         WHERE ndl.node_id = %s
@@ -349,7 +350,7 @@ def get_node_sources_via_edges(cur, node_id: str) -> List[dict]:
     cur.execute(
         """
         SELECT d.id, d.filename, d.title, d.mime_type, d.size_bytes,
-               d.source_url, d.uploaded_at,
+               d.source_url, d.uploaded_at, d.evidence_type,
                e.metadata->>'paragraph_ref'  AS paragraph_ref,
                e.metadata->>'excerpt'         AS excerpt
         FROM edges e

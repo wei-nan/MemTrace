@@ -47,7 +47,7 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
         h = headings[i]
         next_h = headings[i+1] if i+1 < len(headings) else None
         
-        start = h.index
+        start = h["index"]
         end = next_h["index"] if next_h else len(text)
         
         # Update chain

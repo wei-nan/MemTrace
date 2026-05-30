@@ -251,7 +251,25 @@ def update_workspace_in_db(cur, ws_id: str, uid: str, body_dict: dict) -> dict:
         
     set_clause = ", ".join(f"{k} = %s" for k in updates)
     cur.execute(f"UPDATE workspaces SET {set_clause} WHERE id = %s RETURNING *", list(updates.values()) + [ws_id])
-    return cur.fetchone()
+    updated_ws = cur.fetchone()
+
+    # If migration started, create migration record
+    if updates.get("migration_status") == "in_progress" and updates.get("migrating_to_model"):
+        migration_id = generate_id("mig")
+        cur.execute(
+            """
+            INSERT INTO workspace_migrations (id, workspace_id, target_provider, target_model, status)
+            VALUES (%s, %s, %s, %s, 'in_progress')
+            """,
+            (
+                migration_id, 
+                ws_id, 
+                updates.get("migrating_to_provider", ws["embedding_provider"]),
+                updates["migrating_to_model"]
+            )
+        )
+
+    return updated_ws
 
 def delete_workspace_in_db(cur, ws_id: str, user: dict) -> None:
     ws = require_ws_access(cur, ws_id, user, write=True)

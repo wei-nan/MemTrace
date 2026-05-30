@@ -54,7 +54,7 @@ scratch/
 scratch.py
 backups/
 reports/
-tests/
+/tests/
 test_update.py
 packages/api/test_update.py
 update_settings.sql

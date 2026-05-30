@@ -26,6 +26,7 @@ export interface Document {
   source_url: string | null;
   uploaded_by: string;
   uploaded_at: string;
+  evidence_type: string;
   ingestion_job_id: string | null;
   linked_node_count: number;
 }
@@ -53,6 +54,7 @@ export interface NodeSource {
   paragraph_ref: string;
   excerpt: string | null;
   source_url: string | null;
+  evidence_type: string;
 }
 
 export const documents = {

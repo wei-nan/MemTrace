@@ -89,7 +89,9 @@ async def safe_parse_nodes_with_repair(raw: Union[str, list], resolved, filename
 
 async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str, filename: str, 
                             doc_type: str = "generic", approved_seeds: Optional[List[str]] = None, 
-                            doc: Optional[NormalizedDocument] = None):
+                            doc: Optional[NormalizedDocument] = None,
+                            target_chunks: Optional[List[str]] = None,
+                            source_id: Optional[str] = None):
     """Main ingestion pipeline orchestration."""
     await AI_SEMAPHORE.acquire()
     try:
@@ -103,24 +105,28 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
             if cur.rowcount == 0:
                 return # cancelled or already running
 
-        source_id = generate_id("src")
-        
-        # 1. Normalize content for storage
-        if doc:
-            content = "\n\n".join([f"{' '.join(s.heading_chain + ([s.heading] if s.heading else []))}\n{s.content}" for s in doc.segments])
-        
-        content_bytes = content.encode("utf-8")
-        content_hash = hashlib.sha256(content_bytes).hexdigest()
+        if not source_id:
+            source_id = generate_id("src")
+            
+            # 1. Normalize content for storage
+            if doc:
+                content = "\n\n".join([f"{' '.join(s.heading_chain + ([s.heading] if s.heading else []))}\n{s.content}" for s in doc.segments])
+            
+            content_bytes = content.encode("utf-8")
+            content_hash = hashlib.sha256(content_bytes).hexdigest()
 
-        # 2. Record source (import_sources)
-        with db_cursor(commit=True) as cur:
-            page_count = doc.metadata.get("page_count") if doc else None
-            has_ocr    = doc.metadata.get("has_ocr")    if doc else False
-            cur.execute(
-                """INSERT INTO import_sources (id, workspace_id, filename, doc_type, raw_content, page_count, has_ocr)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                (source_id, ws_id, filename, doc_type, content, page_count, has_ocr)
-            )
+            # 2. Record source (import_sources)
+            with db_cursor(commit=True) as cur:
+                page_count = doc.metadata.get("page_count") if doc else None
+                has_ocr    = doc.metadata.get("has_ocr")    if doc else False
+                cur.execute(
+                    """INSERT INTO import_sources (id, workspace_id, filename, doc_type, raw_content, page_count, has_ocr)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                    (source_id, ws_id, filename, doc_type, content, page_count, has_ocr)
+                )
+        else:
+            content_bytes = content.encode("utf-8")
+            content_hash = hashlib.sha256(content_bytes).hexdigest()
 
         # 3. Resolve AI provider & language
         with db_cursor() as cur:
@@ -206,11 +212,27 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
         else:
             chunks = chunk_text(content)
 
-        for i, (chunk_text_data, headings) in enumerate(chunks):
+        # Filter indices to process if target_chunks is specified
+        retried_indices = []
+        if target_chunks is not None:
+            for idx, (chunk_text_data, headings) in enumerate(chunks):
+                para_ref = f"Chunk {idx+1}"
+                if headings:
+                    para_ref += f" ({' > '.join(headings)})"
+                if para_ref in target_chunks:
+                    retried_indices.append(idx)
+        else:
+            retried_indices = list(range(len(chunks)))
+
+        total_to_retry = len(retried_indices)
+        done_count = 0
+
+        for i, idx in enumerate(retried_indices):
+            chunk_text_data, headings = chunks[idx]
             try:
                 # Update progress using chunks
                 with db_cursor(commit=True) as cur:
-                    cur.execute("""UPDATE ingestion_logs SET chunks_done = %s, chunks_total = %s WHERE id = %s""", (i + 1, len(chunks), job_id))
+                    cur.execute("""UPDATE ingestion_logs SET chunks_done = %s, chunks_total = %s WHERE id = %s""", (done_count, total_to_retry, job_id))
 
                 # Extract
                 raw_nodes, tokens = await extract_nodes_structured(
@@ -248,7 +270,7 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                                     pass
 
                 # Persist
-                para_ref = f"Chunk {i+1}"
+                para_ref = f"Chunk {idx+1}"
                 if headings:
                     para_ref += f" ({' > '.join(headings)})"
                 
@@ -260,8 +282,12 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                     )
                     all_review_ids.extend([rid for rid, _ in r_ids if rid])
 
+                done_count += 1
+                with db_cursor(commit=True) as cur:
+                    cur.execute("""UPDATE ingestion_logs SET chunks_done = %s, chunks_total = %s WHERE id = %s""", (done_count, total_to_retry, job_id))
+
             except Exception as chunk_err:
-                logger.error(f"Error processing chunk {i} of {filename}: {chunk_err}")
+                logger.error(f"Error processing chunk {idx} of {filename}: {chunk_err}")
 
         # 7. Cross-file associations
         detect_cross_file_associations_for_nodes(ws_id, all_review_ids, is_proposal=True)
@@ -286,7 +312,7 @@ async def process_ingestion(job_id: str, ws_id: str, content: str, user_id: str,
                 """UPDATE ingestion_logs 
                    SET status = 'completed', completed_at = now(), chunks_done = %s, chunks_total = %s
                    WHERE id = %s""",
-                (len(chunks), len(chunks), job_id),
+                (total_to_retry, total_to_retry, job_id),
             )
 
     except Exception as e:

@@ -263,6 +263,101 @@ h1, h2, h3, h4, h5, h6 {
   to { transform: rotate(360deg); }
 }
 
+/* ── T22: Audit / Pending-Review Pulse Animation ── */
+@keyframes mt-pulse-review {
+  0%   { box-shadow: 0 0 0 0   rgba(251, 191, 36, 0.6), 0 0 0 0   rgba(251, 191, 36, 0.3); }
+  50%  { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.0), 0 0 12px 4px rgba(251, 191, 36, 0.25); }
+  100% { box-shadow: 0 0 0 0   rgba(251, 191, 36, 0.6), 0 0 0 0   rgba(251, 191, 36, 0.3); }
+}
+
+.node-pending-review {
+  animation: mt-pulse-review 1.8s ease-in-out infinite;
+  border-color: var(--color-warning) !important;
+}
+
+/* ── Audit badge chip ── */
+.audit-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-warning);
+  color: #0F172A;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-surface);
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(251,191,36,0.5);
+}
+
+/* ── T23: Review Overlay ── */
+@keyframes mt-overlay-fade {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to   { opacity: 1; backdrop-filter: blur(4px); }
+}
+
+@keyframes mt-overlay-slide {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.review-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+  animation: mt-overlay-fade 0.25s ease forwards;
+}
+
+.review-overlay-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 340px;
+  max-width: 90vw;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-default);
+  box-shadow: var(--shadow-lg);
+  z-index: 201;
+  overflow-y: auto;
+  animation: mt-overlay-slide 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── T24: Review summary counter badge ── */
+.review-counter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  height: 26px;
+  border-radius: 13px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(251, 191, 36, 0.14);
+  color: var(--color-warning);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.review-counter-badge:hover {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: var(--color-warning);
+  transform: translateY(-1px);
+}
+
+.review-counter-badge.zero {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .mt-32 { margin-top: 32px; }
 
 .mt-input {

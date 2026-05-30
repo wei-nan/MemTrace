@@ -238,6 +238,7 @@ function GraphViewInner({
             type: isPreview ? 'hidden' : n.content_type,
             tags: isPreview ? [] : n.tags,
             isEmpty: !isPreview && !n.body,
+            status: isPreview ? undefined : n.status, // T21: for audit badge
             healthColor: !isPreview && healthMode && health ? HEALTH_COLORS[health.label] : (isPreview ? '#94a3b8' : undefined),
             healthTooltip: !isPreview && healthMode && health ? `Health ${(health.score * 100).toFixed(0)}% · ${health.reason}` : undefined,
             validityExpired: !isPreview && isExpired,

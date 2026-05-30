@@ -752,9 +752,12 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 </div>
 
                 {/* Existing sources */}
-                {nodeSources.length > 0 && (
+                {nodeSources.filter(s => s.evidence_type !== 'agent_attached').length > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
-                    {nodeSources.map(src => (
+                    <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)", marginBottom: 4 }}>
+                      📎 {t("node.human_upload", { defaultValue: "人類上傳文件" })}
+                    </div>
+                    {nodeSources.filter(s => s.evidence_type !== 'agent_attached').map(src => (
                       <div key={src.id} style={{
                         display: "flex", alignItems: "center", gap: 8,
                         padding: "8px 10px", borderRadius: 8,
@@ -782,6 +785,50 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                         >
                           {src.source_url && !src.size_bytes ? t("node.open_link", { defaultValue: "開啟" }) : t("node.download", { defaultValue: "下載" })}
                         </a>
+                        {!isViewerLocked && (
+                          <button
+                            title={t("node.detach_doc", { defaultValue: "移除關聯" })}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2, flexShrink: 0, display: "flex", alignItems: "center" }}
+                            onClick={async () => {
+                              if (!node?.id) return;
+                              try {
+                                await documentsApi.detachFromNode(wsId, node.id, src.id);
+                                setNodeSources(prev => prev.filter(s => s.id !== src.id));
+                              } catch (err: any) {
+                                toast({ message: err.message ?? "Failed to detach", variant: "error" });
+                              }
+                            }}
+                          >
+                            <X size={13} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Agent Evidence */}
+                {nodeSources.filter(s => s.evidence_type === 'agent_attached').length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)", marginBottom: 4 }}>
+                      🤖 {t("node.agent_evidence", { defaultValue: "Agent 附加證據" })}
+                    </div>
+                    {nodeSources.filter(s => s.evidence_type === 'agent_attached').map(src => (
+                      <div key={src.id} style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "8px 10px", borderRadius: 8,
+                        border: "1px solid var(--border-default)",
+                        background: "var(--bg-surface)", fontSize: 13,
+                      }}>
+                        <Bot size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {src.title || src.filename}
+                        </span>
+                        {src.source_url && (
+                          <a href={src.source_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)", fontSize: 11, flexShrink: 0 }}>
+                            {t("node.open_link", { defaultValue: "開啟" })}
+                          </a>
+                        )}
                         {!isViewerLocked && (
                           <button
                             title={t("node.detach_doc", { defaultValue: "移除關聯" })}

@@ -234,10 +234,35 @@ def get_graph_preview(ws_id: str, limit: int = 100, user: dict = Depends(get_cur
 
 
 @router.patch("/workspaces/{ws_id}", response_model=WorkspaceResponse)
-def update_workspace(ws_id: str, body: WorkspaceUpdate, user: dict = Depends(get_current_user)):
+def update_workspace(ws_id: str, body: WorkspaceUpdate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     from services.workspaces import update_workspace_in_db
     with db_cursor(commit=True) as cur:
-        return update_workspace_in_db(cur, ws_id, user["sub"], body.model_dump(exclude_unset=True))
+        ws = update_workspace_in_db(cur, ws_id, user["sub"], body.model_dump(exclude_unset=True))
+
+    if body.migration_status == 'in_progress':
+        from services.bg_jobs import bg_migrate_embeddings
+        background_tasks.add_task(bg_migrate_embeddings, ws_id, user["sub"])
+
+    return ws
+
+
+@router.get("/workspaces/{ws_id}/failed-embeddings")
+def get_failed_embeddings(ws_id: str, user: dict = Depends(get_current_user)):
+    from services.workspaces import require_ws_access
+    with db_cursor() as cur:
+        require_ws_access(cur, ws_id, user)
+        cur.execute("SELECT count(*) as count FROM embed_retry_queue WHERE workspace_id = %s", (ws_id,))
+        return cur.fetchone()
+
+
+@router.post("/workspaces/{ws_id}/retry-failed-embeddings")
+def retry_failed_embeddings_endpoint(ws_id: str, user: dict = Depends(get_current_user)):
+    from services.workspaces import require_ws_access
+    with db_cursor(commit=True) as cur:
+        require_ws_access(cur, ws_id, user, write=True)
+        cur.execute("UPDATE embed_retry_queue SET next_retry_at = now(), retry_count = 0 WHERE workspace_id = %s", (ws_id,))
+        count = cur.rowcount
+    return {"queued": count}
 
 
 @router.get("/workspaces/{ws_id}/associations", response_model=list[WorkspaceAssociationResponse])

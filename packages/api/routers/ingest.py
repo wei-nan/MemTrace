@@ -12,6 +12,10 @@ from core.deps import get_current_user
 from core.adapters import get_adapter_for_file
 from services.workspaces import require_ws_access
 from services.ingest.pipeline import process_ingestion, resolve_with_fallback
+from services.ingest.parser import chunk_text
+
+class RetryAuditRequest(BaseModel):
+    headings: List[str]
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/workspaces", tags=["ingest"])
@@ -139,22 +143,22 @@ def audit_source(ws_id: str, source_id: str, user: dict = Depends(get_current_us
         )
         node_refs = {row["source_paragraph_ref"] for row in cur.fetchall() if row["source_paragraph_ref"]}
         
-        # 3. Simple heuristic: extract headings from raw_content if it's structured
-        # (This is a simplified version; in reality, we'd store headings in import_sources)
-        # For now, let's assume raw_content has some structure or we just count chunks
-        # Actually, let's just return a placeholder for now to satisfy the UI, 
-        # or try to find "Chunk X" in node_refs.
-        
-        total_chunks = source["raw_content"].count("\n\n") + 1
+        # 3. Chunk text logic to find actual expected reference strings (I-02)
+        raw_content = source["raw_content"] or ""
+        chunks = chunk_text(raw_content)
+        total_chunks = len(chunks)
         found_chunks = 0
         missing = []
         
-        for i in range(1, total_chunks + 1):
-            ref_prefix = f"Chunk {i}"
-            if any(ref.startswith(ref_prefix) for ref in node_refs):
+        for i, (chunk_content, headings) in enumerate(chunks):
+            para_ref = f"Chunk {i+1}"
+            if headings:
+                para_ref += f" ({' > '.join(headings)})"
+            
+            if para_ref in node_refs:
                 found_chunks += 1
             else:
-                missing.append(f"Chunk {i}")
+                missing.append(para_ref)
         
         coverage = found_chunks / total_chunks if total_chunks > 0 else 0
         
@@ -167,7 +171,38 @@ def audit_source(ws_id: str, source_id: str, user: dict = Depends(get_current_us
         }
 
 @router.post("/{ws_id}/audit/{source_id}/retry")
-def retry_audit_missing(ws_id: str, source_id: str, body: dict, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
-    # In a real implementation, this would trigger process_ingestion again for specific chunks
-    # For now, we return a mock response to satisfy the UI
-    return {"job_id": "retry_" + generate_id("ing"), "status": "pending"}
+def retry_audit_missing(
+    ws_id: str,
+    source_id: str,
+    body: RetryAuditRequest,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(get_current_user)
+):
+    with db_cursor(commit=True) as cur:
+        require_ws_access(cur, ws_id, user, write=True)
+        
+        # Get source document info
+        cur.execute("SELECT filename, doc_type, raw_content FROM import_sources WHERE id = %s AND workspace_id = %s", (source_id, ws_id))
+        source = cur.fetchone()
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+        
+        job_id = "retry_" + generate_id("ing")
+        cur.execute(
+            """INSERT INTO ingestion_logs (id, workspace_id, user_id, filename, status, created_at)
+               VALUES (%s, %s, %s, %s, 'pending', now())""",
+            (job_id, ws_id, user["sub"], f"Retry: {source['filename']}"),
+        )
+        
+    background_tasks.add_task(
+        process_ingestion,
+        job_id=job_id,
+        ws_id=ws_id,
+        content=source["raw_content"] or "",
+        user_id=user["sub"],
+        filename=source["filename"],
+        doc_type=source["doc_type"],
+        target_chunks=body.headings,
+        source_id=source_id
+    )
+    return {"job_id": job_id, "status": "pending"}

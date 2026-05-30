@@ -306,6 +306,9 @@ export default function GraphView3D({
   const nodeHaloMeshRef  = useRef<Map<string, THREE.Sprite>>(new Map());
   const activePulsesRef  = useRef<Map<string, number>>(new Map()); // nodeId → startTime (ms)
 
+  // ── T22: Pending-review pulse ring refs ─────────────────────────────────
+  const pendingRingMatsRef = useRef<Map<string, THREE.MeshBasicMaterial>>(new Map());
+
   // ── Convert API data → graph format ──────────────────────────────────────
   const graphData = useMemo(() => {
     const visibleNodeIds = new Set(apiNodes.map(n => n.id));
@@ -341,6 +344,7 @@ export default function GraphView3D({
     nodeHaloMatsRef.current.clear();
     nodeHaloMeshRef.current.clear();
     activePulsesRef.current.clear();
+    pendingRingMatsRef.current.clear(); // T22: clear pending ring refs
   }, [graphData]);
 
   // ── Particle-arrival pulse scheduler ────────────────────────────────────
@@ -582,6 +586,21 @@ export default function GraphView3D({
         depthWrite: false,
       });
       group.add(new THREE.Mesh(glowGeo, glowMat));
+    }
+
+    // T21: Audit badge ring — amber pulsing ring for pending_review nodes
+    if (isPending) {
+      const auditRingGeo = new THREE.RingGeometry(r * 1.8, r * 2.2, 32);
+      const auditRingMat = new THREE.MeshBasicMaterial({
+        color: '#fbbf24', // amber-400
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      pendingRingMatsRef.current.set(node.id, auditRingMat);
+      group.add(new THREE.Mesh(auditRingGeo, auditRingMat));
     }
 
     // Selected node: bright accent ring (r-relative)
@@ -867,6 +886,10 @@ export default function GraphView3D({
                   mesh.scale.setScalar(base * (1 + t * 2.0)); // expand 1× → 3× (r*8 → r*24)
                   mat.opacity = 0.85 * (1 - t) * (1 - t);    // quadratic fade: 0.85 → 0
                 }
+              });
+              // T22: Drive pending-review ring pulse (sine oscillation)
+              pendingRingMatsRef.current.forEach((mat) => {
+                mat.opacity = 0.4 + 0.5 * Math.abs(Math.sin(now / 600));
               });
             }}
           />

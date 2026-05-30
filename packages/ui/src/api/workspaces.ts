@@ -12,8 +12,12 @@ export interface Workspace {
   created_at: string;
   updated_at: string;
   my_role: "admin" | "editor" | "viewer" | null;
+  embedding_provider: string;
   embedding_model: string;
   embedding_dim: number;
+  migration_status: "none" | "in_progress" | "completed" | "failed";
+  migrating_to_provider: string | null;
+  migrating_to_model: string | null;
   qa_archive_mode: "auto_active" | "manual_review";
   extraction_provider: string | null;
   auto_split: boolean;
@@ -181,6 +185,9 @@ export const workspaces = {
     visibility: string; 
     qa_archive_mode: string;
     auto_split: boolean;
+    migration_status: string;
+    migrating_to_provider: string;
+    migrating_to_model: string;
     settings: any;
   }>) =>
     request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
@@ -245,4 +252,6 @@ export const workspaces = {
   summarizeCluster: (wsId: string, nodeIds: string[]) => request<Node>("POST", `${BASE}/workspaces/${wsId}/maintenance/summarize-cluster`, { node_ids: nodeIds }),
   complementLanguages: (wsId: string, nodeIds: string[]) => request<{ results: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/complement-languages`, { node_ids: nodeIds }),
   suggestEdges: (wsId: string, nodeId: string, limit = 5) => request<{ suggestions: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/suggest-edges`, { node_id: nodeId, limit }),
+  getFailedEmbeddings: (wsId: string) => request<{ count: number }>("GET", `${BASE}/workspaces/${wsId}/failed-embeddings`),
+  retryFailedEmbeddings: (wsId: string) => request<{ queued: number }>("POST", `${BASE}/workspaces/${wsId}/retry-failed-embeddings`),
 };

@@ -44,6 +44,9 @@ class WorkspaceResponse(BaseModel):
     qa_archive_mode: str
     extraction_provider: Optional[str] = None
     embedding_provider: Optional[str] = None
+    migrating_to_provider: Optional[str] = None
+    migrating_to_model: Optional[str] = None
+    migration_status: str = "none"
     auto_split: bool = False
     allow_anonymous_view: bool = False
     created_at: datetime
@@ -165,10 +168,11 @@ class ValidityConfirmationResponse(BaseModel):
 class EdgeCreate(BaseModel):
     from_id: str
     to_id: str
-    relation: str          # depends_on | extends | related_to | contradicts
+    relation: str          # depends_on | extends | related_to | contradicts | proceeds_to | ...
     weight: float = 1.0
     half_life_days: int = 30
     pinned: bool = False
+    metadata: Optional[dict] = {}    # Phase 6.3: condition metadata for troubleshooting graph edges
 
 
 class EdgeResponse(BaseModel):
@@ -187,6 +191,7 @@ class EdgeResponse(BaseModel):
     rating_count: int
     status: str
     pinned: bool
+    metadata: Optional[dict] = {}    # Phase 6.3: condition metadata for troubleshooting graph edges
 
 
 # ── Traversal / Rating ────────────────────────────────────────────────────────
@@ -221,6 +226,11 @@ class WorkspaceUpdate(BaseModel):
     min_traversals: Optional[int] = None
     qa_archive_mode: Optional[Literal["auto_active", "manual_review"]] = None
     extraction_provider: Optional[str] = None
+    embedding_provider: Optional[str] = None
+    embedding_model: Optional[str] = None
+    migrating_to_provider: Optional[str] = None
+    migrating_to_model: Optional[str] = None
+    migration_status: Optional[str] = None
     auto_split: Optional[bool] = None
     allow_anonymous_view: Optional[bool] = None
     settings: Optional[dict] = None

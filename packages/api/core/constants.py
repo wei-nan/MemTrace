@@ -24,6 +24,7 @@ VALID_RELATIONS: frozenset = frozenset({
     "similar_to",
     "queried_via_mcp",
     "extracted_from",   # P61-T01: knowledge node → document node
+    "proceeds_to",      # Phase 6.3: conditional next step in troubleshooting graph
 })
 
 VALID_CONTENT_T: frozenset = frozenset({

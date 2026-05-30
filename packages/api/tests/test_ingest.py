@@ -95,3 +95,50 @@ async def test_process_ingestion_failure_rollback():
         assert any("SET status = 'failed'" in call[0][0] for call in calls)
         assert any("Database connection lost" in str(call[0][1]) for call in calls)
 
+def test_audit_source_success(client, override_auth, mock_db):
+    mock_cur = mock_db.return_value.__enter__.return_value
+    
+    # 1. First fetch for import_sources
+    # 2. Second fetch (fetchall) for memory_nodes refs
+    mock_cur.fetchone.return_value = {
+        "filename": "test.md",
+        "raw_content": "# Heading 1\nContent 1\n\n# Heading 2\nContent 2"
+    }
+    mock_cur.fetchall.return_value = [
+        {"source_paragraph_ref": "Chunk 1 (Heading 1)"}
+    ]
+    
+    with patch("routers.ingest.require_ws_access"):
+        response = client.get("/api/v1/workspaces/ws_1/audit/src_1")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["source_id"] == "src_1"
+        assert data["filename"] == "test.md"
+        assert data["coverage"] == 0.5
+        assert data["total_headings"] == 2
+        assert data["missing"] == ["Chunk 2 (Heading 2)"]
+
+def test_retry_audit_missing_success(client, override_auth, mock_db):
+    mock_cur = mock_db.return_value.__enter__.return_value
+    mock_cur.fetchone.return_value = {
+        "filename": "test.md",
+        "doc_type": "generic",
+        "raw_content": "# Heading 1\nContent 1\n\n# Heading 2\nContent 2"
+    }
+    
+    with patch("routers.ingest.require_ws_access"):
+        with patch("routers.ingest.process_ingestion") as mock_process:
+            with patch("core.csrf.CsrfMiddleware.dispatch", side_effect=lambda request, call_next: call_next(request)):
+                response = client.post(
+                    "/api/v1/workspaces/ws_1/audit/src_1/retry",
+                    json={"headings": ["Chunk 2 (Heading 2)"]},
+                    headers={"X-CSRF-Token": "test"},
+                    cookies={"mt_csrf": "test"}
+                )
+                assert response.status_code == 200
+                data = response.json()
+                assert data["status"] == "pending"
+                assert data["job_id"].startswith("retry_ing")
+                assert mock_process.called
+
+

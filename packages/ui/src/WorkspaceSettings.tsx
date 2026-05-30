@@ -740,7 +740,33 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [isSaving, setIsSaving] = useState(false);
   const [decayStats, setDecayStats] = useState<any>(null);
   const [healthReport, setHealthReport] = useState<any>(null);
+
+  // Embedding Model State
+  const [embedProvider, setEmbedProvider] = useState("openai");
+  const [embedModels, setEmbedModels] = useState<any[]>([]);
+  const [loadingEmbedModels, setLoadingEmbedModels] = useState(false);
+  const [failedEmbeddings, setFailedEmbeddings] = useState(0);
+  const [retrying, setRetrying] = useState(false);
   const isOwner = ws?.owner_id === userId;
+
+  useEffect(() => {
+    if (!ws) return;
+    setEmbedProvider(ws.embedding_provider || "openai");
+  }, [ws]);
+
+  useEffect(() => {
+    if (!embedProvider) return;
+    let active = true;
+    setLoadingEmbedModels(true);
+    ai.listModels(embedProvider).then(ms => {
+      if (active) setEmbedModels(ms.filter(m => m.model_type === 'embedding'));
+    }).catch(() => {
+      if (active) setEmbedModels([]);
+    }).finally(() => {
+      if (active) setLoadingEmbedModels(false);
+    });
+    return () => { active = false; };
+  }, [embedProvider]);
 
   const loadData = async () => {
     try {
@@ -762,6 +788,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
       // Fetch admin-only decay stats if we are the owner
       if (w.owner_id === userId) {
         workspaces.getDecayStats(wsId).then(setDecayStats).catch(() => {});
+        workspaces.getFailedEmbeddings(wsId).then(res => setFailedEmbeddings(res.count)).catch(() => {});
       }
       // Fetch health report
       workspaces.getHealthReport(wsId).then(setHealthReport).catch(() => {});
@@ -960,6 +987,110 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 <option value="gemini">Gemini</option>
                 <option value="ollama">Ollama</option>
               </select>
+            </div>
+          </SectionCard>
+
+          <SectionCard>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <div style={{ fontWeight: 600 }}>{zh ? "向量模型 (Embedding Model)" : "Embedding Model"}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 500 }}>
+                  {zh ? "選擇用於語義檢索的模型。若更改模型，系統將在背景執行重新嵌入 (migration)，此期間可能影響檢索品質且產生 Token 消耗。" : "Select the model for semantic search. Changing it triggers a background migration (re-embed)."}
+                </div>
+                {ws?.migration_status === 'in_progress' && (
+                  <div style={{ marginTop: 8, padding: "8px 12px", background: "var(--color-primary-subtle)", color: "var(--color-primary)", borderRadius: 8, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                    <RefreshCw size={14} className="animate-spin" />
+                    {zh ? `正在轉移至 ${ws.migrating_to_provider}/${ws.migrating_to_model}...` : `Migrating to ${ws.migrating_to_provider}/${ws.migrating_to_model}...`}
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6, display: "block" }}>Provider</label>
+                  <select 
+                    className="mt-input" 
+                    value={embedProvider} 
+                    disabled={!isOwner || ws?.migration_status === 'in_progress'}
+                    onChange={e => setEmbedProvider(e.target.value)}
+                    style={{ width: "100%" }}
+                  >
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic</option>
+                    <option value="gemini">Gemini</option>
+                    <option value="ollama">Ollama</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6, display: "block" }}>Model</label>
+                  <select 
+                    className="mt-input" 
+                    disabled={!isOwner || ws?.migration_status === 'in_progress' || loadingEmbedModels}
+                    style={{ width: "100%" }}
+                    value={ws?.migration_status === 'in_progress' ? ws?.migrating_to_model || "" : ws?.embedding_model || ""}
+                    onChange={async (e) => {
+                      const newModel = e.target.value;
+                      if (!newModel || newModel === ws?.embedding_model) return;
+                      const ok = await confirm({
+                        title: zh ? "確認更換向量模型？" : "Change Embedding Model?",
+                        message: zh ? `確定要將模型更改為 ${newModel}？系統將在背景重新計算所有節點。` : `Change model to ${newModel}? All nodes will be re-embedded in the background.`,
+                        confirmLabel: zh ? "開始轉移" : "Start Migration",
+                        variant: "warning"
+                      });
+                      if (!ok) return;
+                      try {
+                        await workspaces.update(wsId, {
+                          migrating_to_provider: embedProvider,
+                          migrating_to_model: newModel,
+                          migration_status: 'in_progress'
+                        });
+                        await loadData();
+                        toast({ message: zh ? "開始轉移" : "Migration started", variant: "success" });
+                      } catch (err: any) {
+                        toast({ message: err.message || String(err), variant: "error" });
+                      }
+                    }}
+                  >
+                    <option value={ws?.embedding_model || ""}>{ws?.embedding_model} ({zh ? "當前" : "Current"})</option>
+                    {embedModels.filter(m => m.id !== ws?.embedding_model).map(m => (
+                      <option key={m.id} value={m.id}>{m.display_name || m.id}</option>
+                    ))}
+                    {!embedModels.length && loadingEmbedModels && <option>{zh ? "載入中..." : "Loading..."}</option>}
+                  </select>
+                </div>
+              </div>
+
+              {/* Failed embeddings retry */}
+              {isOwner && failedEmbeddings > 0 && (
+                <div style={{ marginTop: 12, padding: "12px 16px", background: "var(--color-error-subtle)", borderRadius: 8, border: "1px solid var(--border-error-subtle)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: "var(--color-error)" }}>{zh ? "嵌入失敗節點" : "Failed Embeddings"}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+                      {zh ? `目前有 ${failedEmbeddings} 個節點嵌入失敗。系統將自動重試，您也可以手動立即重試。` : `${failedEmbeddings} nodes failed to embed. The system will retry automatically, or you can retry now.`}
+                    </div>
+                  </div>
+                  <Button 
+                    variant="secondary" 
+                    size="sm"
+                    loading={retrying}
+                    leftIcon={<RefreshCw size={14} />}
+                    onClick={async () => {
+                      setRetrying(true);
+                      try {
+                        const res = await workspaces.retryFailedEmbeddings(wsId);
+                        toast({ message: zh ? `已重排 ${res.queued} 個節點` : `Queued ${res.queued} nodes`, variant: "success" });
+                        setFailedEmbeddings(0);
+                      } catch (err) {
+                        toast({ message: String(err), variant: "error" });
+                      } finally {
+                        setRetrying(false);
+                      }
+                    }}
+                  >
+                    {zh ? "立即重試" : "Retry Now"}
+                  </Button>
+                </div>
+              )}
             </div>
           </SectionCard>
           

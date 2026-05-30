@@ -42,6 +42,7 @@ RELATION_DESCRIPTIONS = {
     "answered_by": "The source node (inquiry) is answered or resolved by the target node (factual/procedural).",
     "similar_to": "Both nodes cover similar topics or concepts.",
     "queried_via_mcp": "The node was involved in a query made through the MCP interface.",
+    "proceeds_to": "Conditional next step in a troubleshooting or workflow graph. Use edge metadata.condition to specify when this path is taken.",
 }
 
 CONTENT_TYPE_DESCRIPTIONS = {
@@ -60,6 +61,7 @@ RELATION_WEIGHTS = {
     "answered_by": 1.0,
     "similar_to": 0.4,
     "queried_via_mcp": 0.2,
+    "proceeds_to": 0.9,
 }
 
 # ─── JSON-RPC Helpers ─────────────────────────────────────────────────────────
@@ -179,7 +181,7 @@ TOOLS = [
     },
     {
         "name": "create_node",
-        "description": "Create a new knowledge node in a workspace.",
+        "description": "Create a new knowledge node in a workspace. NOTE: If you need to immediately search or retrieve this node by meaning (semantic search) after creation, you must call `wait_for_embedding(workspace_id, node_id)` first. Creating a node schedules an asynchronous embedding task, and it will not appear in semantic search results until that task completes.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -228,8 +230,32 @@ TOOLS = [
         },
     },
     {
+        "name": "wait_for_embedding",
+        "description": "Block until the background embedding task for a given node completes. Use this immediately after `create_node` if you need the new node to appear in subsequent semantic searches.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_id": {"type": "string"},
+                "timeout_seconds": {"type": "integer", "description": "Max seconds to wait (default 30, max 60)"}
+            },
+            "required": ["workspace_id", "node_id"],
+        },
+    },
+    {
+        "name": "get_embedding_status",
+        "description": "Check the workspace's embedding queue status. Returns the number of nodes waiting for embeddings or failing in the retry queue.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"}
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
         "name": "create_edge",
-        "description": "Create a directed edge (relationship) between two nodes.",
+        "description": "Create a directed edge (relationship) between two nodes. For troubleshooting graphs, use relation='proceeds_to' with metadata.condition to specify when this path is taken.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -238,6 +264,15 @@ TOOLS = [
                 "to_id": {"type": "string", "description": "Target node ID"},
                 "relation": {"type": "string", "enum": sorted(list(VALID_RELATIONS))},
                 "weight": {"type": "number", "description": "Edge weight 0.0–1.0"},
+                "half_life_days": {"type": "integer", "description": "Days before this edge decays (default: auto from content_type). Use 365 for troubleshooting steps."},
+                "metadata": {
+                    "type": "object",
+                    "description": "Arbitrary metadata. For troubleshooting edges: {\"condition\": \"timeout\", \"condition_type\": \"tool_output_match\"}",
+                    "properties": {
+                        "condition": {"type": "string", "description": "The condition string to match against tool output (e.g. 'timeout', 'connection refused')"},
+                        "condition_type": {"type": "string", "enum": ["tool_output_match", "manual", "always"], "description": "How the condition is evaluated"}
+                    }
+                },
             },
             "required": ["workspace_id", "from_id", "to_id", "relation"],
         },
@@ -466,6 +501,21 @@ TOOLS = [
                 "title":        {"type": "string", "description": "Human-readable title for the link (optional)"},
             },
             "required": ["workspace_id", "url"],
+        },
+    },
+    {
+        "name": "attach_evidence",
+        "description": "Attach a lightweight evidence snippet to a node without triggering AI extraction.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_id": {"type": "string", "description": "Node ID to attach evidence to"},
+                "raw_text": {"type": "string", "description": "Raw text content of the evidence"},
+                "source_url": {"type": "string", "description": "Source URL of the evidence (optional)"},
+                "paragraph_ref": {"type": "string", "description": "Reference within the source (optional)"},
+            },
+            "required": ["workspace_id", "node_id", "raw_text"],
         },
     },
     {
@@ -1202,6 +1252,59 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
         return result
 
+    # ── attach_evidence (C1-T25) ──────────────────────────────────────────────
+    if name == "attach_evidence":
+        ws_id = args["workspace_id"]
+        node_id = args["node_id"]
+        raw_text = args["raw_text"]
+        source_url = args.get("source_url")
+        paragraph_ref = args.get("paragraph_ref")
+        
+        import hashlib as _hl
+        content_hash = _hl.sha256(raw_text.encode('utf-8')).hexdigest()
+        
+        from services.documents import create_document_in_db, get_existing_document, create_node_document_link
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True)
+            
+            # Check if node exists
+            cur.execute("SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+            if not cur.fetchone():
+                raise ValueError(f"Node {node_id} not found in workspace {ws_id}")
+                
+            existing = get_existing_document(cur, ws_id, content_hash)
+            if existing:
+                doc_id = existing["id"]
+            else:
+                title_snip = raw_text[:50].replace('\n', ' ')
+                title = f"Agent Evidence: {title_snip}..." if len(raw_text) > 50 else f"Agent Evidence: {raw_text}"
+                row = create_document_in_db(
+                    cur, workspace_id=ws_id, filename=title,
+                    file_bytes=raw_text.encode('utf-8'), mime_type="text/plain",
+                    storage_path=None, uploaded_by=user["sub"],
+                    source_url=source_url,
+                    evidence_type="agent_attached"
+                )
+                doc_id = row["id"]
+                
+            # Create link and extracted_from edge (P61-T01 requirement)
+            link_id = create_node_document_link(cur, node_id, doc_id, paragraph_ref)
+            
+            # For P61-T01 extracted_from edge
+            # Ensure document node exists (it might be created by trigger_node_background_jobs or create_document_in_db natively now)
+            cur.execute("SELECT node_id FROM documents WHERE id = %s", (doc_id,))
+            doc_row = cur.fetchone()
+            if doc_row and doc_row.get("node_id"):
+                doc_node_id = doc_row["node_id"]
+                from services.edges import create_edge_in_db
+                try:
+                    create_edge_in_db(cur, ws_id, node_id, doc_node_id, "extracted_from", 1.0, user)
+                except Exception as e:
+                    logger.warning(f"Failed to create extracted_from edge: {e}")
+
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+            return {"document_id": doc_id, "link_id": link_id}
+
     # ── upload_file ───────────────────────────────────────────────────────────
     if name == "upload_file":
         import base64, mimetypes as _mt, uuid as _uuid
@@ -1249,6 +1352,45 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         result = {k: v for k, v in dict(doc).items() if k not in ("embedding", "storage_path")}
         log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
         return result
+
+    # ── wait_for_embedding (C3-T32) ───────────────────────────────────────────
+    if name == "wait_for_embedding":
+        ws_id = args["workspace_id"]
+        node_id = args["node_id"]
+        timeout = min(int(args.get("timeout_seconds", 30)), 60)
+        
+        import asyncio
+        start_time = asyncio.get_event_loop().time()
+        
+        while asyncio.get_event_loop().time() - start_time < timeout:
+            with db_cursor() as cur:
+                require_ws_access(cur, ws_id, user, write=False)
+                cur.execute("SELECT embedding FROM memory_nodes WHERE id = %s AND workspace_id = %s", (node_id, ws_id))
+                row = cur.fetchone()
+                if not row:
+                    raise ValueError(f"Node {node_id} not found")
+                if row["embedding"] is not None:
+                    return {"status": "ready", "node_id": node_id, "waited_seconds": round(asyncio.get_event_loop().time() - start_time, 2)}
+            
+            await asyncio.sleep(1.0)
+            
+        return {"status": "timeout", "message": f"Embedding still not ready after {timeout} seconds", "node_id": node_id}
+
+    # ── get_embedding_status (C3-T32) ─────────────────────────────────────────
+    if name == "get_embedding_status":
+        ws_id = args["workspace_id"]
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+            cur.execute("SELECT count(*) as count FROM memory_nodes WHERE workspace_id = %s AND embedding IS NULL", (ws_id,))
+            null_count = cur.fetchone()["count"]
+            cur.execute("SELECT count(*) as count FROM embed_retry_queue WHERE workspace_id = %s", (ws_id,))
+            failed_count = cur.fetchone()["count"]
+            return {
+                "workspace_id": ws_id,
+                "missing_embeddings_count": null_count,
+                "failed_embeddings_count": failed_count,
+                "system_status": "congested" if failed_count > 10 or null_count > 50 else "normal"
+            }
 
     # ── record_path ───────────────────────────────────────────────────────────
     if name == "record_path":

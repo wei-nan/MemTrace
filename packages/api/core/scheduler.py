@@ -62,6 +62,10 @@ class Scheduler:
         self.register_loop("backup",          backup_job,          BACKUP_CHECK_INTERVAL_SECONDS)
         self.register_loop("stale_ingest",    stale_ingest_job,    STALE_INGEST_CHECK_INTERVAL_SECONDS)
         self.register_loop("path_reinforcement", path_reinforcement_job, PATH_REINFORCEMENT_INTERVAL_SECONDS)
+        
+        from services.bg_jobs import retry_failed_embeddings_job, process_node_events_job
+        self.register_loop("retry_embeddings", retry_failed_embeddings_job, 60) # Run every minute
+        self.register_loop("process_node_events", process_node_events_job, 10) # Run every 10 seconds
         self.register_loop("audit_reviewers", _wrap_sync(audit_reviewers_job), 86400)  # daily
         
         # audit_writer_loop 內部含 while True 與 queue，interval 設為 5s 作為心跳。

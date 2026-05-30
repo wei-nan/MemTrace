@@ -13,6 +13,8 @@ import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
 import TableView from './TableView';
 import NeighborhoodView from './NeighborhoodView';
+import ReviewCounterBadge from './ReviewCounterBadge'; // T24
+import ReviewOverlay from './ReviewOverlay';           // T23
 
 type GraphMode = '2d' | '3d' | 'table' | 'explore';
 
@@ -96,6 +98,8 @@ export default function GraphContainer({
   const [displayLimit, setDisplayLimit] = useState<LimitOption>(100);
   const [orphanFilter, setOrphanFilter] = useState<string | undefined>(undefined);
   const [dofEnabled, setDofEnabled] = useState(true);
+  // T23: Review overlay state
+  const [showReviewOverlay, setShowReviewOverlay] = useState(false);
 
   // ── Load all data ─────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -360,6 +364,14 @@ export default function GraphContainer({
             <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           </button>
 
+          {/* T24: Review counter badge */}
+          {!isPreview && wsId && (
+            <ReviewCounterBadge
+              wsId={wsId}
+              onClick={() => setShowReviewOverlay(true)}
+            />
+          )}
+
           <div style={{ width: 1, height: 20, background: 'var(--border-default)' }} />
 
           {!isPreview && (
@@ -490,6 +502,14 @@ export default function GraphContainer({
           />
         )}
       </div>
+
+      {/* T23: Review Overlay */}
+      {showReviewOverlay && wsId && (
+        <ReviewOverlay
+          wsId={wsId}
+          onClose={() => setShowReviewOverlay(false)}
+        />
+      )}
     </div>
   );
 }

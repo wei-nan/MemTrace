@@ -117,6 +117,7 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
     weight = body_dict["weight"]
     half_life_days = body_dict.get("half_life_days", 30)
     pinned = body_dict.get("pinned", False)
+    metadata = body_dict.get("metadata") or {}
 
     if relation not in VALID_RELATIONS:
         raise HTTPException(status_code=400, detail="Invalid relation type")
@@ -124,28 +125,30 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
         raise HTTPException(status_code=400, detail="Cannot link a node to itself")
     if not (0.1 <= weight <= 1.0):
         raise HTTPException(status_code=400, detail="Weight must be between 0.1 and 1.0")
-        
+
     edge_id = generate_id("edge")
-    
+
     for nid in (from_id, to_id):
         cur.execute("SELECT id FROM memory_nodes WHERE id = %s AND workspace_id = %s", (nid, ws_id))
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail=f"Node not found: {nid}")
-            
+
     if half_life_days == 30:
         cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (from_id,))
         row = cur.fetchone()
         if row:
-            half_life_days = {"factual": 365, "procedural": 90, "preference": 30, "context": 14}.get(row["content_type"], 30)
-            
+            # proceeds_to edges inherit the same long half-life as factual (365d)
+            # so troubleshooting steps don't decay prematurely
+            half_life_days = {"factual": 365, "procedural": 365, "preference": 30, "context": 14}.get(row["content_type"], 30)
+
     try:
         cur.execute(
             """
-            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, half_life_days, pinned)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, half_life_days, pinned, metadata)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
             """,
-            (edge_id, ws_id, from_id, to_id, relation, weight, half_life_days, pinned),
+            (edge_id, ws_id, from_id, to_id, relation, weight, half_life_days, pinned, json.dumps(metadata)),
         )
         edge = cur.fetchone()
 
