@@ -42,6 +42,9 @@ It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sh
 | **Auth** | Email + password registration with verification, Google OAuth 2.0 |
 | **External API** | REST API with scoped API keys (`kb:read`, `kb:write`, `node:traverse`, `node:rate`) |
 | **MCP Server** | Native integration via Python API (SSE & Streamable HTTP) |
+| **OpenAI API** | OpenAI-compatible endpoint mapping `/v1/chat/completions` to hybrid RAG, with SSE streaming, sources, and system overrides |
+| **Python SDK** | Official client SDK (`memtrace`) for sync & async workspace, node, and chat operations |
+| **LangChain** | LCEL-compatible `MemTraceRetriever` for simple integration with AI workflows |
 | **i18n** | Full UI in Traditional Chinese (zh-TW) and English |
 | **Onboarding** | Guided web wizard and interactive `memtrace init` CLI flow |
 
@@ -69,11 +72,13 @@ It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sh
 
 ```
 packages/
-├── core/      TypeScript — schema validation, decay engine
-├── api/       Python / FastAPI — REST backend + Native MCP
-├── ui/        React / Vite — web app
-├── cli/       TypeScript — memtrace CLI
-└── ingest/    Document & AI extraction pipeline
+├── core/               TypeScript — schema validation, decay engine
+├── api/                Python / FastAPI — REST backend + Native MCP + OpenAI API
+├── ui/                 React / Vite — web app
+├── cli/                TypeScript — memtrace CLI
+├── ingest/             Document & AI extraction pipeline
+├── sdk-python/         Python — official client SDK
+└── langchain-memtrace/ Python — LangChain retriever integration
 ```
 
 ---
@@ -95,7 +100,9 @@ memtrace/
 │   ├── api/
 │   ├── ui/
 │   ├── cli/
-│   └── ingest/
+│   ├── ingest/
+│   ├── sdk-python/
+│   └── langchain-memtrace/
 ├── examples/
 ├── docker-compose.yml       PostgreSQL 17 + pgvector
 ├── .env.example             Environment variable template
@@ -218,6 +225,62 @@ Add a new MCP server with type **HTTP**:
 | `Connection refused` | API not running | Check `docker compose ps`; ensure port 8000 is open |
 | `401 Unauthorized` | Invalid token | Confirm token starts with `mt_` and has `kb:read` scope |
 | `404 Not Found` | Wrong endpoint | Use `/mcp` for Cursor or `/sse` for Claude Desktop |
+
+---
+
+## Ecosystem Integration
+
+MemTrace provides native integrations with the broader AI ecosystem, making it easy to use your knowledge graph in standard LLM applications.
+
+### 1. OpenAI-Compatible API
+The backend exposes standard OpenAI-compatible endpoints under `/v1` using your `mt_` API Key. This allows you to connect tools like **Open WebUI**, **Continue.dev**, or any library using the standard `openai` Python SDK directly to MemTrace.
+
+- **Base URL**: `http://localhost:8000/v1`
+- **Auth**: `Bearer mt_<your_api_key>`
+- **Models**: Maps workspaces to `memtrace-{workspace_id}`.
+- **RAG Integration**: `/v1/chat/completions` automatically performs hybrid semantic search over the selected workspace, injecting relevant nodes into the model context before generating the response.
+- **Source Citations**: Returns a top-level list of used nodes in `x_source_nodes` and appends inline source footnotes to the choice message. Supports full SSE streaming (`stream: true`).
+- **Workspace Override**: You can dynamically select a workspace in the system instructions by including the text `workspace_id: ws_xxx`.
+
+### 2. Python Client SDK
+The official Python client SDK allows you to manage workspaces, create/search memory nodes, and perform chat/retrievals programmatically.
+
+```bash
+pip install -e packages/sdk-python
+```
+
+```python
+from memtrace import MemTraceClient
+
+client = MemTraceClient(base_url="http://localhost:8000", api_key="mt_xxx")
+
+# List workspaces & search nodes
+workspaces = client.list_workspaces()
+nodes = client.search_nodes(workspace_id="ws_abc", query="how to configure auth")
+```
+
+### 3. LangChain Integration
+Integrate MemTrace as a retriever into your LangChain Expression Language (LCEL) chains.
+
+```bash
+pip install -e packages/langchain-memtrace
+```
+
+```python
+from langchain_memtrace import MemTraceRetriever
+
+retriever = MemTraceRetriever(
+    base_url="http://localhost:8000",
+    api_key="mt_xxx",
+    workspace_id="ws_abc",
+    search_type="hybrid",
+    k=5
+)
+
+# Use in chains
+chain = retriever | llm
+result = chain.invoke("query")
+```
 
 ---
 
