@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llama-index-memtrace"
+version = "0.1.0"
+description = "LlamaIndex integration for MemTrace knowledge graph memory network."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "memtrace>=0.1.0",
+    "llama-index-core>=0.10.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["llama_index_memtrace*"]

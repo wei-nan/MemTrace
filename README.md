@@ -282,6 +282,32 @@ chain = retriever | llm
 result = chain.invoke("query")
 ```
 
+### 4. LlamaIndex Integration
+Integrate MemTrace as a vector store index or document reader into LlamaIndex pipelines.
+
+```bash
+pip install -e packages/llama-index-memtrace
+```
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index_memtrace import MemTraceVectorStore
+
+# Initialize the vector store (server-side embedding)
+vector_store = MemTraceVectorStore(
+    base_url="http://localhost:8000",
+    api_key="mt_xxx",
+    workspace_id="ws_abc"
+)
+
+# Build index and query
+index = VectorStoreIndex.from_vector_store(vector_store)
+query_engine = index.as_query_engine()
+response = query_engine.query("Summarize the product roadmap")
+```
+
+For more details, see the [LlamaIndex Integration Guide](file:///d:/Workspace/MemTrace/docs/dev/integration-llamaindex.md).
+
 ---
 
 ## License
