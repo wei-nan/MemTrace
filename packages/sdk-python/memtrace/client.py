@@ -114,6 +114,40 @@ class MemTraceClient:
                     if line:
                         yield json.loads(line)
 
+    def list_nodes(
+        self,
+        workspace_id: str,
+        q: Optional[str] = None,
+        tag: Optional[str] = None,
+        content_type: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+        status: str = "active",
+        include_source: bool = False
+    ) -> List[Node]:
+        url = f"{self.base_url}/api/v1/workspaces/{workspace_id}/nodes"
+        params = {
+            "q": q,
+            "tag": tag,
+            "content_type": content_type,
+            "limit": limit,
+            "offset": offset,
+            "status": status,
+            "include_source": str(include_source).lower()
+        }
+        params = {k: v for k, v in params.items() if v is not None}
+        with httpx.Client(timeout=self.timeout) as client:
+            resp = client.get(url, headers=self.headers, params=params)
+            self._handle_response(resp)
+            return [Node(**node) for node in resp.json()]
+
+    def delete_node(self, workspace_id: str, node_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/api/v1/workspaces/{workspace_id}/nodes/{node_id}"
+        with httpx.Client(timeout=self.timeout) as client:
+            resp = client.delete(url, headers=self.headers)
+            self._handle_response(resp)
+            return resp.json()
+
     # --- Async API ---
 
     async def alist_workspaces(self) -> List[Workspace]:
@@ -196,3 +230,37 @@ class MemTraceClient:
                 async for line in response.aiter_lines():
                     if line:
                         yield json.loads(line)
+
+    async def alist_nodes(
+        self,
+        workspace_id: str,
+        q: Optional[str] = None,
+        tag: Optional[str] = None,
+        content_type: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+        status: str = "active",
+        include_source: bool = False
+    ) -> List[Node]:
+        url = f"{self.base_url}/api/v1/workspaces/{workspace_id}/nodes"
+        params = {
+            "q": q,
+            "tag": tag,
+            "content_type": content_type,
+            "limit": limit,
+            "offset": offset,
+            "status": status,
+            "include_source": str(include_source).lower()
+        }
+        params = {k: v for k, v in params.items() if v is not None}
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            resp = await client.get(url, headers=self.headers, params=params)
+            self._handle_response(resp)
+            return [Node(**node) for node in resp.json()]
+
+    async def adelete_node(self, workspace_id: str, node_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/api/v1/workspaces/{workspace_id}/nodes/{node_id}"
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            resp = await client.delete(url, headers=self.headers)
+            self._handle_response(resp)
+            return resp.json()
