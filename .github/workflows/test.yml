@@ -54,12 +54,27 @@ jobs:
             psql -h localhost -p 5433 -U memtrace -d memtrace_test -f "$f" || true
           done
 
-      - name: Apply P61 migration
+      - name: Apply migrations
+        working-directory: packages/api
         env:
-          PGPASSWORD: memtrace_test_pw
-        run: |
-          psql -h localhost -p 5433 -U memtrace -d memtrace_test \
-            -f packages/api/migrations/057_p61_doc_nodes.sql
+          DATABASE_URL: postgresql://memtrace:memtrace_test_pw@localhost:5433/memtrace_test
+          SECRET_KEY: ci_test_secret_key
+          ALLOW_WEAK_SECRET_KEY: "1"
+          MEMTRACE_ANON_LOG_SALT: ci_salt
+          REGISTRATION_MODE: open
+          PYTHONPATH: .
+        run: python -c "from core.database import run_migrations; run_migrations()"
+
+      - name: Run P61 doc-links migration script
+        working-directory: packages/api
+        env:
+          DATABASE_URL: postgresql://memtrace:memtrace_test_pw@localhost:5433/memtrace_test
+          SECRET_KEY: ci_test_secret_key
+          ALLOW_WEAK_SECRET_KEY: "1"
+          MEMTRACE_ANON_LOG_SALT: ci_salt
+          REGISTRATION_MODE: open
+          PYTHONPATH: .
+        run: python -m scripts.migrate_doc_links_to_edges
 
       - name: Run unit tests
         working-directory: packages/api

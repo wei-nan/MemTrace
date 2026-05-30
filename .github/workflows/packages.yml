@@ -1,0 +1,53 @@
+name: Package Tests
+
+# Test-only CI for the ecosystem integration packages.
+# Deliberately does NOT publish to PyPI — packaging/release is handled
+# separately and intentionally gated.
+
+on:
+  push:
+    paths:
+      - 'packages/sdk-python/**'
+      - 'packages/langchain-memtrace/**'
+      - 'packages/llama-index-memtrace/**'
+      - '.github/workflows/packages.yml'
+  pull_request:
+    paths:
+      - 'packages/sdk-python/**'
+      - 'packages/langchain-memtrace/**'
+      - 'packages/llama-index-memtrace/**'
+
+jobs:
+  langchain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package + deps
+        run: |
+          pip install ./packages/sdk-python
+          pip install ./packages/langchain-memtrace
+          pip install pytest pytest-asyncio
+      - name: Run langchain-memtrace tests
+        working-directory: packages/langchain-memtrace
+        run: pytest -v --tb=short
+
+  llama-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package + deps
+        run: |
+          pip install ./packages/sdk-python
+          pip install ./packages/llama-index-memtrace
+          pip install pytest pytest-asyncio
+      - name: Run llama-index-memtrace tests
+        working-directory: packages/llama-index-memtrace
+        run: pytest -v --tb=short
