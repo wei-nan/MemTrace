@@ -47,3 +47,4 @@ class UserResponse(BaseModel):
     email_verified: bool
     avatar_url: Optional[str] = None
     auth_providers: list[str] = []
+    is_platform_admin: bool = False

@@ -1,6 +1,28 @@
 import { BASE, request } from './client';
 import type { Workspace } from './workspaces';
 
+export interface SystemAIKey {
+  target: 'system' | 'safety';
+  provider: string;
+  key_hint: string;
+  base_url?: string;
+  auth_mode?: string;
+  default_chat_model?: string;
+  default_embedding_model?: string;
+  last_used_at?: string;
+}
+
+export interface SystemAIKeyUpsert {
+  target: 'system' | 'safety';
+  provider: string;
+  api_key?: string;
+  base_url?: string;
+  auth_mode?: string;
+  auth_token?: string;
+  default_chat_model?: string;
+  default_embedding_model?: string;
+}
+
 export interface BackupConfig {
   enabled: boolean;
   path: string;
@@ -20,6 +42,14 @@ export const system = {
   registrations: (status: string) => request<any[]>("GET", `${BASE}/system/registrations?status=${status}`),
   approveRegistration: (id: string) => request("POST", `${BASE}/system/registrations/${id}/approve`),
   rejectRegistration: (id: string) => request("POST", `${BASE}/system/registrations/${id}/reject`),
+
+  // System-level AI key management (admin only)
+  listSystemAIKeys: () => request<SystemAIKey[]>("GET", `${BASE}/system/ai-keys`),
+  upsertSystemAIKey: (data: SystemAIKeyUpsert) => request<SystemAIKey>("POST", `${BASE}/system/ai-keys`, data),
+  deleteSystemAIKey: (target: 'system' | 'safety', provider: string) =>
+    request("DELETE", `${BASE}/system/ai-keys/${target}/${provider}`),
+  updateSystemAIKeyModel: (target: 'system' | 'safety', provider: string, models: { default_chat_model?: string; default_embedding_model?: string }) =>
+    request("PATCH", `${BASE}/system/ai-keys/${target}/${provider}/model`, models),
 };
 
 export const kb = {

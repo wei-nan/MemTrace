@@ -17,6 +17,7 @@ const IngestPage = lazy(() => import('./IngestPage'));
 const DocumentsPage = lazy(() => import('./DocumentsPage'));
 const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 const GraphContainer = lazy(() => import('./GraphContainer'));
+const SystemAISettings = lazy(() => import('./SystemAISettings'));
 
 interface AppRouterProps {
   authenticated: boolean;
@@ -127,6 +128,11 @@ const AppRouter: React.FC<AppRouterProps> = ({
                       wsId={selectedWs.id}
                       onEditNode={(nodeId: string) => setEditingNode({ id: nodeId } as any)}
                     />
+                  </div>
+                )}
+                {currentView === 'system_ai' && user?.is_platform_admin && (
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    <SystemAISettings />
                   </div>
                 )}
               </Suspense>

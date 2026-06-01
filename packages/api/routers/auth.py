@@ -274,7 +274,7 @@ def reset_password(body: ResetPasswordRequest):
 def me(current_user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
         cur.execute(
-            "SELECT id, display_name, email, password_hash, email_verified, avatar_url FROM users WHERE id = %s",
+            "SELECT id, display_name, email, password_hash, email_verified, avatar_url, is_platform_admin FROM users WHERE id = %s",
             (current_user["sub"],)
         )
         user = cur.fetchone()
@@ -293,6 +293,7 @@ def me(current_user: dict = Depends(get_current_user)):
         email_verified=user["email_verified"],
         avatar_url=user["avatar_url"],
         auth_providers=providers,
+        is_platform_admin=bool(user.get("is_platform_admin")),
     )
 
 

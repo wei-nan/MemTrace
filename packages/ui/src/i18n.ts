@@ -15,7 +15,8 @@ const resources = {
         review: '審核佇列',
         ingest: '文件攝入',
         ws_settings: '工作區管理',
-        documents: '文件庫'
+        documents: '文件庫',
+        system_ai: '系統 AI 設定'
       },
       nav: {
         settings: '個人設定',
@@ -467,7 +468,8 @@ const resources = {
         review: 'Review Queue',
         ingest: 'Ingest',
         ws_settings: 'Workspace',
-        documents: 'Documents'
+        documents: 'Documents',
+        system_ai: 'System AI'
       },
       nav: {
         settings: 'Settings',

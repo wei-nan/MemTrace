@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Brain, Sparkles, Languages, Wand2 } from "lucide-react";
+import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Brain, Sparkles, Languages, Wand2, Cpu } from "lucide-react";
 import { ai, aiReviewers, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import { ModalOverlay } from "./components/Modal";
 import KbExportPanel from "./components/KbExportPanel";
+import AiProviderSettings from "./components/AiProviderSettings";
 import { Button, Input, Card } from "./components/ui";
 
 const DEFAULT_AI_REVIEW_PROMPT = `You are an AI reviewer for a collaborative knowledge graph.
@@ -626,7 +627,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   );
 }
 
-type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys" | "maintenance";
+type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "ai_model" | "apikeys" | "maintenance";
 type AccessTab = "members" | "invites" | "requests";
 
 function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
@@ -712,6 +713,108 @@ function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
           </Button>
         </div>
       </SectionCard>
+    </div>
+  );
+}
+
+// ── Workspace AI Model Settings Tab ──────────────────────────────────────────
+
+function WorkspaceAIModelSettings({
+  wsId,
+  ws,
+  isOwner,
+  userId,
+  zh,
+  onRefresh,
+}: {
+  wsId: string;
+  ws: Workspace | null;
+  isOwner: boolean;
+  userId?: string;
+  zh: boolean;
+  onRefresh: () => void;
+}) {
+  const { toast } = useModal();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    workspaces.members(wsId).then(members => {
+      const me = members.find((m: any) => m.user_id === userId);
+      setUserRole(me?.role ?? null);
+    }).catch(() => {});
+  }, [wsId, userId]);
+
+  const canEditConsult = isOwner || userRole === 'admin' || userRole === 'editor';
+
+  const handleConsultProviderChange = async (value: string) => {
+    try {
+      await workspaces.update(wsId, { consult_provider: value || null });
+      onRefresh();
+      toast({ message: zh ? '已更新 Consult 供應商' : 'Consult provider updated', variant: 'success' });
+    } catch (e: any) {
+      toast({ message: e.message, variant: 'error' });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+      {/* Workspace-level consult model (admin/editor only) */}
+      <div style={{ padding: '18px 20px', border: '1px solid var(--border-default)', borderRadius: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
+          <Cpu size={18} color="var(--color-primary)" style={{ marginTop: 2, flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>
+              {zh ? '此知識庫的 Consult 供應商' : 'Consult Provider for this KB'}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3, lineHeight: 1.6 }}>
+              {zh
+                ? '審核時 Consult 功能會優先使用此供應商。留空則沿用系統預設（先使用者個人金鑰，再 Fallback 到系統金鑰）。'
+                : 'Consult will prefer this provider for this workspace. Leave empty to use the system default (user key → system key fallback).'
+              }
+            </div>
+          </div>
+        </div>
+
+        {!canEditConsult && (
+          <div style={{ padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: 6, fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
+            {zh ? '僅工作區擁有者及管理員可修改此設定。' : 'Only the workspace owner or admin can modify this setting.'}
+          </div>
+        )}
+
+        <select
+          className="mt-input"
+          value={ws?.consult_provider ?? ''}
+          disabled={!canEditConsult}
+          style={{ width: 200 }}
+          onChange={e => handleConsultProviderChange(e.target.value)}
+        >
+          <option value="">{zh ? '自動（系統預設）' : 'Auto (system default)'}</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="ollama">Ollama</option>
+        </select>
+      </div>
+
+      {/* Personal AI key management */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <Key size={16} color="var(--text-secondary)" />
+          <span style={{ fontWeight: 600, fontSize: 14 }}>
+            {zh ? '我的個人 AI 金鑰' : 'My Personal AI Keys'}
+          </span>
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.6 }}>
+          {zh
+            ? '設定您自己的 AI 供應商金鑰。Consult 功能會優先使用您的個人金鑰，再使用工作區或系統層級的金鑰。'
+            : 'Configure your own AI provider keys. Consult will use your personal key first, then workspace/system-level keys.'
+          }
+        </div>
+        <AiProviderSettings zh={zh} onSaved={() => {}} />
+      </div>
+
     </div>
   );
 }
@@ -846,6 +949,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
         <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
         <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.aiReviewers')}</button>
+        <button onClick={() => setTab("ai_model")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_model" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_model" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "AI 模型" : "AI Model"}</button>
         <button onClick={() => setTab("maintenance")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "maintenance" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "maintenance" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "智慧維護" : "Maintenance"}</button>
         {ws?.owner_id === userId && (
           <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
@@ -1563,6 +1667,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <KbExportPanel wsId={wsId} zh={zh} />
       ) : tab === "ai_review" ? (
         <AIReviewerSettings wsId={wsId} />
+      ) : tab === "ai_model" ? (
+        <WorkspaceAIModelSettings wsId={wsId} ws={ws} isOwner={isOwner} userId={userId} zh={zh} onRefresh={loadData} />
       ) : tab === "apikeys" ? (
         <APIKeysSettings wsId={wsId} />
       ) : tab === "maintenance" ? (
