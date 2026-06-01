@@ -1,0 +1,41 @@
+{
+  "id": "mem_3b303d15",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "處理 createNode/updateNode 的 422 驗證錯誤",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "當 createNode 或 updateNode API 回傳 422 驗證錯誤時，應將回應中的 detail 陣列萃取為可讀的提示訊息。"
+  },
+  "tags": [
+    "api",
+    "錯誤處理",
+    "驗證"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:40:01.366196+00:00",
+    "signature": "409f48944a83ee3860534aa1c918f07f3d9c337c4c946bf715b933bd5360ea67",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

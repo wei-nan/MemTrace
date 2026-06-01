@@ -1,0 +1,40 @@
+{
+  "id": "mem_a28ca156_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Supported Memory Export Formats",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Memory can be exported in JSON, Markdown, or plain text formats."
+  },
+  "tags": [
+    "export",
+    "file-format"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.232184+00:00",
+    "signature": "75a768bb0777511311b5dd2bd3fc4b6ac90d651224dd1d6cee54e45d817fe664",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

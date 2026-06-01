@@ -990,6 +990,107 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
             </div>
           </SectionCard>
 
+          {/* Consult Auto-merge Trust Tier */}
+          <SectionCard>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                    {t('ws_settings.consult_trust_tier')}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 500 }}>
+                    {t('ws_settings.consult_trust_tier_desc')}
+                  </div>
+                </div>
+                <select
+                  className="mt-input"
+                  value={ws?.consult_trust_tier ?? "ask"}
+                  disabled={!isOwner}
+                  style={{ width: 160 }}
+                  onChange={async (e) => {
+                    const nextTier = e.target.value as "ask" | "full_trust";
+                    if (nextTier === "full_trust") {
+                      const ok = await confirm({
+                        title: zh ? "確認切換為完全信任模式？" : "Switch to Full Trust Mode?",
+                        message: zh 
+                          ? "在完全信任模式下，AI 產生的安全修復方案會自動寫入您的知識圖譜。危險或高風險的操作仍會被攔截或要求人工確認。" 
+                          : "Under Full Trust, safe AI-generated troubleshooting nodes/edges will be merged automatically. Dangerous or risky commands will still be blocked or require approval.",
+                        confirmLabel: zh ? "確認啟用" : "Enable Full Trust",
+                        variant: "warning"
+                      });
+                      if (!ok) return;
+                    }
+                    try {
+                      await workspaces.update(wsId, { consult_trust_tier: nextTier });
+                      await loadData();
+                      toast({ message: t('common.save'), variant: "success" });
+                    } catch (err) {
+                      toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
+                    }
+                  }}
+                >
+                  <option value="ask">{zh ? "手動確認 (ask)" : "Manual Review (ask)"}</option>
+                  <option value="full_trust">{zh ? "完全信任 (full_trust)" : "Full Trust (full_trust)"}</option>
+                </select>
+              </div>
+
+              {ws?.consult_trust_tier === "full_trust" && (
+                <div style={{
+                  display: "flex",
+                  gap: 8,
+                  padding: "10px 12px",
+                  background: "var(--color-warning-subtle)",
+                  color: "var(--color-warning)",
+                  borderRadius: 6,
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  alignItems: "center"
+                }}>
+                  <ShieldAlert size={16} style={{ flexShrink: 0 }} />
+                  <div>
+                    {zh 
+                      ? "⚠️ 警語：AI 安全產出將自動合入，僅事後通知；危險/有風險產出仍會攔截。" 
+                      : "⚠️ Warning: Safe AI suggestions will be auto-merged, notifying you afterward; dangerous/risky suggestions remain blocked."}
+                  </div>
+                </div>
+              )}
+            </div>
+          </SectionCard>
+
+          {/* Consult Provider Selection */}
+          <SectionCard>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600 }}>{t('ws_settings.consult_provider')}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 500 }}>
+                  {t('ws_settings.consult_provider_desc')}
+                </div>
+              </div>
+              <select
+                className="mt-input"
+                value={ws?.consult_provider ?? ""}
+                disabled={!isOwner}
+                style={{ width: 160 }}
+                onChange={async (e) => {
+                  try {
+                    await workspaces.update(wsId, { consult_provider: e.target.value || null });
+                    await loadData();
+                    toast({ message: t('common.save'), variant: "success" });
+                  } catch (err) {
+                    toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
+                  }
+                }}
+              >
+                <option value="">{zh ? "自動 (系統預設)" : "Auto (system default)"}</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="gemini">Gemini</option>
+                <option value="ollama">Ollama</option>
+              </select>
+            </div>
+          </SectionCard>
+
+
           <SectionCard>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>

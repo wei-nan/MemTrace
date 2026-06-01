@@ -1,0 +1,41 @@
+{
+  "id": "mem_w003",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Spec KB 初始化說明",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Spec KB 是如何建立的？\n規格知識庫（`ws_spec0001`）由 `schema/sql/099_seed_spec_kb.sql` 自動建立。\n\n`docker compose up` 時，PostgreSQL init 機制依序執行 `schema/sql/` 下所有 `*.sql`，`099_seed_spec_kb.sql` 最後執行，建立工作區、寫入 30 個節點與對應邊。\n\n## 驗證\n```bash\ndocker exec -it memtrace-db psql -U memtrace -d memtrace \\\n  -c \"SELECT COUNT(*) FROM memory_nodes WHERE workspace_id='ws_spec0001' AND status='active';\"\n# 預期：30\n```\n\n## 重置 Spec KB\n```bash\ndocker compose down -v && docker compose up -d\n```"
+  },
+  "tags": [
+    "dev",
+    "seed",
+    "procedural"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-28T00:00:00+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

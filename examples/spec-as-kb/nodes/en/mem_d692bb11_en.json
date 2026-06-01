@@ -1,0 +1,41 @@
+{
+  "id": "mem_d692bb11_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "README/Usage Document Update: Multiple Workspaces, Known ID Scenario",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "The README and usage documentation have been updated to describe the multiple workspaces, known ID scenario: set `MEMTRACE_WS` to the most frequently used workspace, and when querying other workspaces, include the `workspace_id` parameter with each tool call."
+  },
+  "tags": [
+    "文件",
+    "使用情境",
+    "工作區"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.118808+00:00",
+    "signature": "9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

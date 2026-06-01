@@ -1,0 +1,40 @@
+{
+  "id": "mem_565d7142_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "New Source Document Reference Fields on Memory Nodes",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "To link extracted nodes to their source paragraphs, the `memory_nodes` table adds the `source_doc_node_id` field (referencing the source document node ID) and the `source_paragraph_ref` field (a paragraph-level reference)."
+  },
+  "tags": [
+    "來源",
+    "文件"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.793451+00:00",
+    "signature": "4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

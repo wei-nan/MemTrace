@@ -1,0 +1,41 @@
+{
+  "id": "mem_6709672b_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "B Association Management UI",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "The goal of this feature is to provide a complete UI for cross-knowledge base association settings, complementing existing API functionality."
+  },
+  "tags": [
+    "ui",
+    "knowledge-base",
+    "association"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:05.267545+00:00",
+    "signature": "23d35304327fc4430ebc791c6c9b00a2c222a6c3516e33b32fb27dcf9990b9e9",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.924,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 0.901,
+      "utility": 0.98,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 10,
+    "unique_traversers": 3
+  }
+}

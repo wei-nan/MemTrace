@@ -1,0 +1,41 @@
+{
+  "id": "mem_4b0125e0_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Source Document Retention Policy for Ingested Nodes",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "When a document is ingested, its original source document is retained as a special node to ensure the traceability of extractions, providing a direct link from any extracted node back to its source paragraph without polluting the main knowledge graph."
+  },
+  "tags": [
+    "存取",
+    "來源",
+    "文件"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.736854+00:00",
+    "signature": "944b98fa9abb8ad8331129296039305a02c7b9291c5257066ca17a2918a88b3a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "mem_87639252_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Acceptance Scenario: List All Accessible Workspaces",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "One acceptance scenario: after setting `MEMTRACE_TOKEN`, calling `list_workspaces()` should return a list of all workspaces accessible by that token."
+  },
+  "tags": [
+    "驗收測試",
+    "工作區",
+    "API",
+    "認證"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.179895+00:00",
+    "signature": "f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

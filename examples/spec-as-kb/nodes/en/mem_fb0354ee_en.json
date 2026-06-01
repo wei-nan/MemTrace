@@ -1,0 +1,42 @@
+{
+  "id": "mem_fb0354ee_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Add MEMTRACE_TOKEN Environment Variable",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The `MEMTRACE_TOKEN` environment variable is added to support `list_workspaces` and future writing tools in accessing `/api/v1/workspaces`. This variable injects the API token into the `Authorization: Bearer` header of `apiFetch`."
+  },
+  "tags": [
+    "環境變數",
+    "api",
+    "認證",
+    "安全性"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:33.890766+00:00",
+    "signature": "5a92752ad8e42bd741785135c860e72414dc35b7ea7f68525e8f904ee3b40f5f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

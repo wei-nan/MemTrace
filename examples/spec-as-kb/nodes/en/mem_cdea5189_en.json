@@ -1,0 +1,37 @@
+{
+  "id": "mem_cdea5189_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Archived Nodes Are Never Destroyed",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Archived nodes are retained indefinitely and are never permanently deleted."
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.539979+00:00",
+    "signature": "50b0515bc00d8ed2ec480923fd0e3b1837b27543d57436eb4770e741c478f558",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -18,6 +18,8 @@ export interface Workspace {
   embedding_dim: number;
   qa_archive_mode: "auto_active" | "manual_review";
   extraction_provider: string | null;
+  consult_trust_tier: "ask" | "full_trust";
+  consult_provider: string | null;
 }
 
 export interface Node {

@@ -1,0 +1,42 @@
+{
+  "id": "mem_ns002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Node-splitting example: how to split a decision network (plan)",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "Using a \"plan / decision\" document (Phase 6.4) as an example of how to split a decision network.\n\nAnti-pattern (too coarse, don't do this): cram the whole plan into one factual body. Why it's bad: (1) any related search hits this one node, so there's no retrieval discrimination; (2) revising a single decision means touching the whole node, spreading risk; (3) a sub-decision can't independently link to its implementation or up/downstream.\n\nCorrect (one factual node per atomic decision):\n- D1 Dead-ends are the primary trigger for consult\n- D3 The synthesizer's job is to judge whether to escalate to a human, not to pick an answer\n- D5 The safety reviewer is orthogonal to trust tiers, always runs first, can only veto, fail-closed\n- D7 Consult is governed by cost/permission controls\n- D8 The consultant is per-workspace; the safety reviewer is environment-wide\n\nNarrative arrows → edges:\n- d1 —proceeds_to→ d3 —proceeds_to→ d5 (processing flow)\n- d1 —depends_on→ d7 (dependency)\n- d8 —extends→ d5 (d8 refines d5's deployment facet)\n\nSplitting rationale (co-variance test):\n- D1/D3/D5 can each be revised independently (changing safety classification doesn't affect the trigger condition) → split\n- D5's \"orthogonal / runs first / veto-only / fail-closed\" describe the same decision; changing one usually drags the others → keep in one node\n- D5 (behavior) vs D8 (deployment scope) evolve independently → split + connect with an edge\n\nFull teaching docs: docs/dev/node-splitting-example.md (decision networks) and troubleshooting-graph-authoring.md (action flows)."
+  },
+  "tags": [
+    "authoring",
+    "node-splitting",
+    "example",
+    "meta"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-31T12:40:44.790751+00:00",
+    "signature": "32f40e87cbd4a9e98a8551df9077b8398b24c3f25dbbc234d7ff701a9e999c0c",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

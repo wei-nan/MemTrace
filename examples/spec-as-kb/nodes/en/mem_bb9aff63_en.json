@@ -1,0 +1,41 @@
+{
+  "id": "mem_bb9aff63_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Admin Role Overview",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Admins are repository owners or maintainers. They possess all contributor capabilities, direct write access, the ability to approve or reject proposals, manage members, and soft-delete and restore workspaces."
+  },
+  "tags": [
+    "role",
+    "admin",
+    "capabilities"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.503845+00:00",
+    "signature": "e887ffec2fead0932c9e9c9281169b35a204c219a609098713d149f87b622012",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

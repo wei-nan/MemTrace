@@ -1,0 +1,40 @@
+{
+  "id": "mem_52ac8940_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Plain Text Input Mode",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "In `plain` mode, input is stored as-is in `content.body` with no rendering markup."
+  },
+  "tags": [
+    "input-mode",
+    "plain-text"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.391767+00:00",
+    "signature": "0d46112da947dead20360dc05d449e40425556481707045ac95fe29254d918b3",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

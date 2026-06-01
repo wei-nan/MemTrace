@@ -21,6 +21,8 @@ export interface Workspace {
   qa_archive_mode: "auto_active" | "manual_review";
   extraction_provider: string | null;
   auto_split: boolean;
+  consult_trust_tier: "ask" | "full_trust";
+  consult_provider: string | null;
   settings: {
     node_complexity: {
       enabled: boolean;
@@ -189,6 +191,8 @@ export const workspaces = {
     migrating_to_provider: string;
     migrating_to_model: string;
     settings: any;
+    consult_trust_tier: "ask" | "full_trust";
+    consult_provider: string | null;
   }>) =>
     request<Workspace>("PATCH", `${BASE}/workspaces/${wsId}`, data),
   delete: (wsId: string) => request("DELETE", `${BASE}/workspaces/${wsId}`),

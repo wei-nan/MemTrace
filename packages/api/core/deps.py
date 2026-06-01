@@ -185,7 +185,8 @@ def require_system_admin(user: dict = Depends(get_current_user)) -> dict:
     Dependency that gates an endpoint behind a system-admin check.
 
     A user is considered admin if their email (case-insensitive) appears in
-    the ADMIN_EMAILS env var (comma-separated).
+    the ADMIN_EMAILS env var (comma-separated), OR if they are promoted to
+    platform admin in the database.
 
     Reject API keys outright — admin actions must come from a verified
     interactive session, not a stored credential.
@@ -197,19 +198,24 @@ def require_system_admin(user: dict = Depends(get_current_user)) -> dict:
         )
 
     admin_emails = _admin_email_set()
-    if not admin_emails:
-        # No admin emails configured → lock down completely (fail closed)
-        logger.critical(
-            "SECURITY: ADMIN_EMAILS is not set — all admin endpoints are denied. "
-            "Set ADMIN_EMAILS=user@example.com in your .env to enable admin operations."
-        )
+    email = (user.get("email") or "").lower()
+
+    is_db_admin = False
+    if user.get("sub"):
+        with db_cursor() as cur:
+            cur.execute("SELECT is_platform_admin FROM users WHERE id = %s", (user["sub"],))
+            row = cur.fetchone()
+            if row and row["is_platform_admin"]:
+                is_db_admin = True
+
+    if email not in admin_emails and not is_db_admin:
+        if not admin_emails:
+            logger.critical(
+                "SECURITY: ADMIN_EMAILS is not set and user is not DB admin."
+            )
         raise HTTPException(
             status_code=403,
-            detail="System admin not configured. Set ADMIN_EMAILS in environment.",
+            detail="System admin access required",
         )
-
-    email = (user.get("email") or "").lower()
-    if email not in admin_emails:
-        raise HTTPException(status_code=403, detail="System admin access required")
 
     return user

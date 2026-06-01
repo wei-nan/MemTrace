@@ -1,0 +1,43 @@
+{
+  "id": "mem_k002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Knowledge Base sharing levels: four visibility tiers",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "| Tier | Identifier | Description |\n|------|------------|-------------|\n| Public | `public` | Anyone (incl. unauthenticated) can discover and read `public` nodes |\n| Conditional Public | `conditional_public` | Anyone can see graph topology, but node content is hidden; users may submit a join request to admins |\n| Restricted | `restricted` | KB is invisible to non-members; entry requires explicit admin invitation |\n| Private | `private` | Owner-only; invitations cannot be issued |\n\n**Important**: visibility is **immutable** after creation. Any `PATCH /workspaces/{ws_id}` containing `visibility` is rejected with `400 Immutable field: visibility`. The creation UI must show all four tiers clearly with inline descriptions and require explicit user confirmation.\n\nNode-level visibility (`public` / `team` / `private`) is independent of KB-level visibility — effective access is the more restrictive of the two."
+  },
+  "tags": [
+    "knowledge-base",
+    "sharing",
+    "visibility",
+    "access-control",
+    "four-tier"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00+00:00",
+    "signature": "b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

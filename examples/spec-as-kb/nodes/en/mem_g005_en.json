@@ -1,0 +1,40 @@
+{
+  "id": "mem_g005_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "MemTrace Trust Dimensions: Freshness and Author Reputation",
+  "content": {
+    "type": "factual",
+    "format": "plain",
+    "body": "MemTrace uses four dimensions to calculate the composite trust_score (0.0-1.0):\n1. Accuracy: Manual verification or voting.\n2. Utility: Frequency of use and positive feedback.\n3. Freshness: Time-based decay of reliability.\n4. Author Reputation: Historical quality of nodes created by the author.\n\nFreshness (dim_freshness):\n- Initial value is 1.0.\n- Decays over time if the node is not updated.\n- Reset to 1.0 when updated_at is modified or validity_confirmed_at is updated.\n- Formula: 1.0 * (0.5 ^ (days_since_update / 180)).\n\nAuthor Reputation (dim_author_rep):\n- Derived from the average trust_score of all nodes previously created by the same author.\n- Protects the system from low-quality AI or human mass-creation.\n- Authors with a high track record boost the initial trust of their new nodes."
+  },
+  "tags": [
+    "trust",
+    "spec"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-12T03:31:10.175315+00:00",
+    "signature": "818e5b9d24d7e3606e3568e8b1b435dc63f32bcdf7b9134d9b6006b2095fbc08",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.625,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 0.962,
+      "utility": 0.5,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

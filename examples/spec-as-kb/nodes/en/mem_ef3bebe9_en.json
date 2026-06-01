@@ -1,0 +1,42 @@
+{
+  "id": "mem_ef3bebe9_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "JWT Token Payload Structure",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The JWT Token payload includes `sub` (user ID), `email`, `display_name`, `iat` (issued-at time), and `exp` (expiry time) fields."
+  },
+  "tags": [
+    "jwt",
+    "token",
+    "載荷",
+    "對談管理"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.127115+00:00",
+    "signature": "28b7156405594bd26902d892ca1e916dbbde4c482b49dbb04839f3fec346da9a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

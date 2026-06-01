@@ -1,0 +1,43 @@
+{
+  "id": "mem_2c1bd9d5_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Chat API: Send Message (POST /chat)",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "Sends a message to a specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation."
+  },
+  "tags": [
+    "api",
+    "chat",
+    "message",
+    "conversation",
+    "post"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.693915+00:00",
+    "signature": "6b15654db2b55b29e7943d96ebfe8bd110b52e5febab150f4e704a1b2117ab6b",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

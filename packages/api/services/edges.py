@@ -114,7 +114,7 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
     from_id = body_dict["from_id"]
     to_id = body_dict["to_id"]
     relation = body_dict["relation"]
-    weight = body_dict["weight"]
+    weight = body_dict.get("weight", 1.0)
     half_life_days = body_dict.get("half_life_days", 30)
     pinned = body_dict.get("pinned", False)
     metadata = body_dict.get("metadata") or {}

@@ -1,0 +1,40 @@
+{
+  "id": "mem_2e101ff1_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "AI Usage Log Table Schema",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "A new `ai_usage_log` table is created with fields such as `id`, `user_id`, `key_source`, `provider`, `model`, `feature`, `workspace_id`, `node_id`, `tokens_input`, `tokens_output`, `tokens_total`, `latency_ms`, `success`, `error_code`, and `called_at`."
+  },
+  "tags": [
+    "ai",
+    "說明"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.887123+00:00",
+    "signature": "aca74ab39cb65f069516c41944edd02ff6232f8dea53e0413c1c026bad64746c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

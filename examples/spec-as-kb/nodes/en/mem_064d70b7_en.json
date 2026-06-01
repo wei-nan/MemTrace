@@ -1,0 +1,45 @@
+{
+  "id": "mem_064d70b7_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Phase 4 P4-G: Self-hosted Ollama Provider Planning Decisions",
+  "content": {
+    "type": "preference",
+    "format": "markdown",
+    "body": "**Decision date:** 2026-04-27\n**Status:** Recorded in `docs/dev/phase4-plan.md`, awaiting implementation scheduling.\n**Why:** Complements P4-F (managed AI credits) to form a three-tier business model (free managed / paid managed / fully self-hosted), and aligns with MemTrace's \"knowledge sovereignty\" philosophy by keeping tokens inside the user's environment.\n\n## Six finalized design decisions\n\n| # | Decision | Choice |\n|---|---------|--------|\n| 1 | API style | OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/embeddings`) — maximizes reuse of existing `OpenAIProvider` |\n| 2 | Connection scope | per-user: same layer as `user_ai_keys`; each member of a shared workspace connects to their own Ollama |\n| 3 | Auth mode | both none and Bearer: localhost without auth, reverse-proxied with token |\n| 4 | Model discovery | auto-list via Ollama `/api/tags` + manual fallback |\n| 5 | Embedding dimension | follow existing rule: workspace `embedding_dim` is locked at creation; UI shows the dim hint when user picks an Ollama embedding model |\n| 6 | Network reachability | documented (local host network / LAN / reverse proxy), not hard-coded in source |\n\n## Key tasks (excerpt)\n\n- **DB**: migration `024_ollama_provider.sql` adds `base_url`, `auth_mode`, `auth_token` to `user_ai_keys`\n- **API/Core**: `OllamaProvider` extends `OpenAIProvider`; two new endpoints (`test-connection`, `models`)\n- **UI**: fourth card in Settings → AI Provider; new color token `--ai-ollama: #6B7280` (dark) / `#374151` (light)\n- **Docs**: new `docs/dev/ollama-deployment.md`; SPEC.md §16 provider table gains a row\n\n## Schedule & dependencies\n\n- Runs in parallel with P4-D (CLI residuals); does not block the demo\n- Only prerequisite: the existing `AIProvider` Protocol (already in place)\n- Shared with P4-A: the `mcp_query_logs.provider` column should be added when A lands so G can use it without further DB changes\n\n## Main risk\n\nSmall local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON schema, raising Review Queue rejection rates. Mitigations: UI hint to use ≥ 8B / Q5+, Review Queue surfaces the source provider/model, and longer-term `mcp_query_logs` lets the Analytics page show a cloud-vs-local extraction success-rate comparison."
+  },
+  "tags": [
+    "phase-4",
+    "ollama",
+    "ai-provider",
+    "knowledge-sovereignty",
+    "planning",
+    "roadmap",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-04-27T13:20:55.037625+00:00",
+    "signature": "9a07537effbb587826c7d8e3b6a303f1dd6274459d91c1d45db99427c5bc5fd3",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.925,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 0.908,
+      "utility": 0.98,
+      "author_rep": 0.929
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 12,
+    "unique_traversers": 1
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "mem_i003",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "MCP Server：AI Agent 整合",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 實作 **Model Context Protocol (MCP)**，讓 AI agent（如 Claude Code）可以將 MemTrace 知識庫作為 context provider，無需直接讀取規格文件。\n\n**Transport**：目前僅支援 stdio（`node packages/mcp/dist/index.js`）。\n\n**當前實作工具（Tools）**：\n\n| 工具 | 說明 |\n|------|------|\n| `search_nodes` | 關鍵字搜尋節點（中英文皆可），回傳完整內容 |\n| `get_node` | 依 ID 取得特定節點完整內容與 metadata |\n| `traverse` | 取得節點及其上下游關聯（depth=1 或 2）|\n| `list_by_tag` | 依 tag 列出所有節點 |\n\n**環境變數**：\n- `MEMTRACE_API`：API base URL（預設 `http://localhost:8000/api/v1`）\n- `MEMTRACE_WS`：Workspace ID（預設 `ws_spec0001`）\n- `MEMTRACE_LANG`：顯示語言（預設 `zh-TW`）\n\n**現有限制**：\n每個 MCP server 實例只能查詢單一工作區（由 `MEMTRACE_WS` 固定）。若需查詢多個知識庫，目前 workaround 是在 `.mcp.json` 中為每個工作區啟動獨立實例，但工具名稱相同會造成 AI agent 混淆。\n\n**已規劃但尚未實作**：\n- 多工作區支援：工具加入可選 `workspace_id` 參數 + `list_workspaces` 工具\n- Resources（`memtrace://node/{id}` 等 URI 讀取）\n- 寫入工具（`create_node`、`update_node`、`create_edge`）\n- HTTP + SSE transport\n- `traverse_edge` 觸發 co-access boost\n\nAgent 每次沿 Edge 移動時應呼叫 traverse 工具，讓常用路徑保持活躍，抵抗 decay。"
+  },
+  "tags": [
+    "mcp",
+    "ai-agent",
+    "integration",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-11T00:00:00+00:00",
+    "signature": "c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 3,
+    "unique_traversers": 2
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "mem_097ff069_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "AI Provider Abstraction and API Key Model",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace's AI features share a common provider abstraction and API key model, where users supply their own keys."
+  },
+  "tags": [
+    "ai",
+    "api",
+    "security",
+    "configuration"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.454141+00:00",
+    "signature": "3670462d56d5294b06b1cdd0f98f5e5570062473d91f2c8839b81a34659a4a11",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.593,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.01,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

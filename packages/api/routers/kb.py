@@ -815,3 +815,36 @@ async def maintenance_suggest_edges(ws_id: str, body: dict, user: dict = Depends
     with db_cursor() as cur:
         suggestions = await run_suggest_edges(cur, ws_id, threshold=threshold)
         return {"suggestions": suggestions}
+
+
+# ─── Consult escalation route (Phase 6.4) ────────────────────────────────────
+
+class ConsultRequest(BaseModel):
+    stuck_node_id: str
+    problem_context: str
+    mode: Literal['interpret', 'generate']
+    inquiry_path_id: Optional[str] = None
+
+
+@router.post("/workspaces/{ws_id}/consult")
+async def workspace_consult(
+    ws_id: str,
+    body: ConsultRequest,
+    user: dict = Depends(get_current_user)
+):
+    from services.consult import consult as run_consult
+    try:
+        res = await run_consult(
+            ws_id=ws_id,
+            stuck_node_id=body.stuck_node_id,
+            problem_context=body.problem_context,
+            mode=body.mode,
+            user=user,
+            inquiry_path_id=body.inquiry_path_id
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

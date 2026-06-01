@@ -1,0 +1,41 @@
+{
+  "id": "mem_d679d993_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "MemTrace Core Philosophy: Knowledge and Curator Relationship",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace's design philosophy goes beyond a mere permissions model, articulating the relationship between knowledge and its curator."
+  },
+  "tags": [
+    "memtrace",
+    "philosophy",
+    "knowledge-management"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:27:02.088865+00:00",
+    "signature": "f8f87913529c03f880e7c1e82cea98b7b4b167dcf7d43215cacf3e98218bd995",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

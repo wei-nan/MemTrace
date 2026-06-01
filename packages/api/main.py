@@ -47,6 +47,8 @@ scheduler.register_system_jobs()
 async def lifespan(app: FastAPI):
     try:
         run_migrations()
+        from services.safety_provisioning import bootstrap_safety_from_env
+        bootstrap_safety_from_env()
     except Exception as exc:
         logger.warning("Migration failed: %s", exc)
 

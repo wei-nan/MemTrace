@@ -43,10 +43,12 @@ def register(body: MagicLinkRegisterRequest):
     if mode == "closed":
         raise HTTPException(status_code=403, detail="此知識庫目前不開放公開註冊，請聯絡管理員")
 
-    if mode == "invite_only":
-        raise HTTPException(status_code=403, detail="此知識庫僅限受邀者註冊。")
-
     email = body.email.lower().strip()
+
+    if mode == "invite_only":
+        from core.deps import _admin_email_set
+        if email not in _admin_email_set():
+            raise HTTPException(status_code=403, detail="此知識庫僅限受邀者註冊。")
 
     if mode == "domain":
         _validate_email_domain(email)
@@ -120,6 +122,13 @@ def request_magic_link(body: MagicLinkRegisterRequest):
     with db_cursor() as cur:
         cur.execute("SELECT id FROM users WHERE email = %s", (email,))
         user = cur.fetchone()
+        if not user:
+            from core.deps import _admin_email_set
+            if email not in _admin_email_set():
+                raise HTTPException(
+                    status_code=403,
+                    detail="此知識庫僅限受邀者註冊。"
+                )
         purpose = "login" if user else "registration"
 
     token = secrets.token_urlsafe(32)

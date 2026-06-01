@@ -1,0 +1,43 @@
+{
+  "id": "mem_d4ea05e2_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Memory Node Trust Score",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The `trust_score` column in the `memory_nodes` table is of type NUMERIC(4,3), representing a composite trust score between 0 and 1."
+  },
+  "tags": [
+    "database",
+    "schema",
+    "memory_nodes",
+    "column",
+    "score"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.130605+00:00",
+    "signature": "7c28f4b6744720099944e0b00fe9f6eacea46d6715cdde3f103aa4ba4cab8d00",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

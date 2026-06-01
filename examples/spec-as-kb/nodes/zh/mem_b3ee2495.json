@@ -1,0 +1,41 @@
+{
+  "id": "mem_b3ee2495",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "MEMTRACE_WS 作為預設工作區",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "`MEMTRACE_WS` 環境變數被設定為預設工作區。當工具呼叫未傳遞 `workspace_id` 參數時，將會使用此預設值。"
+  },
+  "tags": [
+    "環境變數",
+    "工作區",
+    "預設值"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-26T00:29:47.097515+00:00",
+    "signature": "fc08a173c8a31db9d4fbf0232313d32789b8d3c9b4b025c8947b7c51a658ee1b",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -289,8 +289,24 @@ TOOLS = [
                 "relation": {"type": "string", "description": "Filter by relation type (optional)"},
                 "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
+                "tool_output": {"type": "string", "description": "The output of the last tool execution to evaluate conditions (optional)"},
             },
             "required": ["workspace_id", "node_id"],
+        },
+    },
+    {
+        "name": "consult",
+        "description": "Consult the higher-level troubleshooting assistant when stuck at a dead-end.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "stuck_node_id": {"type": "string", "description": "The node ID where the traversal got stuck"},
+                "problem_context": {"type": "string", "description": "Context of the issue or tool outputs that did not match any condition"},
+                "mode": {"type": "string", "enum": ["interpret", "generate"], "description": "Consultation mode: 'interpret' to recommend existing nodes, 'generate' to generate a new troubleshooting step"},
+                "inquiry_path_id": {"type": "string", "description": "Optional inquiry path ID to track this session"},
+            },
+            "required": ["workspace_id", "stuck_node_id", "problem_context", "mode"],
         },
     },
     {
@@ -713,6 +729,7 @@ def optimize_traverse_response(cur, ws_id: str, traverse_result: dict, initial_l
     level_idx = LEVEL_ORDER.index(current_level) if current_level in LEVEL_ORDER else 1
     
     projected_result = {}
+    dead_end_val = traverse_result.get("dead_end", False)
     
     while level_idx < len(LEVEL_ORDER):
         lvl = LEVEL_ORDER[level_idx]
@@ -725,7 +742,8 @@ def optimize_traverse_response(cur, ws_id: str, traverse_result: dict, initial_l
             "nodes": projected_nodes,
             "edges": edges,
             "truncated": orig_truncated,
-            "total_nodes": len(projected_nodes)
+            "total_nodes": len(projected_nodes),
+            "dead_end": dead_end_val
         }
         
         if max_tokens is None:
@@ -931,6 +949,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         depth     = min(int(args.get("depth", 2)), 4)
         detail_level = args.get("detail_level") or get_default_detail_level(user.get("sub"))
         max_tokens = args.get("max_response_tokens")
+        tool_output = args.get("tool_output")
         if max_tokens is not None:
             max_tokens = int(max_tokens)
         with db_cursor() as cur:
@@ -943,9 +962,29 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 direction="both",
                 include_source=False,
                 viewer_role=viewer_role,
+                tool_output=tool_output,
             )
             log_mcp_interaction(background_tasks, ws_id, name, node_id=root_id)
             return optimize_traverse_response(cur, ws_id, result, detail_level, max_tokens)
+
+    # ── consult ───────────────────────────────────────────────────────────────
+    if name == "consult":
+        ws_id = args["workspace_id"]
+        stuck_node_id = args["stuck_node_id"]
+        problem_context = args["problem_context"]
+        mode = args["mode"]
+        inquiry_path_id = args.get("inquiry_path_id")
+        
+        from services.consult import consult as run_consult
+        res = await run_consult(
+            ws_id=ws_id,
+            stuck_node_id=stuck_node_id,
+            problem_context=problem_context,
+            mode=mode,
+            user=user,
+            inquiry_path_id=inquiry_path_id
+        )
+        return res
 
     # ── list_by_tag ───────────────────────────────────────────────────────────
     if name == "list_by_tag":
@@ -1296,9 +1335,13 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             doc_row = cur.fetchone()
             if doc_row and doc_row.get("node_id"):
                 doc_node_id = doc_row["node_id"]
-                from services.edges import create_edge_in_db
                 try:
-                    create_edge_in_db(cur, ws_id, node_id, doc_node_id, "extracted_from", 1.0, user)
+                    create_edge_in_db(cur, ws_id, {
+                        "from_id": node_id,
+                        "to_id": doc_node_id,
+                        "relation": "extracted_from",
+                        "weight": 1.0,
+                    })
                 except Exception as e:
                     logger.warning(f"Failed to create extracted_from edge: {e}")
 

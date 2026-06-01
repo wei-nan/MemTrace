@@ -205,9 +205,10 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
         INSERT INTO workspaces (
             id, name, language, visibility, kb_type, owner_id,
             archive_window_days, min_traversals, embedding_model, embedding_dim,
-            qa_archive_mode, extraction_provider, embedding_provider, auto_split, settings
+            qa_archive_mode, extraction_provider, embedding_provider, auto_split,
+            consult_trust_tier, consult_provider, settings
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *
         """,
         (
@@ -217,6 +218,8 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
             embedding_model, embedding_dim, body_dict.get("qa_archive_mode", "auto_active"),
             body_dict.get("extraction_provider", "gemini"), embedding_provider,
             body_dict.get("auto_split", False),
+            body_dict.get("consult_trust_tier", "ask"),
+            body_dict.get("consult_provider"),
             json.dumps(body_dict.get("settings", {
                 "node_complexity": {"enabled": True, "char_threshold": 600, "auto_split": False},
                 "auto_dedup_threshold": 0.92,

@@ -1,0 +1,41 @@
+{
+  "id": "mem_ns001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "節點拆分原則(agent 寫入前必讀)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "一顆節點 = 一個能獨立檢索、獨立為真、獨立被更新的單元。\n\n共變測試(唯一判別器):這兩件事永遠會一起改嗎?會 → 放同一顆;能各自獨立修訂 → 拆成兩顆,用 edge 連。\n\n寫入前 5 步自檢:\n1. 先分類:fact / step / decision / preference? → 決定 content_type\n2. 一顆 = 一個能獨立檢索、獨立為真、獨立被更新的單元\n3. 共變測試:會一起改的放一顆;能各自改的拆開 + edge 連\n4. 敘事(先 A 後 B、若 X 則 Y)→ 編進 edge(proceeds_to / depends_on),不要塞進 body\n5. 寫完問自己:只有這一顆被搜出來,夠用且不誤導嗎?\n\n可用 relation 僅:depends_on / extends / related_to / contradicts / proceeds_to,勿自創。實例見「節點拆分範例:決策網(plan)怎麼拆」。"
+  },
+  "tags": [
+    "authoring",
+    "node-splitting",
+    "meta"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-31T12:40:44.790751+00:00",
+    "signature": "2c5410e8e0cb0d2ad5b33fe10cf0a806bb945c9cc797d57ffb4b023e43c4d769",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

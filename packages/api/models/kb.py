@@ -15,6 +15,8 @@ class WorkspaceCreate(BaseModel):
     embedding_model: Optional[str] = None                # P4.1-E: user-chosen model; None = auto-resolve
     qa_archive_mode: str = "manual_review"               # auto_active | manual_review
     extraction_provider: Optional[str] = None            # preferred LLM for ingestion; None = user default
+    consult_trust_tier: str = "ask"                      # ask | full_trust
+    consult_provider: Optional[str] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -49,6 +51,8 @@ class WorkspaceResponse(BaseModel):
     migration_status: str = "none"
     auto_split: bool = False
     allow_anonymous_view: bool = False
+    consult_trust_tier: str = "ask"
+    consult_provider: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     settings: dict = {}
@@ -233,6 +237,8 @@ class WorkspaceUpdate(BaseModel):
     migration_status: Optional[str] = None
     auto_split: Optional[bool] = None
     allow_anonymous_view: Optional[bool] = None
+    consult_trust_tier: Optional[Literal["ask", "full_trust"]] = None
+    consult_provider: Optional[str] = None
     settings: Optional[dict] = None
 
     @model_validator(mode="before")

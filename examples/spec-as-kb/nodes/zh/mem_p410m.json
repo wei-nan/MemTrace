@@ -1,0 +1,42 @@
+{
+  "id": "mem_p410m",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Magic Link：僅限 invite_only 模式（Phase 4.10）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 機制\n\nMagic Link 為無密碼登入：系統產生一次性 token（SHA-256 雜湊存 DB，15 分鐘效期），寄至使用者 email，點擊後驗證並核發 JWT session。\n\n## Phase 4.10 限制\n\nMagic Link 僅在 `MEMTRACE_REGISTRATION_MODE=invite_only` 時開放。\n\n| registration_mode | Magic Link 可用？ |\n|---|---|\n| `open` | ❌ 403 magic_link_unavailable |\n| `domain` | ❌ 403 |\n| `approval` | ❌ 403 |\n| `invite_only` | ✅ 可用 |\n| `closed` | ❌ 403 |\n\n## 後端 guard（routers/registration.py）\n\n`POST /auth/magic-link/request` 與 `POST /auth/magic-link/verify` 兩個端點皆在開頭檢查：\n若 `settings.registration_mode != \"invite_only\"` 則回傳 403 `magic_link_unavailable`。\n\n## 前端感知\n\nUI 透過 `GET /auth/config`（無需 auth）取得 `registration_mode`，\n僅在 `invite_only` 時顯示「以 Email 連結登入」選項。\n\n## 邀請流程\n\n`invite_only` 模式下，workspace 邀請連結仍觸發 Magic Link（magic_link_tokens 含 invitation_id）。\n其他模式下邀請連結改為導向一般 register 表單。"
+  },
+  "tags": [
+    "auth",
+    "magic-link",
+    "registration",
+    "security"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-11T00:00:00+00:00",
+    "signature": "p410m_magic_link_invite_only_restriction",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.92,
+      "freshness": 0.955,
+      "utility": 0.88,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

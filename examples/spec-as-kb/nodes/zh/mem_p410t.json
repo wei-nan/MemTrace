@@ -1,0 +1,43 @@
+{
+  "id": "mem_p410t",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "JWT Token 刷新競態條件修復（authChecking 模式）",
+  "content": {
+    "type": "preference",
+    "format": "markdown",
+    "body": "## 問題\n\n使用者長時間未使用後重新整理頁面，`workspaces.list()` 用過期的 token 發出請求。\n後端 `get_current_user_optional` 將過期 token 視為匿名，回傳 200 + 公開知識庫，\n而非 401（不觸發重試）。結果：第一次重新整理只看到公開知識庫，第二次才正常。\n\n## 根本原因\n\n`App.tsx` 原本同步設定 `authenticated = !!localStorage.getItem('mt_token')`，\n導致 `workspaces.list()` 在 token 驗證前就觸發。\n\n## 修法（App.tsx）\n\n新增 `authChecking` state，在 token 驗證/刷新完成前阻擋所有資料載入：\n\n1. `authChecking` 初始為 `true`，顯示 loading spinner\n2. 非同步檢查 `isTokenStale()`：若過期則先 `refreshAccessToken()`\n3. 刷新失敗 → 清除 token，`authChecking = false`，顯示登入頁\n4. 驗證成功 → `authenticated = true`，`authChecking = false`，觸發資料載入\n\n## isTokenStale()（client.ts）\n\n解碼 JWT payload 的 `exp` 欄位，提前 60 秒視為過期，避免邊界競態。"
+  },
+  "tags": [
+    "auth",
+    "frontend",
+    "jwt",
+    "race-condition",
+    "ux"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-11T00:00:00+00:00",
+    "signature": "p410t_token_refresh_race_condition_fix",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.92,
+      "freshness": 0.955,
+      "utility": 0.85,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

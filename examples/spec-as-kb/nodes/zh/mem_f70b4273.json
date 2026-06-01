@@ -1,0 +1,41 @@
+{
+  "id": "mem_f70b4273",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "判斷入門流程進度",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "`steps_done` 與 `steps_skipped` 兩個欄位共同決定目前的入門步驟與進度條數值。"
+  },
+  "tags": [
+    "onboarding",
+    "progress",
+    "ui"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.398911+00:00",
+    "signature": "16aaf873e830ab998ec1834add380b9d5bafa80ec0b980ad6bc58c2a60e90b4a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

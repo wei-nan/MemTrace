@@ -1,0 +1,41 @@
+{
+  "id": "mem_d006",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Traversal Tracking：走訪計數",
+  "content": {
+    "type": "factual",
+    "format": "plain",
+    "body": "節點與 Edge 各自記錄走訪數據。節點記錄：traversal_count（總走訪次數）、unique_traverser_count（不重複訪客數）。Edge 記錄：traversal_count、rating_avg（1–5 平均評分，無評分時為 null）、rating_count。走訪透過 API 的 POST /nodes/{id}/traverse 或 POST /edges/{id}/traverse 記錄。MCP tool traverse_edge 也會觸發計數。這些數字反映知識的實際使用頻率，不只是被記錄的事實。"
+  },
+  "tags": [
+    "data-model",
+    "traversal",
+    "usage-tracking"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-04-11T00:00:00+00:00",
+    "signature": "c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

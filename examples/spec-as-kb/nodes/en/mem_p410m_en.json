@@ -1,0 +1,42 @@
+{
+  "id": "mem_p410m_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Magic Link: Restricted to invite_only Mode (Phase 4.10)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Mechanism\n\nMagic Link is passwordless login: a one-time token (SHA-256 hash, 15-minute TTL) is emailed to the user; clicking it issues a JWT session.\n\n## Phase 4.10 Restriction\n\nMagic Link is only available when MEMTRACE_REGISTRATION_MODE=invite_only.\n\n| registration_mode | Magic Link available? |\n|---|---|\n| open | 403 magic_link_unavailable |\n| domain | 403 |\n| approval | 403 |\n| invite_only | available |\n| closed | 403 |\n\n## Backend Guard (routers/registration.py)\n\nBoth POST /auth/magic-link/request and POST /auth/magic-link/verify check at the start:\nif settings.registration_mode != invite_only, return 403 magic_link_unavailable.\n\n## Frontend Awareness\n\nUI calls GET /auth/config (no auth) to get registration_mode,\nand shows the magic link option only in invite_only mode.\n\n## Invitation Flow\n\nIn invite_only mode, workspace invitation links still trigger Magic Link (magic_link_tokens includes invitation_id).\nIn other modes, invitation links redirect to the standard register form."
+  },
+  "tags": [
+    "auth",
+    "magic-link",
+    "registration",
+    "security"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-11T00:00:00+00:00",
+    "signature": "p410m_magic_link_invite_only_restriction",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.92,
+      "freshness": 0.955,
+      "utility": 0.88,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

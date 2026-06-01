@@ -1,0 +1,37 @@
+{
+  "id": "mem_5e292da7",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "來源格式參考範本",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "不同的來源格式使用特定的參考格式：Markdown/純文字使用 §<heading> 或 ¶<paragraph_index>；PDF/DOCX 使用 page:<n>, para:<m>；PPTX 使用 slide:<n>；影片/音訊使用 <HH:MM:SS>-<HH:MM:SS>；網頁使用 <section heading or XPath fragment>。"
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.812338+00:00",
+    "signature": "588186fe569c2ea8746c1b3951552737e78c888f03e512bb9c31ce683af3aa0f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

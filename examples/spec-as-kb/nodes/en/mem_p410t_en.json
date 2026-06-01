@@ -1,0 +1,43 @@
+{
+  "id": "mem_p410t_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "JWT Token Refresh Race Condition Fix (authChecking Pattern)",
+  "content": {
+    "type": "preference",
+    "format": "markdown",
+    "body": "## Problem\n\nAfter long inactivity, page refresh fires workspaces.list() with an expired token.\nThe backend get_current_user_optional treats expired tokens as anonymous and returns 200 + public KBs (not 401, so no retry).\nResult: first refresh shows only public KBs; second refresh is correct.\n\n## Root Cause\n\nApp.tsx synchronously set authenticated = !!localStorage.getItem(mt_token),\ncausing workspaces.list() to fire before token validation.\n\n## Fix (App.tsx)\n\nAdded authChecking state to block all data loading until token validation completes:\n\n1. authChecking starts true, shows loading spinner\n2. Async check isTokenStale(): if stale, call refreshAccessToken() first\n3. Refresh fails: clear token, authChecking = false, show login page\n4. Validation succeeds: authenticated = true, authChecking = false, data loading proceeds\n\n## isTokenStale() (client.ts)\n\nDecodes JWT payload exp field with a 60-second buffer to avoid boundary race conditions."
+  },
+  "tags": [
+    "auth",
+    "frontend",
+    "jwt",
+    "race-condition",
+    "ux"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-11T00:00:00+00:00",
+    "signature": "p410t_token_refresh_race_condition_fix",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.92,
+      "freshness": 0.955,
+      "utility": 0.85,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

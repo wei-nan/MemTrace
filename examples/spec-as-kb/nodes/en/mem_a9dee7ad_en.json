@@ -1,0 +1,37 @@
+{
+  "id": "mem_a9dee7ad_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "AI Editing Restriction: Current Workspace Nodes Only",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "When `allow_edits: true`, the AI may only propose edits to nodes in the current workspace."
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.697058+00:00",
+    "signature": "e7bf10d2741911fda9174cec1c320fb1aa084b441af68b4ccf38eb16825802f4",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

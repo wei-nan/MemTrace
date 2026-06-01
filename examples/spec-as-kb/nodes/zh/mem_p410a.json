@@ -1,0 +1,44 @@
+{
+  "id": "mem_p410a",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "帳號層級 API 金鑰：設計決策（Phase 4.10）",
+  "content": {
+    "type": "preference",
+    "format": "markdown",
+    "body": "## 決策\n\nPhase 4.10 將 MCP / API 金鑰從「工作區綁定 + 固定 scope」改為「帳號層級 + 動態角色繼承」。\n\n## 舊設計問題\n\n每個知識庫需要獨立金鑰，且 scope（`kb:read`、`kb:write`）在建立時固定，跨知識庫使用不方便且難以管理。\n\n## key_type 區分器（Migration 048）\n\n| key_type | 說明 |\n|---|---|\n| `account` | 帳號層級金鑰，動態繼承角色（新） |\n| `service` | Workspace Service Token（§29），保留固定 scope |\n\n## 動態角色解析（deps.py，每次 API 呼叫）\n\n1. 從 request path 提取 `workspace_id`\n2. 查 `workspace_members`（`user_id` + `workspace_id`）取得 `role`\n3. 若為 workspace owner（`workspaces.owner_id`）則視為 `admin`\n4. Path 不含 workspace（如 `/auth/me`）則 role = `None`\n\n角色等級：`viewer` < `contributor` < `admin`（owner 視同 admin）\n\n## 影響\n\n- `RequireScope` 改為 `RequireRole`（`RequireScope` 僅保留給 §29 service token）\n- 新增 `idx_wsm_user` 索引確保查詢效能\n- UI Settings → MCP / API Keys 移除 scope / workspace selector"
+  },
+  "tags": [
+    "api-key",
+    "auth",
+    "rbac",
+    "phase-4",
+    "architecture",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-11T00:00:00+00:00",
+    "signature": "p410a_account_level_api_key_design_decision",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.92,
+      "freshness": 0.955,
+      "utility": 0.88,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

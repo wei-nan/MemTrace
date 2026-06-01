@@ -1,0 +1,44 @@
+{
+  "id": "mem_p410a_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Account-Level API Key: Design Decision (Phase 4.10)",
+  "content": {
+    "type": "preference",
+    "format": "markdown",
+    "body": "## Decision\n\nPhase 4.10 redesigns MCP / API keys from workspace-bound + fixed scope to account-level + dynamic role inheritance.\n\n## Problem with Old Design\n\nEach knowledge base required its own key, and scopes (kb:read, kb:write) were fixed at creation time — inconvenient across multiple workspaces.\n\n## key_type Discriminator (Migration 048)\n\n| key_type | Description |\n|---|---|\n| `account` | Account-level key, dynamic role inheritance (new) |\n| `service` | Workspace Service Token (§29), retains fixed scopes |\n\n## Dynamic Role Resolution (deps.py, per request)\n\n1. Extract workspace_id from request path\n2. Query workspace_members (user_id + workspace_id) for role\n3. If user is workspace owner (workspaces.owner_id), treat as admin\n4. No workspace in path (e.g. /auth/me) means role = None\n\nRole hierarchy: viewer < contributor < admin (owner treated as admin)\n\n## Impact\n\n- RequireScope replaced by RequireRole (RequireScope kept only for §29 service tokens)\n- idx_wsm_user index ensures performant role lookups\n- UI Settings > MCP / API Keys removes scope/workspace selectors"
+  },
+  "tags": [
+    "api-key",
+    "auth",
+    "rbac",
+    "phase-4",
+    "architecture",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-11T00:00:00+00:00",
+    "signature": "p410a_account_level_api_key_design_decision",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.92,
+      "freshness": 0.955,
+      "utility": 0.88,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

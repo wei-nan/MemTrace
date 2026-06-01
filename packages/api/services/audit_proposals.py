@@ -151,6 +151,53 @@ def resolve_proposal(cur, proposal_id: str, user_id: str, action: str) -> Option
     row = cur.fetchone()
     if row:
         mark_proposal_read(cur, proposal_id, user_id)
+        
+        if action == "accepted":
+            prop = dict(row)
+            sug_action = prop.get("suggested_action") or {}
+            if isinstance(sug_action, str):
+                try:
+                    sug_action = json.loads(sug_action)
+                except Exception:
+                    sug_action = {}
+            
+            if sug_action.get("action") == "create_node_and_edge":
+                new_node_data = sug_action.get("new_node")
+                if new_node_data:
+                    from services.nodes import create_node_in_db
+                    new_node_payload = {
+                        "title": new_node_data.get("title"),
+                        "content_type": new_node_data.get("content_type", "procedural"),
+                        "content_format": new_node_data.get("content_format", "plain"),
+                        "body": new_node_data.get("body", ""),
+                        "tags": new_node_data.get("tags", []),
+                        "visibility": new_node_data.get("visibility", "private"),
+                        "author": user_id,
+                        "source_type": "ai",
+                        "status": "active"
+                    }
+                    new_node_row = create_node_in_db(cur, prop["workspace_id"], new_node_payload)
+                    new_node_id = new_node_row["id"]
+                    
+                    stuck_node_id = sug_action.get("stuck_node_id") or (prop["target_ids"][0] if prop["target_ids"] else None)
+                    if stuck_node_id:
+                        from services.edges import create_edge_in_db
+                        edge_data = {
+                            "from_id": stuck_node_id,
+                            "to_id": new_node_id,
+                            "relation": "proceeds_to",
+                            "weight": 1.0,
+                            "half_life_days": 365,
+                            "pinned": False,
+                            "metadata": sug_action.get("edge_metadata") or {}
+                        }
+                        create_edge_in_db(cur, prop["workspace_id"], edge_data)
+                        
+                        cur.execute(
+                            "UPDATE memory_nodes SET status = 'archived', updated_at = now() WHERE id = %s AND content_type = 'gap'",
+                            (stuck_node_id,)
+                        )
+                        
     return dict(row) if row else None
 
 

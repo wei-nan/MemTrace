@@ -1,0 +1,37 @@
+{
+  "id": "mem_97757fb8_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Source Document Node Access Methods",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Source document nodes can be accessed directly via `GET /workspaces/{ws_id}/nodes/{node_id}`, via the dedicated `GET /workspaces/{ws_id}/source-documents` endpoint, and via the \"View source paragraph\" link in the node editor sidebar."
+  },
+  "tags": [],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.853431+00:00",
+    "signature": "20054bbc0e4ca5efb9dc19d5efcf7549ce87b43972a0aa5f0489f4250824e2a4",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

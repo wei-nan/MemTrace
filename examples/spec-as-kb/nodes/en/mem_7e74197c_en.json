@@ -1,0 +1,42 @@
+{
+  "id": "mem_7e74197c_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "AI Provider `embed` Method Signature",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The `embed` method takes an API key, model name, and text string, returning a tuple containing a list of floats (the embedding vector) and the number of tokens used."
+  },
+  "tags": [
+    "ai",
+    "embedding",
+    "api",
+    "method-signature"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.640059+00:00",
+    "signature": "8ca7e05bc01d9b03cc82dfdd508527e481f07deb3644e4b1dbdbb685d9ebe61e",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

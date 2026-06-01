@@ -1,0 +1,41 @@
+{
+  "id": "mem_ns001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Node-splitting principles (read before writing)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "A node = one unit that can be independently retrieved, independently true, and independently updated.\n\nCo-variance test (the only discriminator): will these two things always change together? Yes → keep them in one node; can each be revised independently → split into two and connect with an edge.\n\n5-step self-check before writing:\n1. Classify first: fact / step / decision / preference? → decide content_type\n2. One node = one independently retrievable, independently true, independently updatable unit\n3. Co-variance test: things that always change together go in one node; things that change independently get split + linked by an edge\n4. Narrative (A then B, if X then Y) → encode into edges (proceeds_to / depends_on), don't stuff it into the body\n5. When done, ask: if only this node were retrieved, is it sufficient and not misleading?\n\nValid relations only: depends_on / extends / related_to / contradicts / proceeds_to. Don't invent new ones. See \"Node-splitting example: how to split a decision network (plan)\"."
+  },
+  "tags": [
+    "authoring",
+    "node-splitting",
+    "meta"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-31T12:40:44.790751+00:00",
+    "signature": "2c5410e8e0cb0d2ad5b33fe10cf0a806bb945c9cc797d57ffb4b023e43c4d769",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

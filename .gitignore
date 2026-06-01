@@ -20,6 +20,7 @@ build/
 out/
 .next/
 *.js.map
+*.egg-info/
 
 # Logs
 *.log

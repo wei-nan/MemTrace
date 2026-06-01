@@ -1,0 +1,40 @@
+{
+  "id": "mem_565d7142",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "記憶節點新增來源文件參考欄位",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "為了將萃取節點連結到其來源段落，memory_nodes 表中新增了 source_doc_node_id（引用來源文件節點 ID）和 source_paragraph_ref（段落級參考）欄位。"
+  },
+  "tags": [
+    "來源",
+    "文件"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.793451+00:00",
+    "signature": "4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

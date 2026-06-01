@@ -1,0 +1,42 @@
+{
+  "id": "mem_033baf41_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "NODE_GUIDE Content Definition",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The `NODE_GUIDE` constant defines node field specifications, `content_type` explanation, `visibility` explanation, best practices for creation, and common errors."
+  },
+  "tags": [
+    "node_guide",
+    "node",
+    "specification",
+    "documentation"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:28.703205+00:00",
+    "signature": "e455fd7e83ae5aa06dfc303f056131a6fba3450abac4370621b5128c99d786f6",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

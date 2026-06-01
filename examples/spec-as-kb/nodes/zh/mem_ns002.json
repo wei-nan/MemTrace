@@ -1,0 +1,42 @@
+{
+  "id": "mem_ns002",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "節點拆分範例:決策網(plan)怎麼拆",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "以一份『計畫 / 決策』文件(Phase 6.4)為例,示範決策網怎麼拆。\n\n反例(太粗,不要這樣):整份計畫塞一顆 factual body。壞處:① 任何相關搜尋都命中這顆,沒有檢索鑑別度;② 想修訂單一決策必須動整顆,risk 擴散;③ 子決策無法獨立連到它的實作或上下游。\n\n正解(每個原子決策一顆 factual):\n- D1 死路是 consult 的主要觸發源\n- D3 synthesizer 的職責是判斷該不該丟給人,不是選答案\n- D5 安全審查員與信任層級正交、永遠先跑、只能否決、fail-closed\n- D7 consult 受成本權限治理\n- D8 consultant 為 per-workspace、安全審查員為 environment-wide\n\n敘事箭頭 → edge:\n- d1 —proceeds_to→ d3 —proceeds_to→ d5(處理流程)\n- d1 —depends_on→ d7(依賴)\n- d8 —extends→ d5(d8 細化 d5 的部署面)\n\n拆分理由(共變測試):\n- D1/D3/D5 可各自獨立修訂(改安全分類不影響觸發條件)→ 拆\n- D5 的『正交 / 先跑 / 否決 / fail-closed』描述同一決策,改一個通常連動其他 → 留同一顆\n- D5(行為)與 D8(部署作用域)獨立演化 → 拆 + edge 連\n\n完整教學見 docs/dev/node-splitting-example.md(決策網)與 troubleshooting-graph-authoring.md(動作流)。"
+  },
+  "tags": [
+    "authoring",
+    "node-splitting",
+    "example",
+    "meta"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-31T12:40:44.790751+00:00",
+    "signature": "32f40e87cbd4a9e98a8551df9077b8398b24c3f25dbbc234d7ff701a9e999c0c",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

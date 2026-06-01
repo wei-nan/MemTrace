@@ -81,6 +81,7 @@ def test_magic_link_request_allowed_in_invite_only_mode():
 
     with patch("routers.registration.settings", mock_settings), \
          patch("routers.registration.db_cursor") as mock_db, \
+         patch("core.deps._admin_email_set", return_value={"user@example.com"}), \
          patch("routers.registration.send_magic_link_email"):
 
         # Simulate no existing user and no recent token

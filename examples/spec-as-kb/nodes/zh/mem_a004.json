@@ -1,0 +1,44 @@
+{
+  "id": "mem_a004",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "對話式問答（Conversational Q&A）",
+  "content": {
+    "type": "procedural",
+    "format": "plain",
+    "body": "viewer 以上角色可對知識庫進行自然語言問答。Q&A 為唯讀操作，不修改知識庫內容。\n\n執行流程：\n1. 使用者傳送訊息\n2. search_nodes(query) → 取得最相關的 5 個節點\n3. traverse(最高分節點, depth=1) → 補充鄰近上下文（可選）\n4. 組合 prompt：system 說明（只使用提供的節點作答，並引用節點 ID）+ 節點內容 + 使用者問題\n5. 呼叫 AI（使用工作區 AI provider 設定，§16.5）\n6. 回傳：answer + cited_nodes[] + tokens_used + session_id\n\nAPI：\n- POST /workspaces/{ws_id}/chat — 發送訊息（傳入 session_id 可延續對話，不傳則建立新 session）\n- GET /workspaces/{ws_id}/chat/sessions — 列出使用者的 session 清單\n- GET /workspaces/{ws_id}/chat/sessions/{session_id} — 取得完整對話紀錄\n\n多輪對話：session 中最近 10 則訊息會一起送入 context window 以支援連續問答。\n\nSchema：chat_sessions（id, workspace_id, user_id, created_at, updated_at）和 chat_messages（id, session_id, role user/assistant, content, cited_nodes[], tokens_used, created_at）。\n\n注意：即使是 public 工作區，Q&A 也需要登入。未認證使用者無法使用此功能。"
+  },
+  "tags": [
+    "ai",
+    "chat",
+    "q&a",
+    "conversational",
+    "session",
+    "read-only"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-12T00:00:00+00:00",
+    "signature": "f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 3,
+    "unique_traversers": 1
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "mem_00d32c49_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Node Minimization Principle",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "A core principle of knowledge graph design that advocates for smaller nodes, more edges, and shorter traversal paths to improve information retrieval efficiency and reduce cognitive load."
+  },
+  "tags": [
+    "knowledge-graph",
+    "design-principle",
+    "ai-restructuring"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:31:27.681728+00:00",
+    "signature": "9371b1b41df3cfd13fc796a731df2f30c24170405d5e9772324e1620188ba65f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

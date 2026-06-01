@@ -1,0 +1,42 @@
+{
+  "id": "mem_w002",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "本地開發環境啟動",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 前置需求\n- Node.js 20 LTS+\n- Python **3.11+**\n- Docker Desktop（啟動 PostgreSQL 17 + pgvector）\n\n## 啟動開發環境\n```bash\n# 1. 複製環境設定\ncp .env.example .env  # 填入 POSTGRES_PASSWORD 與 SECRET_KEY\n\n# 2. 安裝 Node 相依\nnpm install\n\n# 3. 安裝 Python 相依\ncd packages/api && python -m venv venv\nsource venv/bin/activate  # macOS/Linux\npip install -r requirements.txt && cd ../...\n\n# 4. 啟動資料庫（首次自動執行所有 schema/sql/*.sql）\ndocker compose up -d\n\n# 5. 啟動 API\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 6. 啟動 UI（另一個終端機）\ncd packages/ui && npm run dev\n```\n\nAPI：http://localhost:8000 / UI：http://localhost:5173"
+  },
+  "tags": [
+    "dev",
+    "setup",
+    "database",
+    "procedural"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-28T00:00:00+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.8
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

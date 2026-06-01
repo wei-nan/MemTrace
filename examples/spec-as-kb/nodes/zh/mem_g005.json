@@ -1,0 +1,40 @@
+{
+  "id": "mem_g005",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "MemTrace 信任維度：新鮮度與作者聲望",
+  "content": {
+    "type": "factual",
+    "format": "plain",
+    "body": "MemTrace 使用四個維度來計算綜合信任分數 (trust_score, 0.0-1.0)：\n1. 準確度 (Accuracy)：手動驗證或投票。\n2. 實用度 (Utility)：使用頻率與正面回饋。\n3. 新鮮度 (Freshness)：可靠性的時間衰減。\n4. 作者聲望 (Author Reputation)：該作者過去建立節點的歷史品質。\n\n新鮮度 (dim_freshness)：\n- 初始值為 1.0。\n- 若節點長期未更新，隨時間自動衰減。\n- 當 updated_at 或 validity_confirmed_at 更新時，重置為 1.0。\n- 演算法：1.0 * (0.5 ^ (距今更新天數 / 180))。\n\n作者聲望 (dim_author_rep)：\n- 取自該作者過去所有節點的平均信任分數。\n- 防止低質量的 AI 或人工大量產出影響品質。\n- 擁有良好記錄的作者，其新建立節點的初始信任度會較高。"
+  },
+  "tags": [
+    "trust",
+    "spec"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-05-12T03:31:10.175315+00:00",
+    "signature": "818e5b9d24d7e3606e3568e8b1b435dc63f32bcdf7b9134d9b6006b2095fbc08",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.625,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 0.962,
+      "utility": 0.5,
+      "author_rep": 0.92
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

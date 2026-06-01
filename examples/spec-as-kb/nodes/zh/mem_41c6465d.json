@@ -1,0 +1,43 @@
+{
+  "id": "mem_41c6465d",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "POST /edges/{edge_id}/traverse 端點實作",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "此端點用於記錄邊的走訪，這會觸發共同存取加成（co-access boost）並增加端點兩側節點的走訪計數。"
+  },
+  "tags": [
+    "api",
+    "rest",
+    "traversal",
+    "edge",
+    "co-access-boost"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:40.181154+00:00",
+    "signature": "92857f221640729e4aed86a22587b9cceb30a11eb100a6498d8ffcc15cb2ba88",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.595,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.02,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 2,
+    "unique_traversers": 2
+  }
+}

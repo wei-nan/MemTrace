@@ -3,12 +3,41 @@
 This directory contains the MemTrace specification represented as a MemTrace knowledge base itself.
 It demonstrates the product's core philosophy in practice: one idea per node, value through connections.
 
-- **19 Memory Nodes** across 5 clusters
-- **37 Edges** with typed relationships
+- **199 Memory Nodes** (zh-TW) + **171** clean English counterparts
+- **288 Edges** (zh-TW) + **234** English counterparts
 - All nodes and edges conform to `schema/node.v1.json` and `schema/edge.v1.json`
 
 > Note: `provenance.signature` values are placeholders. In a live system they would be
 > SHA-256 hashes computed from the node's content fields by `packages/core/src/id.ts`.
+
+---
+
+## Directory layout — two monolingual workspaces
+
+MemTrace stores each language in its own workspace (a workspace has a single
+`language`), and the two are linked via `workspaces.linked_workspace_id`. The seed
+mirrors that model: each node is one language, in its own file.
+
+```
+nodes/
+  zh/<id>.json        # language zh-TW   -> ws_spec0001    "MemTrace 規格知識庫"
+  en/<id>_en.json     # language en      -> ws_spec0001_en "MemTrace Specification"
+edges/
+  edges.zh.json       # base ids,  loaded into ws_spec0001
+  edges.en.json       # _en ids,   loaded into ws_spec0001_en
+  edges.json          # legacy bilingual edge list (kept for provenance)
+```
+
+- `memory_nodes.id` is a global primary key, so every English node uses the
+  `<zh-id>_en` id (e.g. `mem_d001` → `mem_d001_en`).
+- An English edge is emitted only when **both** endpoints have a clean English node.
+- 28 source nodes had corrupted (mojibake) English text; those English nodes are
+  **skipped**, not written. The Traditional Chinese node is always present.
+
+The split is reproducible: `scripts/split_spec_kb_bilingual.py` regenerates
+`nodes/zh`, `nodes/en`, and the two edge files from a flat bilingual source.
+`scripts/seed_spec_kb.py` loads both workspaces and regenerates
+`schema/sql/003_seed_spec_kb.sql` (used for Docker first-init).
 
 ---
 
@@ -92,7 +121,11 @@ It demonstrates the product's core philosophy in practice: one idea per node, va
 
 ---
 
-## Node Index
+## Node Index (curated core subset)
+
+The graph below and this table cover the original hand-authored core (clusters
+P/D/G/K/A/I/O). The full seed has grown well beyond it; browse `nodes/zh/` for the
+complete set.
 
 | ID | Title (zh-TW) | Content Type | Cluster |
 |----|---------------|--------------|---------|

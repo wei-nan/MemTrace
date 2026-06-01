@@ -1,7 +1,19 @@
 #!/usr/bin/env python3
 """
-Seed script: load the MemTrace spec knowledge base into the PostgreSQL database.
-Requires the database to be running (docker compose up -d) and DATABASE_URL in env.
+Seed script: load the MemTrace spec knowledge base into PostgreSQL.
+
+Two-workspace model (matches the live single-column schema):
+  ws_spec0001     "MemTrace 規格知識庫"     language zh-TW
+  ws_spec0001_en  "MemTrace Specification"  language en
+The two are mutually linked via workspaces.linked_workspace_id.
+
+Source files (produced by scripts/split_spec_kb_bilingual.py):
+  examples/spec-as-kb/nodes/zh/*.json      -> ws_spec0001
+  examples/spec-as-kb/nodes/en/*.json      -> ws_spec0001_en
+  examples/spec-as-kb/edges/edges.zh.json  -> ws_spec0001
+  examples/spec-as-kb/edges/edges.en.json  -> ws_spec0001_en
+
+Requires the database running (docker compose up -d) and DATABASE_URL in env.
 
 Usage:
   cd packages/api && source venv/bin/activate
@@ -12,12 +24,11 @@ import json
 import os
 import pathlib
 import sys
-import uuid
 from datetime import datetime, timezone
 
 try:
     import psycopg2
-    from psycopg2.extras import execute_values
+    import psycopg2.extras
     from dotenv import load_dotenv
 except ImportError:
     print("Missing dependencies. Run:  pip install psycopg2-binary python-dotenv")
@@ -25,9 +36,12 @@ except ImportError:
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-REPO_ROOT   = pathlib.Path(__file__).parent.parent
-NODES_DIR   = REPO_ROOT / "examples" / "spec-as-kb" / "nodes"
-EDGES_FILE  = REPO_ROOT / "examples" / "spec-as-kb" / "edges" / "edges.json"
+REPO_ROOT = pathlib.Path(__file__).parent.parent
+KB_DIR = REPO_ROOT / "examples" / "spec-as-kb"
+ZH_NODES_DIR = KB_DIR / "nodes" / "zh"
+EN_NODES_DIR = KB_DIR / "nodes" / "en"
+ZH_EDGES_FILE = KB_DIR / "edges" / "edges.zh.json"
+EN_EDGES_FILE = KB_DIR / "edges" / "edges.en.json"
 
 load_dotenv(REPO_ROOT / ".env")
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -35,31 +49,40 @@ if not DATABASE_URL:
     print("DATABASE_URL not set. Copy .env.example to .env and fill in credentials.")
     sys.exit(1)
 
-# ── Seed workspace ────────────────────────────────────────────────────────────
+# ── Seed workspaces ─────────────────────────────────────────────────────────────
 
-SPEC_WS_ID   = "ws_spec0001"
-SPEC_WS_NAME_ZH = "規格知識庫"
-SPEC_WS_NAME_EN = "Spec Knowledge Base"
-SPEC_OWNER   = "system"         # matches the system user already in DB
+ZH_WS_ID = "ws_spec0001"
+EN_WS_ID = "ws_spec0001_en"
+ZH_WS_NAME = "MemTrace 規格知識庫"
+EN_WS_NAME = "MemTrace Specification"
+SPEC_OWNER = "system"  # resolved against the live system user below
+
+# (ws_id, name, language, linked_to) — one entry per workspace
+WORKSPACES = [
+    (ZH_WS_ID, ZH_WS_NAME, "zh-TW", EN_WS_ID),
+    (EN_WS_ID, EN_WS_NAME, "en", ZH_WS_ID),
+]
+
+DEFAULT_TRUST = {"score": 0.8, "dimensions": {"accuracy": 0.8, "freshness": 1.0, "utility": 0.8, "author_rep": 0.8}, "votes": {"up": 0, "down": 0, "verifications": 0}}
+DEFAULT_TRAVERSAL = {"count": 0, "unique_traversers": 0}
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
-def load_nodes() -> list[dict]:
-    nodes = []
-    for f in sorted(NODES_DIR.glob("*.json")):
-        nodes.append(json.loads(f.read_text(encoding="utf-8")))
-    return nodes
 
-def load_edges() -> list[dict]:
-    return json.loads(EDGES_FILE.read_text(encoding="utf-8"))
+def load_nodes(d: pathlib.Path) -> list[dict]:
+    return [json.loads(f.read_text(encoding="utf-8")) for f in sorted(d.glob("*.json"))]
+
+
+def load_edges(f: pathlib.Path) -> list[dict]:
+    return json.loads(f.read_text(encoding="utf-8")) if f.exists() else []
+
 
 # ── Insert functions ──────────────────────────────────────────────────────────
 
 def upsert_system_user(cur):
-    # Resolve actual system user ID by email (handles pre-existing users with different IDs)
     cur.execute("SELECT id FROM users WHERE email = 'system@memtrace.local'")
     row = cur.fetchone()
     if row:
@@ -75,33 +98,35 @@ def upsert_system_user(cur):
     print(f"  system user: created id={SPEC_OWNER}")
 
 
-def upsert_workspace(cur):
-    cur.execute("""
-        INSERT INTO workspaces (id, name_zh, name_en, visibility, owner_id)
-        VALUES (%s, %s, %s, 'public', %s)
-        ON CONFLICT (id) DO NOTHING
-    """, (SPEC_WS_ID, SPEC_WS_NAME_ZH, SPEC_WS_NAME_EN, SPEC_OWNER))
-    print(f"  workspace: {SPEC_WS_ID}")
+def upsert_workspaces(cur):
+    # Phase 1: insert both rows with linked_workspace_id NULL, so neither row's
+    # self-referential FK can point at a not-yet-inserted sibling.
+    for ws_id, name, lang, _linked in WORKSPACES:
+        cur.execute("""
+            INSERT INTO workspaces (id, name, language, visibility, kb_type, owner_id)
+            VALUES (%s, %s, %s, 'public', 'evergreen', %s)
+            ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                language = EXCLUDED.language
+        """, (ws_id, name, lang, SPEC_OWNER))
+        print(f"  workspace: {ws_id} ({lang})")
+    # Phase 2: now both rows exist, wire up the mutual links.
+    for ws_id, _name, _lang, linked in WORKSPACES:
+        cur.execute("UPDATE workspaces SET linked_workspace_id = %s WHERE id = %s", (linked, ws_id))
 
 
-DEFAULT_TRUST = {"score": 0.8, "dimensions": {"accuracy": 0.8, "freshness": 1.0, "utility": 0.8, "author_rep": 0.8}, "votes": {"up": 0, "down": 0, "verifications": 0}}
-DEFAULT_TRAVERSAL = {"count": 0, "unique_traversers": 0}
-
-def upsert_nodes(cur, nodes: list[dict]):
-    inserted = 0
+def upsert_nodes(cur, nodes: list[dict], ws_id: str):
     for n in nodes:
-        p   = n["provenance"]
-        c   = n["content"]
-        t   = n.get("trust", DEFAULT_TRUST)
-        tr  = n.get("traversal", DEFAULT_TRAVERSAL)
+        p = n["provenance"]
+        c = n["content"]
+        t = n.get("trust") or DEFAULT_TRUST
+        tr = n.get("traversal") or DEFAULT_TRAVERSAL
         dim = t.get("dimensions", DEFAULT_TRUST["dimensions"])
         votes = t.get("votes", DEFAULT_TRUST["votes"])
         cur.execute("""
             INSERT INTO memory_nodes (
                 id, schema_version, workspace_id,
-                title_zh, title_en,
-                content_type, content_format,
-                body_zh, body_en,
+                title, content_type, content_format, body,
                 tags, visibility,
                 author, created_at, signature, source_type,
                 trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
@@ -109,9 +134,7 @@ def upsert_nodes(cur, nodes: list[dict]):
                 traversal_count, unique_traverser_count
             ) VALUES (
                 %s, %s, %s,
-                %s, %s,
-                %s, %s,
-                %s, %s,
+                %s, %s, %s, %s,
                 %s, %s,
                 %s, %s, %s, %s,
                 %s, %s, %s, %s, %s,
@@ -119,12 +142,10 @@ def upsert_nodes(cur, nodes: list[dict]):
                 %s, %s
             )
             ON CONFLICT (id) DO UPDATE SET
-                title_zh = EXCLUDED.title_zh,
-                title_en = EXCLUDED.title_en,
+                title = EXCLUDED.title,
+                body = EXCLUDED.body,
                 content_type = EXCLUDED.content_type,
                 content_format = EXCLUDED.content_format,
-                body_zh = EXCLUDED.body_zh,
-                body_en = EXCLUDED.body_en,
                 tags = EXCLUDED.tags,
                 trust_score = EXCLUDED.trust_score,
                 dim_accuracy = EXCLUDED.dim_accuracy,
@@ -132,55 +153,50 @@ def upsert_nodes(cur, nodes: list[dict]):
                 dim_utility = EXCLUDED.dim_utility,
                 dim_author_rep = EXCLUDED.dim_author_rep
         """, (
-            n["id"], n.get("schema_version", "1.0"), SPEC_WS_ID,
-            n["title"]["zh-TW"], n["title"]["en"],
-            c["type"], c.get("format", "plain"),
-            c["body"]["zh-TW"], c["body"]["en"],
+            n["id"], n.get("schema_version", "1.0"), ws_id,
+            n["title"], c["type"], c.get("format", "plain"), c["body"],
             n.get("tags", []), n.get("visibility", "public"),
             p["author"], p.get("created_at", now_iso()),
             p.get("signature", ""), p.get("source_type", "human"),
             t.get("score", 0.8),
             dim.get("accuracy", 0.8), dim.get("freshness", 1.0),
-            dim.get("utility", 0.8),  dim.get("author_rep", 0.8),
+            dim.get("utility", 0.8), dim.get("author_rep", 0.8),
             votes.get("up", 0), votes.get("down", 0), votes.get("verifications", 0),
             tr.get("count", 0), tr.get("unique_traversers", 0),
         ))
-        inserted += 1
-    print(f"  nodes:     {inserted} upserted")
+    print(f"  nodes:     {len(nodes)} upserted into {ws_id}")
 
 
-def upsert_edges(cur, edges: list[dict]):
-    inserted = 0
+def upsert_edges(cur, edges: list[dict], ws_id: str):
     for e in edges:
-        d = e["decay"]
-        tr = e["traversal"]
+        d = e.get("decay", {})
+        tr = e.get("traversal", {})
         rating_sum = 0.0
-        if tr["rating_avg"] is not None and tr["rating_count"] > 0:
+        if tr.get("rating_avg") is not None and tr.get("rating_count", 0) > 0:
             rating_sum = tr["rating_avg"] * tr["rating_count"]
         cur.execute("""
             INSERT INTO edges (
                 id, workspace_id, from_id, to_id, relation,
                 weight, co_access_count, last_co_accessed,
-                half_life_days, min_weight,
+                half_life_days, min_weight, pinned,
                 traversal_count, rating_sum, rating_count
             ) VALUES (
                 %s, %s, %s, %s, %s,
                 %s, %s, %s,
-                %s, %s,
+                %s, %s, %s,
                 %s, %s, %s
             )
             ON CONFLICT (id) DO NOTHING
         """, (
-            e["id"], SPEC_WS_ID, e["from"], e["to"], e["relation"],
-            e["weight"], e["co_access_count"], e["last_co_accessed"],
-            d["half_life_days"], d["min_weight"],
-            tr["count"], rating_sum, tr["rating_count"],
+            e["id"], ws_id, e["from"], e["to"], e["relation"],
+            e.get("weight", 1.0), e.get("co_access_count", 0), e.get("last_co_accessed", now_iso()),
+            d.get("half_life_days", 90), d.get("min_weight", 0.05), d.get("pinned", False),
+            tr.get("count", 0), rating_sum, tr.get("rating_count", 0),
         ))
-        inserted += 1
-    print(f"  edges:     {inserted} inserted (duplicates skipped)")
+    print(f"  edges:     {len(edges)} inserted into {ws_id} (duplicates skipped)")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ── SQL generation ──────────────────────────────────────────────────────────────
 
 SQL_SEED_FILE = REPO_ROOT / "schema" / "sql" / "003_seed_spec_kb.sql"
 
@@ -194,14 +210,59 @@ def _arr(lst: list) -> str:
     return f"ARRAY[{items}]::text[]"
 
 
-def generate_sql_seed(nodes: list[dict], edges: list[dict]) -> str:
-    """Re-generate schema/sql/003_seed_spec_kb.sql from current JSON source files."""
-    now = now_iso()
+def _node_sql(n: dict, ws_id: str) -> list[str]:
+    p = n["provenance"]
+    c = n["content"]
+    t = n.get("trust") or DEFAULT_TRUST
+    tr = n.get("traversal") or DEFAULT_TRAVERSAL
+    dim = t.get("dimensions", DEFAULT_TRUST["dimensions"])
+    votes = t.get("votes", DEFAULT_TRUST["votes"])
+    return [
+        "INSERT INTO memory_nodes",
+        "  (id,schema_version,workspace_id,title,content_type,content_format,body,",
+        "   tags,visibility,author,created_at,signature,source_type,",
+        "   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,",
+        "   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)",
+        "VALUES",
+        f"  ('{n['id']}','1.0','{ws_id}',"
+        f"'{_esc(n['title'])}','{c['type']}','{c.get('format','plain')}','{_esc(c['body'])}',",
+        f"   {_arr(n.get('tags',[]))},'{n.get('visibility','public')}',"
+        f"'{_esc(p['author'])}','{p.get('created_at', now_iso())}','{_esc(p.get('signature',''))}','{p.get('source_type','human')}',",
+        f"   {t.get('score',0.8)},{dim.get('accuracy',0.8)},{dim.get('freshness',1.0)},"
+        f"{dim.get('utility',0.8)},{dim.get('author_rep',0.8)},",
+        f"   {votes.get('up',0)},{votes.get('down',0)},{votes.get('verifications',0)},"
+        f"{tr.get('count',0)},{tr.get('unique_traversers',0)})",
+        "ON CONFLICT (id) DO UPDATE SET",
+        "  title=EXCLUDED.title, body=EXCLUDED.body,",
+        "  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,",
+        "  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,",
+        "  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;",
+        "",
+    ]
+
+
+def _edge_sql(e: dict, ws_id: str) -> list[str]:
+    d = e.get("decay", {})
+    tr_e = e.get("traversal", {})
+    pin = "true" if d.get("pinned", False) else "false"
+    weight = e.get("weight", d.get("weight", 1.0))
+    return [
+        "INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)",
+        f"VALUES ('{e['id']}','{ws_id}','{e['from']}','{e['to']}','{e['relation']}',"
+        f"{weight},{d.get('half_life_days',90)},{d.get('min_weight',0.05)},"
+        f"{pin},{e.get('co_access_count',0)},{tr_e.get('count',0)})",
+        "ON CONFLICT (id) DO NOTHING;",
+        "",
+    ]
+
+
+def generate_sql_seed(zh_nodes, en_nodes, zh_edges, en_edges) -> str:
     lines = [
         "-- =========================================================",
         "-- 003_seed_spec_kb.sql",
         "-- Auto-generated by scripts/seed_spec_kb.py — do not edit by hand.",
-        "-- Seeds the MemTrace spec knowledge base (ws_spec0001).",
+        "-- Seeds the MemTrace spec KB as two linked monolingual workspaces:",
+        "--   ws_spec0001    (zh-TW)  <-->  ws_spec0001_en  (en)",
         "-- Runs automatically on Docker first-init via docker-entrypoint-initdb.d.",
         "-- =========================================================",
         "",
@@ -212,83 +273,53 @@ def generate_sql_seed(nodes: list[dict], edges: list[dict]) -> str:
         "VALUES ('system', 'system@memtrace.internal', 'MemTrace System', true)",
         "ON CONFLICT (id) DO NOTHING;",
         "",
-        "-- Spec workspace",
-        f"INSERT INTO workspaces (id, name_zh, name_en, visibility, kb_type, owner_id)",
-        f"VALUES ('{SPEC_WS_ID}', '{SPEC_WS_NAME_ZH}', '{SPEC_WS_NAME_EN}', 'public', 'evergreen', '{SPEC_OWNER}')",
-        "ON CONFLICT (id) DO NOTHING;",
+        "-- Spec workspaces (linked pair)",
+        f"INSERT INTO workspaces (id, name, language, linked_workspace_id, visibility, kb_type, owner_id) VALUES",
+        f"  ('{ZH_WS_ID}', '{_esc(ZH_WS_NAME)}', 'zh-TW', '{EN_WS_ID}', 'public', 'evergreen', '{SPEC_OWNER}'),",
+        f"  ('{EN_WS_ID}', '{_esc(EN_WS_NAME)}', 'en', '{ZH_WS_ID}', 'public', 'evergreen', '{SPEC_OWNER}')",
+        "ON CONFLICT (id) DO UPDATE SET",
+        "  name=EXCLUDED.name, language=EXCLUDED.language, linked_workspace_id=EXCLUDED.linked_workspace_id;",
         "",
-        "-- Nodes",
+        "-- ── zh-TW nodes ─────────────────────────────────────────",
     ]
-
-    for n in nodes:
-        p     = n["provenance"]
-        c     = n["content"]
-        t     = n.get("trust", DEFAULT_TRUST)
-        tr    = n.get("traversal", DEFAULT_TRAVERSAL)
-        dim   = t.get("dimensions", DEFAULT_TRUST["dimensions"])
-        votes = t.get("votes", DEFAULT_TRUST["votes"])
-
-        lines += [
-            "INSERT INTO memory_nodes",
-            "  (id,schema_version,workspace_id,title_zh,title_en,content_type,content_format,",
-            "   body_zh,body_en,tags,visibility,author,created_at,signature,source_type,",
-            "   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,",
-            "   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)",
-            "VALUES",
-            f"  ('{n['id']}','1.0','{SPEC_WS_ID}',"
-            f"'{_esc(n['title']['zh-TW'])}','{_esc(n['title']['en'])}','{c['type']}','{c.get('format','plain')}',",
-            f"   '{_esc(c['body']['zh-TW'])}','{_esc(c['body']['en'])}',{_arr(n.get('tags',[]))},"
-            f"'{n.get('visibility','public')}',",
-            f"   '{_esc(p['author'])}','{p.get('created_at', now)}','{_esc(p.get('signature',''))}','{p.get('source_type','human')}',",
-            f"   {t.get('score',0.8)},{dim.get('accuracy',0.8)},{dim.get('freshness',1.0)},"
-            f"{dim.get('utility',0.8)},{dim.get('author_rep',0.8)},",
-            f"   {votes.get('up',0)},{votes.get('down',0)},{votes.get('verifications',0)},"
-            f"{tr.get('count',0)},{tr.get('unique_traversers',0)})",
-            "ON CONFLICT (id) DO UPDATE SET",
-            "  title_zh=EXCLUDED.title_zh, title_en=EXCLUDED.title_en,",
-            "  body_zh=EXCLUDED.body_zh, body_en=EXCLUDED.body_en,",
-            "  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,",
-            "  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,",
-            "  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;",
-            "",
-        ]
-
-    lines += ["", "-- Edges"]
-    for e in edges:
-        d    = e.get("decay", {})
-        tr_e = e.get("traversal", {})
-        pin  = "true" if d.get("pinned", False) else "false"
-        weight = e.get("weight", d.get("weight", 1.0))   # weight at top-level, fallback to decay.weight
-        lines += [
-            "INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)",
-            f"VALUES ('{e['id']}','{SPEC_WS_ID}','{e['from']}','{e['to']}','{e['relation']}',"
-            f"{weight},{d.get('half_life_days',90)},{d.get('min_weight',0.05)},"
-            f"{pin},{tr_e.get('co_access_count',0)},{tr_e.get('count',0)})",
-            "ON CONFLICT (id) DO NOTHING;",
-            "",
-        ]
-
+    for n in zh_nodes:
+        lines += _node_sql(n, ZH_WS_ID)
+    lines += ["", "-- ── en nodes ────────────────────────────────────────────"]
+    for n in en_nodes:
+        lines += _node_sql(n, EN_WS_ID)
+    lines += ["", "-- ── zh-TW edges ─────────────────────────────────────────"]
+    for e in zh_edges:
+        lines += _edge_sql(e, ZH_WS_ID)
+    lines += ["", "-- ── en edges ────────────────────────────────────────────"]
+    for e in en_edges:
+        lines += _edge_sql(e, EN_WS_ID)
     return "\n".join(lines)
 
 
-def main():
-    nodes = load_nodes()
-    edges = load_edges()
+# ── Main ──────────────────────────────────────────────────────────────────────
 
-    print(f"\n>>  Connecting to database...")
+def main():
+    zh_nodes = load_nodes(ZH_NODES_DIR)
+    en_nodes = load_nodes(EN_NODES_DIR)
+    zh_edges = load_edges(ZH_EDGES_FILE)
+    en_edges = load_edges(EN_EDGES_FILE)
+
+    print("\n>>  Connecting to database...")
     conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
     conn.autocommit = False
-    conn.set_client_encoding('UTF8')
+    conn.set_client_encoding("UTF8")
 
     try:
         with conn.cursor() as cur:
-            print(f">>  Seeding spec-as-kb into workspace {SPEC_WS_ID}...\n")
+            print(">>  Seeding spec-as-kb (two-workspace model)...\n")
             upsert_system_user(cur)
-            upsert_workspace(cur)
-            upsert_nodes(cur, nodes)
-            upsert_edges(cur, edges)
+            upsert_workspaces(cur)
+            upsert_nodes(cur, zh_nodes, ZH_WS_ID)
+            upsert_nodes(cur, en_nodes, EN_WS_ID)
+            upsert_edges(cur, zh_edges, ZH_WS_ID)
+            upsert_edges(cur, en_edges, EN_WS_ID)
         conn.commit()
-        print(f"\nOK  Seed complete.")
+        print("\nOK  Seed complete.")
     except Exception as e:
         conn.rollback()
         print(f"\nFAIL  Seed failed: {e}")
@@ -296,8 +327,7 @@ def main():
     finally:
         conn.close()
 
-    # Keep SQL init file in sync with JSON sources
-    sql = generate_sql_seed(nodes, edges)
+    sql = generate_sql_seed(zh_nodes, en_nodes, zh_edges, en_edges)
     SQL_SEED_FILE.write_text(sql, encoding="utf-8")
     print(f">>  SQL init file updated: {SQL_SEED_FILE.name}")
 

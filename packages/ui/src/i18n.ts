@@ -158,7 +158,11 @@ const resources = {
         complexity_threshold: '複雜度閾值 (字數)',
         dedup_threshold: '重複偵測閾值',
         mcp_ingestion: 'MCP 遠端攝入',
-        mcp_daily_quota: '每日攝入配額 (文件數)'
+        mcp_daily_quota: '每日攝入配額 (文件數)',
+        consult_trust_tier: '自動合入信任層級',
+        consult_trust_tier_desc: '控制 AI 產出的安全建議是否需要手動審核。危險/有風險產出將始終被攔截。',
+        consult_provider: '自動修復模型 (Consult Provider)',
+        consult_provider_desc: '指定用於自動診斷與合入建議的模型。設為「自動」時沿用系統預設。'
       },
       common: {
         enable: '啟用',
@@ -606,7 +610,11 @@ const resources = {
         complexity_threshold: 'Complexity Threshold (chars)',
         dedup_threshold: 'Deduplication Threshold',
         mcp_ingestion: 'MCP Remote Ingestion',
-        mcp_daily_quota: 'Daily Ingestion Quota (docs)'
+        mcp_daily_quota: 'Daily Ingestion Quota (docs)',
+        consult_trust_tier: 'Auto-merge Trust Tier',
+        consult_trust_tier_desc: 'Control if safe AI recommendations should be merged automatically. Dangerous/risky proposals are always blocked.',
+        consult_provider: 'Auto-healing Provider (Consult)',
+        consult_provider_desc: 'Preferred model for running consult diagnostics and healing recommendations. "Auto" falls back to system default.'
       },
       common: {
         enable: 'Enable',

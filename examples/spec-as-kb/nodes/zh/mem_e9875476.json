@@ -1,0 +1,41 @@
+{
+  "id": "mem_e9875476",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "輸入模式選擇",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "輸入模式可透過編輯器內的分頁切換來選擇。"
+  },
+  "tags": [
+    "editor",
+    "input-mode",
+    "ui"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-04-24T11:25:39.374323+00:00",
+    "signature": "585df44f3ba32837cd36c7de38c486adf0a047f38a72f9bbf983f9615d86b47b",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.924,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 0.898,
+      "utility": 0.98,
+      "author_rep": 0.929
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 10,
+    "unique_traversers": 3
+  }
+}

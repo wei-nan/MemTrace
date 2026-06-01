@@ -1,0 +1,41 @@
+{
+  "id": "mem_6a46a549_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Knowledge Base Export and Import Specification",
+  "content": {
+    "type": "context",
+    "format": "markdown",
+    "body": "For the complete specification of export types, filterable scopes, and format details, see §22."
+  },
+  "tags": [
+    "specification",
+    "export",
+    "import"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.289665+00:00",
+    "signature": "1fe072bfa79a235c67cbcb708caaa9f62839ddcb301956885e5fc13d472ac11f",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

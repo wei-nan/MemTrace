@@ -99,3 +99,27 @@ def reject_registration(reg_id: str, user: dict = Depends(require_system_admin))
     with db_cursor(commit=True) as cur:
         cur.execute("UPDATE user_registrations SET status = 'rejected', reviewed_by = %s, reviewed_at = now() WHERE id = %s", (user["sub"], reg_id))
     return {"message": "Rejected"}
+
+
+class PromoteDemoteRequest(BaseModel):
+    user_id: str
+
+
+@router.post("/promote", status_code=200)
+def promote_user(data: PromoteDemoteRequest, user: dict = Depends(require_system_admin)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT id FROM users WHERE id = %s", (data.user_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="User not found")
+        cur.execute("UPDATE users SET is_platform_admin = TRUE WHERE id = %s", (data.user_id,))
+    return {"message": f"User {data.user_id} promoted to platform admin"}
+
+
+@router.post("/demote", status_code=200)
+def demote_user(data: PromoteDemoteRequest, user: dict = Depends(require_system_admin)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT id FROM users WHERE id = %s", (data.user_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="User not found")
+        cur.execute("UPDATE users SET is_platform_admin = FALSE WHERE id = %s", (data.user_id,))
+    return {"message": f"User {data.user_id} demoted"}

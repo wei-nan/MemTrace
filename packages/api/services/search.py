@@ -29,10 +29,11 @@ def bfs_neighborhood(
     direction: str = "both",
     include_source: bool = True,
     viewer_role: Optional[str] = "viewer",
+    tool_output: Optional[str] = None,
 ) -> dict:
     """
     Traverse edges up to `depth` from `root_id`.
-    Returns { nodes: [list of stripped node dicts], edges: [list of edge dicts], truncated: bool, total_nodes: int }
+    Returns { nodes: [list of stripped node dicts], edges: [list of edge dicts], truncated: bool, total_nodes: int, dead_end: bool }
     """
     visited_nodes = {root_id}
     current_frontier = {root_id}
@@ -100,11 +101,48 @@ def bfs_neighborhood(
     cur.execute(node_query, [ws_id] + list(visited_nodes))
     nodes_found = [strip_body_if_viewer(dict(r), viewer_role) for r in cur.fetchall()]
 
+    dead_end = False
+    try:
+        cur.execute(
+            "SELECT * FROM edges WHERE workspace_id = %s AND from_id = %s AND relation = 'proceeds_to' AND status = 'active'",
+            (ws_id, root_id)
+        )
+        root_out_edges = cur.fetchall()
+
+        if not root_out_edges:
+            dead_end = True
+        else:
+            # If tool_output is provided, check condition matching. If not, default to False since proceeds_to edges exist.
+            if tool_output is not None:
+                any_matched = False
+                for e in root_out_edges:
+                    meta = e.get("metadata") or {}
+                    c_type = meta.get("condition_type", "always")
+                    cond = meta.get("condition")
+
+                    if c_type == "always" or not cond:
+                        any_matched = True
+                        break
+                    elif c_type == "tool_output_match":
+                        if str(cond).lower() in str(tool_output).lower():
+                            any_matched = True
+                            break
+                    elif c_type == "manual":
+                        # For manual choice, if tool_output is provided, it's considered matched if the condition is in tool_output
+                        if str(cond).lower() in str(tool_output).lower():
+                            any_matched = True
+                            break
+                if not any_matched:
+                    dead_end = True
+    except (StopIteration, Exception):
+        pass
+
     return {
         "nodes": nodes_found,
         "edges": list(unique_edges),
         "truncated": truncated,
-        "total_nodes": len(nodes_found)
+        "total_nodes": len(nodes_found),
+        "dead_end": dead_end
     }
 
 
@@ -124,7 +162,7 @@ async def perform_semantic_search(
     try:
         cur.execute("SELECT migration_status, migrating_to_provider, migrating_to_model FROM workspaces WHERE id = %s", (ws_id,))
         ws_mig = cur.fetchone()
-        in_migration = ws_mig and ws_mig["migration_status"] == 'in_progress'
+        in_migration = ws_mig and ws_mig.get("migration_status") == 'in_progress'
 
         resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
         vector, tokens = await embed(resolved, query)

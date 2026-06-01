@@ -1,0 +1,43 @@
+{
+  "id": "mem_62d07b1d_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "AI Agent Workflow: Confirm Node Creation Status",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "After an AI agent calls `create_node`, if the API returns a 201 status code, it should call `traverse(node.id)` to confirm edge creation. If a 202 status code with a `review_id` is returned, it should call `list_review_queue()` to check the review queue status."
+  },
+  "tags": [
+    "ai代理",
+    "工作流程",
+    "節點建立",
+    "api",
+    "審核流程"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:26.187830+00:00",
+    "signature": "900865976521e0a50bd83f5ae1e63ce3cad6a2db9ff6e46516532a3dde144e24",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "mem_76037494",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "手動創建與編輯記憶節點",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "使用者可以透過 UI 中專用的編輯面板手動創建和編輯記憶節點。"
+  },
+  "tags": [
+    "memory-node",
+    "creation",
+    "editing",
+    "ui"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-24T11:25:39.311534+00:00",
+    "signature": "e1d24b6e7c1be1933fca1f5c438ed6deae3ddb38f9887c720feb6bd537e5e981",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

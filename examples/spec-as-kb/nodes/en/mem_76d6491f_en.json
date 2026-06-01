@@ -1,0 +1,42 @@
+{
+  "id": "mem_76d6491f_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": ".mcp.json Configuration Update to Single Instance",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "The `.mcp.json` configuration file has been updated to a single-instance approach, removing the dependency on one instance per knowledge base and integrating token settings. This simplifies configuration and makes it easier to manage."
+  },
+  "tags": [
+    "設定檔",
+    "mcp",
+    "架構",
+    "配置"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-25T02:39:38.497095+00:00",
+    "signature": "61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.715,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
