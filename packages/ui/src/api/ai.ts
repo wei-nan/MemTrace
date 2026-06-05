@@ -35,7 +35,7 @@ export interface ProposedChange {
 export interface ChatResponse {
   answer: string;
   proposals: ProposedChange[];
-  source_nodes: Array<{ title?: string }>;
+  source_nodes: Array<{ id?: string; title?: string }>;
   tokens_used: number;
 }
 
@@ -47,7 +47,7 @@ export const ai = {
   extract: (data: unknown) => request("POST", `${BASE}/ai/extract`, data),
   restructure: (data: unknown) => request("POST", `${BASE}/ai/restructure`, data),
   chat: (data: unknown) => request<ChatResponse>("POST", `${BASE}/ai/chat`, data),
-  chatStream: (data: unknown, onChunk: (data: any) => void) => requestStream(`${BASE}/ai/chat-stream`, data, onChunk),
+  chatStream: (data: unknown, onChunk: (data: any) => void, signal?: AbortSignal) => requestStream(`${BASE}/ai/chat-stream`, data, onChunk, signal),
   listModels: (provider: string) => request<ModelInfo[]>("GET", `${BASE}/ai/models/${provider}`),
   testConnection: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string; model?: string }) =>
     request<{ status: string }>("POST", `${BASE}/ai/providers/${data.provider}/test-connection`, data),

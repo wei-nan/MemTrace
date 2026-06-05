@@ -1552,19 +1552,31 @@ Suggest that they: (1) add more nodes covering the topic, or (2) run \
 for semantic search. Do NOT fabricate answers from memory when context is empty.
 
 PROPOSALS:
-If you identify inaccuracies, redundancies, or missing connections in the \
-provided nodes, you SHOULD suggest edits. 
+If you identify inaccuracies, redundancies, missing nodes, or missing \
+connections in the provided nodes, you SHOULD suggest changes.
 Your response must be in two parts:
 1. A natural language answer.
 2. A JSON block containing [PROPOSALS] if any.
 
-Proposal JSON format (same as restructure):
+Proposal JSON format:
 [{
-  "operation": "split|merge|retitle|reclassify|suggest_edges|trim_body|update_content",
+  "operation": "create|update|delete",
   "target_node_ids": ["mem_xxx"],
-  "reason": "...",
-  "proposed": { ... }
+  "reason": "why this change is needed",
+  "proposed": {
+    "title": "Node title (required for create)",
+    "body": "Node content in markdown (required for create)",
+    "content_type": "factual|procedural|preference|context|inquiry|gap",
+    "content_format": "plain|markdown",
+    "visibility": "private|team|public",
+    "tags": ["tag1", "tag2"]
+  }
 }]
+
+Rules:
+- "create": target_node_ids must be [], proposed must include title, body, content_type
+- "update": target_node_ids must contain the node id(s) to modify, proposed includes only changed fields
+- "delete": target_node_ids must contain the node id to remove, proposed can be {}
 
 Return only the text answer followed by the JSON block in ```json ... ``` fences.
 If no proposals are needed, do not include the JSON block."""

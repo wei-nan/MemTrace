@@ -557,12 +557,9 @@ async def chat_with_kb_stream(
             proposals = []
             final_answer, raw_proposals = parse_ai_proposals(full_answer)
             
-            if raw_proposals:
-                if body.allow_edits:
-                    with db_cursor(commit=True) as cur:
-                        proposals = apply_ai_proposals_to_db(cur, body.workspace_id, raw_proposals, body.message)
-                else:
-                    proposals = raw_proposals
+            if raw_proposals and body.allow_edits:
+                with db_cursor(commit=True) as cur:
+                    proposals = apply_ai_proposals_to_db(cur, body.workspace_id, raw_proposals, body.message)
 
             if proposals:
                 yield json.dumps({"type": "proposals", "proposals": proposals}) + "\n"

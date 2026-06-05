@@ -135,11 +135,12 @@ export async function request<T>(method: string, path: string, body?: unknown): 
   return res.json();
 }
 
-export async function requestStream(path: string, body: unknown, onChunk: (data: any) => void): Promise<void> {
+export async function requestStream(path: string, body: unknown, onChunk: (data: any) => void, signal?: AbortSignal): Promise<void> {
   const doFetch = (accessToken?: string) =>
     fetch(path, {
       method: "POST",
       credentials: "include",
+      signal,
       headers: {
         "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : authHeaders()),

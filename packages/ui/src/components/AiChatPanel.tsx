@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X, RotateCcw } from 'lucide-react';
+import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X, RotateCcw } from 'lucide-react';
 import { ai, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus } from '../api';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card } from './ui';
+import { useModal } from './ModalContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -15,6 +16,7 @@ interface ProposalState {
 }
 
 export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: boolean; onClose?: () => void }) {
+  const { toast } = useModal();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,6 +29,10 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
   // Map of "msgIndex:proposalIndex" -> status
   const [proposalStates, setProposalStates] = useState<Record<string, ProposalState>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const abortedRef = useRef(false);
+  const handleSendRef = useRef<((msg?: string) => Promise<void>) | null>(null);
+  const [queue, setQueue] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -64,24 +70,33 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
+  const handleAbort = () => {
+    abortedRef.current = true;
+    abortControllerRef.current?.abort();
+  };
 
-    const userMsg: Message = { role: 'user', content: input };
+  const handleSend = async (msgOverride?: string) => {
+    const msg = msgOverride ?? input;
+    if (!msg.trim() || loading) return;
+    if (!msgOverride) setInput('');
+
+    const userMsg: Message = { role: 'user', content: msg };
     setMessages(prev => [...prev, userMsg]);
     const msgIdx = messages.length + 1; // index of the assistant message we're about to add
-    setInput('');
     setLoading(true);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const history = messages.map(m => ({ role: m.role, content: m.content }));
-      
+
       // Add empty assistant message that we will populate
       setMessages(prev => [...prev, { role: 'assistant', content: '', response: { answer: '', proposals: [], source_nodes: [], tokens_used: 0 } }]);
 
       await ai.chatStream({
         workspace_id: wsId,
-        message: input,
+        message: msg,
         history,
         allow_edits: allowEdits,
         preferred_provider: provider,
@@ -145,33 +160,64 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
           });
           return; // Stop processing this stream
         }
-      });
+      }, controller.signal);
 
     } catch (e: any) {
-      setMessages(prev => {
-        const next = [...prev];
-        if (next[msgIdx]) {
-          next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\nError: ${e.message}` };
-        } else {
-          next.push({ role: 'assistant', content: `Error: ${e.message}` });
-        }
-        return next;
-      });
+      if (e?.name === 'AbortError') {
+        setMessages(prev => {
+          const next = [...prev];
+          if (next[msgIdx] && !next[msgIdx].content) {
+            next[msgIdx] = { ...next[msgIdx], content: zh ? '_(已中止)_' : '_(stopped)_' };
+          }
+          return next;
+        });
+      } else {
+        setMessages(prev => {
+          const next = [...prev];
+          if (next[msgIdx]) {
+            next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\nError: ${e.message}` };
+          } else {
+            next.push({ role: 'assistant', content: `Error: ${e.message}` });
+          }
+          return next;
+        });
+      }
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
+  // Keep ref updated for queue processing
+  handleSendRef.current = handleSend;
+
+  // Auto-process queue when response finishes (but not after user-initiated abort)
+  useEffect(() => {
+    if (abortedRef.current) {
+      abortedRef.current = false;
+      return;
+    }
+    if (!loading && queue.length > 0) {
+      const [next, ...rest] = queue;
+      setQueue(rest);
+      handleSendRef.current?.(next);
+    }
+  }, [loading]);
+
   const handleAcceptProposal = async (msgIdx: number, propIdx: number, proposal: ProposedChange) => {
     const key = `${msgIdx}:${propIdx}`;
+    const reviewId = (proposal as any).review_queue_id;
+    if (!reviewId) {
+      toast({ message: zh ? '請先開啟「允許提案」再送出訊息，才能建立可執行的提案。' : 'Enable "Allow proposals" before sending to create actionable proposals.', variant: 'warning' });
+      return;
+    }
     setProposalStates(prev => ({ ...prev, [key]: { status: 'accepted' } }));
     try {
-      if ((proposal as any).review_queue_id) {
-        await review.accept((proposal as any).review_queue_id);
-      }
+      await review.accept(reviewId);
+      toast({ message: zh ? '提案已執行' : 'Proposal applied', variant: 'success' });
     } catch (e: any) {
-      console.error('Accept proposal failed', e);
       setProposalStates(prev => ({ ...prev, [key]: { status: 'pending' } }));
+      toast({ message: e?.message || (zh ? '執行提案失敗' : 'Failed to apply proposal'), variant: 'error' });
     }
   };
 
@@ -183,8 +229,8 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
         await review.reject((proposal as any).review_queue_id);
       }
     } catch (e: any) {
-      console.error('Reject proposal failed', e);
       setProposalStates(prev => ({ ...prev, [key]: { status: 'pending' } }));
+      toast({ message: e?.message || (zh ? '拒絕提案失敗' : 'Failed to reject proposal'), variant: 'error' });
     }
   };
 
@@ -379,7 +425,17 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
               {m.response?.source_nodes && m.response.source_nodes.length > 0 && (
                 <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {m.response.source_nodes.slice(0, 3).map((sn, j) => (
-                    <div key={j} style={{ fontSize: 11, padding: '2px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 4, color: 'var(--text-muted)' }}>
+                    <div
+                      key={j}
+                      onClick={() => sn.id && (window as any).mt_focus_node?.(sn.id)}
+                      title={sn.id ? (zh ? '在 3D 圖譜中定位' : 'Focus in 3D graph') : undefined}
+                      style={{
+                        fontSize: 11, padding: '2px 8px',
+                        background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
+                        borderRadius: 4, color: 'var(--text-muted)',
+                        cursor: sn.id ? 'pointer' : 'default',
+                      }}
+                    >
                       {sn.title}
                     </div>
                   ))}
@@ -444,35 +500,84 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
           </div>
         )}
 
+        {/* Queue list */}
+        {queue.length > 0 && (
+          <div style={{ marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 4 }}>
+              {zh ? `待送佇列 (${queue.length})` : `Queued (${queue.length})`}
+            </div>
+            {queue.map((q, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: 'var(--bg-base)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                <span style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q}</span>
+                <button
+                  onClick={() => setQueue(prev => prev.filter((_, j) => j !== i))}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text-muted)', display: 'flex' }}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 10, background: 'var(--bg-app)', padding: '8px 12px', borderRadius: 24, border: '1px solid var(--border-default)' }}>
           <textarea
-            style={{ 
-              flex: 1, background: 'none', border: 'none', outline: 'none', 
+            style={{
+              flex: 1, background: 'none', border: 'none', outline: 'none',
               color: 'var(--text-default)', fontSize: 14, paddingLeft: 8,
               resize: 'none', paddingTop: 6, minHeight: 24, maxHeight: 160,
               fontFamily: 'inherit', lineHeight: 1.5
             }}
             rows={Math.min(5, input.split('\n').length)}
-            placeholder={zh ? '輸入訊息...' : 'Type a message...'}
+            placeholder={zh ? '輸入訊息… (Ctrl+Enter 送出)' : 'Type a message… (Ctrl+Enter to send)'}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
-                if (input.trim() && !loading) {
-                  const canSend = !credits || credits.has_own_key[provider];
-                  if (canSend) handleSend();
+                const canSend = !credits || credits.has_own_key[provider];
+                if (input.trim() && canSend) {
+                  if (loading) {
+                    setQueue(prev => [...prev, input]);
+                    setInput('');
+                  } else {
+                    handleSend();
+                  }
                 }
               }
             }}
           />
+          {loading && (
+            <button
+              onClick={handleAbort}
+              title={zh ? '中止回應' : 'Stop response'}
+              style={{
+                width: 32, height: 32, borderRadius: 16, border: 'none',
+                background: 'var(--color-error, #ef4444)',
+                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              <Square size={14} />
+            </button>
+          )}
           <button
-            onClick={handleSend}
-            disabled={!input.trim() || loading || (credits ? !credits.has_own_key[provider] : false)}
+            onClick={() => {
+              const canSend = !credits || credits.has_own_key[provider];
+              if (!input.trim() || !canSend) return;
+              if (loading) {
+                setQueue(prev => [...prev, input]);
+                setInput('');
+              } else {
+                handleSend();
+              }
+            }}
+            disabled={!input.trim() || (credits ? !credits.has_own_key[provider] : false)}
+            title={loading ? (zh ? '加入佇列' : 'Add to queue') : (zh ? '送出' : 'Send')}
             style={{
               width: 32, height: 32, borderRadius: 16, border: 'none',
-              background: (input.trim() && !loading && (!credits || credits.has_own_key[provider])) ? 'var(--color-primary)' : 'var(--border-default)',
-              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              background: input.trim() && (!credits || credits.has_own_key[provider])
+                ? (loading ? 'var(--border-default)' : 'var(--color-primary)')
+                : 'var(--border-default)',
+              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
             }}
           >
             <Send size={16} />

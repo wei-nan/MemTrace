@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
-import { Archive, Bot, Calendar, CheckCircle2, Compass, Copy, Edit3, ExternalLink, FileUp, History, Link as LinkIcon, Paperclip, RotateCcw, Save, Shield, Trash2, TriangleAlert, User, X } from "lucide-react";
+import { Archive, Bot, Calendar, Compass, Copy, Edit3, ExternalLink, FileUp, History, Link as LinkIcon, Paperclip, RotateCcw, Save, Shield, Trash2, User, X } from "lucide-react";
 import { ai as aiApi, documents as documentsApi, edges as edgesApi, nodes as nodesApi, review as reviewApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta, type NodeSource, type ReviewItem } from "./api";
 import DiffPreviewModal from "./components/DiffPreviewModal";
 import { useModal } from "./components/ModalContext";
@@ -107,9 +107,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const [linkRelation, setLinkRelation] = useState("related_to");
   const [revisions, setRevisions] = useState<NodeRevisionMeta[]>([]);
   const [selectedRevisionDiff, setSelectedRevisionDiff] = useState<DiffSummary | null>(null);
-  const [validityConfirmedAt, setValidityConfirmedAt] = useState<string | null>(node?.validity_confirmed_at ?? null);
-  const [validityConfirmedBy, setValidityConfirmedBy] = useState<string | null>(node?.validity_confirmed_by ?? null);
-  const [confirmingValidity, setConfirmingValidity] = useState(false);
+
   const [archiving, setArchiving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [suggestedReviewItems, setSuggestedReviewItems] = useState<ReviewItem[]>([]);
@@ -136,8 +134,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     setBody(node?.body ?? "");
     setTags((node?.tags ?? []).join(", "));
     setVisibility(node?.visibility ?? "private");
-    setValidityConfirmedAt(node?.validity_confirmed_at ?? null);
-    setValidityConfirmedBy(node?.validity_confirmed_by ?? null);
+
     setSelectedRevisionDiff(null);
     if (node?.id) {
       edgesApi.list(wsId, node.id).then(setNodeEdges).catch(() => {});
@@ -177,21 +174,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     { key: "author_rep", label: t("node.dim_author_rep"), value: node.dim_author_rep, help: "反映作者歷史內容品質。" },
   ] : [];
 
-  const handleConfirmValidity = async () => {
-    if (!node) return;
-    setConfirmingValidity(true);
-    try {
-      const result = await nodesApi.confirmValidity(wsId, node.id);
-      setValidityConfirmedAt(result.confirmed_at);
-      setValidityConfirmedBy(result.confirmed_by);
-      onSaved({ ...node, validity_confirmed_at: result.confirmed_at, validity_confirmed_by: result.confirmed_by });
-      toast({ message: t("node.validity_confirmed"), variant: "success" });
-    } catch (e) {
-      toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
-    } finally {
-      setConfirmingValidity(false);
-    }
-  };
 
   const handleArchive = async () => {
     if (!node) return;
@@ -511,32 +493,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               </div>
             </div>
 
-            {node && (
-              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <div>
-                    <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                      <CheckCircle2 size={16} /> {t("node.validity")}
-                    </div>
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
-                      {validityConfirmedAt
-                        ? t('node.validity_last_confirmed', { date: new Date(validityConfirmedAt).toLocaleDateString(), user: validityConfirmedBy })
-                        : t('node.validity_unconfirmed')}
-                    </div>
-                  </div>
-                  {!isViewerLocked && (
-                    <Button variant="secondary" onClick={handleConfirmValidity} loading={confirmingValidity}>
-                      {confirmingValidity ? t("node.confirming") : t("node.confirm_validity")}
-                    </Button>
-                  )}
-                </div>
-                {!validityConfirmedAt && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-muted)", fontSize: 12 }}>
-                    <TriangleAlert size={14} /> {t('node.validity_suggest_label')}
-                  </div>
-                )}
-              </div>
-            )}
 
             <div className="markdown-body" style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 10, border: "1px solid var(--border-default)", wordBreak: "break-word", overflowWrap: "anywhere", overflowX: "auto", minWidth: 0 }}>
               {isViewerLocked ? (

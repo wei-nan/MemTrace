@@ -76,10 +76,6 @@ export interface NeighborhoodResponse {
   total_nodes: number;
 }
 
-export interface ValidityConfirmation {
-  confirmed_at: string;
-  confirmed_by: string;
-}
 
 export interface DiffTextEntry {
   op: "add" | "remove" | "keep";
@@ -138,8 +134,7 @@ export const nodes = {
     request<DiffSummary>("GET", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/revisions/${a}/diff/${b}`),
   restoreRevision: (wsId: string, nodeId: string, revisionNo: number) =>
     request<ApiMessage>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/revisions/${revisionNo}/restore`),
-  confirmValidity: (wsId: string, nodeId: string) =>
-    request<ValidityConfirmation>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/confirm-validity`),
+
   archive: (wsId: string, nodeId: string) =>
     request<void>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/archive`),
   restore: (wsId: string, nodeId: string) =>

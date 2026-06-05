@@ -337,6 +337,24 @@ export default function GraphView3D({
     return { nodes: nodes as any[], links: links as any[] };
   }, [apiNodes, apiEdges, zh]);
 
+  // ── Global focus API for cross-component navigation (e.g. AI chat source nodes) ──
+  useEffect(() => {
+    (window as any).mt_focus_node = (nodeId: string) => {
+      const node = graphData.nodes.find((n: any) => n.id === nodeId);
+      if (!node) return;
+      setSelectedNodeId(nodeId);
+      const dist = 80;
+      const mag = Math.hypot((node as any).x ?? 1, (node as any).y ?? 1, (node as any).z ?? 1);
+      const r = 1 + dist / mag;
+      fgRef.current?.cameraPosition(
+        { x: ((node as any).x ?? 0) * r, y: ((node as any).y ?? 0) * r, z: ((node as any).z ?? 0) * r },
+        node,
+        1200,
+      );
+    };
+    return () => { delete (window as any).mt_focus_node; };
+  }, [graphData.nodes]);
+
   // Cleanup label & material refs on data change to prevent memory leaks
   useEffect(() => {
     labelGroupsRef.current.clear();
