@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import { ModalOverlay } from "./components/Modal";
 import KbExportPanel from "./components/KbExportPanel";
-import AiProviderSettings from "./components/AiProviderSettings";
 import { Button, Input, Card } from "./components/ui";
 
 const DEFAULT_AI_REVIEW_PROMPT = `You are an AI reviewer for a collaborative knowledge graph.
@@ -241,9 +240,21 @@ function LinkDetectionButton({ wsId, zh }: { wsId: string; zh: boolean }) {
   );
 }
 
-function AIReviewerSettings({ wsId }: { wsId: string }) {
+function AIReviewerSettings({
+  wsId,
+  ws,
+  isOwner,
+  zh,
+  loadData,
+}: {
+  wsId: string;
+  ws: Workspace | null;
+  isOwner: boolean;
+  zh: boolean;
+  loadData: () => void;
+}) {
   const { t } = useTranslation();
-  const { toast } = useModal();
+  const { toast, confirm } = useModal();
   const [items, setItems] = useState<AIReviewer[]>([]);
   const [form, setForm] = useState<AIReviewerPayload>({
     name: "",
@@ -308,6 +319,101 @@ function AIReviewerSettings({ wsId }: { wsId: string }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+
+      {/* ── Consult 設定 ─────────────────────────────────────────────── */}
+      <SectionCard>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+          <Cpu size={16} color="var(--color-primary)" />
+          {zh ? "Consult AI 設定" : "Consult AI Settings"}
+        </div>
+
+        {/* Provider */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{t('ws_settings.consult_provider')}</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 460 }}>
+              {t('ws_settings.consult_provider_desc')}
+            </div>
+          </div>
+          <select
+            className="mt-input"
+            value={ws?.consult_provider ?? ""}
+            disabled={!isOwner}
+            style={{ width: 160 }}
+            onChange={async (e) => {
+              try {
+                await workspaces.update(wsId, { consult_provider: e.target.value || null });
+                loadData();
+                toast({ message: t('common.save'), variant: "success" });
+              } catch (err) {
+                toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
+              }
+            }}
+          >
+            <option value="">{zh ? "自動 (系統預設)" : "Auto (system default)"}</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic</option>
+            <option value="gemini">Gemini</option>
+            <option value="ollama">Ollama</option>
+          </select>
+        </div>
+
+        {/* Trust Tier */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                {t('ws_settings.consult_trust_tier')}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 460 }}>
+                {t('ws_settings.consult_trust_tier_desc')}
+              </div>
+            </div>
+            <select
+              className="mt-input"
+              value={ws?.consult_trust_tier ?? "ask"}
+              disabled={!isOwner}
+              style={{ width: 160 }}
+              onChange={async (e) => {
+                const nextTier = e.target.value as "ask" | "full_trust";
+                if (nextTier === "full_trust") {
+                  const ok = await confirm({
+                    title: zh ? "確認切換為完全信任模式？" : "Switch to Full Trust Mode?",
+                    message: zh
+                      ? "在完全信任模式下，AI 產生的安全修復方案會自動寫入您的知識圖譜。危險或高風險的操作仍會被攔截或要求人工確認。"
+                      : "Under Full Trust, safe AI-generated nodes/edges will be merged automatically. Dangerous or risky commands remain blocked.",
+                    confirmLabel: zh ? "確認啟用" : "Enable Full Trust",
+                    variant: "warning",
+                  });
+                  if (!ok) return;
+                }
+                try {
+                  await workspaces.update(wsId, { consult_trust_tier: nextTier });
+                  loadData();
+                  toast({ message: t('common.save'), variant: "success" });
+                } catch (err) {
+                  toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
+                }
+              }}
+            >
+              <option value="ask">{zh ? "手動確認 (ask)" : "Manual Review (ask)"}</option>
+              <option value="full_trust">{zh ? "完全信任 (full_trust)" : "Full Trust (full_trust)"}</option>
+            </select>
+          </div>
+          {ws?.consult_trust_tier === "full_trust" && (
+            <div style={{ display: "flex", gap: 8, padding: "10px 12px", background: "var(--color-warning-subtle)", color: "var(--color-warning)", borderRadius: 6, fontSize: 12, lineHeight: 1.5, alignItems: "center" }}>
+              <ShieldAlert size={16} style={{ flexShrink: 0 }} />
+              <div>
+                {zh
+                  ? "⚠️ 警語：AI 安全產出將自動合入，僅事後通知；危險/有風險產出仍會攔截。"
+                  : "⚠️ Warning: Safe AI suggestions will be auto-merged, notifying you afterward; dangerous/risky suggestions remain blocked."}
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* ── 自動審核 Bot ──────────────────────────────────────────────── */}
       <SectionCard>
         <h3 style={{ fontSize: 14, fontWeight: 600, marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> {t('ws_settings.create_reviewer_title')}</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: 10 }}>
@@ -627,7 +733,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   );
 }
 
-type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "ai_model" | "apikeys" | "maintenance";
+type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys" | "maintenance";
 type AccessTab = "members" | "invites" | "requests";
 
 function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
@@ -718,106 +824,6 @@ function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
 }
 
 // ── Workspace AI Model Settings Tab ──────────────────────────────────────────
-
-function WorkspaceAIModelSettings({
-  wsId,
-  ws,
-  isOwner,
-  userId,
-  zh,
-  onRefresh,
-}: {
-  wsId: string;
-  ws: Workspace | null;
-  isOwner: boolean;
-  userId?: string;
-  zh: boolean;
-  onRefresh: () => void;
-}) {
-  const { toast } = useModal();
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!userId) return;
-    workspaces.members(wsId).then(members => {
-      const me = members.find((m: any) => m.user_id === userId);
-      setUserRole(me?.role ?? null);
-    }).catch(() => {});
-  }, [wsId, userId]);
-
-  const canEditConsult = isOwner || userRole === 'admin' || userRole === 'editor';
-
-  const handleConsultProviderChange = async (value: string) => {
-    try {
-      await workspaces.update(wsId, { consult_provider: value || null });
-      onRefresh();
-      toast({ message: zh ? '已更新 Consult 供應商' : 'Consult provider updated', variant: 'success' });
-    } catch (e: any) {
-      toast({ message: e.message, variant: 'error' });
-    }
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-
-      {/* Workspace-level consult model (admin/editor only) */}
-      <div style={{ padding: '18px 20px', border: '1px solid var(--border-default)', borderRadius: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
-          <Cpu size={18} color="var(--color-primary)" style={{ marginTop: 2, flexShrink: 0 }} />
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>
-              {zh ? '此知識庫的 Consult 供應商' : 'Consult Provider for this KB'}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3, lineHeight: 1.6 }}>
-              {zh
-                ? '審核時 Consult 功能會優先使用此供應商。留空則沿用系統預設（先使用者個人金鑰，再 Fallback 到系統金鑰）。'
-                : 'Consult will prefer this provider for this workspace. Leave empty to use the system default (user key → system key fallback).'
-              }
-            </div>
-          </div>
-        </div>
-
-        {!canEditConsult && (
-          <div style={{ padding: '8px 12px', background: 'var(--bg-elevated)', borderRadius: 6, fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
-            {zh ? '僅工作區擁有者及管理員可修改此設定。' : 'Only the workspace owner or admin can modify this setting.'}
-          </div>
-        )}
-
-        <select
-          className="mt-input"
-          value={ws?.consult_provider ?? ''}
-          disabled={!canEditConsult}
-          style={{ width: 200 }}
-          onChange={e => handleConsultProviderChange(e.target.value)}
-        >
-          <option value="">{zh ? '自動（系統預設）' : 'Auto (system default)'}</option>
-          <option value="openai">OpenAI</option>
-          <option value="anthropic">Anthropic</option>
-          <option value="gemini">Google Gemini</option>
-          <option value="ollama">Ollama</option>
-        </select>
-      </div>
-
-      {/* Personal AI key management */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <Key size={16} color="var(--text-secondary)" />
-          <span style={{ fontWeight: 600, fontSize: 14 }}>
-            {zh ? '我的個人 AI 金鑰' : 'My Personal AI Keys'}
-          </span>
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.6 }}>
-          {zh
-            ? '設定您自己的 AI 供應商金鑰。Consult 功能會優先使用您的個人金鑰，再使用工作區或系統層級的金鑰。'
-            : 'Configure your own AI provider keys. Consult will use your personal key first, then workspace/system-level keys.'
-          }
-        </div>
-        <AiProviderSettings zh={zh} onSaved={() => {}} />
-      </div>
-
-    </div>
-  );
-}
 
 export default function WorkspaceSettings({ wsId, userId }: { wsId: string; userId?: string }) {
   const { t, i18n } = useTranslation();
@@ -948,8 +954,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <button onClick={() => setTab("members")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "members" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "members" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.membersAccess')}</button>
         <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
         <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
-        <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.aiReviewers')}</button>
-        <button onClick={() => setTab("ai_model")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_model" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_model" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "AI 模型" : "AI Model"}</button>
+        <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "審核設定" : "Review Settings"}</button>
         <button onClick={() => setTab("maintenance")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "maintenance" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "maintenance" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "智慧維護" : "Maintenance"}</button>
         {ws?.owner_id === userId && (
           <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
@@ -1094,105 +1099,6 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
             </div>
           </SectionCard>
 
-          {/* Consult Auto-merge Trust Tier */}
-          <SectionCard>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                    {t('ws_settings.consult_trust_tier')}
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 500 }}>
-                    {t('ws_settings.consult_trust_tier_desc')}
-                  </div>
-                </div>
-                <select
-                  className="mt-input"
-                  value={ws?.consult_trust_tier ?? "ask"}
-                  disabled={!isOwner}
-                  style={{ width: 160 }}
-                  onChange={async (e) => {
-                    const nextTier = e.target.value as "ask" | "full_trust";
-                    if (nextTier === "full_trust") {
-                      const ok = await confirm({
-                        title: zh ? "確認切換為完全信任模式？" : "Switch to Full Trust Mode?",
-                        message: zh 
-                          ? "在完全信任模式下，AI 產生的安全修復方案會自動寫入您的知識圖譜。危險或高風險的操作仍會被攔截或要求人工確認。" 
-                          : "Under Full Trust, safe AI-generated troubleshooting nodes/edges will be merged automatically. Dangerous or risky commands will still be blocked or require approval.",
-                        confirmLabel: zh ? "確認啟用" : "Enable Full Trust",
-                        variant: "warning"
-                      });
-                      if (!ok) return;
-                    }
-                    try {
-                      await workspaces.update(wsId, { consult_trust_tier: nextTier });
-                      await loadData();
-                      toast({ message: t('common.save'), variant: "success" });
-                    } catch (err) {
-                      toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
-                    }
-                  }}
-                >
-                  <option value="ask">{zh ? "手動確認 (ask)" : "Manual Review (ask)"}</option>
-                  <option value="full_trust">{zh ? "完全信任 (full_trust)" : "Full Trust (full_trust)"}</option>
-                </select>
-              </div>
-
-              {ws?.consult_trust_tier === "full_trust" && (
-                <div style={{
-                  display: "flex",
-                  gap: 8,
-                  padding: "10px 12px",
-                  background: "var(--color-warning-subtle)",
-                  color: "var(--color-warning)",
-                  borderRadius: 6,
-                  fontSize: 12,
-                  lineHeight: 1.5,
-                  alignItems: "center"
-                }}>
-                  <ShieldAlert size={16} style={{ flexShrink: 0 }} />
-                  <div>
-                    {zh 
-                      ? "⚠️ 警語：AI 安全產出將自動合入，僅事後通知；危險/有風險產出仍會攔截。" 
-                      : "⚠️ Warning: Safe AI suggestions will be auto-merged, notifying you afterward; dangerous/risky suggestions remain blocked."}
-                  </div>
-                </div>
-              )}
-            </div>
-          </SectionCard>
-
-          {/* Consult Provider Selection */}
-          <SectionCard>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{t('ws_settings.consult_provider')}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 500 }}>
-                  {t('ws_settings.consult_provider_desc')}
-                </div>
-              </div>
-              <select
-                className="mt-input"
-                value={ws?.consult_provider ?? ""}
-                disabled={!isOwner}
-                style={{ width: 160 }}
-                onChange={async (e) => {
-                  try {
-                    await workspaces.update(wsId, { consult_provider: e.target.value || null });
-                    await loadData();
-                    toast({ message: t('common.save'), variant: "success" });
-                  } catch (err) {
-                    toast({ message: err instanceof Error ? err.message : String(err), variant: "error" });
-                  }
-                }}
-              >
-                <option value="">{zh ? "自動 (系統預設)" : "Auto (system default)"}</option>
-                <option value="openai">OpenAI</option>
-                <option value="anthropic">Anthropic</option>
-                <option value="gemini">Gemini</option>
-                <option value="ollama">Ollama</option>
-              </select>
-            </div>
-          </SectionCard>
 
 
           <SectionCard>
@@ -1666,9 +1572,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
       ) : tab === "export" ? (
         <KbExportPanel wsId={wsId} zh={zh} />
       ) : tab === "ai_review" ? (
-        <AIReviewerSettings wsId={wsId} />
-      ) : tab === "ai_model" ? (
-        <WorkspaceAIModelSettings wsId={wsId} ws={ws} isOwner={isOwner} userId={userId} zh={zh} onRefresh={loadData} />
+        <AIReviewerSettings wsId={wsId} ws={ws} isOwner={isOwner} zh={zh} loadData={loadData} />
       ) : tab === "apikeys" ? (
         <APIKeysSettings wsId={wsId} />
       ) : tab === "maintenance" ? (

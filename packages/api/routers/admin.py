@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from typing import Optional, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -149,12 +150,12 @@ class SystemAIKeyUpsert(BaseModel):
 class SystemAIKeyResponse(BaseModel):
     target: str
     provider: str
-    key_hint: str
+    key_hint: Optional[str] = None
     base_url: Optional[str] = None
     auth_mode: Optional[str] = None
     default_chat_model: Optional[str] = None
     default_embedding_model: Optional[str] = None
-    last_used_at: Optional[str] = None
+    last_used_at: Optional[datetime] = None
 
 
 @router.get("/ai-keys", response_model=list[SystemAIKeyResponse])

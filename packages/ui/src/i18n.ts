@@ -16,7 +16,8 @@ const resources = {
         ingest: '文件攝入',
         ws_settings: '工作區管理',
         documents: '文件庫',
-        system_ai: '系統 AI 設定'
+        system_ai: '系統 AI 設定',
+        admin_section: '管理員設定'
       },
       nav: {
         settings: '個人設定',
@@ -118,6 +119,10 @@ const resources = {
         edge_decay_status: '邊衰減狀態 (Decay)',
         health_report: '知識庫健康報告',
         no_assoc_found: '目前尚無關聯的知識庫',
+        add_assoc_title: '新增知識庫關聯',
+        assoc_created: '關聯已建立',
+        associate: '建立關聯',
+        added: '已關聯',
         ws_members: '工作區成員',
         create_invite_link: '建立邀請連結',
         no_invites_found: '目前尚無有效的邀請連結',
@@ -469,7 +474,8 @@ const resources = {
         ingest: 'Ingest',
         ws_settings: 'Workspace',
         documents: 'Documents',
-        system_ai: 'System AI'
+        system_ai: 'System AI',
+        admin_section: 'Admin'
       },
       nav: {
         settings: 'Settings',
@@ -571,6 +577,10 @@ const resources = {
         edge_decay_status: 'Edge Decay Status',
         health_report: 'KB Health Report',
         no_assoc_found: 'No linked knowledge bases yet.',
+        add_assoc_title: 'Add KB Association',
+        assoc_created: 'Association created',
+        associate: 'Associate',
+        added: 'Added',
         ws_members: 'Workspace Members',
         create_invite_link: 'Create Invite Link',
         no_invites_found: 'No active invite links.',

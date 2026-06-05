@@ -324,7 +324,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <>
             {!collapsed && (
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', padding: '16px 12px 4px', textTransform: 'uppercase' }}>
-                Admin
+                {t('sidebar.admin_section')}
               </div>
             )}
             <div
