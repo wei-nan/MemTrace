@@ -6,7 +6,6 @@ env/
 __pycache__/
 *.py[cod]
 *$py.class
-**/__init__.py
 
 # Environment — never commit real credentials
 .env
