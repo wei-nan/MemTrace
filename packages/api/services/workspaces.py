@@ -414,11 +414,12 @@ def list_associations_in_db(cur, ws_id: str, user: dict) -> list[dict]:
     require_ws_access(cur, ws_id, user)
     cur.execute(
         """
-        SELECT a.target_ws_id as workspace_id, a.created_at,
-               w.name, w.visibility
+        SELECT a.id, a.source_ws_id, a.target_ws_id,
+               w.name AS target_name, a.created_at
         FROM workspace_associations a
         JOIN workspaces w ON w.id = a.target_ws_id
         WHERE a.source_ws_id = %s
+        ORDER BY a.created_at DESC
         """,
         (ws_id,),
     )
