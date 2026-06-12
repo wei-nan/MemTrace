@@ -408,7 +408,7 @@ def write_node_revision(
 def propose_change(
     cur,
     ws_id: str,
-    change_type: Literal["create", "update", "delete", "source_updated", "conflict"],
+    change_type: Literal["create", "update", "delete", "source_updated", "conflict", "create_edge"],
     target_node_id: Optional[str],
     node_data: Optional[dict],
     proposer_type: Literal["human", "ai"],
@@ -440,7 +440,10 @@ def propose_change(
             raise HTTPException(status_code=404, detail="Target node not found")
         before_snapshot = node_row_to_snapshot(existing)
 
-    if change_type not in ("delete", "conflict"):
+    if change_type == "create_edge":
+        # Edge proposals store raw edge data directly — no node-field validation needed.
+        after_snapshot = dict(node_data or {})
+    elif change_type not in ("delete", "conflict"):
         payload = dict(node_data or {})
         if change_type == "update" and before_snapshot:
             payload = {**before_snapshot, **payload}

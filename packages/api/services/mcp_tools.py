@@ -3,6 +3,7 @@ import datetime
 import logging
 import re
 import json
+import time as _time
 from fastapi import BackgroundTasks, HTTPException
 from core.database import db_cursor
 from core.security import generate_id, compute_signature
@@ -31,6 +32,20 @@ from services.ingest.persistence import persist_nodes
 from services.audit import verify_audit_chain
 
 logger = logging.getLogger(__name__)
+
+# ── D3: Task claim registry (run-state, not knowledge graph — A7) ─────────────
+# Per-process in-memory store. Fine for single-process; swap to Redis for multi.
+_TASK_CLAIMS: dict[str, dict] = {}   # "<ws_id>:<task_id>" → {"agent_sub": str, "at": float}
+_CLAIM_TTL = 1800                    # 30-minute auto-release
+
+def _claim_key(ws_id: str, task_id: str) -> str:
+    return f"{ws_id}:{task_id}"
+
+def _gc_claims():
+    now = _time.monotonic()
+    for k in list(_TASK_CLAIMS):
+        if now - _TASK_CLAIMS[k]["at"] > _CLAIM_TTL:
+            _TASK_CLAIMS.pop(k, None)
 
 # ─── Schema Metadata (P4.11-I-106) ───────────────────────────────────────────
 
@@ -579,6 +594,196 @@ TOOLS = [
                 "limit": {"type": "integer", "description": "Max results to return (default 3)"},
             },
             "required": ["workspace_id", "query_text"],
+        },
+    },
+    # ── Phase 6: Agent loop spine tools ───────────────────────────────────────
+    {
+        "name": "get_next_task",
+        "description": (
+            "Pick the next pending inquiry node and return a token-limited context bundle "
+            "containing: the task, its ancestor intent (via depends_on), any related spec "
+            "nodes, and the relevant development playbook. "
+            "Use this to start a small-task development loop."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "tag": {"type": "string", "description": "Filter inquiries by this tag (optional)"},
+                "limit": {"type": "integer", "description": "Max tasks to return (default 3, max 10)"},
+                "max_response_tokens": {"type": "integer", "description": "Token budget for the context bundle (optional)"},
+                "exclusive": {"type": "boolean", "description": "If true, claimed tasks are filtered out and returned tasks are auto-claimed — enables multi-planner coordination (default false)."},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "get_playbook",
+        "description": (
+            "Retrieve a procedural playbook node given a situation description. "
+            "Use this to find the relevant how-to guide before developing."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "situation": {"type": "string", "description": "Description of the current situation or task type"},
+                "tag": {"type": "string", "description": "Filter procedural nodes by tag (optional)"},
+                "limit": {"type": "integer", "description": "Max playbooks to return (default 3)"},
+            },
+            "required": ["workspace_id", "situation"],
+        },
+    },
+    {
+        "name": "propose_decision",
+        "description": (
+            "Submit a proposed decision (new node or update) to the human review queue. "
+            "High-risk changes (public interface, security, cross-module) always require human approval. "
+            "Low-risk changes may be auto-accepted if confidence meets the workspace threshold."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "title": {"type": "string", "description": "Title of the proposed node/decision"},
+                "body": {"type": "string", "description": "Body/rationale of the proposal"},
+                "content_type": {"type": "string", "enum": ["factual", "procedural", "preference", "context"], "description": "Content type (default factual)"},
+                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for the proposed node"},
+                "task_node_id": {"type": "string", "description": "The inquiry node this decision resolves (optional)"},
+                "confidence_score": {"type": "number", "description": "Agent confidence 0.0-1.0 (default 0.7)"},
+                "risk_level": {"type": "string", "enum": ["low", "medium", "high"], "description": "Risk level (default medium); low may be auto-accepted"},
+            },
+            "required": ["workspace_id", "title"],
+        },
+    },
+    {
+        "name": "submit_outcome",
+        "description": (
+            "Report the outcome of a completed small task. "
+            "On success: links the implementation node via answered_by; "
+            "if all sibling subtasks of the parent inquiry are now answered, "
+            "automatically queues a per-feature integration-check for human review "
+            "(feature_complete_triggered=true in response). "
+            "On failure: flags any procedural playbooks visited for human review "
+            "(returned as flagged_playbooks). "
+            "Records the path for reinforcement learning. "
+            "This is the auto side of two-speed evolution — no human gate."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "task_node_id": {"type": "string", "description": "The inquiry node that was completed"},
+                "outcome": {"type": "string", "enum": ["success", "partial", "failed"], "description": "Outcome of the task"},
+                "implementation_node_id": {"type": "string", "description": "Node that answers/implements the inquiry (required for success/partial)"},
+                "node_sequence": {"type": "array", "items": {"type": "string"}, "description": "IDs of nodes visited during the task"},
+                "message": {"type": "string", "description": "Free-text result summary"},
+                "token_used": {"type": "integer", "description": "Approximate tokens consumed"},
+            },
+            "required": ["workspace_id", "task_node_id", "outcome"],
+        },
+    },
+    {
+        "name": "emit_residue",
+        "description": (
+            "Create new pending inquiry nodes from conclusions/observations of the current loop. "
+            "Each residue becomes fuel for the next planning iteration. "
+            "This is a lightweight auto write — residues enter the graph as pending inquiries "
+            "and are triaged by the planner in the next loop without per-item human approval."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "residues": {
+                    "type": "array",
+                    "description": "List of new gaps/observations to record",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string"},
+                            "body":  {"type": "string"},
+                            "tags":  {"type": "array", "items": {"type": "string"}},
+                        },
+                        "required": ["title"],
+                    },
+                },
+                "parent_task_id": {"type": "string", "description": "The task node that generated these residues (optional)"},
+            },
+            "required": ["workspace_id", "residues"],
+        },
+    },
+    # ── Phase 6 Sprint D: convergence + multi-planner ─────────────────────────
+    {
+        "name": "converge_check",
+        "description": (
+            "Check whether the agent loop should converge (stop), continue, or escalate to human. "
+            "Returns pending/answered task counts and a recommendation based on simple heuristics: "
+            "'converge' when no pending tasks remain or <10% left; "
+            "'escalate' when recent failure rate ≥50% over ≥3 paths; "
+            "'continue' otherwise."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "tag": {"type": "string", "description": "Filter scope to this tag (optional)"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "converge_proposals",
+        "description": (
+            "Decide whether competing planning proposals have converged or should escalate to a human. "
+            "Reuses the consult synthesizer: returns 'converge' when proposals reach consensus, "
+            "'escalate' when they diverge/contradict. "
+            "Use this at the multi-agent planning/discussion stage before committing to a next step."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "proposals": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Competing planner proposals (free text) to compare for consensus",
+                },
+                "task_node_id": {"type": "string", "description": "The inquiry node being planned (optional, for logging)"},
+            },
+            "required": ["workspace_id", "proposals"],
+        },
+    },
+    {
+        "name": "claim_task",
+        "description": (
+            "Claim a pending inquiry node so other planners won't pick it up. "
+            "Claims expire after 30 minutes. "
+            "Returns claimed=false if already claimed by another agent."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "task_node_id": {"type": "string", "description": "Inquiry node to claim"},
+            },
+            "required": ["workspace_id", "task_node_id"],
+        },
+    },
+    {
+        "name": "release_task",
+        "description": (
+            "Release your claim on a task so other planners can pick it up. "
+            "No-op if the task is not currently claimed. "
+            "Returns released=false if the claim belongs to a different agent."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Workspace ID"},
+                "task_node_id": {"type": "string", "description": "Inquiry node to release"},
+            },
+            "required": ["workspace_id", "task_node_id"],
         },
     },
 ]
@@ -1455,6 +1660,653 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             require_ws_access(cur, ws_id, user, write=False)
             res = await search_with_history_in_db(cur, ws_id, query_text, similarity_threshold, limit, user["sub"])
             return res
+
+    # ── get_next_task ─────────────────────────────────────────────────────────
+    if name == "get_next_task":
+        ws_id     = args["workspace_id"]
+        tag       = args.get("tag")
+        limit     = min(int(args.get("limit", 3)), 10)
+        max_tok   = args.get("max_response_tokens")
+        exclusive = bool(args.get("exclusive", False))
+        if max_tok is not None:
+            max_tok = int(max_tok)
+
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+
+            # 1. Find pending inquiry nodes
+            if tag:
+                cur.execute(
+                    """SELECT id, title, body, tags, trust_score
+                       FROM memory_nodes
+                       WHERE workspace_id = %s AND content_type = 'inquiry'
+                         AND status = 'active' AND %s = ANY(tags)
+                       ORDER BY trust_score DESC, created_at ASC
+                       LIMIT %s""",
+                    (ws_id, tag, limit),
+                )
+            else:
+                cur.execute(
+                    """SELECT id, title, body, tags, trust_score
+                       FROM memory_nodes
+                       WHERE workspace_id = %s AND content_type = 'inquiry'
+                         AND status = 'active'
+                       ORDER BY trust_score DESC, created_at ASC
+                       LIMIT %s""",
+                    (ws_id, limit),
+                )
+            inquiry_rows = cur.fetchall()
+
+            # D3: exclusive mode — filter out claimed tasks, auto-claim returned ones
+            if exclusive:
+                _gc_claims()
+                inquiry_rows = [r for r in inquiry_rows if _claim_key(ws_id, r["id"]) not in _TASK_CLAIMS]
+                inquiry_rows = inquiry_rows[:limit]
+
+            tasks = []
+            for row in inquiry_rows:
+                task_id = row["id"]
+                bundle = {
+                    "task": {
+                        "id": task_id,
+                        "title": row["title"],
+                        "body": row["body"],
+                        "tags": list(row["tags"] or []),
+                        "trust_score": float(row["trust_score"]),
+                    },
+                    "ancestors": [],
+                    "playbooks": [],
+                }
+
+                # 2. Traverse up via depends_on for ancestor intent
+                cur.execute(
+                    """WITH RECURSIVE ancestors AS (
+                           SELECT e.to_id AS node_id, 1 AS depth
+                           FROM edges e
+                           WHERE e.workspace_id = %s AND e.from_id = %s
+                             AND e.relation = 'depends_on' AND e.status = 'active'
+                           UNION ALL
+                           SELECT e.to_id, a.depth + 1
+                           FROM edges e
+                           JOIN ancestors a ON e.from_id = a.node_id
+                           WHERE e.workspace_id = %s AND e.relation = 'depends_on'
+                             AND e.status = 'active' AND a.depth < 4
+                       )
+                       SELECT DISTINCT m.id, m.title, m.body, m.content_type
+                       FROM ancestors a
+                       JOIN memory_nodes m ON m.id = a.node_id
+                       WHERE m.workspace_id = %s AND m.status = 'active'
+                       ORDER BY m.id""",
+                    (ws_id, task_id, ws_id, ws_id),
+                )
+                bundle["ancestors"] = [
+                    {"id": r["id"], "title": r["title"],
+                     "body": r["body"][:300], "content_type": r["content_type"]}
+                    for r in cur.fetchall()
+                ]
+
+                # 3. Find related playbooks (procedural) via related_to edges or shared tags
+                related_ids_via_edge = set()
+                cur.execute(
+                    """SELECT CASE WHEN e.from_id = %s THEN e.to_id ELSE e.from_id END AS other_id
+                       FROM edges e
+                       WHERE e.workspace_id = %s AND (e.from_id = %s OR e.to_id = %s)
+                         AND e.relation IN ('related_to', 'depends_on') AND e.status = 'active'""",
+                    (task_id, ws_id, task_id, task_id),
+                )
+                for er in cur.fetchall():
+                    related_ids_via_edge.add(er["other_id"])
+
+                if related_ids_via_edge:
+                    cur.execute(
+                        """SELECT id, title, body FROM memory_nodes
+                           WHERE workspace_id = %s AND id = ANY(%s)
+                             AND content_type = 'procedural' AND status = 'active'
+                           LIMIT 3""",
+                        (ws_id, list(related_ids_via_edge)),
+                    )
+                    bundle["playbooks"] = [
+                        {"id": r["id"], "title": r["title"], "body": r["body"][:500]}
+                        for r in cur.fetchall()
+                    ]
+
+                # Fallback: tag-based playbook lookup
+                if not bundle["playbooks"]:
+                    task_tags = list(row["tags"] or [])
+                    if task_tags:
+                        cur.execute(
+                            """SELECT id, title, body FROM memory_nodes
+                               WHERE workspace_id = %s AND content_type = 'procedural'
+                                 AND status = 'active' AND tags && %s
+                               ORDER BY trust_score DESC LIMIT 3""",
+                            (ws_id, task_tags),
+                        )
+                        bundle["playbooks"] = [
+                            {"id": r["id"], "title": r["title"], "body": r["body"][:500]}
+                            for r in cur.fetchall()
+                        ]
+
+                tasks.append(bundle)
+
+            if exclusive:
+                now_mono = _time.monotonic()
+                for t in tasks:
+                    _TASK_CLAIMS[_claim_key(ws_id, t["task"]["id"])] = {
+                        "agent_sub": user.get("sub"),
+                        "at": now_mono,
+                    }
+
+            log_mcp_interaction(background_tasks, ws_id, name,
+                                query_text=f"get_next_task tag={tag}", result_count=len(tasks))
+            result = {"tasks": tasks, "total": len(tasks)}
+            if max_tok:
+                _, tc = serialize_and_estimate_tokens(result)
+                if tc > max_tok:
+                    result["truncated"] = True
+            return result
+
+    # ── get_playbook ──────────────────────────────────────────────────────────
+    if name == "get_playbook":
+        ws_id     = args["workspace_id"]
+        situation = args["situation"]
+        tag       = args.get("tag")
+        limit     = min(int(args.get("limit", 3)), 10)
+
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+
+            if tag:
+                cur.execute(
+                    """SELECT id, title, body, tags, trust_score
+                       FROM memory_nodes
+                       WHERE workspace_id = %s AND content_type = 'procedural'
+                         AND status = 'active' AND %s = ANY(tags)
+                       ORDER BY trust_score DESC LIMIT %s""",
+                    (ws_id, tag, limit),
+                )
+                rows = cur.fetchall()
+            else:
+                # Keyword search in search_vector
+                cur.execute(
+                    """SELECT id, title, body, tags, trust_score,
+                              ts_rank(search_vector,
+                                  to_tsquery('simple', regexp_replace(%s, '\W+', ' | ', 'g'))
+                              ) AS rank
+                       FROM memory_nodes
+                       WHERE workspace_id = %s AND content_type = 'procedural'
+                         AND status = 'active'
+                         AND search_vector @@ plainto_tsquery('simple', %s)
+                       ORDER BY rank DESC, trust_score DESC LIMIT %s""",
+                    (situation, ws_id, situation, limit),
+                )
+                rows = cur.fetchall()
+                if not rows:
+                    # Fallback: return top procedural nodes by trust
+                    cur.execute(
+                        """SELECT id, title, body, tags, trust_score
+                           FROM memory_nodes
+                           WHERE workspace_id = %s AND content_type = 'procedural'
+                             AND status = 'active'
+                           ORDER BY trust_score DESC LIMIT %s""",
+                        (ws_id, limit),
+                    )
+                    rows = cur.fetchall()
+
+            playbooks = [
+                {
+                    "id": r["id"],
+                    "title": r["title"],
+                    "body": r["body"],
+                    "tags": list(r["tags"] or []),
+                    "trust_score": float(r["trust_score"]),
+                }
+                for r in rows
+            ]
+            log_mcp_interaction(background_tasks, ws_id, name,
+                                query_text=situation, result_count=len(playbooks))
+            return {"playbooks": playbooks}
+
+    # ── propose_decision ──────────────────────────────────────────────────────
+    if name == "propose_decision":
+        ws_id          = args["workspace_id"]
+        title          = args["title"]
+        body           = args.get("body", "")
+        content_type   = args.get("content_type", "factual")
+        tags           = args.get("tags", [])
+        task_node_id   = args.get("task_node_id")
+        confidence     = float(args.get("confidence_score", 0.7))
+        risk_level     = args.get("risk_level", "medium")
+
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True)
+
+            # Check workspace auto-accept threshold
+            cur.execute(
+                "SELECT settings FROM workspaces WHERE id = %s", (ws_id,)
+            )
+            ws_row = cur.fetchone()
+            settings = (ws_row["settings"] if ws_row else {}) or {}
+            auto_accept_threshold = float(
+                settings.get("ai_reviewers", {}).get("auto_accept_threshold", 0.95)
+            )
+            auto_reject_threshold = float(
+                settings.get("ai_reviewers", {}).get("auto_reject_threshold", 0.2)
+            )
+
+            from core.security import generate_id as _gen_id
+            review_id = _gen_id("rev")
+
+            node_data = {
+                "title": title,
+                "body": body,
+                "content_type": content_type,
+                "content_format": "markdown",
+                "tags": tags,
+                "visibility": "team",
+                "source_type": "mcp",
+            }
+
+            cur.execute(
+                """INSERT INTO review_queue
+                     (id, workspace_id, node_data, change_type, target_node_id,
+                      proposer_type, proposer_id, confidence_score, status, source_info)
+                   VALUES (%s, %s, %s::jsonb, 'create', %s, 'agent', %s, %s, %s, %s)""",
+                (
+                    review_id, ws_id,
+                    json.dumps(node_data),
+                    task_node_id,
+                    user.get("sub"),
+                    confidence,
+                    "pending",
+                    f"risk={risk_level}",
+                ),
+            )
+
+            # Auto-accept low-risk high-confidence proposals
+            status = "pending"
+            if risk_level == "low" and confidence >= auto_accept_threshold:
+                from services.nodes import create_node_in_db
+                node_data["author"] = user.get("sub")
+                node_data["status"] = "active"
+                node = create_node_in_db(cur, ws_id, node_data)
+                cur.execute(
+                    "UPDATE review_queue SET status='approved', reviewer_type='auto' WHERE id=%s",
+                    (review_id,),
+                )
+                if task_node_id:
+                    from services.edges import create_edge_in_db as _create_edge
+                    try:
+                        _create_edge(cur, ws_id, {
+                            "from_id": task_node_id,
+                            "to_id": node["id"],
+                            "relation": "answered_by",
+                            "weight": confidence,
+                        })
+                    except Exception:
+                        pass
+                status = "auto_approved"
+                log_mcp_interaction(background_tasks, ws_id, name,
+                                    node_id=node["id"], query_text=f"Auto-approved: {title}")
+                return {"review_id": review_id, "status": status, "node_id": node["id"]}
+
+            if confidence <= auto_reject_threshold:
+                cur.execute(
+                    "UPDATE review_queue SET status='rejected', reviewer_type='auto' WHERE id=%s",
+                    (review_id,),
+                )
+                status = "auto_rejected"
+
+            log_mcp_interaction(background_tasks, ws_id, name,
+                                query_text=f"Proposed: {title}")
+            return {"review_id": review_id, "status": status}
+
+    # ── submit_outcome ────────────────────────────────────────────────────────
+    if name == "submit_outcome":
+        ws_id       = args["workspace_id"]
+        task_id     = args["task_node_id"]
+        outcome     = args["outcome"]
+        impl_id     = args.get("implementation_node_id")
+        node_seq    = args.get("node_sequence") or [task_id]
+        message     = args.get("message", "")
+        token_used  = args.get("token_used")
+        flagged_playbooks: list[str] = []
+        feature_complete_triggered = False
+
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True)
+
+            # Validate inquiry node exists
+            cur.execute(
+                "SELECT id, status FROM memory_nodes WHERE id = %s AND workspace_id = %s",
+                (task_id, ws_id),
+            )
+            task_row = cur.fetchone()
+            if not task_row:
+                raise HTTPException(status_code=404, detail=f"Task node {task_id} not found")
+
+            if outcome in ("success", "partial") and impl_id:
+                # Create answered_by edge
+                try:
+                    from services.edges import create_edge_in_db as _create_edge
+                    _create_edge(cur, ws_id, {
+                        "from_id": task_id,
+                        "to_id": impl_id,
+                        "relation": "answered_by",
+                        "weight": 1.0 if outcome == "success" else 0.7,
+                    })
+                except Exception:
+                    pass
+
+                if outcome == "success":
+                    cur.execute(
+                        "UPDATE memory_nodes SET status='answered', updated_at=now() "
+                        "WHERE id=%s AND workspace_id=%s",
+                        (task_id, ws_id),
+                    )
+
+                    # C3: If every sibling subtask of the parent inquiry is now answered,
+                    # queue a per-feature integration-check for human review.
+                    cur.execute(
+                        """SELECT e.to_id AS parent_id
+                           FROM edges e
+                           WHERE e.workspace_id = %s AND e.from_id = %s
+                             AND e.relation = 'depends_on' AND e.status = 'active'
+                           LIMIT 1""",
+                        (ws_id, task_id),
+                    )
+                    parent_row = cur.fetchone()
+                    if parent_row:
+                        parent_id = parent_row["parent_id"]
+                        cur.execute(
+                            """SELECT
+                                 COUNT(*) AS total,
+                                 COUNT(*) FILTER (WHERE m.status = 'answered') AS answered
+                               FROM edges e
+                               JOIN memory_nodes m ON m.id = e.from_id
+                               WHERE e.workspace_id = %s AND e.to_id = %s
+                                 AND e.relation = 'depends_on' AND e.status = 'active'
+                                 AND m.content_type = 'inquiry'""",
+                            (ws_id, parent_id),
+                        )
+                        counts = cur.fetchone()
+                        if counts and counts["total"] > 0 and counts["total"] == counts["answered"]:
+                            cur.execute(
+                                """SELECT 1 FROM review_queue
+                                   WHERE workspace_id = %s AND target_node_id = %s
+                                     AND source_info LIKE 'feature_complete:%%' AND status = 'pending'""",
+                                (ws_id, parent_id),
+                            )
+                            if not cur.fetchone():
+                                from services.nodes import propose_change as _propose_change
+                                try:
+                                    _propose_change(
+                                        cur, ws_id,
+                                        change_type="update",
+                                        target_node_id=parent_id,
+                                        node_data={},
+                                        proposer_type="ai",
+                                        proposer_id=user.get("sub"),
+                                        proposer_meta={
+                                            "completed_subtasks": list(set(node_seq)),
+                                            "subtask_count": int(counts["total"]),
+                                        },
+                                        source_info=f"feature_complete:parent={parent_id}",
+                                        confidence_score=0.6,
+                                    )
+                                    feature_complete_triggered = True
+                                except Exception as e:
+                                    logger.warning(f"submit_outcome C3: feature check failed for parent {parent_id}: {e}")
+
+            # B2: On failure, flag procedural playbooks visited during the task for human review.
+            # Skips any playbook that already has a pending update review (dedup).
+            if outcome == "failed" and node_seq:
+                from services.nodes import propose_change as _propose_change
+                cur.execute(
+                    """SELECT id FROM memory_nodes
+                       WHERE workspace_id = %s AND id = ANY(%s)
+                         AND content_type = 'procedural' AND status = 'active'
+                       LIMIT 3""",
+                    (ws_id, list(node_seq)),
+                )
+                for pb in cur.fetchall():
+                    pb_id = pb["id"]
+                    cur.execute(
+                        """SELECT 1 FROM review_queue
+                           WHERE workspace_id = %s AND target_node_id = %s
+                             AND change_type = 'update' AND status = 'pending'""",
+                        (ws_id, pb_id),
+                    )
+                    if cur.fetchone():
+                        continue
+                    try:
+                        _propose_change(
+                            cur, ws_id,
+                            change_type="update",
+                            target_node_id=pb_id,
+                            node_data={},
+                            proposer_type="ai",
+                            proposer_id=user.get("sub"),
+                            proposer_meta={"task_node_id": task_id, "failure_message": message},
+                            source_info=f"agent_failure:task={task_id}",
+                            confidence_score=0.5,
+                        )
+                        flagged_playbooks.append(pb_id)
+                    except Exception as e:
+                        logger.warning(f"submit_outcome B2: failed to flag playbook {pb_id}: {e}")
+
+        # Record path for reinforcement (auto side, no human gate)
+        import datetime as _dt
+        from services.inquiry_paths import record_path_in_db
+        with db_cursor(commit=True) as cur:
+            await record_path_in_db(cur, ws_id, user["sub"], {
+                "query_text": message or task_id,
+                "node_sequence": node_seq,
+                "outcome": outcome if outcome != "partial" else "partial",
+                "started_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+                "token_used": token_used,
+                "metadata": {"task_node_id": task_id, "implementation_node_id": impl_id},
+            })
+
+        log_mcp_interaction(background_tasks, ws_id, name,
+                            node_id=task_id, query_text=f"outcome={outcome}")
+        return {
+            "task_node_id": task_id,
+            "outcome": outcome,
+            "implementation_node_id": impl_id,
+            "message": message,
+            "flagged_playbooks": flagged_playbooks,
+            "feature_complete_triggered": feature_complete_triggered,
+        }
+
+    # ── emit_residue ──────────────────────────────────────────────────────────
+    if name == "emit_residue":
+        ws_id       = args["workspace_id"]
+        residues    = args["residues"]
+        parent_id   = args.get("parent_task_id")
+
+        if not residues:
+            return {"created": [], "count": 0}
+
+        created_ids = []
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True)
+
+            from services.nodes import create_node_in_db
+            from services.edges import create_edge_in_db as _create_edge
+
+            for residue in residues[:20]:  # cap at 20 per call
+                title = (residue.get("title") or "").strip()
+                if not title:
+                    continue
+                body = residue.get("body") or ""
+                tags = list(residue.get("tags") or [])
+
+                node_data = {
+                    "title": title,
+                    "body": body,
+                    "content_type": "inquiry",
+                    "content_format": "markdown",
+                    "tags": tags,
+                    "visibility": "team",
+                    "source_type": "mcp",
+                    "status": "active",
+                    "author": user.get("sub"),
+                }
+                try:
+                    node = create_node_in_db(cur, ws_id, node_data)
+                    created_ids.append(node["id"])
+
+                    if parent_id:
+                        try:
+                            _create_edge(cur, ws_id, {
+                                "from_id": node["id"],
+                                "to_id": parent_id,
+                                "relation": "depends_on",
+                                "weight": 0.5,
+                            })
+                        except Exception:
+                            pass
+                except Exception as e:
+                    logger.warning(f"emit_residue: skipped node '{title}': {e}")
+
+        log_mcp_interaction(background_tasks, ws_id, name,
+                            query_text=f"Emitted {len(created_ids)} residue inquiries")
+        return {"created": created_ids, "count": len(created_ids)}
+
+    # ── converge_check ────────────────────────────────────────────────────────
+    if name == "converge_check":
+        ws_id = args["workspace_id"]
+        tag   = args.get("tag")
+
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+            if tag:
+                cur.execute(
+                    """SELECT
+                         COUNT(*) FILTER (WHERE status = 'active')   AS pending,
+                         COUNT(*) FILTER (WHERE status = 'answered') AS answered
+                       FROM memory_nodes
+                       WHERE workspace_id = %s AND content_type = 'inquiry'
+                         AND %s = ANY(tags)""",
+                    (ws_id, tag),
+                )
+            else:
+                cur.execute(
+                    """SELECT
+                         COUNT(*) FILTER (WHERE status = 'active')   AS pending,
+                         COUNT(*) FILTER (WHERE status = 'answered') AS answered
+                       FROM memory_nodes
+                       WHERE workspace_id = %s AND content_type = 'inquiry'""",
+                    (ws_id,),
+                )
+            counts   = cur.fetchone()
+            pending  = int(counts["pending"]  or 0)
+            answered = int(counts["answered"] or 0)
+
+            cur.execute(
+                """SELECT
+                     COUNT(*) FILTER (WHERE outcome = 'failed') AS failed,
+                     COUNT(*) AS total
+                   FROM inquiry_paths
+                   WHERE workspace_id = %s AND started_at > now() - interval '1 hour'""",
+                (ws_id,),
+            )
+            path_row      = cur.fetchone()
+            recent_failed = int(path_row["failed"] or 0) if path_row else 0
+            recent_total  = int(path_row["total"]  or 0) if path_row else 0
+            failure_rate  = round(recent_failed / recent_total, 2) if recent_total else 0.0
+
+        stats = {
+            "pending":       pending,
+            "answered":      answered,
+            "recent_failed": recent_failed,
+            "recent_total":  recent_total,
+            "failure_rate":  failure_rate,
+        }
+
+        if pending == 0:
+            recommendation = "converge"
+            reason = "No pending inquiries remain — all tasks answered."
+        elif failure_rate >= 0.5 and recent_total >= 3:
+            recommendation = "escalate"
+            reason = f"High failure rate ({failure_rate:.0%}) over last {recent_total} paths. Human review needed."
+        elif answered > 0 and pending <= max(1, answered // 10):
+            recommendation = "converge"
+            reason = f"Only {pending} task(s) remaining vs {answered} answered (≤10%). Near-complete."
+        else:
+            recommendation = "continue"
+            reason = f"{pending} pending vs {answered} answered. Loop should continue."
+
+        log_mcp_interaction(background_tasks, ws_id, name, query_text=f"tag={tag}")
+        return {"recommendation": recommendation, "reason": reason, "stats": stats}
+
+    # ── converge_proposals ────────────────────────────────────────────────────
+    if name == "converge_proposals":
+        ws_id     = args["workspace_id"]
+        proposals = args.get("proposals") or []
+        task_id   = args.get("task_node_id")
+
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+
+        # Reuse the consult synthesizer for the converge-vs-escalate decision (D2).
+        from services.consult import synthesize_responses
+        synthesis_result, reasoning = await synthesize_responses(
+            ws_id, user.get("sub", "system"), [str(p) for p in proposals]
+        )
+        recommendation = "converge" if synthesis_result == "consensus" else "escalate"
+
+        log_mcp_interaction(background_tasks, ws_id, name,
+                            node_id=task_id,
+                            query_text=f"converge_proposals n={len(proposals)} → {recommendation}")
+        return {
+            "recommendation": recommendation,
+            "synthesis_result": synthesis_result,
+            "reasoning": reasoning,
+            "proposal_count": len(proposals),
+        }
+
+    # ── claim_task ────────────────────────────────────────────────────────────
+    if name == "claim_task":
+        ws_id   = args["workspace_id"]
+        task_id = args["task_node_id"]
+
+        _gc_claims()
+        key = _claim_key(ws_id, task_id)
+
+        with db_cursor() as cur:
+            require_ws_access(cur, ws_id, user, write=False)
+            cur.execute(
+                "SELECT id FROM memory_nodes WHERE id = %s AND workspace_id = %s AND status = 'active'",
+                (task_id, ws_id),
+            )
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail=f"Task {task_id} not found or not active")
+
+        existing = _TASK_CLAIMS.get(key)
+        if existing and _time.monotonic() - existing["at"] < _CLAIM_TTL:
+            if existing["agent_sub"] != user.get("sub"):
+                return {"claimed": False, "reason": "already_claimed", "task_node_id": task_id}
+
+        _TASK_CLAIMS[key] = {"agent_sub": user.get("sub"), "at": _time.monotonic()}
+        return {"claimed": True, "task_node_id": task_id}
+
+    # ── release_task ──────────────────────────────────────────────────────────
+    if name == "release_task":
+        ws_id   = args["workspace_id"]
+        task_id = args["task_node_id"]
+
+        key   = _claim_key(ws_id, task_id)
+        entry = _TASK_CLAIMS.get(key)
+
+        if not entry:
+            return {"released": True, "task_node_id": task_id, "note": "task was not claimed"}
+
+        if entry["agent_sub"] != user.get("sub"):
+            return {"released": False, "reason": "not_your_claim", "task_node_id": task_id}
+
+        _TASK_CLAIMS.pop(key, None)
+        return {"released": True, "task_node_id": task_id}
 
     raise ValueError(f"Unknown tool: {name}")
 

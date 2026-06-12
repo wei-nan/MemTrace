@@ -130,12 +130,13 @@ class RestructureResponse(BaseModel):
 class ChatRequest(BaseModel):
     workspace_id: str
     message: str
-    history: Optional[list[dict]] = None
+    history: Optional[list[dict]] = None  # deprecated: use session_id instead
     allow_edits: bool = False
     cross_kb_ids: Optional[list[str]] = None
     preferred_provider: Optional[str] = None
     preferred_model: Optional[str] = None
     force_auto_active: bool = False
+    session_id: Optional[str] = None  # Phase 6: server-side session
 
 class ChatResponse(BaseModel):
     answer: str
@@ -490,6 +491,34 @@ async def restructure_nodes(
 # Note: _archive_qa_to_kb and _increment_ask_count moved to services.nodes
 
 
+def _persist_chat_turn(
+    session_id: str,
+    question: str,
+    answer: str,
+    source_node_ids: list[str],
+    tokens: int,
+) -> None:
+    """Persist a user+assistant message pair and update session metadata."""
+    with db_cursor(commit=True) as cur:
+        cur.execute("""
+            INSERT INTO chat_messages (session_id, role, content, source_node_ids, tokens_used)
+            VALUES (%s, 'user', %s, '{}', 0),
+                   (%s, 'assistant', %s, %s, %s)
+        """, (session_id, question, session_id, answer, source_node_ids, tokens))
+        cur.execute("""
+            UPDATE chat_sessions SET
+                anchored_node_ids = (
+                    SELECT COALESCE(array_agg(DISTINCT x), '{}')
+                    FROM unnest(anchored_node_ids || %s::text[]) x
+                ),
+                message_count  = message_count + 2,
+                tokens_total   = tokens_total + %s,
+                last_active_at = now(),
+                title = CASE WHEN title = '' THEN LEFT(%s, 60) ELSE title END
+            WHERE id = %s
+        """, (source_node_ids, tokens, question, session_id))
+
+
 @router.post("/chat-stream")
 async def chat_with_kb_stream(
     body: ChatRequest,
@@ -500,51 +529,95 @@ async def chat_with_kb_stream(
     from services.nodes import propose_change as _propose_change
     from fastapi.responses import StreamingResponse
 
+    headers: dict[str, str] = {}
+    if body.history:
+        headers["Deprecation"] = "true"
+        headers["Link"] = '</api/v1/ai/sessions>; rel="successor-version"'
+
     async def event_generator():
+        from datetime import timezone
         try:
+            # --- Phase 6: Session handling ---
+            session_id = body.session_id
+            anchored_node_ids: list[str] = []
+            history: list[dict] = body.history or []
+
+            if session_id:
+                with db_cursor() as cur:
+                    cur.execute(
+                        "SELECT last_active_at, anchored_node_ids FROM chat_sessions WHERE id = %s AND user_id = %s",
+                        (session_id, user["sub"])
+                    )
+                    session_row = cur.fetchone()
+                if not session_row:
+                    yield json.dumps({"type": "error", "detail": "session_not_found"}) + "\n"
+                    return
+                # Cold session guard (>= 7 days since last activity)
+                age_days = (datetime.now(timezone.utc) - session_row["last_active_at"]).days
+                if age_days >= 7:
+                    yield json.dumps({"type": "error", "detail": "session_frozen"}) + "\n"
+                    return
+                anchored_node_ids = session_row["anchored_node_ids"] or []
+                # Load last 20 messages from DB (overrides body.history)
+                with db_cursor() as cur:
+                    cur.execute("""
+                        SELECT role, content FROM chat_messages
+                        WHERE session_id = %s ORDER BY created_at DESC LIMIT 20
+                    """, (session_id,))
+                    rows = cur.fetchall()
+                history = [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
+            else:
+                # Create new session
+                session_id = generate_id("chs")
+                title = body.message[:60]
+                with db_cursor(commit=True) as cur:
+                    cur.execute(
+                        "INSERT INTO chat_sessions (id, workspace_id, user_id, title) VALUES (%s, %s, %s, %s)",
+                        (session_id, body.workspace_id, user["sub"], title)
+                    )
+
+            yield json.dumps({"type": "session", "session_id": session_id}) + "\n"
+
+            # --- Workspace config ---
             with db_cursor() as cur:
-                # P4.1: Fetch workspace's locked embedding model for retrieval
                 cur.execute("SELECT embedding_model, embedding_provider FROM workspaces WHERE id = %s", (body.workspace_id,))
                 ws_row = cur.fetchone()
                 ws_embed_model = ws_row["embedding_model"] if ws_row else None
                 ws_embed_prov = ws_row["embedding_provider"] if ws_row else None
 
-                # D5: Association-aware search + cross_kb_ids
                 cur.execute("SELECT target_ws_id FROM workspace_associations WHERE source_ws_id = %s", (body.workspace_id,))
                 target_ids = {body.workspace_id} | {r["target_ws_id"] for r in cur.fetchall()}
                 if body.cross_kb_ids:
                     target_ids |= set(body.cross_kb_ids)
-            
-            # Resolve chat provider.
+
             resolved = resolve_provider(user["sub"], "extraction", body.preferred_provider, body.preferred_model)
 
-            # --- Hybrid node retrieval ---
+            # --- Hybrid node retrieval (Route C: pass anchored_node_ids) ---
             from services.nodes import increment_ask_count
             with db_cursor() as cur:
                 source_nodes = await hybrid_retrieval_for_chat(
                     cur, list(target_ids), body.message, user["sub"],
-                    ws_embed_prov=ws_embed_prov, ws_embed_model=ws_embed_model
+                    ws_embed_prov=ws_embed_prov, ws_embed_model=ws_embed_model,
+                    anchor_node_ids=anchored_node_ids,
                 )
-                
-                # If FAQ hit, increment ask count
                 faq_hit_id = next((n["_faq_hit_id"] for n in source_nodes if "_faq_hit_id" in n), None)
                 if faq_hit_id:
                     background_tasks.add_task(increment_ask_count, faq_hit_id)
 
-            # Send source nodes first
             yield json.dumps({"type": "source_nodes", "nodes": [dict(n) for n in source_nodes]}) + "\n"
 
             context_str = json.dumps([dict(n) for n in source_nodes], ensure_ascii=False, indent=2)
             messages = [{"role": "system", "content": CHAT_SYSTEM}]
-            if body.history: messages.extend(body.history)
-            
+            if history:
+                messages.extend(history)
+
             edit_prompt = "\nYou ARE allowed to propose edits/additions. Format them as a JSON block at the end of your response." if body.allow_edits else ""
             messages.append({"role": "user", "content": f"CONTEXT NODES:\n{context_str}\n\nUSER MESSAGE: {body.message}{edit_prompt}"})
 
             full_answer = ""
             total_tokens = 0
             print(f"[chat-stream] Starting AI stream with provider {resolved.provider.name}...")
-            
+
             async for chunk, tokens in chat_stream(resolved, messages):
                 if chunk:
                     full_answer += chunk
@@ -553,29 +626,30 @@ async def chat_with_kb_stream(
                     total_tokens = tokens
             print(f"[chat-stream] AI stream finished. Total tokens: {total_tokens}")
 
-            # Handle proposals after stream is done
             proposals = []
             final_answer, raw_proposals = parse_ai_proposals(full_answer)
-            
+
             if raw_proposals and body.allow_edits:
                 with db_cursor(commit=True) as cur:
                     proposals = apply_ai_proposals_to_db(cur, body.workspace_id, raw_proposals, body.message)
 
             if proposals:
                 yield json.dumps({"type": "proposals", "proposals": proposals}) + "\n"
-            
-            # ACTIVE ARCHIVING
+
             if len(body.message) > 10:
                 from services.nodes import archive_qa_to_kb
                 background_tasks.add_task(
                     archive_qa_to_kb,
-                    body.workspace_id,
-                    user["sub"],
-                    body.message,
-                    final_answer,
-                    [n["id"] for n in source_nodes],
-                    body.force_auto_active
+                    body.workspace_id, user["sub"], body.message,
+                    final_answer, [n["id"] for n in source_nodes], body.force_auto_active
                 )
+
+            # Persist session messages (background)
+            background_tasks.add_task(
+                _persist_chat_turn,
+                session_id, body.message, final_answer,
+                [n["id"] for n in source_nodes], total_tokens
+            )
 
             record_usage(resolved, "extraction", total_tokens, body.workspace_id)
             yield json.dumps({"type": "done", "tokens_used": total_tokens, "source": resolved.source}) + "\n"
@@ -585,7 +659,7 @@ async def chat_with_kb_stream(
             traceback.print_exc()
             yield json.dumps({"type": "error", "detail": str(e)}) + "\n"
 
-    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson", headers=headers)
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -708,8 +782,97 @@ async def submit_chat_feedback(
         # 3. Handle fading
         if new_weight < 0.1:
             cur.execute("""
-                UPDATE edges SET status = 'faded' 
+                UPDATE edges SET status = 'faded'
                 WHERE from_id = %s AND to_id = %s
             """, (body.question_node_id, body.answer_node_id))
-            
+
     return
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — Chat Session CRUD
+# ---------------------------------------------------------------------------
+
+class SessionRenameRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=120)
+
+
+@router.get("/sessions")
+async def list_chat_sessions(
+    workspace_id: str,
+    limit: int = 20,
+    user: dict = Depends(get_current_user),
+):
+    """List recent chat sessions for a workspace, split into hot (<=7d) and cold (>7d)."""
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT id, title, message_count, tokens_total, created_at, last_active_at,
+                   (now() - last_active_at) > INTERVAL '7 days' AS is_cold
+            FROM chat_sessions
+            WHERE workspace_id = %s AND user_id = %s
+            ORDER BY last_active_at DESC
+            LIMIT %s
+        """, (workspace_id, user["sub"], limit))
+        rows = cur.fetchall()
+    return [dict(r) for r in rows]
+
+
+@router.get("/sessions/{session_id}/messages")
+async def get_session_messages(
+    session_id: str,
+    limit: int = 20,
+    before_id: Optional[int] = None,
+    user: dict = Depends(get_current_user),
+):
+    """Return messages for a session with cursor-based pagination (before_id to page back)."""
+    with db_cursor() as cur:
+        # Verify ownership
+        cur.execute("SELECT id FROM chat_sessions WHERE id = %s AND user_id = %s", (session_id, user["sub"]))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        if before_id:
+            cur.execute("""
+                SELECT id, role, content, source_node_ids, tokens_used, created_at
+                FROM chat_messages
+                WHERE session_id = %s AND id < %s
+                ORDER BY created_at DESC LIMIT %s
+            """, (session_id, before_id, limit))
+        else:
+            cur.execute("""
+                SELECT id, role, content, source_node_ids, tokens_used, created_at
+                FROM chat_messages
+                WHERE session_id = %s
+                ORDER BY created_at DESC LIMIT %s
+            """, (session_id, limit))
+        rows = cur.fetchall()
+    return list(reversed([dict(r) for r in rows]))
+
+
+@router.patch("/sessions/{session_id}", status_code=204)
+async def rename_chat_session(
+    session_id: str,
+    body: SessionRenameRequest,
+    user: dict = Depends(get_current_user),
+):
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "UPDATE chat_sessions SET title = %s WHERE id = %s AND user_id = %s",
+            (body.title, session_id, user["sub"])
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+
+@router.delete("/sessions/{session_id}", status_code=204)
+async def delete_chat_session(
+    session_id: str,
+    user: dict = Depends(get_current_user),
+):
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "DELETE FROM chat_sessions WHERE id = %s AND user_id = %s",
+            (session_id, user["sub"])
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Session not found")

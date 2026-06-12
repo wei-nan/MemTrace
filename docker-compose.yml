@@ -1,26 +1,5 @@
 
 services:
-  db:
-    image: pgvector/pgvector:pg17
-    container_name: memtrace-db
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - memtrace_pgdata:/var/lib/postgresql/data
-      - ./schema/sql:/docker-entrypoint-initdb.d:ro   # auto-run on first init
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: ./packages/api
@@ -30,15 +9,14 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@shared-postgres:5432/${POSTGRES_DB}
       SECRET_KEY: ${SECRET_KEY}
       MEMTRACE_ANON_LOG_SALT: ${MEMTRACE_ANON_LOG_SALT:-dev_salt_123}
       REGISTRATION_MODE: ${MEMTRACE_REGISTRATION_MODE:-invite_only}
     ports:
-      - "0.0.0.0:8000:8000"
+      - "0.0.0.0:8001:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      - shared-postgres-check
     volumes:
       - ./packages/api/data:/app/data
       - ./packages/api/tests:/app/tests
@@ -56,6 +34,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - shared-db
+      - default
+
+  shared-postgres-check:
+    image: postgres:17-alpine
+    container_name: memtrace-db-check
+    restart: "no"
+    entrypoint: >
+      sh -c "until pg_isready -h shared-postgres -U ${POSTGRES_USER:-postgres}; do sleep 2; done"
+    networks:
+      - shared-db
 
   ui:
     build:
@@ -76,10 +66,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp:mode=1777
-      - /var/cache/nginx:mode=1777
-      - /var/run:mode=1777
+      - /var/cache/nginx:mode=0755,uid=1000,gid=1000
+      - /var/run:mode=0755,uid=1000,gid=1000
 
-
-volumes:
-  memtrace_pgdata:
-    driver: local
+networks:
+  shared-db:
+    external: true
+    name: shared-db

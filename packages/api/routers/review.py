@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Body, Depends, HTTPException, BackgroundTasks
 
 from core.ai_review import DEFAULT_AI_REVIEW_PROMPT, require_owner, run_ai_review_for_item
 from core.database import db_cursor
@@ -311,6 +311,51 @@ def reject_all_review_items(ws_id: str, user: dict = Depends(get_current_user)):
             (user["sub"], ws_id),
         )
         return {"message": "All pending items rejected"}
+
+
+@router.post("/{ws_id}/review-queue/accept-batch")
+def accept_batch_review_items(
+    ws_id: str,
+    background_tasks: BackgroundTasks,
+    ids: List[str] = Body(..., embed=True),
+    user: dict = Depends(get_current_user),
+):
+    if not ids:
+        return {"accepted_count": 0}
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        cur.execute(
+            "SELECT id FROM review_queue WHERE workspace_id = %s AND id = ANY(%s) AND status = 'pending'",
+            (ws_id, ids),
+        )
+        valid_ids = [row["id"] for row in cur.fetchall()]
+    count = 0
+    for rid in valid_ids:
+        try:
+            accept_review_item(rid, background_tasks, user)
+            count += 1
+        except Exception:
+            continue
+    return {"accepted_count": count}
+
+
+@router.post("/{ws_id}/review-queue/reject-batch")
+def reject_batch_review_items(
+    ws_id: str,
+    ids: List[str] = Body(..., embed=True),
+    user: dict = Depends(get_current_user),
+):
+    if not ids:
+        return {"rejected_count": 0}
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        cur.execute(
+            """UPDATE review_queue
+               SET status = 'rejected', reviewer_type = 'human', reviewer_id = %s, reviewed_at = now()
+               WHERE workspace_id = %s AND id = ANY(%s) AND status = 'pending'""",
+            (user["sub"], ws_id, ids),
+        )
+        return {"rejected_count": cur.rowcount}
 
 
 @router.post("/{ws_id}/review-queue/ai-prescreen")

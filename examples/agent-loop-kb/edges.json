@@ -1,0 +1,17 @@
+[
+  { "from_id": "mem_loop002", "to_id": "mem_loop001", "relation": "depends_on", "weight": 0.9 },
+  { "from_id": "mem_loop003", "to_id": "mem_loop002", "relation": "depends_on", "weight": 0.85 },
+  { "from_id": "mem_loop003", "to_id": "mem_loop013", "relation": "related_to", "weight": 0.6 },
+  { "from_id": "mem_loop010", "to_id": "mem_loop002", "relation": "depends_on", "weight": 0.8 },
+  { "from_id": "mem_loop011", "to_id": "mem_loop002", "relation": "depends_on", "weight": 0.8 },
+  { "from_id": "mem_loop012", "to_id": "mem_loop002", "relation": "depends_on", "weight": 0.8 },
+  { "from_id": "mem_loop011", "to_id": "mem_loop010", "relation": "proceeds_to", "weight": 0.7 },
+  { "from_id": "mem_loop012", "to_id": "mem_loop011", "relation": "proceeds_to", "weight": 0.7 },
+  { "from_id": "mem_loop013", "to_id": "mem_loop002", "relation": "depends_on", "weight": 0.8 },
+  { "from_id": "mem_loop021", "to_id": "mem_loop020", "relation": "extends", "weight": 0.7 },
+  { "from_id": "mem_loop022", "to_id": "mem_loop020", "relation": "related_to", "weight": 0.6 },
+  { "from_id": "mem_loop010", "to_id": "mem_loop020", "relation": "related_to", "weight": 0.5 },
+  { "from_id": "mem_loop900", "to_id": "mem_loop001", "relation": "depends_on", "weight": 0.7 },
+  { "from_id": "mem_loop900", "to_id": "mem_loop003", "relation": "related_to", "weight": 0.7 },
+  { "from_id": "mem_loop901", "to_id": "mem_loop022", "relation": "related_to", "weight": 0.7 }
+]

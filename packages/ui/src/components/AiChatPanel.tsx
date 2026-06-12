@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X, RotateCcw } from 'lucide-react';
-import { ai, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus } from '../api';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock } from 'lucide-react';
+import { ai, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card } from './ui';
 import { useModal } from './ModalContext';
@@ -15,7 +15,8 @@ interface ProposalState {
   status: 'pending' | 'accepted' | 'rejected';
 }
 
-export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: boolean; onClose?: () => void }) {
+
+export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: string; zh: boolean; onClose?: () => void; fullPage?: boolean }) {
   const { toast } = useModal();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -26,13 +27,47 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [credits, setCredits] = useState<CreditStatus | null>(null);
-  // Map of "msgIndex:proposalIndex" -> status
   const [proposalStates, setProposalStates] = useState<Record<string, ProposalState>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const abortedRef = useRef(false);
   const handleSendRef = useRef<((msg?: string) => Promise<void>) | null>(null);
+  const lastEnterRef = useRef<number>(0);
   const [queue, setQueue] = useState<string[]>([]);
+  const [providerMenuOpen, setProviderMenuOpen] = useState(false);
+  const providerMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!providerMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (providerMenuRef.current && !providerMenuRef.current.contains(e.target as Node))
+        setProviderMenuOpen(false);
+    };
+    window.addEventListener('mousedown', handler);
+    return () => window.removeEventListener('mousedown', handler);
+  }, [providerMenuOpen]);
+
+  // Session state
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
+  const [oldestMessageId, setOldestMessageId] = useState<number | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const isColdSession = sessionId
+    ? sessions.find(s => s.id === sessionId)?.is_cold ?? false
+    : false;
+
+  const loadSessions = useCallback(async () => {
+    try {
+      const list = await ai.listSessions(wsId);
+      setSessions(list);
+    } catch {}
+  }, [wsId]);
+
+  useEffect(() => { loadSessions(); }, [loadSessions]);
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -40,13 +75,10 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
         const c = await ai.getCredits();
         setCredits(c);
         if (c && !c.has_own_key[provider]) {
-          const firstAvailable = (Object.keys(c.has_own_key) as Array<keyof typeof c.has_own_key>)
-            .find(k => c.has_own_key[k]);
+          const firstAvailable = (Object.keys(c.has_own_key) as Array<keyof typeof c.has_own_key>).find(k => c.has_own_key[k]);
           if (firstAvailable) setProvider(firstAvailable);
         }
-      } catch (e) {
-        console.error("Failed to fetch credits", e);
-      }
+      } catch {}
     };
     fetchCredits();
   }, [provider]);
@@ -57,18 +89,75 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
         const list = await ai.listModels(provider);
         setModels(list);
         if (list.length > 0) setSelectedModel(list[0].id);
-      } catch (e) {
-        console.error("Failed to fetch models", e);
-      }
+      } catch {}
     };
     fetchModels();
   }, [provider]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
+
+  const switchSession = async (s: ChatSession) => {
+    try {
+      const msgs = await ai.getSessionMessages(s.id);
+      setSessionId(s.id);
+      setMessages(msgs.map(m => ({ role: m.role, content: m.content })));
+      setProposalStates({});
+      setOldestMessageId(msgs[0]?.id ?? null);
+      setHasOlderMessages(msgs.length >= 20);
+    } catch {
+      toast({ message: zh ? '載入對話失敗' : 'Failed to load session', variant: 'error' });
+    }
+  };
+
+  const startNewSession = () => {
+    setSessionId(null);
+    setMessages([]);
+    setProposalStates({});
+    setOldestMessageId(null);
+    setHasOlderMessages(false);
+  };
+
+  const loadOlderMessages = async () => {
+    if (!sessionId || !oldestMessageId || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const older = await ai.getSessionMessages(sessionId, 20, oldestMessageId);
+      if (older.length > 0) {
+        setMessages(prev => [...older.map(m => ({ role: m.role, content: m.content })), ...prev]);
+        setOldestMessageId(older[0].id);
+        setHasOlderMessages(older.length >= 20);
+      } else {
+        setHasOlderMessages(false);
+      }
+    } catch {} finally {
+      setLoadingOlder(false);
+    }
+  };
+
+  const handleDeleteSession = async (s: ChatSession, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await ai.deleteSession(s.id);
+      if (sessionId === s.id) startNewSession();
+      loadSessions();
+    } catch {
+      toast({ message: zh ? '刪除失敗' : 'Failed to delete', variant: 'error' });
+    }
+  };
+
+  const handleRenameSession = async (s: ChatSession) => {
+    if (!editingTitle.trim()) return;
+    try {
+      await ai.renameSession(s.id, editingTitle.trim());
+      setSessions(prev => prev.map(x => x.id === s.id ? { ...x, title: editingTitle.trim() } : x));
+    } catch {
+      toast({ message: zh ? '重命名失敗' : 'Failed to rename', variant: 'error' });
+    } finally {
+      setEditingSessionId(null);
+    }
+  };
 
   const handleAbort = () => {
     abortedRef.current = true;
@@ -82,7 +171,7 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
 
     const userMsg: Message = { role: 'user', content: msg };
     setMessages(prev => [...prev, userMsg]);
-    const msgIdx = messages.length + 1; // index of the assistant message we're about to add
+    const msgIdx = messages.length + 1;
     setLoading(true);
 
     const controller = new AbortController();
@@ -90,95 +179,76 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
 
     try {
       const history = messages.map(m => ({ role: m.role, content: m.content }));
-
-      // Add empty assistant message that we will populate
       setMessages(prev => [...prev, { role: 'assistant', content: '', response: { answer: '', proposals: [], source_nodes: [], tokens_used: 0 } }]);
+
+      let currentSessionId = sessionId;
 
       await ai.chatStream({
         workspace_id: wsId,
         message: msg,
-        history,
+        history: currentSessionId ? undefined : history,
+        session_id: currentSessionId ?? undefined,
         allow_edits: allowEdits,
         preferred_provider: provider,
         preferred_model: selectedModel,
         force_auto_active: forceAutoActive,
       }, (chunk) => {
-        if (chunk.type === 'source_nodes') {
+        if (chunk.type === 'session') {
+          currentSessionId = chunk.session_id;
+          setSessionId(chunk.session_id);
+          loadSessions();
+        } else if (chunk.type === 'source_nodes') {
           setMessages(prev => {
             const next = [...prev];
-            if (next[msgIdx]) {
-              next[msgIdx] = {
-                ...next[msgIdx],
-                response: { ...next[msgIdx].response!, source_nodes: chunk.nodes }
-              };
-            }
+            if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], response: { ...next[msgIdx].response!, source_nodes: chunk.nodes } };
             return next;
           });
         } else if (chunk.type === 'content') {
           setMessages(prev => {
             const next = [...prev];
-            if (next[msgIdx]) {
-              next[msgIdx] = {
-                ...next[msgIdx],
-                content: next[msgIdx].content + chunk.delta
-              };
-            }
+            if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + chunk.delta };
             return next;
           });
         } else if (chunk.type === 'proposals') {
           setMessages(prev => {
             const next = [...prev];
-            if (next[msgIdx]) {
-              next[msgIdx] = {
-                ...next[msgIdx],
-                response: { ...next[msgIdx].response!, proposals: chunk.proposals }
-              };
-            }
+            if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], response: { ...next[msgIdx].response!, proposals: chunk.proposals } };
             return next;
           });
         } else if (chunk.type === 'done') {
           setMessages(prev => {
             const next = [...prev];
-            if (next[msgIdx]) {
-              next[msgIdx] = {
-                ...next[msgIdx],
-                response: { ...next[msgIdx].response!, tokens_used: chunk.tokens_used }
-              };
-            }
+            if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], response: { ...next[msgIdx].response!, tokens_used: chunk.tokens_used } };
             return next;
           });
+          // Refresh sessions to update token count & last_active_at
+          loadSessions();
         } else if (chunk.type === 'error') {
           setLoading(false);
-          setMessages(prev => {
-            const next = [...prev];
-            if (next[msgIdx]) {
-              next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\n**Error:** ${chunk.detail}` };
-            } else {
-              next.push({ role: 'assistant', content: `**Error:** ${chunk.detail}` });
-            }
-            return next;
-          });
-          return; // Stop processing this stream
+          if (chunk.detail === 'session_frozen') {
+            toast({ message: zh ? '此對話已封存，請開啟新對話' : 'Session is archived. Start a new conversation.', variant: 'warning' });
+          } else {
+            setMessages(prev => {
+              const next = [...prev];
+              if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\n**Error:** ${chunk.detail}` };
+              else next.push({ role: 'assistant', content: `**Error:** ${chunk.detail}` });
+              return next;
+            });
+          }
         }
       }, controller.signal);
-
     } catch (e: any) {
       if (e?.name === 'AbortError') {
         setMessages(prev => {
           const next = [...prev];
-          if (next[msgIdx] && !next[msgIdx].content) {
-            next[msgIdx] = { ...next[msgIdx], content: zh ? '_(已中止)_' : '_(stopped)_' };
-          }
+          if (next[msgIdx] && !next[msgIdx].content) next[msgIdx] = { ...next[msgIdx], content: zh ? '_(已中止)_' : '_(stopped)_' };
           return next;
         });
       } else {
         setMessages(prev => {
           const next = [...prev];
-          if (next[msgIdx]) {
-            next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\nError: ${e.message}` };
-          } else {
-            next.push({ role: 'assistant', content: `Error: ${e.message}` });
-          }
+          if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + `\n\nError: ${e.message}` };
+          else next.push({ role: 'assistant', content: `Error: ${e.message}` });
           return next;
         });
       }
@@ -188,15 +258,10 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
     }
   };
 
-  // Keep ref updated for queue processing
   handleSendRef.current = handleSend;
 
-  // Auto-process queue when response finishes (but not after user-initiated abort)
   useEffect(() => {
-    if (abortedRef.current) {
-      abortedRef.current = false;
-      return;
-    }
+    if (abortedRef.current) { abortedRef.current = false; return; }
     if (!loading && queue.length > 0) {
       const [next, ...rest] = queue;
       setQueue(rest);
@@ -225,432 +290,372 @@ export default function AiChatPanel({ wsId, zh, onClose }: { wsId: string; zh: b
     const key = `${msgIdx}:${propIdx}`;
     setProposalStates(prev => ({ ...prev, [key]: { status: 'rejected' } }));
     try {
-      if ((proposal as any).review_queue_id) {
-        await review.reject((proposal as any).review_queue_id);
-      }
+      if ((proposal as any).review_queue_id) await review.reject((proposal as any).review_queue_id);
     } catch (e: any) {
       setProposalStates(prev => ({ ...prev, [key]: { status: 'pending' } }));
       toast({ message: e?.message || (zh ? '拒絕提案失敗' : 'Failed to reject proposal'), variant: 'error' });
     }
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-surface)' }}>
-      {/* Header */}
-      <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Sparkles size={18} style={{ color: 'var(--color-primary)' }} />
-        <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>
-          {zh ? 'AI 助手' : 'AI Assistant'}
-        </h3>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            if (messages.length > 0) {
-              setMessages([]);
-              setProposalStates({});
-            }
-          }}
-          title={zh ? '開新對話 (清除歷史)' : 'New Conversation (Clear History)'}
-          style={{ padding: 4 }}
-        >
-          <RotateCcw size={16} />
-        </Button>
+  const hotSessions = sessions.filter(s => !s.is_cold);
+  const coldSessions = sessions.filter(s => s.is_cold);
 
-        {/* allow_edits toggle */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            {zh ? '允許提案' : 'Allow proposals'}
+  const renderSession = (s: ChatSession) => {
+    const active = s.id === sessionId;
+    return (
+      <div
+        key={s.id}
+        onClick={() => switchSession(s)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
+          background: active ? 'var(--color-primary-subtle)' : 'transparent',
+          border: active ? '1px solid var(--color-primary)' : '1px solid transparent',
+        }}
+      >
+        {s.is_cold ? <Lock size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} /> : <MessageSquare size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
+        {editingSessionId === s.id ? (
+          <input
+            autoFocus
+            value={editingTitle}
+            onChange={e => setEditingTitle(e.target.value)}
+            onBlur={() => handleRenameSession(s)}
+            onKeyDown={e => { if (e.key === 'Enter') handleRenameSession(s); if (e.key === 'Escape') setEditingSessionId(null); }}
+            onClick={e => e.stopPropagation()}
+            style={{ flex: 1, fontSize: 12, background: 'none', border: 'none', outline: 'none', color: 'var(--text-primary)' }}
+          />
+        ) : (
+          <span style={{ flex: 1, fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {s.title || (zh ? '（無標題）' : '(Untitled)')}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setAllowEdits(v => !v)}
-            title={allowEdits ? (zh ? '關閉 AI 提案模式' : 'Disable AI proposals') : (zh ? '開啟 AI 提案模式' : 'Enable AI proposals')}
-            style={{ color: allowEdits ? 'var(--color-primary)' : 'var(--text-muted)' }}
-          >
-            {allowEdits ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-          </Button>
-        </div>
-
-        {/* force_auto_active toggle */}
-        <div style={{ marginLeft: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            {zh ? '自動生效' : 'Auto Active'}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setForceAutoActive(v => !v)}
-            title={forceAutoActive ? (zh ? '關閉強制自動生效' : 'Disable force auto active') : (zh ? '開啟強制自動生效' : 'Enable force auto active')}
-            style={{ color: forceAutoActive ? 'var(--color-primary)' : 'var(--text-muted)' }}
-          >
-            {forceAutoActive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-          </Button>
-        </div>
-
-        {onClose && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            title={zh ? '關閉' : 'Close'}
-            style={{ marginLeft: 8, padding: 4 }}
-          >
-            <X size={16} />
-          </Button>
         )}
+        <button
+          onClick={e => { e.stopPropagation(); setEditingSessionId(s.id); setEditingTitle(s.title); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text-muted)', display: 'flex', opacity: 0.6 }}
+          title={zh ? '重命名' : 'Rename'}
+        ><Pencil size={11} /></button>
+        <button
+          onClick={e => handleDeleteSession(s, e)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text-muted)', display: 'flex', opacity: 0.6 }}
+          title={zh ? '刪除' : 'Delete'}
+        ><Trash2 size={11} /></button>
       </div>
+    );
+  };
 
-      {/* Selector Bar */}
-      <div style={{
-        padding: '8px 16px', background: 'var(--bg-base)', borderBottom: '1px solid var(--border-default)',
-        display: 'flex', gap: 8, overflowX: 'auto', alignItems: 'center',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          <Settings2 size={14} style={{ opacity: 0.6 }} />
-          <select
-            value={provider}
-            onChange={e => setProvider(e.target.value as any)}
-            style={{
-              fontSize: 11, padding: '3px 6px', borderRadius: 6,
-              border: `1px solid var(--ai-${provider})`,
-              background: `var(--ai-${provider}-subtle)`,
-              color: `var(--ai-${provider})`,
-              fontWeight: 700, outline: 'none', cursor: 'pointer',
-            }}
-          >
-            <option value="openai" disabled={credits ? !credits.has_own_key.openai : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-              OpenAI {credits && !credits.has_own_key.openai ? (zh ? '(未設定)' : '(No Key)') : ''}
-            </option>
-            <option value="anthropic" disabled={credits ? !credits.has_own_key.anthropic : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-              Anthropic {credits && !credits.has_own_key.anthropic ? (zh ? '(未設定)' : '(No Key)') : ''}
-            </option>
-            <option value="gemini" disabled={credits ? !credits.has_own_key.gemini : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-              Gemini {credits && !credits.has_own_key.gemini ? (zh ? '(未設定)' : '(No Key)') : ''}
-            </option>
-            <option value="ollama" disabled={credits ? !credits.has_own_key.ollama : false} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-              Ollama {credits && !credits.has_own_key.ollama ? (zh ? '(未設定)' : '(No Key)') : ''}
-            </option>
-          </select>
-        </div>
-        <div style={{ width: 1, height: 16, background: 'var(--border-default)' }} />
-        <select
-          value={selectedModel}
-          onChange={e => setSelectedModel(e.target.value)}
-          style={{
-            fontSize: 11, padding: '3px 6px', borderRadius: 6,
-            border: '1px solid var(--border-default)',
-            background: 'var(--bg-surface)',
-            color: 'var(--text-secondary)',
-            flex: 1, minWidth: 100, outline: 'none', cursor: 'pointer',
-          }}
-        >
-          {models.map(m => (
-            <option key={m.id} value={m.id} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>{m.display_name}</option>
-          ))}
-          {models.length === 0 && <option value="">Loading...</option>}
-        </select>
-      </div>
-
-      {/* allow_edits hint banner */}
-      {allowEdits && (
-        <div style={{
-          padding: '8px 16px', background: 'var(--color-primary-subtle)',
-          borderBottom: '1px solid var(--border-default)',
-          fontSize: 12, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 6,
-        }}>
-          <PlusCircle size={12} />
-          {zh
-            ? 'AI 提案模式：AI 可能在回答後建議新增或修改節點，可在對話中直接接受或拒絕。'
-            : 'Proposal mode: AI may suggest node additions or edits. Accept or reject inline.'}
+  return (
+    <div style={{ display: 'flex', height: '100%', background: 'var(--bg-surface)' }}>
+      {/* Sidebar */}
+      {sidebarOpen && (
+        <div style={{ width: fullPage ? 260 : 200, borderRight: '1px solid var(--border-default)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '10px 10px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', flex: 1 }}>
+              {zh ? '對話紀錄' : 'Conversations'}
+            </span>
+            <Button variant="ghost" size="sm" onClick={startNewSession} title={zh ? '新對話' : 'New'} style={{ padding: 3 }}>
+              <PlusCircle size={14} />
+            </Button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0 6px 8px' }}>
+            {hotSessions.length > 0 && (
+              <>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', padding: '4px 4px 2px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {zh ? '最近 7 天' : 'Recent'}
+                </div>
+                {hotSessions.map(renderSession)}
+              </>
+            )}
+            {coldSessions.length > 0 && (
+              <>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', padding: '8px 4px 2px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Lock size={9} /> {zh ? '封存' : 'Archived'}
+                </div>
+                {coldSessions.map(renderSession)}
+              </>
+            )}
+            {sessions.length === 0 && (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', padding: '12px 4px', textAlign: 'center' }}>
+                {zh ? '尚無對話' : 'No conversations'}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Messages List */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        {messages.length === 0 && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', textAlign: 'center', padding: 40 }}>
-            <Brain size={48} style={{ opacity: 0.2, marginBottom: 16 }} />
-            <p style={{ fontSize: 14 }}>
-              {zh ? '詢問關於當前知識庫的問題，或啟用「允許提案」讓 AI 協助優化圖譜。' : 'Ask about your KB, or enable proposals to let AI suggest graph improvements.'}
-            </p>
+      {/* Main chat area */}
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+        {/* Header */}
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+          <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(v => !v)} style={{ padding: 4, flexShrink: 0 }} title={zh ? '切換側欄' : 'Toggle sidebar'}>
+            <MessageSquare size={15} />
+          </Button>
+          <Sparkles size={15} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+            {zh ? 'AI 助手' : 'AI Assistant'}
+            {isColdSession && <Lock size={12} style={{ marginLeft: 6, color: 'var(--text-muted)', verticalAlign: 'middle' }} />}
+          </h3>
+
+          <Button variant="ghost" size="sm" onClick={startNewSession} title={zh ? '開新對話' : 'New Conversation'} style={{ padding: 4, flexShrink: 0 }}>
+            <RotateCcw size={15} />
+          </Button>
+
+          <Button
+            variant="ghost" size="sm"
+            onClick={() => setAllowEdits(v => !v)}
+            title={zh ? `允許提案：${allowEdits ? '開啟' : '關閉'}` : `Allow proposals: ${allowEdits ? 'on' : 'off'}`}
+            style={{ padding: 4, flexShrink: 0, color: allowEdits ? 'var(--color-primary)' : 'var(--text-muted)' }}
+          >
+            {allowEdits ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+          </Button>
+
+          <Button
+            variant="ghost" size="sm"
+            onClick={() => setForceAutoActive(v => !v)}
+            title={zh ? `自動生效：${forceAutoActive ? '開啟' : '關閉'}` : `Auto active: ${forceAutoActive ? 'on' : 'off'}`}
+            style={{ padding: 4, flexShrink: 0, color: forceAutoActive ? 'var(--color-primary)' : 'var(--text-muted)' }}
+          >
+            {forceAutoActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+          </Button>
+
+          {onClose && (
+            <Button variant="ghost" size="sm" onClick={onClose} title={zh ? '關閉' : 'Close'} style={{ padding: 4, flexShrink: 0 }}>
+              <X size={16} />
+            </Button>
+          )}
+        </div>
+
+        {/* Selector Bar */}
+        <div style={{ padding: '8px 16px', background: 'var(--bg-base)', borderBottom: '1px solid var(--border-default)', display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <Settings2 size={14} style={{ opacity: 0.6 }} />
+            {/* Custom provider dropdown */}
+            <div ref={providerMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setProviderMenuOpen(v => !v)}
+                style={{ fontSize: 11, padding: '3px 8px', borderRadius: 6, border: `1px solid var(--ai-${provider})`, background: `var(--ai-${provider}-subtle)`, color: `var(--ai-${provider})`, fontWeight: 700, outline: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                {{ openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini', ollama: 'Ollama' }[provider]}
+                <ChevronDown size={10} />
+              </button>
+              {providerMenuOpen && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 8, boxShadow: 'var(--shadow-md)', zIndex: 200, minWidth: 160, overflow: 'hidden' }}>
+                  {(['openai', 'anthropic', 'gemini', 'ollama'] as const).map(p => {
+                    const label = { openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini', ollama: 'Ollama' }[p];
+                    const hasKey = credits ? credits.has_own_key[p] : true;
+                    const isSelected = provider === p;
+                    return (
+                      <button
+                        key={p}
+                        disabled={!hasKey}
+                        onClick={() => { setProvider(p); setProviderMenuOpen(false); }}
+                        style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: isSelected ? 'var(--color-primary-subtle)' : 'transparent', color: !hasKey ? 'var(--text-muted)' : isSelected ? 'var(--color-primary)' : 'var(--text-primary)', border: 'none', cursor: hasKey ? 'pointer' : 'not-allowed', fontSize: 12, fontWeight: isSelected ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
+                      >
+                        <span>{label}</span>
+                        {!hasKey && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{zh ? '未設定' : 'No Key'}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ width: 1, height: 16, background: 'var(--border-default)' }} />
+          <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)} className="model-select" style={{ fontSize: 11, padding: '3px 6px', borderRadius: 6, border: '1px solid var(--border-default)', background: 'var(--bg-surface)', color: 'var(--text-secondary)', flex: 1, minWidth: 100, outline: 'none', cursor: 'pointer' }}>
+            {models.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
+            {models.length === 0 && <option value="">Loading...</option>}
+          </select>
+        </div>
+
+        {allowEdits && (
+          <div style={{ padding: '8px 16px', background: 'var(--color-primary-subtle)', borderBottom: '1px solid var(--border-default)', fontSize: 12, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <PlusCircle size={12} />
+            {zh ? 'AI 提案模式：AI 可能在回答後建議新增或修改節點，可在對話中直接接受或拒絕。' : 'Proposal mode: AI may suggest node additions or edits. Accept or reject inline.'}
           </div>
         )}
-        {messages.map((m, msgIdx) => (
-          <div key={msgIdx} style={{ display: 'flex', gap: 12, flexDirection: m.role === 'user' ? 'row-reverse' : 'row' }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 16, flexShrink: 0,
-              background: m.role === 'user' ? 'var(--border-default)' : 'var(--color-primary-subtle)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {m.role === 'user' ? <User size={16} /> : <Sparkles size={16} style={{ color: 'var(--color-primary)' }} />}
-            </div>
-            <div style={{ maxWidth: '85%', minWidth: 0 }}>
-              <div style={{
-                padding: '10px 14px', borderRadius: 12, fontSize: 13, lineHeight: 1.5,
-                background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-base)',
-                color: m.role === 'user' ? 'white' : 'var(--text-primary)',
-                border: m.role === 'assistant' ? '1px solid var(--border-default)' : 'none',
-                wordBreak: 'break-word', overflowWrap: 'anywhere',
-              }}>
-                <ReactMarkdown>{m.content}</ReactMarkdown>
 
-                {/* Inline Proposals */}
-                {m.response?.proposals && m.response.proposals.length > 0 && (
-                  <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <PlusCircle size={14} /> {zh ? 'AI 提案' : 'AI Proposals'}
+        {/* Load older messages */}
+        {hasOlderMessages && (
+          <div style={{ textAlign: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+            <Button variant="ghost" size="sm" onClick={loadOlderMessages} disabled={loadingOlder} style={{ fontSize: 11, gap: 4 }}>
+              <ChevronUp size={12} />
+              {loadingOlder ? (zh ? '載入中…' : 'Loading…') : (zh ? '載入更早的訊息' : 'Load earlier messages')}
+            </Button>
+          </div>
+        )}
+
+        {/* Messages List */}
+        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: fullPage ? '24px 20px' : '20px', display: 'flex', flexDirection: 'column', gap: 24, alignItems: fullPage ? 'center' : undefined }}>
+          {messages.length === 0 && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', textAlign: 'center', padding: 40, width: fullPage ? '100%' : undefined, maxWidth: fullPage ? 800 : undefined }}>
+              <Brain size={48} style={{ opacity: 0.2, marginBottom: 16 }} />
+              <p style={{ fontSize: 14 }}>
+                {zh ? '詢問關於當前知識庫的問題，或啟用「允許提案」讓 AI 協助優化圖譜。' : 'Ask about your KB, or enable proposals to let AI suggest graph improvements.'}
+              </p>
+            </div>
+          )}
+          {messages.map((m, msgIdx) => (
+            <div key={msgIdx} style={{ display: 'flex', gap: 12, flexDirection: m.role === 'user' ? 'row-reverse' : 'row', width: fullPage ? '100%' : undefined, maxWidth: fullPage ? 800 : undefined }}>
+              <div style={{ width: 32, height: 32, borderRadius: 16, flexShrink: 0, background: m.role === 'user' ? 'var(--border-default)' : 'var(--color-primary-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {m.role === 'user' ? <User size={16} /> : <Sparkles size={16} style={{ color: 'var(--color-primary)' }} />}
+              </div>
+              <div style={{ maxWidth: '85%', minWidth: 0 }}>
+                <div style={{ padding: '10px 14px', borderRadius: 12, fontSize: 13, lineHeight: 1.5, background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-base)', color: m.role === 'user' ? 'white' : 'var(--text-primary)', border: m.role === 'assistant' ? '1px solid var(--border-default)' : 'none', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                  {m.response?.proposals && m.response.proposals.length > 0 && (
+                    <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <PlusCircle size={14} /> {zh ? 'AI 提案' : 'AI Proposals'}
+                      </div>
+                      {m.response.proposals.map((p, propIdx) => {
+                        const key = `${msgIdx}:${propIdx}`;
+                        return <ProposalCard key={propIdx} proposal={p} zh={zh} status={proposalStates[key]?.status ?? 'pending'} onAccept={() => handleAcceptProposal(msgIdx, propIdx, p)} onReject={() => handleRejectProposal(msgIdx, propIdx, p)} />;
+                      })}
                     </div>
-                    {m.response.proposals.map((p, propIdx) => {
-                      const key = `${msgIdx}:${propIdx}`;
-                      const state = proposalStates[key];
-                      return (
-                        <ProposalCard
-                          key={propIdx}
-                          proposal={p}
-                          zh={zh}
-                          status={state?.status ?? 'pending'}
-                          onAccept={() => handleAcceptProposal(msgIdx, propIdx, p)}
-                          onReject={() => handleRejectProposal(msgIdx, propIdx, p)}
-                        />
-                      );
-                    })}
+                  )}
+                </div>
+                {m.response?.source_nodes && m.response.source_nodes.length > 0 && (
+                  <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {m.response.source_nodes.slice(0, 3).map((sn, j) => (
+                      <div key={j} onClick={() => sn.id && (window as any).mt_focus_node?.(sn.id)} title={sn.id ? (zh ? '在 3D 圖譜中定位' : 'Focus in 3D graph') : undefined} style={{ fontSize: 11, padding: '2px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 4, color: 'var(--text-muted)', cursor: sn.id ? 'pointer' : 'default' }}>
+                        {sn.title}
+                      </div>
+                    ))}
+                    {m.response.source_nodes.length > 3 && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>+{m.response.source_nodes.length - 3} more</div>}
+                  </div>
+                )}
+                {m.role === 'assistant' && m.response !== undefined && (m.response.source_nodes?.length ?? -1) === 0 && (
+                  <div style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, background: 'var(--color-warning-subtle, #fef3c7)', border: '1px solid var(--color-warning, #f59e0b)', fontSize: 11, color: 'var(--color-warning, #92400e)', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                    <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span>{zh ? '未找到相關節點，回答可能不夠準確。請確認節點已建立，或前往知識庫設定執行「重新嵌入所有節點」。' : 'No matching nodes found — answer may be inaccurate. Add more nodes or run "Re-embed All" in workspace settings.'}</span>
                   </div>
                 )}
               </div>
-
-              {/* Source Nodes */}
-              {m.response?.source_nodes && m.response.source_nodes.length > 0 && (
-                <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {m.response.source_nodes.slice(0, 3).map((sn, j) => (
-                    <div
-                      key={j}
-                      onClick={() => sn.id && (window as any).mt_focus_node?.(sn.id)}
-                      title={sn.id ? (zh ? '在 3D 圖譜中定位' : 'Focus in 3D graph') : undefined}
-                      style={{
-                        fontSize: 11, padding: '2px 8px',
-                        background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)',
-                        borderRadius: 4, color: 'var(--text-muted)',
-                        cursor: sn.id ? 'pointer' : 'default',
-                      }}
-                    >
-                      {sn.title}
-                    </div>
-                  ))}
-                  {m.response.source_nodes.length > 3 && (
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>+{m.response.source_nodes.length - 3} more</div>
-                  )}
-                </div>
-              )}
-
-              {/* Empty-context warning */}
-              {m.role === 'assistant' && m.response !== undefined && (m.response.source_nodes?.length ?? -1) === 0 && (
-                <div style={{
-                  marginTop: 8, padding: '6px 10px', borderRadius: 6,
-                  background: 'var(--color-warning-subtle, #fef3c7)',
-                  border: '1px solid var(--color-warning, #f59e0b)',
-                  fontSize: 11, color: 'var(--color-warning, #92400e)',
-                  display: 'flex', alignItems: 'flex-start', gap: 6,
-                }}>
-                  <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>
-                    {zh
-                      ? '未找到相關節點，回答可能不夠準確。請確認節點已建立，或前往知識庫設定執行「重新嵌入所有節點」。'
-                      : 'No matching nodes found — answer may be inaccurate. Add more nodes or run "Re-embed All" in workspace settings.'}
-                  </span>
-                </div>
-              )}
             </div>
-          </div>
-        ))}
-        {loading && (
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 16, background: 'var(--color-primary-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <SpinnerIcon />
-            </div>
-            <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontSize: 13 }}>
-              <span className="animate-pulse">...</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Input Area */}
-      <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
-        {credits && !credits.has_own_key[provider] && (
-          <div style={{
-            marginBottom: 12, padding: '12px', borderRadius: 8,
-            background: 'var(--color-error-subtle)', border: '1px solid var(--color-error)',
-            fontSize: 12, color: 'var(--color-error)', display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <AlertCircle size={14} />
-            <b>
-              {zh
-                ? `您尚未設定 ${provider.toUpperCase()} 的 API Key。`
-                : `No API key configured for ${provider.toUpperCase()}.`}
-            </b>
-            <button
-              onClick={() => alert(zh ? "請前往「系統設定」加入 Key" : "Please go to System Settings to add your key")}
-              style={{ marginLeft: 'auto', fontWeight: 700, background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              {zh ? '去設定' : 'Add Key'}
-            </button>
-          </div>
-        )}
-
-        {/* Queue list */}
-        {queue.length > 0 && (
-          <div style={{ marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 4 }}>
-              {zh ? `待送佇列 (${queue.length})` : `Queued (${queue.length})`}
-            </div>
-            {queue.map((q, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: 'var(--bg-base)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                <span style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q}</span>
-                <button
-                  onClick={() => setQueue(prev => prev.filter((_, j) => j !== i))}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text-muted)', display: 'flex' }}
-                >
-                  <X size={12} />
-                </button>
+          ))}
+          {loading && (
+            <div style={{ display: 'flex', gap: 12, width: fullPage ? '100%' : undefined, maxWidth: fullPage ? 800 : undefined }}>
+              <div style={{ width: 32, height: 32, borderRadius: 16, background: 'var(--color-primary-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <SpinnerIcon />
               </div>
-            ))}
-          </div>
-        )}
-        <div style={{ display: 'flex', gap: 10, background: 'var(--bg-app)', padding: '8px 12px', borderRadius: 24, border: '1px solid var(--border-default)' }}>
-          <textarea
-            style={{
-              flex: 1, background: 'none', border: 'none', outline: 'none',
-              color: 'var(--text-default)', fontSize: 14, paddingLeft: 8,
-              resize: 'none', paddingTop: 6, minHeight: 24, maxHeight: 160,
-              fontFamily: 'inherit', lineHeight: 1.5
-            }}
-            rows={Math.min(5, input.split('\n').length)}
-            placeholder={zh ? '輸入訊息… (Ctrl+Enter 送出)' : 'Type a message… (Ctrl+Enter to send)'}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => {
-              if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                const canSend = !credits || credits.has_own_key[provider];
-                if (input.trim() && canSend) {
-                  if (loading) {
-                    setQueue(prev => [...prev, input]);
-                    setInput('');
+              <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontSize: 13 }}>
+                <span className="animate-pulse">...</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div style={{ padding: fullPage ? '16px 0 24px' : '16px 20px', borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', alignItems: fullPage ? 'center' : undefined }}>
+          {credits && !credits.has_own_key[provider] && (
+            <div style={{ marginBottom: 12, padding: '12px', borderRadius: 8, background: 'var(--color-error-subtle)', border: '1px solid var(--color-error)', fontSize: 12, color: 'var(--color-error)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <AlertCircle size={14} />
+              <b>{zh ? `您尚未設定 ${provider.toUpperCase()} 的 API Key。` : `No API key configured for ${provider.toUpperCase()}.`}</b>
+              <button onClick={() => alert(zh ? '請前往「系統設定」加入 Key' : 'Please go to System Settings to add your key')} style={{ marginLeft: 'auto', fontWeight: 700, background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', textDecoration: 'underline' }}>
+                {zh ? '去設定' : 'Add Key'}
+              </button>
+            </div>
+          )}
+
+          {isColdSession && (
+            <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Lock size={13} />
+              {zh ? '此對話已封存（超過 7 天），無法繼續發話。' : 'This conversation is archived (>7 days). Read-only.'}
+              <Button variant="ghost" size="sm" onClick={startNewSession} style={{ marginLeft: 'auto', fontSize: 11 }}>
+                {zh ? '開新對話' : 'New conversation'}
+              </Button>
+            </div>
+          )}
+
+          {queue.length > 0 && (
+            <div style={{ marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 4 }}>{zh ? `待送佇列 (${queue.length})` : `Queued (${queue.length})`}</div>
+              {queue.map((q, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: 'var(--bg-base)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                  <span style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q}</span>
+                  <button onClick={() => setQueue(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text-muted)', display: 'flex' }}>
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 10, background: 'var(--bg-app)', padding: '8px 12px', borderRadius: 24, border: '1px solid var(--border-default)', opacity: isColdSession ? 0.5 : 1, width: fullPage ? '100%' : undefined, maxWidth: fullPage ? 800 : undefined }}>
+            <textarea
+              style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text-default)', fontSize: 14, paddingLeft: 8, resize: 'none', paddingTop: 6, minHeight: 24, maxHeight: 160, fontFamily: 'inherit', lineHeight: 1.5 }}
+              rows={Math.min(5, input.split('\n').length)}
+              placeholder={isColdSession ? (zh ? '此對話已封存' : 'Conversation archived') : (zh ? '輸入訊息… (連按兩次 Enter 或 Ctrl+Enter 送出)' : 'Type a message… (double-Enter or Ctrl+Enter to send)')}
+              value={input}
+              disabled={isColdSession}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => {
+                if (isColdSession) return;
+                if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+                  const now = Date.now();
+                  if (now - lastEnterRef.current < 400) {
+                    e.preventDefault();
+                    const msg = input.replace(/\n+$/, '');
+                    const canSend = !credits || credits.has_own_key[provider];
+                    if (msg.trim() && canSend) {
+                      setInput('');
+                      if (loading) setQueue(prev => [...prev, msg]);
+                      else handleSend(msg);
+                    }
+                    lastEnterRef.current = 0;
                   } else {
-                    handleSend();
+                    lastEnterRef.current = now;
+                  }
+                  return;
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                  e.preventDefault();
+                  const canSend = !credits || credits.has_own_key[provider];
+                  if (input.trim() && canSend) {
+                    if (loading) { setQueue(prev => [...prev, input]); setInput(''); }
+                    else handleSend();
                   }
                 }
-              }
-            }}
-          />
-          {loading && (
-            <button
-              onClick={handleAbort}
-              title={zh ? '中止回應' : 'Stop response'}
-              style={{
-                width: 32, height: 32, borderRadius: 16, border: 'none',
-                background: 'var(--color-error, #ef4444)',
-                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
               }}
+            />
+            {loading && (
+              <button onClick={handleAbort} style={{ width: 32, height: 32, borderRadius: 16, border: 'none', background: 'var(--color-error, #ef4444)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                <Square size={14} />
+              </button>
+            )}
+            <button
+              onClick={() => {
+                if (isColdSession) return;
+                const canSend = !credits || credits.has_own_key[provider];
+                if (!input.trim() || !canSend) return;
+                if (loading) { setQueue(prev => [...prev, input]); setInput(''); } else handleSend();
+              }}
+              disabled={isColdSession || !input.trim() || (credits ? !credits.has_own_key[provider] : false)}
+              style={{ width: 32, height: 32, borderRadius: 16, border: 'none', background: !isColdSession && input.trim() && (!credits || credits.has_own_key[provider]) ? (loading ? 'var(--border-default)' : 'var(--color-primary)') : 'var(--border-default)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
             >
-              <Square size={14} />
+              <Send size={16} />
             </button>
-          )}
-          <button
-            onClick={() => {
-              const canSend = !credits || credits.has_own_key[provider];
-              if (!input.trim() || !canSend) return;
-              if (loading) {
-                setQueue(prev => [...prev, input]);
-                setInput('');
-              } else {
-                handleSend();
-              }
-            }}
-            disabled={!input.trim() || (credits ? !credits.has_own_key[provider] : false)}
-            title={loading ? (zh ? '加入佇列' : 'Add to queue') : (zh ? '送出' : 'Send')}
-            style={{
-              width: 32, height: 32, borderRadius: 16, border: 'none',
-              background: input.trim() && (!credits || credits.has_own_key[provider])
-                ? (loading ? 'var(--border-default)' : 'var(--color-primary)')
-                : 'var(--border-default)',
-              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            <Send size={16} />
-          </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function ProposalCard({
-  proposal, zh, status, onAccept, onReject,
-}: {
-  proposal: ProposedChange;
-  zh: boolean;
-  status: 'pending' | 'accepted' | 'rejected';
-  onAccept: () => void;
-  onReject: () => void;
-}) {
+function ProposalCard({ proposal, zh, status, onAccept, onReject }: { proposal: ProposedChange; zh: boolean; status: 'pending' | 'accepted' | 'rejected'; onAccept: () => void; onReject: () => void }) {
   const isDone = status !== 'pending';
   return (
-    <Card 
-      variant="surface"
-      padding="sm"
-      style={{
-        background: isDone ? 'var(--bg-app)' : 'var(--bg-surface)',
-        border: `1px solid ${status === 'accepted' ? 'var(--color-success)' : status === 'rejected' ? 'var(--color-error)' : 'var(--border-default)'}`,
-        opacity: isDone ? 0.7 : 1,
-        transition: 'all 0.2s',
-      }}
-    >
+    <Card variant="surface" padding="sm" style={{ background: isDone ? 'var(--bg-app)' : 'var(--bg-surface)', border: `1px solid ${status === 'accepted' ? 'var(--color-success)' : status === 'rejected' ? 'var(--color-error)' : 'var(--border-default)'}`, opacity: isDone ? 0.7 : 1, transition: 'all 0.2s' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-primary)', background: 'var(--color-primary-subtle)', padding: '2px 6px', borderRadius: 4 }}>
-          {proposal.operation}
-        </span>
-        {isDone && (
-          <span style={{ fontSize: 11, fontWeight: 600, color: status === 'accepted' ? 'var(--color-success)' : 'var(--color-error)' }}>
-            {status === 'accepted' ? (zh ? '✓ 已接受' : '✓ Accepted') : (zh ? '✗ 已拒絕' : '✗ Rejected')}
-          </span>
-        )}
+        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-primary)', background: 'var(--color-primary-subtle)', padding: '2px 6px', borderRadius: 4 }}>{proposal.operation}</span>
+        {isDone && <span style={{ fontSize: 11, fontWeight: 600, color: status === 'accepted' ? 'var(--color-success)' : 'var(--color-error)' }}>{status === 'accepted' ? (zh ? '✓ 已接受' : '✓ Accepted') : (zh ? '✗ 已拒絕' : '✗ Rejected')}</span>}
       </div>
-      <div style={{ fontSize: 13, marginBottom: isDone ? 0 : 10, fontWeight: 500 }}>
-        {proposal.reason}
-      </div>
+      <div style={{ fontSize: 13, marginBottom: isDone ? 0 : 10, fontWeight: 500 }}>{proposal.reason}</div>
       {!isDone && (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button
-            variant="primary"
-            size="sm"
-            style={{ flex: 1, fontSize: 12, height: 28 }}
-            onClick={onAccept}
-            leftIcon={<Check size={12} />}
-          >
-            {zh ? '接受' : 'Accept'}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            style={{ flex: 1, fontSize: 12, height: 28 }}
-            onClick={onReject}
-            leftIcon={<X size={12} />}
-          >
-            {zh ? '拒絕' : 'Reject'}
-          </Button>
+          <Button variant="primary" size="sm" style={{ flex: 1, fontSize: 12, height: 28 }} onClick={onAccept} leftIcon={<Check size={12} />}>{zh ? '接受' : 'Accept'}</Button>
+          <Button variant="secondary" size="sm" style={{ flex: 1, fontSize: 12, height: 28 }} onClick={onReject} leftIcon={<X size={12} />}>{zh ? '拒絕' : 'Reject'}</Button>
           {(proposal as any).review_queue_id && (
-            <Button
-              variant="secondary"
-              size="sm"
-              style={{ fontSize: 12, height: 28, padding: '0 10px' }}
-              onClick={() => window.open(`/review`, '_blank')}
-              title={zh ? '在審核佇列中查看' : 'View in Review Queue'}
-              leftIcon={<ExternalLink size={12} />}
-            />
+            <Button variant="secondary" size="sm" style={{ fontSize: 12, height: 28, padding: '0 10px' }} onClick={() => window.open('/review', '_blank')} leftIcon={<ExternalLink size={12} />} />
           )}
         </div>
       )}
@@ -659,7 +664,5 @@ function ProposalCard({
 }
 
 function SpinnerIcon() {
-  return (
-    <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
-  );
+  return <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: '50%' }}></div>;
 }

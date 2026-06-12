@@ -24,9 +24,11 @@
         "contradicts",
         "answered_by",
         "similar_to",
-        "queried_via_mcp"
+        "queried_via_mcp",
+        "extracted_from",
+        "proceeds_to"
       ],
-      "description": "depends_on: requires target. extends: specialises target. related_to: weak semantic link. contradicts: logical conflict. answered_by: inquiry resolved by target. similar_to: semantically parallel. queried_via_mcp: created by MCP traversal."
+      "description": "depends_on: requires target. extends: specialises target. related_to: weak semantic link. contradicts: logical conflict. answered_by: inquiry resolved by target. similar_to: semantically parallel. queried_via_mcp: created by MCP traversal. extracted_from: knowledge node sourced from a document. proceeds_to: conditional next step in a workflow/troubleshooting graph."
     },
     "weight": {
       "type": "number",

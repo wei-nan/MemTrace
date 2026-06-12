@@ -75,7 +75,7 @@ app.add_middleware(CsrfMiddleware)
 app.add_middleware(AuditLogMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["mac-mini.tail6066c6.ts.net"])
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.proxy_trusted_hosts)
 
 app.include_router(admin_router)
 app.include_router(auth_router)

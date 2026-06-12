@@ -56,6 +56,8 @@ export const review = {
   reject: (id: string) => request("POST", `${BASE}/workspaces/review-queue/${id}/reject`),
   acceptAll: (wsId: string) => request<{ accepted_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/accept-all`),
   rejectAll: (wsId: string) => request("POST", `${BASE}/workspaces/${wsId}/review-queue/reject-all`),
+  acceptBatch: (wsId: string, ids: string[]) => request<{ accepted_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/accept-batch`, { ids }),
+  rejectBatch: (wsId: string, ids: string[]) => request<{ rejected_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/reject-batch`, { ids }),
   aiPrescreen: (wsId: string) => request<{ processed_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/ai-prescreen`),
 };
 

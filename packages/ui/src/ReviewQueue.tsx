@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bot, Check, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
+import { Bot, Check, GitMerge, Layers, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
 import { review, nodes as nodesApi, kb, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
@@ -220,6 +220,18 @@ function ReviewCard({
               </div>
             </div>
           )}
+          {item.source_info?.startsWith("feature_complete:") && (
+            <div style={{ marginTop: 12, padding: 12, background: "rgba(34, 197, 94, 0.05)", border: "1px solid rgba(34, 197, 94, 0.2)", borderRadius: 10 }}>
+              <div style={{ color: "#16a34a", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                <GitMerge size={14} /> {zh ? "功能完成 — 需整合驗收" : "Feature Complete — Integration Check Required"}
+              </div>
+              {!!item.proposer_meta?.subtask_count && (
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 6 }}>
+                  {zh ? `所有 ${String(item.proposer_meta.subtask_count)} 個子任務已完成` : `All ${String(item.proposer_meta.subtask_count)} subtask(s) completed`}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -280,6 +292,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
   const [loading, setLoading] = useState(true);
   const [changeType, setChangeType] = useState<"all" | "create" | "update" | "delete" | "gap" | "conflicted">("all");
   const [proposerType, setProposerType] = useState<"all" | "human" | "ai">("all");
+  const [grouped, setGrouped] = useState(false);
 
   const loadItems = async () => {
     setLoading(true);
@@ -298,8 +311,8 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
 
   const filteredItems = useMemo(
     () => items.filter((item) => {
-      const matchType = changeType === "all" 
-        || (changeType === "gap" ? item.node_data?.status === "gap" : 
+      const matchType = changeType === "all"
+        || (changeType === "gap" ? item.node_data?.status === "gap" :
             changeType === "conflicted" ? item.node_data?.status === "conflicted" :
             item.change_type === changeType);
       const matchProposer = proposerType === "all" || item.proposer_type === proposerType;
@@ -308,6 +321,17 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
     [items, changeType, proposerType],
   );
   const canReviewAny = filteredItems.some((item) => item.can_review);
+
+  const groupedItems = useMemo(() => {
+    if (!grouped) return null;
+    const groups: Record<string, ReviewItem[]> = {};
+    for (const item of filteredItems) {
+      const key = item.source_info?.split(":")[0] ?? "other";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(item);
+    }
+    return groups;
+  }, [filteredItems, grouped]);
 
   const { i18n } = useTranslation();
   const zh = i18n.language.startsWith('zh');
@@ -368,6 +392,32 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
       const result = await review.aiPrescreen(wsId);
       await loadItems();
       toast({ message: `AI prescreen processed ${result.processed_count} items`, variant: "success" });
+    } catch (e) {
+      toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    }
+  };
+
+  const handleAcceptGroup = async (groupItems: ReviewItem[]) => {
+    const ids = groupItems.map((i) => i.id);
+    const ok = await confirm({ title: zh ? "接受此群組" : "Accept Group", message: zh ? `確定接受這 ${ids.length} 個提案？` : `Accept these ${ids.length} proposals?`, variant: "warning", confirmLabel: zh ? "接受" : "Accept" });
+    if (!ok) return;
+    try {
+      await review.acceptBatch(wsId, ids);
+      setItems((prev) => prev.filter((i) => !ids.includes(i.id)));
+      toast({ message: zh ? `已接受 ${ids.length} 項` : `${ids.length} items accepted`, variant: "success" });
+    } catch (e) {
+      toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    }
+  };
+
+  const handleRejectGroup = async (groupItems: ReviewItem[]) => {
+    const ids = groupItems.map((i) => i.id);
+    const ok = await confirm({ title: zh ? "拒絕此群組" : "Reject Group", message: zh ? `確定拒絕這 ${ids.length} 個提案？此操作無法復原。` : `Reject these ${ids.length} proposals? This cannot be undone.`, variant: "danger", confirmLabel: zh ? "拒絕" : "Reject" });
+    if (!ok) return;
+    try {
+      await review.rejectBatch(wsId, ids);
+      setItems((prev) => prev.filter((i) => !ids.includes(i.id)));
+      toast({ message: zh ? `已拒絕 ${ids.length} 項` : `${ids.length} items rejected`, variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
     }
@@ -452,6 +502,9 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
         <div style={{ flex: 1 }} />
 
         <div style={{ display: "flex", gap: 8 }}>
+          <Button variant={grouped ? "primary" : "secondary"} onClick={() => setGrouped((v) => !v)} leftIcon={<Layers size={14} />}>
+            {zh ? "分群" : "Group"}
+          </Button>
           <Button variant="secondary" onClick={loadItems} leftIcon={<RefreshCw size={14} />}>
             {t('review.refresh')}
           </Button>
@@ -466,6 +519,39 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
           <div style={{ color: "var(--text-muted)" }}>{t('review.loading')}</div>
         ) : filteredItems.length === 0 ? (
           <div style={{ color: "var(--text-muted)" }}>{t('review.noData')}</div>
+        ) : grouped && groupedItems ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            {Object.entries(groupedItems).map(([groupKey, groupItems]) => {
+              const canReviewGroup = groupItems.some((i) => i.can_review);
+              const isFeatureComplete = groupKey === "feature_complete";
+              return (
+                <div key={groupKey}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, padding: "8px 14px", background: isFeatureComplete ? "rgba(34,197,94,0.06)" : "var(--bg-surface)", borderRadius: 8, border: `1px solid ${isFeatureComplete ? "rgba(34,197,94,0.3)" : "var(--border-subtle)"}` }}>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: isFeatureComplete ? "#16a34a" : "var(--text-primary)", flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
+                      {isFeatureComplete && <GitMerge size={14} />}
+                      {groupKey}
+                      <span style={{ fontWeight: 400, color: "var(--text-muted)", fontSize: 13 }}>({groupItems.length})</span>
+                    </span>
+                    {canReviewGroup && (
+                      <>
+                        <Button variant="primary" onClick={() => handleAcceptGroup(groupItems)} leftIcon={<Check size={13} />} style={{ height: 28, padding: "0 10px", fontSize: 12 }}>
+                          {zh ? "全部接受" : "Accept Group"}
+                        </Button>
+                        <Button variant="secondary" onClick={() => handleRejectGroup(groupItems)} leftIcon={<X size={13} />} style={{ height: 28, padding: "0 10px", fontSize: 12 }}>
+                          {zh ? "全部拒絕" : "Reject Group"}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  <div style={{ display: "grid", gap: 12 }}>
+                    {groupItems.map((item) => (
+                      <ReviewCard key={item.id} wsId={wsId} item={item} canReview={item.can_review} onAccept={handleAccept} onReject={handleReject} onApplySplit={handleApplySplit} zh={zh} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div style={{ display: "grid", gap: 16 }}>
             {filteredItems.map((item) => (

@@ -740,11 +740,39 @@ function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
   const { toast } = useModal();
   const [loading, setLoading] = useState<string | null>(null);
 
-  const runMaintenance = async (task: string, action: () => Promise<any>) => {
-    setLoading(task);
+  const runSummary = async () => {
+    setLoading("summary");
     try {
-      await action();
-      toast({ message: zh ? `${task} 執行成功` : `${task} completed`, variant: "success" });
+      const res = await workspaces.summarizeCluster(wsId, []);
+      if (res?.summary_node_id) {
+        toast({
+          message: zh ? `已產生摘要節點（ID: ${res.summary_node_id}）` : `Summary node created (ID: ${res.summary_node_id})`,
+          variant: "success",
+        });
+      } else {
+        toast({
+          message: zh ? "找不到可整合的群組（節點數需 ≥ 3 且共用標籤）" : "No clusters found (need ≥ 3 nodes sharing a tag)",
+          variant: "warning",
+        });
+      }
+    } catch (e) {
+      toast({ message: String(e), variant: "error" });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const runEdgeSuggestion = async () => {
+    setLoading("edges");
+    try {
+      const res = await workspaces.suggestEdges(wsId, "");
+      const count: number = (res as any)?.proposed ?? 0;
+      toast({
+        message: count > 0
+          ? (zh ? `已找到 ${count} 個潛在關聯，送入審查佇列` : `${count} potential edges queued for review`)
+          : (zh ? "未發現新的潛在關聯（嵌入向量覆蓋率不足或相似度未達門檻）" : "No new potential edges found (low embedding coverage or below threshold)"),
+        variant: count > 0 ? "success" : "info",
+      });
     } catch (e) {
       toast({ message: String(e), variant: "error" });
     } finally {
@@ -765,39 +793,32 @@ function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
               {zh ? "自動掃描孤立或零散節點並產生摘要節點，優化知識結構。" : "Automatically scan isolated nodes and generate summaries to optimize graph structure."}
             </div>
           </div>
-          <Button 
-            variant="secondary" 
-            loading={loading === "summary"} 
-            onClick={() => runMaintenance("summary", async () => {
-              const res = await workspaces.summarizeCluster(wsId, []); 
-              return res;
-            })}
-          >
+          <Button variant="secondary" loading={loading === "summary"} onClick={runSummary}>
             {zh ? "執行掃描" : "Run Scan"}
           </Button>
         </div>
       </SectionCard>
 
+      <div style={{ opacity: 0.5, pointerEvents: "none" }}>
       <SectionCard>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Languages size={20} color="var(--color-primary)" />
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Languages size={20} color="var(--text-muted)" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "跨語言內容對齊" : "Cross-language Reconcile"}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)" }}>{zh ? "跨語言內容對齊" : "Cross-language Reconcile"}</div>
+              <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border-default)" }}>
+                {zh ? "已整併" : "Deprecated"}
+              </span>
+            </div>
             <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {zh ? "檢查並補完缺失的 ZH/EN 內容，確保全球化檢索一致性。" : "Check and complement missing ZH/EN content for better retrieval consistency."}
+              {zh ? "已整併至單語言架構，此功能不再適用。" : "Merged into single-language architecture. No longer applicable."}
             </div>
           </div>
-          <Button 
-            variant="secondary" 
-            loading={loading === "lang"} 
-            onClick={() => runMaintenance("lang", () => workspaces.complementLanguages(wsId, []))}
-          >
-            {zh ? "開始校閱" : "Start Reconcile"}
-          </Button>
         </div>
       </SectionCard>
+      </div>
 
       <SectionCard>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -807,14 +828,10 @@ function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "潛在關聯預測" : "Predict Potential Edges"}</div>
             <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {zh ? "基於語義相似度主動發現並建立節點間的關聯邊。" : "Discover and create potential edges between nodes based on semantic similarity."}
+              {zh ? "基於語義相似度主動發現節點間的關聯，建議送入審查佇列。" : "Discover potential edges between nodes by semantic similarity and queue for review."}
             </div>
           </div>
-          <Button 
-            variant="secondary" 
-            loading={loading === "edges"} 
-            onClick={() => runMaintenance("edges", () => workspaces.suggestEdges(wsId, ""))}
-          >
+          <Button variant="secondary" loading={loading === "edges"} onClick={runEdgeSuggestion}>
             {zh ? "執行預測" : "Run Prediction"}
           </Button>
         </div>

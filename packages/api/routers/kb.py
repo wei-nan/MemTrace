@@ -810,11 +810,29 @@ async def maintenance_complement_languages(ws_id: str, body: dict, user: dict = 
 
 @router.post("/workspaces/{ws_id}/maintenance/suggest-edges")
 async def maintenance_suggest_edges(ws_id: str, body: dict, user: dict = Depends(get_current_user)):
-    """S4-T03: Suggest potential edges based on semantic similarity."""
-    threshold = body.get("threshold", 0.85)
+    """S4-T03: Find semantically similar node pairs and queue them for review."""
+    threshold = body.get("threshold", 0.75)
     with db_cursor() as cur:
         suggestions = await run_suggest_edges(cur, ws_id, threshold=threshold)
-        return {"suggestions": suggestions}
+
+    from services.nodes import propose_change as _pc
+    proposed = 0
+    with db_cursor(commit=True) as cur:
+        for s in suggestions:
+            try:
+                _pc(
+                    cur, ws_id, "create_edge", None,
+                    {"from_id": s["from_id"], "to_id": s["to_id"],
+                     "relation": "related_to", "weight": round(float(s["similarity"]), 2)},
+                    "ai", user["sub"],
+                    {"source": "maintenance_scan", "similarity": s["similarity"]},
+                    source_info=f"maintenance_scan:similarity={s['similarity']:.2f}",
+                    confidence_score=float(s["similarity"]),
+                )
+                proposed += 1
+            except Exception:
+                pass
+    return {"proposed": proposed}
 
 
 # ─── Consult escalation route (Phase 6.4) ────────────────────────────────────

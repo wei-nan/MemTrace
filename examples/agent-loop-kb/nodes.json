@@ -1,0 +1,122 @@
+[
+  {
+    "id": "mem_loop001",
+    "title": "Agent 開發迴圈：目標與邊界",
+    "content_type": "context",
+    "content_format": "markdown",
+    "body": "本知識庫讓一個 Claude 驅動的 agent 試跑「小任務開發迴圈」。核心邊界：MemTrace 是**記憶**，不是執行環境；agent 讀多寫少；內容寫入一律經人確認（review_queue）；信心/使用寫入自動（path_reinforcement）。一圈 = 一個小任務。執行狀態（run state）不進這張圖。從這裡沿 depends_on 讀 mem_loop002 看迴圈骨架。",
+    "tags": ["agent-loop", "goal", "boundary", "entry"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop002",
+    "title": "迴圈骨架：七階段",
+    "content_type": "context",
+    "content_format": "markdown",
+    "body": "迴圈七階段：規劃（找缺什麼 / 上輪 residue）→ 多 agent 討論收斂 → 決定下一步（內容寫入，人 gate）→ 依開發 Playbook 開發 → 依測試 Playbook 測試 → 兩段式驗收 → 結論並吐 residue。脊椎先以單 agent 跑通；多 agent 討論之後只加在規劃階段。",
+    "tags": ["agent-loop", "skeleton", "orientation"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop003",
+    "title": "定向：如何找下一個小任務",
+    "content_type": "procedural",
+    "content_format": "markdown",
+    "body": "要查什麼：1) 查 status=pending 的 inquiry 節點（缺口/問題）；2) 依優先序與 trust 挑一個；3) 沿 depends_on 往上撈父任務意圖、連 spec 節點撈期望狀態、連對應 Playbook 撈做法，組成一個 token 受限的 context 包回傳。對應要建的 MCP 工具：get_next_task（見 mem_loop900）。",
+    "tags": ["agent-loop", "playbook", "orientation", "what-to-query"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop010",
+    "title": "開發 Playbook",
+    "content_type": "procedural",
+    "content_format": "markdown",
+    "body": "小任務開發程序：1) 先讀本任務的 context 包（意圖 + spec 切片 + 本 playbook）；2) 確認有無疑問，有疑問先回規劃討論；3) 無疑問則做最小可逆變更，遵循專案規範；4) 交給測試 Playbook（mem_loop011）。原則：小步、可逆、單一關注點。",
+    "tags": ["agent-loop", "playbook", "development", "how-to"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop011",
+    "title": "測試 Playbook",
+    "content_type": "procedural",
+    "content_format": "markdown",
+    "body": "測試程序：依變更類型跑對應測試（單元 / 整合）；新行為需新增測試；全綠才進驗收（mem_loop012）。失敗時回報 outcome=fail 並附訊息，系統會自動標記本 playbook 與路徑供複審（兩速的自動側）。",
+    "tags": ["agent-loop", "playbook", "test", "how-to"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop012",
+    "title": "驗收 Playbook（兩段式）",
+    "content_type": "procedural",
+    "content_format": "markdown",
+    "body": "兩段式驗收。per-task：本小任務是否達成其 inquiry 描述的目標、測試全綠、無破壞。per-feature：當某功能的所有子任務（depends_on 同一父節點）都完成時，做一次整合檢查，確認彼此能組合。per-task 多半可自動；整合檢查依風險決定是否人 gate（見 mem_loop021）。",
+    "tags": ["agent-loop", "playbook", "acceptance", "integration", "how-to"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop013",
+    "title": "拆解 Playbook：功能切小任務",
+    "content_type": "procedural",
+    "content_format": "markdown",
+    "body": "把一個功能切成小任務：1) 以一個功能級 inquiry 為父；2) 切成可獨立完成、可獨立驗收的子任務；3) 每個子任務建一個 inquiry 節點，用 depends_on 指向父節點（攜帶意圖）；4) 子任務之間有先後則用 proceeds_to 表達。粒度準則：一個子任務 = 一個連貫、可逆的變更。",
+    "tags": ["agent-loop", "playbook", "decomposition", "hierarchy"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop020",
+    "title": "兩速演化規則",
+    "content_type": "factual",
+    "content_format": "markdown",
+    "body": "圖的演化分兩速。內容寫入（新增/改節點、改事實）風險高，一律經人確認（review_queue）。信心/使用寫入（某路徑用了成功/失敗）只動權重不動內容，風險低，自動處理（path_reinforcement + decay），不經人手。判準：下一個任務還用得到的才是知識；只跟這一輪有關的是 run state，不進圖。",
+    "tags": ["agent-loop", "policy", "two-speed"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop021",
+    "title": "決策分級政策",
+    "content_type": "preference",
+    "content_format": "markdown",
+    "body": "不是每個小任務的決定都要攔人。低風險類別（加 helper、改名、補測試、文件）在信心足夠時自動放行；高風險（改公開介面、刪資料、動安全/權限、跨模組）一律人 gate。實作沿用 ai_reviewers 的 auto_accept_threshold / auto_reject_threshold。此為可調政策，非鐵則。",
+    "tags": ["agent-loop", "policy", "decision-tiering", "human-gate"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop022",
+    "title": "residue 規則（飛輪）",
+    "content_type": "factual",
+    "content_format": "markdown",
+    "body": "結論階段必須吐出結構化 residue：本輪過程中發現的新缺口、碰過但信心低的區域、被延後的決定、冒出的問題，各建成一個 pending 的 inquiry 節點。這是迴圈的燃料——沒有它，消化完最初的缺口後迴圈會斷糧。residue 是輕量內容寫入，自動建 pending，由規劃者下一輪分流，不逐條當場攔人。對應要建的機制：emit_residue（見 mem_loop901）。",
+    "tags": ["agent-loop", "policy", "residue", "flywheel"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop900",
+    "title": "缺口：get_next_task 工具",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "缺口（seed 任務）：目前沒有 get_next_task MCP 工具，agent 無法自動取得下一個小任務的 context 包（任務 + 祖先意圖 + spec 切片 + playbook）。這是脊椎能跑的前提。期望：實作後本節點由實作節點以 answered_by 連入。狀態：pending。",
+    "tags": ["agent-loop", "inquiry", "gap", "mcp-tool", "seed"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop901",
+    "title": "缺口：emit_residue 機制",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "缺口（seed 任務）：結論階段尚無 emit_residue 機制把新發現寫回成 pending inquiry 節點，迴圈無法自我續命。期望：實作後以 answered_by 連入對應實作節點。狀態：pending。",
+    "tags": ["agent-loop", "inquiry", "gap", "flywheel", "seed"],
+    "visibility": "public",
+    "source_type": "human"
+  }
+]

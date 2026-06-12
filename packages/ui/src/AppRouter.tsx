@@ -18,6 +18,7 @@ const DocumentsPage = lazy(() => import('./DocumentsPage'));
 const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 const GraphContainer = lazy(() => import('./GraphContainer'));
 const SystemAISettings = lazy(() => import('./SystemAISettings'));
+const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 
 interface AppRouterProps {
   authenticated: boolean;
@@ -133,6 +134,11 @@ const AppRouter: React.FC<AppRouterProps> = ({
                 {currentView === 'system_ai' && user?.is_platform_admin && (
                   <div style={{ flex: 1, overflowY: 'auto' }}>
                     <SystemAISettings />
+                  </div>
+                )}
+                {currentView === 'ai_chat' && selectedWs && (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <AiChatPanel wsId={selectedWs.id} zh={language === 'zh-TW'} fullPage />
                   </div>
                 )}
               </Suspense>

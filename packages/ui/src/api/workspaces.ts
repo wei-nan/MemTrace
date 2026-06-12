@@ -253,9 +253,9 @@ export const workspaces = {
   getDecayStats: (wsId: string) => request<any>("GET", `${BASE}/workspaces/${wsId}/decay-stats`),
   getHealthReport: (ws_id: string) => request<any>("GET", `${BASE}/workspaces/${ws_id}/nodes/health`),
   topGaps: (ws_id: string) => request<Array<{ id: string; title: string; status: string; ask_count: number }>>("GET", `${BASE}/workspaces/${ws_id}/stats/top-gaps`),
-  summarizeCluster: (wsId: string, nodeIds: string[]) => request<Node>("POST", `${BASE}/workspaces/${wsId}/maintenance/summarize-cluster`, { node_ids: nodeIds }),
+  summarizeCluster: (wsId: string, nodeIds: string[]) => request<{ summary_node_id: string | null }>("POST", `${BASE}/workspaces/${wsId}/maintenance/summarize-cluster`, { node_ids: nodeIds }),
   complementLanguages: (wsId: string, nodeIds: string[]) => request<{ results: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/complement-languages`, { node_ids: nodeIds }),
-  suggestEdges: (wsId: string, nodeId: string, limit = 5) => request<{ suggestions: any[] }>("POST", `${BASE}/workspaces/${wsId}/maintenance/suggest-edges`, { node_id: nodeId, limit }),
+  suggestEdges: (wsId: string, nodeId: string, limit = 5) => request<{ proposed: number }>("POST", `${BASE}/workspaces/${wsId}/maintenance/suggest-edges`, { node_id: nodeId, limit }),
   getFailedEmbeddings: (wsId: string) => request<{ count: number }>("GET", `${BASE}/workspaces/${wsId}/failed-embeddings`),
   retryFailedEmbeddings: (wsId: string) => request<{ queued: number }>("POST", `${BASE}/workspaces/${wsId}/retry-failed-embeddings`),
 };

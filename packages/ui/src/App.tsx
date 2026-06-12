@@ -15,7 +15,7 @@ const NodeEditor = lazy(() => import('./NodeEditor'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean };
-type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents';
+type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat';
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -213,8 +213,35 @@ export default function App() {
   const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
   const [graphVersion, setGraphVersion] = useState(0);
   const [showChat, setShowChat] = useState(false);
+  const [chatPanelWidth, setChatPanelWidth] = useState(() => {
+    const saved = localStorage.getItem('chatPanelWidth');
+    return saved ? Math.min(900, Math.max(320, parseInt(saved, 10))) : 450;
+  });
+  const chatPanelWidthRef = useRef(chatPanelWidth);
   const [showMcpStatus, setShowMcpStatus] = useState(false);
   const [pageSubtitle, setPageSubtitle] = useState('');
+
+  const handleChatResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = chatPanelWidthRef.current;
+    const handleMouseMove = (ev: MouseEvent) => {
+      const newWidth = Math.min(900, Math.max(320, startWidth + (startX - ev.clientX)));
+      chatPanelWidthRef.current = newWidth;
+      setChatPanelWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+      localStorage.setItem('chatPanelWidth', String(chatPanelWidthRef.current));
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  useEffect(() => {
+    chatPanelWidthRef.current = chatPanelWidth;
+  }, [chatPanelWidth]);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -370,7 +397,8 @@ export default function App() {
         </button>
       )}
 
-      <aside className={`side-panel side-panel-wide ${(!showChat || currentView !== 'graph') ? 'hidden' : ''}`} style={{ zIndex: 90 }}>
+      <aside className={`side-panel side-panel-wide ${(!showChat || currentView !== 'graph') ? 'hidden' : ''}`} style={{ zIndex: 90, ...(showChat && currentView === 'graph' ? { width: chatPanelWidth } : {}) }}>
+        <div className="chat-resize-handle" onMouseDown={handleChatResizeMouseDown} />
         <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative', borderLeft: (showChat && currentView === 'graph') ? '1px solid var(--border-default)' : 'none' }}>
           <div style={{ width: '100%', height: '100%' }}>
             <Suspense fallback={<div className="loading-overlay"><RefreshCw className="animate-spin" /></div>}>

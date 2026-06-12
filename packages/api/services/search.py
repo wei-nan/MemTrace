@@ -367,6 +367,8 @@ async def hybrid_retrieval_for_chat(
     min_similarity: float = 0.25,
     vector_limit: int = 10,
     fallback_limit: int = 10,
+    anchor_node_ids: list[str] | None = None,
+    anchor_boost: float = 0.07,
 ) -> list[dict]:
     """
     Unified retrieval for chat:
@@ -474,6 +476,14 @@ async def hybrid_retrieval_for_chat(
         ft_nodes = list(cur.fetchall())
         source_nodes.extend(ft_nodes)
         
+    # Route C: boost nodes that were anchored in this session
+    if anchor_node_ids:
+        anchor_set = set(anchor_node_ids)
+        for n in source_nodes:
+            if n["id"] in anchor_set:
+                n["similarity"] = float(n.get("similarity") or 0.0) + anchor_boost
+        source_nodes.sort(key=lambda n: float(n.get("similarity") or 0.0), reverse=True)
+
     # S1-T01: Log chat retrieval
     try:
         context_text = "\n".join([n.get("body", "") for n in source_nodes])

@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     registration_domains: list[str] = []    # ["example.com"]
     allow_anonymous: bool = False           # Whether to allow guest view for public workspaces
     allowed_origins: list[str] = ["http://localhost:5173"]  # CORS allowed origins
+    proxy_trusted_hosts: list[str] = ["localhost", "127.0.0.1"]  # PROXY_TRUSTED_HOSTS
 
     class Config:
         env_file = "../../.env"

@@ -39,6 +39,26 @@ export interface ChatResponse {
   tokens_used: number;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  message_count: number;
+  tokens_total: number;
+  created_at: string;
+  last_active_at: string;
+  is_cold: boolean;
+}
+
+export interface ChatMessage {
+  id: number;
+  session_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  source_node_ids: string[];
+  tokens_used: number;
+  created_at: string;
+}
+
 export const ai = {
   listKeys: () => request<AIKey[]>("GET", `${BASE}/ai/keys`),
   createKey: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string; default_chat_model?: string; default_embedding_model?: string }) => request<AIKey>("POST", `${BASE}/ai/keys`, data),
@@ -57,4 +77,16 @@ export const ai = {
   },
   getResolvedModel: (type: string) => request<{ provider: string; model: string }>("GET", `${BASE}/ai/resolved-models?type=${type}`),
   upsertKey: (data: { provider: string; api_key?: string; base_url?: string; auth_mode?: string; auth_token?: string; default_chat_model?: string; default_embedding_model?: string }) => request<AIKey>("POST", `${BASE}/ai/keys`, data),
+
+  // Phase 6 — Session management
+  listSessions: (workspaceId: string, limit = 20) =>
+    request<ChatSession[]>("GET", `${BASE}/ai/sessions?workspace_id=${workspaceId}&limit=${limit}`),
+  getSessionMessages: (sessionId: string, limit = 20, beforeId?: number) => {
+    const qs = beforeId ? `?limit=${limit}&before_id=${beforeId}` : `?limit=${limit}`;
+    return request<ChatMessage[]>("GET", `${BASE}/ai/sessions/${sessionId}/messages${qs}`);
+  },
+  renameSession: (sessionId: string, title: string) =>
+    request("PATCH", `${BASE}/ai/sessions/${sessionId}`, { title }),
+  deleteSession: (sessionId: string) =>
+    request("DELETE", `${BASE}/ai/sessions/${sessionId}`),
 };
