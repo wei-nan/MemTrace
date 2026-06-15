@@ -307,7 +307,7 @@ export default function ImportSourcesList({ wsId }: { wsId: string }) {
                     </h4>
 
                     {activeRetry && (activeRetry.status === 'pending' || activeRetry.status === 'processing') && (
-                      <div style={{ marginBottom: 16, padding: '10px 14px', background: 'white', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--bg-elevated)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
                         <ChunkProgress done={activeRetry.done} total={activeRetry.total} />
                       </div>
                     )}
@@ -315,9 +315,9 @@ export default function ImportSourcesList({ wsId }: { wsId: string }) {
                     {audit.missing.length > 0 ? (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {audit.missing.map((h, i) => (
-                          <div key={i} style={{ 
-                            padding: '4px 10px', borderRadius: 6, 
-                            background: 'white', border: '1px solid var(--border-subtle)',
+                          <div key={i} style={{
+                            padding: '4px 10px', borderRadius: 6,
+                            background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
                             fontSize: 12, color: 'var(--text-primary)'
                           }}>
                             {h}

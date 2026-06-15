@@ -776,8 +776,6 @@ export default function GraphView3D({
               const edges = edgeCounts[n.id] ?? 0;
               const title = n.title;
 
-              const confirmedAt = n.validity_confirmed_at ? new Date(n.validity_confirmed_at) : null;
-              const isExpired = (!confirmedAt || (Date.now() - confirmedAt.getTime() > 90 * 24 * 3600 * 1000));
 
               return `<div style="background:${palette.tooltipBg};border:1px solid ${palette.tooltipBorder};border-radius:8px;padding:8px 12px;font-size:12px;line-height:1.5;max-width:260px;color:${palette.tooltipText}">
                 <div style="font-weight:600;font-size:13px;margin-bottom:4px">${title}</div>
@@ -819,7 +817,6 @@ export default function GraphView3D({
                 </div>
                 ` : ''}
 
-                ${isExpired ? `<div style="color:#eab308;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '有效性已過期' : 'Validity Expired'}</div>` : ''}
                 ${!n.body ? `<div style="color:#ef4444;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '內容為空' : 'Empty Body'}</div>` : ''}
                 <div style="border-top:1px solid ${palette.legendDivider};margin-top:8px;padding-top:6px;font-size:9px;opacity:0.4;text-align:center">
                   ${zh ? '雙擊以鄰域探索' : 'Double-click to explore neighborhood'}

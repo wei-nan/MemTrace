@@ -72,27 +72,42 @@ async def get_graph_preview_public(workspace_id: str, request: Request, backgrou
     background_tasks.add_task(_log_access, request, workspace_id, "graph")
     
     with db_cursor() as cur:
-        # Fetch active nodes, excluding system agent nodes (source='mcp')
+        # Fetch active nodes, excluding system agent nodes (source='mcp').
+        # Anonymous visitors may only ever see node-level visibility='public'.
+        # Using an allow-list (= 'public') rather than a deny-list
+        # (IS DISTINCT FROM 'private') is critical: 'team' nodes must NOT leak
+        # to anonymous visitors.
         cur.execute(
             """
             SELECT * FROM memory_nodes
             WHERE workspace_id = %s
               AND status = 'active'
-              AND (visibility IS DISTINCT FROM 'private')
+              AND visibility = 'public'
               AND (metadata->>'source' IS NULL OR metadata->>'source' <> 'mcp')
             LIMIT 1000
             """,
             (workspace_id,)
         )
         nodes = cur.fetchall()
-        
-        # Fetch edges
-        cur.execute(
-            "SELECT * FROM edges WHERE workspace_id = %s LIMIT 2000",
-            (workspace_id,)
-        )
-        edges = cur.fetchall()
-        
+
+        # Fetch edges, but only those whose BOTH endpoints are in the set of
+        # publicly-visible nodes. Returning all edges would leak the IDs,
+        # relations and graph topology of hidden (private/team) nodes.
+        visible_ids = [n["id"] for n in nodes]
+        if visible_ids:
+            cur.execute(
+                """
+                SELECT * FROM edges
+                WHERE workspace_id = %s
+                  AND from_id = ANY(%s) AND to_id = ANY(%s)
+                LIMIT 2000
+                """,
+                (workspace_id, visible_ids, visible_ids)
+            )
+            edges = cur.fetchall()
+        else:
+            edges = []
+
     return {
         "nodes": nodes,
         "edges": edges,
@@ -111,7 +126,7 @@ async def get_node_public(workspace_id: str, node_id: str, request: Request, bac
             """SELECT * FROM memory_nodes
                WHERE id = %s AND workspace_id = %s
                  AND status = 'active'
-                 AND (visibility IS DISTINCT FROM 'private')""",
+                 AND visibility = 'public'""",
             (node_id, workspace_id)
         )
         node = cur.fetchone()
@@ -130,8 +145,9 @@ async def search_public(workspace_id: str, request: Request, background_tasks: B
     await _get_workspace_public(workspace_id)
     background_tasks.add_task(_log_access, request, workspace_id, "search")
     
-    # We use a simplified version of the search logic from kb.py
-    filters = ["workspace_id = %s", "status = 'active'", "(visibility IS DISTINCT FROM 'private')"]
+    # We use a simplified version of the search logic from kb.py.
+    # Allow-list visibility = 'public' so 'team' nodes never leak to anonymous.
+    filters = ["workspace_id = %s", "status = 'active'", "visibility = 'public'"]
     params = [workspace_id]
 
     # Exclude system nodes

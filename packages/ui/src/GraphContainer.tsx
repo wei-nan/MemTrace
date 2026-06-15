@@ -45,8 +45,7 @@ interface Props {
   userId?: string;
   user?: any;
   onLogout?: () => void;
-  showMcpStatus?: boolean;
-  setShowMcpStatus?: (v: boolean) => void;
+
   onExplore?: (nodeId: string) => void;
 }
 
@@ -494,11 +493,12 @@ export default function GraphContainer({
             onClose={() => setGraphMode('2d')}
           />
         ) : (
-          <TableView 
-            wsId={wsId} 
-            onEditNode={onEditNode} 
+          <TableView
+            wsId={wsId}
+            onEditNode={onEditNode}
             isAdmin={workspace?.owner_id === userId}
             initialFilter={orphanFilter}
+            refreshKey={reloadKey}
           />
         )}
       </div>

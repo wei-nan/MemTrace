@@ -1,0 +1,38 @@
+{
+  "id": "mem_ta001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S1 Token 遙測：retrieval_logs 表",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "每次 retrieval / chat 呼叫都寫入 `retrieval_logs` 表，作為一切 token 量測的地基。\n\n## 表結構\n\n```sql\nCREATE TABLE retrieval_logs (\n  id             bigserial PRIMARY KEY,\n  workspace_id   text NOT NULL,\n  user_id        text,\n  mode           text NOT NULL,  -- 'search' | 'chat' | 'traverse'\n  query          text,\n  top_k          int,\n  hit_node_ids   text[],\n  similarities   float[],\n  tokens_query   int,\n  tokens_context int,\n  tokens_answer  int,\n  answer_useful  boolean,        -- 由後續 vote 寫回\n  trace_id       text,           -- 串接 chat session\n  created_at     timestamptz DEFAULT now()\n);\n```\n\n索引：`(workspace_id, created_at DESC)`、`(workspace_id, mode, created_at DESC)`。\n\n## 寫入點\n\n- `services/search.py::search_nodes_in_db` → `mode='search'`\n- `hybrid_retrieval_for_chat` → `mode='chat'`\n- Token 計算：tiktoken cl100k_base（OpenAI）/ 自有 tokenizer（Ollama）統一估算\n\n## 分析端點\n\n`GET /workspaces/{ws_id}/analytics/tokens?period=7d` 回傳聚合查詢結果。\n\n## 驗收標準\n\n- log 覆蓋率 ≥ 99%\n- 與真實呼叫的 token 數誤差 < 2%"
+  },
+  "tags": [
+    "analytics",
+    "token",
+    "retrieval",
+    "telemetry",
+    "schema",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ta001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

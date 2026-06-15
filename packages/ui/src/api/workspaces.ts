@@ -1,9 +1,24 @@
 import { BASE, request, authHeaders, writeHeaders } from './client';
 import type { Node } from './nodes';
 
+export interface ExploreWorkspace {
+  id: string;
+  name: string;
+  description: string | null;
+  language: "zh-TW" | "en";
+  visibility: string;
+  kb_type: "evergreen" | "ephemeral";
+  owner_id: string;
+  owner_display_name: string;
+  node_count: number;
+  created_at: string;
+  my_role: "admin" | "editor" | "viewer" | null;
+}
+
 export interface Workspace {
   id: string;
   name: string;
+  description?: string | null;
   language: "zh-TW" | "en";
   linked_workspace_id: string | null;
   visibility: string;
@@ -159,6 +174,14 @@ export interface PersonalApiKeyCreateResponse extends PersonalApiKey {
 
 export const workspaces = {
   list: (search?: string) => request<Workspace[]>("GET", `${BASE}/workspaces${search ? `?search=${encodeURIComponent(search)}` : ""}`),
+  explore: (params?: { q?: string; lang?: string; sort?: 'newest' | 'nodes' }) => {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set('q', params.q);
+    if (params?.lang) qs.set('lang', params.lang);
+    if (params?.sort) qs.set('sort', params.sort);
+    const query = qs.toString();
+    return request<ExploreWorkspace[]>("GET", `${BASE}/workspaces/explore${query ? `?${query}` : ''}`);
+  },
   create: (data: {
     name: string;
     language: "zh-TW" | "en";
@@ -173,18 +196,19 @@ export const workspaces = {
   invites: (wsId: string) => request<Invite[]>("GET", `${BASE}/workspaces/${wsId}/invites`),
   createInvite: (wsId: string, data: { email?: string; role: string; expires_in_days?: number }) =>
     request<Invite>("POST", `${BASE}/workspaces/${wsId}/invites`, data),
-  acceptInvite: (token: string) => request("POST", `/workspaces/invites/${token}/accept`),
-  deleteInvite: (id: string) => request("DELETE", `/workspaces/invites/${id}`),
+  acceptInvite: (token: string) => request("POST", `${BASE}/workspaces/invites/${token}/accept`),
+  deleteInvite: (id: string) => request("DELETE", `${BASE}/workspaces/invites/${id}`),
   updateMember: (wsId: string, userId: string, role: string) =>
     request("PUT", `${BASE}/workspaces/${wsId}/members/${userId}`, { role }),
   removeMember: (wsId: string, userId: string) =>
     request("DELETE", `${BASE}/workspaces/${wsId}/members/${userId}`),
   detectLinks: (wsId: string) =>
     request<{ message: string; nodes_checked: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/detect-links`),
-  update: (wsId: string, data: Partial<{ 
-    name: string; 
-    language: "zh-TW" | "en"; 
-    visibility: string; 
+  update: (wsId: string, data: Partial<{
+    name: string;
+    description: string | null;
+    language: "zh-TW" | "en";
+    visibility: string;
     qa_archive_mode: string;
     auto_split: boolean;
     migration_status: string;

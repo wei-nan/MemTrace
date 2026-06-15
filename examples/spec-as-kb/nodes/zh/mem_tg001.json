@@ -1,0 +1,38 @@
+{
+  "id": "mem_tg001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S5 TraversalGuard：圖遍歷速率限制",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 目標\n\n防止惡意或失控的 AI agent 無限遍歷知識圖，導致 DoS 或 embedding 濫用。\n\n## 實作位置\n\n`core/ratelimit.py::TraversalGuard`\n\n## 使用點\n\n- `routers/kb.py`：節點讀取路由（`TraversalGuard.check(viewer_id)`）\n- `services/nodes.py`：`get_node_in_db`\n- `services/edges.py`：邊相關操作\n\n## 限制規則\n\n`TraversalGuard.check(user_id)` 在以下情況觸發拒絕：\n\n| 維度 | 預設限制 |\n|------|----------|\n| 單用戶每分鐘遍歷次數 | 可配置 |\n| 單用戶每小時遍歷次數 | 可配置 |\n| MCP agent 遍歷次數 | 獨立計算 |\n\n超過限制回傳 `429 Too Many Requests`。\n\n## 設計原則\n\n- 限制針對 `viewer_id`（user_id 或 agent_id），而非 IP\n- 不影響 cron / 維護工作的正常遍歷（排除系統操作）\n- 速率計數使用記憶體快取（可換 Redis，參見 mem_inq002）\n\n## 相關節點\n\n- [[mem_d006]] Traversal Tracking：遍歷計數機制\n- [[mem_inq002]] claim registry 換 Redis（含速率限制討論）"
+  },
+  "tags": [
+    "security",
+    "rate-limit",
+    "traversal",
+    "guard",
+    "hardening",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "tg001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

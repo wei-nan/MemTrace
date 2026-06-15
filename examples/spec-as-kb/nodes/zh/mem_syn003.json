@@ -1,0 +1,38 @@
+{
+  "id": "mem_syn003",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S4 suggest_edges MCP 工具：AI 建議缺失邊",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 功能說明\n\n`suggest_edges` 分析知識庫中節點之間的語意關係，找出應連但尚未連結的 edges，並提案送審。避免孤立節點（orphan nodes）造成 traversal 斷路。\n\n## MCP 工具定義\n\n```json\n{\n  \"name\": \"suggest_edges\",\n  \"description\": \"AI 建議工作區中缺失的語意邊\",\n  \"parameters\": {\n    \"workspace_id\": \"工作區 id\",\n    \"threshold\": 0.75\n  }\n}\n```\n\n## 實作位置\n\n- `services/synthesis.py::suggest_missing_edges`（`run_suggest_edges`）\n- `routers/kb.py::maintenance_suggest_edges`（路由：`POST /workspaces/{ws_id}/maintenance/suggest-edges`）\n- `services/nodes.py::suggest_edges_for_node_in_db`（單節點版本）\n- `services/mcp_tools.py`（MCP 暴露）\n- `services/bg_jobs.py::bg_suggest_edges`（背景任務版本）\n\n## 觸發時機\n\n1. **文件攝入後**：自動在背景觸發 `bg_suggest_edges(ws_id, new_node_id, user_id)`\n2. **手動觸發**：MCP 工具或 maintenance endpoint\n\n## 邊提案流程\n\n1. 計算候選節點對的 embedding cosine\n2. cosine ≥ threshold 且無現有邊 → 生成邊提案\n3. 提案進 `review_queue`（`change_type='edge_suggestion'`）\n4. 人工確認後建立正式邊"
+  },
+  "tags": [
+    "mcp-tool",
+    "synthesis",
+    "edges",
+    "suggest",
+    "embedding",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "syn003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

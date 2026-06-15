@@ -24,7 +24,7 @@
     "title": "定向：如何找下一個小任務",
     "content_type": "procedural",
     "content_format": "markdown",
-    "body": "要查什麼：1) 查 status=pending 的 inquiry 節點（缺口/問題）；2) 依優先序與 trust 挑一個；3) 沿 depends_on 往上撈父任務意圖、連 spec 節點撈期望狀態、連對應 Playbook 撈做法，組成一個 token 受限的 context 包回傳。對應要建的 MCP 工具：get_next_task（見 mem_loop900）。",
+    "body": "要查什麼：1) 查 status=pending 的 inquiry 節點（缺口/問題）；2) 依優先序與 trust 挑一個；3) 沿 depends_on 往上撈父任務意圖、連 spec 節點撈期望狀態、連對應 Playbook 撈做法，組成一個 token 受限的 context 包回傳。對應要建的 MCP 工具：get_next_task（見 mem_loop900→mem_loop910）。",
     "tags": ["agent-loop", "playbook", "orientation", "what-to-query"],
     "visibility": "public",
     "source_type": "human"
@@ -94,7 +94,7 @@
     "title": "residue 規則（飛輪）",
     "content_type": "factual",
     "content_format": "markdown",
-    "body": "結論階段必須吐出結構化 residue：本輪過程中發現的新缺口、碰過但信心低的區域、被延後的決定、冒出的問題，各建成一個 pending 的 inquiry 節點。這是迴圈的燃料——沒有它，消化完最初的缺口後迴圈會斷糧。residue 是輕量內容寫入，自動建 pending，由規劃者下一輪分流，不逐條當場攔人。對應要建的機制：emit_residue（見 mem_loop901）。",
+    "body": "結論階段必須吐出結構化 residue：本輪過程中發現的新缺口、碰過但信心低的區域、被延後的決定、冒出的問題，各建成一個 pending 的 inquiry 節點。這是迴圈的燃料——沒有它，消化完最初的缺口後迴圈會斷糧。residue 是輕量內容寫入，自動建 pending，由規劃者下一輪分流，不逐條當場攔人。對應機制：emit_residue（見 mem_loop901→mem_loop911）。",
     "tags": ["agent-loop", "policy", "residue", "flywheel"],
     "visibility": "public",
     "source_type": "human"
@@ -104,8 +104,8 @@
     "title": "缺口：get_next_task 工具",
     "content_type": "inquiry",
     "content_format": "markdown",
-    "body": "缺口（seed 任務）：目前沒有 get_next_task MCP 工具，agent 無法自動取得下一個小任務的 context 包（任務 + 祖先意圖 + spec 切片 + playbook）。這是脊椎能跑的前提。期望：實作後本節點由實作節點以 answered_by 連入。狀態：pending。",
-    "tags": ["agent-loop", "inquiry", "gap", "mcp-tool", "seed"],
+    "body": "缺口（seed 任務）：目前沒有 get_next_task MCP 工具，agent 無法自動取得下一個小任務的 context 包（任務 + 祖先意圖 + spec 切片 + playbook）。這是脊椎能跑的前提。**Phase 6 Sprint A 已實作，見 mem_loop910。**",
+    "tags": ["agent-loop", "inquiry", "gap", "mcp-tool", "seed", "answered"],
     "visibility": "public",
     "source_type": "human"
   },
@@ -114,8 +114,210 @@
     "title": "缺口：emit_residue 機制",
     "content_type": "inquiry",
     "content_format": "markdown",
-    "body": "缺口（seed 任務）：結論階段尚無 emit_residue 機制把新發現寫回成 pending inquiry 節點，迴圈無法自我續命。期望：實作後以 answered_by 連入對應實作節點。狀態：pending。",
-    "tags": ["agent-loop", "inquiry", "gap", "flywheel", "seed"],
+    "body": "缺口（seed 任務）：結論階段尚無 emit_residue 機制把新發現寫回成 pending inquiry 節點，迴圈無法自我續命。**Phase 6 Sprint B 已實作，見 mem_loop911。**",
+    "tags": ["agent-loop", "inquiry", "gap", "flywheel", "seed", "answered"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop910",
+    "title": "實作：get_next_task MCP 工具",
+    "content_type": "factual",
+    "content_format": "markdown",
+    "body": "**Phase 6 Sprint A 完成。** `get_next_task` 工具實作於 `packages/api/services/mcp_tools.py`。\n\n功能：從 workspace 挑 `status=pending` 的 inquiry 節點、沿 `depends_on` 撈祖先意圖、連 spec KB 撈期望狀態、連 procedural 節點取 playbook，組成 token 受限 context 包回傳（`max_response_tokens` 可控）。\n\n支援 `exclusive=true` 旗標：自動 claim 選出的任務，防止多 planner 重複選同一任務（multi-planner 協調）。解決缺口 mem_loop900。",
+    "tags": ["agent-loop", "implementation", "mcp-tool", "get-next-task", "phase6"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop911",
+    "title": "實作：emit_residue MCP 工具",
+    "content_type": "factual",
+    "content_format": "markdown",
+    "body": "**Phase 6 Sprint B 完成。** `emit_residue` 工具實作於 `packages/api/services/mcp_tools.py`。\n\n功能：接收 `residues` 陣列，每個 item 建一個 `status=pending` 的 inquiry 節點；`parent_task_id` 可選，建立 `depends_on` 邊連回父任務。residue 是迴圈的飛輪燃料，不逐條人 gate（兩速自動側）。解決缺口 mem_loop901。",
+    "tags": ["agent-loop", "implementation", "mcp-tool", "emit-residue", "flywheel", "phase6"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop912",
+    "title": "實作：get_playbook / propose_decision / submit_outcome",
+    "content_type": "factual",
+    "content_format": "markdown",
+    "body": "**Phase 6 Sprint A–C 完成。** 三個工具實作於 `packages/api/services/mcp_tools.py`（未事先建 inquiry 缺口節點）：\n\n- **`get_playbook`**：按 `situation` 描述搜 procedural 節點，回傳最相符的 playbook（tag 可篩選）。\n- **`propose_decision`**：把決定送入 `review_queue`，支援 `confidence_score` 與 `risk_level` 決策分級；低風險 + 高信心可自動放行（沿用 `auto_accept_threshold`）。\n- **`submit_outcome`**：記錄任務結果；成功時建 `answered_by` 邊連入實作節點；所有同層子任務完成時觸發整合檢查；失敗時自動標記走過的 playbook 送審（兩速自動側，D6 決策）。",
+    "tags": ["agent-loop", "implementation", "mcp-tool", "get-playbook", "propose-decision", "submit-outcome", "phase6"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop913",
+    "title": "實作：Sprint D 多 agent 協調工具",
+    "content_type": "factual",
+    "content_format": "markdown",
+    "body": "**Phase 6 Sprint D 完成。** 四個工具實作於 `packages/api/services/mcp_tools.py`：\n\n- **`converge_check`**：統計 pending/answered inquiry 比例，判斷迴圈應繼續（`continue`）、收斂（`converge`）還是升級給人（`escalate`）。最近 3+ 路徑失敗率 ≥50% 則 escalate。\n- **`converge_proposals`**：比較多個 planner 提案，複用 consult synthesizer，回傳 `converge`（有共識）或 `escalate`（發散 / 矛盾）。\n- **`claim_task`**：Agent 搶佔 inquiry 節點 30 分鐘，避免多 planner 選同一任務；已被佔則回傳 `claimed=false`。\n- **`release_task`**：提前釋放 claim（run-state 存行程內 `_TASK_CLAIMS`，重啟即失，多 worker / 重啟存活待討論）。",
+    "tags": ["agent-loop", "implementation", "mcp-tool", "sprint-d", "multi-agent", "converge", "phase6"],
+    "visibility": "public",
+    "source_type": "human"
+  }
+]
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "目前迴圈的規劃階段只有單 planner。需補完多 planner 協作的完整路徑：fan-out 數個 planner 各自產提案 → converge_proposals 裁決共識 / escalate → escalate 時打包提案給人選；同時把 claim registry 從行程內記憶體換 Redis 以支援多 worker 與重啟存活。\n\n子任務：mem_loop921（fan-out 編排）、mem_loop922（escalate 路徑）、mem_loop923（Redis claim registry）。",
+    "tags": ["agent-loop", "inquiry", "gap", "multi-agent", "planner"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop921",
+    "title": "缺口：多 planner fan-out 編排",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "規劃階段缺 fan-out 機制：啟動 N 個 planner、各自 claim 不同任務並產出提案，供 converge_proposals 收斂。\n\n關鍵問題：誰負責啟動多個 planner？外部 harness 還是 MemTrace conductor？converge_proposals 工具已備料（見 mem_loop913），缺的是「誰來產生多個提案」這一層的編排邏輯。",
+    "tags": ["agent-loop", "inquiry", "gap", "multi-agent", "planner", "fan-out"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop922",
+    "title": "缺口：divergent 提案的 escalate 路徑",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "converge_proposals 回傳 escalate 時，目前無後續處理。需實作：把多個 planner 的候選提案打包成一個 review_queue 項目，讓人做最終選擇；選定後以勝出提案繼續迴圈。UI 需要能呈現「多選一」型態的 review 卡片。",
+    "tags": ["agent-loop", "inquiry", "gap", "multi-agent", "escalate", "review-queue"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop923",
+    "title": "缺口：claim registry 換 Redis",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "claim_task / release_task 的 run-state 目前存行程內 `_TASK_CLAIMS` dict（TTL 30 分鐘），重啟即失、多 worker 不共享（見 mem_loop913）。\n\n需換 Redis：key = `claim:{inquiry_id}`，TTL = 30 分鐘，value = agent_id。維持「run-state 不進知識圖」原則（mem_loop001 A7）。部署面需確認 Redis 連線設定。",
+    "tags": ["agent-loop", "inquiry", "gap", "claim-registry", "redis", "infra"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+
+  {
+    "id": "mem_loop930",
+    "title": "缺口（功能）：人 gate 送審品質修正",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "submit_outcome 失敗送審（B2）與 per-feature 整合檢查（C3）送入 review_queue 時帶空 diff（node_data={}），reviewer 看到的是空卡片，沒有具體脈絡。需修正送審內容與 UI 呈現。\n\n子任務：mem_loop931（失敗摘要寫入 node_data）、mem_loop932（整合檢查子任務摘要）、mem_loop933（flag-only 視覺樣式）。",
+    "tags": ["agent-loop", "inquiry", "gap", "review-queue", "human-gate", "ux"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop931",
+    "title": "缺口：失敗送審 — 把摘要寫進 node_data",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "submit_outcome(outcome=fail) 目前標記嫌疑 playbook 送審，但 node_data={} 空的，reviewer 看到的 diff 是空卡片。\n\n應把「失敗原因摘要 + 嫌疑 playbook 段落引用」寫進 node_data（或 proposer_meta），讓 reviewer 看到脈絡後才做判斷。成本低、立即有用，建議優先做。",
+    "tags": ["agent-loop", "inquiry", "gap", "review-queue", "submit-outcome", "diff"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop932",
+    "title": "缺口：整合檢查送審 — 補子任務摘要",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "per-feature 整合檢查（所有同層子任務完成時觸發，見 mem_loop912）送審時 node_data={} 空的。\n\n應把「觸發整合檢查的子任務清單、各自用了哪些實作節點」摘要寫進 review 項目，讓 reviewer 有足夠脈絡判斷整合是否安全。",
+    "tags": ["agent-loop", "inquiry", "gap", "review-queue", "integration-check", "diff"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop933",
+    "title": "缺口：review_queue flag-only 項目視覺樣式",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "失敗標記與整合檢查是「flag-only」操作（語意是把節點拉出來讓人複審，不是改內容）。review 卡片不應顯示空 before/after diff，應改用獨立樣式：顯示送審原因 + 跳轉至相關節點，不顯示 diff 區塊。此為 mem_loop931/mem_loop932 的 UI 層補完。",
+    "tags": ["agent-loop", "inquiry", "gap", "review-queue", "ui", "flag-only"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+
+  {
+    "id": "mem_loop940",
+    "title": "缺口（功能）：Conductor + 事件觸發",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "目前迴圈由外部 harness 主動輪詢，無事件通知機制。需讓 MemTrace 在有新的 pending inquiry / residue 出現時，能主動通知外部 harness 啟動下一圈。MemTrace 定位仍為記憶（A1），conductor 為可選功能。\n\n子任務：mem_loop941（process_node_events 掛點 + webhook 觸發）、mem_loop942（outcome 回流多 worker 計帳確認）。",
+    "tags": ["agent-loop", "inquiry", "gap", "conductor", "event", "harness"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop941",
+    "title": "缺口：pending inquiry 出現時發事件 → 觸發外部 harness",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "process_node_events_job（每 10s）是既有 event bus。需加掛點：\n\n1. 當新的 pending inquiry 節點出現時（如 emit_residue 吐出的 residue），發事件\n2. 事件 → webhook 呼叫 / 推入佇列，通知外部 harness 有新任務可處理\n\n沙盒、多輪 tool-use、context 管理仍留外部 harness（維持 A1 邊界）。",
+    "tags": ["agent-loop", "inquiry", "gap", "conductor", "event", "webhook"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop942",
+    "title": "缺口：outcome 回流 — 多 worker 計帳確認",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "外部 harness 跑完一圈後透過 submit_outcome 回報，走 path_reinforcement 強化路徑。多 worker 場景需確認：多個 worker 各自呼叫 submit_outcome 時是否會重複計算同一任務的 reinforcement；失敗計帳是否正確歸因到執行該任務的 worker。",
+    "tags": ["agent-loop", "inquiry", "gap", "conductor", "path-reinforcement", "multi-worker"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+
+  {
+    "id": "mem_loop950",
+    "title": "缺口（功能）：多 agent 信任分級",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "目前系統採單一 trusted 憑證（同質可信 agent，A3 決策）。隨著多 planner 加入，需補 per-agent 身分、信任分級與記憶污染防禦。與 mem_loop920（多 planner 規劃）搭配才有完整意義。\n\n子任務：mem_loop951（憑證分發）、mem_loop952（信任分級 + 污染防禦）、mem_loop953（多 workspace 寫入隔離）。",
+    "tags": ["agent-loop", "inquiry", "gap", "trust", "multi-agent", "security"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop951",
+    "title": "缺口：per-agent 憑證分發",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "proposer_id 已預留欄位（見 mem_loop912），但實際憑證分發機制缺失。需補：agent 如何取得自己的 proposer_id、如何在 API 呼叫中帶入、server 端如何驗證。應沿用既有 API Key 機制（workspace-scoped key + proposer_id 綁定），不引入新的 auth layer。",
+    "tags": ["agent-loop", "inquiry", "gap", "trust", "auth", "proposer-id"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop952",
+    "title": "缺口：agent 信任分級 + 記憶污染防禦",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "低信任 agent（proposer 信任分數低於門檻）的寫入請求一律送 human gate，不走自動放行路徑。與 mem_loop021（決策分級政策）機制相同，但觸發條件從操作風險等級換成 proposer 信任分數。\n\n污染防禦：低信任 agent 的 residue 節點（emit_residue 吐出）應標記為低信任，在下一圈規劃時降低優先序。",
+    "tags": ["agent-loop", "inquiry", "gap", "trust", "security", "pollution-defense"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+  {
+    "id": "mem_loop953",
+    "title": "缺口：多 workspace 寫入隔離",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "目前寫入已有 workspace 層級的 advisory lock（§17.3）。多 agent 場景需確認：emit_residue 吐出 residue 到不同 workspace 時的隔離保證；多個 agent 同時對不同 workspace 寫入時不互相干擾。確認 advisory lock 的 key 空間（hashtext(ws_id)）在多 workspace 場景下是否有碰撞風險。",
+    "tags": ["agent-loop", "inquiry", "gap", "trust", "write-isolation", "advisory-lock"],
+    "visibility": "public",
+    "source_type": "human"
+  },
+
+  {
+    "id": "mem_loop960",
+    "title": "缺口（技術債）：schema/sql 與 migrations 落差",
+    "content_type": "inquiry",
+    "content_format": "markdown",
+    "body": "執行期由 `core.database.run_migrations()` 套用 `packages/api/migrations/*.sql`，但該目錄目前只有 `054`–`056` 三個檔。`schema/sql/` 編號到 `112`，inquiry_paths 等基礎表的建表 SQL 在兩個可見位置都找不到。\n\n`test_inquiry_paths.py` 直接 assert 表存在（不自建），代表有另一套 base schema 機制（疑似對 shared-postgres 外部一次性載入），但本 repo 內未見來源。\n\n需釐清：`schema/sql` 與 `migrations` 何者為準、補齊缺漏的建表來源，消除部署面的不確定性。Phase 6 功能不受影響（全部複用既有表），但應在下一批功能開發前處理。",
+    "tags": ["agent-loop", "inquiry", "gap", "tech-debt", "schema", "migrations"],
     "visibility": "public",
     "source_type": "human"
   }

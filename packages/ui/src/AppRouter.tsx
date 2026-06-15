@@ -6,6 +6,7 @@ import PublicWorkspaceView from './PublicWorkspaceView';
 import MagicLinkVerifyPage from './MagicLinkVerifyPage';
 import JoinInvitationPage from './JoinInvitationPage';
 import ResetPasswordPage from './ResetPasswordPage';
+import ExplorePage from './ExplorePage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Lazy Loaded Components
@@ -25,6 +26,7 @@ interface AppRouterProps {
   setAuthenticated: (v: boolean) => void;
   user: any;
   selectedWs: any;
+  setSelectedWs: (ws: any) => void;
   currentView: string;
   setCurrentView: (v: any) => void;
   graphVersion: number;
@@ -40,6 +42,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
   setAuthenticated,
   user,
   selectedWs,
+  setSelectedWs,
   currentView,
   setCurrentView,
   graphVersion,
@@ -68,6 +71,13 @@ const AppRouter: React.FC<AppRouterProps> = ({
           <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <ErrorBoundary>
               <Suspense fallback={<div className="loading-overlay"><RefreshCw className="animate-spin" /></div>}>
+                {currentView === 'explore' && (
+                  <ExplorePage
+                    authenticated={authenticated}
+                    onSelectWs={ws => { setSelectedWs(ws); setCurrentView('graph'); }}
+                    onSignIn={() => window.location.href = '/signin'}
+                  />
+                )}
                 {currentView === 'graph' && (
                   <GraphContainer
                     wsId={selectedWs?.id}

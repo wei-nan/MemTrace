@@ -49,8 +49,8 @@ services:
 
   ui:
     build:
-      context: ./packages/ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: packages/ui/Dockerfile
     container_name: memtrace-ui
     restart: unless-stopped
     ports:

@@ -13,5 +13,16 @@
   { "from_id": "mem_loop010", "to_id": "mem_loop020", "relation": "related_to", "weight": 0.5 },
   { "from_id": "mem_loop900", "to_id": "mem_loop001", "relation": "depends_on", "weight": 0.7 },
   { "from_id": "mem_loop900", "to_id": "mem_loop003", "relation": "related_to", "weight": 0.7 },
-  { "from_id": "mem_loop901", "to_id": "mem_loop022", "relation": "related_to", "weight": 0.7 }
+  { "from_id": "mem_loop901", "to_id": "mem_loop022", "relation": "related_to", "weight": 0.7 },
+  { "from_id": "mem_loop900", "to_id": "mem_loop910", "relation": "answered_by", "weight": 1.0 },
+  { "from_id": "mem_loop901", "to_id": "mem_loop911", "relation": "answered_by", "weight": 1.0 },
+  { "from_id": "mem_loop910", "to_id": "mem_loop001", "relation": "depends_on", "weight": 0.7 },
+  { "from_id": "mem_loop910", "to_id": "mem_loop003", "relation": "related_to", "weight": 0.8 },
+  { "from_id": "mem_loop911", "to_id": "mem_loop022", "relation": "related_to", "weight": 0.8 },
+  { "from_id": "mem_loop912", "to_id": "mem_loop002", "relation": "depends_on", "weight": 0.7 },
+  { "from_id": "mem_loop912", "to_id": "mem_loop020", "relation": "related_to", "weight": 0.6 },
+  { "from_id": "mem_loop912", "to_id": "mem_loop021", "relation": "related_to", "weight": 0.6 },
+  { "from_id": "mem_loop913", "to_id": "mem_loop002", "relation": "depends_on", "weight": 0.7 },
+  { "from_id": "mem_loop913", "to_id": "mem_loop021", "relation": "extends", "weight": 0.7 },
+  { "from_id": "mem_loop913", "to_id": "mem_loop912", "relation": "extends", "weight": 0.6 }
 ]

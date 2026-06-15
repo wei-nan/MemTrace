@@ -401,6 +401,16 @@ h1, h2, h3, h4, h5, h6 {
   cursor: default;
 }
 
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -408,6 +418,12 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: var(--glass-shadow);
+}
+
+.kb-card:hover {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 4px 12px var(--color-primary-subtle);
+  transform: translateY(-1px);
 }
 
 .app-container {
@@ -553,12 +569,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Fix native select option colors in dark/light mode */
-:root[data-theme="dark"] .model-select option {
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] select option {
   background: #1E222A;
   color: #F8FAFC;
 }
 
-:root[data-theme="light"] .model-select option {
+:root[data-theme="light"] select,
+:root[data-theme="light"] select option {
   background: #FFFFFF;
   color: #0F172A;
 }
@@ -700,6 +718,7 @@ h1, h2, h3, h4, h5, h6 {
   bottom: 150%;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 500;
   background: var(--bg-elevated);
   border: 1px solid var(--border-strong);
   color: var(--text-primary);

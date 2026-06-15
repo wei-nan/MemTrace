@@ -1,0 +1,38 @@
+{
+  "id": "mem_ta004",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S1 propose_merge MCP 工具：節點粒度優化",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 問題背景\n\n過度原子化節點（各 < 50 字、5 顆）比單一適當粒度節點（200 字、1 顆）消耗更多 token，因為 top-k 每個都塞進 context。\n\n## propose_merge 工具\n\n```json\n{\n  \"name\": \"propose_merge\",\n  \"description\": \"將多個節點合併為一個提案送審\",\n  \"parameters\": {\n    \"node_ids\": [\"mem_x001\", \"mem_x002\"],\n    \"reason\": \"高頻共現且各 body < 50 字\"\n  }\n}\n```\n\n觸發條件：分析 `retrieval_logs.hit_node_ids` 共現矩陣，找出「≥ 5 個不同 query 中同時被命中、且各自 body < 50 字」的節點群，自動產生合併提案。\n\n合併流程：提案進 `review_queue`（`change_type='merge'`）→ 人工或 AI 編輯合併稿 → 建立新節點 → 舊節點 archive → 建 `extends` edge 指向新節點。\n\n## 驗收標準\n\n合併後跑同一 golden set：\n- avg context tokens 降低 ≥ 15%\n- 正確率（LLM judge rubric）不降"
+  },
+  "tags": [
+    "mcp-tool",
+    "merge",
+    "granularity",
+    "token",
+    "review-queue",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ta004a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

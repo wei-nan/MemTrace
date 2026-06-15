@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bot, Check, GitMerge, Layers, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
+import { Bot, Check, GitMerge, Layers, Loader2, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
 import { review, nodes as nodesApi, kb, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
@@ -290,6 +290,8 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
   const { confirm, toast } = useModal();
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prescreening, setPrescreening] = useState(false);
+  const [bulkActing, setBulkActing] = useState(false);
   const [changeType, setChangeType] = useState<"all" | "create" | "update" | "delete" | "gap" | "conflicted">("all");
   const [proposerType, setProposerType] = useState<"all" | "human" | "ai">("all");
   const [grouped, setGrouped] = useState(false);
@@ -361,39 +363,50 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
   const handleAcceptAll = async () => {
     const ok = await confirm({ title: t('review.acceptAll'), message: t('review.acceptAllConfirm'), variant: "warning", confirmLabel: t('review.acceptAll') });
     if (!ok) return;
+    setBulkActing(true);
     try {
       await review.acceptAll(wsId);
+      setItems([]);
       await loadItems();
       toast({ message: "All pending reviews processed", variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    } finally {
+      setBulkActing(false);
     }
   };
 
   const handleRejectAll = async () => {
-    const ok = await confirm({ 
-      title: zh ? "全部拒絕" : "Reject All", 
-      message: zh ? "您確定要拒絕所有待審核的記憶嗎？此操作無法復原。" : "Are you sure you want to reject all pending review items? This action cannot be undone.", 
-      variant: "danger", 
-      confirmLabel: zh ? "全部拒絕" : "Reject All" 
+    const ok = await confirm({
+      title: zh ? "全部拒絕" : "Reject All",
+      message: zh ? "您確定要拒絕所有待審核的記憶嗎？此操作無法復原。" : "Are you sure you want to reject all pending review items? This action cannot be undone.",
+      variant: "danger",
+      confirmLabel: zh ? "全部拒絕" : "Reject All"
     });
     if (!ok) return;
+    setBulkActing(true);
     try {
       await review.rejectAll(wsId);
+      setItems([]);
       await loadItems();
       toast({ message: zh ? "所有待審核項目已拒絕" : "All pending items rejected", variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    } finally {
+      setBulkActing(false);
     }
   };
 
   const handleRunAIPrescreen = async () => {
+    setPrescreening(true);
     try {
       const result = await review.aiPrescreen(wsId);
       await loadItems();
       toast({ message: `AI prescreen processed ${result.processed_count} items`, variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    } finally {
+      setPrescreening(false);
     }
   };
 
@@ -446,18 +459,18 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
       {createPortal(
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {canReviewAny && (
-            <Button variant="secondary" onClick={handleRunAIPrescreen} leftIcon={<Bot size={16} />}>
-              {t('review.aiPrescreen')}
+            <Button variant="secondary" onClick={handleRunAIPrescreen} disabled={prescreening || bulkActing} leftIcon={prescreening ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}>
+              {prescreening ? (zh ? '分析中…' : 'Analyzing…') : t('review.aiPrescreen')}
             </Button>
           )}
           {canReviewAny && (
-            <Button variant="secondary" onClick={handleRejectAll} leftIcon={<X size={16} />}>
+            <Button variant="secondary" onClick={handleRejectAll} disabled={prescreening || bulkActing} leftIcon={bulkActing ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />}>
               {zh ? '全部拒絕' : 'Reject All'}
             </Button>
           )}
           {canReviewAny && (
-            <Button variant="primary" onClick={handleAcceptAll} leftIcon={<Check size={16} />}>
-              {t('review.acceptAll')}
+            <Button variant="primary" onClick={handleAcceptAll} disabled={prescreening || bulkActing} leftIcon={bulkActing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}>
+              {bulkActing ? (zh ? '處理中…' : 'Processing…') : t('review.acceptAll')}
             </Button>
           )}
         </div>,

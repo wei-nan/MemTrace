@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq005",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "缺口：多 agent 信任分級與記憶污染防禦",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "目前系統採單一 trusted 憑證（同質可信 agent，A3 決策）。隨著多 planner 加入，需補 per-agent 身分、信任分級與記憶污染防禦機制。\n\n**待討論的設計問題：**\n\n1. **憑證分發：** proposer_id 已預留欄位。agent 如何取得自己的 proposer_id？沿用現有 workspace API key + binding，還是新增 agent-specific key 類型？\n2. **信任分級門檻：** 低信任 agent 的寫入一律人 gate（擴展 mem_loop021 決策分級）。門檻如何設定？與操作風險等級是否疊加？\n3. **污染防禦：** 低信任 agent 的 residue 節點（emit_residue 吐出）如何標記？在下一圈規劃時是否自動降低優先序？\n4. **多 workspace 隔離：** emit_residue 吐出 residue 到不同 workspace 時，advisory lock（hashtext(ws_id)）的 key 空間是否有碰撞風險？\n5. **優先序：** H1（憑證）→ H2（分級）→ H3（隔離）的開發順序是否合理？"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "trust",
+    "multi-agent",
+    "security",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "inq005a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

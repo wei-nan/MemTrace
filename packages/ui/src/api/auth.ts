@@ -19,11 +19,13 @@ export interface AuthConfig {
 export const auth = {
   register: (data: { email: string; purpose_note?: string }) =>
     request<{ message: string }>("POST", "/auth/register", data),
+  registerWithPassword: (data: { email: string; password: string; display_name: string }) =>
+    request<{ access_token: string; token_type: string }>("POST", "/auth/register/password", data),
   login: (data: { email: string; password: string }) =>
     request<{ access_token: string }>("POST", "/auth/login", data),
   logout: () => request("POST", "/auth/logout"),
   refresh: () => refreshAccessToken(),
-  me: () => request<{ id: string; display_name: string; email: string; email_verified: boolean }>("GET", "/auth/me"),
+  me: () => request<{ id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[] }>("GET", "/auth/me"),
   verifyEmail: (token: string) => request("POST", `/auth/verify-email/${token}`),
   resendVerification: () => request("POST", "/auth/resend-verification-email"),
   registerWithInvite: (token: string, data: { email: string }) => request("POST", `/auth/register/invite/${token}`, data),

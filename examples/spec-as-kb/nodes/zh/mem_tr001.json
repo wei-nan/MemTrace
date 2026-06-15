@@ -1,0 +1,37 @@
+{
+  "id": "mem_tr001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S2 AI 節點預設 Trust 降級",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 問題\n\n`source_type=ai` 節點若直接沿用預設高 trust（dim_accuracy=0.95），等同「AI 寫的就是對的」，違反 trust 機制初衷。\n\n## 規格\n\n節點入庫時，`source_type='ai'` 且 `validity_confirmed_at IS NULL` 者，**必須**使用降級預設值：\n\n| 維度 | 預設值（human/spec） | 降級值（AI 未驗證） |\n|------|---------------------|--------------------|\n| dim_accuracy | 0.95 | **0.50** |\n| dim_utility | 0.90 | **0.50** |\n| trust_score（計算後） | ~0.924 | **≤ 0.65** |\n\n## 升級條件\n\n滿足以下任一條件，dim_accuracy 可升至 ≥ 0.80：\n\n1. 累積 ≥ 1 次 `vote_trust(accuracy ≥ 0.8)`\n2. `validity_confirmed_at IS NOT NULL`（人工或高信任 AI 確認）\n\n## 驗收 SQL\n\n```sql\n-- 未驗證 AI 節點平均 trust 應 ≤ 0.65\nSELECT avg(trust_score)\nFROM memory_nodes\nWHERE source_type = 'ai'\n  AND validity_confirmed_at IS NULL\n  AND status = 'active';\n```\n\n> ⚠️ 注意：目前 live DB 未驗證 AI 節點平均 trust ≈ 0.76（高於門檻），此規格尚待完整套用。"
+  },
+  "tags": [
+    "trust",
+    "ai",
+    "governance",
+    "source-type",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "tr001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

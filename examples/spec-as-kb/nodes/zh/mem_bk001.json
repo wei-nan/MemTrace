@@ -1,0 +1,44 @@
+{
+  "id": "mem_bk001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§30 排程本地備份（Scheduled Local Backups）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 內建自我修復的本地備份系統，防止自架環境中的資料遺失。定期執行資料庫備份，並透過輪替舊備份來管理磁碟空間。\n\n## 備份執行（§30.1）\n\n- **頻率：** 系統每小時執行一次背景任務，檢查備份排程\n- **間隔：** 實際備份依設定的間隔執行（預設：24 小時）\n- **格式：** PostgreSQL 備份以 `gzip` 壓縮（格式：`.sql.gz`）\n- **命名：** `memtrace_backup_YYYYMMDD_HHMMSS.sql.gz`\n\n## 輪替政策（§30.2）\n\n為防止磁碟耗盡，系統維護滾動視窗的備份：\n\n- **保留數量：** 保留最近備份檔案的數量（預設：7）\n- **清理：** 每次成功備份後，系統掃描備份目錄並刪除超出保留數的最舊檔案\n\n## 設定（§30.3，僅限管理員）\n\n備份設定透過系統管理員儀表板統一管理：\n\n- **備份路徑：** 伺服器上儲存備份的絕對路徑\n- **啟用/停用：** 切換自動備份開關\n- **間隔（小時）：** 備份執行頻率\n- **保留數：** 保留的備份數量\n\n## 狀態與監控（§30.4）\n\n系統將每次備份嘗試的結果記錄在 `system_settings` 表（key: `backup_config`）：\n\n- `last_backup_at`：最後一次嘗試的 ISO 時間戳\n- `last_backup_status`：`success` 或 `failed`\n- `last_backup_file`：最後一次成功備份的路徑\n- `error_msg`：最後一次嘗試失敗時的詳細錯誤"
+  },
+  "tags": [
+    "backup",
+    "operations",
+    "admin",
+    "reliability",
+    "self-hosted"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "bk001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -4,8 +4,8 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 
-ChangeType = Literal["create", "update", "delete", "split_suggestion"]
-ActorType = Literal["human", "ai"]
+ChangeType = Literal["create", "update", "delete", "split_suggestion", "create_edge", "source_updated", "conflict"]
+ActorType = Literal["human", "ai", "agent", "system"]
 ReviewDecision = Literal["accept", "reject", "comment"]
 
 

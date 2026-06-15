@@ -1,0 +1,38 @@
+{
+  "id": "mem_rq001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S2 Review Queue SLA 與 Steward 輪值",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 問題背景\n\n設計了 review queue 但沒人實際用：所有節點 `validity_confirmed_at = null`、`vote_count = 0`。\n\n## SLA 欄位\n\n`review_queue` 表新增兩個欄位：\n\n- `assigned_to`（text）：被指派的審核者 user_id\n- `due_at`（timestamptz）：審核截止時間（預設：指派後 7 天）\n\n## Steward 輪值 Cron\n\n每週一 09:00 自動執行：\n1. 找出所有 `assigned_to IS NULL` 的待審項目\n2. 以 round-robin 分配給 ws owner + team members\n3. 設定 `due_at = now() + interval '7 days'`\n4. 發送通知（email / webhook：Slack、Discord）\n\n## SLA 懲罰\n\n分配後 7 天未處理：\n- 節點 `dim_freshness × 0.8`（freshness 降級）\n- 項目進入下一輪分配\n\n## 驗收標準\n\n```sql\n-- 未指派率應 = 0%\nSELECT count(*) FROM review_queue\nWHERE assigned_to IS NULL\n  AND created_at < now() - interval '1 day'\n  AND status = 'pending';\n```\n\n目標：週活躍 reviewer ≥ 2"
+  },
+  "tags": [
+    "review-queue",
+    "sla",
+    "steward",
+    "governance",
+    "cron",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "rq001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

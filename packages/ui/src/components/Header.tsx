@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, Network, LogOut } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   currentView: string;
@@ -11,8 +11,7 @@ interface HeaderProps {
   userMenuRef: React.RefObject<HTMLDivElement | null>;
   onSetView: (view: any) => void;
   onLogout: () => void;
-  showMcpStatus: boolean;
-  onSetShowMcpStatus: (show: boolean) => void;
+
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -24,8 +23,6 @@ const Header: React.FC<HeaderProps> = ({
   userMenuRef,
   onSetView,
   onLogout,
-  showMcpStatus,
-  onSetShowMcpStatus,
 }) => {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
@@ -39,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({
       case 'ws_settings': return zh ? '工作區設定' : 'Workspace Settings';
       case 'ingest': return t('ingest.title');
       case 'settings': return zh ? '個人設定' : 'Personal Settings';
+      case 'explore': return zh ? '探索知識庫' : 'Explore';
       default: return 'MemTrace';
     }
   };
@@ -106,14 +104,6 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   <Settings size={16} />
                   <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{t('nav.settings')}</span>
-                </div>
-                <div 
-                  className="nav-item" 
-                  onClick={() => { onSetShowMcpStatus(!showMcpStatus); onSetUserMenuOpen(false); }}
-                  style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
-                >
-                  <Network size={16} />
-                  <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>MCP Status</span>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
                 <div 

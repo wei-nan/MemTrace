@@ -1,0 +1,38 @@
+{
+  "id": "mem_syn001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S4 summarize_cluster MCP 工具：叢集 AI 摘要",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 功能說明\n\n`summarize_cluster` 讓 AI agent 自動為指定叢集生成摘要節點，使查詢者能以單一節點掌握整個叢集的要旨，減少逐節點遍歷的 token 消耗。\n\n## MCP 工具定義\n\n```json\n{\n  \"name\": \"summarize_cluster\",\n  \"description\": \"為指定叢集生成摘要節點並送審\",\n  \"parameters\": {\n    \"cluster_id\": \"cluster 的 id\",\n    \"workspace_id\": \"工作區 id\"\n  }\n}\n```\n\n## 實作位置\n\n- `services/synthesis.py::generate_cluster_summary`\n- `routers/kb.py::maintenance_summarize_cluster`（路由：`POST /workspaces/{ws_id}/maintenance/summarize-cluster`）\n- `services/mcp_tools.py`（MCP 暴露）\n\n## 流程\n\n1. 取得叢集內所有 active 節點\n2. 呼叫 AI 生成摘要 body\n3. 以 `source_type='ai'`、`content_type='context'` 建立新節點\n4. 送入 `review_queue` 等待人工確認\n5. 確認後節點掛在叢集下，與成員節點建 `extends` edges\n\n## 使用場景\n\n- 叢集成員 > 10 個節點時，摘要節點可作為「入口」\n- token 節省：查詢者命中摘要即可，無需一一讀取成員"
+  },
+  "tags": [
+    "mcp-tool",
+    "synthesis",
+    "cluster",
+    "summarize",
+    "ai",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "syn001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "mem_exp001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "知識庫探索頁（Hub）規格",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 目標\n\n提供統一的知識庫瀏覽與搜尋入口，解決工作區數量增長後難以找到目標 KB 的問題。分兩個層次：公開 KB 探索（Discovery）與個人 KB 快速切換。\n\n## 導航邏輯（方案 B）\n\n- `selectedWs === null`（未選工作區）時，中央主內容區顯示探索頁為預設首頁\n- MemTrace logo 點擊 → 清除 selectedWs，回到探索頁\n- localStorage 記住上次使用的工作區 ID，登入後自動跳回\n- 探索頁同時作為匿名訪客的落地頁（allow_anonymous 開啟時）\n\n## 存取權限\n\n| 使用者狀態 | 顯示內容 |\n|---|---|\n| 未登入（匿名） | 僅顯示 public / conditional_public KB |\n| 已登入 | 我的 KB（private）+ 公開 KB 分區塊顯示 |\n\n## 後端端點：GET /workspaces/explore\n\n無需 auth（public endpoint）。Query params：\n- `q`：名稱模糊搜尋\n- `lang`：`zh-TW` \\| `en` 篩選\n- `sort`：`newest`（created_at desc）\\| `nodes`（節點數 desc）\n\n回傳欄位：`id`、`name`、`description`、`language`、`visibility`、`node_count`、`owner_display_name`、`created_at`\n\n已登入時，附加 header `Authorization: Bearer ...` 後端額外合併返回該使用者的 private KB。\n\n## workspaces 表新增欄位\n\n`description text`（nullable）— 知識庫簡介，顯示在探索頁卡片上。\nWorkspaceSettings 頁面新增描述欄位供 owner 編輯。\n\n## 前端 ExplorePage.tsx\n\n**KB 卡片顯示：**\n- 名稱（大標）\n- 描述（最多 2 行截斷）\n- 語言標籤（繁中 / English）\n- 節點數量 badge\n- Visibility badge（公開 / 私人）\n- 建立者暱稱\n- 點擊直接切換工作區\n\n**搜尋與篩選列：**\n- 即時名稱搜尋（前端 filter，無需 debounce API call）\n- 語言 toggle\n- 排序選單（最新 / 節點數）\n\n**分區：**\n1. 我的知識庫（已登入才顯示）\n2. 公開知識庫\n\n## 狀態：pending（待實作）"
+  },
+  "tags": [
+    "feature",
+    "explore",
+    "hub",
+    "workspace",
+    "discovery",
+    "ux"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-14T00:00:00+00:00",
+    "signature": "exp001_explore_hub_spec",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.88,
+      "freshness": 0.98,
+      "utility": 0.92,
+      "author_rep": 0.88
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

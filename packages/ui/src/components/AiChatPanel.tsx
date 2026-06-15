@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, ToggleLeft, ToggleRight, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock } from 'lucide-react';
+import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap } from 'lucide-react';
 import { ai, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card } from './ui';
@@ -399,23 +399,35 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
             <RotateCcw size={15} />
           </Button>
 
-          <Button
-            variant="ghost" size="sm"
+          <button
             onClick={() => setAllowEdits(v => !v)}
             title={zh ? `允許提案：${allowEdits ? '開啟' : '關閉'}` : `Allow proposals: ${allowEdits ? 'on' : 'off'}`}
-            style={{ padding: 4, flexShrink: 0, color: allowEdits ? 'var(--color-primary)' : 'var(--text-muted)' }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 6,
+              background: allowEdits ? 'var(--color-primary-subtle)' : 'transparent',
+              border: `1px solid ${allowEdits ? 'var(--color-primary)' : 'var(--border-default)'}`,
+              color: allowEdits ? 'var(--color-primary)' : 'var(--text-muted)',
+              cursor: 'pointer', fontSize: 11, fontWeight: 500, flexShrink: 0,
+            }}
           >
-            {allowEdits ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-          </Button>
+            <GitPullRequest size={12} />
+            {zh ? '提案' : 'Propose'}
+          </button>
 
-          <Button
-            variant="ghost" size="sm"
+          <button
             onClick={() => setForceAutoActive(v => !v)}
             title={zh ? `自動生效：${forceAutoActive ? '開啟' : '關閉'}` : `Auto active: ${forceAutoActive ? 'on' : 'off'}`}
-            style={{ padding: 4, flexShrink: 0, color: forceAutoActive ? 'var(--color-primary)' : 'var(--text-muted)' }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 6,
+              background: forceAutoActive ? 'color-mix(in srgb, var(--color-warning) 15%, transparent)' : 'transparent',
+              border: `1px solid ${forceAutoActive ? 'var(--color-warning)' : 'var(--border-default)'}`,
+              color: forceAutoActive ? 'var(--color-warning)' : 'var(--text-muted)',
+              cursor: 'pointer', fontSize: 11, fontWeight: 500, flexShrink: 0,
+            }}
           >
-            {forceAutoActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-          </Button>
+            <Zap size={12} />
+            {zh ? '自動' : 'Auto'}
+          </button>
 
           {onClose && (
             <Button variant="ghost" size="sm" onClick={onClose} title={zh ? '關閉' : 'Close'} style={{ padding: 4, flexShrink: 0 }}>

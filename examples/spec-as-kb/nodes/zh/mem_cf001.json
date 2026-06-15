@@ -1,0 +1,38 @@
+{
+  "id": "mem_cf001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S3 Contradicts 衝突仲裁流程",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 問題背景\n\n`contradicts` edge 只是標記，沒有強制走仲裁流程，衝突可能長期懸而未決。\n\n## 自動進審流程\n\n建立 `contradicts` edge 時，系統自動將相關節點推入 `review_queue`，`change_type='conflict'`。\n\n## 邏輯衝突偵測（AI 層）\n\n`conflict_status` 與 `conflict_detail` 欄位記錄於 `memory_nodes`：\n\n| conflict_status 值 | 說明 |\n|-------------------|------|\n| `contradicts_existing` | 與現有節點語意矛盾 |\n| `duplicate_content` | 內容重複 |\n| `circular_dependency` | 形成循環依賴 |\n| `orphaned_reference` | 引用了不存在的節點 |\n\n## 仲裁結果\n\n審核者選擇以下四種結果之一：\n\n| 結果 | 行動 |\n|------|------|\n| `keep_a` | 保留節點 A，archive 節點 B |\n| `keep_b` | 保留節點 B，archive 節點 A |\n| `merge` | 合併為新節點（進 propose_merge 流程）|\n| `both_valid` | 兩者均有效，移除 contradicts edge |\n\n仲裁結果回寫相關節點的 `dim_accuracy` 與 `status`，並留下 resolution log。\n\n## 驗收標準\n\n每筆 `contradicts` edge 都應有對應的 resolution log 或待審項目。"
+  },
+  "tags": [
+    "conflict",
+    "contradicts",
+    "arbitration",
+    "review-queue",
+    "governance",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "cf001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

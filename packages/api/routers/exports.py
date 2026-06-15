@@ -6,10 +6,11 @@ import tempfile
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File, Form, Query, Request
 from fastapi.responses import FileResponse
 from core.database import db_cursor
 from core.deps import get_current_user
+from core.security import decode_token
 from core.security import generate_id
 from models.exports import KBExportRequest, KBExportResponse, KBImportResponse
 from services.workspaces import require_ws_access as _require_ws_access
@@ -152,7 +153,11 @@ def trigger_export(
     user: dict = Depends(get_current_user),
 ):
     with db_cursor(commit=True) as cur:
-        _require_ws_access(cur, ws_id, user)
+        # Exporting a full KB dump bypasses per-node body redaction, so it must
+        # be restricted to roles that are already allowed to see every body
+        # (editor/admin). Viewers — and non-member readers of a public KB —
+        # must not be able to exfiltrate private/team node bodies this way.
+        _require_ws_access(cur, ws_id, user, write=True, required_role="editor")
 
         export_id = generate_id("exp")
         filter_params = {
@@ -179,7 +184,7 @@ def trigger_export(
 @router.get("/workspaces/{ws_id}/exports", response_model=List[KBExportResponse])
 def list_exports(ws_id: str, user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
+        _require_ws_access(cur, ws_id, user, required_role="editor")
         cur.execute("SELECT * FROM kb_exports WHERE workspace_id = %s ORDER BY created_at DESC", (ws_id,))
         return cur.fetchall()
 
@@ -187,7 +192,7 @@ def list_exports(ws_id: str, user: dict = Depends(get_current_user)):
 @router.get("/workspaces/{ws_id}/exports/{export_id}", response_model=KBExportResponse)
 def get_export(ws_id: str, export_id: str, user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
+        _require_ws_access(cur, ws_id, user, required_role="editor")
         cur.execute("SELECT * FROM kb_exports WHERE id = %s AND workspace_id = %s", (export_id, ws_id))
         export = cur.fetchone()
         if not export:
@@ -196,9 +201,26 @@ def get_export(ws_id: str, export_id: str, user: dict = Depends(get_current_user
 
 
 @router.get("/workspaces/{ws_id}/exports/{export_id}/download")
-def download_export(ws_id: str, export_id: str, user: dict = Depends(get_current_user)):
+def download_export(
+    ws_id: str,
+    export_id: str,
+    request: Request,
+    token: str = Query(default=None),
+):
+    # Browsers can't send Authorization headers for direct <a href> downloads,
+    # so we also accept the JWT as a ?token= query parameter.
+    user = None
+    if token:
+        user = decode_token(token)
+    if not user:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            user = decode_token(auth_header[7:])
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
+        _require_ws_access(cur, ws_id, user, required_role="editor")
         cur.execute(
             "SELECT download_url, file_path FROM kb_exports WHERE id = %s AND workspace_id = %s",
             (export_id, ws_id),
@@ -359,7 +381,7 @@ def import_kb(
                             INSERT INTO edges
                               (id, workspace_id, from_id, to_id, relation, weight, half_life_days, status)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
-                            ON CONFLICT (id) DO NOTHING
+                            ON CONFLICT DO NOTHING
                             """,
                             (
                                 generate_id("edg"), ws_id,

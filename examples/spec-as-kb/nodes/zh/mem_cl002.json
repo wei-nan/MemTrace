@@ -1,0 +1,43 @@
+{
+  "id": "mem_cl002",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§11.4 叢集管理：人工覆寫、未分類節點與回填",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 人工覆寫（§11.4.2）\n\n使用者與編輯者可隨時透過以下 API 重新指派節點至不同叢集（或移除叢集指派）：\n\n```\nPATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}/cluster\n{ \"cluster_id\": \"cl_xxx\" | null }\n```\n\n叢集元資料（名稱、顏色）透過以下端點管理：\n\n```\nGET    /api/v1/workspaces/{ws_id}/clusters\nPOST   /api/v1/workspaces/{ws_id}/clusters\nPATCH  /api/v1/workspaces/{ws_id}/clusters/{cluster_id}\nDELETE /api/v1/workspaces/{ws_id}/clusters/{cluster_id}\n```\n\n刪除叢集時，該叢集下所有節點的 `cluster_id` 設為 `NULL`；節點本身不會被刪除。\n\n## 未分類節點（§11.4.3）\n\n`cluster_id = NULL` 的節點視為未分類。在 2D 圖形視圖中，這些節點渲染在所有叢集群組之後的獨立區域。叢集篩選器列只顯示已指派的叢集；不選任何篩選器時顯示全部節點。\n\n## 回填（§11.4.4）\n\n在叢集系統引入前建立的節點，`cluster_id` 為 `NULL`。可手動重新指派，或透過未來的批次回填作業處理。"
+  },
+  "tags": [
+    "cluster",
+    "api",
+    "graph-view",
+    "backfill"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "cl002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

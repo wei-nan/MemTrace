@@ -1,0 +1,39 @@
+{
+  "id": "mem_ta002",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S1 KB 健康度快照：kb_health_daily 表",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "`kb_health_daily` 每日快照記錄知識庫核心指標，是 North Star 量測（M1–M4）的持久化來源。\n\n## 表結構\n\n```sql\nCREATE TABLE kb_health_daily (\n  id                        bigserial PRIMARY KEY,\n  date                      date NOT NULL,\n  workspace_id              text NOT NULL,\n  token_savings_ratio       float,   -- M1：token 節省率\n  retrieval_recall_at_5     float,   -- M2：Recall@5\n  retrieval_mrr             float,   -- MRR\n  decay_runs_last_14d       int,     -- M3：decay 連續執行天數\n  duplicate_pairs_unlinked  int,     -- M4：未連結重複對\n  avg_trust_active          float,\n  active_users_7d           int,\n  review_queue_depth        int,\n  ai_nodes_unverified_ratio float,\n  created_at                timestamptz DEFAULT now(),\n  UNIQUE (date, workspace_id)\n);\n```\n\n## 寫入時機\n\n每日 03:30 cron 快照寫入所有工作區。\n\n## 健康度端點\n\n`GET /workspaces/{ws_id}/analytics/health` 回傳最新快照及 7 日趨勢。UI Dashboard 展示這些指標。\n\n## 北極星指標目標值\n\n| 指標 | 目標 | 實測（2026-05-16） |\n|------|------|-------------------|\n| M1 Token 節省率 | ≥ 70% | 82.1% |\n| M2 Recall@5 | ≥ 0.80 | 0.9471 |\n| M3 Decay 連續 14 天 | 無中斷 | 持續累積 |\n| M4 未連結重複對 | = 0 | 0 |"
+  },
+  "tags": [
+    "analytics",
+    "health",
+    "dashboard",
+    "token",
+    "recall",
+    "schema",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ta002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

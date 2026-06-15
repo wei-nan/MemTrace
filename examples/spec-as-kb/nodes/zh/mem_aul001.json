@@ -1,0 +1,45 @@
+{
+  "id": "mem_aul001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§21 AI 使用日誌：政策、API 與保留期",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 規定（§21.1）\n\n**所有 AI 呼叫——無論使用工作區層級或帳號層級金鑰——都必須記錄日誌。** 此日誌是計費、除錯與政策執行的權威紀錄。\n\n## 功能類型（§21.2 `feature` 欄位）\n\n`feature` 欄位必須為以下值之一：\n`extraction`、`embedding`、`restructure`、`chat`、`conflict_check`、`conversation_panel`\n\n## 欄位說明（§21.3）\n\n| 欄位 | 說明 |\n|------|------|\n| `key_source` | `workspace_key`：工作區設定的金鑰；`account_key`：使用者的全域帳號金鑰 |\n| `feature` | 觸發此呼叫的 AI 能力 |\n| `tokens_input` / `tokens_output` | 由供應商回報；用於配額計算 |\n| `latency_ms` | 供應商呼叫的實際耗時；用於 SLO 監控 |\n| `success` | 供應商回傳錯誤時為 `false` |\n| `error_code` | 供應商原始錯誤碼（如 `insufficient_quota`、`rate_limit_exceeded`） |\n\n## API 端點（§21.4）\n\n| 方法 | 路徑 | 說明 |\n|------|------|------|\n| `GET` | `/api/v1/user/ai-usage` | 當前使用者的分頁日誌 |\n| `GET` | `/api/v1/user/ai-usage/summary` | 依日期、功能、供應商彙總 |\n\n查詢參數：`?from=<ISO日期>&to=<ISO日期>&provider=openai|anthropic|gemini|all`\n\n摘要回應範例：\n\n```json\n{\n  \"period\": { \"from\": \"2026-04-01\", \"to\": \"2026-04-30\" },\n  \"by_feature\": {\n    \"chat\": { \"calls\": 42, \"tokens_total\": 18400 },\n    \"extraction\": { \"calls\": 7, \"tokens_total\": 31200 }\n  },\n  \"by_provider\": {\n    \"openai\": { \"tokens_total\": 49600 }\n  }\n}\n```\n\n## 保留期（§21.5）\n\n日誌保留 **12 個月**後封存。在保留期到期前絕不刪除日誌。"
+  },
+  "tags": [
+    "ai",
+    "usage-logging",
+    "billing",
+    "api",
+    "retention",
+    "monitoring"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "aul001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

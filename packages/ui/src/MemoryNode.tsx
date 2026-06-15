@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Handle, Position } from 'reactflow';
-import { AlertTriangle, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 const TYPE_COLORS: Record<string, string> = {
   factual:    '#6366f1',
@@ -71,7 +71,6 @@ const MemoryNode = ({ data }: { data: any }) => {
   }
 
   // ── full & expanded LOD ───────────────────────────────────────────────────
-  const isExpired = data.validityExpired;
   const isExpanded = lod === 'expanded';
   const bodyPreview = (data.bodyPreview || '').slice(0, 80);
   // T21: audit status
@@ -100,11 +99,6 @@ const MemoryNode = ({ data }: { data: any }) => {
         </div>
       )}
 
-      {isExpired && (
-        <div style={{ position: 'absolute', top: -10, left: -10, color: '#eab308', background: 'var(--bg-surface)', borderRadius: '50%', padding: 2, boxShadow: 'var(--shadow-sm)', zIndex: 5 }}>
-          <AlertTriangle size={18} fill="#eab30822" />
-        </div>
-      )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{data.title || t('node.title_detail')}</strong>

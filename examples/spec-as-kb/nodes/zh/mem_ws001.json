@@ -1,0 +1,45 @@
+{
+  "id": "mem_ws001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§17 並行寫入安全：樂觀鎖與寫入佇列",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "當多位使用者或 AI agent 同時對同一知識庫提交寫入時，必須防止以下失敗模式：節點被兩方同時修改造成分裂狀態；文件攝入並行執行造成重複節點或衝突邊；AI 重組在過時快照上提案、同時有人工編輯正在儲存。\n\n## 17.2 節點樂觀鎖\n\n每個 `memory_nodes` 列帶有 `updated_at` 時間戳與 `version` 整數。所有更新端點要求呼叫者提供最後已知版本：\n\n```http\nPATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}\nX-Node-Version: <integer>\n```\n\n若節點自所提供版本後已被修改，伺服器回傳：\n\n```\nHTTP 412 Precondition Failed\n{ \"detail\": \"Node was modified by another actor since your last fetch. Reload and retry.\" }\n```\n\n客戶端必須重新取得節點、合併變更並重新提交。不允許靜默覆蓋。\n\n```sql\nALTER TABLE memory_nodes ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;\n-- 每次成功 UPDATE 時：version = version + 1\n```\n\n## 17.3 工作區寫入佇列（Advisory Lock）\n\n為防止文件攝入、批次 AI 萃取與並行節點建立的競爭條件，**對同一工作區的寫入透過每工作區的 Advisory Lock 串行化**：\n\n```sql\nSELECT pg_advisory_xact_lock(hashtext(<ws_id)));\n-- 在 transaction commit 或 rollback 時自動釋放\n```\n\n- 若在逾時前無法取得鎖定，伺服器回傳 `HTTP 429 Write queue busy — try again shortly`\n- 鎖定範圍為每工作區；不同工作區的寫入完全並行\n- 讀取操作**不受**寫入鎖限制\n- 逾時可透過 `WS_WRITE_LOCK_TIMEOUT_SECONDS` 設定（預設：5 秒）"
+  },
+  "tags": [
+    "concurrency",
+    "write-serialization",
+    "optimistic-locking",
+    "advisory-lock",
+    "database",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ws001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

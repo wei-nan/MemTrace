@@ -157,7 +157,7 @@ function CloneWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onCo
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <Card variant="surface" padding="md" style={{ border: "1px solid var(--border-default)" }}>
+    <Card variant="surface" padding="md" style={{ border: "1px solid var(--border-default)", overflow: "visible" }}>
       {children}
     </Card>
   );
@@ -862,6 +862,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [accessTab, setAccessTab] = useState<AccessTab>("members");
 
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [language, setLanguage] = useState<"zh-TW" | "en">("zh-TW");
   const [isSaving, setIsSaving] = useState(false);
   const [decayStats, setDecayStats] = useState<any>(null);
@@ -907,6 +908,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
       setInvites(i);
       setWs(w);
       setName(w.name);
+      setDescription(w.description || "");
       setLanguage(w.language);
       setJoinRequests(reqs);
       setAssociations(as);
@@ -1007,11 +1009,22 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                   </select>
                 </div>
               </div>
+              <div>
+                <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>{zh ? "描述" : "Description"}</label>
+                <textarea
+                  className="mt-input"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  disabled={!isOwner}
+                  placeholder={zh ? "簡單介紹這個知識庫的用途…" : "Briefly describe what this knowledge base is about…"}
+                  style={{ width: "100%", height: 72, resize: "vertical", fontFamily: "inherit", fontSize: 14 }}
+                />
+              </div>
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                <Button variant="primary" disabled={!isOwner || isSaving || (name === ws?.name && language === ws?.language)} loading={isSaving} onClick={async () => {
+                <Button variant="primary" disabled={!isOwner || isSaving || (name === ws?.name && language === ws?.language && description === (ws?.description || ""))} loading={isSaving} onClick={async () => {
                   setIsSaving(true);
                   try {
-                    await workspaces.update(wsId, { name, language });
+                    await workspaces.update(wsId, { name, language, description: description || null });
                     await loadData();
                     toast({ message: "Workspace settings updated", variant: "success" });
                   } catch (err) {
@@ -1650,15 +1663,21 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
               <SectionCard>
                 <h3 style={{ fontSize: 14, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}><Link2 size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.create_invite_link')}</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10 }}>
-                  <select className="mt-input" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
-                    <option value="viewer">Viewer</option>
-                    <option value="editor">Editor</option>
-                  </select>
-                  <select className="mt-input" value={inviteDays} onChange={(e) => setInviteDays(Number(e.target.value))}>
-                    <option value={3}>{zh ? "3 天" : "3 days"}</option>
-                    <option value={7}>{zh ? "7 天" : "7 days"}</option>
-                    <option value={30}>{zh ? "30 天" : "30 days"}</option>
-                  </select>
+                  <div>
+                    <label className="form-label">{zh ? "角色" : "Role"}</label>
+                    <select className="mt-input" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">{zh ? "有效期限" : "Expires in"}</label>
+                    <select className="mt-input" value={inviteDays} onChange={(e) => setInviteDays(Number(e.target.value))}>
+                      <option value={3}>{zh ? "3 天" : "3 days"}</option>
+                      <option value={7}>{zh ? "7 天" : "7 days"}</option>
+                      <option value={30}>{zh ? "30 天" : "30 days"}</option>
+                    </select>
+                  </div>
                   <button className="btn-primary" onClick={async () => {
                     try {
                       const invite = await workspaces.createInvite(wsId, { role: inviteRole, expires_in_days: inviteDays });

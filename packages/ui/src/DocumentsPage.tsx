@@ -52,6 +52,7 @@ function DocumentDetailPanel({
 
   const [doc, setDoc] = useState<DocumentDetail | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isImagePreview, setIsImagePreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [editingTitle, setEditingTitle] = useState(false);
@@ -98,6 +99,7 @@ function DocumentDetailPanel({
   useEffect(() => {
     setDoc(null);
     setPreview(null);
+    setIsImagePreview(false);
     setLoadError('');
     documents.get(wsId, docId)
       .then(d => {
@@ -109,6 +111,13 @@ function DocumentDetailPanel({
 
   useEffect(() => {
     if (!doc) return;
+    // Images are displayed inline — no text preview needed
+    if (doc.mime_type?.startsWith('image/')) {
+      setIsImagePreview(true);
+      setPreview(documents.contentUrl(wsId, docId));
+      return;
+    }
+    setIsImagePreview(false);
     setPreviewLoading(true);
     documents.preview(wsId, docId)
       .then(text => setPreview(text as unknown as string))
@@ -244,6 +253,12 @@ function DocumentDetailPanel({
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 13 }}>
               <RefreshCw size={13} className="animate-spin" />{zh ? '載入中…' : 'Loading…'}
             </div>
+          ) : isImagePreview && preview ? (
+            <img
+              src={preview}
+              alt={doc?.filename}
+              style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 8, border: '1px solid var(--border-subtle)', display: 'block' }}
+            />
           ) : preview ? (
             <pre style={{
               fontSize: 12, lineHeight: 1.6, color: 'var(--text-secondary)',

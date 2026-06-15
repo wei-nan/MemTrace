@@ -102,10 +102,28 @@ export default function OnboardingWizard({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Security step state — MUST live at the top level (not inside renderSecurity),
+  // otherwise these hooks only register when step 3 mounts, changing the hook
+  // count between renders and crashing the whole wizard (blank screen).
+  const [pwd, setPwd] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [pwdError, setPwdError] = useState('');
+
   useEffect(() => {
     const idx = STEPS.findIndex(s => !state.steps_done.includes(s.id));
     setActiveStepIdx(idx === -1 ? STEPS.length - 1 : idx);
   }, [state.steps_done]);
+
+  // Auto-skip password setup if the user already has a password (e.g. registered via /register/password).
+  useEffect(() => {
+    if (user?.auth_providers?.includes('password') && !state.steps_done.includes('security')) {
+      onUpdate({
+        steps_done: [...new Set([...state.steps_done, 'security'])],
+        steps_skipped: [...new Set([...state.steps_skipped, 'security'])],
+      });
+    }
+  }, [user?.auth_providers]);
 
   const next = (stepId: string) => {
     const nextSteps = [...new Set([...state.steps_done, stepId])];
@@ -270,7 +288,7 @@ export default function OnboardingWizard({
           <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t('onboarding.concept_trust_desc')}</div>
         </div>
       </div>
-      <Button variant="primary" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('welcome')} rightIcon={<ChevronRight size={16} />}>
+      <Button variant="primary" style={{ display: 'flex', width: 'fit-content', margin: '32px auto 0' }} onClick={() => next('welcome')} rightIcon={<ChevronRight size={16} />}>
         {zh ? '下一步' : 'Next Step'}
       </Button>
     </div>
@@ -281,7 +299,7 @@ export default function OnboardingWizard({
       <div className="onboard-icon-success"><CheckCircle2 size={48} /></div>
       <h3>{t('onboarding.account_ready')}</h3>
       <p>{t('onboarding.account_subtitle')}</p>
-      <Button variant="primary" style={{ display: 'block', margin: '32px auto 0' }} onClick={() => next('account')} rightIcon={<ChevronRight size={16} />}>
+      <Button variant="primary" style={{ display: 'flex', width: 'fit-content', margin: '32px auto 0' }} onClick={() => next('account')} rightIcon={<ChevronRight size={16} />}>
         {t('onboarding.start_setup')}
       </Button>
     </div>
@@ -583,11 +601,6 @@ export default function OnboardingWizard({
 
 
   const renderSecurity = () => {
-    const [pwd, setPwd] = useState('');
-    const [confirmPwd, setConfirmPwd] = useState('');
-    const [submitting, setSubmitting] = useState(false);
-    const [pwdError, setPwdError] = useState('');
-
     const handleSetPassword = async () => {
       if (pwd.length < 8) {
         setPwdError(zh ? '密碼長度需至少 8 個字元' : 'Password must be at least 8 characters');
@@ -689,7 +702,7 @@ export default function OnboardingWizard({
         </div>
       </div>
 
-      <Button variant="primary" style={{ display: 'block', margin: '24px auto 0' }} onClick={onComplete}>
+      <Button variant="primary" style={{ display: 'flex', width: 'fit-content', margin: '24px auto 0' }} onClick={onComplete}>
         {t('onboarding.enter_app')}
       </Button>
     </div>

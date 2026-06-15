@@ -40,6 +40,8 @@ const resources = {
         vis: '可見度',
         vis_private: '私人 (Private)',
         vis_team: '團隊 (Team)',
+        vis_restricted: '限制 (Restricted)',
+        vis_conditional_public: '條件公開 (Conditional Public)',
         vis_public: '公開 (Public)',
         body: '記憶內容',
         bodyP: '在這裡留下詳細的知識紀錄...',
@@ -346,6 +348,7 @@ const resources = {
         start_import: '開始匯入'
       },
       node: {
+        title: '標題',
         title_new: '新增記憶',
         title_edit: '編輯記憶',
         title_detail: '記憶節點詳情',
@@ -492,6 +495,8 @@ const resources = {
         vis: 'Visibility',
         vis_private: 'Private (Only me)',
         vis_team: 'Team (Organization space)',
+        vis_restricted: 'Restricted (Invite only)',
+        vis_conditional_public: 'Conditional Public (Approval required)',
         vis_public: 'Public (Global hub)',
         body: 'Memory Body',
         bodyP: 'Record the detailed knowledge here...',
@@ -798,6 +803,7 @@ const resources = {
         start_import: 'Start Import'
       },
       node: {
+        title: 'Title',
         title_new: 'New Memory',
         title_edit: 'Edit Memory',
         title_detail: 'Memory Details',

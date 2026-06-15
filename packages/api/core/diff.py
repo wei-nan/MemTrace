@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from difflib import ndiff
 from typing import Any, Optional
 

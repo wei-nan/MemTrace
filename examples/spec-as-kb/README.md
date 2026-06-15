@@ -3,8 +3,8 @@
 This directory contains the MemTrace specification represented as a MemTrace knowledge base itself.
 It demonstrates the product's core philosophy in practice: one idea per node, value through connections.
 
-- **199 Memory Nodes** (zh-TW) + **171** clean English counterparts
-- **288 Edges** (zh-TW) + **234** English counterparts
+- **230 Memory Nodes** (zh-TW) + **171** clean English counterparts
+- **343 Edges** (zh-TW) + **234** English counterparts
 - All nodes and edges conform to `schema/node.v1.json` and `schema/edge.v1.json`
 
 > Note: `provenance.signature` values are placeholders. In a live system they would be

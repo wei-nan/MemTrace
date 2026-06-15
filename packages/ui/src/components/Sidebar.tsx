@@ -62,7 +62,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       </Button>
 
       <div className="brand" style={{ justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+          onClick={() => onSetView('explore')}
+          title={zh ? '回到探索頁' : 'Back to Explore'}
+        >
           {!collapsed && <div className="brand-text">MemTrace</div>}
         </div>
         {!collapsed && (

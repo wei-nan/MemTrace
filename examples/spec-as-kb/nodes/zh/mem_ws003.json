@@ -1,0 +1,38 @@
+{
+  "id": "mem_ws003",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S3 跨工作區版本同步：sync_from_source",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 問題背景\n\n`copied_from_node` 只記錄來源，來源節點更新後 copies 不會同步，導致 5 個工作區有 5 份分歧內容。\n\n## 同步機制\n\n### 自動通知（LISTEN/NOTIFY）\n\n原始節點更新時，透過 PostgreSQL `LISTEN/NOTIFY` 將所有複製節點推入 `review_queue`，標記 `change_type='source_updated'`。通知延遲 ≤ 5 秒。\n\n### 手動同步 MCP 工具\n\n```json\n{\n  \"name\": \"sync_from_source\",\n  \"description\": \"手動從來源節點拉取最新版本\",\n  \"parameters\": {\n    \"node_id\": \"要同步的複製節點 id\"\n  }\n}\n```\n\n## 相關欄位\n\n`memory_nodes` 表：\n- `copied_from_node`（text）：來源節點 id\n- `copied_from_ws`（text）：來源工作區 id\n\n## 端到端驗收流程\n\n1. 建立節點 A（ws_a）\n2. 複製到 ws_b，成為節點 B（`copied_from_node = A.id`）\n3. 更新節點 A\n4. 確認節點 B 進入 `review_queue`，`change_type='source_updated'`\n5. 確認所有 copies 都收到通知，延遲 ≤ 5 秒"
+  },
+  "tags": [
+    "cross-workspace",
+    "sync",
+    "mcp-tool",
+    "copied-node",
+    "governance",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ws003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

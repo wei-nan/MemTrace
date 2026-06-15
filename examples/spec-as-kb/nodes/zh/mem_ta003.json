@@ -1,0 +1,38 @@
+{
+  "id": "mem_ta003",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S1 similar_to 自動化掃描與去重",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 目標\n\n消除重複節點：embedding cosine ≥ 0.85 的節點對都應有 `similar_to` edge，避免把高度相似內容重複塞給 AI（耗 token + 干擾判斷）。\n\n## 自動化流程\n\n`bg_suggest_edges`（`services/bg_jobs.py`）在以下時機觸發：\n\n1. **文件攝入後**：`pipeline.py` 呼叫 `scheduler.add_job(bg_suggest_edges, args=[ws_id, node_id, user_id])`\n2. **週期掃描**：每週日 02:00 cron 對全工作區重跑\n\n## 相似度閾值規則\n\n| cosine 範圍 | 行動 |\n|------------|------|\n| ≥ 0.85, < 0.92 | 自動建 `similar_to` edge（weight = cosine 值） |\n| ≥ 0.92 | 進 `review_queue`，標記 `duplicate_candidate` |\n\n## 驗收 SQL\n\n```sql\n-- 預期回傳 0（無未連結的高相似對）\nWITH pairs AS (\n  SELECT a.id AS a_id, b.id AS b_id,\n         1 - (a.embedding <=> b.embedding) AS sim\n  FROM memory_nodes a, memory_nodes b\n  WHERE a.workspace_id = b.workspace_id\n    AND a.id < b.id\n    AND 1 - (a.embedding <=> b.embedding) >= 0.85\n)\nSELECT count(*) FROM pairs p\nWHERE NOT EXISTS (\n  SELECT 1 FROM edges e\n  WHERE e.relation = 'similar_to'\n    AND ((e.from_id = p.a_id AND e.to_id = p.b_id)\n         OR (e.from_id = p.b_id AND e.to_id = p.a_id))\n);\n```"
+  },
+  "tags": [
+    "dedup",
+    "similar_to",
+    "automation",
+    "cron",
+    "embedding",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ta003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

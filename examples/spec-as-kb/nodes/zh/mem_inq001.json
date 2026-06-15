@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "缺口：多 planner 規劃討論（fan-out + 共識裁決）",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "目前迴圈的規劃階段只有單 planner。期望能支援多個 planner 並行產生提案，再裁決是否達成共識。\n\n**待討論的設計問題：**\n\n1. **誰負責啟動多個 planner？** 外部 harness fan-out，還是 MemTrace conductor 主動觸發？\n2. **提案的語意邊界：** 多個 planner 是針對「同一個任務」產生不同解法，還是各自選「不同任務」？\n3. **escalate 後的 UI：** converge_proposals 回傳 escalate 時，review_queue 如何呈現「多選一」型態的提案卡片？\n4. **與現有 claim_task 的互動：** 多 planner 同時 claim 不同任務時，任務分配邏輯是否需要調整？\n\n**現有備料：** `converge_proposals` MCP 工具已實作（複用 consult synthesizer，回傳 converge / escalate）。"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "multi-agent",
+    "planner",
+    "mcp-tool",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "inq001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

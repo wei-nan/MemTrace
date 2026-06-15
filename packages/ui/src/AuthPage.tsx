@@ -14,6 +14,8 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
 
   const [email, setEmail]             = useState('');
   const [password, setPassword]       = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [purposeNote, setPurposeNote] = useState('');
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
@@ -56,6 +58,17 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
         return;
       }
 
+      if (mode === 'register' && registrationMode !== 'invite_only') {
+        if (password !== confirmPassword) {
+          setError('密碼不一致，請重新確認。');
+          return;
+        }
+        const resp = await auth.registerWithPassword({ email, password, display_name: displayName });
+        localStorage.setItem('mt_token', resp.access_token);
+        window.location.reload();
+        return;
+      }
+
       const resp = await auth.register({ email, purpose_note: mode === 'register' ? purposeNote : undefined });
       setMode('sent');
       setMessage(resp.message || 'Check your email for the magic link!');
@@ -66,7 +79,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
     }
   };
 
-  const switchMode = (m: Mode) => { setMode(m); setError(''); setMessage(''); setPassword(''); setUseMagicLink(false); };
+  const switchMode = (m: Mode) => { setMode(m); setError(''); setMessage(''); setPassword(''); setConfirmPassword(''); setDisplayName(''); setUseMagicLink(false); };
 
   const bgStyles: React.CSSProperties = {
     position: 'fixed',
@@ -185,7 +198,7 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</span>
-                <Button variant="link" onClick={() => switchMode('forgot')} style={{ fontSize: 12 }}>
+                <Button variant="link" onClick={() => switchMode('forgot')} style={{ fontSize: 12 }} tabIndex={-1}>
                   Forgot?
                 </Button>
               </div>
@@ -215,15 +228,46 @@ export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
             </div>
           )}
 
-          {mode === 'register' && (
+          {mode === 'register' && registrationMode !== 'invite_only' && (
+            <>
+              <Input
+                label="Display Name"
+                type="text"
+                value={displayName}
+                placeholder="Your name"
+                onChange={e => setDisplayName(e.target.value)}
+              />
+              <Input
+                label="Password"
+                type="password"
+                value={password}
+                placeholder="••••••••"
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+              <Input
+                label="Confirm Password"
+                type="password"
+                value={confirmPassword}
+                placeholder="••••••••"
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+              />
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -8 }}>
+                至少 8 字元，含大小寫英文字母與數字
+              </div>
+            </>
+          )}
+
+          {mode === 'register' && registrationMode === 'invite_only' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Purpose of Join</span>
-              <textarea 
-                className="mt-input" 
+              <textarea
+                className="mt-input"
                 value={purposeNote}
                 placeholder="Help us understand your use case..."
                 style={{ height: 100, resize: 'none', padding: '14px', borderRadius: '12px', fontSize: 15 }}
-                onChange={e => setPurposeNote(e.target.value)} 
+                onChange={e => setPurposeNote(e.target.value)}
               />
             </div>
           )}

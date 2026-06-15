@@ -252,14 +252,70 @@ def preview_document(
     if not storage.exists(storage_path):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
-    # Text-based formats and ingest-extracted .txt files: read via storage
-    if mime_type in ("text/plain", "text/markdown", "text/csv", "application/json") or storage_path.endswith(".txt"):
+    raw = storage.get(storage_path)
+
+    # Text-based formats
+    if mime_type in ("text/plain", "text/markdown", "text/csv", "application/json") \
+            or storage_path.endswith((".txt", ".md", ".csv", ".json")):
+        return PlainTextResponse(raw.decode("utf-8", errors="replace")[:max_chars])
+
+    # HTML — strip tags
+    if mime_type == "text/html" or storage_path.endswith(".html"):
+        import re
+        text = re.sub(r"<[^>]+>", " ", raw.decode("utf-8", errors="replace"))
+        text = re.sub(r"\s{2,}", "\n", text).strip()
+        return PlainTextResponse(text[:max_chars])
+
+    # PDF — extract text from first 3 pages via pdfplumber
+    if mime_type == "application/pdf" or storage_path.endswith(".pdf"):
         try:
-            raw = storage.get(storage_path)
-            content = raw.decode("utf-8", errors="replace")[:max_chars]
-            return PlainTextResponse(content)
-        except OSError:
-            pass
+            import io, pdfplumber
+            parts: list[str] = []
+            with pdfplumber.open(io.BytesIO(raw)) as pdf:
+                for page in pdf.pages[:3]:
+                    t = page.extract_text()
+                    if t:
+                        parts.append(t)
+            return PlainTextResponse("\n\n".join(parts)[:max_chars] or "(無法從此 PDF 萃取文字)")
+        except Exception as e:
+            raise HTTPException(status_code=415, detail=f"PDF 預覽失敗: {e}")
+
+    # DOCX — extract paragraphs
+    if mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" \
+            or storage_path.endswith(".docx"):
+        try:
+            import io
+            from docx import Document as DocxDocument
+            doc_obj = DocxDocument(io.BytesIO(raw))
+            text = "\n".join(p.text for p in doc_obj.paragraphs if p.text.strip())
+            return PlainTextResponse(text[:max_chars] or "(文件無文字內容)")
+        except Exception as e:
+            raise HTTPException(status_code=415, detail=f"DOCX 預覽失敗: {e}")
+
+    # XLSX — extract first sheet as CSV-like text
+    if mime_type in (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+    ) or storage_path.endswith((".xlsx", ".xls")):
+        try:
+            import io, openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
+            ws_sheet = wb.active
+            rows = []
+            for i, row in enumerate(ws_sheet.iter_rows(values_only=True)):
+                if i >= 100:
+                    break
+                rows.append("\t".join("" if v is None else str(v) for v in row))
+            return PlainTextResponse("\n".join(rows)[:max_chars] or "(試算表無資料)")
+        except Exception as e:
+            raise HTTPException(status_code=415, detail=f"XLSX 預覽失敗: {e}")
+
+    # Images — signal to the UI to render inline (return special content-type header)
+    if mime_type.startswith("image/"):
+        raise HTTPException(
+            status_code=415,
+            detail="__image__",
+        )
 
     raise HTTPException(
         status_code=415,

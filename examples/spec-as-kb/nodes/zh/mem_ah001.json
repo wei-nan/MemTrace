@@ -1,0 +1,38 @@
+{
+  "id": "mem_ah001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S3 Audit Trail Hash Chain 與 verify_audit_chain",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 目標\n\n`audit_trail` 表為 append-only，並透過 hash chain 確保可驗證未被篡改。\n\n## audit_trail 表（hash chain 欄位）\n\n```sql\n-- audit_trail 表相關欄位\nid, workspace_id, action, target_type, target_id,\nactor_id, created_at, metadata,\nprev_hash,  -- 前一筆記錄的 curr_hash\ncurr_hash   -- 本筆記錄的 SHA-256 雜湊\n```\n\n每筆記錄的 `curr_hash = SHA-256(prev_hash || action || target_id || actor_id || created_at)`，形成不可竄改的鏈式結構。\n\n## DB 層保護\n\nDB trigger 拒絕對 `audit_trail` 執行 UPDATE / DELETE，確保 append-only。\n\n## verify_audit_chain MCP 工具\n\n```json\n{\n  \"name\": \"verify_audit_chain\",\n  \"description\": \"驗證工作區的 audit trail 完整性\",\n  \"parameters\": {\n    \"workspace_id\": \"ws_xxxx\"\n  },\n  \"returns\": {\n    \"status\": \"ok | broken\",\n    \"broken_at_revision_id\": \"audit_trail 記錄 id（若 broken）\"\n  }\n}\n```\n\n在 `services/audit.py` 實作，於 `mcp_tools.py` 暴露。\n\n## 驗收標準\n\n篡改測試：手動改一筆 audit_trail → `verify_audit_chain` 回 `broken` 並指出斷點，偵測率 100%。"
+  },
+  "tags": [
+    "audit",
+    "hash-chain",
+    "integrity",
+    "mcp-tool",
+    "security",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ah001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

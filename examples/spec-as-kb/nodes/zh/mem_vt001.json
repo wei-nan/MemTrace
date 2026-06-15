@@ -1,0 +1,38 @@
+{
+  "id": "mem_vt001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S3 投票防操縱：UNIQUE 約束與時間衰減",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 問題背景\n\n沒有「同 user 對同 node 僅能算一票」的約束，單一使用者可刷高或刷低 trust。\n\n## 資料庫約束\n\n`node_trust_votes` 表設有：\n\n```sql\nUNIQUE (node_id, user_id)  -- 同 user 對同 node 只能有一筆投票紀錄\n```\n\n後票**覆蓋**前票（ON CONFLICT UPDATE），不會累積。\n\n## 最低投票人數規則\n\n同工作區節點需 ≥ 3 個不同 voter 才採計 trust 計算（低於門檻不影響 trust_score 升降）。\n\n## 時間衰減\n\n投票時間衰減：超過 30 天的票 weight × 0.5，避免早期投票永久鎖定 trust。\n\n## 模擬驗收\n\n- 操縱測試：單一 user 對同一節點投 100 次 → 最終 trust_score 變化 ≤ 0.05\n- 正常測試：3 個不同 user 各投 1 票 → trust 完整生效\n\n## 相關資料表欄位\n\n```sql\n-- node_trust_votes\nid, workspace_id, node_id, user_id,\naccuracy (1–5), utility (1–5), created_at\n```"
+  },
+  "tags": [
+    "trust",
+    "vote",
+    "anti-manipulation",
+    "governance",
+    "schema",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "vt001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

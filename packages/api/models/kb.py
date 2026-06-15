@@ -7,6 +7,7 @@ from datetime import datetime
 
 class WorkspaceCreate(BaseModel):
     name: Optional[str] = None                           # filled by validator below if absent
+    description: Optional[str] = None
     language: str                                        # Phase 6: 'zh-TW' | 'en' (now required)
     visibility: str = "private"                          # public | restricted | private
     kb_type: Literal["evergreen", "ephemeral"] = "evergreen"  # immutable after creation
@@ -34,6 +35,7 @@ class WorkspaceCreate(BaseModel):
 class WorkspaceResponse(BaseModel):
     id: str
     name: str
+    description: Optional[str] = None
     language: str                                        # Phase 6: 'zh-TW' | 'en'
     linked_workspace_id: Optional[str] = None            # Phase 6: paired mono-language workspace
     visibility: str
@@ -224,6 +226,7 @@ class GraphPreviewResponse(BaseModel):
 
 class WorkspaceUpdate(BaseModel):
     name: Optional[str] = None
+    description: Optional[str] = None
     language: Optional[str] = None                       # Phase 6: settable until Stage 2 Gate enforces NOT NULL
     visibility: Optional[str] = None
     archive_window_days: Optional[int] = None

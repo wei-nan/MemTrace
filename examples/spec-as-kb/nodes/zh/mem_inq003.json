@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq003",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "缺口：人 gate 送審品質 — flag-only 項目的呈現方式",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "目前 `submit_outcome(fail)` 失敗標記與 per-feature 整合檢查，送入 `review_queue` 時帶空 `node_data={}`，reviewer 看到的是空卡片，沒有具體脈絡。\n\n**待討論的設計問題：**\n\n1. **摘要寫在哪裡？** `node_data`（現有欄位）vs. `proposer_meta`（新欄位）。兩者對 review 卡片 UI 的影響各為何？\n2. **UI 呈現方向：**\n   - 方案 A：把失敗原因 / 整合檢查摘要寫進 `node_data`，review 卡片顯示這些內容代替空 diff\n   - 方案 B：承認這類是「flag-only」操作，UI 改用獨立樣式（不顯示 diff，改顯示原因 + 跳轉節點）\n   - 兩者並不互斥，但實作優先序不同\n3. **reviewer 真正需要什麼？** 看失敗原因後直接能做決定，還是需要跳到節點編輯才有感？"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "review-queue",
+    "human-gate",
+    "ux",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "inq003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

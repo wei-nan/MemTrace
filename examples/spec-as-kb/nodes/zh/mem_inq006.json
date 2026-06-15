@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq006",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "缺口（技術債）：schema/sql 與 migrations 的單一事實來源",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "排查發現：執行期由 `core.database.run_migrations()` 套用 `packages/api/migrations/*.sql`（目前只有 054–056 三個檔）；`schema/sql/` 編號到 112，但兩者都找不到 `inquiry_paths` 等基礎表的建表 SQL。`test_inquiry_paths.py` 直接 assert 表存在（不自建），暗示有另一套 base schema 機制（疑似 shared-postgres 外部一次性載入），但本 repo 內未見來源。\n\n**待討論的設計問題：**\n\n1. **何者為準？** `schema/sql/` 是規格文件，還是實際執行的 migration？`migrations/` 是否只是增量補丁？\n2. **base schema 在哪裡？** shared-postgres 是 CI 環境的外部 fixture 嗎？還是有一個未被 commit 的初始化腳本？\n3. **修正方向：** 補齊 `migrations/` 以覆蓋完整建表歷史，還是改用 `schema/sql/` 作為唯一來源並更新部署流程？\n4. **緊迫性：** Phase 6 功能不受影響（全部複用既有表）。但下一批功能如果需要新 migration，此落差必須先釐清。"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "tech-debt",
+    "schema",
+    "migrations",
+    "database"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "inq006a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

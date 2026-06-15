@@ -10,8 +10,8 @@ from fastapi.responses import JSONResponse
 from core.config import settings
 from core.database import db_cursor
 from core.email import send_magic_link_email
-from core.security import generate_id, create_access_token, generate_refresh_token
-from models.auth import MagicLinkRegisterRequest, MagicLinkVerifyRequest, TokenResponse
+from core.security import generate_id, create_access_token, generate_refresh_token, hash_password, check_password_policy
+from models.auth import MagicLinkRegisterRequest, MagicLinkVerifyRequest, RegisterRequest, TokenResponse
 from routers.auth import _set_refresh_cookie
 
 logger = logging.getLogger(__name__)
@@ -225,6 +225,55 @@ def verify_magic_link(body: MagicLinkVerifyRequest):
     )
     _set_refresh_cookie(response, raw_refresh)
     return response
+@router.post("/register/password", response_model=TokenResponse, status_code=201)
+def register_with_password(body: RegisterRequest):
+    """
+    Password-based registration for open/domain modes.
+    Creates the user immediately and returns a session token.
+    """
+    mode = settings.registration_mode
+    if mode in ("closed", "invite_only"):
+        raise HTTPException(status_code=403, detail="此模式不支援密碼直接註冊，請使用邀請連結。")
+
+    email = body.email.lower().strip()
+
+    if mode == "domain":
+        _validate_email_domain(email)
+
+    err = check_password_policy(body.password)
+    if err:
+        raise HTTPException(status_code=400, detail=err)
+
+    display_name = (body.display_name or "").strip() or email.split("@")[0]
+
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        if cur.fetchone():
+            raise HTTPException(status_code=409, detail="此 email 已被註冊，請直接登入。")
+
+        user_id = generate_id("usr")
+        cur.execute("""
+            INSERT INTO users (id, display_name, email, password_hash, email_verified, created_at)
+            VALUES (%s, %s, %s, %s, false, now())
+        """, (user_id, display_name, email, hash_password(body.password)))
+
+    access_token = create_access_token(user_id, email, display_name)
+    raw_refresh, refresh_hash = generate_refresh_token()
+    refresh_expires = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "INSERT INTO refresh_tokens (token_hash, user_id, expires_at) VALUES (%s, %s, %s)",
+            (refresh_hash, user_id, refresh_expires),
+        )
+
+    response = JSONResponse(
+        content={"access_token": access_token, "token_type": "bearer"},
+        status_code=201,
+    )
+    _set_refresh_cookie(response, raw_refresh)
+    return response
+
+
 @router.post("/register/invite/{invite_token}")
 def register_with_invite(invite_token: str, body: MagicLinkRegisterRequest):
     """

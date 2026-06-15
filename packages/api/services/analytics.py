@@ -6,13 +6,13 @@ from services.workspaces import require_ws_access
 
 def get_workspace_analytics_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
     require_ws_access(cur, ws_id, user)
-    
+
     cur.execute("SELECT count(*) FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
     total_nodes = cur.fetchone()["count"]
-    
+
     cur.execute("SELECT count(*) FROM edges WHERE workspace_id = %s AND status = 'active'", (ws_id,))
     active_edges = cur.fetchone()["count"]
-    
+
     cur.execute(
         """
         SELECT count(*) FROM memory_nodes n
@@ -22,19 +22,65 @@ def get_workspace_analytics_in_db(cur, ws_id: str, user: Optional[dict]) -> dict
         (ws_id,),
     )
     orphan_node_count = cur.fetchone()["count"]
-    
+
     cur.execute("SELECT AVG(trust_score) FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
     avg_trust_score = cur.fetchone()["avg"] or 0.0
-    
+
+    # Faded edge ratio
+    cur.execute(
+        "SELECT COUNT(*) FILTER (WHERE status = 'faded') AS faded, COUNT(*) AS total FROM edges WHERE workspace_id = %s",
+        (ws_id,),
+    )
+    edge_counts = cur.fetchone()
+    total_edges = edge_counts["total"] or 0
+    faded_edge_ratio = float(edge_counts["faded"]) / total_edges if total_edges > 0 else 0.0
+
+    # Monthly traversal count (sum of all node traversal_counts in workspace)
+    cur.execute(
+        "SELECT COALESCE(SUM(traversal_count), 0) AS total FROM memory_nodes WHERE workspace_id = %s AND status = 'active'",
+        (ws_id,),
+    )
+    monthly_traversal_count = int(cur.fetchone()["total"])
+
+    # Top 5 most-traversed nodes
+    cur.execute(
+        """
+        SELECT id, title, traversal_count
+        FROM memory_nodes
+        WHERE workspace_id = %s AND status = 'active' AND traversal_count > 0
+        ORDER BY traversal_count DESC
+        LIMIT 5
+        """,
+        (ws_id,),
+    )
+    top_nodes = [{"id": r["id"], "title": r["title"], "traversal_count": r["traversal_count"]} for r in cur.fetchall()]
+
+    # 30-day traversal trend from traversal_log (node traversals only)
+    cur.execute(
+        """
+        SELECT DATE(tl.traversed_at) AS date, COUNT(*) AS count
+        FROM traversal_log tl
+        JOIN memory_nodes mn ON mn.id = tl.node_id
+        WHERE mn.workspace_id = %s
+          AND tl.node_id IS NOT NULL
+          AND tl.traversed_at > NOW() - INTERVAL '30 days'
+        GROUP BY DATE(tl.traversed_at)
+        ORDER BY date
+        """,
+        (ws_id,),
+    )
+    traversal_trend = [{"date": str(r["date"]), "count": r["count"]} for r in cur.fetchall()]
+
     return {
         "total_nodes": total_nodes,
         "active_edges": active_edges,
         "orphan_node_count": orphan_node_count,
         "avg_trust_score": float(avg_trust_score),
-        "faded_edge_ratio": 0.0,
-        "monthly_traversal_count": 0,
+        "faded_edge_ratio": round(faded_edge_ratio, 4),
+        "monthly_traversal_count": monthly_traversal_count,
         "kb_type": "evergreen",
-        "top_nodes": [],
+        "top_nodes": top_nodes,
+        "traversal_trend": traversal_trend,
     }
 
 def get_decay_stats_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:

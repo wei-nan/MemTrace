@@ -1,0 +1,44 @@
+{
+  "id": "mem_cl001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§11.4 動態叢集系統（Dynamic Cluster System）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "每個工作區擁有一組**節點叢集**（`node_clusters` 資料表）。叢集是具名的主題群組（例如「API Design」、「Security Rules」），用於在圖形視圖中做視覺分組與篩選。\n\n## AI 自動指派（§11.4.1）\n\n文件攝入時，萃取提示詞會帶入工作區現有的叢集名稱清單，指示模型：\n\n1. 在回傳節點時附上 `cluster_name_zh` 與 `cluster_name_en`，指向**最符合的現有叢集**。\n2. 只在節點明顯不屬於任何現有叢集時，才**提議新叢集名稱**（簡短，1–3 個字）。\n\nPipeline 透過 `get_or_create_cluster`（不區分大小寫比對 `name_en`）將提議名稱解析為 cluster id。解析後的 `cluster_id` 在節點進入 review queue 前即寫入節點。\n\n## 資料表結構\n\n`node_clusters` 表記錄工作區內所有叢集：名稱（zh/en）、顏色等元資料。`memory_nodes` 表透過 `cluster_id` 外鍵關聯至此表（可為 NULL）。"
+  },
+  "tags": [
+    "cluster",
+    "ingestion",
+    "ai",
+    "graph-view",
+    "schema"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "cl001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

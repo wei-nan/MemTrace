@@ -122,9 +122,7 @@ _strip_body_if_viewer = strip_body_if_viewer
 
 # ─── Workspace CRUD ───────────────────────────────────────────────────────────
 
-from core.ai import resolve_provider, get_embedding_dim
 from core.security import generate_id
-from core.ai import AIProviderUnavailable
 
 def list_workspaces_in_db(cur, search: Optional[str], user: Optional[dict]) -> list[dict]:
     uid = user["sub"] if user else None
@@ -166,10 +164,11 @@ def list_workspaces_in_db(cur, search: Optional[str], user: Optional[dict]) -> l
 
 def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
     from core.agent import get_or_create_agent_node
-    
+    from core.ai import resolve_provider, get_embedding_dim, AIProviderUnavailable
+
     if body_dict.get("visibility") not in VALID_KB_VIS:
         raise HTTPException(status_code=400, detail="Invalid visibility")
-    
+
     embedding_model = body_dict.get("embedding_model")
     if not embedding_model:
         try:
@@ -240,7 +239,9 @@ def update_workspace_in_db(cur, ws_id: str, uid: str, body_dict: dict) -> dict:
     if ws["owner_id"] != uid:
         raise HTTPException(status_code=403, detail="Only workspace owner can update settings")
     
-    updates = {k: v for k, v in body_dict.items() if v is not None}
+    # description can be set to empty string (clearing it), so exclude only None
+    updates = {k: v for k, v in body_dict.items() if v is not None or k == "description"}
+    updates = {k: v for k, v in updates.items() if v is not None or k == "description"}
     if not updates:
         return ws
     for immutable in ("kb_type", "embedding_model", "embedding_dim", "embedding_provider"):
@@ -273,6 +274,50 @@ def update_workspace_in_db(cur, ws_id: str, uid: str, body_dict: dict) -> dict:
         )
 
     return updated_ws
+
+def explore_workspaces_in_db(cur, user: Optional[dict], q: Optional[str], lang: Optional[str], sort: str) -> list[dict]:
+    uid = user["sub"] if user else None
+
+    public_filter = "w.visibility IN ('public', 'conditional_public')"
+    params: list = []
+
+    if uid:
+        where = f"({public_filter} OR w.owner_id = %s OR w.id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s))"
+        params = [uid, uid]
+    else:
+        where = public_filter
+
+    if q:
+        where += " AND (w.name ILIKE %s OR w.description ILIKE %s)"
+        like = f"%{q}%"
+        params += [like, like]
+
+    if lang:
+        where += " AND w.language = %s"
+        params.append(lang)
+
+    order = "w.created_at DESC" if sort == "newest" else "node_count DESC"
+
+    cur.execute(
+        f"""
+        SELECT w.id, w.name, w.description, w.language, w.visibility, w.kb_type,
+               w.owner_id, w.created_at, w.updated_at,
+               u.display_name AS owner_display_name,
+               (SELECT count(*) FROM memory_nodes mn WHERE mn.workspace_id = w.id AND mn.status = 'active') AS node_count,
+               CASE WHEN w.owner_id = %s THEN 'admin'
+                    ELSE wm.role::text
+               END AS my_role
+        FROM workspaces w
+        LEFT JOIN users u ON u.id = w.owner_id
+        LEFT JOIN workspace_members wm ON wm.workspace_id = w.id AND wm.user_id = %s
+        WHERE w.deleted_at IS NULL AND w.status = 'active' AND {where}
+        ORDER BY {order}
+        LIMIT 200
+        """,
+        [uid, uid] + params,
+    )
+    return cur.fetchall()
+
 
 def delete_workspace_in_db(cur, ws_id: str, user: dict) -> None:
     ws = require_ws_access(cur, ws_id, user, write=True)
@@ -436,14 +481,23 @@ def create_association_in_db(cur, ws_id: str, target_ws_id: str, user: dict) -> 
         INSERT INTO workspace_associations (id, source_ws_id, target_ws_id)
         VALUES (%s, %s, %s)
         ON CONFLICT DO NOTHING
-        RETURNING *
+        RETURNING id, source_ws_id, target_ws_id, created_at
         """,
         (assoc_id, ws_id, target_ws_id),
     )
-    if not cur.fetchone():
+    row = cur.fetchone()
+    if not row:
         from fastapi import HTTPException
         raise HTTPException(status_code=409, detail="Association already exists")
-    return {"source_ws_id": ws_id, "target_ws_id": target_ws_id}
+    cur.execute("SELECT name FROM workspaces WHERE id = %s", (target_ws_id,))
+    ws_row = cur.fetchone()
+    return {
+        "id": row["id"],
+        "source_ws_id": row["source_ws_id"],
+        "target_ws_id": row["target_ws_id"],
+        "target_name": ws_row["name"] if ws_row else target_ws_id,
+        "created_at": row["created_at"],
+    }
 
 def delete_association_in_db(cur, ws_id: str, target_ws_id: str, user: dict) -> None:
     from services.workspaces import require_ws_access

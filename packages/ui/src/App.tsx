@@ -14,8 +14,8 @@ const ForkWorkspaceModal = lazy(() => import('./components/ForkWorkspaceModal'))
 const NodeEditor = lazy(() => import('./NodeEditor'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 
-type User = { id: string; display_name: string; email: string; email_verified: boolean };
-type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat';
+type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[] };
+type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore';
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -159,6 +159,19 @@ export default function App() {
     }).catch(() => {});
   }, [authenticated]);
 
+  useEffect(() => {
+    if (!selectedWs) {
+      setCurrentView('explore');
+      return;
+    }
+    const lastView = localStorage.getItem('mt_last_view') as View | null;
+    if (lastView && lastView !== 'explore') setCurrentView(lastView);
+    else setCurrentView('graph');
+    setEditingNode(undefined);
+    setSourceNodeId(undefined);
+    setShowChat(false);
+  }, [selectedWs?.id]);
+
   const [cloneJob, setCloneJob] = useState<WorkspaceCloneJob | null>(null);
   const [cancellingJob, setCancellingJob] = useState(false);
 
@@ -209,6 +222,12 @@ export default function App() {
 
   // ── Navigation & View State ──────────────────────────────────────────────
   const [currentView, setCurrentView] = useState<View>('graph');
+
+  useEffect(() => {
+    if (currentView && currentView !== 'explore') {
+      localStorage.setItem('mt_last_view', currentView);
+    }
+  }, [currentView]);
   const [editingNode, setEditingNode] = useState<ApiNode | null | undefined>(undefined);
   const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
   const [graphVersion, setGraphVersion] = useState(0);
@@ -218,7 +237,6 @@ export default function App() {
     return saved ? Math.min(900, Math.max(320, parseInt(saved, 10))) : 450;
   });
   const chatPanelWidthRef = useRef(chatPanelWidth);
-  const [showMcpStatus, setShowMcpStatus] = useState(false);
   const [pageSubtitle, setPageSubtitle] = useState('');
 
   const handleChatResizeMouseDown = (e: React.MouseEvent) => {
@@ -343,8 +361,7 @@ export default function App() {
               userMenuRef={userMenuRef}
               onSetView={setCurrentView}
               onLogout={handleLogout}
-              showMcpStatus={showMcpStatus}
-              onSetShowMcpStatus={setShowMcpStatus}
+
             />
           )}
 
@@ -353,6 +370,7 @@ export default function App() {
             setAuthenticated={setAuthenticated}
             user={user}
             selectedWs={selectedWs}
+            setSelectedWs={setSelectedWs}
             currentView={currentView}
             setCurrentView={setCurrentView}
             graphVersion={graphVersion}

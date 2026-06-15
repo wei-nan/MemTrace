@@ -1,0 +1,38 @@
+{
+  "id": "mem_ag001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§S2 MCP Agent 身份綁定",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 問題背景\n\n匿名 MCP 呼叫會產生 ghost 節點（source_type='mcp', author='system'）——無身份則無問責。\n\n## 實作方式（現行）\n\n每個工作區在建立時自動創建一個 **agent node**（`workspaces.agent_node_id`），作為該工作區 MCP 操作的身份節點。`inquiry_paths` 表透過 `agent_id` 欄位記錄每次 MCP inquiry 的執行者。\n\n> **注意**：Phase 5 規格原訂新增獨立 `mcp_agents(id, owner_user_id, name, created_at)` 表，目前 live 以 `agent_node_id` 替代，`mcp_agents` 表尚未建立。\n\n## 規格要求（原訂）\n\n```\nPOST /mcp/* 中介層要求 X-Agent-Id header\nmcp_agents(id, owner_user_id, name, created_at) 表\nsource_type='mcp' 且 author='system' → 拒絕 400\n```\n\n## inquiry_paths 表（已實作）\n\n```sql\nCREATE TABLE inquiry_paths (\n  id            text PRIMARY KEY,\n  workspace_id  text NOT NULL,\n  agent_id      text NOT NULL,   -- agent 身份\n  query_text    text NOT NULL,\n  query_emb     vector(1536),\n  node_sequence text[],\n  outcome       text,  -- 'success'|'partial'|'failed'|'gap'\n  started_at    timestamptz,\n  ended_at      timestamptz,\n  token_used    int,\n  rating        int\n);\n```\n\n## 驗收標準\n\n```sql\n-- 應 = 0\nSELECT count(*) FROM memory_nodes\nWHERE source_type = 'mcp' AND author = 'system';\n```"
+  },
+  "tags": [
+    "mcp",
+    "agent",
+    "identity",
+    "governance",
+    "inquiry-paths",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ag001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_acp001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§19 AI 對話面板（AI Conversation Panel）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "**AI 對話面板**是一個獨立的一級 UI 介面——與圖形搜尋列分開。它支援持久、多輪對話，並以工作區知識圖為基礎。與唯讀的對話式 Q&A（§13A）不同，它支援**對話中的編輯提案**。\n\n## 存取（§19.2）\n\n- 透過側邊欄的專用面板按鈕存取（與搜尋圖示不同）\n- **檢視者角色以上**的使用者可使用\n- 需要認證——未認證使用者無法存取\n\n## 對話能力（§19.3）\n\n| 能力 | 描述 |\n|------|------|\n| **知識庫查詢** | 詢問知識庫內容；AI 擷取並引用相關節點（與 §13A 相同 pipeline） |\n| **內容釐清** | 請 AI 解釋、擴充或簡化特定節點，以其內文與深度-1 圖鄰域為基礎 |\n| **對話中的編輯提案** | 使用者說「將此節點更新為 X」—— AI 生成 diff 提案，以內嵌卡片呈現，使用者可接受、編輯或拒絕 |\n| **跨知識庫查詢** | 若設定了關聯工作區（§18）且使用者有存取權，AI 可參照那些節點（並標示來源） |"
+  },
+  "tags": [
+    "ai",
+    "chat",
+    "conversation-panel",
+    "ui",
+    "edit-proposal"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "acp001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

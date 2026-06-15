@@ -1,0 +1,45 @@
+{
+  "id": "mem_apidi001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§27 API 文件攝入（程式化攝入）",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "除了 UI 攝入表單外，MemTrace 也支援透過 REST API 以程式化方式攝入文件。這讓 CI/CD Pipeline、腳本與第三方工具無需人工介入即可將知識推送到工作區。\n\n## 端點（§27.1）\n\n```\nPOST /api/v1/workspaces/{ws_id}/ingest\nAuthorization: Bearer <workspace-api-key>  (scope: kb:write)\nContent-Type: multipart/form-data\n\n欄位：\n  file       (可選) — 二進位檔案上傳（PDF、Markdown、TXT 等）\n  text       (可選) — 純文字字串（與 file 互斥）\n  filename   (可選) — 來源文件的顯示名稱\n```\n\n`file` 或 `text` 必須提供其一。\n\n## 回應（§27.2）\n\n```json\n{\n  \"job_id\": \"job_xxx\",\n  \"status\": \"queued\",\n  \"message\": \"Ingestion started in background\"\n}\n```\n\n## 狀態輪詢（§27.3）\n\n```\nGET /api/v1/workspaces/{ws_id}/ingest/{job_id}\n回應：{ job_id, status, progress, chunks_total, chunks_done, error? }\n```\n\n攝入作業在背景非同步執行。呼叫者可透過輪詢取得進度，並在完成後取得萃取節點的 review queue 狀態。"
+  },
+  "tags": [
+    "ingestion",
+    "api",
+    "programmatic",
+    "ci-cd",
+    "async",
+    "document"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "apidi001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

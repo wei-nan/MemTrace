@@ -1,0 +1,45 @@
+{
+  "id": "mem_ws002",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "§17.4 邏輯衝突偵測",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "任何 AI 生成或 AI 重組的節點提交後，系統會執行**非同步衝突檢查**，偵測 AI 引入的邏輯不一致。\n\n## 衝突類型（§17.4.1）\n\n| 類型 | 描述 |\n|------|------|\n| `contradicts_existing` | 節點內文與透過 `contradicts` 邊連結的既有節點產生內容矛盾 |\n| `duplicate_content` | 節點 embedding cosine similarity ≥ 0.92（與現有活躍節點） |\n| `circular_dependency` | `depends_on` 邊將在相依圖中形成循環 |\n| `orphaned_reference` | 節點內文以 ID 引用另一節點，但不存在對應邊 |\n\n## 衝突標記 Schema（§17.4.2）\n\n```sql\nALTER TABLE memory_nodes\n  ADD COLUMN IF NOT EXISTS conflict_status TEXT\n    CHECK (conflict_status IN (NULL, 'flagged', 'resolved')),\n  ADD COLUMN IF NOT EXISTS conflict_detail JSONB;\n  -- { \"type\": \"...\", \"conflicting_node_id\": \"...\", \"message\": \"...\" }\n```\n\n被標記的節點在圖形視圖中顯示**琥珀色警告指示器**，並在節點編輯器中顯示可關閉的衝突卡片。\n\n**解決方式：** 編輯節點移除矛盾 → `conflict_status = 'resolved'`；或呼叫 `PATCH .../acknowledge-conflict` 在不變更內容的情況下關閉提示。\n\n## AI 寫入規則（§17.4.3）\n\nAI Agent（MCP）受到與人類使用者相同的寫入串行化與衝突偵測約束。若提交後偵測到衝突，`conflict_warning` 欄位會在下一次工具回應中回傳：\n\n```json\n{\n  \"result\": \"...\",\n  \"conflict_warning\": {\n    \"node_id\": \"mem_xyz\",\n    \"type\": \"duplicate_content\",\n    \"similar_node_id\": \"mem_abc\"\n  }\n}\n```"
+  },
+  "tags": [
+    "concurrency",
+    "conflict-detection",
+    "write-serialization",
+    "ai",
+    "database",
+    "schema"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ws002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

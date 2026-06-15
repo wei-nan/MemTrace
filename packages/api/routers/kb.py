@@ -203,6 +203,18 @@ def list_workspaces(search: Optional[str] = Query(None), user: Optional[dict] = 
         return list_workspaces_in_db(cur, search, user)
 
 
+@router.get("/workspaces/explore")
+def explore_workspaces(
+    q: Optional[str] = Query(None),
+    lang: Optional[str] = Query(None),
+    sort: str = Query("newest", pattern="^(newest|nodes)$"),
+    user: Optional[dict] = Depends(get_current_user_optional),
+):
+    from services.workspaces import explore_workspaces_in_db
+    with db_cursor() as cur:
+        return explore_workspaces_in_db(cur, user, q, lang, sort)
+
+
 
 
 @router.post("/workspaces", response_model=WorkspaceResponse, status_code=201)
@@ -386,12 +398,16 @@ async def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, use
 @router.post("/workspaces/{ws_id}/nodes/search-semantic", response_model=List[NodeResponse])
 async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: dict = Depends(get_current_user)):
     with db_cursor() as cur:
-        _require_ws_access(cur, ws_id, user)
+        ws = _require_ws_access(cur, ws_id, user)
         cur.execute("SELECT embedding_model, embedding_provider FROM workspaces WHERE id = %s", (ws_id,))
         ws_row = cur.fetchone()
         ws_model = ws_row["embedding_model"] if ws_row else None
         ws_prov = ws_row["embedding_provider"] if ws_row else None
-        return await perform_semantic_search(cur, ws_id, query, user["sub"], limit, ws_model=ws_model, ws_prov=ws_prov)
+        results = await perform_semantic_search(cur, ws_id, query, user["sub"], limit, ws_model=ws_model, ws_prov=ws_prov)
+        # perform_semantic_search returns raw rows; redact bodies of non-public
+        # nodes for viewers, matching the hybrid search / list / get-node paths.
+        viewer_role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
+        return [_strip_body_if_viewer(dict(r), viewer_role) for r in results]
 
 
 @router.get("/workspaces/{ws_id}/nodes/health")

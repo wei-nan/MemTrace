@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  Search, ChevronLeft, ChevronRight, Edit, Archive, Trash2, 
+import {
+  Search, ChevronLeft, ChevronRight, Edit, Archive,
   ArrowUpDown, ArrowUp, ArrowDown, CheckSquare, Square, X
 } from 'lucide-react';
 import { workspaces, nodes as nodesApi, type Node as ApiNode } from './api';
@@ -12,12 +12,13 @@ interface Props {
   onEditNode: (node: ApiNode) => void;
   isAdmin?: boolean;
   initialFilter?: string;
+  refreshKey?: number;
 }
 
 type SortField = 'title' | 'content_type' | 'trust_score' | 'created_at';
 type SortOrder = 'asc' | 'desc';
 
-export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: Props) {
+export default function TableView({ wsId, onEditNode, initialFilter, refreshKey }: Props) {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
   const { confirm, toast } = useModal();
@@ -68,7 +69,7 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
     }
   }, [wsId, debouncedQuery, limit, offset, sortBy, sortOrder]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, [load, refreshKey]);
 
   useEffect(() => {
     if (initialFilter) {
@@ -113,25 +114,6 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
     try {
       await nodesApi.bulkArchive(wsId, Array.from(selectedIds));
       toast({ message: zh ? '已歸檔' : 'Archived', variant: 'success' });
-      setSelectedIds(new Set());
-      load();
-    } catch (e: any) {
-      toast({ message: e.message, variant: 'error' });
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedIds.size === 0) return;
-    const ok = await confirm({
-      title: zh ? '批量刪除' : 'Bulk Delete',
-      message: zh ? `確定要刪除選中的 ${selectedIds.size} 個節點嗎？此操作無法還原。` : `Delete ${selectedIds.size} selected nodes? This cannot be undone.`,
-      variant: 'danger',
-      confirmLabel: zh ? '刪除' : 'Delete',
-    });
-    if (!ok) return;
-    try {
-      await nodesApi.bulkDelete(wsId, Array.from(selectedIds));
-      toast({ message: zh ? '已刪除' : 'Deleted', variant: 'success' });
       setSelectedIds(new Set());
       load();
     } catch (e: any) {
@@ -189,12 +171,6 @@ export default function TableView({ wsId, onEditNode, isAdmin, initialFilter }: 
                 <Archive size={14} style={{ marginRight: 4 }} />
                 {t('table.archive')}
               </button>
-              {isAdmin && (
-                <button className="btn-ghost" onClick={handleBulkDelete} style={{ padding: '4px 8px', color: 'var(--color-error)' }}>
-                  <Trash2 size={14} style={{ marginRight: 4 }} />
-                  {t('common.delete')}
-                </button>
-              )}
             </div>
           )}
         </div>

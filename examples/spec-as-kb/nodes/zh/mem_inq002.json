@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq002",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "缺口：claim registry 換 Redis（多 worker / 重啟存活）",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "目前 `claim_task` / `release_task` 的 run-state 存在行程內 `_TASK_CLAIMS` dict（TTL 30 分鐘）。重啟即失、多 worker 不共享。\n\n**待討論的設計問題：**\n\n1. **Redis 部署前提：** 是否要求 Redis 成為 self-hosted 的必要依賴？對輕量部署的影響為何？\n2. **替代方案評估：** DB 寫入（memory_nodes 加欄位）vs. Redis；前者違反 A7（run-state 不進知識圖），但無額外依賴。\n3. **TTL 策略：** 30 分鐘是否合理？agent 當機時 TTL 是否足夠讓任務自動釋放？\n4. **是否必要：** 多 worker 場景目前是實際需求還是預期需求？"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "claim-registry",
+    "redis",
+    "infra",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "inq002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

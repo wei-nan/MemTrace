@@ -192,7 +192,7 @@ export default function GraphView(props: Props) {
 
 function GraphViewInner({
   apiNodes, apiEdges, relationColors, onEditNode,
-  healthMode = false, healthScores = {}, kbType = 'evergreen', isPreview = false,
+  healthMode = false, healthScores = {}, kbType: _kbType = 'evergreen', isPreview = false,
   clusters = [], activeClusters = new Set(),
 }: Props) {
   const { i18n } = useTranslation();
@@ -226,8 +226,6 @@ function GraphViewInner({
       .map(n => {
         const pos = positions[n.id] ?? { x: 0, y: 0 };
         const health = healthScores[n.id];
-        const confirmedAt = n.validity_confirmed_at ? new Date(n.validity_confirmed_at) : null;
-        const isExpired = kbType === 'ephemeral' && (!confirmedAt || (Date.now() - confirmedAt.getTime() > 90 * 24 * 3600 * 1000));
 
         return {
           id: n.id,
@@ -241,7 +239,6 @@ function GraphViewInner({
             status: isPreview ? undefined : n.status, // T21: for audit badge
             healthColor: !isPreview && healthMode && health ? HEALTH_COLORS[health.label] : (isPreview ? '#94a3b8' : undefined),
             healthTooltip: !isPreview && healthMode && health ? `Health ${(health.score * 100).toFixed(0)}% · ${health.reason}` : undefined,
-            validityExpired: !isPreview && isExpired,
             isPreview,
           },
         };

@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq004",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "缺口：Conductor — MemTrace 主動觸發外部 harness",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "目前外部 harness 需主動輪詢才能知道有新任務。期望在 pending inquiry / residue 出現時，MemTrace 能主動通知外部 harness 啟動下一圈。\n\n**待討論的設計問題：**\n\n1. **觸發機制：** Webhook（HTTP push）vs. 訊息佇列（Redis pub/sub、AMQP）。部署複雜度 vs. 可靠性。\n2. **MemTrace 的角色邊界：** A1 決策明確「MemTrace 不是 loop runtime」。Conductor 是否屬於「記憶側」的合理延伸，還是已經越界？\n3. **事件粒度：** 每個 pending inquiry 都觸發，還是批次（N 個以上才通知）？避免過度觸發。\n4. **harness 的接入面：** harness 需要在哪裡設定 webhook endpoint？是工作區設定還是全域設定？\n5. **outcome 回流計帳：** 多個 worker 各自 submit_outcome 時，path_reinforcement 是否會重複計算？"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "conductor",
+    "event",
+    "webhook",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "inq004a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

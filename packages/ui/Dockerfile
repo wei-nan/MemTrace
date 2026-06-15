@@ -3,15 +3,19 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 COPY package*.json ./
+COPY packages/ui/package.json packages/ui/
+COPY packages/core/package.json packages/core/
+COPY packages/api/package.json packages/api/
+COPY packages/cli/package.json packages/cli/
 RUN npm install --no-audit
 
 COPY . .
-RUN npm run build
+RUN npm run build --workspace=packages/ui
 
 # ── Serve stage ───────────────────────────────────────────────────────────────
 FROM nginx:alpine
 
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/packages/ui/dist /usr/share/nginx/html
 
 # Route all paths to index.html for SPA
 RUN printf 'server {\n  listen 8080;\n  root /usr/share/nginx/html;\n  index index.html;\n  port_in_redirect off;\n  absolute_redirect off;\n  client_max_body_size 30m;\n  location / {\n    try_files $uri $uri/ /index.html;\n    add_header Cache-Control "no-cache, no-store, must-revalidate";\n  }\n  location /assets/ {\n    expires 1y;\n    add_header Cache-Control "public, immutable";\n  }\n  location /api/ {\n    proxy_pass http://api:8000/api/;\n    proxy_buffering off;\n    proxy_cache off;\n    proxy_set_header Host $host;\n    proxy_set_header X-Real-IP $remote_addr;\n    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    proxy_set_header X-Forwarded-Proto $scheme;\n    proxy_set_header Connection "";\n    proxy_http_version 1.1;\n    proxy_read_timeout 300s;\n  }\n  location /auth/ {\n    proxy_pass http://api:8000/auth/;\n    proxy_buffering off;\n    proxy_cache off;\n    proxy_set_header Host $host;\n    proxy_set_header X-Real-IP $remote_addr;\n    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    proxy_set_header X-Forwarded-Proto $scheme;\n    proxy_read_timeout 300s;\n  }\n  location /mcp {\n    proxy_pass http://api:8000/mcp;\n    proxy_buffering off;\n    proxy_cache off;\n    proxy_set_header Host $host;\n    proxy_set_header X-Real-IP $remote_addr;\n    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    proxy_set_header X-Forwarded-Proto $scheme;\n    proxy_http_version 1.1;\n    proxy_read_timeout 300s;\n  }\n}\n' \
