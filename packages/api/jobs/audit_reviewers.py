@@ -11,10 +11,12 @@ from __future__ import annotations
 import json
 import logging
 import datetime
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from services.audit_proposals import create_proposal, DAILY_QUOTA_PER_REVIEWER
 from core.database import db_cursor
+from services.job_observability import _duration_ms, finish_job_run, start_job_run
 
 logger = logging.getLogger(__name__)
 
@@ -505,19 +507,78 @@ def run_all_reviewers_for_workspace(cur, workspace_id: str) -> Dict[str, int]:
 
 
 def audit_reviewers_job() -> None:
-    """
-    排程入口（由 scheduler.py 每日呼叫）。
-    掃描所有 active workspace，逐一執行所有 Reviewers。
-    """
+    """Run all audit reviewers for every active workspace and persist a run summary."""
+    started = time.monotonic()
+    run_id = start_job_run(
+        "audit_reviewers",
+        trigger="scheduler",
+        summary={"scope": "all_active_workspaces"},
+    )
+    workspace_summaries: Dict[str, Dict[str, int]] = {}
+    processed = 0
+    created = 0
+    failed = 0
+
     logger.info("=== audit_reviewers_job: START ===")
-    with db_cursor(commit=True) as cur:
-        cur.execute("SELECT id FROM workspaces WHERE status = 'active'")
-        workspaces = [r["id"] for r in cur.fetchall()]
-
-    for ws_id in workspaces:
-        logger.info("Running reviewers for workspace=%s", ws_id)
+    try:
         with db_cursor(commit=True) as cur:
-            summary = run_all_reviewers_for_workspace(cur, ws_id)
-        logger.info("workspace=%s reviewer_summary=%s", ws_id, summary)
+            cur.execute("SELECT id FROM workspaces WHERE status = 'active'")
+            workspaces = [r["id"] for r in cur.fetchall()]
 
-    logger.info("=== audit_reviewers_job: DONE (total workspaces=%d) ===", len(workspaces))
+        for ws_id in workspaces:
+            logger.info("Running reviewers for workspace=%s", ws_id)
+            ws_run_id = start_job_run(
+                "audit_reviewers",
+                workspace_id=ws_id,
+                trigger="scheduler",
+                summary={"scope": "workspace"},
+                update_heartbeat=False,
+            )
+            ws_started = time.monotonic()
+            with db_cursor(commit=True) as cur:
+                summary = run_all_reviewers_for_workspace(cur, ws_id)
+            workspace_summaries[ws_id] = summary
+            processed += 1
+            ws_failed = sum(1 for value in summary.values() if value < 0)
+            ws_created = sum(value for value in summary.values() if value > 0)
+            failed += ws_failed
+            created += ws_created
+            finish_job_run(
+                ws_run_id,
+                "audit_reviewers",
+                status="success" if ws_failed == 0 else "failed",
+                duration_ms=_duration_ms(ws_started, time.monotonic()),
+                scanned_count=1,
+                processed_count=1,
+                created_count=ws_created,
+                failed_count=ws_failed,
+                summary={"reviewers": summary},
+                update_heartbeat=False,
+            )
+            logger.info("workspace=%s reviewer_summary=%s", ws_id, summary)
+
+        finish_job_run(
+            run_id,
+            "audit_reviewers",
+            status="success",
+            duration_ms=_duration_ms(started, time.monotonic()),
+            scanned_count=len(workspaces),
+            processed_count=processed,
+            created_count=created,
+            failed_count=failed,
+            summary={"workspaces": workspace_summaries},
+        )
+        logger.info("=== audit_reviewers_job: DONE (total workspaces=%d) ===", len(workspaces))
+    except Exception as exc:
+        finish_job_run(
+            run_id,
+            "audit_reviewers",
+            status="failed",
+            duration_ms=_duration_ms(started, time.monotonic()),
+            processed_count=processed,
+            created_count=created,
+            failed_count=failed + 1,
+            error=str(exc),
+            summary={"workspaces": workspace_summaries},
+        )
+        raise

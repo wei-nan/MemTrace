@@ -1,10 +1,12 @@
 import re
 import json
 import logging
+import time
 from typing import Literal, Dict, Any, Optional
 
 from core.database import db_cursor
 from core.ai import resolve_provider, chat_completion, AIProviderUnavailable
+from services.job_observability import _duration_ms, finish_job_run, start_job_run
 
 logger = logging.getLogger(__name__)
 
@@ -149,48 +151,79 @@ def run_historical_safety_sweep(cur, limit: int = 100) -> Dict[str, Any]:
     Sweep existing procedural nodes containing commands and flag them into audit_proposals (propose-only).
     Does not delete/modify nodes directly (D3).
     """
-    # Fetch active procedural nodes
-    cur.execute(
-        """
-        SELECT id, workspace_id, title, body, author
-        FROM memory_nodes
-        WHERE content_type = 'procedural' AND status = 'active'
-        LIMIT %s
-        """,
-        (limit,)
+    started = time.monotonic()
+    run_id = start_job_run(
+        "safety_sweep",
+        trigger="manual_or_maintenance",
+        summary={"limit": limit},
     )
-    nodes = cur.fetchall()
-    
     flagged_count = 0
-    for node in nodes:
-        combined = f"{node['title']}\n{node['body']}"
-        classification = classify_safety_rules(combined)
-        
-        if classification in ("risky", "dangerous"):
-            # Check if an audit proposal already exists for this node to avoid duplication (idempotency)
-            cur.execute(
-                """
-                SELECT id FROM audit_proposals
-                WHERE workspace_id = %s AND reviewer = 'safety_sweep' AND %s = ANY(target_ids)
-                LIMIT 1
-                """,
-                (node["workspace_id"], node["id"])
-            )
-            if cur.fetchone():
-                continue
-                
-            from services.audit_proposals import create_proposal
-            create_proposal(
-                cur=cur,
-                workspace_id=node["workspace_id"],
-                reviewer="safety_sweep",
-                category="historical_safety",
-                target_ids=[node["id"]],
-                reasoning=f"Historical node sweep flagged this node as '{classification}'. Contains potential system modification or destructive commands.",
-                evidence={"classification": classification, "snippet": node["body"][:200]},
-                suggested_action={"action": "review_or_archive", "node_id": node["id"]},
-                severity="high" if classification == "dangerous" else "mid"
-            )
-            flagged_count += 1
-            
-    return {"scanned": len(nodes), "flagged": flagged_count}
+    nodes = []
+    # Fetch active procedural nodes
+    try:
+        cur.execute(
+            """
+            SELECT id, workspace_id, title, body, author
+            FROM memory_nodes
+            WHERE content_type = 'procedural' AND status = 'active'
+            LIMIT %s
+            """,
+            (limit,)
+        )
+        nodes = cur.fetchall()
+
+        for node in nodes:
+            combined = f"{node['title']}\n{node['body']}"
+            classification = classify_safety_rules(combined)
+
+            if classification in ("risky", "dangerous"):
+                # Check if an audit proposal already exists for this node to avoid duplication (idempotency)
+                cur.execute(
+                    """
+                    SELECT id FROM audit_proposals
+                    WHERE workspace_id = %s AND reviewer = 'safety_sweep' AND %s = ANY(target_ids)
+                    LIMIT 1
+                    """,
+                    (node["workspace_id"], node["id"])
+                )
+                if cur.fetchone():
+                    continue
+
+                from services.audit_proposals import create_proposal
+                create_proposal(
+                    cur=cur,
+                    workspace_id=node["workspace_id"],
+                    reviewer="safety_sweep",
+                    category="historical_safety",
+                    target_ids=[node["id"]],
+                    reasoning=f"Historical node sweep flagged this node as '{classification}'. Contains potential system modification or destructive commands.",
+                    evidence={"classification": classification, "snippet": node["body"][:200]},
+                    suggested_action={"action": "review_or_archive", "node_id": node["id"]},
+                    severity="high" if classification == "dangerous" else "mid"
+                )
+                flagged_count += 1
+
+        result = {"scanned": len(nodes), "flagged": flagged_count}
+        finish_job_run(
+            run_id,
+            "safety_sweep",
+            status="success",
+            duration_ms=_duration_ms(started, time.monotonic()),
+            scanned_count=len(nodes),
+            created_count=flagged_count,
+            summary=result,
+        )
+        return result
+    except Exception as exc:
+        finish_job_run(
+            run_id,
+            "safety_sweep",
+            status="failed",
+            duration_ms=_duration_ms(started, time.monotonic()),
+            scanned_count=len(nodes),
+            created_count=flagged_count,
+            failed_count=1,
+            error=str(exc),
+            summary={"limit": limit},
+        )
+        raise

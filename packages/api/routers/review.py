@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 import json
+import time
 
 from fastapi import APIRouter, Body, Depends, HTTPException, BackgroundTasks
 
@@ -32,6 +33,7 @@ from services.workspaces import (
     strip_body_if_viewer as _strip_body_if_viewer,
 )
 from services.bg_jobs import trigger_node_background_jobs
+from services.job_observability import _duration_ms, finish_job_run, start_job_run
 
 router = APIRouter(prefix="/api/v1/workspaces", tags=["review"])
 
@@ -360,16 +362,47 @@ def reject_batch_review_items(
 
 @router.post("/{ws_id}/review-queue/ai-prescreen")
 async def run_ai_prescreen(ws_id: str, user: dict = Depends(get_current_user)):
+    started = time.monotonic()
     with db_cursor() as cur:
         _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         cur.execute("SELECT id FROM review_queue WHERE workspace_id = %s AND status = 'pending' ORDER BY created_at ASC", (ws_id,))
         ids = [row["id"] for row in cur.fetchall()]
+    run_id = start_job_run(
+        "ai_review_prescreen",
+        workspace_id=ws_id,
+        trigger="manual_api",
+        summary={"requested_by": user.get("sub")},
+    )
     processed = 0
-    for review_id in ids:
-        result = await run_ai_review_for_item(review_id)
-        if result is not None:
-            processed += 1
-    return {"processed_count": processed}
+    try:
+        for review_id in ids:
+            result = await run_ai_review_for_item(review_id)
+            if result is not None:
+                processed += 1
+        finish_job_run(
+            run_id,
+            "ai_review_prescreen",
+            status="success",
+            duration_ms=_duration_ms(started, time.monotonic()),
+            scanned_count=len(ids),
+            processed_count=processed,
+            skipped_count=len(ids) - processed,
+            summary={"review_ids": ids, "requested_by": user.get("sub")},
+        )
+        return {"processed_count": processed}
+    except Exception as exc:
+        finish_job_run(
+            run_id,
+            "ai_review_prescreen",
+            status="failed",
+            duration_ms=_duration_ms(started, time.monotonic()),
+            scanned_count=len(ids),
+            processed_count=processed,
+            failed_count=1,
+            error=str(exc),
+            summary={"review_ids": ids, "requested_by": user.get("sub")},
+        )
+        raise
 
 
 @router.get("/{ws_id}/ai-reviewers", response_model=List[AIReviewerResponse])

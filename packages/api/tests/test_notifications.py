@@ -39,8 +39,9 @@ async def test_webhook_signs_payload_with_hmac():
 
     payload = {"event": "consultation", "session_id": "con_1"}
     with patch("services.notifications.httpx.AsyncClient", new=lambda *a, **k: FakeClient()):
-        await deliver_webhook("https://hook.example/x", "s3cr3t", payload)
+        ok = await deliver_webhook("https://hook.example/x", "s3cr3t", payload)
 
+    assert ok is True
     expected = hmac.new(b"s3cr3t", captured["content"].encode(), hashlib.sha256).hexdigest()
     assert captured["headers"]["X-MemTrace-Signature"] == expected
 
@@ -59,8 +60,9 @@ async def test_webhook_retries_on_failure_then_gives_up():
 
     with patch("services.notifications.httpx.AsyncClient", new=lambda *a, **k: FakeClient()), \
          patch("services.notifications.asyncio.sleep", new=AsyncMock()):
-        await deliver_webhook("https://hook.example/x", None, {"a": 1})  # no exception raised
+        ok = await deliver_webhook("https://hook.example/x", None, {"a": 1})  # no exception raised
 
+    assert ok is False
     assert calls["n"] == 3
 
 
@@ -79,7 +81,8 @@ async def test_webhook_no_secret_omits_signature():
             return FakeResp()
 
     with patch("services.notifications.httpx.AsyncClient", new=lambda *a, **k: FakeClient()):
-        await deliver_webhook("https://hook.example/x", None, {"a": 1})
+        ok = await deliver_webhook("https://hook.example/x", None, {"a": 1})
+    assert ok is True
     assert "X-MemTrace-Signature" not in captured["headers"]
 
 

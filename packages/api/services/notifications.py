@@ -43,8 +43,12 @@ def get_workspace_admins(ws_id: str) -> list[str]:
         emails.extend(admins)
         return list(set(emails))
 
-async def deliver_webhook(webhook_url: str, webhook_secret: Optional[str], payload: dict):
-    """Deliver webhook POST request with exponential backoff retry."""
+async def deliver_webhook(webhook_url: str, webhook_secret: Optional[str], payload: dict) -> bool:
+    """Deliver webhook POST request with exponential backoff retry.
+
+    Returns True only when the remote endpoint acknowledges the delivery.
+    Failures are still swallowed for backwards-compatible notification decoupling.
+    """
     data = json.dumps(payload)
     headers = {"Content-Type": "application/json"}
     
@@ -61,9 +65,9 @@ async def deliver_webhook(webhook_url: str, webhook_secret: Optional[str], paylo
         for attempt in range(3):
             try:
                 response = await client.post(webhook_url, content=data, headers=headers, timeout=5.0)
-                if response.status_code == 200:
+                if 200 <= response.status_code < 300:
                     logger.info(f"Webhook delivered successfully to {webhook_url}")
-                    return
+                    return True
                 else:
                     logger.warning(f"Webhook delivered returned status {response.status_code} (attempt {attempt+1})")
             except Exception as e:
@@ -72,6 +76,7 @@ async def deliver_webhook(webhook_url: str, webhook_secret: Optional[str], paylo
             await asyncio.sleep(backoff)
             backoff *= 2.0
         logger.error(f"Failed to deliver webhook to {webhook_url} after 3 attempts.")
+        return False
 
 def send_consult_notification(
     ws_id: str,

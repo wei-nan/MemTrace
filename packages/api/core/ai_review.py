@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -6,6 +7,7 @@ from fastapi import HTTPException
 
 from core.ai import AIProviderError, AIProviderUnavailable, chat_completion, record_usage, resolve_provider
 from core.database import db_cursor
+from services.job_observability import _duration_ms, finish_job_run, start_job_run
 
 
 DEFAULT_AI_REVIEW_PROMPT = """You are an AI reviewer for a collaborative knowledge graph.
@@ -40,6 +42,9 @@ def _parse_ai_review_response(raw: str) -> dict[str, Any]:
 
 
 async def run_ai_review_for_item(review_id: str) -> Optional[dict[str, Any]]:
+    started = time.monotonic()
+    run_id = None
+    reviewer_count = 0
     with db_cursor() as cur:
         cur.execute("SELECT * FROM review_queue WHERE id = %s", (review_id,))
         item = cur.fetchone()
@@ -51,75 +56,129 @@ async def run_ai_review_for_item(review_id: str) -> Optional[dict[str, Any]]:
             (item["workspace_id"],),
         )
         reviewers = cur.fetchall()
+        reviewer_count = len(reviewers)
+
+    run_id = start_job_run(
+        "ai_review_for_item",
+        workspace_id=item["workspace_id"],
+        trigger="background_task",
+        summary={"review_id": review_id, "reviewer_count": reviewer_count},
+    )
 
     applied_result = None
-    for reviewer in reviewers:
-        reviewer_id = f"airev:{reviewer['provider']}:{reviewer['model']}:{reviewer['id']}"
-        try:
-            resolved = resolve_provider(
-                item["proposer_id"] or "",
-                "extraction",
-                reviewer["provider"],
-                reviewer["model"],
-            )
-        except AIProviderUnavailable:
-            continue
-
-        messages = [
-            {"role": "system", "content": reviewer["system_prompt"] or DEFAULT_AI_REVIEW_PROMPT},
-            {
-                "role": "user",
-                "content": json.dumps(
-                    {
-                        "change_type": item["change_type"],
-                        "target_node_id": item["target_node_id"],
-                        "before_snapshot": item["before_snapshot"],
-                        "after_snapshot": item["node_data"],
-                        "diff_summary": item["diff_summary"],
-                        "source_info": item["source_info"],
-                        "proposer_type": item["proposer_type"],
-                        "proposer_meta": item["proposer_meta"],
-                    },
-                    ensure_ascii=False,
-                ),
-            },
-        ]
-
-        try:
-            raw, tokens = await chat_completion(resolved, messages, max_tokens=600, temperature=0.1)
-            parsed = _parse_ai_review_response(raw)
-            record_usage(resolved, "extraction", tokens, item["workspace_id"], item["target_node_id"])
-        except (AIProviderError, ValueError):
-            continue
-
-        ai_review = {
-            **parsed,
-            "reviewer_id": reviewer_id,
-            "reviewed_at": datetime.now(timezone.utc).isoformat(),
-        }
-
-        with db_cursor(commit=True) as cur:
-            cur.execute(
-                "UPDATE review_queue SET ai_review = %s WHERE id = %s RETURNING *",
-                (json.dumps(ai_review), review_id),
-            )
-            row = cur.fetchone()
-
-            if parsed["decision"] == "accept" and parsed["confidence"] >= float(reviewer["auto_accept_threshold"]):
-                cur.execute(
-                    "UPDATE review_queue SET status = 'accepted', reviewer_type = 'ai', reviewer_id = %s, reviewed_at = now() WHERE id = %s",
-                    (reviewer_id, review_id),
+    summary: dict[str, Any] = {"review_id": review_id, "reviewer_count": reviewer_count}
+    try:
+        for reviewer in reviewers:
+            reviewer_id = f"airev:{reviewer['provider']}:{reviewer['model']}:{reviewer['id']}"
+            try:
+                resolved = resolve_provider(
+                    item["proposer_id"] or "",
+                    "extraction",
+                    reviewer["provider"],
+                    reviewer["model"],
                 )
-            elif parsed["decision"] == "reject" and parsed["confidence"] >= float(reviewer["auto_reject_threshold"]):
+            except AIProviderUnavailable:
+                continue
+
+            messages = [
+                {"role": "system", "content": reviewer["system_prompt"] or DEFAULT_AI_REVIEW_PROMPT},
+                {
+                    "role": "user",
+                    "content": json.dumps(
+                        {
+                            "change_type": item["change_type"],
+                            "target_node_id": item["target_node_id"],
+                            "before_snapshot": item["before_snapshot"],
+                            "after_snapshot": item["node_data"],
+                            "diff_summary": item["diff_summary"],
+                            "source_info": item["source_info"],
+                            "proposer_type": item["proposer_type"],
+                            "proposer_meta": item["proposer_meta"],
+                        },
+                        ensure_ascii=False,
+                    ),
+                },
+            ]
+
+            try:
+                raw, tokens = await chat_completion(resolved, messages, max_tokens=600, temperature=0.1)
+                parsed = _parse_ai_review_response(raw)
+                record_usage(resolved, "extraction", tokens, item["workspace_id"], item["target_node_id"])
+            except (AIProviderError, ValueError):
+                continue
+
+            ai_review = {
+                **parsed,
+                "reviewer_id": reviewer_id,
+                "reviewed_at": datetime.now(timezone.utc).isoformat(),
+            }
+            summary.update(
+                {
+                    "decision": parsed["decision"],
+                    "confidence": parsed["confidence"],
+                    "reviewer_id": reviewer_id,
+                }
+            )
+
+            with db_cursor(commit=True) as cur:
                 cur.execute(
-                    "UPDATE review_queue SET status = 'rejected', reviewer_type = 'ai', reviewer_id = %s, reviewed_at = now() WHERE id = %s",
-                    (reviewer_id, review_id),
+                    "UPDATE review_queue SET ai_review = %s WHERE id = %s RETURNING *",
+                    (json.dumps(ai_review), review_id),
                 )
+                row = cur.fetchone()
 
-        applied_result = dict(row)
-        break
+                if parsed["decision"] == "accept" and parsed["confidence"] >= float(reviewer["auto_accept_threshold"]):
+                    cur.execute(
+                        "UPDATE review_queue SET status = 'accepted', reviewer_type = 'ai', reviewer_id = %s, reviewed_at = now() WHERE id = %s",
+                        (reviewer_id, review_id),
+                    )
+                    summary["auto_action"] = "accepted"
+                elif parsed["decision"] == "reject" and parsed["confidence"] >= float(reviewer["auto_reject_threshold"]):
+                    cur.execute(
+                        "UPDATE review_queue SET status = 'rejected', reviewer_type = 'ai', reviewer_id = %s, reviewed_at = now() WHERE id = %s",
+                        (reviewer_id, review_id),
+                    )
+                    summary["auto_action"] = "rejected"
+                else:
+                    summary["auto_action"] = "comment_only"
 
-    return applied_result
+            applied_result = dict(row)
+            break
+
+        if applied_result is None:
+            summary["reason"] = "no_enabled_or_available_reviewer"
+            finish_job_run(
+                run_id,
+                "ai_review_for_item",
+                status="skipped",
+                duration_ms=_duration_ms(started, time.monotonic()),
+                scanned_count=1,
+                skipped_count=1,
+                summary=summary,
+            )
+        else:
+            finish_job_run(
+                run_id,
+                "ai_review_for_item",
+                status="success",
+                duration_ms=_duration_ms(started, time.monotonic()),
+                scanned_count=1,
+                processed_count=1,
+                summary=summary,
+            )
+        return applied_result
+    except Exception as exc:
+        finish_job_run(
+            run_id,
+            "ai_review_for_item",
+            status="failed",
+            duration_ms=_duration_ms(started, time.monotonic()),
+            scanned_count=1,
+            failed_count=1,
+            error=str(exc),
+            summary=summary,
+        )
+        raise
 
 
 def require_owner(cur, ws_id: str, user: dict):
@@ -130,4 +189,3 @@ def require_owner(cur, ws_id: str, user: dict):
     if ws["owner_id"] != user["sub"]:
         raise HTTPException(status_code=403, detail="Only workspace owner can manage AI reviewers")
     return ws
-

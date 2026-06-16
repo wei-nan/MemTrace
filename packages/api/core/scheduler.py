@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from typing import Callable, Coroutine, Any
 
 logger = logging.getLogger(__name__)
@@ -16,17 +17,45 @@ class Scheduler:
         self._tasks = []
         self._running_tasks = []
 
-    def register_loop(self, name: str, coro_func: Callable[[], Coroutine[Any, Any, None]], interval_seconds: float):
+    def register_loop(
+        self,
+        name: str,
+        coro_func: Callable[[], Coroutine[Any, Any, None]],
+        interval_seconds: float,
+        *,
+        observable: bool = True,
+    ):
         """Register a background loop task."""
         async def loop():
             logger.info(f"Starting background loop: {name} (interval: {interval_seconds}s)")
             while True:
+                started = time.monotonic()
                 try:
+                    if observable:
+                        from services.job_observability import mark_job_started
+                        mark_job_started(name, metadata={"interval_seconds": interval_seconds})
                     await coro_func()
+                    if observable:
+                        from services.job_observability import _duration_ms, mark_job_finished
+                        mark_job_finished(
+                            name,
+                            status="success",
+                            duration_ms=_duration_ms(started, time.monotonic()),
+                            metadata={"interval_seconds": interval_seconds},
+                        )
                 except asyncio.CancelledError:
                     logger.info(f"Background loop {name} cancelled")
                     break
                 except Exception as e:
+                    if observable:
+                        from services.job_observability import _duration_ms, mark_job_finished
+                        mark_job_finished(
+                            name,
+                            status="failed",
+                            duration_ms=_duration_ms(started, time.monotonic()),
+                            error=str(e),
+                            metadata={"interval_seconds": interval_seconds},
+                        )
                     logger.exception(f"Error in background loop {name}: {e}")
                 await asyncio.sleep(interval_seconds)
         
@@ -64,9 +93,11 @@ class Scheduler:
         self.register_loop("path_reinforcement", path_reinforcement_job, PATH_REINFORCEMENT_INTERVAL_SECONDS)
         
         from services.bg_jobs import retry_failed_embeddings_job, process_node_events_job
+        from services.safety_queue import process_safety_review_queue_job
         self.register_loop("retry_embeddings", retry_failed_embeddings_job, 60) # Run every minute
         self.register_loop("process_node_events", process_node_events_job, 10) # Run every 10 seconds
-        self.register_loop("audit_reviewers", _wrap_sync(audit_reviewers_job), 86400)  # daily
+        self.register_loop("safety_review_queue", process_safety_review_queue_job, 30)
+        self.register_loop("audit_reviewers", _wrap_sync(audit_reviewers_job), 86400, observable=False)  # daily
         
         # audit_writer_loop 內部含 while True 與 queue，interval 設為 5s 作為心跳。
         self.register_loop("audit_writer",    audit_writer_loop,   5)

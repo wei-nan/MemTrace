@@ -539,14 +539,42 @@ async def process_node_events_job():
     for event in events:
         try:
             if event["event_type"] in ('created', 'embedding_updated'):
-                with db_cursor() as cur:
-                    cur.execute("SELECT author FROM memory_nodes WHERE id = %s", (event["node_id"],))
-                    n_row = cur.fetchone()
-                    user_id = n_row["author"] if n_row else "system"
-                
-                # bg_suggest_edges does DB operations but it's synchronous.
-                # In a real async job we could run it in a threadpool, but for now we just call it.
-                bg_suggest_edges(event["workspace_id"], event["node_id"], user_id)
+                try:
+                    with db_cursor() as cur:
+                        cur.execute("SELECT author FROM memory_nodes WHERE id = %s", (event["node_id"],))
+                        n_row = cur.fetchone()
+                        user_id = n_row["author"] if n_row else "system"
+
+                    # bg_suggest_edges does DB operations but it's synchronous.
+                    # In a real async job we could run it in a threadpool, but for now we just call it.
+                    bg_suggest_edges(event["workspace_id"], event["node_id"], user_id)
+                except Exception as exc:
+                    print(f"Node event edge suggestion failed for {event['id']}: {exc}")
+
+            if event["event_type"] in ("created", "updated"):
+                try:
+                    from services.safety_queue import enqueue_safety_review
+                    with db_cursor(commit=True) as cur:
+                        enqueue_safety_review(
+                            cur,
+                            workspace_id=event["workspace_id"],
+                            node_id=event["node_id"],
+                            event_type=event["event_type"],
+                            event_id=f"node_event:{event['id']}:safety",
+                            source="node_event",
+                        )
+                except Exception as exc:
+                    print(f"Node event safety enqueue failed for {event['id']}: {exc}")
+
+                try:
+                    from services.conductor import record_conductor_run
+                    await record_conductor_run(
+                        event["workspace_id"],
+                        event["node_id"],
+                        trigger_reason=f"node_event:{event['event_type']}",
+                    )
+                except Exception as exc:
+                    print(f"Node event conductor dispatch failed for {event['id']}: {exc}")
             
             with db_cursor(commit=True) as cur:
                 cur.execute("UPDATE node_events SET processed_at = %s WHERE id = %s", (datetime.now(timezone.utc), event["id"]))
