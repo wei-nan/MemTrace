@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Optional
 
-from core.database import db_cursor
+from core.database import db_cursor, is_postgres
 from core.ai import encrypt_api_key
 
 logger = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ def provision_safety_key(api_key: str, provider: Optional[str] = None) -> bool:
     # Encrypt the API key
     key_enc = encrypt_api_key(api_key)
     
+    placeholder = "%s" if is_postgres() else "?"
     with db_cursor(commit=True) as cur:
         # 1. Ensure system:safety user exists
         cur.execute("SELECT id FROM users WHERE id = 'system:safety'")
@@ -53,7 +54,7 @@ def provision_safety_key(api_key: str, provider: Optional[str] = None) -> bool:
         
         # Check if key already exists for this provider and user
         cur.execute(
-            "SELECT id FROM user_ai_keys WHERE user_id = 'system:safety' AND provider = %s",
+            f"SELECT id FROM user_ai_keys WHERE user_id = 'system:safety' AND provider = {placeholder}",
             (provider,)
         )
         existing = cur.fetchone()
@@ -64,9 +65,9 @@ def provision_safety_key(api_key: str, provider: Optional[str] = None) -> bool:
             
         key_id = generate_id("uak")
         cur.execute(
-            """
+            f"""
             INSERT INTO user_ai_keys (id, user_id, provider, key_enc, key_hint)
-            VALUES (%s, 'system:safety', %s, %s, %s)
+            VALUES ({placeholder}, 'system:safety', {placeholder}, {placeholder}, {placeholder})
             ON CONFLICT (user_id, provider) DO NOTHING
             """,
             (key_id, provider, key_enc, hint)

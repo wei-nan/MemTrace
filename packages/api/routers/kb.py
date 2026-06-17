@@ -366,6 +366,7 @@ def list_nodes(
     filter: Optional[str] = Query(None, description="orphan | faded | never_traversed"),
     include_source: bool = Query(False, description="Include source_document nodes"),
     include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
+    resolution_status: Optional[str] = Query(None, pattern="^(open|resolved|superseded)$"),
     user: dict = Depends(get_current_user_optional),
 ):
     from services.nodes import list_nodes_in_db
@@ -383,7 +384,9 @@ def list_nodes(
             include_source,
             user,
             include_answered_inquiries=include_answered_inquiries,
+            resolution_status=resolution_status,
         )
+
 
 
 @router.get("/workspaces/{ws_id}/table-view", response_model=TableViewResponse)
@@ -396,6 +399,7 @@ def get_table_view(
     limit: int = Query(50, le=200), 
     offset: int = Query(0), 
     include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
+    resolution_status: Optional[str] = Query(None, pattern="^(open|resolved|superseded)$"),
     user: dict = Depends(get_current_user_optional)
 ):
     from services.nodes import get_table_view_in_db
@@ -411,7 +415,9 @@ def get_table_view(
             offset,
             user,
             include_answered_inquiries=include_answered_inquiries,
+            resolution_status=resolution_status,
         )
+
 
 
 @router.get("/workspaces/{ws_id}/nodes-search", response_model=List[NodeResponse])

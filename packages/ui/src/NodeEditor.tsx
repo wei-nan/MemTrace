@@ -32,6 +32,7 @@ function buildPayload(state: {
   body: string;
   tags: string;
   visibility: string;
+  resolutionStatus: 'open' | 'resolved' | 'superseded';
 }): NodeCreatePayload {
   return {
     title: state.title.trim(),
@@ -40,6 +41,7 @@ function buildPayload(state: {
     body: state.body.trim(),
     tags: state.tags.split(",").map((t) => t.trim()).filter(Boolean),
     visibility: state.visibility,
+    resolution_status: state.resolutionStatus,
   };
 }
 
@@ -98,6 +100,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const [body, setBody] = useState(node?.body ?? "");
   const [tags, setTags] = useState((node?.tags ?? []).join(", "));
   const [visibility, setVisibility] = useState(node?.visibility ?? "private");
+  const [resolutionStatus, setResolutionStatus] = useState<'open' | 'resolved' | 'superseded'>(node?.resolution_status ?? "open");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [pendingDiff, setPendingDiff] = useState<DiffSummary | null>(null);
@@ -134,6 +137,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     setBody(node?.body ?? "");
     setTags((node?.tags ?? []).join(", "));
     setVisibility(node?.visibility ?? "private");
+    setResolutionStatus(node?.resolution_status ?? "open");
 
     setSelectedRevisionDiff(null);
     if (node?.id) {
@@ -165,7 +169,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     }
   }, [wsId, node, isCreate]);
 
-  const payload = useMemo(() => buildPayload({ title, contentType, format, body, tags, visibility }), [title, contentType, format, body, tags, visibility]);
+  const payload = useMemo(() => buildPayload({ title, contentType, format, body, tags, visibility, resolutionStatus }), [title, contentType, format, body, tags, visibility, resolutionStatus]);
   const relatedNodes = allNodes.filter((candidate) => candidate.id !== node?.id && candidate.title.toLowerCase().includes(linkTarget.toLowerCase()));
   const trustDimensions = node ? [
     { key: "accuracy", label: t("node.dim_accuracy"), value: node.dim_accuracy, help: "AI 擷取初始較低，人工建立通常較高。" },
@@ -300,6 +304,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
       body: node.body,
       tags: node.tags,
       visibility: node.visibility,
+      resolution_status: node.resolution_status,
     } : null, payload, node ? "update" : "create");
     setPendingDiff(diff);
   };
@@ -414,7 +419,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("node.title_ph", { defaultValue: "Enter title" })} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
               <div>
                 <label className="form-label">{t("node.type_label")}</label>
                 <select className="mt-input" value={contentType} onChange={(e) => setContentType(e.target.value)}>
@@ -432,6 +437,14 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 <label className="form-label">{t("node.visibility_label")}</label>
                 <select className="mt-input" value={visibility} onChange={(e) => setVisibility(e.target.value)}>
                   {VISIBILITIES.map((item) => <option key={item} value={item}>{t(`form.vis_${item}`, { defaultValue: item })}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">{t("node.resolution_status", { defaultValue: "Status" })}</label>
+                <select className="mt-input" value={resolutionStatus} onChange={(e) => setResolutionStatus(e.target.value as any)}>
+                  <option value="open">Open</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="superseded">Superseded</option>
                 </select>
               </div>
             </div>
@@ -482,6 +495,16 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               <h1 style={{ margin: 0, fontSize: 19, lineHeight: 1.4 }}>{node?.title}</h1>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                 <span className="tag"><Shield size={12} /> {t(`content_type.${node?.content_type}`, { defaultValue: node?.content_type })}</span>
+                {node?.resolution_status && node.resolution_status !== 'open' && (
+                  <span className="tag" style={{
+                    background: node.resolution_status === 'resolved' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(148, 163, 184, 0.1)',
+                    color: node.resolution_status === 'resolved' ? '#16a34a' : '#475569',
+                    border: node.resolution_status === 'resolved' ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(148, 163, 184, 0.2)',
+                    fontWeight: 'bold',
+                  }}>
+                    {node.resolution_status.toUpperCase()}
+                  </span>
+                )}
                 {node?.content_type === 'inquiry' && node?.ask_count > 0 && (
                   <span className="tag" style={{ background: 'rgba(148, 163, 184, 0.1)', color: '#64748b' }}>
                     <Bot size={12} /> ASK: {node.ask_count}

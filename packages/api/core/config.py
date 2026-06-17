@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     # G4: AI usage retention (months)
     ai_usage_retention_months: int = 6
 
+    # job runs retention in days (default 90 days)
+    job_runs_retention_days: int = 90
+
+
     # ── Email ──────────────────────────────────────────────────────────────────
     # Provider: "resend" (default) | "smtp" | "disabled"
     email_provider:   str = "disabled"

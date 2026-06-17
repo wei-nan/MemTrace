@@ -231,6 +231,7 @@ TOOLS = [
                 "tags": {"type": "array", "items": {"type": "string"}},
                 "visibility": {"type": "string", "enum": ["public", "team", "private"]},
                 "trust_score": {"type": "number"},
+                "resolution_status": {"type": "string", "enum": ["open", "resolved", "superseded"]},
             },
             "required": ["workspace_id", "node_id"],
         },

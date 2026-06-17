@@ -234,15 +234,16 @@ def _is_postgres() -> bool:
 
 
 def exclude_answered_inquiries_filter(node_ref: str = "memory_nodes") -> str:
-    """SQL predicate that removes inquiries already resolved by an answered_by edge."""
+    """SQL predicate that removes inquiries already resolved by an answered_by edge or having resolution_status = 'resolved'."""
     return (
-        f"NOT ({node_ref}.content_type = 'inquiry' AND EXISTS ("
+        f"NOT ({node_ref}.content_type = 'inquiry' AND ("
+        f"{node_ref}.resolution_status = 'resolved' OR EXISTS ("
         "SELECT 1 FROM edges answered_edges "
         f"WHERE answered_edges.workspace_id = {node_ref}.workspace_id "
         f"AND answered_edges.from_id = {node_ref}.id "
         "AND answered_edges.relation = 'answered_by' "
         "AND answered_edges.status = 'active'"
-        "))"
+        ")))"
     )
 
 

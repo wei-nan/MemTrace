@@ -1,7 +1,7 @@
 import pytest
 import uuid
 import json
-from core.database import db_cursor
+from core.database import db_cursor, is_postgres
 from services.nodes import create_node_full_with_dedup, update_node_full_in_db, sync_node_from_source_in_db, resolve_conflict_in_db
 from services.workspaces import create_workspace_in_db
 from services.audit import verify_audit_chain
@@ -11,6 +11,8 @@ async def test_multi_user_governance_flow():
     """
     S3-T06: Multi-user smoke test for Phase 5 governance features.
     """
+    if not is_postgres():
+        pytest.skip("Integration test requires PostgreSQL")
     # 1. Setup two users and two workspaces
     user_a = {"sub": "usr_A", "email": "a@test.com"}
     user_b = {"sub": "usr_B", "email": "b@test.com"}

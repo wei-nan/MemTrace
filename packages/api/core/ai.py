@@ -29,7 +29,7 @@ import httpx
 from cryptography.fernet import Fernet, InvalidToken
 
 from core.config import settings
-from core.database import db_cursor
+from core.database import db_cursor, is_postgres
 from core.security import generate_id
 
 # ── Types ─────────────────────────────────────────────────────────────────────
@@ -1094,14 +1094,15 @@ def resolve_provider(
 
     with db_cursor() as cur:
         # Fetch all candidate keys for the user
+        placeholder = "%s" if is_postgres() else "?"
         query = (
             "SELECT provider, key_enc, base_url, auth_mode, auth_token, "
             "default_chat_model, default_embedding_model, last_used_at "
-            "FROM user_ai_keys WHERE user_id = %s"
+            f"FROM user_ai_keys WHERE user_id = {placeholder}"
         )
         params: list = [user_id]
         if preferred_provider:
-            query += " AND provider = %s"
+            query += f" AND provider = {placeholder}"
             params.append(preferred_provider)
 
         cur.execute(query, params)
@@ -1117,7 +1118,7 @@ def resolve_provider(
             )
             fallback_params: list = []
             if preferred_provider:
-                fallback_query += " AND provider = %s"
+                fallback_query += f" AND provider = {placeholder}"
                 fallback_params.append(preferred_provider)
             cur.execute(fallback_query, fallback_params)
             rows = cur.fetchall()
@@ -1230,9 +1231,11 @@ def record_usage(
                 node_id,
             ),
         )
+        now_func = "now()" if is_postgres() else "CURRENT_TIMESTAMP"
+        placeholder = "%s" if is_postgres() else "?"
         cur.execute(
-            "UPDATE user_ai_keys SET last_used_at = now() "
-            "WHERE user_id = %s AND provider = %s",
+            f"UPDATE user_ai_keys SET last_used_at = {now_func} "
+            f"WHERE user_id = {placeholder} AND provider = {placeholder}",
             (resolved.user_id, resolved.provider.name),
         )
 

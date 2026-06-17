@@ -296,8 +296,14 @@ export const workspaces = {
   },
   analytics: (wsId: string) => request<WorkspaceAnalytics>("GET", `${BASE}/workspaces/${wsId}/analytics`),
   tokenEfficiency: (wsId: string) => request<TokenEfficiency>("GET", `${BASE}/workspaces/${wsId}/analytics/token-efficiency`),
-  tableView: (wsId: string, params: { q?: string; filter?: string; limit?: number; offset?: number; sort_by?: string; order?: 'asc' | 'desc' }) => {
-    const qs = new URLSearchParams(params as any).toString();
+  tableView: (wsId: string, params: { q?: string; filter?: string; limit?: number; offset?: number; sort_by?: string; order?: 'asc' | 'desc'; resolution_status?: string }) => {
+    const cleanParams: any = {};
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) {
+        cleanParams[k] = String(v);
+      }
+    });
+    const qs = new URLSearchParams(cleanParams).toString();
     return request<{ nodes: Node[]; total_count: number }>("GET", `${BASE}/workspaces/${wsId}/table-view?${qs}`);
   },
   listApiKeys: (wsId: string) => request<PersonalApiKey[]>("GET", `${BASE}/workspaces/${wsId}/api-keys`),

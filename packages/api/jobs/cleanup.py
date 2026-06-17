@@ -134,11 +134,19 @@ async def cleanup_job():
                     len(revoked_keys),
                     [r["id"] for r in revoked_keys],
                 )
+
+            # Purge old job_runs (configurable retention limit)
+            retention_days = settings.job_runs_retention_days
+            cur.execute(
+                "DELETE FROM job_runs WHERE started_at < NOW() - (%s * INTERVAL '1 day')",
+                (retention_days,)
+            )
         logger.info("Daily cleanup complete")
     except Exception as exc:
         logger.warning("Cleanup job error: %s", exc)
 
     # Purge access-log separately
+
     try:
         with db_cursor(commit=True) as cur:
             cur.execute("SELECT purge_old_access_logs()")

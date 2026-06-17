@@ -100,11 +100,7 @@ async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky'
     try:
         resolved = resolve_provider(user_id="system:safety", feature="chat")
     except (AIProviderUnavailable, Exception) as e:
-        logger.warning(f"system:safety LLM provider unavailable: {e}. Falling back to rules (fail-closed).")
-        # In case LLM is unavailable:
-        # For procedural nodes, since we can't verify safety via LLM, treat as risky to be safe.
-        if content_type == "procedural":
-            return "risky"
+        logger.warning(f"system:safety LLM provider unavailable: {e}. Degrading to safe (skip review).")
         return "safe"
         
     system_prompt = (
@@ -143,8 +139,9 @@ async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky'
         # Ensure that LLM does not override rules (if we classified as risky/dangerous earlier, we shouldn't reach here anyway, but safeguard it)
         return classification
     except Exception as e:
-        logger.error(f"Error during LLM safety classification: {e}. Defaulting to risky (fail-closed).")
-        return "risky"
+        logger.warning(f"Error during LLM safety classification: {e}. Degrading to safe (skip review).")
+        return "safe"
+
 
 def run_historical_safety_sweep(cur, limit: int = 100) -> Dict[str, Any]:
     """

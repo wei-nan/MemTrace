@@ -24,7 +24,8 @@ def override_auth(client, mock_user):
 @pytest.fixture
 def mock_db():
     with patch("routers.kb.db_cursor") as mock:
-        yield mock
+        with patch("core.ai.db_cursor", new=mock):
+            yield mock
 
 # ─── Workspace Validation Tests ───────────────────────────────────────────────
 

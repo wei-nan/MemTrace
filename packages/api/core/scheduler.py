@@ -83,6 +83,7 @@ class Scheduler:
         from jobs.path_reinforcement import path_reinforcement_job, PATH_REINFORCEMENT_INTERVAL_SECONDS
         from jobs.audit_reviewers    import audit_reviewers_job
         from core.audit              import audit_writer_loop
+        from jobs.safety_sweep       import safety_sweep_job, SAFETY_SWEEP_INTERVAL_SECONDS
 
         self.register_loop("decay",           decay_job,           DECAY_INTERVAL_SECONDS)
         self.register_loop("ephemeral_decay", ephemeral_decay_job, EPHEMERAL_DECAY_INTERVAL_SECONDS)
@@ -98,6 +99,7 @@ class Scheduler:
         self.register_loop("process_node_events", process_node_events_job, 10) # Run every 10 seconds
         self.register_loop("safety_review_queue", process_safety_review_queue_job, 30)
         self.register_loop("audit_reviewers", _wrap_sync(audit_reviewers_job), 86400, observable=False)  # daily
+        self.register_loop("safety_sweep", _wrap_sync(safety_sweep_job), SAFETY_SWEEP_INTERVAL_SECONDS, observable=False)
         
         # audit_writer_loop 內部含 while True 與 queue，interval 設為 5s 作為心跳。
         self.register_loop("audit_writer",    audit_writer_loop,   5)

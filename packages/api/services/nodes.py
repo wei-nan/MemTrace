@@ -53,13 +53,13 @@ NODE_PUBLIC_COLUMNS = """
     signature, source_type, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
     traversal_count, unique_traverser_count, status, archived_at,
     copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
-    ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref, cluster_id
+    ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status
 """
 
 NODE_EDITABLE_FIELDS = [
     "title", "content_type", "content_format",
     "body", "tags", "visibility",
-    "source_doc_node_id", "source_paragraph_ref", "cluster_id"
+    "source_doc_node_id", "source_paragraph_ref", "cluster_id", "resolution_status"
 ]
 
 
@@ -79,6 +79,14 @@ def validate_node_payload(data: dict) -> None:
             "content_format", 
             "Must be 'plain' or 'markdown'"
         )
+    res_status = data.get("resolution_status")
+    if res_status is not None and res_status not in ("open", "resolved", "superseded"):
+        raise NodeValidationError(
+            "Invalid resolution_status",
+            "resolution_status",
+            "Must be one of: open, resolved, superseded"
+        )
+
     if data.get("visibility") not in VALID_NODE_VIS:
         raise NodeValidationError(
             "Invalid visibility", 
@@ -192,8 +200,8 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             id, workspace_id, title, content_type, content_format, body,
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
             status, dim_author_rep, trust_score, dim_freshness, source_id,
-            source_doc_node_id, source_paragraph_ref, cluster_id, updated_at
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,1.0,%s,%s,%s,%s,now())
+            source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status, updated_at
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,1.0,%s,%s,%s,%s,%s,now())
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
@@ -208,7 +216,9 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             payload["dim_author_rep"], payload["trust_score"], node_data.get("source_id"),
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
             node_data.get("cluster_id"),
+            payload.get("resolution_status") or 'open',
         ),
+
     )
     return cur.fetchone()
 
@@ -252,6 +262,7 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
             dim_freshness = 1.0, trust_score = %s,
             source_id = %s, source_doc_node_id = %s, source_paragraph_ref = %s,
             cluster_id = COALESCE(%s, cluster_id),
+            resolution_status = %s,
             version = version + 1
         WHERE id = %s AND workspace_id = %s {version_cond}
         RETURNING {NODE_PUBLIC_COLUMNS}
@@ -265,10 +276,12 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
             node_data.get("source_id", existing.get("source_id")),
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
             payload.get("cluster_id"),
+            payload.get("resolution_status") or existing.get("resolution_status", "open"),
             node_id, ws_id,
             *( [expected_version] if expected_version is not None else [] )
         ),
     )
+
     updated = cur.fetchone()
     if not updated and expected_version is not None:
         # Check if the node exists at all
@@ -551,6 +564,7 @@ def list_nodes_in_db(
     include_source: bool = False,
     user: Optional[dict] = None,
     include_answered_inquiries: bool = False,
+    resolution_status: Optional[str] = None,
 ) -> list[dict]:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
     from services.search import apply_answered_inquiry_filter, apply_text_search
@@ -579,11 +593,15 @@ def list_nodes_in_db(
     if content_type:
         filters.append("content_type = %s")
         params.append(content_type)
+    if resolution_status:
+        filters.append("resolution_status = %s")
+        params.append(resolution_status)
     apply_answered_inquiry_filter(filters, include_answered_inquiries)
     # Note: 'source_document' was removed from content_type enum in migration 056
         
     params += [limit, offset]
     cur.execute(f"SELECT {NODE_PUBLIC_COLUMNS} FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT %s OFFSET %s", params)
+
     rows = cur.fetchall()
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
     return [strip_body_if_viewer(row, role) for row in rows]
@@ -599,6 +617,7 @@ def get_table_view_in_db(
     offset: int,
     user: Optional[dict],
     include_answered_inquiries: bool = False,
+    resolution_status: Optional[str] = None,
 ) -> dict:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
     from services.search import apply_answered_inquiry_filter, apply_text_search
@@ -610,6 +629,9 @@ def get_table_view_in_db(
     
     if filter == "orphan":
         filters.append("NOT EXISTS (SELECT 1 FROM edges WHERE (from_id = memory_nodes.id OR to_id = memory_nodes.id) AND status = 'active')")
+    if resolution_status:
+        filters.append("resolution_status = %s")
+        params.append(resolution_status)
     apply_answered_inquiry_filter(filters, include_answered_inquiries)
 
     cur.execute(f"SELECT COUNT(*) FROM memory_nodes WHERE {' AND '.join(filters)}", params)
@@ -622,6 +644,8 @@ def get_table_view_in_db(
         sort_col = "content_type"
     elif sort_by == "trust_score":
         sort_col = "trust_score"
+    elif sort_by == "resolution_status":
+        sort_col = "resolution_status"
     
     sort_order = "DESC" if order.lower() == "desc" else "ASC"
     
@@ -631,6 +655,7 @@ def get_table_view_in_db(
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
     nodes = [strip_body_if_viewer(row, role) for row in rows]
     return {"nodes": nodes, "total_count": total}
+
 
 async def search_nodes_in_db(
     cur,

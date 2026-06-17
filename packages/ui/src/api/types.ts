@@ -52,6 +52,7 @@ export interface Node {
   content_stripped?: boolean;
   ask_count: number;
   cluster_id?: string | null;
+  resolution_status: 'open' | 'resolved' | 'superseded';
 }
 
 export interface NodeCluster {
@@ -73,6 +74,7 @@ export interface NodeCreatePayload {
   visibility: string;
   copied_from_node?: string;
   copied_from_ws?: string;
+  resolution_status?: 'open' | 'resolved' | 'superseded';
 }
 
 export interface Edge {

@@ -93,6 +93,8 @@ class NodeCreate(BaseModel):
     source_type: Literal["human", "ai"] = "human"
     suggested_edges: list[SuggestedEdge] = []
     force_create: bool = False
+    resolution_status: str = "open"
+
 
     @model_validator(mode="before")
     @classmethod
@@ -117,6 +119,8 @@ class NodeUpdate(BaseModel):
     source_type: Literal["human", "ai"] = "human"
     suggested_edges: list[SuggestedEdge] = []
     expected_updated_at: Optional[str] = None # P5-S2-T04: ETag/Concurrency control
+    resolution_status: Optional[str] = None
+
 
     @model_validator(mode="before")
     @classmethod
@@ -162,6 +166,8 @@ class NodeResponse(BaseModel):
     content_stripped: bool = False
     ask_count: int = 0
     miss_count: int = 0
+    resolution_status: str = "open"
+
 
 
 class ValidityConfirmationResponse(BaseModel):

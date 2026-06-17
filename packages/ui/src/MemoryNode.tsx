@@ -115,6 +115,17 @@ const MemoryNode = ({ data }: { data: any }) => {
         {t('node.type_label')}: {t(`content_type.${data.type}`, { defaultValue: data.type || 'factual' })}
       </div>
       <div className="tag-container" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+        {data.resolution_status && data.resolution_status !== 'open' && (
+          <span className="tag" style={{
+            fontSize: '0.65rem',
+            background: data.resolution_status === 'resolved' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(148, 163, 184, 0.1)',
+            color: data.resolution_status === 'resolved' ? '#16a34a' : '#475569',
+            border: data.resolution_status === 'resolved' ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(148, 163, 184, 0.2)',
+            fontWeight: 'bold',
+          }}>
+            {data.resolution_status.toUpperCase()}
+          </span>
+        )}
         {(data.tags || []).slice(0, 2).map((tag: string) => (
           <span className="tag" key={tag} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>#{tag}</span>
         ))}

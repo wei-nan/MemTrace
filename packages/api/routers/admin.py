@@ -265,6 +265,7 @@ def get_monitor_job_runs(
     job_name: Optional[str] = None,
     status: Optional[str] = Query(None, pattern="^(running|success|failed|skipped)$"),
     workspace_id: Optional[str] = None,
+    reviewer: Optional[str] = None,
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     user: dict = Depends(require_system_admin),
@@ -280,7 +281,17 @@ def get_monitor_job_runs(
     if workspace_id:
         conditions.append("jr.workspace_id = %s")
         params.append(workspace_id)
+    if reviewer:
+        conditions.append("""
+            (
+                (jr.summary->'reviewers' ? %s)
+                OR EXISTS (SELECT 1 FROM jsonb_each(jr.summary->'workspaces') AS ws(id, val) WHERE ws.val ? %s)
+                OR (jr.summary->>'reviewer_id' = %s)
+            )
+        """)
+        params.extend([reviewer, reviewer, reviewer])
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+
     params.extend([limit, offset])
     with db_cursor() as cur:
         cur.execute(f"""

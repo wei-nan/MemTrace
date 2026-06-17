@@ -15,7 +15,7 @@ interface Props {
   refreshKey?: number;
 }
 
-type SortField = 'title' | 'content_type' | 'trust_score' | 'created_at';
+type SortField = 'title' | 'content_type' | 'trust_score' | 'created_at' | 'resolution_status';
 type SortOrder = 'asc' | 'desc';
 
 export default function TableView({ wsId, onEditNode, initialFilter, refreshKey }: Props) {
@@ -36,6 +36,7 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
   const [sortBy, setSortBy] = useState<SortField>('created_at');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [filter, setFilter] = useState<string | undefined>(initialFilter);
+  const [resolutionStatusFilter, setResolutionStatusFilter] = useState<string | undefined>(undefined);
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -57,6 +58,7 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
         offset,
         sort_by: sortBy,
         order: sortOrder,
+        resolution_status: resolutionStatusFilter,
       });
       // Filter out source_document as requested
       const filteredNodes = res.nodes.filter(n => n.content_type !== 'source_document');
@@ -67,7 +69,7 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
     } finally {
       setLoading(false);
     }
-  }, [wsId, debouncedQuery, limit, offset, sortBy, sortOrder]);
+  }, [wsId, debouncedQuery, limit, offset, sortBy, sortOrder, filter, resolutionStatusFilter]);
 
   useEffect(() => { load(); }, [load, refreshKey]);
 
@@ -156,6 +158,20 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
               onChange={e => { setQuery(e.target.value); setOffset(0); }}
             />
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <span style={{ color: 'var(--text-muted)' }}>{t('node.resolution_status', { defaultValue: 'Status' })}:</span>
+            <select
+              className="mt-input"
+              style={{ padding: '4px 8px', height: 'auto', minWidth: 100 }}
+              value={resolutionStatusFilter || ''}
+              onChange={e => { setResolutionStatusFilter(e.target.value || undefined); setOffset(0); }}
+            >
+              <option value="">{zh ? '全部' : 'All'}</option>
+              <option value="open">Open</option>
+              <option value="resolved">Resolved</option>
+              <option value="superseded">Superseded</option>
+            </select>
+          </div>
           {filter && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 12px', background: 'var(--color-primary-subtle)', border: '1px solid var(--color-primary)', borderRadius: 8, fontSize: 13, color: 'var(--color-primary)' }}>
               <span>{t('table.filter')}: {filter}</span>
@@ -236,6 +252,12 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
                   {renderSortIcon('content_type')}
                 </div>
               </th>
+              <th onClick={() => toggleSort('resolution_status')} style={{ padding: '12px 16px', cursor: 'pointer', userSelect: 'none', width: 120 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {t('table.status', { defaultValue: 'Status' })}
+                  {renderSortIcon('resolution_status')}
+                </div>
+              </th>
               <th style={{ padding: '12px 16px', width: 200 }}>{t('table.tags')}</th>
               <th onClick={() => toggleSort('trust_score')} style={{ padding: '12px 16px', cursor: 'pointer', userSelect: 'none', width: 150 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -255,13 +277,13 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
                   {zh ? '載入中…' : 'Loading…'}
                 </td>
               </tr>
             ) : nodes.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
                   {error ? `Error: ${error}` : (zh ? '尚無節點' : 'No nodes found')}
                 </td>
               </tr>
@@ -287,6 +309,18 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
                 <td style={{ padding: '12px 16px' }}>
                   <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}>
                     {node.content_type}
+                  </span>
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  <span style={{
+                    fontSize: 11,
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    background: node.resolution_status === 'resolved' ? 'rgba(34, 197, 94, 0.1)' : node.resolution_status === 'superseded' ? 'rgba(148, 163, 184, 0.1)' : 'rgba(99, 102, 241, 0.1)',
+                    color: node.resolution_status === 'resolved' ? '#16a34a' : node.resolution_status === 'superseded' ? '#475569' : '#4f46e5',
+                    fontWeight: 600
+                  }}>
+                    {(node.resolution_status || 'open').toUpperCase()}
                   </span>
                 </td>
                 <td style={{ padding: '12px 16px' }}>
