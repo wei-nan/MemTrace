@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from typing import Optional, Literal
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from core.backup import (
@@ -246,3 +246,88 @@ def update_system_ai_key_model(
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Key not found")
     return {"message": "Updated"}
+
+
+# ─── System Monitor endpoints ──────────────────────────────────────────────────
+
+@router.get("/monitor/scheduler-heartbeats")
+def get_monitor_heartbeats(user: dict = Depends(require_system_admin)):
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT * FROM scheduler_heartbeats
+            ORDER BY updated_at DESC, job_name ASC
+        """)
+        return {"heartbeats": [dict(r) for r in cur.fetchall()]}
+
+
+@router.get("/monitor/job-runs")
+def get_monitor_job_runs(
+    job_name: Optional[str] = None,
+    status: Optional[str] = Query(None, pattern="^(running|success|failed|skipped)$"),
+    workspace_id: Optional[str] = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user: dict = Depends(require_system_admin),
+):
+    conditions: list[str] = []
+    params: list = []
+    if job_name:
+        conditions.append("jr.job_name = %s")
+        params.append(job_name)
+    if status:
+        conditions.append("jr.status = %s")
+        params.append(status)
+    if workspace_id:
+        conditions.append("jr.workspace_id = %s")
+        params.append(workspace_id)
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    params.extend([limit, offset])
+    with db_cursor() as cur:
+        cur.execute(f"""
+            SELECT jr.*, w.name AS workspace_name
+            FROM job_runs jr
+            LEFT JOIN workspaces w ON w.id = jr.workspace_id
+            {where}
+            ORDER BY jr.started_at DESC
+            LIMIT %s OFFSET %s
+        """, params)
+        runs = [dict(r) for r in cur.fetchall()]
+        cur.execute(f"""
+            SELECT COUNT(*) FROM job_runs jr {where}
+        """, params[:-2] if params else [])
+        total = cur.fetchone()[0]
+    return {"runs": runs, "total": total, "offset": offset}
+
+
+@router.get("/monitor/mcp-query-logs")
+def get_monitor_mcp_logs(
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user: dict = Depends(require_system_admin),
+):
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT ml.*, w.name AS workspace_name
+            FROM mcp_query_logs ml
+            LEFT JOIN workspaces w ON w.id = ml.workspace_id
+            ORDER BY ml.created_at DESC
+            LIMIT %s OFFSET %s
+        """, [limit, offset])
+        logs = [dict(r) for r in cur.fetchall()]
+        cur.execute("SELECT COUNT(*) FROM mcp_query_logs")
+        total = cur.fetchone()[0]
+    return {"logs": logs, "total": total, "offset": offset}
+
+
+@router.get("/monitor/ai-usage")
+def get_monitor_ai_usage(user: dict = Depends(require_system_admin)):
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT s.workspace_id, s.year_month, s.token_count, s.last_updated,
+                   w.name AS workspace_name
+            FROM ai_usage_summary s
+            LEFT JOIN workspaces w ON w.id = s.workspace_id
+            ORDER BY s.year_month DESC, s.token_count DESC
+        """)
+        rows = [dict(r) for r in cur.fetchall()]
+    return {"usage": rows}

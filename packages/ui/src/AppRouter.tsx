@@ -21,6 +21,7 @@ const GraphContainer = lazy(() => import('./GraphContainer'));
 const SystemAISettings = lazy(() => import('./SystemAISettings'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 const JobRunsPage = lazy(() => import('./JobRunsPage'));
+const SystemMonitorPage = lazy(() => import('./SystemMonitorPage'));
 
 interface AppRouterProps {
   authenticated: boolean;
@@ -150,6 +151,11 @@ const AppRouter: React.FC<AppRouterProps> = ({
                 {currentView === 'system_ai' && user?.is_platform_admin && (
                   <div style={{ flex: 1, overflowY: 'auto' }}>
                     <SystemAISettings />
+                  </div>
+                )}
+                {currentView === 'system_monitor' && user?.is_platform_admin && (
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    <SystemMonitorPage />
                   </div>
                 )}
                 {currentView === 'ai_chat' && selectedWs && (

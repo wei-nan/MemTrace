@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Network, PlusCircle, Globe, ChevronDown, ChevronLeft, ChevronRight,
-  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain, ScrollText
+  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain, ScrollText, Activity
 } from 'lucide-react';
 import { type Workspace, type WorkspaceCloneJob, workspaces } from '../api';
 import { Button } from './ui';
@@ -360,6 +360,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <ShieldCheck size={18} />
               {!collapsed && <span className="nav-text">{t('sidebar.system_ai') || (user?.language === 'zh-TW' ? '系統 AI 設定' : 'System AI')}</span>}
+            </div>
+            <div
+              className={`nav-item ${currentView === 'system_monitor' ? 'active' : ''}`}
+              title={collapsed ? (t('sidebar.system_monitor') || 'System Monitor') : undefined}
+              onClick={() => onSetView('system_monitor')}
+            >
+              <Activity size={18} />
+              {!collapsed && <span className="nav-text">{t('sidebar.system_monitor') || (user?.language === 'zh-TW' ? '系統監控' : 'System Monitor')}</span>}
             </div>
           </>
         )}

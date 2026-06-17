@@ -18,6 +18,7 @@ const resources = {
         documents: '文件庫',
         job_runs: '作業紀錄',
         system_ai: '系統 AI 設定',
+        system_monitor: '系統監控',
         admin_section: '管理員設定'
       },
       nav: {
@@ -494,6 +495,7 @@ const resources = {
         documents: 'Documents',
         job_runs: 'Job Runs',
         system_ai: 'System AI',
+        system_monitor: 'System Monitor',
         admin_section: 'Admin'
       },
       nav: {
