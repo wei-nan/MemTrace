@@ -156,7 +156,8 @@ async def perform_semantic_search(
     limit: int = 10,
     ws_model: str = None,
     ws_prov: str = None,
-    include_archived: bool = False
+    include_archived: bool = False,
+    include_answered_inquiries: bool = False,
 ) -> list[dict]:
     """Execute vector search over nodes in a workspace using the configured embedding model."""
     try:
@@ -169,6 +170,7 @@ async def perform_semantic_search(
         record_usage(resolved, "search", tokens, ws_id)
         
         status_filter = "" if include_archived else "AND status = 'active'"
+        answered_filter = "" if include_answered_inquiries else f"AND {exclude_answered_inquiries_filter()}"
         
         if in_migration:
             target_prov = ws_mig["migrating_to_provider"]
@@ -185,7 +187,7 @@ async def perform_semantic_search(
                     CASE WHEN secondary_embedding IS NOT NULL THEN (1 - (secondary_embedding <=> %s::vector)) ELSE -1 END
                   ) AS similarity
                 FROM memory_nodes
-                WHERE workspace_id = %s AND (embedding IS NOT NULL OR secondary_embedding IS NOT NULL) {status_filter}
+                WHERE workspace_id = %s AND (embedding IS NOT NULL OR secondary_embedding IS NOT NULL) {status_filter} {answered_filter}
                 ORDER BY similarity DESC
                 LIMIT %s
                 """,
@@ -196,7 +198,7 @@ async def perform_semantic_search(
                 f"""
                 SELECT *, (1 - (embedding <=> %s::vector)) AS similarity
                 FROM memory_nodes
-                WHERE workspace_id = %s AND embedding IS NOT NULL {status_filter}
+                WHERE workspace_id = %s AND embedding IS NOT NULL {status_filter} {answered_filter}
                 ORDER BY similarity DESC
                 LIMIT %s
                 """,
@@ -230,6 +232,25 @@ from core.config import settings
 def _is_postgres() -> bool:
     return settings.database_url.startswith("postgresql")
 
+
+def exclude_answered_inquiries_filter(node_ref: str = "memory_nodes") -> str:
+    """SQL predicate that removes inquiries already resolved by an answered_by edge."""
+    return (
+        f"NOT ({node_ref}.content_type = 'inquiry' AND EXISTS ("
+        "SELECT 1 FROM edges answered_edges "
+        f"WHERE answered_edges.workspace_id = {node_ref}.workspace_id "
+        f"AND answered_edges.from_id = {node_ref}.id "
+        "AND answered_edges.relation = 'answered_by' "
+        "AND answered_edges.status = 'active'"
+        "))"
+    )
+
+
+def apply_answered_inquiry_filter(filters: list[str], include_answered_inquiries: bool, node_ref: str = "memory_nodes") -> None:
+    if not include_answered_inquiries:
+        filters.append(exclude_answered_inquiries_filter(node_ref))
+
+
 def apply_text_search(filters: list, params: list, q: str) -> None:
     """Modify filters and params lists in-place for full-text and pattern search."""
     if _is_postgres():
@@ -255,13 +276,21 @@ def apply_text_search(filters: list, params: list, q: str) -> None:
         params.extend([like_q, like_q])
 
 
-async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Optional[dict]) -> list[dict]:
+async def search_nodes_in_db(
+    cur,
+    ws_id: str,
+    query: str,
+    limit: int,
+    user: Optional[dict],
+    include_answered_inquiries: bool = False,
+) -> list[dict]:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
     ws = require_ws_access(cur, ws_id, user)
     
     # 1. Text Search
     filters = ["workspace_id = %s", "status = 'active'"]
     params: list = [ws_id]
+    apply_answered_inquiry_filter(filters, include_answered_inquiries)
     apply_text_search(filters, params, query)
     
     cur.execute(
@@ -276,7 +305,16 @@ async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Opti
     ws_model = ws.get("embedding_model")
     ws_prov = ws.get("embedding_provider")
     try:
-        semantic_results = await perform_semantic_search(cur, ws_id, query, user_id, limit, ws_model, ws_prov)
+        semantic_results = await perform_semantic_search(
+            cur,
+            ws_id,
+            query,
+            user_id,
+            limit,
+            ws_model,
+            ws_prov,
+            include_answered_inquiries=include_answered_inquiries,
+        )
     except (AIProviderUnavailable, RuntimeError, Exception):
         pass  # fall through to keyword-only results
     
@@ -369,6 +407,7 @@ async def hybrid_retrieval_for_chat(
     fallback_limit: int = 10,
     anchor_node_ids: list[str] | None = None,
     anchor_boost: float = 0.07,
+    include_answered_inquiries: bool = False,
 ) -> list[dict]:
     """
     Unified retrieval for chat:
@@ -420,6 +459,7 @@ async def hybrid_retrieval_for_chat(
             resolved_secondary = resolve_provider(user_id, "embedding", preferred_provider=target_prov, preferred_model=target_model)
             vector_secondary, _ = await embed(resolved_secondary, message)
             
+            answered_filter = "" if include_answered_inquiries else f"AND {exclude_answered_inquiries_filter()}"
             cur.execute(f"""
                 SELECT id, title, body, workspace_id,
                        GREATEST(
@@ -428,6 +468,7 @@ async def hybrid_retrieval_for_chat(
                        ) AS similarity
                 FROM memory_nodes
                 WHERE workspace_id = ANY(%s) AND (embedding IS NOT NULL OR secondary_embedding IS NOT NULL) AND status = 'active'
+                  {answered_filter}
                 HAVING GREATEST(
                          CASE WHEN embedding IS NOT NULL THEN (1 - (embedding <=> %s::vector)) ELSE -1 END,
                          CASE WHEN secondary_embedding IS NOT NULL THEN (1 - (secondary_embedding <=> %s::vector)) ELSE -1 END
@@ -436,11 +477,13 @@ async def hybrid_retrieval_for_chat(
             """, (vector, vector_secondary, target_ws_ids, vector, vector_secondary, min_similarity, vector_limit))
             source_nodes = list(cur.fetchall())
         else:
+            answered_filter = "" if include_answered_inquiries else f"AND {exclude_answered_inquiries_filter()}"
             cur.execute(f"""
                 SELECT id, title, body, workspace_id,
                        (1 - (embedding <=> %s::vector)) AS similarity
                 FROM memory_nodes
                 WHERE workspace_id = ANY(%s) AND embedding IS NOT NULL AND status = 'active'
+                  {answered_filter}
                   AND (1 - (embedding <=> %s::vector)) >= %s
                 ORDER BY similarity DESC LIMIT %s
             """, (vector, target_ws_ids, vector, min_similarity, vector_limit))
@@ -464,11 +507,13 @@ async def hybrid_retrieval_for_chat(
                 params += [like_t, like_t]
         
         is_pg = settings.database_url.startswith("postgresql")
+        answered_filter = "" if include_answered_inquiries else f"AND {exclude_answered_inquiries_filter()}"
         sql = f"""
             SELECT id, title, body, workspace_id,
                    0.0::{'float' if is_pg else 'real'} AS similarity
             FROM memory_nodes
             WHERE workspace_id = ANY(%s) AND status = 'active'
+              {answered_filter}
               AND ({" OR ".join(or_conds)})
             LIMIT %s
         """

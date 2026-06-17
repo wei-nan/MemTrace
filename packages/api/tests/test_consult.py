@@ -22,10 +22,11 @@ from services.consult import consult, synthesize_responses
 # ─── Fake cursor that answers by inspecting the executed SQL ──────────────────
 
 class FakeCursor:
-    def __init__(self, stuck_node, session_count=0, proposal_status="dismissed"):
+    def __init__(self, stuck_node, session_count=0, proposal_status="dismissed", answer_nodes=None):
         self.stuck_node = stuck_node
         self.session_count = session_count
         self.proposal_status = proposal_status
+        self.answer_nodes = answer_nodes or []
         self._last = ""
         self.executed: list[str] = []
 
@@ -46,6 +47,8 @@ class FakeCursor:
         return None
 
     def fetchall(self):
+        if "answered_by" in self._last:
+            return self.answer_nodes
         return []
 
 
@@ -198,6 +201,58 @@ async def test_budget_exceeded_downgrades_to_gap():
     assert result["status"] == "budget_exceeded"
     m["create_node"].assert_called_once()             # gap node registered
     m["run_single_consult"].assert_not_called()       # model never called
+
+
+@pytest.mark.asyncio
+async def test_answered_inquiry_returns_existing_answers_without_model_call():
+    stuck_node = {
+        "id": "node_stuck",
+        "title": "Already answered issue",
+        "body": "What should happen next?",
+        "tags": ["done"],
+        "content_type": "inquiry",
+    }
+    fake_cur = FakeCursor(
+        stuck_node,
+        answer_nodes=[
+            {
+                "id": "mem_answer",
+                "title": "Existing answer",
+                "body": "Use the existing resolved procedure.",
+                "content_type": "procedural",
+            }
+        ],
+    )
+
+    @contextmanager
+    def fake_db_cursor(*a, **k):
+        yield fake_cur
+
+    workspace = {
+        "id": "ws_test",
+        "settings": {},
+        "consult_provider": None,
+        "consult_trust_tier": "ask",
+    }
+
+    with ExitStack() as stack:
+        stack.enter_context(patch("services.consult.db_cursor", new=fake_db_cursor))
+        stack.enter_context(patch("services.consult.require_ws_access", new=MagicMock(return_value=workspace)))
+        run_single = stack.enter_context(patch("services.consult.run_single_consult", new=AsyncMock()))
+
+        result = await consult(
+            ws_id="ws_test",
+            stuck_node_id="node_stuck",
+            problem_context="same already resolved condition",
+            mode="generate",
+            user={"sub": "user_1"},
+        )
+
+    assert result["status"] == "already_answered"
+    assert result["answer_nodes"][0]["id"] == "mem_answer"
+    run_single.assert_not_called()
+    executed_sql = "\n".join(fake_cur.executed).lower()
+    assert "insert into consult_sessions" in executed_sql
 
 
 # ─── synthesize_responses tests ───────────────────────────────────────────────

@@ -137,7 +137,13 @@ async def get_node_public(workspace_id: str, node_id: str, request: Request, bac
     return node
 
 @router.get("/workspaces/{workspace_id}/search", response_model=List[NodeResponse])
-async def search_public(workspace_id: str, request: Request, background_tasks: BackgroundTasks, q: str = ""):
+async def search_public(
+    workspace_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    q: str = "",
+    include_answered_inquiries: bool = False,
+):
     """Basic text search for nodes in a public workspace."""
     if not q or len(q) < 2:
         return []
@@ -153,7 +159,11 @@ async def search_public(workspace_id: str, request: Request, background_tasks: B
     # Exclude system nodes
     filters.append("(metadata->>'source' IS NULL OR metadata->>'source' <> 'mcp')")
     
-    from services.search import apply_text_search as _apply_text_search
+    from services.search import (
+        apply_answered_inquiry_filter as _apply_answered_inquiry_filter,
+        apply_text_search as _apply_text_search,
+    )
+    _apply_answered_inquiry_filter(filters, include_answered_inquiries)
     _apply_text_search(filters, params, q)
     
     query = f"SELECT * FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY created_at DESC LIMIT 50"

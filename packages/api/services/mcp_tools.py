@@ -148,6 +148,7 @@ TOOLS = [
                 "q":  {"type": "string",  "description": "Keyword search query (optional)"},
                 "limit":  {"type": "integer", "description": "Max results (default 50, max 200)"},
                 "offset": {"type": "integer", "description": "Pagination offset"},
+                "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
             },
             "required": ["workspace_id"],
         },
@@ -177,6 +178,7 @@ TOOLS = [
                 "limit": {"type": "integer", "description": "Max results (default 20)"},
                 "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
+                "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
             },
             "required": ["workspace_id", "query"],
         },
@@ -190,6 +192,7 @@ TOOLS = [
                 "query": {"type": "string", "description": "Search query"},
                 "limit": {"type": "integer", "description": "Max results per workspace (default 5)"},
                 "include_archived": {"type": "boolean", "description": "Whether to include archived nodes", "default": False},
+                "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
             },
             "required": ["query"],
         },
@@ -998,8 +1001,22 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         q      = args.get("q", "")
         limit  = min(int(args.get("limit", 50)), 200)
         offset = int(args.get("offset", 0))
+        include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
         with db_cursor() as cur:
-             return list_nodes_in_db(cur, ws_id, q=q, tag=None, content_type=None, limit=limit, offset=offset, status="active", filter=None, include_source=False, user=user)
+             return list_nodes_in_db(
+                 cur,
+                 ws_id,
+                 q=q,
+                 tag=None,
+                 content_type=None,
+                 limit=limit,
+                 offset=offset,
+                 status="active",
+                 filter=None,
+                 include_source=False,
+                 user=user,
+                 include_answered_inquiries=include_answered_inquiries,
+             )
 
     # ── get_node ──────────────────────────────────────────────────────────────
     # ── get_node ──────────────────────────────────────────────────────────────
@@ -1026,8 +1043,16 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         max_tokens = args.get("max_response_tokens")
         if max_tokens is not None:
             max_tokens = int(max_tokens)
+        include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
         with db_cursor() as cur:
-            results = await search_nodes_in_db(cur, ws_id, query, limit, user)
+            results = await search_nodes_in_db(
+                cur,
+                ws_id,
+                query,
+                limit,
+                user,
+                include_answered_inquiries=include_answered_inquiries,
+            )
             if not results and query:
                 background_tasks.add_task(handle_search_miss, ws_id, query, user["sub"])
             elif results:
@@ -1042,6 +1067,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         query_text = args["query"]
         limit_per = min(int(args.get("limit", 5)), 10)
         include_archived = args.get("include_archived", False)
+        include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
         
         results = []
         warnings = []
@@ -1068,7 +1094,8 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                             ws_res = await perform_semantic_search(
                                 cur, ws["id"], query_text, user["sub"], 
                                 limit=limit_per, ws_model=model, ws_prov=prov,
-                                include_archived=include_archived
+                                include_archived=include_archived,
+                                include_answered_inquiries=include_answered_inquiries,
                             )
                             for r in ws_res:
                                 r["workspace_name"] = ws["name"]

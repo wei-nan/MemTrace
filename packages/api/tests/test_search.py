@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from services.search import apply_text_search, perform_semantic_search
+from services.search import apply_answered_inquiry_filter, apply_text_search, perform_semantic_search
 from core.ai import AIProviderUnavailable
 
 def test_apply_text_search_postgres():
@@ -28,6 +28,25 @@ def test_apply_text_search_sqlite():
     assert "LIKE" in filters[0]
     assert len(params) == 2
     assert params[0] == "%hello%"
+
+
+def test_apply_answered_inquiry_filter_excludes_answered_inquiries_by_default():
+    filters = []
+
+    apply_answered_inquiry_filter(filters, include_answered_inquiries=False)
+
+    assert len(filters) == 1
+    assert "content_type = 'inquiry'" in filters[0]
+    assert "answered_by" in filters[0]
+    assert "status = 'active'" in filters[0]
+
+
+def test_apply_answered_inquiry_filter_can_include_answered_inquiries():
+    filters = []
+
+    apply_answered_inquiry_filter(filters, include_answered_inquiries=True)
+
+    assert filters == []
 
 @pytest.mark.asyncio
 @patch("services.search.embed")
@@ -52,6 +71,7 @@ async def test_perform_semantic_search(mock_record, mock_resolve, mock_embed):
     assert res[0]["id"] == "mem_1"
     mock_embed.assert_called_once()
     mock_record.assert_called_once()
+    assert "answered_by" in cur.execute.call_args.args[0]
 
 @pytest.mark.asyncio
 @patch("services.search.resolve_provider")
@@ -122,6 +142,8 @@ async def test_hybrid_retrieval_for_chat_vector_fallback(mock_settings, mock_res
     assert res[0]["id"] == "vec_node"
     assert res[1]["id"] == "kw_node"
     mock_embed.assert_called_once()
+    executed_sql = "\n".join(call.args[0] for call in cur.execute.call_args_list)
+    assert "answered_by" in executed_sql
 
 
 

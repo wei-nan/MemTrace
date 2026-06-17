@@ -365,11 +365,25 @@ def list_nodes(
     status: str = Query("active"),
     filter: Optional[str] = Query(None, description="orphan | faded | never_traversed"),
     include_source: bool = Query(False, description="Include source_document nodes"),
+    include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
     user: dict = Depends(get_current_user_optional),
 ):
     from services.nodes import list_nodes_in_db
     with db_cursor() as cur:
-        return list_nodes_in_db(cur, ws_id, q, tag, content_type, limit, offset, status, filter, include_source, user)
+        return list_nodes_in_db(
+            cur,
+            ws_id,
+            q,
+            tag,
+            content_type,
+            limit,
+            offset,
+            status,
+            filter,
+            include_source,
+            user,
+            include_answered_inquiries=include_answered_inquiries,
+        )
 
 
 @router.get("/workspaces/{ws_id}/table-view", response_model=TableViewResponse)
@@ -381,29 +395,69 @@ def get_table_view(
     order: Optional[str] = Query("desc"),
     limit: int = Query(50, le=200), 
     offset: int = Query(0), 
+    include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
     user: dict = Depends(get_current_user_optional)
 ):
     from services.nodes import get_table_view_in_db
     with db_cursor() as cur:
-        return get_table_view_in_db(cur, ws_id, q, filter, sort_by, order, limit, offset, user)
+        return get_table_view_in_db(
+            cur,
+            ws_id,
+            q,
+            filter,
+            sort_by,
+            order,
+            limit,
+            offset,
+            user,
+            include_answered_inquiries=include_answered_inquiries,
+        )
 
 
 @router.get("/workspaces/{ws_id}/nodes-search", response_model=List[NodeResponse])
-async def search_nodes(ws_id: str, query: str = Query(...), limit: int = 20, user: dict = Depends(get_current_user_optional)):
+async def search_nodes(
+    ws_id: str,
+    query: str = Query(...),
+    limit: int = 20,
+    include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
+    user: dict = Depends(get_current_user_optional),
+):
     from services.nodes import search_nodes_in_db
     with db_cursor() as cur:
-        return await search_nodes_in_db(cur, ws_id, query, limit, user)
+        return await search_nodes_in_db(
+            cur,
+            ws_id,
+            query,
+            limit,
+            user,
+            include_answered_inquiries=include_answered_inquiries,
+        )
 
 
 @router.post("/workspaces/{ws_id}/nodes/search-semantic", response_model=List[NodeResponse])
-async def search_nodes_semantic(ws_id: str, query: str, limit: int = 10, user: dict = Depends(get_current_user)):
+async def search_nodes_semantic(
+    ws_id: str,
+    query: str,
+    limit: int = 10,
+    include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
+    user: dict = Depends(get_current_user),
+):
     with db_cursor() as cur:
         ws = _require_ws_access(cur, ws_id, user)
         cur.execute("SELECT embedding_model, embedding_provider FROM workspaces WHERE id = %s", (ws_id,))
         ws_row = cur.fetchone()
         ws_model = ws_row["embedding_model"] if ws_row else None
         ws_prov = ws_row["embedding_provider"] if ws_row else None
-        results = await perform_semantic_search(cur, ws_id, query, user["sub"], limit, ws_model=ws_model, ws_prov=ws_prov)
+        results = await perform_semantic_search(
+            cur,
+            ws_id,
+            query,
+            user["sub"],
+            limit,
+            ws_model=ws_model,
+            ws_prov=ws_prov,
+            include_answered_inquiries=include_answered_inquiries,
+        )
         # perform_semantic_search returns raw rows; redact bodies of non-public
         # nodes for viewers, matching the hybrid search / list / get-node paths.
         viewer_role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)

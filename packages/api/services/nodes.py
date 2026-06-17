@@ -549,10 +549,11 @@ def list_nodes_in_db(
     status: str = "active",
     filter: Optional[str] = None,
     include_source: bool = False,
-    user: Optional[dict] = None
+    user: Optional[dict] = None,
+    include_answered_inquiries: bool = False,
 ) -> list[dict]:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
-    from services.search import apply_text_search
+    from services.search import apply_answered_inquiry_filter, apply_text_search
     ws = require_ws_access(cur, ws_id, user)
     filters = ["workspace_id = %s"]
     params: list = [ws_id]
@@ -578,6 +579,7 @@ def list_nodes_in_db(
     if content_type:
         filters.append("content_type = %s")
         params.append(content_type)
+    apply_answered_inquiry_filter(filters, include_answered_inquiries)
     # Note: 'source_document' was removed from content_type enum in migration 056
         
     params += [limit, offset]
@@ -586,9 +588,20 @@ def list_nodes_in_db(
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"] if user else None)
     return [strip_body_if_viewer(row, role) for row in rows]
 
-def get_table_view_in_db(cur, ws_id: str, q: Optional[str], filter: Optional[str], sort_by: Optional[str], order: Optional[str], limit: int, offset: int, user: Optional[dict]) -> dict:
+def get_table_view_in_db(
+    cur,
+    ws_id: str,
+    q: Optional[str],
+    filter: Optional[str],
+    sort_by: Optional[str],
+    order: Optional[str],
+    limit: int,
+    offset: int,
+    user: Optional[dict],
+    include_answered_inquiries: bool = False,
+) -> dict:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
-    from services.search import apply_text_search
+    from services.search import apply_answered_inquiry_filter, apply_text_search
     ws = require_ws_access(cur, ws_id, user)
     filters = ["workspace_id = %s", "status = 'active'"]
     params = [ws_id]
@@ -597,6 +610,7 @@ def get_table_view_in_db(cur, ws_id: str, q: Optional[str], filter: Optional[str
     
     if filter == "orphan":
         filters.append("NOT EXISTS (SELECT 1 FROM edges WHERE (from_id = memory_nodes.id OR to_id = memory_nodes.id) AND status = 'active')")
+    apply_answered_inquiry_filter(filters, include_answered_inquiries)
 
     cur.execute(f"SELECT COUNT(*) FROM memory_nodes WHERE {' AND '.join(filters)}", params)
     total = cur.fetchone()["count"]
@@ -618,9 +632,16 @@ def get_table_view_in_db(cur, ws_id: str, q: Optional[str], filter: Optional[str
     nodes = [strip_body_if_viewer(row, role) for row in rows]
     return {"nodes": nodes, "total_count": total}
 
-async def search_nodes_in_db(cur, ws_id: str, query: str, limit: int, user: Optional[dict]) -> list[dict]:
+async def search_nodes_in_db(
+    cur,
+    ws_id: str,
+    query: str,
+    limit: int,
+    user: Optional[dict],
+    include_answered_inquiries: bool = False,
+) -> list[dict]:
     from services.search import search_nodes_in_db as _search
-    return await _search(cur, ws_id, query, limit, user)
+    return await _search(cur, ws_id, query, limit, user, include_answered_inquiries=include_answered_inquiries)
 
 def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
     from services.workspaces import require_ws_access

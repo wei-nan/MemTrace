@@ -133,6 +133,49 @@ async def consult(
         stuck_node = cur.fetchone()
         if not stuck_node:
             raise ValueError(f"Stuck node {stuck_node_id} not found in workspace {ws_id}")
+
+        if stuck_node["content_type"] == "inquiry":
+            cur.execute(
+                """
+                SELECT n.id, n.title, n.body, n.content_type
+                FROM edges e
+                JOIN memory_nodes n ON n.id = e.to_id AND n.workspace_id = e.workspace_id
+                WHERE e.workspace_id = %s
+                  AND e.from_id = %s
+                  AND e.relation = 'answered_by'
+                  AND e.status = 'active'
+                  AND n.status = 'active'
+                ORDER BY e.created_at ASC
+                """,
+                (ws_id, stuck_node_id),
+            )
+            answer_nodes = [dict(row) for row in cur.fetchall()]
+            if answer_nodes:
+                session_id = generate_id("con")
+                cur.execute(
+                    """
+                    INSERT INTO consult_sessions (
+                        id, workspace_id, stuck_node_id, problem_context, mode,
+                        synthesis_result, inquiry_path_id, metadata
+                    )
+                    VALUES (%s, %s, %s, %s, %s, 'already_answered', %s, %s)
+                    """,
+                    (
+                        session_id,
+                        ws_id,
+                        stuck_node_id,
+                        problem_context,
+                        mode,
+                        inquiry_path_id,
+                        json.dumps({"answer_node_ids": [node["id"] for node in answer_nodes]}),
+                    ),
+                )
+                return {
+                    "status": "already_answered",
+                    "session_id": session_id,
+                    "stuck_node_id": stuck_node_id,
+                    "answer_nodes": answer_nodes,
+                }
             
         if session_count >= quota:
             logger.warning(f"Consult daily quota ({quota}) exceeded for workspace {ws_id}. Downgrading to gap node.")
@@ -191,8 +234,16 @@ async def consult(
     candidate_nodes = []
     if mode == "interpret":
         with db_cursor() as cur:
+            from services.search import exclude_answered_inquiries_filter
             cur.execute(
-                "SELECT id, title, content_type, body FROM memory_nodes WHERE workspace_id = %s AND status = 'active' LIMIT 50",
+                f"""
+                SELECT id, title, content_type, body
+                FROM memory_nodes
+                WHERE workspace_id = %s
+                  AND status = 'active'
+                  AND {exclude_answered_inquiries_filter()}
+                LIMIT 50
+                """,
                 (ws_id,)
             )
             candidate_nodes = [dict(r) for r in cur.fetchall()]
