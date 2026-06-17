@@ -11,32 +11,52 @@
 
 -- SQL-based auto-migration of source_document nodes to documents table
 -- (runs before dropping the enum to make the migration self-contained and robust)
+-- Guards: INSERT steps are skipped on fresh/CI databases where the target tables
+--         don't exist yet (schema/sql 049-098 range was not committed to repo).
 
--- 1. Insert documents
-INSERT INTO documents (
-  id, workspace_id, filename, content_hash, mime_type,
-  size_bytes, storage_path, title, uploaded_by, ingestion_job_id
-)
-SELECT
-  'doc_' || id, workspace_id, coalesce(source_file, source_document, 'doc_' || id || '.txt'),
-  coalesce(signature, md5(coalesce(body, ''))), 'text/plain',
-  octet_length(coalesce(body, '')),
-  '/app/data/documents/' || workspace_id || '/' || 'doc_' || id || '.txt',
-  coalesce(title, 'Document'),
-  author,
-  null
-FROM memory_nodes
-WHERE content_type::text = 'source_document'
-ON CONFLICT DO NOTHING;
+-- 1. Insert documents (only if target table exists)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'documents'
+    ) THEN
+        INSERT INTO documents (
+          id, workspace_id, filename, content_hash, mime_type,
+          size_bytes, storage_path, title, uploaded_by, ingestion_job_id
+        )
+        SELECT
+          'doc_' || id, workspace_id, coalesce(source_file, source_document, 'doc_' || id || '.txt'),
+          coalesce(signature, md5(coalesce(body, ''))), 'text/plain',
+          octet_length(coalesce(body, '')),
+          '/app/data/documents/' || workspace_id || '/' || 'doc_' || id || '.txt',
+          coalesce(title, 'Document'),
+          author,
+          null
+        FROM memory_nodes
+        WHERE content_type::text = 'source_document'
+        ON CONFLICT DO NOTHING;
+    END IF;
+END;
+$$;
 
--- 2. Insert node_document_links
-INSERT INTO node_document_links (node_id, document_id, paragraph_ref, excerpt)
-SELECT
-  child.id, 'doc_' || parent.id, coalesce(child.source_paragraph_ref, ''), substring(coalesce(child.body, '') from 1 for 500)
-FROM memory_nodes child
-JOIN memory_nodes parent ON parent.id = child.source_doc_node_id
-WHERE parent.content_type::text = 'source_document' AND child.status != 'archived'
-ON CONFLICT DO NOTHING;
+-- 2. Insert node_document_links (only if target table exists)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'node_document_links'
+    ) THEN
+        INSERT INTO node_document_links (node_id, document_id, paragraph_ref, excerpt)
+        SELECT
+          child.id, 'doc_' || parent.id, coalesce(child.source_paragraph_ref, ''), substring(coalesce(child.body, '') from 1 for 500)
+        FROM memory_nodes child
+        JOIN memory_nodes parent ON parent.id = child.source_doc_node_id
+        WHERE parent.content_type::text = 'source_document' AND child.status != 'archived'
+        ON CONFLICT DO NOTHING;
+    END IF;
+END;
+$$;
 
 -- 3. Delete source_document nodes from memory_nodes
 DELETE FROM memory_nodes WHERE content_type::text = 'source_document';
@@ -56,8 +76,17 @@ ALTER TABLE memory_nodes
   USING content_type::text::content_type;
 
 -- Step 3.5: Break dependency in backup table by converting to text
-ALTER TABLE _migration_backup_nodes_v6
-  ALTER COLUMN content_type TYPE text;
+--           (table may not exist on fresh/CI databases — guard with DO block)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = '_migration_backup_nodes_v6'
+    ) THEN
+        ALTER TABLE _migration_backup_nodes_v6 ALTER COLUMN content_type TYPE text;
+    END IF;
+END;
+$$;
 
 -- Step 4: Drop old enum
 DROP TYPE content_type_old;

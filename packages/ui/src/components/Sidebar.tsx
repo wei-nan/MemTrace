@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Network, PlusCircle, Globe, ChevronDown, ChevronLeft, ChevronRight,
-  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain
+  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain, ScrollText
 } from 'lucide-react';
 import { type Workspace, type WorkspaceCloneJob, workspaces } from '../api';
 import { Button } from './ui';
@@ -266,6 +266,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           <Network size={18} />
           {!collapsed && <span className="nav-text">{t('sidebar.graph')}</span>}
         </div>
+        {selectedWs && (
+          <div
+            className={`nav-item ${currentView === 'ai_chat' ? 'active' : ''}`}
+            style={{ marginTop: 4 }}
+            title={collapsed ? (zh ? 'AI 對話' : 'AI Chat') : undefined}
+            onClick={() => onSetView('ai_chat')}
+          >
+            <Brain size={18} />
+            {!collapsed && <span className="nav-text">{zh ? 'AI 對話' : 'AI Chat'}</span>}
+          </div>
+        )}
 
         {selectedWs && (
           <div
@@ -276,6 +287,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             <BarChart3 size={18} />
             {!collapsed && <span className="nav-text">{t('sidebar.analytics')}</span>}
+          </div>
+        )}
+        {selectedWs && canWrite && (
+          <div
+            className={`nav-item ${currentView === 'job_runs' ? 'active' : ''}`}
+            style={{ marginTop: 4 }}
+            title={collapsed ? t('sidebar.job_runs') : undefined}
+            onClick={() => onSetView('job_runs')}
+          >
+            <ScrollText size={18} />
+            {!collapsed && <span className="nav-text">{t('sidebar.job_runs')}</span>}
           </div>
         )}
         {selectedWs && canWrite && (
@@ -322,18 +344,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             {!collapsed && <span className="nav-text">{t('sidebar.documents')}</span>}
           </div>
         )}
-        {selectedWs && (
-          <div
-            className={`nav-item ${currentView === 'ai_chat' ? 'active' : ''}`}
-            style={{ marginTop: 4 }}
-            title={collapsed ? (zh ? 'AI 對話' : 'AI Chat') : undefined}
-            onClick={() => onSetView('ai_chat')}
-          >
-            <Brain size={18} />
-            {!collapsed && <span className="nav-text">{zh ? 'AI 對話' : 'AI Chat'}</span>}
-          </div>
-        )}
-
         {/* Platform admin section */}
         {user?.is_platform_admin && (
           <>

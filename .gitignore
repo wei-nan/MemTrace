@@ -67,8 +67,6 @@ cleanup_helpers.py
 gen_analytics.py
 prune_mcp.py
 
-# Local incremental migration staging area (canonical source: schema/sql/)
-packages/api/migrations/
 
 docker-compose.sim.yml
 .codex/config.toml

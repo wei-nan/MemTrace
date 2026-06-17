@@ -16,6 +16,7 @@ const resources = {
         ingest: '文件攝入',
         ws_settings: '工作區管理',
         documents: '文件庫',
+        job_runs: '作業紀錄',
         system_ai: '系統 AI 設定',
         admin_section: '管理員設定'
       },
@@ -453,6 +454,26 @@ const resources = {
         confirm: '確認',
         visibility_guide: '可見度說明'
       },
+      jobRuns: {
+        title: '作業紀錄',
+        subtitle: 'AI 背景作業執行歷程',
+        total: '近期執行次數',
+        success: '成功',
+        failed: '失敗',
+        skipped: '略過',
+        running: '執行中',
+        filter_status: '篩選狀態',
+        filter_job: '篩選作業',
+        all: '全部',
+        no_data: '尚無作業紀錄',
+        loading: '載入作業紀錄...',
+        duration: '耗時',
+        trigger: '觸發方式',
+        started: '開始時間',
+        show_summary: '查看摘要',
+        hide_summary: '關閉摘要',
+        refresh: '重新整理'
+      },
       graph: {
         text_mode: '文字'
       }
@@ -471,6 +492,7 @@ const resources = {
         ingest: 'Ingest',
         ws_settings: 'Workspace',
         documents: 'Documents',
+        job_runs: 'Job Runs',
         system_ai: 'System AI',
         admin_section: 'Admin'
       },
@@ -906,6 +928,26 @@ const resources = {
         none: 'none',
         cancel: 'Cancel',
         confirm: 'Confirm'
+      },
+      jobRuns: {
+        title: 'Job Runs',
+        subtitle: 'AI background job execution history',
+        total: 'Recent Runs',
+        success: 'Success',
+        failed: 'Failed',
+        skipped: 'Skipped',
+        running: 'Running',
+        filter_status: 'Filter Status',
+        filter_job: 'Filter Job',
+        all: 'All',
+        no_data: 'No job runs yet',
+        loading: 'Loading job runs...',
+        duration: 'Duration',
+        trigger: 'Trigger',
+        started: 'Started',
+        show_summary: 'Show Summary',
+        hide_summary: 'Hide Summary',
+        refresh: 'Refresh'
       },
       graph: {
         text_mode: 'Text'

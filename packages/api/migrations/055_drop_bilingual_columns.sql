@@ -15,9 +15,18 @@
 -- The column was created in 022_search_vector.sql as GENERATED ALWAYS.
 ALTER TABLE memory_nodes DROP COLUMN IF EXISTS search_vector;
 
--- Backfill single-language title and body from bilingual columns if not already populated
-UPDATE memory_nodes SET title = coalesce(title_zh, title_en, 'Untitled') WHERE title IS NULL;
-UPDATE memory_nodes SET body = coalesce(body_zh, body_en, '') WHERE body = '';
+-- Backfill single-language title and body from bilingual columns if they still exist
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'memory_nodes' AND column_name = 'title_zh'
+    ) THEN
+        UPDATE memory_nodes SET title = coalesce(title_zh, title_en, 'Untitled') WHERE title IS NULL;
+        UPDATE memory_nodes SET body = coalesce(body_zh, body_en, '') WHERE body = '';
+    END IF;
+END;
+$$;
 
 -- ── 2. Drop bilingual node columns
 ALTER TABLE memory_nodes

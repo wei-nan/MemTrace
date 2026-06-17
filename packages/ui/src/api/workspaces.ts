@@ -136,6 +136,39 @@ export interface KBImportResponse {
   errors: string[];
 }
 
+export interface JobRun {
+  id: string;
+  job_name: string;
+  workspace_id: string | null;
+  trigger: string;
+  status: 'running' | 'success' | 'failed' | 'skipped';
+  started_at: string;
+  finished_at: string | null;
+  duration_ms: number | null;
+  scanned_count: number | null;
+  processed_count: number | null;
+  created_count: number | null;
+  skipped_count: number | null;
+  failed_count: number | null;
+  error: string | null;
+  summary: Record<string, any> | null;
+}
+
+export interface SchedulerHeartbeat {
+  job_name: string;
+  status: string;
+  last_run_at: string | null;
+  last_success_at: string | null;
+  last_failure_at: string | null;
+  duration_ms: number | null;
+  run_count: number;
+  failure_count: number;
+  last_run_id: string | null;
+  last_error: string | null;
+  metadata: Record<string, any> | null;
+  updated_at: string;
+}
+
 export interface WorkspaceAnalytics {
   total_nodes: number;
   active_edges: number;
@@ -282,4 +315,15 @@ export const workspaces = {
   suggestEdges: (wsId: string, nodeId: string, limit = 5) => request<{ proposed: number }>("POST", `${BASE}/workspaces/${wsId}/maintenance/suggest-edges`, { node_id: nodeId, limit }),
   getFailedEmbeddings: (wsId: string) => request<{ count: number }>("GET", `${BASE}/workspaces/${wsId}/failed-embeddings`),
   retryFailedEmbeddings: (wsId: string) => request<{ queued: number }>("POST", `${BASE}/workspaces/${wsId}/retry-failed-embeddings`),
+  jobRuns: (wsId: string, params?: { job_name?: string; status?: string; limit?: number; offset?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.job_name) qs.set('job_name', params.job_name);
+    if (params?.status) qs.set('status', params.status);
+    if (params?.limit != null) qs.set('limit', String(params.limit));
+    if (params?.offset != null) qs.set('offset', String(params.offset));
+    const q = qs.toString();
+    return request<{ runs: JobRun[]; total: number; offset: number }>("GET", `${BASE}/workspaces/${wsId}/job-runs${q ? `?${q}` : ''}`);
+  },
+  schedulerHeartbeats: (wsId: string) =>
+    request<{ heartbeats: SchedulerHeartbeat[]; total: number }>("GET", `${BASE}/workspaces/${wsId}/scheduler-heartbeats`),
 };

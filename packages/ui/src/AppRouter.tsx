@@ -20,6 +20,7 @@ const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 const GraphContainer = lazy(() => import('./GraphContainer'));
 const SystemAISettings = lazy(() => import('./SystemAISettings'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
+const JobRunsPage = lazy(() => import('./JobRunsPage'));
 
 interface AppRouterProps {
   authenticated: boolean;
@@ -139,6 +140,11 @@ const AppRouter: React.FC<AppRouterProps> = ({
                       wsId={selectedWs.id}
                       onEditNode={(nodeId: string) => setEditingNode({ id: nodeId } as any)}
                     />
+                  </div>
+                )}
+                {currentView === 'job_runs' && selectedWs && (
+                  <div style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
+                    <JobRunsPage wsId={selectedWs.id} />
                   </div>
                 )}
                 {currentView === 'system_ai' && user?.is_platform_admin && (

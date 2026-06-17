@@ -4,13 +4,11 @@ on:
   push:
     paths:
       - 'packages/api/**'
-      - 'schema/sql/**'
       - 'docker-compose.test.yml'
       - '.github/workflows/test.yml'
   pull_request:
     paths:
       - 'packages/api/**'
-      - 'schema/sql/**'
 
 jobs:
   api-tests:
@@ -44,15 +42,6 @@ jobs:
       - name: Install dependencies
         working-directory: packages/api
         run: pip install -r requirements.txt
-
-      - name: Apply DB schema (init)
-        env:
-          PGPASSWORD: memtrace_test_pw
-        run: |
-          for f in schema/sql/*.sql; do
-            echo "Applying $f"
-            psql -h localhost -p 5433 -U memtrace -d memtrace_test -f "$f" || true
-          done
 
       - name: Apply migrations
         working-directory: packages/api
