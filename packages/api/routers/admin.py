@@ -304,9 +304,9 @@ def get_monitor_job_runs(
         """, params)
         runs = [dict(r) for r in cur.fetchall()]
         cur.execute(f"""
-            SELECT COUNT(*) FROM job_runs jr {where}
+            SELECT COUNT(*) AS cnt FROM job_runs jr {where}
         """, params[:-2] if params else [])
-        total = cur.fetchone()[0]
+        total = cur.fetchone()["cnt"]
     return {"runs": runs, "total": total, "offset": offset}
 
 
@@ -325,8 +325,8 @@ def get_monitor_mcp_logs(
             LIMIT %s OFFSET %s
         """, [limit, offset])
         logs = [dict(r) for r in cur.fetchall()]
-        cur.execute("SELECT COUNT(*) FROM mcp_query_logs")
-        total = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) AS cnt FROM mcp_query_logs")
+        total = cur.fetchone()["cnt"]
     return {"logs": logs, "total": total, "offset": offset}
 
 

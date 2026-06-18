@@ -67,6 +67,6 @@ def run_migrations():
             if cur.fetchone():
                 continue
             logger.info("Applying migration: %s", sql_file.name)
-            cur.execute(sql_file.read_text(encoding="utf-8"))
+            cur.execute(sql_file.read_text(encoding="utf-8-sig"))
             cur.execute("INSERT INTO schema_migrations (filename) VALUES (%s)", (sql_file.name,))
             logger.info("Migration applied: %s", sql_file.name)

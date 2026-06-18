@@ -69,7 +69,10 @@ const thStyle: CSSProperties = {
   background: 'var(--bg-elevated)',
   position: 'sticky',
   top: 0,
+  whiteSpace: 'nowrap',
 };
+
+const thRight: CSSProperties = { ...thStyle, textAlign: 'right' };
 
 // ─── Tab 1: Scheduler Heartbeats ─────────────────────────────────────────────
 
@@ -93,33 +96,44 @@ function HeartbeatsTab({ zh }: { zh: boolean }) {
           <RefreshCw size={12} /> {zh ? '重新整理' : 'Refresh'}
         </button>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        <colgroup>
+          <col style={{ width: 190 }} />
+          <col style={{ width: 90 }} />
+          <col style={{ width: 165 }} />
+          <col style={{ width: 165 }} />
+          <col style={{ width: 72 }} />
+          <col style={{ width: 72 }} />
+          <col style={{ width: 72 }} />
+          <col />
+        </colgroup>
         <thead>
           <tr>
-            {[
-              zh ? '作業名稱' : 'Job', 'Status',
-              zh ? '上次執行' : 'Last Run',
-              zh ? '上次成功' : 'Last Success',
-              zh ? '耗時' : 'Duration',
-              zh ? '執行次數' : 'Runs',
-              zh ? '失敗次數' : 'Fails',
-              zh ? '錯誤' : 'Error',
-            ].map(h => <th key={h} style={thStyle}>{h}</th>)}
+            <th style={thStyle}>{zh ? '作業名稱' : 'Job'}</th>
+            <th style={thStyle}>Status</th>
+            <th style={thStyle}>{zh ? '上次執行' : 'Last Run'}</th>
+            <th style={thStyle}>{zh ? '上次成功' : 'Last Success'}</th>
+            <th style={thRight}>{zh ? '耗時' : 'Duration'}</th>
+            <th style={thRight}>{zh ? '執行次數' : 'Runs'}</th>
+            <th style={thRight}>{zh ? '失敗次數' : 'Fails'}</th>
+            <th style={thStyle}>{zh ? '錯誤' : 'Error'}</th>
           </tr>
         </thead>
         <tbody>
           {data.map(hb => (
             <tr key={hb.job_name}>
-              <td style={tdStyle}><code style={{ fontSize: 11 }}>{hb.job_name}</code></td>
+              <td style={{ ...tdStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <code style={{ fontSize: 11 }}>{hb.job_name}</code>
+              </td>
               <td style={tdStyle}><StatusBadge status={hb.status} /></td>
-              <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{fmtDate(hb.last_run_at)}</td>
-              <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{fmtDate(hb.last_success_at)}</td>
-              <td style={tdStyle}>{fmtDuration(hb.duration_ms)}</td>
+              <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(hb.last_run_at)}</td>
+              <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(hb.last_success_at)}</td>
+              <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtDuration(hb.duration_ms)}</td>
               <td style={{ ...tdStyle, textAlign: 'right' }}>{hb.run_count}</td>
               <td style={{ ...tdStyle, textAlign: 'right', color: hb.failure_count > 0 ? 'var(--color-error)' : undefined }}>
                 {hb.failure_count}
               </td>
-              <td style={{ ...tdStyle, color: 'var(--color-error)', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <td style={{ ...tdStyle, color: 'var(--color-error)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {hb.last_error ?? ''}
               </td>
             </tr>
@@ -137,7 +151,11 @@ function HeartbeatsTab({ zh }: { zh: boolean }) {
 
 // ─── Tab 2: Job Runs (global) ─────────────────────────────────────────────────
 
-const KNOWN_JOBS = ['decay', 'embedding_consistency', 'kb_health', 'review_sla', 'conductor', 'backup'];
+const KNOWN_JOBS = [
+  'audit_reviewers', 'audit_writer', 'backup', 'cleanup', 'conductor_dispatch',
+  'decay', 'deletion_notify', 'ephemeral_decay', 'path_reinforcement',
+  'process_node_events', 'retry_embeddings', 'safety_review_queue', 'stale_ingest',
+];
 
 function JobRunsTab({ zh }: { zh: boolean }) {
   const [data, setData] = useState<SystemJobRun[]>([]);
@@ -186,34 +204,46 @@ function JobRunsTab({ zh }: { zh: boolean }) {
       </div>
 
       {loading ? <Spinner /> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: 190 }} />
+            <col style={{ width: 130 }} />
+            <col style={{ width: 90 }} />
+            <col style={{ width: 90 }} />
+            <col style={{ width: 165 }} />
+            <col style={{ width: 72 }} />
+            <col style={{ width: 60 }} />
+            <col />
+          </colgroup>
           <thead>
             <tr>
-              {[
-                zh ? '作業' : 'Job',
-                zh ? '工作區' : 'Workspace',
-                'Status',
-                zh ? '觸發' : 'Trigger',
-                zh ? '開始時間' : 'Started',
-                zh ? '耗時' : 'Duration',
-                zh ? '處理' : 'Processed',
-                zh ? '錯誤' : 'Error',
-              ].map(h => <th key={h} style={thStyle}>{h}</th>)}
+              <th style={thStyle}>{zh ? '作業' : 'Job'}</th>
+              <th style={thStyle}>{zh ? '工作區' : 'Workspace'}</th>
+              <th style={thStyle}>Status</th>
+              <th style={thStyle}>{zh ? '觸發' : 'Trigger'}</th>
+              <th style={thStyle}>{zh ? '開始時間' : 'Started'}</th>
+              <th style={thRight}>{zh ? '耗時' : 'Duration'}</th>
+              <th style={thRight}>{zh ? '處理' : 'Items'}</th>
+              <th style={thStyle}>{zh ? '錯誤' : 'Error'}</th>
             </tr>
           </thead>
           <tbody>
             {data.map(r => (
               <tr key={r.id}>
-                <td style={tdStyle}><code style={{ fontSize: 11 }}>{r.job_name}</code></td>
-                <td style={{ ...tdStyle, color: 'var(--text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <td style={{ ...tdStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <code style={{ fontSize: 11 }}>{r.job_name}</code>
+                </td>
+                <td style={{ ...tdStyle, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {r.workspace_name ?? r.workspace_id ?? '—'}
                 </td>
                 <td style={tdStyle}><StatusBadge status={r.status} /></td>
                 <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{r.trigger}</td>
-                <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{fmtDate(r.started_at)}</td>
-                <td style={tdStyle}>{fmtDuration(r.duration_ms)}</td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{r.processed_count ?? '—'}</td>
-                <td style={{ ...tdStyle, color: 'var(--color-error)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(r.started_at)}</td>
+                <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtDuration(r.duration_ms)}</td>
+                <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--text-muted)' }}>
+                  {r.processed_count != null && r.processed_count > 0 ? r.processed_count : '—'}
+                </td>
+                <td style={{ ...tdStyle, color: 'var(--color-error)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {r.error ?? ''}
                 </td>
               </tr>
@@ -276,34 +306,47 @@ function McpLogsTab({ zh }: { zh: boolean }) {
       </div>
 
       {loading ? <Spinner /> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: 160 }} />
+            <col style={{ width: 150 }} />
+            <col />
+            <col style={{ width: 65 }} />
+            <col style={{ width: 90 }} />
+            <col style={{ width: 90 }} />
+            <col style={{ width: 165 }} />
+          </colgroup>
           <thead>
             <tr>
-              {[
-                zh ? '工具' : 'Tool',
-                zh ? '工作區' : 'Workspace',
-                zh ? '查詢' : 'Query',
-                zh ? '節點數' : 'Nodes',
-                zh ? '估算 Token' : 'Est. Tokens',
-                zh ? '供應商' : 'Provider',
-                zh ? '時間' : 'Time',
-              ].map(h => <th key={h} style={thStyle}>{h}</th>)}
+              <th style={thStyle}>{zh ? '工具' : 'Tool'}</th>
+              <th style={thStyle}>{zh ? '工作區' : 'Workspace'}</th>
+              <th style={thStyle}>{zh ? '查詢' : 'Query'}</th>
+              <th style={thRight}>{zh ? '節點數' : 'Nodes'}</th>
+              <th style={thRight}>{zh ? '估算 Token' : 'Est. Tokens'}</th>
+              <th style={thStyle}>{zh ? '供應商' : 'Provider'}</th>
+              <th style={thStyle}>{zh ? '時間' : 'Time'}</th>
             </tr>
           </thead>
           <tbody>
             {data.map(log => (
               <tr key={log.id}>
-                <td style={tdStyle}><code style={{ fontSize: 11 }}>{log.tool_name}</code></td>
-                <td style={{ ...tdStyle, color: 'var(--text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <td style={{ ...tdStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <code style={{ fontSize: 11 }}>{log.tool_name}</code>
+                </td>
+                <td style={{ ...tdStyle, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {log.workspace_name ?? log.workspace_id}
                 </td>
-                <td style={{ ...tdStyle, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
+                <td style={{ ...tdStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
                   {log.query_text ?? '—'}
                 </td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{log.result_node_count}</td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtTokens(log.estimated_tokens)}</td>
+                <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--text-muted)' }}>
+                  {log.result_node_count > 0 ? log.result_node_count : '—'}
+                </td>
+                <td style={{ ...tdStyle, textAlign: 'right' }}>
+                  {log.estimated_tokens > 0 ? fmtTokens(log.estimated_tokens) : '—'}
+                </td>
                 <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{log.provider ?? '—'}</td>
-                <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{fmtDate(log.created_at)}</td>
+                <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(log.created_at)}</td>
               </tr>
             ))}
             {data.length === 0 && (
