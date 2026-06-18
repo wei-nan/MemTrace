@@ -8,8 +8,16 @@ import KbExportPanel from "./components/KbExportPanel";
 import { Button, Input, Card } from "./components/ui";
 
 const DEFAULT_AI_REVIEW_PROMPT = `You are an AI reviewer for a collaborative knowledge graph.
-Return JSON with decision, confidence, and reasoning.
-Accept only low-risk, well-supported changes.`;
+Review the proposed node change and return strict JSON:
+{
+  "decision": "accept" | "reject" | "comment",
+  "confidence": 0.0-1.0,
+  "reasoning": "short explanation"
+}
+
+Prefer accept only for well-scoped, internally consistent, low-risk changes.
+Prefer reject for hallucinations, contradictions, empty edits, or destructive changes without justification.
+Use comment when uncertain.`;
 
 
 function DeleteWorkspaceDialog({ ws, onConfirm, onCancel }: { ws: Workspace, onConfirm: () => void, onCancel: () => void }) {
@@ -267,13 +275,15 @@ function AIReviewerSettings({
   });
   const [models, setModels] = useState<any[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [maintenanceLoading, setMaintenanceLoading] = useState<string | null>(null);
 
   const fetchModels = async (p: string) => {
     setLoadingModels(true);
     try {
       const res = await ai.listModels(p);
       setModels(res);
-      if (res.length > 0 && !res.find(m => m.id === form.model)) {
+      if (res.length > 0 && !res.find((m: any) => m.id === form.model)) {
         setForm(f => ({ ...f, model: res[0].id }));
       }
     } catch {
@@ -283,9 +293,7 @@ function AIReviewerSettings({
     }
   };
 
-  useEffect(() => {
-    fetchModels(form.provider);
-  }, [form.provider]);
+  useEffect(() => { fetchModels(form.provider); }, [form.provider]);
 
   const providers = [
     { value: 'openai', label: 'OpenAI' },
@@ -302,19 +310,46 @@ function AIReviewerSettings({
     }
   };
 
-  useEffect(() => {
-    load();
-  }, [wsId]);
+  useEffect(() => { load(); }, [wsId]);
 
   const save = async () => {
+    const name = form.name.trim() || `${form.provider} / ${form.model}`;
     try {
-      await aiReviewers.create(wsId, form);
-      setForm({ ...form, name: "" });
+      await aiReviewers.create(wsId, { ...form, name });
+      setForm(f => ({ ...f, name: "" }));
       await load();
-      toast({ message: "AI reviewer created", variant: "success" });
+      toast({ message: zh ? "AI 審核員已建立" : "AI reviewer created", variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
     }
+  };
+
+  const runSummary = async () => {
+    setMaintenanceLoading("summary");
+    try {
+      const res = await workspaces.summarizeCluster(wsId, []);
+      if (res?.summary_node_id) {
+        toast({ message: zh ? `已產生摘要節點（ID: ${res.summary_node_id}）` : `Summary node created (ID: ${res.summary_node_id})`, variant: "success" });
+      } else {
+        toast({ message: zh ? "找不到可整合的群組（節點數需 ≥ 3 且共用標籤）" : "No clusters found (need ≥ 3 nodes sharing a tag)", variant: "warning" });
+      }
+    } catch (e) { toast({ message: String(e), variant: "error" }); }
+    finally { setMaintenanceLoading(null); }
+  };
+
+  const runEdgeSuggestion = async () => {
+    setMaintenanceLoading("edges");
+    try {
+      const res = await workspaces.suggestEdges(wsId, "");
+      const count: number = (res as any)?.proposed ?? 0;
+      toast({
+        message: count > 0
+          ? (zh ? `已找到 ${count} 個潛在關聯，送入審查佇列` : `${count} potential edges queued for review`)
+          : (zh ? "未發現新的潛在關聯（嵌入向量覆蓋率不足或相似度未達門檻）" : "No new potential edges found (low embedding coverage or below threshold)"),
+        variant: count > 0 ? "success" : "info",
+      });
+    } catch (e) { toast({ message: String(e), variant: "error" }); }
+    finally { setMaintenanceLoading(null); }
   };
 
   return (
@@ -413,60 +448,131 @@ function AIReviewerSettings({
         </div>
       </SectionCard>
 
-      {/* ── 自動審核 Bot ──────────────────────────────────────────────── */}
+      {/* ── AI 審核員 ──────────────────────────────────────────────────── */}
       <SectionCard>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}><Bot size={18} /> {t('ws_settings.create_reviewer_title')}</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: 10 }}>
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('ws_settings.members')} />
-          <select className="mt-input" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, marginTop: 0, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+          <Bot size={18} /> {zh ? "AI 審核員" : "AI Reviewers"}
+        </h3>
+
+        {/* 快速建立：Provider + Model + 建立 */}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <select className="mt-input" style={{ flex: "0 0 130px" }} value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })}>
             {providers.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
-          <div style={{ display: 'flex', gap: 4 }}>
-            <select className="mt-input" style={{ flex: 1 }} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })}>
-              {models.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
-              {!models.length && <option value={form.model}>{form.model}</option>}
-            </select>
-            <Button variant="secondary" onClick={() => fetchModels(form.provider)} loading={loadingModels} leftIcon={<RefreshCw size={14} />} title="Refresh models" />
-          </div>
+          <select className="mt-input" style={{ flex: 1, minWidth: 160 }} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })}>
+            {models.map((m: any) => <option key={m.id} value={m.id}>{m.display_name}</option>)}
+            {!models.length && <option value={form.model}>{form.model}</option>}
+          </select>
+          <Button variant="secondary" onClick={() => fetchModels(form.provider)} loading={loadingModels} leftIcon={<RefreshCw size={14} />} title={zh ? "重新整理模型清單" : "Refresh model list"} />
+          <Button variant="primary" onClick={save}>{zh ? "建立" : "Create"}</Button>
         </div>
-        <textarea className="mt-input" style={{ minHeight: 120, marginTop: 10 }} value={form.system_prompt} onChange={(e) => setForm({ ...form, system_prompt: e.target.value })} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, marginTop: 10 }}>
-          <Input type="number" step="0.01" min="0" max="1" value={form.auto_accept_threshold} onChange={(e) => setForm({ ...form, auto_accept_threshold: Number(e.target.value) })} placeholder="Auto accept threshold" />
-          <Input type="number" step="0.01" min="0" max="1" value={form.auto_reject_threshold} onChange={(e) => setForm({ ...form, auto_reject_threshold: Number(e.target.value) })} placeholder="Auto reject threshold" />
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} />
-            Enabled
-          </label>
+
+        {/* 進階設定（可展開） */}
+        <div style={{ marginTop: 10 }}>
+          <button
+            onClick={() => setShowAdvanced(v => !v)}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4, padding: "4px 0" }}
+          >
+            {showAdvanced ? "▾" : "▸"} {zh ? "進階設定（系統 Prompt、門檻值）" : "Advanced settings (system prompt, thresholds)"}
+          </button>
+          {showAdvanced && (
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 10 }}>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder={zh ? `名稱（留空則自動產生，如「openai / gpt-4o-mini」）` : `Name (auto-generated if blank, e.g. "openai / gpt-4o-mini")`}
+              />
+              <textarea
+                className="mt-input"
+                style={{ minHeight: 150, fontFamily: "monospace", fontSize: 12 }}
+                value={form.system_prompt}
+                onChange={(e) => setForm({ ...form, system_prompt: e.target.value })}
+              />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, alignItems: "center" }}>
+                <div>
+                  <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>
+                    {zh ? "自動接受門檻（信心 ≥）" : "Auto-accept threshold (confidence ≥)"}
+                  </label>
+                  <Input type="number" step="0.01" min="0" max="1" value={form.auto_accept_threshold} onChange={(e) => setForm({ ...form, auto_accept_threshold: Number(e.target.value) })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>
+                    {zh ? "自動拒絕門檻（信心 ≤）" : "Auto-reject threshold (confidence ≤)"}
+                  </label>
+                  <Input type="number" step="0.01" min="0" max="1" value={form.auto_reject_threshold} onChange={(e) => setForm({ ...form, auto_reject_threshold: Number(e.target.value) })} />
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, paddingTop: 20 }}>
+                  <input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} />
+                  {zh ? "啟用" : "Enabled"}
+                </label>
+              </div>
+            </div>
+          )}
         </div>
-        <div style={{ marginTop: 12 }}>
-          <Button variant="primary" onClick={save}>{t('ws_settings.create')}</Button>
+
+        {/* 已建立的審核員清單 */}
+        <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+          {items.map((item) => (
+            <div key={item.id} style={{ background: "var(--bg-app)", border: "1px solid var(--border-subtle)", borderRadius: 8, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <div>
+                <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                  {item.name}
+                  {!item.enabled && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border-default)" }}>{zh ? "已停用" : "Disabled"}</span>}
+                </div>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>{item.provider} / {item.model}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 2 }}>
+                  {zh ? `接受 ≥ ${item.auto_accept_threshold}　拒絕 ≤ ${item.auto_reject_threshold}` : `accept ≥ ${item.auto_accept_threshold}, reject ≤ ${item.auto_reject_threshold}`}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <Button variant="secondary" onClick={async () => {
+                  await aiReviewers.update(wsId, item.id, { enabled: !item.enabled });
+                  await load();
+                }}>{item.enabled ? t('common.disable') : t('common.enable')}</Button>
+                <Button variant="secondary" onClick={async () => {
+                  await aiReviewers.delete(wsId, item.id);
+                  await load();
+                }} leftIcon={<Trash2 size={16} />} />
+              </div>
+            </div>
+          ))}
+          {!items.length && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t('ws_settings.no_reviewers')}</div>}
         </div>
       </SectionCard>
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {items.map((item) => (
-          <div key={item.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10, padding: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <div>
-              <div style={{ fontWeight: 600 }}>{item.name}</div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{item.provider} / {item.model}</div>
-              <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4 }}>
-                accept ≥ {item.auto_accept_threshold}, reject ≤ {item.auto_reject_threshold}
+      {/* ── 智慧維護 ──────────────────────────────────────────────────── */}
+      <SectionCard>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+          <Sparkles size={16} color="var(--color-primary)" />
+          {zh ? "智慧維護" : "Smart Maintenance"}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "智慧階層綜整" : "Intelligent Hierarchical Synthesis"}</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {zh ? "自動掃描孤立或零散節點並產生摘要節點，優化知識結構。" : "Automatically scan isolated nodes and generate summaries to optimize graph structure."}
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <Button variant="secondary" onClick={async () => {
-                await aiReviewers.update(wsId, item.id, { enabled: !item.enabled });
-                await load();
-              }}>{item.enabled ? t('common.disable') : t('common.enable')}</Button>
-              <Button variant="secondary" onClick={async () => {
-                await aiReviewers.delete(wsId, item.id);
-                await load();
-              }} leftIcon={<Trash2 size={16} />} />
-            </div>
+            <Button variant="secondary" loading={maintenanceLoading === "summary"} onClick={runSummary}>
+              {zh ? "執行掃描" : "Run Scan"}
+            </Button>
           </div>
-        ))}
-        {!items.length && <div style={{ color: "var(--text-muted)" }}>{t('ws_settings.no_reviewers')}</div>}
-      </section>
+
+          <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "潛在關聯預測" : "Predict Potential Edges"}</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {zh ? "基於語義相似度主動發現節點間的關聯，建議送入審查佇列。" : "Discover potential edges between nodes by semantic similarity and queue for review."}
+              </div>
+            </div>
+            <Button variant="secondary" loading={maintenanceLoading === "edges"} onClick={runEdgeSuggestion}>
+              {zh ? "執行預測" : "Run Prediction"}
+            </Button>
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 }
@@ -733,112 +839,8 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   );
 }
 
-type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys" | "maintenance";
+type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys";
 type AccessTab = "members" | "invites" | "requests";
-
-function MaintenanceSettings({ wsId, zh }: { wsId: string; zh: boolean }) {
-  const { toast } = useModal();
-  const [loading, setLoading] = useState<string | null>(null);
-
-  const runSummary = async () => {
-    setLoading("summary");
-    try {
-      const res = await workspaces.summarizeCluster(wsId, []);
-      if (res?.summary_node_id) {
-        toast({
-          message: zh ? `已產生摘要節點（ID: ${res.summary_node_id}）` : `Summary node created (ID: ${res.summary_node_id})`,
-          variant: "success",
-        });
-      } else {
-        toast({
-          message: zh ? "找不到可整合的群組（節點數需 ≥ 3 且共用標籤）" : "No clusters found (need ≥ 3 nodes sharing a tag)",
-          variant: "warning",
-        });
-      }
-    } catch (e) {
-      toast({ message: String(e), variant: "error" });
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const runEdgeSuggestion = async () => {
-    setLoading("edges");
-    try {
-      const res = await workspaces.suggestEdges(wsId, "");
-      const count: number = (res as any)?.proposed ?? 0;
-      toast({
-        message: count > 0
-          ? (zh ? `已找到 ${count} 個潛在關聯，送入審查佇列` : `${count} potential edges queued for review`)
-          : (zh ? "未發現新的潛在關聯（嵌入向量覆蓋率不足或相似度未達門檻）" : "No new potential edges found (low embedding coverage or below threshold)"),
-        variant: count > 0 ? "success" : "info",
-      });
-    } catch (e) {
-      toast({ message: String(e), variant: "error" });
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <SectionCard>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Sparkles size={20} color="var(--color-primary)" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "智慧階層綜整" : "Intelligent Hierarchical Synthesis"}</div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {zh ? "自動掃描孤立或零散節點並產生摘要節點，優化知識結構。" : "Automatically scan isolated nodes and generate summaries to optimize graph structure."}
-            </div>
-          </div>
-          <Button variant="secondary" loading={loading === "summary"} onClick={runSummary}>
-            {zh ? "執行掃描" : "Run Scan"}
-          </Button>
-        </div>
-      </SectionCard>
-
-      <div style={{ opacity: 0.5, pointerEvents: "none" }}>
-      <SectionCard>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Languages size={20} color="var(--text-muted)" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)" }}>{zh ? "跨語言內容對齊" : "Cross-language Reconcile"}</div>
-              <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "var(--bg-elevated)", color: "var(--text-muted)", border: "1px solid var(--border-default)" }}>
-                {zh ? "已整併" : "Deprecated"}
-              </span>
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {zh ? "已整併至單語言架構，此功能不再適用。" : "Merged into single-language architecture. No longer applicable."}
-            </div>
-          </div>
-        </div>
-      </SectionCard>
-      </div>
-
-      <SectionCard>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Wand2 size={20} color="var(--color-primary)" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "潛在關聯預測" : "Predict Potential Edges"}</div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {zh ? "基於語義相似度主動發現節點間的關聯，建議送入審查佇列。" : "Discover potential edges between nodes by semantic similarity and queue for review."}
-            </div>
-          </div>
-          <Button variant="secondary" loading={loading === "edges"} onClick={runEdgeSuggestion}>
-            {zh ? "執行預測" : "Run Prediction"}
-          </Button>
-        </div>
-      </SectionCard>
-    </div>
-  );
-}
 
 // ── Workspace AI Model Settings Tab ──────────────────────────────────────────
 
@@ -973,8 +975,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <button onClick={() => setTab("members")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "members" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "members" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.membersAccess')}</button>
         <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
         <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
-        <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "審核設定" : "Review Settings"}</button>
-        <button onClick={() => setTab("maintenance")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "maintenance" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "maintenance" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "智慧維護" : "Maintenance"}</button>
+        <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "AI 管理" : "AI Management"}</button>
         {ws?.owner_id === userId && (
           <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
         )}
@@ -1605,8 +1606,6 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <AIReviewerSettings wsId={wsId} ws={ws} isOwner={isOwner} zh={zh} loadData={loadData} />
       ) : tab === "apikeys" ? (
         <APIKeysSettings wsId={wsId} />
-      ) : tab === "maintenance" ? (
-        <MaintenanceSettings wsId={wsId} zh={zh} />
       ) : (
         <>
           {renderAccessTabs}

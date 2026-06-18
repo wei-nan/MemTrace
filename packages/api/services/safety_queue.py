@@ -76,10 +76,23 @@ def list_safety_review_queue(
 
 async def process_safety_review_queue_job(limit: int = 25) -> None:
     started = time.monotonic()
+
+    # Resolve the safety provider once up front so we can annotate job run summaries
+    ai_provider_info: dict[str, Any] = {}
+    try:
+        from core.ai import resolve_provider
+        resolved = resolve_provider(user_id="system:safety", feature="chat")
+        ai_provider_info = {
+            "ai_provider": resolved.provider.__class__.__name__.lower().replace("provider", ""),
+            "ai_model": resolved.model,
+        }
+    except Exception:
+        ai_provider_info = {"ai_provider": "unavailable", "ai_model": None}
+
     run_id = start_job_run(
         "safety_review_queue",
         trigger="scheduler",
-        summary={"limit": limit},
+        summary={"limit": limit, **ai_provider_info},
     )
     processed = 0
     created = 0
@@ -195,7 +208,7 @@ async def process_safety_review_queue_job(limit: int = 25) -> None:
             created_count=created,
             skipped_count=skipped,
             failed_count=failed,
-            summary={"limit": limit},
+            summary={"limit": limit, **ai_provider_info},
         )
     except Exception as exc:
         finish_job_run(
@@ -208,6 +221,6 @@ async def process_safety_review_queue_job(limit: int = 25) -> None:
             skipped_count=skipped,
             failed_count=failed + 1,
             error=str(exc),
-            summary={"limit": limit},
+            summary={"limit": limit, **ai_provider_info},
         )
         raise

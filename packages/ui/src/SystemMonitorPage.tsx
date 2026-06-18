@@ -76,6 +76,20 @@ const thRight: CSSProperties = { ...thStyle, textAlign: 'right' };
 
 // ─── Tab 1: Scheduler Heartbeats ─────────────────────────────────────────────
 
+function CategoryBadge({ meta, zh }: { meta: JobMeta | undefined; zh: boolean }) {
+  if (!meta) return <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>—</span>;
+  return (
+    <span style={{
+      display: 'inline-block', padding: '1px 7px', borderRadius: 10,
+      fontSize: 10, fontWeight: 700,
+      background: `${meta.color}22`, color: meta.color,
+      border: `1px solid ${meta.color}44`,
+    }}>
+      {zh ? meta.categoryZh : meta.category}
+    </span>
+  );
+}
+
 function HeartbeatsTab({ zh }: { zh: boolean }) {
   const [data, setData] = useState<SystemSchedulerHeartbeat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,6 +102,10 @@ function HeartbeatsTab({ zh }: { zh: boolean }) {
 
   if (loading) return <Spinner />;
 
+  // Merge heartbeat data with full known-jobs list
+  const hbMap = new Map(data.map(hb => [hb.job_name, hb]));
+  const rows = KNOWN_JOBS.map(name => ({ name, hb: hbMap.get(name) ?? null, meta: JOB_META[name] }));
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
@@ -98,64 +116,94 @@ function HeartbeatsTab({ zh }: { zh: boolean }) {
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: 190 }} />
+          <col style={{ width: 180 }} />
+          <col style={{ width: 72 }} />
+          <col style={{ width: 48 }} />
           <col style={{ width: 90 }} />
-          <col style={{ width: 165 }} />
-          <col style={{ width: 165 }} />
-          <col style={{ width: 72 }} />
-          <col style={{ width: 72 }} />
-          <col style={{ width: 72 }} />
+          <col style={{ width: 155 }} />
+          <col style={{ width: 155 }} />
+          <col style={{ width: 65 }} />
+          <col style={{ width: 58 }} />
+          <col style={{ width: 58 }} />
           <col />
         </colgroup>
         <thead>
           <tr>
             <th style={thStyle}>{zh ? '作業名稱' : 'Job'}</th>
+            <th style={thStyle}>{zh ? '分類' : 'Category'}</th>
+            <th style={thRight}>{zh ? '間隔' : 'Interval'}</th>
             <th style={thStyle}>Status</th>
             <th style={thStyle}>{zh ? '上次執行' : 'Last Run'}</th>
             <th style={thStyle}>{zh ? '上次成功' : 'Last Success'}</th>
             <th style={thRight}>{zh ? '耗時' : 'Duration'}</th>
-            <th style={thRight}>{zh ? '執行次數' : 'Runs'}</th>
-            <th style={thRight}>{zh ? '失敗次數' : 'Fails'}</th>
+            <th style={thRight}>{zh ? '執行' : 'Runs'}</th>
+            <th style={thRight}>{zh ? '失敗' : 'Fails'}</th>
             <th style={thStyle}>{zh ? '錯誤' : 'Error'}</th>
           </tr>
         </thead>
         <tbody>
-          {data.map(hb => (
-            <tr key={hb.job_name}>
+          {rows.map(({ name, hb, meta }) => (
+            <tr key={name} style={{ opacity: hb ? 1 : 0.6 }}>
               <td style={{ ...tdStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                <code style={{ fontSize: 11 }}>{hb.job_name}</code>
+                <code style={{ fontSize: 11 }}>{name}</code>
               </td>
-              <td style={tdStyle}><StatusBadge status={hb.status} /></td>
-              <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(hb.last_run_at)}</td>
-              <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(hb.last_success_at)}</td>
-              <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtDuration(hb.duration_ms)}</td>
-              <td style={{ ...tdStyle, textAlign: 'right' }}>{hb.run_count}</td>
-              <td style={{ ...tdStyle, textAlign: 'right', color: hb.failure_count > 0 ? 'var(--color-error)' : undefined }}>
-                {hb.failure_count}
+              <td style={tdStyle}><CategoryBadge meta={meta} zh={zh} /></td>
+              <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--text-muted)', fontSize: 11 }}>
+                {meta?.interval ?? '—'}
+              </td>
+              <td style={tdStyle}>
+                {hb
+                  ? <StatusBadge status={hb.status} />
+                  : <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                      {meta?.observable === false ? (zh ? '不追蹤' : 'untracked') : (zh ? '等待中' : 'pending')}
+                    </span>
+                }
+              </td>
+              <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(hb?.last_run_at ?? null)}</td>
+              <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(hb?.last_success_at ?? null)}</td>
+              <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtDuration(hb?.duration_ms ?? null)}</td>
+              <td style={{ ...tdStyle, textAlign: 'right' }}>{hb?.run_count ?? '—'}</td>
+              <td style={{ ...tdStyle, textAlign: 'right', color: (hb?.failure_count ?? 0) > 0 ? 'var(--color-error)' : undefined }}>
+                {hb?.failure_count ?? '—'}
               </td>
               <td style={{ ...tdStyle, color: 'var(--color-error)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {hb.last_error ?? ''}
+                {hb?.last_error ?? ''}
               </td>
             </tr>
           ))}
-          {data.length === 0 && (
-            <tr><td colSpan={8} style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>
-              {zh ? '尚無紀錄' : 'No data'}
-            </td></tr>
-          )}
         </tbody>
       </table>
     </div>
   );
 }
 
-// ─── Tab 2: Job Runs (global) ─────────────────────────────────────────────────
+// ─── Job metadata (shared by Heartbeats + JobRuns tabs) ──────────────────────
 
 const KNOWN_JOBS = [
   'audit_reviewers', 'audit_writer', 'backup', 'cleanup', 'conductor_dispatch',
   'decay', 'deletion_notify', 'ephemeral_decay', 'path_reinforcement',
-  'process_node_events', 'retry_embeddings', 'safety_review_queue', 'stale_ingest',
+  'process_node_events', 'retry_embeddings', 'safety_review_queue', 'safety_sweep', 'stale_ingest',
 ];
+
+interface JobMeta { categoryZh: string; category: string; color: string; interval: string; observable: boolean; }
+const JOB_META: Record<string, JobMeta> = {
+  process_node_events: { categoryZh: '知識庫', category: 'KB',     color: '#3b82f6', interval: '10s',  observable: true  },
+  audit_writer:        { categoryZh: '系統',   category: 'System', color: '#64748b', interval: '5s',   observable: true  },
+  safety_review_queue: { categoryZh: 'AI',     category: 'AI',     color: '#a855f7', interval: '30s',  observable: true  },
+  retry_embeddings:    { categoryZh: '知識庫', category: 'KB',     color: '#3b82f6', interval: '1m',   observable: true  },
+  stale_ingest:        { categoryZh: '知識庫', category: 'KB',     color: '#3b82f6', interval: '5m',   observable: true  },
+  ephemeral_decay:     { categoryZh: '知識庫', category: 'KB',     color: '#3b82f6', interval: '1h',   observable: true  },
+  backup:              { categoryZh: '系統',   category: 'System', color: '#64748b', interval: '1h',   observable: true  },
+  decay:               { categoryZh: '知識庫', category: 'KB',     color: '#3b82f6', interval: '24h',  observable: true  },
+  cleanup:             { categoryZh: '系統',   category: 'System', color: '#64748b', interval: '24h',  observable: true  },
+  deletion_notify:     { categoryZh: '系統',   category: 'System', color: '#64748b', interval: '24h',  observable: true  },
+  path_reinforcement:  { categoryZh: '知識庫', category: 'KB',     color: '#3b82f6', interval: '24h',  observable: true  },
+  audit_reviewers:     { categoryZh: 'AI',     category: 'AI',     color: '#a855f7', interval: '24h',  observable: false },
+  safety_sweep:        { categoryZh: 'AI',     category: 'AI',     color: '#a855f7', interval: '24h',  observable: false },
+  conductor_dispatch:  { categoryZh: '系統',   category: 'System', color: '#64748b', interval: '—',    observable: true  },
+};
+
+// ─── Tab 2: Job Runs (global) ─────────────────────────────────────────────────
 
 function JobRunsTab({ zh }: { zh: boolean }) {
   const [data, setData] = useState<SystemJobRun[]>([]);
@@ -207,6 +255,7 @@ function JobRunsTab({ zh }: { zh: boolean }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
             <col style={{ width: 190 }} />
+            <col style={{ width: 140 }} />
             <col style={{ width: 130 }} />
             <col style={{ width: 90 }} />
             <col style={{ width: 90 }} />
@@ -218,6 +267,7 @@ function JobRunsTab({ zh }: { zh: boolean }) {
           <thead>
             <tr>
               <th style={thStyle}>{zh ? '作業' : 'Job'}</th>
+              <th style={thStyle}>{zh ? 'AI 機制' : 'AI Mechanism'}</th>
               <th style={thStyle}>{zh ? '工作區' : 'Workspace'}</th>
               <th style={thStyle}>Status</th>
               <th style={thStyle}>{zh ? '觸發' : 'Trigger'}</th>
@@ -228,28 +278,44 @@ function JobRunsTab({ zh }: { zh: boolean }) {
             </tr>
           </thead>
           <tbody>
-            {data.map(r => (
-              <tr key={r.id}>
-                <td style={{ ...tdStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <code style={{ fontSize: 11 }}>{r.job_name}</code>
-                </td>
-                <td style={{ ...tdStyle, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {r.workspace_name ?? r.workspace_id ?? '—'}
-                </td>
-                <td style={tdStyle}><StatusBadge status={r.status} /></td>
-                <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{r.trigger}</td>
-                <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(r.started_at)}</td>
-                <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtDuration(r.duration_ms)}</td>
-                <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--text-muted)' }}>
-                  {r.processed_count != null && r.processed_count > 0 ? r.processed_count : '—'}
-                </td>
-                <td style={{ ...tdStyle, color: 'var(--color-error)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {r.error ?? ''}
-                </td>
-              </tr>
-            ))}
+            {data.map(r => {
+              const s = (r.summary ?? {}) as Record<string, any>;
+              let aiLabel = '—';
+              if (r.job_name === 'safety_review_queue') {
+                if (s.ai_provider && s.ai_model) aiLabel = `${s.ai_provider} / ${s.ai_model}`;
+                else if (s.ai_provider === 'unavailable') aiLabel = zh ? '無可用模型' : 'unavailable';
+                else aiLabel = 'LLM';
+              } else if (r.job_name === 'audit_reviewers') {
+                aiLabel = zh ? '向量相似度' : 'Vector similarity';
+              } else if (r.job_name === 'safety_sweep') {
+                aiLabel = zh ? '規則式' : 'Rule-based';
+              }
+              return (
+                <tr key={r.id}>
+                  <td style={{ ...tdStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <code style={{ fontSize: 11 }}>{r.job_name}</code>
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: 11, color: aiLabel === '—' ? 'var(--text-muted)' : 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {aiLabel}
+                  </td>
+                  <td style={{ ...tdStyle, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {r.workspace_name ?? r.workspace_id ?? '—'}
+                  </td>
+                  <td style={tdStyle}><StatusBadge status={r.status} /></td>
+                  <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{r.trigger}</td>
+                  <td style={{ ...tdStyle, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(r.started_at)}</td>
+                  <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtDuration(r.duration_ms)}</td>
+                  <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--text-muted)' }}>
+                    {r.processed_count != null && r.processed_count > 0 ? r.processed_count : '—'}
+                  </td>
+                  <td style={{ ...tdStyle, color: 'var(--color-error)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {r.error ?? ''}
+                  </td>
+                </tr>
+              );
+            })}
             {data.length === 0 && (
-              <tr><td colSpan={8} style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>
+              <tr><td colSpan={9} style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>
                 {zh ? '尚無紀錄' : 'No data'}
               </td></tr>
             )}

@@ -30,10 +30,13 @@ const CLUSTER_ACCENT: Record<string, string> = {
 };
 
 const RELATION_COLORS: Record<string, string> = {
-  depends_on:  'var(--color-primary)',
-  extends:     'var(--node-secondary)',
-  related_to:  'var(--text-muted)',
-  contradicts: 'var(--color-error)',
+  depends_on:      'var(--color-primary)',
+  extends:         'var(--node-secondary)',
+  related_to:      'var(--text-muted)',
+  contradicts:     'var(--color-error)',
+  answered_by:     '#a78bfa',
+  similar_to:      '#94a3b8',
+  queried_via_mcp: '#2dd4bf',
 };
 
 interface Props {

@@ -406,10 +406,11 @@ function GraphCanvas({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
                 { type: 'factual',    color: '#3b82f6', label: zh ? '事實' : 'Factual' },
-                { type: 'procedural', color: '#10b981', label: zh ? '流程' : 'Procedural' },
+                { type: 'procedural', color: '#10b981', label: zh ? '程序' : 'Procedural' },
                 { type: 'preference', color: '#f59e0b', label: zh ? '偏好' : 'Preference' },
-                { type: 'context',    color: '#8b5cf6', label: zh ? '脈絡' : 'Context' },
+                { type: 'context',    color: '#8b5cf6', label: zh ? '情境' : 'Context' },
                 { type: 'inquiry',    color: '#94a3b8', label: zh ? '詢問' : 'Inquiry' },
+                { type: 'document',   color: '#38bdf8', label: zh ? '文件' : 'Document' },
               ].map(item => (
                 <div key={item.type} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }} />
@@ -422,12 +423,19 @@ function GraphCanvas({
               {zh ? '關係語意' : 'Relations'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {Object.entries(relationColors).map(([relation, color]) => (
-                <div key={relation} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>
-                  <div style={{ width: 20, height: 2, background: color, borderBottom: relation === 'related_to' ? '1px dashed #666' : 'none' }} />
-                  <span>{relation}</span>
-                </div>
-              ))}
+              {Object.entries(relationColors).map(([relation, color]) => {
+                const labelZh: Record<string, string> = {
+                  depends_on: '依賴', extends: '延伸', related_to: '關聯',
+                  contradicts: '矛盾', answered_by: '答覆於',
+                  similar_to: '相似於', queried_via_mcp: '經由 MCP',
+                };
+                return (
+                  <div key={relation} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>
+                    <div style={{ width: 20, height: 2, background: color, borderBottom: relation === 'related_to' ? '1px dashed #666' : 'none' }} />
+                    <span>{zh ? (labelZh[relation] ?? relation) : relation.replace(/_/g, ' ')}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
