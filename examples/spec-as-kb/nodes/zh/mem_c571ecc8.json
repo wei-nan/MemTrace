@@ -1,0 +1,30 @@
+{
+  "id": "mem_c571ecc8",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "AI 審核員：自動審核機器人設定",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "工作區管理員可在「AI 管理」設定頁建立一或多個 AI 審核員（ai_reviewers），讓特定 LLM 模型自動對進入 review_queue 的提案給出審查意見。\n\n## 快速建立\n\n只需選擇 Provider 與 Model，點「建立」即可。名稱若留空會自動產生（例如 `openai / gpt-4o-mini`）。\n\n## 進階設定（可折疊）\n\n| 欄位 | 說明 | 預設值 |\n|------|------|--------|\n| 名稱 | 識別用標籤，留空則自動命名 | `{provider} / {model}` |\n| System Prompt | 給 LLM 的審查指令 | 見下方預設 prompt |\n| 自動接受門檻 | confidence ≥ 此值且 decision=accept 時自動合入 | 0.95 |\n| 自動拒絕門檻 | confidence ≤ 此值且 decision=reject 時自動駁回 | 0.10 |\n| 啟用 | 是否讓此審核員參與審查 | true |\n\n## 預設 System Prompt\n\n```\nYou are an AI reviewer for a collaborative knowledge graph.\nReview the proposed node change and return strict JSON:\n{\n  \"decision\": \"accept\" | \"reject\" | \"comment\",\n  \"confidence\": 0.0-1.0,\n  \"reasoning\": \"short explanation\"\n}\n\nPrefer accept only for well-scoped, internally consistent, low-risk changes.\nPrefer reject for hallucinations, contradictions, empty edits, or destructive changes without justification.\nUse comment when uncertain.\n```\n\n## 審查行為\n\n- 每筆 review_queue 記錄建立後，背景觸發 `run_ai_review_for_item`\n- 依序嘗試已啟用的審核員（取第一個成功的）\n- LLM 回傳 JSON 後，依 decision × confidence 決定：\n  - 自動接受 / 自動拒絕 → 狀態直接更新，ai_review 欄記錄結果\n  - comment only → 標記 AI 意見，仍待人工審核\n- 支援 OpenAI、Anthropic、Gemini、Ollama 四種 provider"
+  },
+  "tags": ["ai-reviewer", "review-queue", "workspace-settings", "automation"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "b9b5d4d75c79e8f6f2e3f86e7fa48cb6c4d5c99dbc5d85e21663c354bef3eb35",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

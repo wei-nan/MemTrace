@@ -1,0 +1,30 @@
+{
+  "id": "mem_53bad7a9",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "安全審查背景作業：safety_review_queue 與 safety_sweep",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 有兩個互補的安全審查背景作業，分別採用不同機制。\n\n## safety_review_queue（LLM 分類，30s 間隔）\n\n節點寫入事件觸發時，若來源為 agent / MCP 等非人工輸入，會自動加入 `safety_review_queue` 佇列。排程每 30 秒取出最多 25 筆逐一處理：\n\n1. 解析 `system:safety` key 對應的 LLM provider / model\n2. 呼叫 `classify_safety(proposal, workspace_id)` 取得分類結果\n3. 分類為 `risky` 或 `dangerous` → 建立 `audit_proposal`（嚴重度 mid / high）\n4. 作業紀錄的 `summary` 欄位包含 `ai_provider` 與 `ai_model`，可在系統監控頁面查看\n\nprovider 來源優先順序：`system:safety` 指定金鑰 → fallback 至系統預設。\n\n## safety_sweep（規則式，24h 間隔，不追蹤心跳）\n\n每日掃描所有 active 節點，以 `classify_safety_rules()` 純規則判斷，**不呼叫 LLM**：\n\n- 命中危險關鍵字清單 → 標記 `flagged`，建立 audit_proposal\n- 執行結果不寫入 `scheduler_heartbeats`（`observable=false`）\n- 適合大量低成本初篩，再由 safety_review_queue 做 LLM 精審\n\n## 差異對比\n\n| 面向 | safety_review_queue | safety_sweep |\n|------|---------------------|--------------|\n| 觸發方式 | 事件驅動（寫入時入佇列）| 排程（每日） |\n| 判斷機制 | LLM 語意分類 | 規則式關鍵字 |\n| 間隔 | 30s | 24h |\n| 心跳可見 | ✓ | ✗ |\n| Token 消耗 | 有 | 無 |"
+  },
+  "tags": ["safety", "background-job", "scheduler", "ai", "rule-based"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "24554e25cc48541d90c9a4c9bd73834c60abb4f94b522b6c33e97c88cb5899f0",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

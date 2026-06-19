@@ -1,0 +1,30 @@
+{
+  "id": "mem_079a7573",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "系統監控頁面：排程、作業紀錄、MCP 日誌、AI 用量",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "系統管理員（platform admin）可在左側導覽進入「系統監控」頁面，觀察平台整體健康狀況。\n\n## 四個 Tab\n\n### 1. 排程心跳（Scheduler Heartbeats）\n\n顯示全部已知排程作業的當前狀態，包含：\n\n| 欄位 | 說明 |\n|------|------|\n| 分類 | KB（知識庫）/ AI / System，以顏色徽章標示 |\n| 間隔 | 排程週期（10s / 30s / 1m / 1h / 24h / — |\n| 狀態 | 最近一次執行結果 |\n| 上次成功 | 最後一次 success 的時間 |\n| 執行次數／失敗次數 | 累計統計 |\n| 追蹤 | `observable=false` 的作業（safety_sweep、audit_reviewers）標示「不追蹤」 |\n\n未曾執行過的作業以 60% 透明度顯示（灰色）。\n\n### 2. 作業紀錄（Job Runs）\n\n所有作業的逐次執行紀錄，含篩選器（作業名稱、狀態）。\n\n新增「AI 機制」欄位：\n- `safety_review_queue`：顯示執行時使用的 provider 與 model\n- `audit_reviewers`：標示「向量相似度」\n- `safety_sweep`：標示「規則式」\n- 其餘作業：顯示「—」\n\n### 3. MCP 查詢日誌（MCP Query Logs）\n\n記錄所有透過 MCP 工具呼叫的查詢，含工作區、工具名稱、查詢文字、token 用量與時間戳。\n\n### 4. AI Token 用量（AI Usage）\n\n依工作區 × 月份彙總 token 消耗，協助成本追蹤。\n\n## 已知排程作業清單\n\n| 作業名稱 | 分類 | 間隔 |\n|----------|------|------|\n| process_node_events | KB | 10s |\n| audit_writer | System | 5s |\n| safety_review_queue | AI | 30s |\n| retry_embeddings | KB | 1m |\n| stale_ingest | KB | 5m |\n| ephemeral_decay | KB | 1h |\n| backup | System | 1h |\n| decay | KB | 24h |\n| cleanup | System | 24h |\n| deletion_notify | System | 24h |\n| path_reinforcement | KB | 24h |\n| audit_reviewers | AI | 24h |\n| safety_sweep | AI | 24h |\n| conductor_dispatch | System | — |"
+  },
+  "tags": ["system-monitor", "admin", "scheduler", "job-runs", "observability"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "4a0c5f89ec74ed26c4903ed8abb17feb058c58bf1f89e23c6b16c6789fe4898f",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

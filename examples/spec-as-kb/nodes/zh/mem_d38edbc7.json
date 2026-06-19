@@ -1,0 +1,30 @@
+{
+  "id": "mem_d38edbc7",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "工作區設定：AI 管理 Tab（審核設定與智慧維護）",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "工作區設定頁的「AI 管理」Tab 整合了原先分散的「審核設定」與「智慧維護」兩個頁面，集中管理所有 AI 相關功能。\n\n## 三個功能區塊\n\n### 1. Consult AI 設定\n\n| 設定項 | 說明 |\n|--------|------|\n| Consult Provider | 指定用於診斷與合入建議的模型（留空沿用系統預設）|\n| 自動合入信任層級 | `ask`（手動確認）或 `full_trust`（自動合入，危險操作仍攔截）|\n\n切換 `full_trust` 前會彈出確認對話框提示風險。\n\n### 2. AI 審核員\n\n快速建立：選擇 **Provider → Model → 建立**，名稱自動產生。\n\n展開「進階設定」可修改：\n- 名稱（自訂識別標籤）\n- System Prompt（預設為標準審查 prompt）\n- 自動接受門檻（預設 0.95）\n- 自動拒絕門檻（預設 0.10）\n- 啟用 / 停用 toggle\n\n已建立的審核員以卡片列表顯示，可個別啟用 / 停用 / 刪除。\n\n### 3. 智慧維護\n\n| 功能 | 說明 |\n|------|------|\n| 智慧階層綜整 | 掃描孤立節點，自動生成摘要節點優化圖譜結構 |\n| 潛在關聯預測 | 依語義相似度預測節點間關聯，建議送入審查佇列 |\n\n兩個功能均為手動觸發（按鈕執行），非排程自動運行。\n\n## 設計原則\n\n- 僅工作區擁有者可修改 AI 管理設定\n- 審核員建立後立即生效；停用不刪除歷史紀錄\n- 多個審核員啟用時，依建立順序嘗試，第一個成功的結果為準"
+  },
+  "tags": ["workspace-settings", "ui", "ai-management", "maintenance", "reviewer"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "b29d7fb38c4eb0bdd508282a860f32251ace8676ad9e18d187bb0b33132d60e0",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}

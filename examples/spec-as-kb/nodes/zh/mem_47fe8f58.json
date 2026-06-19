@@ -1,0 +1,30 @@
+{
+  "id": "mem_47fe8f58",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "節點 resolution_status：知識狀態三態機",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "每個 Memory Node 包含 `resolution_status` 欄位，記錄該知識的生命週期狀態。\n\n## 三個狀態\n\n| 狀態 | 語意 | 典型場景 |\n|------|------|---------|\n| `open` | 尚未解決或驗證，屬於進行中 | inquiry（待答問題）、gap（知識缺口）、仍在討論的決策 |\n| `resolved` | 已有明確結論或答案 | inquiry 得到 answered_by 邊後、決策已落地 |\n| `superseded` | 已被更新的知識取代，原內容仍保留供稽核 | 舊版規格被新版覆蓋、政策更新 |\n\n## 狀態轉換規則\n\n- 節點建立時預設 `open`（inquiry / gap 類型）或不設定（factual / procedural 等）\n- 人工或 AI 明確標記 `resolved` / `superseded` 時才轉換，**系統不自動轉換**\n- `superseded` 節點仍保持 `status=active`，不會從圖譜中移除，確保稽核可追溯\n- 搜尋時預設排除 `answered_by` 邊指向的 inquiry 節點（避免重複發現已答問題）\n\n## 與 node.status 的區別\n\n- `node.status`（active / archived / deleted）：節點是否仍有效存在\n- `resolution_status`（open / resolved / superseded）：知識本身的認識論狀態\n\n兩者獨立，一個 `status=active` 節點可以同時是 `resolution_status=superseded`。"
+  },
+  "tags": ["memory-node", "resolution-status", "state-machine", "lifecycle"],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "004a12e1c529f26716c3cfad043f971bb7aa91d2c719cb1a051c69bf708ba770",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": { "up": 0, "down": 0, "verifications": 0 }
+  },
+  "traversal": { "count": 0, "unique_traversers": 0 }
+}
