@@ -133,6 +133,18 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail=f"Node not found: {nid}")
 
+    # Write-governance: answered_by must point inquiry → answer, never reversed.
+    if relation == "answered_by":
+        cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (from_id,))
+        _from_ct = (cur.fetchone() or {}).get("content_type")
+        cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (to_id,))
+        _to_ct = (cur.fetchone() or {}).get("content_type")
+        if _from_ct != "inquiry" and _to_ct == "inquiry":
+            raise HTTPException(
+                status_code=400,
+                detail="answered_by direction looks reversed: 'from' must be the inquiry being answered, 'to' the answering node",
+            )
+
     if half_life_days == 30:
         cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (from_id,))
         row = cur.fetchone()
@@ -152,6 +164,16 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
         )
         edge = cur.fetchone()
 
+        # Write-governance: creating answered_by auto-resolves the answered inquiry,
+        # so resolution_status can't drift out of sync with the graph.
+        if relation == "answered_by":
+            cur.execute(
+                "UPDATE memory_nodes SET resolution_status = 'resolved' "
+                "WHERE id = %s AND workspace_id = %s AND content_type = 'inquiry' "
+                "AND (resolution_status IS NULL OR resolution_status != 'resolved')",
+                (from_id, ws_id),
+            )
+
         # S3-T04: Automatic arbitration for contradicts
         if relation == "contradicts":
             from services.nodes import propose_change
@@ -166,6 +188,14 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
         if "unique_edge" in str(exc):
             raise HTTPException(status_code=409, detail="Edge with this relation already exists")
         raise
+
+
+def delete_edge_in_db(cur, ws_id: str, edge_id: str) -> dict:
+    """Hard-delete an edge by id. Used to clean up wrong-direction / duplicate edges."""
+    cur.execute("DELETE FROM edges WHERE id = %s AND workspace_id = %s", (edge_id, ws_id))
+    if cur.rowcount == 0:
+        raise HTTPException(status_code=404, detail=f"Edge not found: {edge_id}")
+    return {"deleted": True, "edge_id": edge_id}
 
 # ─── Backward-compat aliases ──────────────────────────────────────────────────
 

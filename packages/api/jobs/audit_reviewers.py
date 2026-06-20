@@ -235,6 +235,70 @@ def reviewer_edge_auditor(cur, workspace_id: str) -> int:
         if prop:
             created += 1
 
+    # Reversed answered_by: direction must be inquiry → answer, so from must be an inquiry
+    cur.execute(
+        """
+        SELECT e.id, e.from_id, e.to_id
+        FROM edges e
+        JOIN memory_nodes n ON n.id = e.from_id AND n.workspace_id = e.workspace_id
+        WHERE e.workspace_id = %s
+          AND e.status = 'active'
+          AND e.relation = 'answered_by'
+          AND n.content_type != 'inquiry'
+        LIMIT %s
+        """,
+        (workspace_id, DAILY_QUOTA_PER_REVIEWER),
+    )
+    for r in cur.fetchall():
+        prop = create_proposal(
+            cur,
+            workspace_id=workspace_id,
+            reviewer="edge_auditor",
+            category="reversed_answered_by",
+            target_ids=[r["id"]],
+            reasoning=(
+                f"answered_by 邊 {r['from_id']} → {r['to_id']} 方向疑似寫反："
+                "from 端應為被回答的 inquiry。建議刪除並以正確方向重建。"
+            ),
+            evidence={"from_id": r["from_id"], "to_id": r["to_id"], "relation": "answered_by"},
+            suggested_action={"action": "delete_edge", "edge_id": r["id"]},
+            severity="mid",
+        )
+        if prop:
+            created += 1
+
+    # Resolution drift: inquiry has an answered_by out-edge but is still open
+    cur.execute(
+        """
+        SELECT DISTINCT n.id
+        FROM memory_nodes n
+        JOIN edges e ON e.from_id = n.id AND e.workspace_id = n.workspace_id
+                    AND e.relation = 'answered_by' AND e.status = 'active'
+        WHERE n.workspace_id = %s
+          AND n.content_type = 'inquiry'
+          AND (n.resolution_status IS NULL OR n.resolution_status != 'resolved')
+        LIMIT %s
+        """,
+        (workspace_id, DAILY_QUOTA_PER_REVIEWER),
+    )
+    for r in cur.fetchall():
+        prop = create_proposal(
+            cur,
+            workspace_id=workspace_id,
+            reviewer="edge_auditor",
+            category="resolution_drift",
+            target_ids=[r["id"]],
+            reasoning=(
+                f"inquiry {r['id']} 已有 answered_by 出邊但 resolution_status 仍為 open，"
+                "建議標記為 resolved。"
+            ),
+            evidence={"node_id": r["id"]},
+            suggested_action={"action": "update_node", "node_id": r["id"], "resolution_status": "resolved"},
+            severity="low",
+        )
+        if prop:
+            created += 1
+
     logger.info("[edge_auditor] workspace=%s created=%d proposals", workspace_id, created)
     return created
 
