@@ -9,7 +9,7 @@ from core.database import db_cursor
 from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T, MCP_INSTRUCTIONS
 from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db
-from services.edges import write_mcp_interaction_edge, create_edge_in_db
+from services.edges import write_mcp_interaction_edge, create_edge_in_db, delete_edge_in_db
 from services.search import bfs_neighborhood, search_nodes_in_db, perform_semantic_search
 from services.analytics import handle_search_miss, log_mcp_query_internal
 from services.nodes import (
@@ -54,7 +54,7 @@ RELATION_DESCRIPTIONS = {
     "extends": "The source node provides additional details or builds upon the target node.",
     "related_to": "Generic connection between two relevant concepts.",
     "contradicts": "The source node contains information that conflicts with the target node.",
-    "answered_by": "The source node (inquiry) is answered or resolved by the target node (factual/procedural).",
+    "answered_by": "The source node (inquiry) is answered or resolved by the target node (factual/procedural). Direction: from = the inquiry being answered, to = the answering node. Do NOT reverse it; the inquiry must be the 'from' side.",
     "similar_to": "Both nodes cover similar topics or concepts.",
     "queried_via_mcp": "The node was involved in a query made through the MCP interface.",
     "proceeds_to": "Conditional next step in a troubleshooting or workflow graph. Use edge metadata.condition to specify when this path is taken.",
@@ -66,6 +66,8 @@ CONTENT_TYPE_DESCRIPTIONS = {
     "preference": "User preferences, style guides, or subjective choices.",
     "context": "Background information necessary to understand other nodes.",
     "inquiry": "Questions, issues, or gaps in knowledge that need answering.",
+    "document": "A source document node (first-class in the graph); knowledge nodes link to it via extracted_from.",
+    "gap": "A detected knowledge gap awaiting content. For questions you are explicitly logging, prefer 'inquiry'.",
 }
 
 RELATION_WEIGHTS = {
@@ -294,6 +296,18 @@ TOOLS = [
                 },
             },
             "required": ["workspace_id", "from_id", "to_id", "relation"],
+        },
+    },
+    {
+        "name": "delete_edge",
+        "description": "Delete an edge by its id. Use to clean up wrong-direction or duplicate edges (edges have no soft-delete).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "edge_id": {"type": "string", "description": "ID of the edge to delete"},
+            },
+            "required": ["workspace_id", "edge_id"],
         },
     },
     {
@@ -1174,6 +1188,13 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor(commit=True) as cur:
             require_ws_access(cur, ws_id, user, write=True, required_role="admin")
             return create_edge_in_db(cur, ws_id, args)
+
+    # ── delete_edge ───────────────────────────────────────────────────────────
+    if name == "delete_edge":
+        ws_id = args["workspace_id"]
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+            return delete_edge_in_db(cur, ws_id, args["edge_id"])
 
     # ── traverse ──────────────────────────────────────────────────────────────
     if name == "traverse":
