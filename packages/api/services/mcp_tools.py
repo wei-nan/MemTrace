@@ -7,7 +7,7 @@ import time as _time
 from fastapi import BackgroundTasks, HTTPException
 from core.database import db_cursor
 from core.security import generate_id, compute_signature
-from core.constants import VALID_RELATIONS, VALID_CONTENT_T
+from core.constants import VALID_RELATIONS, VALID_CONTENT_T, MCP_INSTRUCTIONS
 from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db
 from services.edges import write_mcp_interaction_edge, create_edge_in_db
 from services.search import bfs_neighborhood, search_nodes_in_db, perform_semantic_search
@@ -2358,15 +2358,16 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks)
                      "prefer_format": prefer_format or "json"
                  }
              return jsonrpc_ok(msg_id, {
-                 "protocolVersion": "2024-11-05", 
+                 "protocolVersion": "2024-11-05",
                  "capabilities": {
                      "tools": {},
                      "resources": {}
-                 }, 
+                 },
                  "serverInfo": {
-                     "name": "memtrace", 
+                     "name": "memtrace",
                      "version": "1.0.0"
-                 }
+                 },
+                 "instructions": MCP_INSTRUCTIONS,
              })
              
         if method == "tools/list":

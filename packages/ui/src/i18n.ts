@@ -318,7 +318,15 @@ const resources = {
         spec_kb_desc: '這是一個公開的範例知識庫，收錄了 MemTrace 的完整規格文件。進入應用後可在工作區選單中的「公開知識庫」找到它。',
         open_spec_kb: '前往規格知識庫',
         api_key_guide_title: '建立寫入 API 金鑰',
-        api_key_guide_desc: '如果您打算使用 MCP 或 Ingestion 工具，請在進入應用後前往「設定」建立一個具備 kb:write 權限的金鑰。'
+        api_key_guide_desc: '如果您打算使用 MCP 或 Ingestion 工具，請在進入應用後前往「設定」建立一個具備 kb:write 權限的金鑰。',
+        purpose_title: '先從「為什麼」說起',
+        purpose_subtitle: '大部分工具會先告訴你「它能做什麼」。MemTrace 想反過來——先說「為什麼」，因為這正是它和其他知識工具根本不同的地方。',
+        purpose_why_label: '知識不該歸零',
+        purpose_why_desc: '我們相信人與 AI 累積的理解，不該隨每次對話結束就消失，而值得被保存、檢驗、累積。',
+        purpose_how_label: '讓知識可被驗證、會演化',
+        purpose_how_desc: '把知識拆成帶來源與信任度的節點與關聯，由人與 AI 共筆，並以審核佇列把關。',
+        purpose_what_label: '一個活的知識圖譜',
+        purpose_what_desc: '每個節點、每條關聯、每個信任分數，都是這個信念的具體呈現。'
       },
       export_import: {
         export: '匯出',
@@ -795,7 +803,15 @@ const resources = {
         spec_kb_desc: 'A public example KB containing full MemTrace spec docs. Find it under "Public" in the workspace selector after entering the app.',
         open_spec_kb: 'Open Spec KB',
         api_key_guide_title: 'Create a Write API Key',
-        api_key_guide_desc: 'If you plan to use MCP or Ingestion tools, go to "Settings" after entering to create a key with "kb:write" scope.'
+        api_key_guide_desc: 'If you plan to use MCP or Ingestion tools, go to "Settings" after entering to create a key with "kb:write" scope.',
+        purpose_title: 'Start with Why',
+        purpose_subtitle: 'Most tools start by telling you what they do. MemTrace works the other way around — starting with why, because that’s what makes it fundamentally different.',
+        purpose_why_label: 'Knowledge shouldn’t reset',
+        purpose_why_desc: 'We believe the understanding humans and AI build together shouldn’t vanish at the end of every conversation — it deserves to be kept, questioned, and compounded.',
+        purpose_how_label: 'Make it verifiable & evolving',
+        purpose_how_desc: 'Structure knowledge into nodes and typed edges with provenance and trust, co-authored by humans and AI, gated by a review queue.',
+        purpose_what_label: 'A living knowledge graph',
+        purpose_what_desc: 'Every node, edge, and trust score you see is that belief made concrete.'
       },
       export_import: {
         export: 'Export',

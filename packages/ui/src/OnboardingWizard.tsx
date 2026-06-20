@@ -11,6 +11,7 @@ import { Button, Input } from './components/ui';
 
 const STEPS = [
   { id: 'welcome', icon: Languages },
+  { id: 'purpose', icon: Brain },
   { id: 'account', icon: CheckCircle2 },
   { id: 'security', icon: Key },
   { id: 'email', icon: Mail },
@@ -289,6 +290,30 @@ export default function OnboardingWizard({
         </div>
       </div>
       <Button variant="primary" style={{ display: 'flex', width: 'fit-content', margin: '32px auto 0' }} onClick={() => next('welcome')} rightIcon={<ChevronRight size={16} />}>
+        {zh ? '下一步' : 'Next Step'}
+      </Button>
+    </div>
+  );
+
+  const renderPurpose = () => (
+    <div className="onboard-card">
+      <div className="onboard-icon"><Brain size={48} /></div>
+      <h3>{t('onboarding.purpose_title')}</h3>
+      <p>{t('onboarding.purpose_subtitle')}</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 28, textAlign: "left" }}>
+        {[
+          { ring: 'WHY', label: t('onboarding.purpose_why_label'), desc: t('onboarding.purpose_why_desc') },
+          { ring: 'HOW', label: t('onboarding.purpose_how_label'), desc: t('onboarding.purpose_how_desc') },
+          { ring: 'WHAT', label: t('onboarding.purpose_what_label'), desc: t('onboarding.purpose_what_desc') },
+        ].map(({ ring, label, desc }) => (
+          <div key={ring} style={{ background: "var(--bg-elevated)", padding: 14, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+            <div style={{ display: 'inline-block', fontSize: 9, fontWeight: 800, letterSpacing: 0.5, padding: '2px 7px', borderRadius: 10, background: ring === 'WHY' ? 'var(--color-primary)' : 'var(--color-primary-subtle)', color: ring === 'WHY' ? 'var(--text-on-primary, #fff)' : 'var(--color-primary)', marginBottom: 8 }}>{ring}</div>
+            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 4 }}>{label}</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{desc}</div>
+          </div>
+        ))}
+      </div>
+      <Button variant="primary" style={{ display: 'flex', width: 'fit-content', margin: '32px auto 0' }} onClick={() => next('purpose')} rightIcon={<ChevronRight size={16} />}>
         {zh ? '下一步' : 'Next Step'}
       </Button>
     </div>
@@ -723,13 +748,14 @@ export default function OnboardingWizard({
 
         <div className="onboarding-view">
           {activeStepIdx === 0 && renderWelcome()}
-          {activeStepIdx === 1 && renderAccount()}
-          {activeStepIdx === 2 && renderSecurity()}
-          {activeStepIdx === 3 && renderEmail()}
-          {activeStepIdx === 4 && renderKb()}
-          {activeStepIdx === 5 && renderIngest()}
-          {activeStepIdx === 6 && renderAi()}
-          {activeStepIdx === 7 && renderDone()}
+          {activeStepIdx === 1 && renderPurpose()}
+          {activeStepIdx === 2 && renderAccount()}
+          {activeStepIdx === 3 && renderSecurity()}
+          {activeStepIdx === 4 && renderEmail()}
+          {activeStepIdx === 5 && renderKb()}
+          {activeStepIdx === 6 && renderIngest()}
+          {activeStepIdx === 7 && renderAi()}
+          {activeStepIdx === 8 && renderDone()}
         </div>
       </div>
 

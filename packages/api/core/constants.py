@@ -51,3 +51,22 @@ VALID_NODE_VIS: frozenset = frozenset({
 })
 
 VALID_FORMAT: frozenset = frozenset({"plain", "markdown"})
+
+# ─── Canonical service description (single source of truth) ───────────────────
+# Human-facing copy lives in packages/ui/src/i18n.ts (onboarding.purpose_* keys).
+# This English version is delivered to AI agents via the MCP initialize response.
+MCP_INSTRUCTIONS = (
+    "MemTrace is a living knowledge graph maintained jointly by humans and AI. "
+    "Unlike a vector store that retrieves static chunks, knowledge here is structured "
+    "into nodes and typed edges, each with provenance and a trust score that decays "
+    "over time — so the graph evolves, gets verified, or retired.\n\n"
+    "How to use this server effectively:\n"
+    "• Call search_nodes before creating — avoid duplicates and surface existing context.\n"
+    "• Traverse typed edges (related_to, depends_on, answered_by) to build full context.\n"
+    "• create_node proposals enter a human review queue unless you hold write scope.\n"
+    "• Log open questions as inquiry nodes; close them with answered_by edges once answered.\n"
+    "• Include tags and a brief provenance note so humans can verify your contributions.\n\n"
+    "Safety boundaries: never create nodes with personally identifiable information, "
+    "credentials, or content that contradicts a node marked trust > 0.9 without flagging "
+    "the contradiction explicitly using a contradicts edge."
+)

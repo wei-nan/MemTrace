@@ -22,6 +22,7 @@ const SystemAISettings = lazy(() => import('./SystemAISettings'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 const JobRunsPage = lazy(() => import('./JobRunsPage'));
 const SystemMonitorPage = lazy(() => import('./SystemMonitorPage'));
+const GuidePage = lazy(() => import('./GuidePage'));
 
 interface AppRouterProps {
   authenticated: boolean;
@@ -37,6 +38,7 @@ interface AppRouterProps {
   toggleTheme: () => void;
   language: string;
   switchLanguage: (l: string) => void;
+  onOpenSpecKb: () => void;
 }
 
 const AppRouter: React.FC<AppRouterProps> = ({
@@ -53,6 +55,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
   toggleTheme,
   language,
   switchLanguage,
+  onOpenSpecKb,
 }) => {
   return (
     <Routes>
@@ -73,6 +76,9 @@ const AppRouter: React.FC<AppRouterProps> = ({
           <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <ErrorBoundary>
               <Suspense fallback={<div className="loading-overlay"><RefreshCw className="animate-spin" /></div>}>
+                {currentView === 'guide' && (
+                  <GuidePage onOpenSpecKb={onOpenSpecKb} />
+                )}
                 {currentView === 'explore' && (
                   <ExplorePage
                     authenticated={authenticated}

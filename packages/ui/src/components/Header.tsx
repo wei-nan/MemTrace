@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, BookOpen } from 'lucide-react';
 
 interface HeaderProps {
   currentView: string;
@@ -11,7 +11,6 @@ interface HeaderProps {
   userMenuRef: React.RefObject<HTMLDivElement | null>;
   onSetView: (view: any) => void;
   onLogout: () => void;
-
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -37,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({
       case 'ingest': return t('ingest.title');
       case 'settings': return zh ? '個人設定' : 'Personal Settings';
       case 'explore': return zh ? '探索知識庫' : 'Explore';
+      case 'guide': return zh ? '使用說明' : 'Guide';
       default: return 'MemTrace';
     }
   };
@@ -91,14 +91,31 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             {userMenuOpen && (
-              <div style={{ 
-                position: 'absolute', top: 'calc(100% + 8px)', right: 0, 
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 8px)', right: 0,
                 width: 200, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)',
                 borderRadius: 10, boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
                 animation: 'fade-in-down 0.2s ease-out', zIndex: 1100
               }}>
-                <div 
-                  className="nav-item" 
+                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.display_name}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.email}
+                  </div>
+                </div>
+                <div
+                  className="nav-item"
+                  onClick={() => { onSetView('guide'); onSetUserMenuOpen(false); }}
+                  style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                >
+                  <BookOpen size={16} />
+                  <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '使用說明' : 'Guide'}</span>
+                </div>
+                <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+                <div
+                  className="nav-item"
                   onClick={() => { onSetView('settings'); onSetUserMenuOpen(false); }}
                   style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
                 >
@@ -106,8 +123,8 @@ const Header: React.FC<HeaderProps> = ({
                   <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{t('nav.settings')}</span>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
-                <div 
-                  className="nav-item logout-item" 
+                <div
+                  className="nav-item logout-item"
                   onClick={() => { onLogout(); onSetUserMenuOpen(false); }}
                   style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
                 >

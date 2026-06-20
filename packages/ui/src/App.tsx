@@ -15,7 +15,7 @@ const NodeEditor = lazy(() => import('./NodeEditor'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[] };
-type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore';
+type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide';
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -361,7 +361,6 @@ export default function App() {
               userMenuRef={userMenuRef}
               onSetView={setCurrentView}
               onLogout={handleLogout}
-
             />
           )}
 
@@ -379,6 +378,17 @@ export default function App() {
             toggleTheme={toggleTheme}
             language={i18n.language}
             switchLanguage={switchLanguage}
+            onOpenSpecKb={() => {
+              const specKb = wsList.find(ws => ws.id === 'ws_spec0001');
+              if (specKb) {
+                setSelectedWs(specKb);
+                setCurrentView('graph');
+              } else if (selectedWs) {
+                setCurrentView('graph');
+              } else {
+                setCurrentView('explore');
+              }
+            }}
           />
         </div>
       </main>
