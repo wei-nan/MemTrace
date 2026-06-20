@@ -1,0 +1,45 @@
+{
+  "id": "mem_c789e5cb",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "教訓：知識庫髒資料的自我傳播 — agent 會把既有錯誤當權威慣例複製放大",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 教訓（普世）\n\n在人機共維的知識圖中，任何一筆錯誤節點或方向寫反的 edge，會被後續讀取它的 agent 當成「既有慣例 / 權威事實」來概括，於是錯誤被**複製、放大、甚至固化成寫入指引**。錯誤的停留時間，就是它持續污染後續每一個 agent 的時間窗。`trust_score` / `source_type` 等信任防線雖然存在，但 agent 普遍傾向把任何既有節點視為權威，而忽略其信任分數。\n\n## 典型情境\n\n一個 agent 要推斷某種寫入慣例（例如某種 edge 的方向），KB 裡剛好只有一筆相關既有資料，而那筆其實方向寫反。Agent 僅憑此**單一樣本**就斷定慣例，照著做、甚至把它寫進共用 playbook 要求後人遵循。直到比對系統的實際程式碼行為，才發現官方 schema 本來就是對的，是那筆既有資料髒了——一筆髒資料差點固化成全庫指引。\n\n## 防禦原則\n\n1. **以系統程式碼 / 規格的實際行為為準**，不以單一既有資料樣本為準；當資料與規格衝突，規格優先。\n2. **不可用單一樣本概括慣例**；至少參照多筆，並檢視其 `trust_score` / `source_type`。\n3. **髒資料即風險窗**：一旦偵測到方向反向、過時或矛盾的節點 / edge，應盡快修正或封存，縮短污染窗。\n4. 任何寫入前，先讀該知識庫的寫入慣例 playbook（若有）。\n\n## 適用範圍\n\n適用於所有由人與 AI 共同維護、且允許 agent 寫入的知識圖系統。"
+  },
+  "tags": [
+    "lesson-learned",
+    "governance",
+    "agent-safety",
+    "data-quality",
+    "trust",
+    "knowledge-graph"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-20T00:00:00+00:00",
+    "signature": "d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7",
+    "source_type": "human",
+    "updated_at": "2026-06-20T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.9,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

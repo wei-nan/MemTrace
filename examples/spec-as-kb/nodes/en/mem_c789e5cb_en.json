@@ -1,0 +1,45 @@
+{
+  "id": "mem_c789e5cb_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Lesson: Self-propagation of dirty data in a knowledge base — agents replicate and amplify existing errors as authoritative convention",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## The lesson (universal)\n\nIn a human-AI co-maintained knowledge graph, any single erroneous node or mis-directed edge can be picked up by later agents as \"established convention / authoritative fact\", and thereby **copied, amplified, and even frozen into written guidance**. The dwell time of an error is exactly the window during which it keeps contaminating every subsequent agent. Trust defenses such as `trust_score` / `source_type` exist, but agents broadly tend to treat any existing node as authoritative and ignore its trust score.\n\n## Typical scenario\n\nAn agent needs to infer a write convention (e.g. the direction of a certain edge). The KB happens to contain only one relevant existing record, and that record is itself reversed/dirty. The agent generalizes the convention from this **single sample**, follows it, and may even write it into a shared playbook for others to obey. Only after comparing against the system's actual code behavior does it discover the official schema was correct all along and that record was dirty — one dirty record nearly froze into KB-wide guidance.\n\n## Defensive principles\n\n1. **Defer to the system's actual code/spec behavior**, not to a single existing data sample; when data conflicts with the spec, the spec wins.\n2. **Never generalize a convention from a single sample**; consult multiple records and check their `trust_score` / `source_type`.\n3. **Dirty data is a risk window**: once a reversed, stale, or contradictory node/edge is detected, fix or archive it quickly to shorten the contamination window.\n4. Before any write, read that knowledge base's write-convention playbook (if any).\n\n## Scope\n\nApplies to all human-AI co-maintained knowledge graph systems that allow agent writes."
+  },
+  "tags": [
+    "lesson-learned",
+    "governance",
+    "agent-safety",
+    "data-quality",
+    "trust",
+    "knowledge-graph"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-20T00:00:00+00:00",
+    "signature": "d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7",
+    "source_type": "human",
+    "updated_at": "2026-06-20T00:00:00+00:00"
+  },
+  "trust": {
+    "score": 0.9,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
