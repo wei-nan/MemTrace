@@ -1,5 +1,5 @@
 """
-jobs/audit_reviewers.py — 7 大 AI 審查員 (Phase 6.2 B4–B5 T13–T19)
+jobs/audit_reviewers.py — 9 大 AI 審查員 (Phase 6.2 B4–B5 T13–T19, +T20 integrity_auditor, +T21 secret_scanner)
 
 每個 reviewer 是一個獨立函式，接受 (cur, workspace_id) 參數，
 並呼叫 services.audit_proposals.create_proposal 寫入提案。
@@ -15,6 +15,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from services.audit_proposals import create_proposal, DAILY_QUOTA_PER_REVIEWER
+from services.safety_review import scan_secrets
 from core.database import db_cursor
 from services.job_observability import _duration_ms, finish_job_run, start_job_run
 
@@ -543,6 +544,160 @@ def reviewer_source_decay_monitor(cur, workspace_id: str) -> int:
     return created
 
 
+# ─── T20: Integrity Auditor ───────────────────────────────────────────────────
+
+def _has_open_integrity_proposal(cur, workspace_id: str, category: str, node_id: str) -> bool:
+    """冪等檢查：同一 (category, node) 是否已有未處理的 integrity 提案。"""
+    cur.execute(
+        """
+        SELECT 1 FROM audit_proposals
+        WHERE workspace_id = %s
+          AND reviewer = 'integrity_auditor'
+          AND category = %s
+          AND status = 'pending'
+          AND %s = ANY(target_ids)
+        LIMIT 1
+        """,
+        (workspace_id, category, node_id),
+    )
+    return cur.fetchone() is not None
+
+
+def reviewer_integrity_auditor(cur, workspace_id: str) -> int:
+    """
+    偵測「節點層級營運不變量」破損——其他 7 個審查員只查內容/邊/信任，
+    沒有人查節點本身的欄位是否合法。第一個動機是 updated_at 為 null 會讓
+    services/search.py 的結果排序拋 NoneType/datetime 例外，連帶癱瘓
+    search_nodes 與 create 前去重。SQL 層查 NULL 不會崩，故此處為安全偵測層。
+
+    每條規則用 SQL 篩出違規節點 → 冪等去重 → create_proposal。
+    """
+    # (category, severity, where_clause, reason_template, suggested_action_builder)
+    checks = [
+        (
+            "null_updated_at",
+            "high",
+            "status = 'active' AND updated_at IS NULL",
+            "節點「{title}」的 updated_at 為 NULL，會讓 search 結果排序崩潰並癱瘓整個 "
+            "workspace 的 search_nodes 與去重。建議回填 updated_at（fallback created_at）。",
+            lambda nid: {"action": "backfill_updated_at", "node_id": nid},
+        ),
+        (
+            "null_created_at",
+            "high",
+            "status = 'active' AND created_at IS NULL",
+            "節點「{title}」的 created_at 為 NULL（理應 NOT NULL），疑似繞過約束的直寫，"
+            "建議回填時間戳並檢查寫入來源。",
+            lambda nid: {"action": "backfill_created_at", "node_id": nid},
+        ),
+        (
+            "missing_embedding",
+            "mid",
+            "status = 'active' AND embedding IS NULL "
+            "AND created_at IS NOT NULL AND created_at < now() - INTERVAL '7 days'",
+            "節點「{title}」為 active 但建立逾 7 天仍無 embedding，會被語意檢索靜默漏掉，"
+            "建議重新索引或檢查 embedding 佇列。",
+            lambda nid: {"action": "reindex", "node_id": nid},
+        ),
+        (
+            "missing_provenance",
+            "high",
+            "status = 'active' AND (author IS NULL OR author = '' "
+            "OR signature IS NULL OR signature = '')",
+            "節點「{title}」缺少 author 或 signature，違反「每個節點都可溯源」的核心價值，"
+            "建議補齊 provenance 或送審。",
+            lambda nid: {"action": "review_provenance", "node_id": nid},
+        ),
+    ]
+
+    created = 0
+    for category, severity, where_clause, reason_tpl, action_fn in checks:
+        cur.execute(
+            f"""
+            SELECT id, title FROM memory_nodes
+            WHERE workspace_id = %s AND {where_clause}
+            LIMIT %s
+            """,
+            (workspace_id, DAILY_QUOTA_PER_REVIEWER),
+        )
+        for r in cur.fetchall():
+            if _has_open_integrity_proposal(cur, workspace_id, category, r["id"]):
+                continue
+            prop = create_proposal(
+                cur,
+                workspace_id=workspace_id,
+                reviewer="integrity_auditor",
+                category=category,
+                target_ids=[r["id"]],
+                reasoning=reason_tpl.format(title=r["title"]),
+                evidence={"node_id": r["id"], "invariant": category},
+                suggested_action=action_fn(r["id"]),
+                severity=severity,
+            )
+            if prop:
+                created += 1
+
+    logger.info("[integrity_auditor] workspace=%s created=%d proposals", workspace_id, created)
+    return created
+
+
+# ─── T21: Secret / Credential Scanner ─────────────────────────────────────────
+
+def reviewer_secret_scanner(cur, workspace_id: str) -> int:
+    """
+    掃描 active 節點 title/body 是否夾帶密鑰/憑證/PII（MCP safety boundary 明文禁止）。
+    admission 端已由 classify_safety 即時擋；此為歷史節點與漏網的每日補掃。
+    """
+    cur.execute(
+        """
+        SELECT id, title, body FROM memory_nodes
+        WHERE workspace_id = %s AND status = 'active'
+        ORDER BY updated_at DESC
+        LIMIT 500
+        """,
+        (workspace_id,),
+    )
+    rows = cur.fetchall()
+    created = 0
+    for r in rows:
+        kinds = scan_secrets(f"{r['title']}\n{r['body'] or ''}")
+        if not kinds:
+            continue
+        # 冪等：同節點已有未處理的 secret 提案則跳過
+        cur.execute(
+            """
+            SELECT 1 FROM audit_proposals
+            WHERE workspace_id = %s AND reviewer = 'secret_scanner'
+              AND status = 'pending' AND %s = ANY(target_ids)
+            LIMIT 1
+            """,
+            (workspace_id, r["id"]),
+        )
+        if cur.fetchone():
+            continue
+        prop = create_proposal(
+            cur,
+            workspace_id=workspace_id,
+            reviewer="secret_scanner",
+            category="leaked_secret",
+            target_ids=[r["id"]],
+            reasoning=(
+                f"節點「{r['title']}」疑似夾帶密鑰/憑證/PII（類型：{', '.join(kinds)}），"
+                "違反 KB 不得存放憑證的核心邊界，建議立即遮蔽或下架。"
+            ),
+            evidence={"secret_kinds": kinds},
+            suggested_action={"action": "redact_or_archive", "node_id": r["id"]},
+            severity="high",
+        )
+        if prop:
+            created += 1
+        if created >= DAILY_QUOTA_PER_REVIEWER:
+            break
+
+    logger.info("[secret_scanner] workspace=%s created=%d proposals", workspace_id, created)
+    return created
+
+
 # ─── 主排程進入點 ─────────────────────────────────────────────────────────────
 
 REVIEWERS = [
@@ -553,6 +708,8 @@ REVIEWERS = [
     reviewer_trust_calibrator,
     reviewer_coverage_gap_detector,
     reviewer_source_decay_monitor,
+    reviewer_integrity_auditor,
+    reviewer_secret_scanner,
 ]
 
 

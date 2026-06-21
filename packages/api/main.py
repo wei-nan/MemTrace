@@ -37,6 +37,7 @@ from routers.audit_proposals import router as audit_proposals_router  # Phase 6.
 from routers.openai_compat   import router as openai_compat_router
 from routers.job_observability import router as job_observability_router
 from routers.conductor import router as conductor_router
+from routers.notifications import router as notifications_router
 
 # ── Background jobs ───────────────────────────────────────────────────────────
 from jobs.ingest import recover_stale_on_startup
@@ -97,6 +98,7 @@ app.include_router(audit_proposals_router)    # Phase 6.2: audit proposals
 app.include_router(openai_compat_router)
 app.include_router(job_observability_router)
 app.include_router(conductor_router)
+app.include_router(notifications_router)
 
 # Top-level /mcp alias for Streamable HTTP (cleaner URL for MCP clients)
 from routers.mcp import mcp_streamable

@@ -23,6 +23,7 @@ const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 const JobRunsPage = lazy(() => import('./JobRunsPage'));
 const SystemMonitorPage = lazy(() => import('./SystemMonitorPage'));
 const GuidePage = lazy(() => import('./GuidePage'));
+const NotificationsPage = lazy(() => import('./NotificationsPage'));
 
 interface AppRouterProps {
   authenticated: boolean;
@@ -39,6 +40,7 @@ interface AppRouterProps {
   language: string;
   switchLanguage: (l: string) => void;
   onOpenSpecKb: () => void;
+  onNavigateNotification?: (n: any) => void;
 }
 
 const AppRouter: React.FC<AppRouterProps> = ({
@@ -56,6 +58,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
   language,
   switchLanguage,
   onOpenSpecKb,
+  onNavigateNotification,
 }) => {
   return (
     <Routes>
@@ -124,6 +127,11 @@ const AppRouter: React.FC<AppRouterProps> = ({
                 {currentView === 'review' && selectedWs && (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <ReviewQueue wsId={selectedWs.id} onClose={() => setCurrentView('graph')} />
+                  </div>
+                )}
+                {currentView === 'notifications' && (
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '32px 24px' }}>
+                    <NotificationsPage onNavigate={onNavigateNotification} />
                   </div>
                 )}
                 {currentView === 'ws_settings' && selectedWs && (

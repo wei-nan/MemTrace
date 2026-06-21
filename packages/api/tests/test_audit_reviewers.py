@@ -20,6 +20,8 @@ from jobs.audit_reviewers import (
     reviewer_trust_calibrator,
     reviewer_coverage_gap_detector,
     reviewer_source_decay_monitor,
+    reviewer_integrity_auditor,
+    reviewer_secret_scanner,
     run_all_reviewers_for_workspace,
 )
 
@@ -266,6 +268,83 @@ class TestReviewersIntegration:
             assert len(target_proposals) >= 1
             assert target_proposals[0]["category"] == "duplicate"
 
+    def test_reviewer_integrity_auditor_no_crash(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            count = reviewer_integrity_auditor(cur, ws_id)
+            assert isinstance(count, int)
+            assert count >= 0
+
+    def test_reviewer_integrity_auditor_detects_missing_embedding(self, db_transaction):
+        """把一個 active 節點的 embedding 清空且 created_at 設為 10 天前，確認被 flag。"""
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id FROM memory_nodes WHERE workspace_id = %s AND status = 'active' ORDER BY id LIMIT 1",
+                (ws_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                pytest.skip("ws_spec0001 沒有可用節點")
+            node_id = row["id"]
+
+            cur.execute(
+                "UPDATE memory_nodes SET embedding = NULL, created_at = now() - INTERVAL '10 days' WHERE id = %s",
+                (node_id,),
+            )
+
+            count = reviewer_integrity_auditor(cur, ws_id)
+            assert count >= 1
+
+            props = list_proposals(cur, ws_id, status="pending", reviewer="integrity_auditor")
+            missing_emb = [p for p in props if p["category"] == "missing_embedding"]
+            assert any(node_id in p["target_ids"] for p in missing_emb)
+
+    def test_reviewer_integrity_auditor_idempotent(self, db_transaction):
+        """同一缺陷連跑兩次，第二次不應重複提案（pending 去重）。"""
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id FROM memory_nodes WHERE workspace_id = %s AND status = 'active' ORDER BY id LIMIT 1",
+                (ws_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                pytest.skip("ws_spec0001 沒有可用節點")
+            cur.execute(
+                "UPDATE memory_nodes SET embedding = NULL, created_at = now() - INTERVAL '10 days' WHERE id = %s",
+                (row["id"],),
+            )
+            first = reviewer_integrity_auditor(cur, ws_id)
+            second = reviewer_integrity_auditor(cur, ws_id)
+            assert first >= 1
+            assert second == 0  # 第二輪全被冪等檢查擋下
+
+    def test_reviewer_secret_scanner_detects_leaked_key(self, db_transaction):
+        """節點 body 夾帶 AWS key 形狀的字串，應被 secret_scanner flag 為 leaked_secret。"""
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id FROM memory_nodes WHERE workspace_id = %s AND status = 'active' ORDER BY id LIMIT 1",
+                (ws_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                pytest.skip("ws_spec0001 沒有可用節點")
+            node_id = row["id"]
+            cur.execute(
+                "UPDATE memory_nodes SET body = %s WHERE id = %s",
+                ("Deploy creds: AKIAIOSFODNN7EXAMPLE should never be stored here", node_id),
+            )
+            count = reviewer_secret_scanner(cur, ws_id)
+            assert count >= 1
+            props = list_proposals(cur, ws_id, status="pending", reviewer="secret_scanner")
+            assert any(node_id in p["target_ids"] and p["category"] == "leaked_secret" for p in props)
+
     def test_run_all_reviewers_returns_dict(self, db_transaction):
         """run_all_reviewers_for_workspace 應回傳 dict，各 reviewer 有整數結果。"""
         conn = db_transaction
@@ -273,11 +352,12 @@ class TestReviewersIntegration:
         with conn.cursor() as cur:
             summary = run_all_reviewers_for_workspace(cur, ws_id)
         assert isinstance(summary, dict)
-        # 7 個 reviewers，每個都應有整數值（>=0 表示成功，-1 表示錯誤）
+        # 9 個 reviewers，每個都應有整數值（>=0 表示成功，-1 表示錯誤）
         expected_keys = {
             "deduper", "tag_normalizer", "edge_auditor",
             "embedding_consistency", "trust_calibrator",
             "coverage_gap_detector", "source_decay_monitor",
+            "integrity_auditor", "secret_scanner",
         }
         assert expected_keys == set(summary.keys())
         for k, v in summary.items():

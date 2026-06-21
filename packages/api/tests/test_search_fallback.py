@@ -86,6 +86,46 @@ async def test_search_nodes_uses_semantic_when_key_available():
     assert "mem_b" in ids
 
 
+@pytest.mark.asyncio
+async def test_search_nodes_tolerates_null_updated_at():
+    """
+    A node whose updated_at is NULL must not crash the result sort.
+    Regression guard: the combine step in services/search.py used to raise
+    'NoneType vs datetime' and disable search_nodes (and create-time dedup)
+    for the whole workspace.
+    """
+    from datetime import datetime, timezone
+    from services.search import search_nodes_in_db
+
+    dated = {"id": "mem_dated", "title": "has date", "content_type": "factual",
+             "tags": [], "visibility": "public", "similarity": 0.5,
+             "updated_at": datetime(2026, 1, 1, tzinfo=timezone.utc)}
+    undated = {"id": "mem_null", "title": "no date", "content_type": "factual",
+               "tags": [], "visibility": "public", "similarity": 0.5,
+               "updated_at": None}
+
+    cur = MagicMock()
+    cur.fetchall.return_value = [undated, dated]  # null-date node first on purpose
+    user = {"sub": "usr_test"}
+    ws_row = {
+        "id": "ws_1", "visibility": "public", "owner_id": "usr_test",
+        "kb_type": "evergreen", "embedding_model": "text-embedding-3-small",
+        "embedding_provider": "openai",
+    }
+
+    with patch("services.workspaces.require_ws_access", return_value=ws_row), \
+         patch("services.search.perform_semantic_search",
+               new_callable=AsyncMock,
+               side_effect=AIProviderUnavailable("No key configured")):
+
+        results = await search_nodes_in_db(cur, "ws_1", "q", limit=5, user=user)
+
+    ids = [r["id"] for r in results]
+    assert set(ids) == {"mem_dated", "mem_null"}  # no crash, both returned
+    # Equal similarity → the dated node must sort ahead of the null-date one.
+    assert ids.index("mem_dated") < ids.index("mem_null")
+
+
 # ─── resolve_provider: system key fallback ────────────────────────────────────
 
 def test_resolve_provider_falls_back_to_system_key(monkeypatch):

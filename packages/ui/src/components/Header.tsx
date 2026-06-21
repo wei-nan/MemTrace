@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Settings, LogOut, BookOpen } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 interface HeaderProps {
   currentView: string;
@@ -11,6 +12,8 @@ interface HeaderProps {
   userMenuRef: React.RefObject<HTMLDivElement | null>;
   onSetView: (view: any) => void;
   onLogout: () => void;
+  onNavigateNotification?: (n: any) => void;
+  onViewAllNotifications?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -22,6 +25,8 @@ const Header: React.FC<HeaderProps> = ({
   userMenuRef,
   onSetView,
   onLogout,
+  onNavigateNotification,
+  onViewAllNotifications,
 }) => {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
@@ -37,6 +42,7 @@ const Header: React.FC<HeaderProps> = ({
       case 'settings': return zh ? '個人設定' : 'Personal Settings';
       case 'explore': return zh ? '探索知識庫' : 'Explore';
       case 'guide': return zh ? '使用說明' : 'Guide';
+      case 'notifications': return zh ? '通知中心' : 'Notifications';
       default: return 'MemTrace';
     }
   };
@@ -65,6 +71,12 @@ const Header: React.FC<HeaderProps> = ({
       
       <div className="header-right">
         <div id="header-actions"></div>
+        {user && (
+          <NotificationBell
+            onNavigate={onNavigateNotification}
+            onViewAll={onViewAllNotifications}
+          />
+        )}
         {user && (
           <div 
             ref={userMenuRef}

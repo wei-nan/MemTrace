@@ -5,6 +5,7 @@ Extracted from routers/kb.py (S2-4) to prevent circular dependencies.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import HTTPException
@@ -328,8 +329,14 @@ async def search_nodes_in_db(
             combined.append(dict(r))
             seen_ids.add(node_id)
             
-    # Sort by similarity if present, then by date
-    combined.sort(key=lambda x: (x.get("similarity", 0), x.get("updated_at")), reverse=True)
+    # Sort by similarity if present, then by date.
+    # Guard against NULL similarity / updated_at (the latter is schema-nullable and
+    # has crashed this sort with "NoneType vs datetime" — see integrity_auditor).
+    _EPOCH = datetime.min.replace(tzinfo=timezone.utc)
+    combined.sort(
+        key=lambda x: (x.get("similarity") or 0.0, x.get("updated_at") or _EPOCH),
+        reverse=True,
+    )
     
     viewer_id = user["sub"] if user else None
     viewer_role = get_effective_role(cur, ws_id, ws["owner_id"], viewer_id)

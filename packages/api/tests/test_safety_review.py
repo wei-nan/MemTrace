@@ -5,8 +5,42 @@ import pytest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from services.safety_review import classify_safety_rules, classify_safety, run_historical_safety_sweep
+from services.safety_review import (
+    classify_safety_rules,
+    classify_safety,
+    run_historical_safety_sweep,
+    scan_secrets,
+)
 from services.safety_provisioning import provision_safety_key
+
+
+def test_scan_secrets_detects_common_credentials():
+    assert "aws_access_key_id" in scan_secrets("key=AKIAIOSFODNN7EXAMPLE")
+    assert "private_key" in scan_secrets("-----BEGIN RSA PRIVATE KEY-----\nMII...")
+    assert "openai_api_key" in scan_secrets("use sk-abcdefghijklmnopqrstuvwxyz12")
+    assert "inline_credential" in scan_secrets("password: hunter2supersecret")
+    assert scan_secrets("This is a normal sentence about caching.") == []
+
+
+@pytest.mark.asyncio
+async def test_classify_safety_flags_secret_as_dangerous():
+    """A node body carrying a credential must be flagged dangerous without needing the LLM."""
+    proposal = {"title": "deploy notes", "body": "aws key AKIAIOSFODNN7EXAMPLE", "content_type": "factual"}
+    with patch("services.safety_review.resolve_provider") as mock_resolve:
+        res = await classify_safety(proposal, "ws_test")
+        assert res == "dangerous"
+        mock_resolve.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("services.safety_review.resolve_provider")
+async def test_classify_safety_undetermined_when_provider_down(mock_resolve):
+    """When the safety LLM is unavailable, classify_safety must NOT silently return 'safe'."""
+    from core.ai import AIProviderUnavailable
+    mock_resolve.side_effect = AIProviderUnavailable("no key")
+    proposal = {"title": "runbook", "body": "Follow the documented recovery procedure.", "content_type": "procedural"}
+    res = await classify_safety(proposal, "ws_test")
+    assert res == "undetermined"
 
 def test_classify_safety_rules_dangerous():
     # Test deny-list destructive commands

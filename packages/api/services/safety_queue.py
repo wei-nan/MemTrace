@@ -10,6 +10,7 @@ from core.database import db_cursor
 from core.security import generate_id
 from services.job_observability import _duration_ms, finish_job_run, start_job_run
 from services.safety_review import classify_safety
+from services.contradiction import detect_and_flag_contradictions
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +157,65 @@ async def process_safety_review_queue_job(limit: int = 25) -> None:
                 }
                 classification = await classify_safety(proposal, job["workspace_id"])
                 result = {"classification": classification}
+
+                # 'undetermined' = the check could not run (e.g. safety LLM down).
+                # Never mark such a node 'done'/clean — requeue with backoff, and only
+                # after exhausting attempts mark it 'failed' AND surface a proposal so
+                # the node is visibly admitted-but-unchecked rather than silently passed.
+                if classification == "undetermined":
+                    with db_cursor(commit=True) as cur:
+                        if job["attempts"] >= job["max_attempts"]:
+                            from services.audit_proposals import create_proposal
+                            create_proposal(
+                                cur=cur,
+                                workspace_id=job["workspace_id"],
+                                reviewer="safety_queue",
+                                category="safety_undetermined",
+                                target_ids=[job["node_id"]],
+                                reasoning=(
+                                    "Safety check could not run (provider unavailable) after "
+                                    "max attempts; node was admitted WITHOUT a safety verdict."
+                                ),
+                                evidence={"classification": "undetermined", "event_type": job["event_type"]},
+                                suggested_action={"action": "manual_safety_review", "node_id": job["node_id"]},
+                                severity="mid",
+                            )
+                            cur.execute(
+                                """
+                                UPDATE safety_review_queue
+                                SET status = 'failed', result = %s, lease_until = NULL, updated_at = now()
+                                WHERE id = %s
+                                """,
+                                (_json(result), job["id"]),
+                            )
+                            failed += 1
+                        else:
+                            cur.execute(
+                                """
+                                UPDATE safety_review_queue
+                                SET status = 'queued',
+                                    next_run_at = now() + (attempts * interval '1 minute'),
+                                    lease_until = NULL,
+                                    result = %s,
+                                    updated_at = now()
+                                WHERE id = %s
+                                """,
+                                (_json(result), job["id"]),
+                            )
+                            skipped += 1
+                    continue
+
+                # Admission-time contradiction detection (runs on every active node
+                # write, independent of the safety verdict). Best-effort: a failure
+                # here must not block the safety verdict from being recorded.
+                try:
+                    with db_cursor(commit=True) as cur:
+                        result["contradiction"] = await detect_and_flag_contradictions(
+                            cur, job["workspace_id"], job["node_id"]
+                        )
+                except Exception as exc:
+                    logger.warning("Contradiction detection failed: node=%s error=%s", job["node_id"], exc)
+
                 with db_cursor(commit=True) as cur:
                     if classification in ("risky", "dangerous"):
                         from services.audit_proposals import create_proposal

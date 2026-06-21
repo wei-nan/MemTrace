@@ -48,6 +48,29 @@ RISKY_PATTERNS = [
     r"\bkillall\b",
 ]
 
+# Secret / credential / PII leak patterns (admission-time guard).
+# A KB node should never carry live credentials or keys; flagged for redaction/review.
+SECRET_PATTERNS = [
+    (r"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----", "private_key"),
+    (r"\bAKIA[0-9A-Z]{16}\b", "aws_access_key_id"),
+    (r"\bAIza[0-9A-Za-z_\-]{35}\b", "google_api_key"),
+    (r"\bsk-[A-Za-z0-9]{20,}\b", "openai_api_key"),
+    (r"\bghp_[A-Za-z0-9]{36}\b", "github_pat"),
+    (r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b", "slack_token"),
+    (r"\beyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\b", "jwt"),
+    (r"(?i)\b(?:password|passwd|secret|api[_-]?key|access[_-]?token)\b\s*[:=]\s*['\"]?[^\s'\"]{8,}", "inline_credential"),
+]
+
+
+def scan_secrets(text: str) -> list[str]:
+    """Return the kinds of secrets/credentials detected in text (empty if none)."""
+    found: list[str] = []
+    for pattern, kind in SECRET_PATTERNS:
+        if re.search(pattern, text):
+            found.append(kind)
+    return found
+
+
 def classify_safety_rules(text: str) -> Optional[Literal['risky', 'dangerous']]:
     """
     Perform fast rule-based checks on the text.
@@ -68,23 +91,33 @@ def classify_safety_rules(text: str) -> Optional[Literal['risky', 'dangerous']]:
             
     return None
 
-async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky', 'dangerous']:
+async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky', 'dangerous', 'undetermined']:
     """
     Classify a proposed consult change or node/edge payload.
-    Returns: 'safe', 'risky', or 'dangerous' (fail-closed).
+    Returns:
+      - 'safe' / 'risky' / 'dangerous': a real verdict was reached.
+      - 'undetermined': the check could NOT be performed (e.g. safety LLM
+        provider unavailable). This MUST NOT be treated as 'safe' — callers
+        should requeue or surface it so a node is never recorded as cleared
+        when no check actually ran.
     """
     title = proposal.get("title") or ""
     body = proposal.get("body") or ""
     content_type = proposal.get("content_type") or "factual"
     suggested_action = proposal.get("suggested_action") or {}
-    
+
     # Check if the proposal only recommends/points to existing nodes (always safe)
     # If the proposal has no new body content or is pure linkage, it is safe.
     if not body and not title and suggested_action:
         return "safe"
-        
+
     combined_text = f"{title}\n{body}"
-    
+
+    # 0. Secret / credential leak scan (cheap, deterministic, must-review).
+    if scan_secrets(combined_text):
+        logger.warning("Safety: secret/credential pattern detected in proposal")
+        return "dangerous"
+
     # 1. Rule-based checks (Dangerous & Risky deny-lists)
     rule_result = classify_safety_rules(combined_text)
     if rule_result == "dangerous":
@@ -100,8 +133,8 @@ async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky'
     try:
         resolved = resolve_provider(user_id="system:safety", feature="chat")
     except (AIProviderUnavailable, Exception) as e:
-        logger.warning(f"system:safety LLM provider unavailable: {e}. Degrading to safe (skip review).")
-        return "safe"
+        logger.warning(f"system:safety LLM provider unavailable: {e}. Check could not run — returning 'undetermined'.")
+        return "undetermined"
         
     system_prompt = (
         "You are a strict security auditor. Categorize the given knowledge item/command proposal into one of three classifications:\n"
@@ -139,8 +172,8 @@ async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky'
         # Ensure that LLM does not override rules (if we classified as risky/dangerous earlier, we shouldn't reach here anyway, but safeguard it)
         return classification
     except Exception as e:
-        logger.warning(f"Error during LLM safety classification: {e}. Degrading to safe (skip review).")
-        return "safe"
+        logger.warning(f"Error during LLM safety classification: {e}. Check could not run — returning 'undetermined'.")
+        return "undetermined"
 
 
 def run_historical_safety_sweep(cur, limit: int = 100) -> Dict[str, Any]:

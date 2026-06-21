@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Brain, RefreshCw } from 'lucide-react';
 import './index.css';
-import { auth, workspaces, refreshAccessToken, isTokenStale, type Workspace, type Node as ApiNode, type Onboarding, type WorkspaceCloneJob } from './api';
+import { auth, workspaces, nodes, refreshAccessToken, isTokenStale, type Workspace, type Node as ApiNode, type Onboarding, type WorkspaceCloneJob } from './api';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import AppRouter from './AppRouter';
@@ -15,7 +15,7 @@ const NodeEditor = lazy(() => import('./NodeEditor'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[] };
-type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide';
+type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications';
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -134,6 +134,9 @@ export default function App() {
   const [showForkWs, setShowForkWs] = useState<Workspace | null>(null);
   const wsMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  // View to apply right after a workspace switch (e.g. clicking a notification in
+  // another workspace), so the [selectedWs?.id] effect doesn't reset it to graph.
+  const pendingViewRef = useRef<View | null>(null);
 
   const canWrite = !!(selectedWs && selectedWs.my_role && ['admin', 'editor', 'owner'].includes(selectedWs.my_role));
 
@@ -164,9 +167,15 @@ export default function App() {
       setCurrentView('explore');
       return;
     }
-    const lastView = localStorage.getItem('mt_last_view') as View | null;
-    if (lastView && lastView !== 'explore') setCurrentView(lastView);
-    else setCurrentView('graph');
+    if (pendingViewRef.current) {
+      // An explicit navigation (e.g. notification click) requested a view for this ws.
+      setCurrentView(pendingViewRef.current);
+      pendingViewRef.current = null;
+    } else {
+      const lastView = localStorage.getItem('mt_last_view') as View | null;
+      if (lastView && lastView !== 'explore') setCurrentView(lastView);
+      else setCurrentView('graph');
+    }
     setEditingNode(undefined);
     setSourceNodeId(undefined);
     setShowChat(false);
@@ -223,6 +232,28 @@ export default function App() {
   // ── Navigation & View State ──────────────────────────────────────────────
   const [currentView, setCurrentView] = useState<View>('graph');
 
+  // Route a clicked notification to the page/node it refers to.
+  const navigateToNotification = (n: { workspace_id: string; source_type: string; target_node_id?: string | null }) => {
+    // audit_proposal about a specific node → open that node on the graph;
+    // audit_proposal without a node target → the audit (node-health) page;
+    // review_queue → the review view.
+    const focusNode = n.source_type === 'audit_proposal' ? (n.target_node_id ?? null) : null;
+    const targetView: View =
+      n.source_type === 'review_queue' ? 'review'
+        : focusNode ? 'graph'
+          : 'node_health';
+    if (focusNode) setFocusNodeId(focusNode);
+    const ws = wsList.find(w => w.id === n.workspace_id);
+    if (ws && ws.id !== selectedWs?.id) {
+      // Switching workspace triggers the [selectedWs?.id] effect, which would
+      // otherwise reset the view — stash the target so that effect applies it.
+      pendingViewRef.current = targetView;
+      setSelectedWs(ws);
+    } else {
+      setCurrentView(targetView);
+    }
+  };
+
   useEffect(() => {
     if (currentView && currentView !== 'explore') {
       localStorage.setItem('mt_last_view', currentView);
@@ -230,7 +261,20 @@ export default function App() {
   }, [currentView]);
   const [editingNode, setEditingNode] = useState<ApiNode | null | undefined>(undefined);
   const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
+  const [focusNodeId, setFocusNodeId] = useState<string | null>(null);
   const [graphVersion, setGraphVersion] = useState(0);
+
+  // When a notification targets a specific node, fetch it and open its editor.
+  // Runs after the [selectedWs?.id] reset effect, so a workspace switch can't clear it.
+  useEffect(() => {
+    if (!focusNodeId || !selectedWs) return;
+    let cancelled = false;
+    nodes.get(selectedWs.id, focusNodeId)
+      .then(node => { if (!cancelled) setEditingNode(node); })
+      .catch(() => { /* target may be an edge id or removed node — ignore */ })
+      .finally(() => { if (!cancelled) setFocusNodeId(null); });
+    return () => { cancelled = true; };
+  }, [focusNodeId, selectedWs?.id]);
   const [showChat, setShowChat] = useState(false);
   const [chatPanelWidth, setChatPanelWidth] = useState(() => {
     const saved = localStorage.getItem('chatPanelWidth');
@@ -361,6 +405,8 @@ export default function App() {
               userMenuRef={userMenuRef}
               onSetView={setCurrentView}
               onLogout={handleLogout}
+              onNavigateNotification={navigateToNotification}
+              onViewAllNotifications={() => setCurrentView('notifications')}
             />
           )}
 
@@ -378,6 +424,7 @@ export default function App() {
             toggleTheme={toggleTheme}
             language={i18n.language}
             switchLanguage={switchLanguage}
+            onNavigateNotification={navigateToNotification}
             onOpenSpecKb={() => {
               const specKb = wsList.find(ws => ws.id === 'ws_spec0001');
               if (specKb) {

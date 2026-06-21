@@ -12,6 +12,81 @@ from core.email import _dispatch
 
 logger = logging.getLogger(__name__)
 
+def list_notifications(
+    cur,
+    recipient_id: str,
+    *,
+    workspace_id: Optional[str] = None,
+    unread_only: bool = False,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[Dict[str, Any]]:
+    """List a user's in-app notifications, newest first."""
+    conditions = ["recipient_id = %s"]
+    params: list[Any] = [recipient_id]
+    if workspace_id:
+        conditions.append("workspace_id = %s")
+        params.append(workspace_id)
+    if unread_only:
+        conditions.append("read_at IS NULL")
+    params.extend([limit, offset])
+    cur.execute(
+        f"""
+        SELECT id, workspace_id, recipient_id, source_type, source_id,
+               category, severity, title, body, target_node_id, read_at, created_at
+        FROM notifications
+        WHERE {' AND '.join(conditions)}
+        ORDER BY created_at DESC
+        LIMIT %s OFFSET %s
+        """,
+        params,
+    )
+    return [dict(r) for r in cur.fetchall()]
+
+
+def unread_count(cur, recipient_id: str, workspace_id: Optional[str] = None) -> int:
+    """Count a user's unread notifications (optionally scoped to one workspace)."""
+    conditions = ["recipient_id = %s", "read_at IS NULL"]
+    params: list[Any] = [recipient_id]
+    if workspace_id:
+        conditions.append("workspace_id = %s")
+        params.append(workspace_id)
+    cur.execute(
+        f"SELECT count(*) AS cnt FROM notifications WHERE {' AND '.join(conditions)}",
+        params,
+    )
+    row = cur.fetchone()
+    return int(row["cnt"] if row else 0)
+
+
+def mark_notification_read(cur, notification_id: str, recipient_id: str) -> bool:
+    """Mark one notification read. Scoped to the owner to prevent cross-user reads."""
+    cur.execute(
+        """
+        UPDATE notifications
+        SET read_at = now()
+        WHERE id = %s AND recipient_id = %s AND read_at IS NULL
+        RETURNING id
+        """,
+        (notification_id, recipient_id),
+    )
+    return cur.fetchone() is not None
+
+
+def mark_all_read(cur, recipient_id: str, workspace_id: Optional[str] = None) -> int:
+    """Mark all of a user's unread notifications read; returns the number updated."""
+    conditions = ["recipient_id = %s", "read_at IS NULL"]
+    params: list[Any] = [recipient_id]
+    if workspace_id:
+        conditions.append("workspace_id = %s")
+        params.append(workspace_id)
+    cur.execute(
+        f"UPDATE notifications SET read_at = now() WHERE {' AND '.join(conditions)} RETURNING id",
+        params,
+    )
+    return len(cur.fetchall())
+
+
 def get_workspace_admins(ws_id: str) -> list[str]:
     """Retrieve emails of workspace owner and administrators."""
     with db_cursor() as cur:

@@ -137,3 +137,70 @@ def test_webhook_dispatched_when_configured():
             action_taken="blocked", proposal={"new_node": {"title": "x"}},
         )
     create_task.assert_called_once()
+
+
+# ─── In-app notification center (trigger fan-out + read state) ────────────────
+
+from services.audit_proposals import create_proposal
+from services.notifications import (
+    list_notifications,
+    unread_count,
+    mark_notification_read,
+    mark_all_read,
+)
+
+
+@pytest.mark.integration
+class TestNotificationCenter:
+    """Every audit proposal must fan out to workspace owner/admins as in-app notifications."""
+
+    def test_audit_proposal_fans_out_to_owner(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"   # owner = usr_seed (seeded)
+        recipient = "usr_seed"
+        with conn.cursor() as cur:
+            before = unread_count(cur, recipient, ws_id)
+            prop = create_proposal(
+                cur, ws_id, "integrity_auditor", "null_updated_at",
+                ["seed_n1"], "test notify", severity="high",
+            )
+            assert prop is not None
+            assert unread_count(cur, recipient, ws_id) == before + 1
+
+            items = list_notifications(cur, recipient, workspace_id=ws_id, unread_only=True)
+            mine = [n for n in items if n["source_id"] == prop["id"]]
+            assert len(mine) == 1
+            assert mine[0]["source_type"] == "audit_proposal"
+            assert mine[0]["severity"] == "high"
+            assert mine[0]["target_node_id"] == "seed_n1"  # first target_ids element
+
+    def test_mark_read_is_owner_scoped_and_idempotent(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        recipient = "usr_seed"
+        with conn.cursor() as cur:
+            prop = create_proposal(
+                cur, ws_id, "secret_scanner", "leaked_secret",
+                ["seed_n1"], "secret found", severity="high",
+            )
+            items = list_notifications(cur, recipient, workspace_id=ws_id, unread_only=True)
+            nid = next(n["id"] for n in items if n["source_id"] == prop["id"])
+
+            # cross-user cannot read someone else's notification
+            assert mark_notification_read(cur, nid, "someone_else") is False
+            # owner reads it once
+            assert mark_notification_read(cur, nid, recipient) is True
+            # second read is a no-op (already read)
+            assert mark_notification_read(cur, nid, recipient) is False
+
+    def test_mark_all_read_clears_unread(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        recipient = "usr_seed"
+        with conn.cursor() as cur:
+            create_proposal(cur, ws_id, "deduper", "duplicate", ["seed_n1", "seed_n2"], "dup", severity="low")
+            create_proposal(cur, ws_id, "tag_normalizer", "tag_orphan", ["seed_n1"], "orphan", severity="low")
+            assert unread_count(cur, recipient, ws_id) >= 2
+            updated = mark_all_read(cur, recipient, ws_id)
+            assert updated >= 2
+            assert unread_count(cur, recipient, ws_id) == 0
