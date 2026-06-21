@@ -24,11 +24,15 @@ const _bc: BroadcastChannel | null = _bcSupported ? new BroadcastChannel("mt-aut
 let _refreshing: Promise<string | null> | null = null;
 
 function _broadcastTokenRefreshed(token: string): void {
-  try { _bc?.postMessage({ type: "token-refreshed", token, ts: Date.now() }); } catch {}
+  try { _bc?.postMessage({ type: "token-refreshed", token, ts: Date.now() }); } catch {
+    // BroadcastChannel may be unavailable in restricted browser contexts.
+  }
 }
 
 function _broadcastSessionExpired(): void {
-  try { _bc?.postMessage({ type: "session-expired", ts: Date.now() }); } catch {}
+  try { _bc?.postMessage({ type: "session-expired", ts: Date.now() }); } catch {
+    // Current-tab cleanup still proceeds if broadcasting fails.
+  }
 }
 
 if (_bc) {

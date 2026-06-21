@@ -1,4 +1,4 @@
--- 113_memory_nodes_updated_at.sql
+-- 114_memory_nodes_updated_at.sql
 -- Root-cause fix: memory_nodes.updated_at was nullable with no DEFAULT and no trigger,
 -- unlike created_at (DEFAULT now() NOT NULL). Any write path that omitted updated_at
 -- (including direct DB edits) left a NULL, which then crashed result sorting in

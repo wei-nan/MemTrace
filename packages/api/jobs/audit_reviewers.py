@@ -467,7 +467,7 @@ def reviewer_coverage_gap_detector(cur, workspace_id: str) -> int:
         FROM memory_nodes
         WHERE workspace_id = %s
           AND status = 'active'
-          AND content_type = 'gap'
+          AND content_type::text = 'gap'
           AND created_at < now() - INTERVAL '14 days'
         LIMIT %s
         """,

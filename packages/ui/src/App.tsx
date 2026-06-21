@@ -59,6 +59,25 @@ export default function App() {
   const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
   const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
+  const [wsList, setWsList] = useState<Workspace[]>([]);
+  const [selectedWs, setSelectedWs] = useState<Workspace | null>(null);
+  const [wsMenuOpen, setWsMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showCreateWs, setShowCreateWs] = useState(false);
+  const [showForkWs, setShowForkWs] = useState<Workspace | null>(null);
+  const [currentView, setCurrentView] = useState<View>('graph');
+  const [editingNode, setEditingNode] = useState<ApiNode | null | undefined>(undefined);
+  const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
+  const [graphVersion, setGraphVersion] = useState(0);
+  const [showChat, setShowChat] = useState(false);
+  const [chatPanelWidth, setChatPanelWidth] = useState(() => {
+    const saved = localStorage.getItem('chatPanelWidth');
+    return saved ? Math.min(900, Math.max(320, parseInt(saved, 10))) : 450;
+  });
+  const [pageSubtitle, setPageSubtitle] = useState('');
+  const wsMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const chatPanelWidthRef = useRef(chatPanelWidth);
 
   // Validate token before any data loads — prevents race condition where
   // workspaces.list() fires with an expired token and gets public-only data (200, not 401).
@@ -113,7 +132,9 @@ export default function App() {
     try {
       const updated = await auth.updateOnboarding(data);
       setOnboarding(updated);
-    } catch (e) {}
+    } catch {
+      // Onboarding can be retried from the wizard.
+    }
   };
 
   const handleLogout = async () => {
@@ -126,14 +147,6 @@ export default function App() {
   };
 
   // ── Workspaces ────────────────────────────────────────────────────────────
-  const [wsList, setWsList] = useState<Workspace[]>([]);
-  const [selectedWs, setSelectedWs] = useState<Workspace | null>(null);
-  const [wsMenuOpen, setWsMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [showCreateWs, setShowCreateWs] = useState(false);
-  const [showForkWs, setShowForkWs] = useState<Workspace | null>(null);
-  const wsMenuRef = useRef<HTMLDivElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
   // View to apply right after a workspace switch (e.g. clicking a notification in
   // another workspace), so the [selectedWs?.id] effect doesn't reset it to graph.
   const pendingViewRef = useRef<View | null>(null);
@@ -230,8 +243,6 @@ export default function App() {
   }, []);
 
   // ── Navigation & View State ──────────────────────────────────────────────
-  const [currentView, setCurrentView] = useState<View>('graph');
-
   // Route a clicked notification to the page/node it refers to.
   const navigateToNotification = (n: { workspace_id: string; source_type: string; target_node_id?: string | null }) => {
     // audit_proposal about a specific node → open that node on the graph;
@@ -259,10 +270,7 @@ export default function App() {
       localStorage.setItem('mt_last_view', currentView);
     }
   }, [currentView]);
-  const [editingNode, setEditingNode] = useState<ApiNode | null | undefined>(undefined);
-  const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
   const [focusNodeId, setFocusNodeId] = useState<string | null>(null);
-  const [graphVersion, setGraphVersion] = useState(0);
 
   // When a notification targets a specific node, fetch it and open its editor.
   // Runs after the [selectedWs?.id] reset effect, so a workspace switch can't clear it.
@@ -275,13 +283,6 @@ export default function App() {
       .finally(() => { if (!cancelled) setFocusNodeId(null); });
     return () => { cancelled = true; };
   }, [focusNodeId, selectedWs?.id]);
-  const [showChat, setShowChat] = useState(false);
-  const [chatPanelWidth, setChatPanelWidth] = useState(() => {
-    const saved = localStorage.getItem('chatPanelWidth');
-    return saved ? Math.min(900, Math.max(320, parseInt(saved, 10))) : 450;
-  });
-  const chatPanelWidthRef = useRef(chatPanelWidth);
-  const [pageSubtitle, setPageSubtitle] = useState('');
 
   const handleChatResizeMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();

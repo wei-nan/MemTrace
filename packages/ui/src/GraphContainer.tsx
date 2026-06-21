@@ -141,7 +141,7 @@ export default function GraphContainer({
             relation: e.relation
           } as any)));
           setIsPreview(true);
-        } catch (previewErr: any) {
+        } catch {
           setError(e.message);
         }
       } else {

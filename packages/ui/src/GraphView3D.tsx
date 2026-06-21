@@ -14,13 +14,13 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type { ForceGraphMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
-// @ts-ignore
+// @ts-expect-error Three examples typings are not exposed by this package version.
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-// @ts-ignore
+// @ts-expect-error Three examples typings are not exposed by this package version.
 import { RenderPass }     from 'three/examples/jsm/postprocessing/RenderPass';
-// @ts-ignore
+// @ts-expect-error Three examples typings are not exposed by this package version.
 import { BokehPass }      from 'three/examples/jsm/postprocessing/BokehPass';
-// @ts-ignore
+// @ts-expect-error Three examples typings are not exposed by this package version.
 import { OutputPass }     from 'three/examples/jsm/postprocessing/OutputPass';
 import { useTranslation } from 'react-i18next';
 import { type Node as ApiNode, type Edge as ApiEdge } from './api';
@@ -848,7 +848,7 @@ export default function GraphView3D({
             }}
             onNodeClick={handleNodeClick}
             onNodeHover={setHoveredNode}
-            // @ts-ignore - onCameraPositionChange exists at runtime but might be missing in types
+            // @ts-expect-error onCameraPositionChange exists at runtime but is missing in upstream types.
             onCameraPositionChange={handleCameraPositionChange}
             onBackgroundRightClick={() => {
               if (hoveredNode) {

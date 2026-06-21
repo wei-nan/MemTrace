@@ -66,7 +66,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
       <Route path="/verify" element={<MagicLinkVerifyPage onAuthenticated={() => setAuthenticated(true)} />} />
       <Route path="/invite/:token" element={<JoinInvitationPage />} />
       <Route path="/signin" element={
-        authenticated ? <Navigate to="/" /> : <AuthPage onAuthenticated={() => setAuthenticated(true)} />
+        authenticated ? <Navigate to="/" /> : <AuthPage />
       } />
       <Route path="/reset-password" element={
         <ResetPasswordPage 
@@ -126,7 +126,14 @@ const AppRouter: React.FC<AppRouterProps> = ({
                 )}
                 {currentView === 'review' && selectedWs && (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <ReviewQueue wsId={selectedWs.id} onClose={() => setCurrentView('graph')} />
+                    <ReviewQueue
+                      wsId={selectedWs.id}
+                      onClose={() => setCurrentView('graph')}
+                      onOpenNode={(node) => {
+                        setEditingNode(node);
+                        setCurrentView('graph');
+                      }}
+                    />
                   </div>
                 )}
                 {currentView === 'notifications' && (

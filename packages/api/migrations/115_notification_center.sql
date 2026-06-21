@@ -1,4 +1,4 @@
--- 114_notification_center.sql
+-- 115_notification_center.sql
 -- In-app notification center: a persistent, per-recipient inbox with read state.
 -- Every audit/review finding must reach workspace owner + admins instead of waiting
 -- to be discovered by pulling the audit page.

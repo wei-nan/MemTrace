@@ -23,6 +23,16 @@ from unittest.mock import MagicMock
 
 import pytest
 
+# Unit tests must be collectable without a developer-specific .env file.
+# Explicit environment values still win, including TEST_DATABASE_URL for
+# integration tests.
+os.environ.setdefault("APP_ENV", "test")
+os.environ.setdefault("DATABASE_URL", "sqlite:///test.db")
+os.environ.setdefault(
+    "SECRET_KEY",
+    "test-secret-key-with-at-least-32-characters",
+)
+
 # Ensure packages/api is importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

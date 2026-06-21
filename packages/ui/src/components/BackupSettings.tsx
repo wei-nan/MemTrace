@@ -26,7 +26,9 @@ export default function BackupSettings({ zh }: { zh: boolean }) {
       setPath(c.path);
       setIntervalHours(c.interval_hours);
       setKeepCount(c.keep_count);
-    } catch { }
+    } catch {
+      // Backup status is best-effort and can be refreshed later.
+    }
   };
 
   useEffect(() => { load(); }, []);

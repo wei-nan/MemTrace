@@ -1,7 +1,7 @@
--- 115_notification_target_node.sql
+-- 116_notification_target_node.sql
 -- Carry the target node id into notifications so the UI can focus the exact node
 -- when a notification is clicked (audit_proposal -> the flagged node; review_queue
--- -> its target node). Re-defines the two fan-out functions (added in 114) to also
+-- -> its target node). Re-defines the two fan-out functions (added in 115) to also
 -- populate target_node_id. Idempotent.
 
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS target_node_id text;
