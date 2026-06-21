@@ -4,12 +4,13 @@
  * with all/unread filtering and pagination.
  */
 import React, { useEffect, useState, useCallback } from 'react';
-import { Check, RefreshCw } from 'lucide-react';
+import { Check, RefreshCw, X, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { notifications as notifApi, type NotificationItem } from './api';
+import { notifications as notifApi, type NotificationItem, type NotificationSeverity } from './api';
 import { notificationTitle, severityLabel, severityColor } from './components/notificationFormat';
 
 const PAGE = 30;
+const SEVERITIES: NotificationSeverity[] = ['high', 'mid', 'low'];
 
 interface Props {
   onNavigate?: (n: NotificationItem) => void;
@@ -21,6 +22,7 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [severity, setSeverity] = useState<NotificationSeverity | null>(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,12 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
   const fetchPage = useCallback(async (startOffset: number, replace: boolean) => {
     setLoading(true);
     try {
-      const res = await notifApi.list({ unread_only: unreadOnly, limit: PAGE, offset: startOffset });
+      const res = await notifApi.list({
+        unread_only: unreadOnly,
+        severity: severity ?? undefined,
+        limit: PAGE,
+        offset: startOffset,
+      });
       setUnread(res.unread_count);
       setItems(prev => (replace ? res.notifications : [...prev, ...res.notifications]));
       setHasMore(res.notifications.length === PAGE);
@@ -38,7 +45,7 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
     } finally {
       setLoading(false);
     }
-  }, [unreadOnly]);
+  }, [unreadOnly, severity]);
 
   // Re-fetch from the top whenever the filter changes (fetchPage identity tracks unreadOnly).
   useEffect(() => { fetchPage(0, true); }, [fetchPage]);
@@ -67,6 +74,26 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
     if (unreadOnly) fetchPage(0, true);
   };
 
+  const handleDismiss = async (e: React.MouseEvent, n: NotificationItem) => {
+    e.stopPropagation();  // don't trigger navigation
+    setItems(prev => prev.filter(x => x.id !== n.id));
+    if (!n.read_at) setUnread(c => Math.max(0, c - 1));
+    try {
+      await notifApi.dismiss(n.id);
+    } catch {
+      // ignore — optimistic removal already applied
+    }
+  };
+
+  const handleClearRead = async () => {
+    try {
+      await notifApi.dismissAll({ read_only: true, severity: severity ?? undefined });
+    } catch {
+      // ignore
+    }
+    fetchPage(0, true);
+  };
+
   const tabBtn = (active: boolean): React.CSSProperties => ({
     padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-default)', cursor: 'pointer',
     fontSize: 13, fontWeight: 600,
@@ -74,9 +101,21 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
     color: active ? '#fff' : 'var(--text-secondary)',
   });
 
+  const pill = (active: boolean, color?: string): React.CSSProperties => ({
+    padding: '4px 12px', borderRadius: 14, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+    border: `1px solid ${active ? (color ?? 'var(--color-primary)') : 'var(--border-default)'}`,
+    background: active ? (color ?? 'var(--color-primary)') : 'transparent',
+    color: active ? '#fff' : (color ?? 'var(--text-secondary)'),
+  });
+
+  const actionBtn: React.CSSProperties = {
+    background: 'transparent', border: 'none', cursor: 'pointer',
+    fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
+  };
+
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '8px 4px 40px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" style={tabBtn(!unreadOnly)} onClick={() => setUnreadOnly(false)}>
             {zh ? '全部' : 'All'}
@@ -85,18 +124,33 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
             {zh ? '未讀' : 'Unread'}{unread > 0 ? ` (${unread})` : ''}
           </button>
         </div>
-        {unread > 0 && (
-          <button
-            type="button"
-            onClick={handleMarkAll}
-            style={{
-              background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-primary)',
-              fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
-            }}
-          >
-            <Check size={15} /> {zh ? '全部已讀' : 'Mark all read'}
+        <div style={{ display: 'flex', gap: 12 }}>
+          {unread > 0 && (
+            <button type="button" onClick={handleMarkAll} style={{ ...actionBtn, color: 'var(--color-primary)' }}>
+              <Check size={15} /> {zh ? '全部已讀' : 'Mark all read'}
+            </button>
+          )}
+          <button type="button" onClick={handleClearRead} style={{ ...actionBtn, color: 'var(--text-muted)' }}>
+            <Trash2 size={15} /> {zh ? '清除已讀' : 'Clear read'}
           </button>
-        )}
+        </div>
+      </div>
+
+      {/* Severity filter */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <button type="button" style={pill(severity === null)} onClick={() => setSeverity(null)}>
+          {zh ? '所有等級' : 'All levels'}
+        </button>
+        {SEVERITIES.map(s => (
+          <button
+            key={s}
+            type="button"
+            style={pill(severity === s, severityColor(s))}
+            onClick={() => setSeverity(severity === s ? null : s)}
+          >
+            {severityLabel(s, zh)}
+          </button>
+        ))}
       </div>
 
       <div style={{ border: '1px solid var(--border-default)', borderRadius: 12, overflow: 'hidden' }}>
@@ -141,6 +195,18 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
                   {new Date(n.created_at).toLocaleString()}
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={(e) => handleDismiss(e, n)}
+                title={zh ? '忽略' : 'Dismiss'}
+                aria-label={zh ? '忽略' : 'Dismiss'}
+                style={{
+                  background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
+                  alignSelf: 'flex-start', padding: 2, flexShrink: 0,
+                }}
+              >
+                <X size={15} />
+              </button>
             </div>
           ))
         )}

@@ -18,6 +18,7 @@ def list_notifications(
     *,
     workspace_id: Optional[str] = None,
     unread_only: bool = False,
+    severity: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
 ) -> list[Dict[str, Any]]:
@@ -29,6 +30,9 @@ def list_notifications(
         params.append(workspace_id)
     if unread_only:
         conditions.append("read_at IS NULL")
+    if severity:
+        conditions.append("severity = %s")
+        params.append(severity)
     params.extend([limit, offset])
     cur.execute(
         f"""
@@ -82,6 +86,42 @@ def mark_all_read(cur, recipient_id: str, workspace_id: Optional[str] = None) ->
         params.append(workspace_id)
     cur.execute(
         f"UPDATE notifications SET read_at = now() WHERE {' AND '.join(conditions)} RETURNING id",
+        params,
+    )
+    return len(cur.fetchall())
+
+
+def dismiss_notification(cur, notification_id: str, recipient_id: str) -> bool:
+    """Permanently remove one notification. Scoped to the owner."""
+    cur.execute(
+        "DELETE FROM notifications WHERE id = %s AND recipient_id = %s RETURNING id",
+        (notification_id, recipient_id),
+    )
+    return cur.fetchone() is not None
+
+
+def dismiss_notifications(
+    cur,
+    recipient_id: str,
+    *,
+    workspace_id: Optional[str] = None,
+    read_only: bool = False,
+    severity: Optional[str] = None,
+) -> int:
+    """Bulk-remove a user's notifications (optionally only read ones / one workspace /
+    one severity). Returns the number deleted."""
+    conditions = ["recipient_id = %s"]
+    params: list[Any] = [recipient_id]
+    if workspace_id:
+        conditions.append("workspace_id = %s")
+        params.append(workspace_id)
+    if read_only:
+        conditions.append("read_at IS NOT NULL")
+    if severity:
+        conditions.append("severity = %s")
+        params.append(severity)
+    cur.execute(
+        f"DELETE FROM notifications WHERE {' AND '.join(conditions)} RETURNING id",
         params,
     )
     return len(cur.fetchall())

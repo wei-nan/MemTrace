@@ -21,20 +21,28 @@ export interface NotificationListResponse {
   offset: number;
 }
 
-interface ListParams {
+export type NotificationSeverity = 'high' | 'mid' | 'low' | 'review';
+
+type ListParams = {
   workspace_id?: string;
   unread_only?: boolean;
+  severity?: NotificationSeverity;
   limit?: number;
   offset?: number;
-}
+};
 
-function buildQuery(params?: ListParams): string {
+type DismissParams = {
+  workspace_id?: string;
+  read_only?: boolean;
+  severity?: NotificationSeverity;
+};
+
+function buildQuery(params?: Record<string, string | number | boolean | undefined>): string {
   if (!params) return '';
   const q = new URLSearchParams();
-  if (params.workspace_id) q.set('workspace_id', params.workspace_id);
-  if (params.unread_only) q.set('unread_only', 'true');
-  if (params.limit != null) q.set('limit', String(params.limit));
-  if (params.offset != null) q.set('offset', String(params.offset));
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== false && v !== '') q.set(k, String(v));
+  }
   const qs = q.toString();
   return qs ? `?${qs}` : '';
 }
@@ -54,4 +62,8 @@ export const notifications = {
       'POST',
       `${BASE}/notifications/read_all${workspaceId ? `?workspace_id=${workspaceId}` : ''}`,
     ),
+  dismiss: (id: string) =>
+    request<{ status: string }>('DELETE', `${BASE}/notifications/${id}`),
+  dismissAll: (params?: DismissParams) =>
+    request<{ status: string; deleted: number }>('DELETE', `${BASE}/notifications${buildQuery(params)}`),
 };

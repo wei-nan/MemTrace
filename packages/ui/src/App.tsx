@@ -428,8 +428,14 @@ export default function App() {
             onOpenSpecKb={() => {
               const specKb = wsList.find(ws => ws.id === 'ws_spec0001');
               if (specKb) {
-                setSelectedWs(specKb);
-                setCurrentView('graph');
+                if (specKb.id !== selectedWs?.id) {
+                  // Switching workspace triggers the reset effect — stash 'graph'
+                  // so it isn't overridden by the restored last view.
+                  pendingViewRef.current = 'graph';
+                  setSelectedWs(specKb);
+                } else {
+                  setCurrentView('graph');
+                }
               } else if (selectedWs) {
                 setCurrentView('graph');
               } else {

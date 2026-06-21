@@ -147,6 +147,8 @@ from services.notifications import (
     unread_count,
     mark_notification_read,
     mark_all_read,
+    dismiss_notification,
+    dismiss_notifications,
 )
 
 
@@ -192,6 +194,33 @@ class TestNotificationCenter:
             assert mark_notification_read(cur, nid, recipient) is True
             # second read is a no-op (already read)
             assert mark_notification_read(cur, nid, recipient) is False
+
+    def test_severity_filter_and_dismiss(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        recipient = "usr_seed"
+        with conn.cursor() as cur:
+            high = create_proposal(cur, ws_id, "secret_scanner", "leaked_secret", ["seed_n1"], "x", severity="high")
+            low = create_proposal(cur, ws_id, "tag_normalizer", "tag_orphan", ["seed_n1"], "y", severity="low")
+
+            # severity filter only returns matching rows
+            highs = list_notifications(cur, recipient, workspace_id=ws_id, severity="high")
+            assert highs and all(n["severity"] == "high" for n in highs)
+            assert any(n["source_id"] == high["id"] for n in highs)
+            assert all(n["source_id"] != low["id"] for n in highs)
+
+            # dismiss one (owner-scoped, idempotent)
+            hid = next(n["id"] for n in list_notifications(cur, recipient, workspace_id=ws_id)
+                       if n["source_id"] == high["id"])
+            assert dismiss_notification(cur, hid, "someone_else") is False
+            assert dismiss_notification(cur, hid, recipient) is True
+            assert dismiss_notification(cur, hid, recipient) is False
+
+            # bulk clear read
+            lid = next(n["id"] for n in list_notifications(cur, recipient, workspace_id=ws_id)
+                       if n["source_id"] == low["id"])
+            mark_notification_read(cur, lid, recipient)
+            assert dismiss_notifications(cur, recipient, workspace_id=ws_id, read_only=True) >= 1
 
     def test_mark_all_read_clears_unread(self, db_transaction):
         conn = db_transaction
