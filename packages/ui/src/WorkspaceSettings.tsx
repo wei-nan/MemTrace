@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import { ModalOverlay } from "./components/Modal";
 import KbExportPanel from "./components/KbExportPanel";
+import ConnectorSettings from "./components/ConnectorSettings";
 import { Button, Input, Card } from "./components/ui";
 
 const DEFAULT_AI_REVIEW_PROMPT = `You are an AI reviewer for a collaborative knowledge graph.
@@ -839,7 +840,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
   );
 }
 
-type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys";
+type MainTab = "general" | "members" | "export" | "assoc" | "ai_review" | "apikeys" | "connectors";
 type AccessTab = "members" | "invites" | "requests";
 
 // ── Workspace AI Model Settings Tab ──────────────────────────────────────────
@@ -976,6 +977,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
         <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
         <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "AI 管理" : "AI Management"}</button>
+        <button onClick={() => setTab("connectors")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "connectors" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "connectors" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "外部整合" : "Connectors"}</button>
         {ws?.owner_id === userId && (
           <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
         )}
@@ -1606,6 +1608,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <AIReviewerSettings wsId={wsId} ws={ws} isOwner={isOwner} zh={zh} loadData={loadData} />
       ) : tab === "apikeys" ? (
         <APIKeysSettings wsId={wsId} />
+      ) : tab === "connectors" ? (
+        <ConnectorSettings wsId={wsId} zh={zh} />
       ) : (
         <>
           {renderAccessTabs}

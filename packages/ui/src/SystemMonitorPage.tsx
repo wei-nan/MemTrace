@@ -180,9 +180,25 @@ function HeartbeatsTab({ zh }: { zh: boolean }) {
 // ─── Job metadata (shared by Heartbeats + JobRuns tabs) ──────────────────────
 
 const KNOWN_JOBS = [
-  'audit_reviewers', 'audit_writer', 'backup', 'cleanup', 'conductor_dispatch',
-  'decay', 'deletion_notify', 'ephemeral_decay', 'path_reinforcement',
-  'process_node_events', 'retry_embeddings', 'safety_review_queue', 'safety_sweep', 'stale_ingest',
+  'ai_review_for_item',
+  'ai_review_prescreen',
+  'audit_reviewers',
+  'audit_writer',
+  'backup',
+  'cleanup',
+  'conductor_dispatch',
+  'decay',
+  'deletion_notify',
+  'embedding_consistency',
+  'ephemeral_decay',
+  'kb_health',
+  'path_reinforcement',
+  'process_node_events',
+  'retry_embeddings',
+  'review_sla',
+  'safety_review_queue',
+  'safety_sweep',
+  'stale_ingest',
 ];
 
 interface JobMeta { categoryZh: string; category: string; color: string; interval: string; observable: boolean; }
@@ -203,14 +219,13 @@ const JOB_META: Record<string, JobMeta> = {
   conductor_dispatch:  { categoryZh: '系統',   category: 'System', color: '#64748b', interval: '—',    observable: true  },
 };
 
-// ─── Tab 2: Job Runs (global) ─────────────────────────────────────────────────
-
 function JobRunsTab({ zh }: { zh: boolean }) {
   const [data, setData] = useState<SystemJobRun[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterJob, setFilterJob] = useState('');
+  const [filterReviewer, setFilterReviewer] = useState('');
   const [offset, setOffset] = useState(0);
   const [tick, setTick] = useState(0);
   const limit = 100;
@@ -221,13 +236,14 @@ function JobRunsTab({ zh }: { zh: boolean }) {
     system.monitorJobRuns({
       job_name: filterJob || undefined,
       status: filterStatus || undefined,
+      reviewer: filterReviewer.trim() || undefined,
       limit,
       offset,
     }).then(r => {
       if (!cancelled) { setData(r.runs); setTotal(r.total); setLoading(false); }
     });
     return () => { cancelled = true; };
-  }, [filterStatus, filterJob, offset, tick]);
+  }, [filterStatus, filterJob, filterReviewer, offset, tick]);
 
   return (
     <div>
@@ -243,6 +259,13 @@ function JobRunsTab({ zh }: { zh: boolean }) {
           <option value="">{zh ? '全部作業' : 'All jobs'}</option>
           {KNOWN_JOBS.map(j => <option key={j} value={j}>{j}</option>)}
         </select>
+        <input
+          className="mt-input"
+          style={{ fontSize: 12, width: 180 }}
+          value={filterReviewer}
+          onChange={e => { setFilterReviewer(e.target.value); setOffset(0); }}
+          placeholder="Reviewer"
+        />
         <div style={{ flex: 1 }} />
         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{total} {zh ? '筆' : 'rows'}</span>
         <button className="btn-secondary" style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 12 }}

@@ -284,12 +284,14 @@ def get_monitor_job_runs(
     if reviewer:
         conditions.append("""
             (
-                (jr.summary->'reviewers' ? %s)
+                jr.job_name = %s
+                OR jr.job_name = %s
+                OR (jr.summary->'reviewers' ? %s)
                 OR EXISTS (SELECT 1 FROM jsonb_each(jr.summary->'workspaces') AS ws(id, val) WHERE ws.val ? %s)
                 OR (jr.summary->>'reviewer_id' = %s)
             )
         """)
-        params.extend([reviewer, reviewer, reviewer])
+        params.extend([reviewer, f"audit_reviewers:{reviewer}", reviewer, reviewer, reviewer])
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
 
     params.extend([limit, offset])

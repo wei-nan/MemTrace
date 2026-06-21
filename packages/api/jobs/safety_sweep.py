@@ -7,7 +7,15 @@ from services.safety_review import classify_safety_rules
 
 logger = logging.getLogger(__name__)
 
-SAFETY_SWEEP_INTERVAL_SECONDS = int(os.environ.get("SAFETY_SWEEP_INTERVAL_SECONDS", 86400))
+def _get_safety_sweep_interval_seconds() -> int:
+    seconds = os.environ.get("SAFETY_SWEEP_INTERVAL_SECONDS")
+    if seconds is not None:
+        return int(seconds)
+    hours = os.environ.get("SAFETY_SWEEP_INTERVAL_HOURS")
+    return int(hours) * 3600 if hours is not None else 86400
+
+
+SAFETY_SWEEP_INTERVAL_SECONDS = _get_safety_sweep_interval_seconds()
 SAFETY_SWEEP_BATCH_SIZE       = int(os.environ.get("SAFETY_SWEEP_BATCH_SIZE", 500))
 
 def _sweep_workspace(cur, workspace_id: str, batch_size: int) -> dict:

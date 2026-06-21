@@ -8,6 +8,7 @@ import { ingest } from './ingest';
 import { system, kb } from './system';
 import { clusters } from './clusters';
 import { documents } from './documents';
+import { connectors } from './connectors';
 import { request } from './client';
 import type { PersonalApiKey, PersonalApiKeyCreateResponse } from './workspaces';
 
@@ -22,6 +23,7 @@ export * from './ingest';
 export * from './system';
 export * from './clusters';
 export * from './documents';
+export * from './connectors';
 
 export const users = {
   apiKeys: {
@@ -47,4 +49,5 @@ export const api = {
   kb,
   clusters,
   documents,
+  connectors,
 };

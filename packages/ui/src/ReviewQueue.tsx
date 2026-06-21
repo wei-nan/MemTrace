@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bot, Check, GitMerge, Layers, Loader2, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
-import { review, nodes as nodesApi, kb, type ReviewItem } from "./api";
+import { Bot, Check, ExternalLink, GitMerge, Layers, Loader2, RefreshCw, User, X, FileText, TriangleAlert } from "lucide-react";
+import { review, nodes as nodesApi, kb, type Node, type ReviewItem } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import { Button, Card } from "./components/ui";
@@ -157,6 +157,7 @@ function ReviewCard({
   onAccept,
   onReject,
   onApplySplit,
+  onOpenNode,
   zh,
 }: {
   wsId: string;
@@ -165,17 +166,37 @@ function ReviewCard({
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onApplySplit: (item: ReviewItem) => void;
+  onOpenNode?: (node: Node) => void;
   zh: boolean;
 }) {
   const { t } = useTranslation();
   const { alert } = useModal();
   const [expanded, setExpanded] = useState(false);
+  const [openingNodeId, setOpeningNodeId] = useState<string | null>(null);
   const proposerLabel = item.proposer_type === "ai" ? item.proposer_id?.replace(/^ai:/, "") ?? "AI" : item.proposer_id ?? "User";
 
   const sourceDocNodeId = item.proposer_meta?.source_document_node_id as string | undefined;
   const sourceParagraphIndex = item.proposer_meta?.source_paragraph_index as number | undefined;
   const sourceSegment = item.proposer_meta?.source_segment as string | undefined;
   const hasSource = !!(sourceDocNodeId || sourceSegment);
+  const isFeatureComplete = item.source_info?.startsWith("feature_complete:") ?? false;
+  const isAgentFailure = item.source_info?.startsWith("agent_failure:") ?? false;
+  const isFlagOnly = isFeatureComplete || isAgentFailure;
+  const hasNodeDataContent = !!(
+    item.node_data
+    && typeof item.node_data === "object"
+    && Object.keys(item.node_data).length > 0
+    && (item.node_data.title || item.node_data.body)
+  );
+  const hasDiffContent = !!(
+    item.diff_summary
+    && item.diff_summary.fields
+    && Object.keys(item.diff_summary.fields).length > 0
+  );
+  const canShowDiff = hasDiffContent && (!isFlagOnly || hasNodeDataContent);
+  const taskNodeId = item.proposer_meta?.task_node_id as string | undefined;
+  const targetNodeId = item.target_node_id || taskNodeId;
+  const failureMessage = item.proposer_meta?.failure_message as string | undefined;
 
   const handleViewSource = () => {
     alert({
@@ -189,6 +210,22 @@ function ReviewCard({
         />
       ),
     });
+  };
+
+  const handleOpenNode = async (nodeId: string) => {
+    if (!onOpenNode) return;
+    setOpeningNodeId(nodeId);
+    try {
+      const node = await nodesApi.get(wsId, nodeId);
+      onOpenNode(node);
+    } catch (error) {
+      alert({
+        title: zh ? "無法開啟節點" : "Unable to Open Node",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setOpeningNodeId(null);
+    }
   };
 
   return (
@@ -206,7 +243,9 @@ function ReviewCard({
             </span>
             {item.ai_review && <span className="tag">{item.ai_review.decision} · {(item.ai_review.confidence * 100).toFixed(0)}%</span>}
           </div>
-          <div style={{ fontSize: 15, fontWeight: 600 }}>{String(item.node_data.title ?? "Untitled change")}</div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>
+            {String(item.node_data?.title || (isAgentFailure ? "Agent failure requires review" : isFeatureComplete ? "Feature complete requires integration check" : "Untitled change"))}
+          </div>
           <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
             {item.source_info || "Review proposal"} · {new Date(item.created_at).toLocaleString()}
           </div>
@@ -220,7 +259,28 @@ function ReviewCard({
               </div>
             </div>
           )}
-          {item.source_info?.startsWith("feature_complete:") && (
+          {isAgentFailure && (
+            <div style={{ marginTop: 12, padding: 12, background: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.28)", borderRadius: 10 }}>
+              <div style={{ color: "#dc2626", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                <TriangleAlert size={14} /> {zh ? "Agent 執行失敗" : "Agent Failure"}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 6, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                {failureMessage || (zh ? "Agent 回報失敗，但沒有提供詳細訊息。" : "The agent reported a failure without a detailed message.")}
+              </div>
+              {taskNodeId && taskNodeId !== targetNodeId && onOpenNode && (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleOpenNode(taskNodeId)}
+                  disabled={openingNodeId !== null}
+                  leftIcon={openingNodeId === taskNodeId ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}
+                  style={{ marginTop: 10 }}
+                >
+                  {zh ? "開啟任務" : "Open Task"}
+                </Button>
+              )}
+            </div>
+          )}
+          {isFeatureComplete && (
             <div style={{ marginTop: 12, padding: 12, background: "rgba(34, 197, 94, 0.05)", border: "1px solid rgba(34, 197, 94, 0.2)", borderRadius: 10 }}>
               <div style={{ color: "#16a34a", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                 <GitMerge size={14} /> {zh ? "功能完成 — 需整合驗收" : "Feature Complete — Integration Check Required"}
@@ -236,7 +296,7 @@ function ReviewCard({
       </div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
-        {item.change_type !== "split_suggestion" && (
+        {item.change_type !== "split_suggestion" && canShowDiff && (
           <Button variant="secondary" onClick={() => setExpanded((prev) => !prev)}>{expanded ? t('review.hideDiff') : t('review.showDiff')}</Button>
         )}
         {item.change_type === "split_suggestion" && (
@@ -251,6 +311,16 @@ function ReviewCard({
             leftIcon={<FileText size={14} />}
           >
             {t('review.viewSource')}
+          </Button>
+        )}
+        {targetNodeId && onOpenNode && (
+          <Button
+            variant="secondary"
+            onClick={() => handleOpenNode(targetNodeId)}
+            disabled={openingNodeId !== null}
+            leftIcon={openingNodeId === targetNodeId ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}
+          >
+            {zh ? "開啟節點" : "Open Node"}
           </Button>
         )}
         {canReview && item.change_type !== "split_suggestion" && (
@@ -280,12 +350,20 @@ function ReviewCard({
           ))}
         </div>
       )}
-      {expanded && item.change_type !== "split_suggestion" && <DiffSummaryBlock item={item} />}
+      {expanded && item.change_type !== "split_suggestion" && canShowDiff && <DiffSummaryBlock item={item} />}
     </Card>
   );
 }
 
-export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: () => void }) {
+export default function ReviewQueue({
+  wsId,
+  onClose,
+  onOpenNode,
+}: {
+  wsId: string;
+  onClose: () => void;
+  onOpenNode?: (node: Node) => void;
+}) {
   const { t } = useTranslation();
   const { confirm, toast } = useModal();
   const [items, setItems] = useState<ReviewItem[]>([]);
@@ -558,7 +636,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
                   </div>
                   <div style={{ display: "grid", gap: 12 }}>
                     {groupItems.map((item) => (
-                      <ReviewCard key={item.id} wsId={wsId} item={item} canReview={item.can_review} onAccept={handleAccept} onReject={handleReject} onApplySplit={handleApplySplit} zh={zh} />
+                      <ReviewCard key={item.id} wsId={wsId} item={item} canReview={item.can_review} onAccept={handleAccept} onReject={handleReject} onApplySplit={handleApplySplit} onOpenNode={onOpenNode} zh={zh} />
                     ))}
                   </div>
                 </div>
@@ -568,7 +646,7 @@ export default function ReviewQueue({ wsId, onClose }: { wsId: string; onClose: 
         ) : (
           <div style={{ display: "grid", gap: 16 }}>
             {filteredItems.map((item) => (
-              <ReviewCard key={item.id} wsId={wsId} item={item} canReview={item.can_review} onAccept={handleAccept} onReject={handleReject} onApplySplit={handleApplySplit} zh={zh} />
+              <ReviewCard key={item.id} wsId={wsId} item={item} canReview={item.can_review} onAccept={handleAccept} onReject={handleReject} onApplySplit={handleApplySplit} onOpenNode={onOpenNode} zh={zh} />
             ))}
           </div>
         )}

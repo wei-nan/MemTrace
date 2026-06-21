@@ -64,7 +64,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     try {
       const list = await ai.listSessions(wsId);
       setSessions(list);
-    } catch {}
+    } catch {
+      // Session list is optional; the active conversation remains usable.
+    }
   }, [wsId]);
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
@@ -78,7 +80,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
           const firstAvailable = (Object.keys(c.has_own_key) as Array<keyof typeof c.has_own_key>).find(k => c.has_own_key[k]);
           if (firstAvailable) setProvider(firstAvailable);
         }
-      } catch {}
+      } catch {
+        // Credit discovery falls back to the selected provider.
+      }
     };
     fetchCredits();
   }, [provider]);
@@ -89,7 +93,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
         const list = await ai.listModels(provider);
         setModels(list);
         if (list.length > 0) setSelectedModel(list[0].id);
-      } catch {}
+      } catch {
+        // The model picker remains empty until the provider is available.
+      }
     };
     fetchModels();
   }, [provider]);
@@ -131,7 +137,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
       } else {
         setHasOlderMessages(false);
       }
-    } catch {} finally {
+    } catch {
+      // Keep the currently loaded history when pagination fails.
+    } finally {
       setLoadingOlder(false);
     }
   };

@@ -94,7 +94,10 @@ On first run, Docker will:
 2. Create the database with the credentials from `.env`.
 3. Auto-execute every file under `schema/sql/` in numeric order — `001_init.sql` creates the core tables, `002_*.sql` through `023_*.sql` are sequential migrations, and `099_seed_spec_kb.sql` seeds the public spec-as-KB workspace.
 
-**Migration convention:** new schema changes are added as a new numbered file (e.g. `024_<short_name>.sql`), never by editing existing files. The DB container applies them in order; `099_*` files are reserved for seed data and run last.
+**Migration convention:** new schema changes are added as a new numbered file,
+never by editing existing files. Every runtime migration must also be added to
+`packages/api/migrations/MANIFEST.txt`; only manifest entries are executed.
+This prevents historical or scratch SQL files from being applied accidentally.
 
 ### 2.2 Manual Schema Initialization
 
@@ -211,9 +214,12 @@ We use `pytest` for backend testing. Tests are located in `packages/api/tests/`.
 **Run all tests:**
 
 ```bash
-cd packages/api
-./venv/bin/python3 -m pytest tests/ -v
+npm run test:api
 ```
+
+The runner selects `packages/api/venv` on Windows or Unix. Unit tests receive
+safe defaults automatically; set `TEST_DATABASE_URL` only for PostgreSQL
+integration tests.
 
 **Testing strategy:**
 - **Unit Tests**: Most tests use `unittest.mock` to bypass the real database, allowing them to run instantly without a live Postgres instance.

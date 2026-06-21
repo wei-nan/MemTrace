@@ -192,7 +192,7 @@ export default function GraphView(props: Props) {
 
 function GraphViewInner({
   apiNodes, apiEdges, relationColors, onEditNode,
-  healthMode = false, healthScores = {}, kbType: _kbType = 'evergreen', isPreview = false,
+  healthMode = false, healthScores = {}, isPreview = false,
   clusters = [], activeClusters = new Set(),
 }: Props) {
   const { i18n } = useTranslation();
