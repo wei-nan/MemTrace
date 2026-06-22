@@ -309,11 +309,16 @@ async def bg_migrate_embeddings(ws_id: str, user_id: str):
                 UPDATE workspaces
                 SET embedding_model = %s,
                     embedding_provider = %s,
+                    embedding_dim = COALESCE(
+                        (SELECT vector_dims(embedding) FROM memory_nodes
+                         WHERE workspace_id = %s AND embedding IS NOT NULL LIMIT 1),
+                        embedding_dim
+                    ),
                     migrating_to_model = NULL,
                     migrating_to_provider = NULL,
                     migration_status = 'completed'
                 WHERE id = %s
-            """, (target_model, target_provider, ws_id))
+            """, (target_model, target_provider, ws_id, ws_id))
             
             cur.execute("""
                 UPDATE workspace_migrations
@@ -427,15 +432,18 @@ async def bg_check_complexity(ws_id: str, node_id: str, user_id: str):
                 return
 
             # P4.8-S9-3d: Record split suggestion in review_queue
+            # node_data is NOT NULL on review_queue; split_suggestion rows carry their
+            # payload in the split_suggestion column, so store an empty object here.
             cur.execute(
-                """INSERT INTO review_queue 
-                   (id, workspace_id, change_type, target_node_id, proposer_type, proposer_id, 
-                    review_notes, split_suggestion, status, created_at)
-                   VALUES (%s, %s, 'split_suggestion', %s, 'system', 'complexity_bot', %s, %s, 'pending', now())""",
+                """INSERT INTO review_queue
+                   (id, workspace_id, change_type, target_node_id, proposer_type, proposer_id,
+                    review_notes, split_suggestion, node_data, status, created_at)
+                   VALUES (%s, %s, 'split_suggestion', %s, 'system', 'complexity_bot', %s, %s, %s, 'pending', now())""",
                 (
-                    generate_id("rev"), ws_id, node_id, 
+                    generate_id("rev"), ws_id, node_id,
                     f"Node exceeds complexity threshold ({result['char_count']} chars). Split suggested.",
-                    json.dumps(result["split_proposals"])
+                    json.dumps(result["split_proposals"]),
+                    json.dumps({}),
                 )
             )
 

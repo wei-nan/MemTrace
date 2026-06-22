@@ -1583,6 +1583,9 @@ _KNOWN_DIMS = {
     "text-embedding-3-large": 3072,
     "text-embedding-ada-002": 1536,
     "text-embedding-004":     768,   # Gemini
+    "gemini-embedding-2":     3072,  # Gemini Embedding 2 (gemini-embedding-001)
+    "gemini-embedding-001":   3072,
+    "gemini-embedding":       3072,
     "nomic-embed-text":       768,
     "mxbai-embed-large":      1024,
     "all-minilm":             384,
