@@ -206,14 +206,17 @@ async def list_models(
     provider: str,
     user: dict = Depends(get_current_user),
 ):
+    impl = PROVIDER_REGISTRY.get(provider)
+    if not impl:
+        raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
     try:
         resolved = resolve_provider(user["sub"], "extraction", provider)
+    except Exception:
+        # No key configured — return known models
+        return impl.get_known_models()
+    try:
         return await resolved.provider.list_models(resolved)
-    except Exception as e:
-        # Fallback to static list if resolve fails (e.g. no key configured)
-        impl = PROVIDER_REGISTRY.get(provider)
-        if impl:
-            return impl.get_known_models()
+    except AIProviderError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -278,8 +281,8 @@ async def proxy_list_models(
     
     try:
         models = await impl.list_models(resolved)
-    except Exception:
-        return impl.get_known_models()
+    except AIProviderError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     # For Ollama: if the live server returned no embedding models, append the
     # fallback embedding list so users can still pick one (they just need to pull it).

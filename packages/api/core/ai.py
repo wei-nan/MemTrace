@@ -293,7 +293,7 @@ class OpenAIProvider(AIProvider):
                 headers={"Authorization": f"Bearer {resolved.api_key}"},
             )
         if not resp.is_success:
-            return self.get_known_models()
+            raise AIProviderError(f"OpenAI list_models {resp.status_code}: {resp.text[:200]}")
         data = resp.json()
         results = []
         for m in data["data"]:
@@ -302,7 +302,7 @@ class OpenAIProvider(AIProvider):
                 results.append({"id": mid, "display_name": mid, "model_type": "embedding"})
             elif any(x in mid for x in ("gpt-", "o1", "o3", "o4")):
                 results.append({"id": mid, "display_name": mid, "model_type": "chat"})
-        return results or self.get_known_models()
+        return results
 
     async def embed(self, resolved, text):
         headers = {}
@@ -420,7 +420,7 @@ class AnthropicProvider(AIProvider):
                 },
             )
         if not resp.is_success:
-            return self.get_known_models()
+            raise AIProviderError(f"Anthropic list_models {resp.status_code}: {resp.text[:200]}")
         data = resp.json()
         return [
             {"id": m["id"], "display_name": m.get("display_name", m["id"]), "model_type": "chat"}
@@ -629,7 +629,7 @@ class GeminiProvider(AIProvider):
                 f"https://generativelanguage.googleapis.com/v1beta/models?key={resolved.api_key}"
             )
         if not resp.is_success:
-            return self.get_known_models()
+            raise AIProviderError(f"Gemini list_models {resp.status_code}: {resp.text[:200]}")
         data = resp.json()
         results = []
         for m in data["models"]:
@@ -640,7 +640,7 @@ class GeminiProvider(AIProvider):
                 results.append({"id": mid, "display_name": dname, "model_type": "chat"})
             elif "embedContent" in methods:
                 results.append({"id": mid, "display_name": dname, "model_type": "embedding"})
-        return results or self.get_known_models()
+        return results
 
     async def chat(self, resolved, messages, max_tokens, temperature):
         # system_instruction requires v1beta endpoint
@@ -996,10 +996,10 @@ class OllamaProvider(OpenAIProvider):
             except Exception:
                 pass
 
-        return self.get_known_models()
+        raise AIProviderError(f"Ollama server unreachable at {raw_base}")
 
     def get_known_models(self) -> list[dict]:
-        """Fallback list shown when the Ollama server is unreachable."""
+        """Static model list shown when no base_url is configured."""
         return [
             # ── Chat models ─────────────────────────────────────────────────
             {"id": "llama3",           "display_name": "Llama 3",           "model_type": "chat"},
