@@ -1271,11 +1271,11 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 "content_format": "string — 'plain' or 'markdown'",
                 "tags":           "array of strings — keywords and categories",
                 "visibility":     "string — 'public', 'team', or 'private'",
-                "trust_score":    "float 0.0–1.0 — composite reliability score",
-                "dim_accuracy":   "float 0.0–1.0 — accuracy dimension of trust",
-                "dim_freshness":  "float 0.0–1.0 — freshness dimension of trust",
-                "dim_utility":    "float 0.0–1.0 — utility dimension of trust",
-                "dim_author_rep": "float 0.0–1.0 — author reputation dimension",
+                "trust_score":    "float 0.0–1.0 — compatibility-only field; not used for ranking, admission, or planning priority",
+                "dim_accuracy":   "float 0.0–1.0 — compatibility-only accuracy dimension",
+                "dim_freshness":  "float 0.0–1.0 — compatibility-only freshness dimension",
+                "dim_utility":    "float 0.0–1.0 — compatibility-only utility dimension",
+                "dim_author_rep": "float 0.0–1.0 — compatibility-only author reputation dimension",
                 "source_type":    "string — 'human', 'ai', 'mcp', 'document', etc.",
                 "source_doc_node_id": "string — ID of the source document node (if extracted)",
                 "source_paragraph_ref": "string — reference to specific paragraph in source",
@@ -1739,7 +1739,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                              AND answered_edges.relation = 'answered_by'
                              AND answered_edges.status = 'active'
                          )
-                       ORDER BY trust_score DESC, created_at ASC
+                       ORDER BY created_at ASC
                        LIMIT %s""",
                     (ws_id, tag, limit),
                 )
@@ -1757,7 +1757,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                              AND answered_edges.relation = 'answered_by'
                              AND answered_edges.status = 'active'
                          )
-                       ORDER BY trust_score DESC, created_at ASC
+                       ORDER BY created_at ASC
                        LIMIT %s""",
                     (ws_id, limit),
                 )
@@ -1844,7 +1844,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                             """SELECT id, title, body FROM memory_nodes
                                WHERE workspace_id = %s AND content_type = 'procedural'
                                  AND status = 'active' AND tags && %s
-                               ORDER BY trust_score DESC LIMIT 3""",
+                               ORDER BY updated_at DESC LIMIT 3""",
                             (ws_id, task_tags),
                         )
                         bundle["playbooks"] = [
@@ -1887,7 +1887,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                        FROM memory_nodes
                        WHERE workspace_id = %s AND content_type = 'procedural'
                          AND status = 'active' AND %s = ANY(tags)
-                       ORDER BY trust_score DESC LIMIT %s""",
+                       ORDER BY updated_at DESC LIMIT %s""",
                     (ws_id, tag, limit),
                 )
                 rows = cur.fetchall()
@@ -1902,18 +1902,18 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                        WHERE workspace_id = %s AND content_type = 'procedural'
                          AND status = 'active'
                          AND search_vector @@ plainto_tsquery('simple', %s)
-                       ORDER BY rank DESC, trust_score DESC LIMIT %s""",
+                       ORDER BY rank DESC, updated_at DESC LIMIT %s""",
                     (situation, ws_id, situation, limit),
                 )
                 rows = cur.fetchall()
                 if not rows:
-                    # Fallback: return top procedural nodes by trust
+                    # Fallback: return most recently updated procedural nodes
                     cur.execute(
                         """SELECT id, title, body, tags, trust_score
                            FROM memory_nodes
                            WHERE workspace_id = %s AND content_type = 'procedural'
                              AND status = 'active'
-                           ORDER BY trust_score DESC LIMIT %s""",
+                           ORDER BY updated_at DESC LIMIT %s""",
                         (ws_id, limit),
                     )
                     rows = cur.fetchall()

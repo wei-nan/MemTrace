@@ -4,7 +4,7 @@
  * Features:
  *  - Click a node to open the side-panel editor (via onEditNode)
  *  - Double-click to fly-to + expand connected nodes
- *  - Node colour = content_type, brightness scaled by trust_score
+ *  - Node colour = content_type (fixed, not trust-scaled)
  *  - Edge labels and directional particles
  *  - Empty-state splash when no data
  *  - Space+drag = pan mode; scroll = zoom; left = rotate
@@ -173,12 +173,7 @@ const RELATION_LABELS_ZH: Record<string, string> = {
   queried_via_mcp: '經由 MCP 查詢',
 };
 
-/** Scale an RGB triple by `factor` (0.2–1.0) and return a CSS hex string. */
-function trustColor(rgb: [number, number, number], factor: number): string {
-  const f = Math.max(0.2, Math.min(1.0, factor));
-  const r = Math.round(rgb[0] * f);
-  const g = Math.round(rgb[1] * f);
-  const b = Math.round(rgb[2] * f);
+function rgbHex([r, g, b]: [number, number, number]): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
@@ -223,7 +218,6 @@ interface Props {
   isPreview?: boolean;
   dofEnabled?: boolean;
   onNodeDoubleClick?: (nodeId: string) => void;
-  mode?: '2d' | '3d' | 'table' | 'explore';
 }
 
 const HEALTH_COLORS: Record<string, string> = {
@@ -234,7 +228,7 @@ const HEALTH_COLORS: Record<string, string> = {
 
 export default function GraphView3D({ 
   apiNodes, apiEdges, onEditNode, healthMode = false, healthScores = {}, 
-  isPreview = false, dofEnabled = false, onNodeDoubleClick, mode = '3d'
+  isPreview = false, dofEnabled = false, onNodeDoubleClick
 }: Props) {
   const fgRef      = useRef<ForceGraphMethods>(null!);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -317,7 +311,7 @@ export default function GraphView3D({
       id:    n.id,
       name:  n.title,
       ctype: n.content_type,
-      trust: Math.max(0.2, Math.min(1.0, n.trust_score ?? 0.7)),
+
       _api:  n,
     }));
 
@@ -548,7 +542,7 @@ export default function GraphView3D({
   // ── Custom node rendering (theme-aware) ──────────────────────────────────
   const nodeThreeObject = useCallback((node: any) => {
     const rgb = NODE_BASE[node.ctype] ?? FALLBACK_RGB;
-    let color = isPreview ? '#94a3b8' : trustColor(rgb, node.trust);
+    let color = isPreview ? '#94a3b8' : rgbHex(rgb);
     
     if (!isPreview && healthMode && healthScores[node.id]) {
       color = HEALTH_COLORS[healthScores[node.id].label] || color;
@@ -781,41 +775,8 @@ export default function GraphView3D({
                 <div style="font-weight:600;font-size:13px;margin-bottom:4px">${title}</div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
                   <span style="background:rgba(99,102,241,0.25);padding:1px 6px;border-radius:4px;font-size:10px">${zh ? (NODE_LABELS_ZH[n.content_type] || n.content_type) : n.content_type}</span>
-                  <span style="opacity:0.5;font-size:10px">${zh ? '總信任' : 'trust'}: ${(n.trust_score ?? 0).toFixed(2)}</span>
                   <span style="opacity:0.5;font-size:10px">${edges} ${zh ? '關聯' : 'edges'}</span>
                 </div>
-                
-                ${mode === 'explore' ? `
-                <div style="margin-top:8px;border-top:1px solid ${palette.legendDivider};padding-top:8px;display:flex;flex-direction:column;gap:4px">
-                  <div style="display:flex;justify-content:space-between;font-size:10px">
-                    <span>${zh ? '準確性' : 'Accuracy'}</span>
-                    <span style="font-family:monospace">${(n.dim_accuracy ?? 0).toFixed(2)}</span>
-                  </div>
-                  <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
-                    <div style="height:100%;width:${(n.dim_accuracy ?? 0) * 100}%;background:var(--color-primary)"></div>
-                  </div>
-                  
-                  <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:2px">
-                    <span>${zh ? '新鮮度' : 'Freshness'}</span>
-                    <span style="font-family:monospace">${(n.dim_freshness ?? 0).toFixed(2)}</span>
-                  </div>
-                  <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
-                    <div style="height:100%;width:${(n.dim_freshness ?? 0) * 100}%;background:var(--node-secondary)"></div>
-                  </div>
-
-                  <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:2px">
-                    <span>${zh ? '實用度' : 'Utility'}</span>
-                    <span style="font-family:monospace">${(n.dim_utility ?? 0).toFixed(2)}</span>
-                  </div>
-                  <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
-                    <div style="height:100%;width:${(n.dim_utility ?? 0) * 100}%;background:#fbbf24"></div>
-                  </div>
-                  
-                  <div style="font-size:9px;opacity:0.5;margin-top:4px;text-align:right">
-                    ${zh ? '預計' : 'Est.'} ${Math.round((n.dim_freshness ?? 0.5) * (n.content_type === 'factual' ? 365 : 90))} ${zh ? '天後衰退' : 'days to faded'}
-                  </div>
-                </div>
-                ` : ''}
 
                 ${!n.body ? `<div style="color:#ef4444;font-size:10px;font-weight:600;margin-top:4px">⚠️ ${zh ? '內容為空' : 'Empty Body'}</div>` : ''}
                 <div style="border-top:1px solid ${palette.legendDivider};margin-top:8px;padding-top:6px;font-size:9px;opacity:0.4;text-align:center">
@@ -877,7 +838,7 @@ export default function GraphView3D({
               const srcNode = typeof link.source === 'object' ? link.source : null;
               if (srcNode?.ctype) {
                 const rgb = NODE_BASE[srcNode.ctype] ?? FALLBACK_RGB;
-                return trustColor(rgb, srcNode.trust ?? 0.7);
+                return rgbHex(rgb);
               }
               return link.color ?? '#64748b';
             }}
@@ -920,7 +881,7 @@ export default function GraphView3D({
             <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <span style={{
                 fontSize: 11,
-                color: trustColor(rgb, 1.0),
+                color: rgbHex(rgb),
                 flexShrink: 0,
                 lineHeight: 1,
                 width: 12,

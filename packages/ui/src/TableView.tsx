@@ -15,7 +15,7 @@ interface Props {
   refreshKey?: number;
 }
 
-type SortField = 'title' | 'content_type' | 'trust_score' | 'created_at' | 'resolution_status';
+type SortField = 'title' | 'content_type' | 'created_at' | 'resolution_status';
 type SortOrder = 'asc' | 'desc';
 
 export default function TableView({ wsId, onEditNode, initialFilter, refreshKey }: Props) {
@@ -259,12 +259,6 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
                 </div>
               </th>
               <th style={{ padding: '12px 16px', width: 200 }}>{t('table.tags')}</th>
-              <th onClick={() => toggleSort('trust_score')} style={{ padding: '12px 16px', cursor: 'pointer', userSelect: 'none', width: 150 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {t('table.trust')}
-                  {renderSortIcon('trust_score')}
-                </div>
-              </th>
               <th onClick={() => toggleSort('created_at')} style={{ padding: '12px 16px', cursor: 'pointer', userSelect: 'none', width: 160 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {t('table.created')}
@@ -277,13 +271,13 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
                   {zh ? '載入中…' : 'Loading…'}
                 </td>
               </tr>
             ) : nodes.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
                   {error ? `Error: ${error}` : (zh ? '尚無節點' : 'No nodes found')}
                 </td>
               </tr>
@@ -331,18 +325,6 @@ export default function TableView({ wsId, onEditNode, initialFilter, refreshKey 
                       </span>
                     ))}
                     {node.tags.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>+{node.tags.length - 3}</span>}
-                  </div>
-                </td>
-                <td style={{ padding: '12px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ flex: 1, height: 6, background: 'var(--border-default)', borderRadius: 3, overflow: 'hidden' }}>
-                      <div style={{ 
-                        height: '100%', 
-                        width: `${node.trust_score * 100}%`, 
-                        background: node.trust_score > 0.8 ? 'var(--color-success)' : node.trust_score > 0.5 ? 'var(--color-primary)' : 'var(--color-warning)'
-                      }} />
-                    </div>
-                    <span style={{ fontSize: 12, width: 32, textAlign: 'right' }}>{Math.round(node.trust_score * 100)}%</span>
                   </div>
                 </td>
                 <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)' }}>

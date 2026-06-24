@@ -126,7 +126,7 @@ def get_workspace_token_efficiency_in_db(cur, ws_id: str, user: Optional[dict]) 
     # Full-doc baseline: concatenate all active node bodies and measure via tiktoken.
     # Previously used total_chars // 3 which overestimated tokens by ~2-3x for mixed
     # EN/ZH content. tiktoken cl100k_base gives accurate counts (~4 chars/token EN,
-    # ~2 chars/token ZH). This makes the savings_ratio comparable to ab_token_compare.py.
+    # ~2 chars/token ZH). This makes full_context_reduction_ratio comparable to ab_token_compare.py.
     cur.execute(
         "SELECT COALESCE(body,'') as combined "
         "FROM memory_nodes WHERE workspace_id = %s AND status = 'active'",
@@ -147,17 +147,17 @@ def get_workspace_token_efficiency_in_db(cur, ws_id: str, user: Optional[dict]) 
     )
     avg_context = cur.fetchone()["avg_context"] or 0
     
-    savings_ratio = 0.0
+    full_context_reduction_ratio = 0.0
     if estimated_full_doc_tokens > 0:
-        savings_ratio = 1.0 - (float(avg_context) / estimated_full_doc_tokens)
-        
+        full_context_reduction_ratio = 1.0 - (float(avg_context) / estimated_full_doc_tokens)
+
     cur.execute("SELECT count(*) FROM retrieval_logs WHERE workspace_id = %s AND created_at > now() - interval '30 days'", (ws_id,))
     monthly_query_count = cur.fetchone()["count"]
-    
+
     return {
         "avg_tokens_per_query": int(avg_context),
         "estimated_full_doc_tokens": estimated_full_doc_tokens,
-        "savings_ratio": max(0.0, savings_ratio),
+        "full_context_reduction_ratio": max(0.0, full_context_reduction_ratio),
         "monthly_query_count": monthly_query_count,
     }
 
@@ -330,6 +330,9 @@ def get_kb_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
         res = dict(latest)
         if res.get("date"):
             res["date"] = res["date"].isoformat()
+        # DB column is still named token_savings_ratio; expose it under the canonical name.
+        if "token_savings_ratio" in res:
+            res["full_context_reduction_ratio"] = res.pop("token_savings_ratio")
         return res
     
     # Real-time fallback for some fields
@@ -339,7 +342,7 @@ def get_kb_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
     
     return {
         "workspace_id": ws_id,
-        "token_savings_ratio": float(efficiency["savings_ratio"]),
+        "full_context_reduction_ratio": float(efficiency["full_context_reduction_ratio"]),
         "retrieval_recall_at_5": 0.0,
         "retrieval_mrr": 0.0,
         "decay_runs_last_14d": 0,
@@ -409,4 +412,4 @@ def snapshot_kb_health(cur, ws_id: str):
             avg_trust_active = EXCLUDED.avg_trust_active,
             review_queue_depth = EXCLUDED.review_queue_depth,
             ai_nodes_unverified_ratio = EXCLUDED.ai_nodes_unverified_ratio
-    """, (ws_id, eff["savings_ratio"], decay_runs, unlinked, avg_trust, review_depth, ai_ratio))
+    """, (ws_id, eff["full_context_reduction_ratio"], decay_runs, unlinked, avg_trust, review_depth, ai_ratio))

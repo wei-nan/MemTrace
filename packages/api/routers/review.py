@@ -85,6 +85,12 @@ def _apply_review_item(cur, item: dict):
             raise HTTPException(status_code=400, detail="Delete review missing target node")
         deleted = _delete_node_in_db(cur, ws_id, target_node_id)
         return None, deleted
+    elif change_type == "create_edge":
+        from services.edges import create_edge_in_db
+        create_edge_in_db(cur, ws_id, node_data)
+        return None, None
+    elif change_type in ("split_suggestion", "conflict", "source_updated"):
+        return None, None
     else:
         raise HTTPException(status_code=400, detail="Unsupported change type")
     return node, None

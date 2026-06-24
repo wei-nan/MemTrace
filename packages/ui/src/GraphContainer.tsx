@@ -8,6 +8,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Archive, RefreshCw, Sparkles, Network, Layers, PlusCircle, GitMerge, Table2, TriangleAlert, FileUp, Compass } from 'lucide-react';
+import { useIsMobile } from './hooks/useIsMobile';
 import { nodes as nodesApi, edges as edgesApi, workspaces, clusters as clustersApi, type Node as ApiNode, type Edge as ApiEdge, type NodeCluster } from './api';
 import GraphView from './GraphView';
 import GraphView3D from './GraphView3D';
@@ -57,6 +58,7 @@ export default function GraphContainer({
 }: Props) {
   const { i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
+  const isMobile = useIsMobile();
 
   // ── Shared graph state ────────────────────────────────────────────────────
   const [apiNodes, setApiNodes]     = useState<ApiNode[]>([]);
@@ -65,7 +67,9 @@ export default function GraphContainer({
   const [totalOrphans, setTotalOrphans] = useState<number>(0);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
-  const [graphMode, setGraphMode]   = useState<GraphMode>('2d');
+  const [graphMode, setGraphMode]   = useState<GraphMode>(() =>
+    window.innerWidth < 768 ? 'table' : '2d'
+  );
   const [isPreview, setIsPreview]   = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [workspace, setWorkspace]   = useState<any>(null);
@@ -312,7 +316,7 @@ export default function GraphContainer({
             border: '1px solid var(--border-default)', borderRadius: 7,
             overflow: 'hidden', height: 32,
           }}>
-            {(['2d', '3d', 'table'] as GraphMode[]).map(mode => (
+            {(['2d', '3d', 'table'] as GraphMode[]).filter(m => !isMobile || m === 'table').map(mode => (
               <button
                 key={mode}
                 onClick={() => { setGraphMode(mode); if (mode !== 'explore') setExploreRootNodeId(null); }}

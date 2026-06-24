@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, BarChart3, Network, Route, ShieldCheck } from "lucide-react";
+import { Activity, AlertTriangle, BarChart3, Network, Route } from "lucide-react";
 import { workspaces, type WorkspaceAnalytics } from "./api";
 import { useTranslation } from "react-i18next";
 
@@ -142,7 +142,7 @@ export default function AnalyticsDashboard({ wsId, onOpenHealthManager }: { wsId
         <MetricCard icon={<Network size={16} />} label={t('analytics.totalNodes')} value={String(data.total_nodes)} />
         <MetricCard icon={<Route size={16} />} label={t('analytics.activeEdges')} value={String(data.active_edges)} />
         <MetricCard icon={<AlertTriangle size={16} />} label={t('analytics.orphanNodes')} value={String(data.orphan_node_count)} tone={data.orphan_node_count > 0 ? "warning" : "default"} />
-        <MetricCard icon={<ShieldCheck size={16} />} label={t('analytics.avgTrustScore')} value={formatPercent(data.avg_trust_score)} />
+        <MetricCard icon={<Activity size={16} />} label={t('analytics.freshEdges', { defaultValue: '活躍邊比例' })} value={formatPercent(1 - data.faded_edge_ratio)} />
       </div>
 
       {onOpenHealthManager && (

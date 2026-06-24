@@ -56,10 +56,9 @@ VALID_FORMAT: frozenset = frozenset({"plain", "markdown"})
 # Human-facing copy lives in packages/ui/src/i18n.ts (onboarding.purpose_* keys).
 # This English version is delivered to AI agents via the MCP initialize response.
 MCP_INSTRUCTIONS = (
-    "MemTrace is a living knowledge graph maintained jointly by humans and AI. "
-    "Unlike a vector store that retrieves static chunks, knowledge here is structured "
-    "into nodes and typed edges, each with provenance and a trust score that decays "
-    "over time — so the graph evolves, gets verified, or retired.\n\n"
+    "MemTrace is a shared knowledge graph maintained jointly by humans, AI, and tools. "
+    "Knowledge is structured into nodes and typed edges — relationships and paths preserve "
+    "context so work can continue across conversations, agents, and tools.\n\n"
     "How to use this server effectively:\n"
     "• Call search_nodes before creating — avoid duplicates and surface existing context.\n"
     "• Traverse typed edges (related_to, depends_on, answered_by) to build full context.\n"

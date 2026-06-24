@@ -75,19 +75,19 @@ export default function GuidePage({ onOpenSpecKb }: GuidePageProps) {
       label: zh ? '做什麼' : 'What',
       headline: zh ? '一個活的知識圖譜' : 'A living knowledge graph',
       text: zh
-        ? '結果就是一個活的知識圖譜：你看到的每個節點、每條關聯、每個信任分數，都是這個信念的具體呈現。'
-        : 'The result is a living knowledge graph: every node, edge, and trust score you see is that belief made concrete.',
+        ? '結果就是一個活的知識圖譜：你看到的每個節點、每條關聯、每條路徑，都是這個信念的具體呈現。'
+        : 'The result is a living knowledge graph: every node, edge, and path you see is that belief made concrete.',
     },
   ];
 
   const scenarios = [
     {
       icon: Clock,
-      title: zh ? '知識會老化' : 'Knowledge ages',
+      title: zh ? '知識需要維護' : 'Knowledge needs upkeep',
       see: zh
-        ? '每個節點都有信任分數，會隨時間衰減。久未驗證的知識會在健康頁被標記為「待重新驗證」，提醒你它可能已經過時。'
-        : 'Every node has a trust score that decays over time. Stale knowledge gets flagged for re-verification on the health page.',
-      how: zh ? '機制：信任分數時間衰減' : 'Mechanism: time-based trust decay',
+        ? '久未更新的知識會在健康頁被標記為「待重新驗證」，提醒你它可能已過時。'
+        : 'Knowledge that has not been updated recently gets flagged for review on the health page.',
+      how: zh ? '機制：健康頁標記與定期複查' : 'Mechanism: health page flags and periodic review',
     },
     {
       icon: Bot,
@@ -174,12 +174,6 @@ export default function GuidePage({ onOpenSpecKb }: GuidePageProps) {
       def: zh
         ? '帶類型的有向連結（related_to / depends_on / contradicts / answered_by…），表達節點之間的關係。'
         : 'A typed directed link (related_to / depends_on / contradicts / answered_by…) expressing how nodes relate.',
-    },
-    {
-      term: zh ? '信任分數 (Trust)' : 'Trust Score',
-      def: zh
-        ? '多維度評分（正確性、新鮮度、效用、作者信譽），會隨時間衰減、被投票或驗證調整。'
-        : 'A multi-dimensional score (accuracy, freshness, utility, author rep) that decays over time and shifts with votes/verifications.',
     },
     {
       term: zh ? 'inquiry 節點' : 'Inquiry Node',
@@ -427,7 +421,6 @@ export default function GuidePage({ onOpenSpecKb }: GuidePageProps) {
                   <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
                     {c.term === 'Memory Node' || c.term.startsWith('記憶節點') ? <Database size={14} style={{ color: 'var(--color-primary)' }} /> :
                      c.term === 'Typed Edge' || c.term.startsWith('關聯邊') ? <GitMerge size={14} style={{ color: 'var(--color-primary)' }} /> :
-                     c.term === 'Trust Score' || c.term.startsWith('信任分數') ? <ShieldCheck size={14} style={{ color: 'var(--color-primary)' }} /> :
                      c.term === 'Review Queue' || c.term.startsWith('審核佇列') ? <ShieldCheck size={14} style={{ color: 'var(--color-primary)' }} /> :
                      <HelpCircle size={14} style={{ color: 'var(--color-primary)' }} />}
                     {c.term}

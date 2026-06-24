@@ -29,7 +29,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
       import('./api').then(({ nodes: nodesApi }) => {
         Promise.all([
           nodesApi.list(wsId, { limit: 6 }), // Recently updated
-          nodesApi.list(wsId, { limit: 6 }), // Highest Trust (Backend sort by trust_score needed, using default for now)
+          nodesApi.list(wsId, { limit: 6 }),
           nodesApi.list(wsId, { filter: 'never_traversed', limit: 6 }), // P4.7-S5-1: Blindspots
         ]).then(([recent, highTrust, blindspots]) => {
           setSuggestions({ recent, highTrust, blindspots });
@@ -82,7 +82,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
               {zh ? '開始探索您的知識網絡' : 'Explore Your Knowledge Network'}
             </h1>
             <p style={{ fontSize: 18, color: 'var(--text-muted)', maxWidth: 600, margin: '0 auto' }}>
-              {zh ? '從最近更新或高信任度的節點開始，挖掘隱藏的關聯。' : 'Start from recently updated or high-trust nodes to discover hidden associations.'}
+              {zh ? '從最近更新的節點開始，挖掘隱藏的關聯。' : 'Start from recently updated nodes to discover hidden associations.'}
             </p>
           </div>
 
@@ -127,7 +127,6 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                     <div style={{ fontWeight: 600, fontSize: 15 }}>{node.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
                       <span>{node.content_type}</span>
-                      <span style={{ color: 'var(--color-primary)' }}>Trust: {node.trust_score.toFixed(2)}</span>
                     </div>
                   </div>
                 ))}
@@ -252,12 +251,6 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
               <span className="tag" style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)', border: 'none' }}>
                 {zh ? rootNode.content_type : rootNode.content_type}
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8, fontSize: 13, color: 'var(--text-muted)' }}>
-                <div style={{ width: 60, height: 4, background: 'var(--border-subtle)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${rootNode.trust_score * 100}%`, background: 'var(--color-primary)' }} />
-                </div>
-                <span>Trust: {rootNode.trust_score.toFixed(2)}</span>
-              </div>
             </div>
           </div>
         )}
@@ -314,9 +307,6 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                       }}>
                         {isOutbound ? <ArrowRight size={12} /> : <ArrowRight size={12} style={{ transform: 'rotate(180deg)' }} />}
                         {edge?.relation || 'related'}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-                        TRUST {node.trust_score.toFixed(2)}
                       </div>
                     </div>
 

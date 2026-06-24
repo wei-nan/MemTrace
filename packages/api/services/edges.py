@@ -77,7 +77,8 @@ def write_mcp_interaction_edge(
 
 def record_traversal(ws_id: str, node_id: str, user_id: str) -> None:
     """
-    Background task: record a node traversal and update trust metrics (freshness).
+    Background task: record a node traversal (access counts only).
+    Trust fields are compatibility-only and must not be raised by traversal frequency.
     P4.7-S1-2 & S3-4.
     """
     with db_cursor(commit=True) as cur:
@@ -91,13 +92,6 @@ def record_traversal(ws_id: str, node_id: str, user_id: str) -> None:
             SET traversal_count = traversal_count + 1,
                 unique_traverser_count = (
                     SELECT COUNT(DISTINCT actor_id) FROM traversal_log WHERE node_id = %s
-                ),
-                dim_freshness = LEAST(1.0, dim_freshness + 0.01),
-                trust_score = (
-                    dim_accuracy       * 0.40 +
-                    LEAST(1.0, dim_freshness + 0.01) * 0.25 +
-                    dim_utility        * 0.25 +
-                    dim_author_rep     * 0.10
                 )
             WHERE id = %s AND workspace_id = %s
             """,

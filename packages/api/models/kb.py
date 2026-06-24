@@ -291,7 +291,7 @@ class WorkspaceAnalyticsResponse(BaseModel):
 class TokenEfficiencyResponse(BaseModel):
     avg_tokens_per_query: int
     estimated_full_doc_tokens: int
-    savings_ratio: float
+    full_context_reduction_ratio: float
     monthly_query_count: int
 
 class VoteTrustRequest(BaseModel):
@@ -343,7 +343,7 @@ class BulkArchiveResponse(BaseModel):
 class KBHealthResponse(BaseModel):
     workspace_id: str
     date: Optional[str] = None
-    token_savings_ratio: float
+    full_context_reduction_ratio: float
     retrieval_recall_at_5: float
     retrieval_mrr: float
     decay_runs_last_14d: int

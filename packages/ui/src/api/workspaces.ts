@@ -185,7 +185,7 @@ export interface WorkspaceAnalytics {
 export interface TokenEfficiency {
   avg_tokens_per_query: number;
   estimated_full_doc_tokens: number;
-  savings_ratio: number;
+  full_context_reduction_ratio: number;
   monthly_query_count: number;
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import MDEditor from "@uiw/react-md-editor";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
-import { Archive, Bot, Calendar, Compass, Copy, Edit3, ExternalLink, FileUp, History, Link as LinkIcon, Paperclip, RotateCcw, Save, Shield, Trash2, User, X } from "lucide-react";
+import { Archive, Bot, Calendar, Compass, Copy, Edit3, ExternalLink, FileUp, History, Link as LinkIcon, Paperclip, RotateCcw, Save, Shield, Trash2, X } from "lucide-react";
 import { ai as aiApi, documents as documentsApi, edges as edgesApi, nodes as nodesApi, review as reviewApi, workspaces as workspacesApi, type DiffSummary, type Edge, type Node, type NodeCreatePayload, type NodeRevisionMeta, type NodeSource, type ReviewItem } from "./api";
 import DiffPreviewModal from "./components/DiffPreviewModal";
 import { useModal } from "./components/ModalContext";
@@ -118,10 +118,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
   const [uploadingFile, setUploadingFile] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [linkingUrl, setLinkingUrl] = useState(false);
-  const [isVoting, setIsVoting] = useState(false);
-  const [voteAccuracy, setVoteAccuracy] = useState(5);
-  const [voteUtility, setVoteUtility] = useState(5);
-  const [submittingVote, setSubmittingVote] = useState(false);
   const isArchived = node?.status === 'archived';
 
   useEffect(() => {
@@ -159,9 +155,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         setSuggestedReviewItems(suggested);
       }).catch(() => {});
     }
-    setIsVoting(false);
-    setVoteAccuracy(5);
-    setVoteUtility(5);
     setNodeSources([]);
     setUrlInput('');
     if (node?.id) {
@@ -171,12 +164,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
   const payload = useMemo(() => buildPayload({ title, contentType, format, body, tags, visibility, resolutionStatus }), [title, contentType, format, body, tags, visibility, resolutionStatus]);
   const relatedNodes = allNodes.filter((candidate) => candidate.id !== node?.id && candidate.title.toLowerCase().includes(linkTarget.toLowerCase()));
-  const trustDimensions = node ? [
-    { key: "accuracy", label: t("node.dim_accuracy"), value: node.dim_accuracy, help: "AI 擷取初始較低，人工建立通常較高。" },
-    { key: "freshness", label: t("node.dim_freshness"), value: node.dim_freshness, help: "內容更新後會重置，之後再隨時間衰減。" },
-    { key: "utility", label: t("node.dim_utility"), value: node.dim_utility, help: "會隨節點被走訪與使用而累積。" },
-    { key: "author_rep", label: t("node.dim_author_rep"), value: node.dim_author_rep, help: "反映作者歷史內容品質。" },
-  ] : [];
 
 
   const handleArchive = async () => {
@@ -253,20 +240,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     }
   };
 
-  const handleVoteTrust = async () => {
-    if (!node) return;
-    setSubmittingVote(true);
-    try {
-      const res = await nodesApi.voteTrust(wsId, node.id, { accuracy: voteAccuracy, utility: voteUtility });
-      onSaved({ ...node, trust_score: res.trust_score, dim_accuracy: voteAccuracy / 5, dim_utility: voteUtility / 5 });
-      setIsVoting(false);
-      toast({ message: t("node.vote_submitted"), variant: "success" });
-    } catch (e) {
-      toast({ message: String(e), variant: "error" });
-    } finally {
-      setSubmittingVote(false);
-    }
-  };
 
   const submitSave = async () => {
     if (!payload.title) {
@@ -511,7 +484,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                   </span>
                 )}
                 <span className="tag"><Calendar size={12} /> {node?.created_at.split("T")[0]}</span>
-                <span className="tag"><User size={12} /> {t("node.trust_score")} {(node?.trust_score ?? 0).toFixed(2)}</span>
                 {node?.tags.map((tag) => <span key={tag} className="tag">#{tag}</span>)}
               </div>
             </div>
@@ -525,65 +497,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
               )}
             </div>
 
-            {node && (
-              <div style={{ background: "var(--bg-surface)", padding: 18, borderRadius: 10, border: "1px solid var(--border-default)", display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontWeight: 600 }}>{t("node.trust_dimensions")}</div>
-                  {!isViewerLocked && (
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                      onClick={() => setIsVoting(!isVoting)}
-                    >
-                      {isVoting ? t("node.cancel_vote") : t("node.vote_trust")}
-                    </Button>
-                  )}
-                </div>
-
-                {isVoting ? (
-                  <div style={{ padding: "10px 0", borderTop: "1px solid var(--border-subtle)", marginTop: 4, display: "flex", flexDirection: "column", gap: 14 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12, alignItems: "center" }}>
-                      <span style={{ fontSize: 13 }}>{t("node.accuracy")} (1-5)</span>
-                      <input 
-                        type="range" min="1" max="5" step="1" 
-                        value={voteAccuracy} 
-                        onChange={(e) => setVoteAccuracy(parseInt(e.target.value))} 
-                        style={{ accentColor: "var(--color-primary)" }}
-                      />
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12, alignItems: "center" }}>
-                      <span style={{ fontSize: 13 }}>{t("node.utility")} (1-5)</span>
-                      <input 
-                        type="range" min="1" max="5" step="1" 
-                        value={voteUtility} 
-                        onChange={(e) => setVoteUtility(parseInt(e.target.value))} 
-                        style={{ accentColor: "var(--color-primary)" }}
-                      />
-                    </div>
-                    <Button 
-                      variant="primary" 
-                      onClick={handleVoteTrust} 
-                      loading={submittingVote}
-                      style={{ marginTop: 4 }}
-                    >
-                      {submittingVote ? t("node.saving") : t("node.submit_vote")}
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    {trustDimensions.map((item) => (
-                      <div key={item.key} style={{ display: "grid", gridTemplateColumns: "120px 1fr 56px", gap: 12, alignItems: "center" }} title={item.help}>
-                        <div style={{ fontSize: 13 }}>{item.label}</div>
-                        <div style={{ height: 10, borderRadius: 999, background: "var(--border-subtle)", overflow: "hidden" }}>
-                          <div style={{ width: `${Math.max(0, Math.min(1, item.value)) * 100}%`, height: "100%", background: "linear-gradient(90deg, var(--color-primary), #34d399)" }} />
-                        </div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "right" }}>{item.value.toFixed(2)}</div>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            )}
 
             {/* inquiry 節點：answered_by 答案列表 */}
             {node?.content_type === 'inquiry' && nodeEdges.some(e => e.relation === 'answered_by') && (
@@ -610,9 +523,6 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                         }}
                       >
                         <span>{answerNode ? answerNode.title : edge.to_id}</span>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                          trust: {(answerNode?.trust_score ?? 0).toFixed(2)}
-                        </span>
                       </button>
                     );
                   })}
@@ -790,7 +700,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 {nodeSources.filter(s => s.evidence_type === 'agent_attached').length > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)", marginBottom: 4 }}>
-                      🤖 {t("node.agent_evidence", { defaultValue: "Agent 附加證據" })}
+                      🤖 {t("node.agent_references", { defaultValue: "Agent 參考資料" })}
                     </div>
                     {nodeSources.filter(s => s.evidence_type === 'agent_attached').map(src => (
                       <div key={src.id} style={{
