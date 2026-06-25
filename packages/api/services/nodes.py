@@ -664,9 +664,18 @@ async def search_nodes_in_db(
     limit: int,
     user: Optional[dict],
     include_answered_inquiries: bool = False,
+    include_archived: bool = False,
 ) -> list[dict]:
     from services.search import search_nodes_in_db as _search
-    return await _search(cur, ws_id, query, limit, user, include_answered_inquiries=include_answered_inquiries)
+    return await _search(
+        cur,
+        ws_id,
+        query,
+        limit,
+        user,
+        include_answered_inquiries=include_answered_inquiries,
+        include_archived=include_archived,
+    )
 
 def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
     from services.workspaces import require_ws_access

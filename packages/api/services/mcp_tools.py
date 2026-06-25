@@ -30,6 +30,7 @@ from core.ai import extract_nodes_structured
 from services.ingest.pipeline import resolve_with_fallback, process_ingestion, safe_parse_nodes_with_repair, resolve_provider
 from services.ingest.persistence import persist_nodes
 from services.audit import verify_audit_chain
+from services.mcp_dispatch import UNHANDLED, dispatch_core_method
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +180,7 @@ TOOLS = [
                 "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
                 "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
+                "include_archived": {"type": "boolean", "description": "Whether to include archived nodes", "default": False},
             },
             "required": ["workspace_id", "query"],
         },
@@ -309,6 +311,7 @@ TOOLS = [
                 "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
                 "tool_output": {"type": "string", "description": "The output of the last tool execution to evaluate conditions (optional)"},
+                "include_faded": {"type": "boolean", "description": "Whether to include faded edges in traversal", "default": False},
             },
             "required": ["workspace_id", "node_id"],
         },
@@ -1045,6 +1048,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         if max_tokens is not None:
             max_tokens = int(max_tokens)
         include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
+        include_archived = bool(args.get("include_archived", False))
         with db_cursor() as cur:
             results = await search_nodes_in_db(
                 cur,
@@ -1053,6 +1057,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 limit,
                 user,
                 include_answered_inquiries=include_answered_inquiries,
+                include_archived=include_archived,
             )
             if not results and query:
                 background_tasks.add_task(handle_search_miss, ws_id, query, user["sub"])
@@ -1183,6 +1188,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         detail_level = args.get("detail_level") or get_default_detail_level(user.get("sub"))
         max_tokens = args.get("max_response_tokens")
         tool_output = args.get("tool_output")
+        include_faded = bool(args.get("include_faded", False))
         if max_tokens is not None:
             max_tokens = int(max_tokens)
         with db_cursor() as cur:
@@ -1194,6 +1200,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 relation=None,
                 direction="both",
                 include_source=False,
+                include_faded=include_faded,
                 viewer_role=viewer_role,
                 tool_output=tool_output,
             )
@@ -1709,6 +1716,14 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                        FROM memory_nodes
                        WHERE workspace_id = %s AND content_type = 'inquiry'
                          AND status = 'active' AND %s = ANY(tags)
+                         AND COALESCE(resolution_status, 'open') <> 'resolved'
+                         AND NOT EXISTS (
+                           SELECT 1 FROM edges answered_edges
+                           WHERE answered_edges.workspace_id = memory_nodes.workspace_id
+                             AND answered_edges.from_id = memory_nodes.id
+                             AND answered_edges.relation = 'answered_by'
+                             AND answered_edges.status = 'active'
+                         )
                        ORDER BY trust_score DESC, created_at ASC
                        LIMIT %s""",
                     (ws_id, tag, limit),
@@ -1719,6 +1734,14 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                        FROM memory_nodes
                        WHERE workspace_id = %s AND content_type = 'inquiry'
                          AND status = 'active'
+                         AND COALESCE(resolution_status, 'open') <> 'resolved'
+                         AND NOT EXISTS (
+                           SELECT 1 FROM edges answered_edges
+                           WHERE answered_edges.workspace_id = memory_nodes.workspace_id
+                             AND answered_edges.from_id = memory_nodes.id
+                             AND answered_edges.relation = 'answered_by'
+                             AND answered_edges.status = 'active'
+                         )
                        ORDER BY trust_score DESC, created_at ASC
                        LIMIT %s""",
                     (ws_id, limit),
@@ -2344,40 +2367,17 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks)
     params = payload.get("params", {})
 
     try:
-        if method == "initialize":
-             user_sub = user.get("sub")
-             if user_sub:
-                 client_capabilities = params.get("capabilities", {})
-                 model_size = client_capabilities.get("model_size") or params.get("model_size")
-                 context_limit = client_capabilities.get("context_limit") or params.get("context_limit")
-                 prefer_format = client_capabilities.get("prefer_format") or params.get("prefer_format")
-                 
-                 USER_CAPABILITIES[user_sub] = {
-                     "model_size": model_size or "medium",
-                     "context_limit": context_limit or 8192,
-                     "prefer_format": prefer_format or "json"
-                 }
-             return jsonrpc_ok(msg_id, {
-                 "protocolVersion": "2024-11-05", 
-                 "capabilities": {
-                     "tools": {},
-                     "resources": {}
-                 }, 
-                 "serverInfo": {
-                     "name": "memtrace", 
-                     "version": "1.0.0"
-                 }
-             })
-             
-        if method == "tools/list":
-             return jsonrpc_ok(msg_id, {"tools": TOOLS})
-             
-        if method == "tools/call":
-             tool_name = params.get("name")
-             tool_args = params.get("arguments", {})
-             logger.warning(f"MCP Call: {tool_name} with args {tool_args}")
-             result = await execute_tool(tool_name, tool_args, user, background_tasks)
-             return jsonrpc_ok(msg_id, {"content": [{"type": "text", "text": json.dumps(serialize(result), indent=2, ensure_ascii=False)}]})
+        core_response = await dispatch_core_method(
+            payload,
+            user,
+            background_tasks,
+            tools=TOOLS,
+            execute_tool=execute_tool,
+            user_capabilities=USER_CAPABILITIES,
+            logger=logger,
+        )
+        if core_response is not UNHANDLED:
+            return core_response
 
         # ── Markdown Resource Handlers (A2-T03) ──────────────────────────────────
         if method == "resources/list":

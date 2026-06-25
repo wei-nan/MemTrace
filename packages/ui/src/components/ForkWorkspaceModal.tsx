@@ -38,12 +38,12 @@ export default function ForkWorkspaceModal({
     Promise.all([
       ai.getCredits(),
       ai.getResolvedModel('embedding').catch(() => ({ provider: null, model: null }))
-    ]).then(async ([credits, _]) => {
+    ]).then(async ([credits]) => {
       const activeProviders = Object.entries(credits.has_own_key)
-        .filter(([_, has]) => has)
+        .filter(([, has]) => has)
         .map(([p]) => p);
       
-      let allModels: { id: string; dim: number; provider: string }[] = [];
+      const allModels: { id: string; dim: number; provider: string }[] = [];
       
       for (const p of activeProviders) {
         if (p === 'anthropic') continue;
@@ -54,7 +54,9 @@ export default function ForkWorkspaceModal({
             allModels.push(...embeds.map(m => ({ id: m.id, dim: m.embedding_dim ?? (KNOWN_EMBED_MODELS[p]?.find(k => k.id === m.id)?.dim ?? 768), provider: p })));
             continue;
           }
-        } catch (e) {}
+        } catch {
+          // Fall back to the built-in model catalog for this provider.
+        }
         const known = KNOWN_EMBED_MODELS[p] || [];
         allModels.push(...known.map(m => ({ ...m, provider: p })));
       }

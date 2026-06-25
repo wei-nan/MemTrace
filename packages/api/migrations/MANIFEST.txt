@@ -1,0 +1,14 @@
+# Runtime migration order.
+#
+# Only files listed here are executed by core.database.run_migrations().
+# Historical or scratch SQL may coexist in this directory locally without
+# being applied accidentally. Add every new production migration explicitly.
+000_baseline.sql
+054_language_not_null.sql
+055_drop_bilingual_columns.sql
+056_drop_source_doc_enum.sql
+110_job_observability.sql
+111_conductor_safety_queue.sql
+112_resolution_status.sql
+113_connector_framework.sql
+114_reviewer_model_governance.sql

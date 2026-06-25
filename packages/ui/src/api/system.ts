@@ -54,11 +54,12 @@ export const system = {
   // ── System Monitor (admin only) ──────────────────────────────────────────
   monitorHeartbeats: () =>
     request<{ heartbeats: SystemSchedulerHeartbeat[] }>("GET", `${BASE}/system/monitor/scheduler-heartbeats`),
-  monitorJobRuns: (params?: { job_name?: string; status?: string; workspace_id?: string; limit?: number; offset?: number }) => {
+  monitorJobRuns: (params?: { job_name?: string; status?: string; workspace_id?: string; reviewer?: string; limit?: number; offset?: number }) => {
     const qs = new URLSearchParams();
     if (params?.job_name) qs.set('job_name', params.job_name);
     if (params?.status) qs.set('status', params.status);
     if (params?.workspace_id) qs.set('workspace_id', params.workspace_id);
+    if (params?.reviewer) qs.set('reviewer', params.reviewer);
     if (params?.limit != null) qs.set('limit', String(params.limit));
     if (params?.offset != null) qs.set('offset', String(params.offset));
     const q = qs.toString();

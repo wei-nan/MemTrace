@@ -97,6 +97,8 @@ Full-text + semantic search within a workspace. Supports Chinese/CJK.
 | `limit` | integer | | Max results (default: 20, max: 100) |
 | `detail_level` | string | | `"probe"` · `"brief"` · `"full"` |
 | `max_response_tokens` | integer | | Token budget cap |
+| `include_archived` | boolean | | Whether to include archived nodes (default: false) |
+| `include_answered_inquiries` | boolean | | Whether to include resolved inquiry nodes (default: false) |
 
 ---
 
@@ -109,6 +111,7 @@ Semantic search across ALL accessible workspaces simultaneously.
 | `query` | string | ✅ | Search query |
 | `limit` | integer | | Max results per workspace (default: 5) |
 | `include_archived` | boolean | | Whether to include archived nodes (default: false) |
+| `include_answered_inquiries` | boolean | | Whether to include resolved inquiry nodes (default: false) |
 
 ---
 
@@ -208,6 +211,7 @@ Traverse the graph from a node, following edges up to a depth.
 | `relation` | string | | Filter by relation type |
 | `detail_level` | string | | |
 | `max_response_tokens` | integer | | |
+| `include_faded` | boolean | | Whether to include faded edges (default: false) |
 
 **Output**: `{ "nodes": [...], "edges": [...], "total_nodes": N }`
 

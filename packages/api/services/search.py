@@ -28,6 +28,7 @@ def bfs_neighborhood(
     relation: Optional[str] = None,
     direction: str = "both",
     include_source: bool = True,
+    include_faded: bool = False,
     viewer_role: Optional[str] = "viewer",
     tool_output: Optional[str] = None,
 ) -> dict:
@@ -43,7 +44,8 @@ def bfs_neighborhood(
         if not current_frontier:
             break
 
-        query = "SELECT * FROM edges WHERE workspace_id = %s"
+        status_filter = "status IN ('active', 'faded')" if include_faded else "status = 'active'"
+        query = f"SELECT * FROM edges WHERE workspace_id = %s AND {status_filter}"
         params = [ws_id]
         if relation:
             query += " AND relation = %s"
@@ -103,8 +105,9 @@ def bfs_neighborhood(
 
     dead_end = False
     try:
+        status_filter = "status IN ('active', 'faded')" if include_faded else "status = 'active'"
         cur.execute(
-            "SELECT * FROM edges WHERE workspace_id = %s AND from_id = %s AND relation = 'proceeds_to' AND status = 'active'",
+            f"SELECT * FROM edges WHERE workspace_id = %s AND from_id = %s AND relation = 'proceeds_to' AND {status_filter}",
             (ws_id, root_id)
         )
         root_out_edges = cur.fetchall()
@@ -284,13 +287,16 @@ async def search_nodes_in_db(
     limit: int,
     user: Optional[dict],
     include_answered_inquiries: bool = False,
+    include_archived: bool = False,
 ) -> list[dict]:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
     ws = require_ws_access(cur, ws_id, user)
     
     # 1. Text Search
-    filters = ["workspace_id = %s", "status = 'active'"]
+    filters = ["workspace_id = %s"]
     params: list = [ws_id]
+    if not include_archived:
+        filters.append("status = 'active'")
     apply_answered_inquiry_filter(filters, include_answered_inquiries)
     apply_text_search(filters, params, query)
     
@@ -314,6 +320,7 @@ async def search_nodes_in_db(
             limit,
             ws_model,
             ws_prov,
+            include_archived=include_archived,
             include_answered_inquiries=include_answered_inquiries,
         )
     except (AIProviderUnavailable, RuntimeError, Exception):

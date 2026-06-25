@@ -130,7 +130,7 @@ const MemoryNode = ({ data }: { data: any }) => {
           <span className="tag" key={tag} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>#{tag}</span>
         ))}
         {data.source_type === 'qa_conversation' && (
-          <span className="tag" style={{ fontSize: '0.65rem', background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed', border: '1px solid rgba(124, 58, 237, 0.2)' }} title={data.trust_score < 0.5 ? '🤖 AI 問答萃取，尚待驗證' : '🤖 AI 問答萃取'}>
+          <span className="tag" style={{ fontSize: '0.65rem', background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed', border: '1px solid rgba(124, 58, 237, 0.2)' }} title="AI Q&A extraction">
             🤖 AI
           </span>
         )}

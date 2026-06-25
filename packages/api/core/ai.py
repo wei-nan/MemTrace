@@ -19,16 +19,15 @@ That's it. No changes to routers, models, or the database schema are needed.
 
 from __future__ import annotations
 
-import base64
 from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Literal, Optional
 
 import httpx
-from cryptography.fernet import Fernet, InvalidToken
 
 from core.config import settings
+from core.credentials import decrypt_secret, encrypt_secret
 from core.database import db_cursor, is_postgres
 from core.security import generate_id
 
@@ -1042,18 +1041,13 @@ PROVIDER_REGISTRY: dict[str, AIProvider] = {
 
 # ── Encryption ────────────────────────────────────────────────────────────────
 
-def _fernet() -> Fernet:
-    raw = settings.secret_key.encode()[:32].ljust(32, b"0")
-    return Fernet(base64.urlsafe_b64encode(raw))
-
 def encrypt_api_key(raw_key: str) -> str:
-    return _fernet().encrypt(raw_key.encode()).decode()
+    """Backward-compatible alias for stored AI credentials."""
+    return encrypt_secret(raw_key)
 
 def decrypt_api_key(enc: str) -> str:
-    try:
-        return _fernet().decrypt(enc.encode()).decode()
-    except InvalidToken:
-        raise ValueError("Failed to decrypt API key — server key may have changed.")
+    """Backward-compatible alias for stored AI credentials."""
+    return decrypt_secret(enc)
 
 # ── Resolution ────────────────────────────────────────────────────────────────
 

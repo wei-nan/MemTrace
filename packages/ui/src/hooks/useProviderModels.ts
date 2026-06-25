@@ -35,7 +35,7 @@ export function useProviderModels(type: 'chat' | 'embedding' = 'embedding') {
         ]);
 
         const activeProviders = Object.entries(credits.has_own_key)
-          .filter(([_, has]) => has)
+          .filter(([, has]) => has)
           .map(([p]) => p);
         
         const allModels: ModelOption[] = [];

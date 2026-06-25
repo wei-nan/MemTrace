@@ -64,6 +64,24 @@ async def test_classify_safety_rules_override():
         assert res == "dangerous"
         mock_resolve.assert_not_called()
 
+
+@pytest.mark.asyncio
+@patch("services.safety_review.resolve_provider")
+async def test_classify_safety_provider_unavailable_degrades_to_safe(mock_resolve):
+    from core.ai import AIProviderUnavailable
+
+    mock_resolve.side_effect = AIProviderUnavailable("system:safety unavailable")
+    proposal = {
+        "title": "Operational checklist",
+        "body": "Inspect the service configuration and verify its current state.",
+        "content_type": "procedural",
+    }
+
+    res = await classify_safety(proposal, "ws_test")
+
+    assert res == "safe"
+
+
 @patch("services.safety_provisioning.encrypt_api_key")
 @patch("services.safety_provisioning.db_cursor")
 def test_provision_safety_key(mock_db_cursor, mock_encrypt):
@@ -189,5 +207,4 @@ async def test_consult_safe_full_trust(mock_chat, mock_resolve, mock_db_cursor, 
     
     assert res["status"] == "merged"
     assert res["new_node_id"] == "mem_new"
-
 

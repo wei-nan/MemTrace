@@ -2,13 +2,9 @@ import { useState, useEffect } from 'react';
 import { auth } from './api';
 import { Button, Input } from './components/ui';
 
-interface Props {
-  onAuthenticated: () => void;
-}
-
 type Mode = 'login' | 'register' | 'forgot' | 'sent' | 'magic_sent';
 
-export default function AuthPage({ onAuthenticated: _onAuthenticated }: Props) {
+export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('login');
   const [registrationMode, setRegistrationMode] = useState<string>('open');
 

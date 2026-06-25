@@ -31,7 +31,9 @@ export default function KbExportPanel({ wsId }: { wsId: string; zh?: boolean }) 
     try {
       const data = await workspaces.listExports(wsId);
       setExports(data);
-    } catch (e) {}
+    } catch {
+      // Export history polling retries on the next interval.
+    }
   };
 
   useEffect(() => {

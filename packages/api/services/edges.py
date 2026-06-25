@@ -173,24 +173,25 @@ _write_mcp_interaction_edge = write_mcp_interaction_edge
 _record_traversal = record_traversal
 _create_edge_in_db = create_edge_in_db
 
-def list_edges_in_db(cur, ws_id: str, node_id: Optional[str], user: Optional[dict]) -> list[dict]:
+def list_edges_in_db(cur, ws_id: str, node_id: Optional[str], user: Optional[dict], include_faded: bool = False) -> list[dict]:
     from services.workspaces import require_ws_access
     require_ws_access(cur, ws_id, user)
+    status_filter = "status IN ('active', 'faded')" if include_faded else "status = 'active'"
     if node_id:
         cur.execute(
-            """
+            f"""
             SELECT *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
-            FROM edges 
-            WHERE workspace_id = %s AND status = 'active' AND (from_id = %s OR to_id = %s)
+            FROM edges
+            WHERE workspace_id = %s AND {status_filter} AND (from_id = %s OR to_id = %s)
             ORDER BY weight DESC
             """,
             (ws_id, node_id, node_id),
         )
     else:
         cur.execute(
-            """
+            f"""
             SELECT *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
-            FROM edges WHERE workspace_id = %s AND status = 'active' ORDER BY weight DESC
+            FROM edges WHERE workspace_id = %s AND {status_filter} ORDER BY weight DESC
             """,
             (ws_id,),
         )

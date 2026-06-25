@@ -86,6 +86,49 @@ async def test_search_nodes_uses_semantic_when_key_available():
     assert "mem_b" in ids
 
 
+@pytest.mark.asyncio
+async def test_search_nodes_excludes_archived_by_default():
+    from services.search import search_nodes_in_db
+
+    cur = MagicMock()
+    cur.fetchall.return_value = []
+    user = {"sub": "usr_test"}
+    ws_row = {
+        "id": "ws_1", "visibility": "public", "owner_id": "usr_test",
+        "kb_type": "evergreen", "embedding_model": "text-embedding-3-small",
+        "embedding_provider": "openai",
+    }
+
+    with patch("services.workspaces.require_ws_access", return_value=ws_row), \
+         patch("services.search.perform_semantic_search", new_callable=AsyncMock, return_value=[]) as mock_semantic:
+        await search_nodes_in_db(cur, "ws_1", "anything", limit=10, user=user)
+
+    first_sql = cur.execute.call_args_list[0].args[0]
+    assert "WHERE workspace_id = %s AND status = 'active'" in first_sql
+    assert mock_semantic.await_args.kwargs["include_archived"] is False
+
+
+@pytest.mark.asyncio
+async def test_search_nodes_can_include_archived():
+    from services.search import search_nodes_in_db
+
+    cur = MagicMock()
+    cur.fetchall.return_value = []
+    user = {"sub": "usr_test"}
+    ws_row = {
+        "id": "ws_1", "visibility": "public", "owner_id": "usr_test",
+        "kb_type": "evergreen", "embedding_model": "text-embedding-3-small",
+        "embedding_provider": "openai",
+    }
+
+    with patch("services.workspaces.require_ws_access", return_value=ws_row), \
+         patch("services.search.perform_semantic_search", new_callable=AsyncMock, return_value=[]) as mock_semantic:
+        await search_nodes_in_db(cur, "ws_1", "anything", limit=10, user=user, include_archived=True)
+
+    first_sql = cur.execute.call_args_list[0].args[0]
+    assert "WHERE workspace_id = %s AND status = 'active'" not in first_sql
+    assert mock_semantic.await_args.kwargs["include_archived"] is True
+
 # ─── resolve_provider: system key fallback ────────────────────────────────────
 
 def test_resolve_provider_falls_back_to_system_key(monkeypatch):

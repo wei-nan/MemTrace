@@ -49,7 +49,7 @@ async def test_execute_tool_get_node():
 @pytest.mark.asyncio
 async def test_execute_tool_search_nodes():
     user = {"sub": "user_1"}
-    args = {"workspace_id": "ws_1", "query": "test"}
+    args = {"workspace_id": "ws_1", "query": "test", "include_archived": True}
     
     mock_results = [{"id": "mem_1", "title_en": "Test Node"}]
     
@@ -64,6 +64,7 @@ async def test_execute_tool_search_nodes():
                         res = await execute_tool("search_nodes", args, user, background_tasks)
             assert len(res) == 1
             assert res[0]["id"] == "mem_1"
+            assert mock_search.await_args.kwargs["include_archived"] is True
             # Should have recorded interaction edges and logged query
             assert background_tasks.add_task.call_count >= 1
 
@@ -148,3 +149,27 @@ async def test_execute_tool_access_denied():
         with patch("services.mcp_tools.db_cursor"):
             with pytest.raises(HTTPException):
                 await execute_tool("get_node", args, user, MagicMock())
+
+
+@pytest.mark.asyncio
+async def test_get_next_task_excludes_answered_and_resolved_inquiries():
+    user = {"sub": "user_1"}
+    cur = MagicMock()
+    cur.fetchall.return_value = []
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):
+        with patch("services.mcp_tools.require_ws_access"):
+            result = await execute_tool(
+                "get_next_task",
+                {"workspace_id": "ws_1"},
+                user,
+                MagicMock(),
+            )
+
+    assert result == {"tasks": [], "total": 0}
+    task_query = cur.execute.call_args_list[0].args[0]
+    assert "resolution_status" in task_query
+    assert "answered_edges.relation = 'answered_by'" in task_query

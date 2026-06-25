@@ -8,9 +8,11 @@ export default function McpStatusPanel({ onClose }: { onClose: () => void }) {
   const zh = i18n.language === 'zh-TW';
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [nowSeconds, setNowSeconds] = useState(0);
 
   useEffect(() => {
     const fetch = () => {
+      setNowSeconds(Date.now() / 1000);
       system.getMcpStatus()
         .then(s => setStatus(s))
         .catch(() => setStatus(null))
@@ -81,7 +83,7 @@ export default function McpStatusPanel({ onClose }: { onClose: () => void }) {
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'right' }}>
                         {zh ? '最後活動: ' : 'Last: '}
-                        {Math.floor(Date.now() / 1000 - s.last_accessed)}s ago
+                        {Math.max(0, Math.floor(nowSeconds - s.last_accessed))}s ago
                       </div>
                     </div>
                   </div>

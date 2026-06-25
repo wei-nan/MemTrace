@@ -460,6 +460,7 @@ def update_ai_reviewer(ws_id: str, id: str, body: AIReviewerUpdate, user: dict =
         return row
 
 
+
 @router.delete("/{ws_id}/ai-reviewers/{id}", status_code=204)
 def delete_ai_reviewer(ws_id: str, id: str, user: dict = Depends(get_current_user)):
     with db_cursor(commit=True) as cur:
@@ -484,7 +485,7 @@ def get_reviewer_profile(ws_id: str, user: dict = Depends(get_current_user)):
         _require_ws_access(cur, ws_id, user)
         cur.execute("SELECT settings FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()
-        settings = ws.get("settings") or {}
+        settings = ws.get("settings") or {} if ws else {}
         profile = settings.get("reviewer_profile", {})
         return ReviewerProfile(
             auto_accept_threshold=profile.get("auto_accept_threshold", 0.9),
@@ -498,7 +499,168 @@ def update_reviewer_profile(ws_id: str, body: ReviewerProfile, user: dict = Depe
         _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         cur.execute("SELECT settings FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()
-        settings = ws.get("settings") or {}
+        settings = ws.get("settings") or {} if ws else {}
         settings["reviewer_profile"] = body.model_dump()
         cur.execute("UPDATE workspaces SET settings = %s WHERE id = %s", (json.dumps(settings), ws_id))
         return body
+
+
+# ─── Review Policy and Model Binding (D9 Handoff) ───────────────────────────
+
+from services.review_policy import (
+    get_review_policy,
+    update_review_policy,
+    list_workspace_model_bindings,
+    create_workspace_model_binding,
+    update_workspace_model_binding,
+    revoke_workspace_model_binding,
+)
+
+class ReviewPolicyUpdate(BaseModel):
+    mode: str
+    inherit_system_default: Optional[bool] = None
+    minimum_success: Optional[int] = None
+    accept_rule: Optional[dict] = None
+    reject_rule: Optional[dict] = None
+
+class ModelBindingCreate(BaseModel):
+    model_account_id: str
+    allowed_usages: List[str]
+    priority: int = 0
+
+class ModelBindingUpdate(BaseModel):
+    status: Optional[str] = None
+    priority: Optional[int] = None
+    allowed_usages: Optional[List[str]] = None
+
+
+@router.get("/{ws_id}/review-policy")
+def api_get_review_policy(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, required_role="viewer")
+        return get_review_policy(cur, ws_id)
+
+
+@router.put("/{ws_id}/review-policy")
+def api_update_review_policy(ws_id: str, body: ReviewPolicyUpdate, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        return update_review_policy(
+            cur,
+            ws_id,
+            mode=body.mode,
+            inherit_system_default=body.inherit_system_default,
+            minimum_success=body.minimum_success,
+            accept_rule=body.accept_rule,
+            reject_rule=body.reject_rule,
+            updated_by=user["sub"],
+        )
+
+
+@router.get("/{ws_id}/model-bindings")
+def api_list_model_bindings(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, required_role="viewer")
+        return list_workspace_model_bindings(cur, ws_id)
+
+
+@router.post("/{ws_id}/model-bindings", status_code=201)
+def api_create_model_binding(ws_id: str, body: ModelBindingCreate, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="editor")
+        return create_workspace_model_binding(
+            cur,
+            workspace_id=ws_id,
+            model_account_id=body.model_account_id,
+            offered_by=user["sub"],
+            allowed_usages=body.allowed_usages,
+            priority=body.priority,
+        )
+
+
+@router.patch("/{ws_id}/model-bindings/{binding_id}")
+def api_patch_model_binding(
+    ws_id: str,
+    binding_id: str,
+    body: ModelBindingUpdate,
+    user: dict = Depends(get_current_user),
+):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="editor")
+        return update_workspace_model_binding(
+            cur,
+            workspace_id=ws_id,
+            binding_id=binding_id,
+            status=body.status,
+            priority=body.priority,
+            allowed_usages=body.allowed_usages,
+            approval_user_id=user["sub"],
+        )
+
+
+@router.delete("/{ws_id}/model-bindings/{binding_id}", status_code=204)
+def api_delete_model_binding(
+    ws_id: str,
+    binding_id: str,
+    user: dict = Depends(get_current_user),
+):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="editor")
+        revoke_workspace_model_binding(cur, ws_id, binding_id, user["sub"])
+    from fastapi import Response
+    return Response(status_code=204)
+
+
+class PolicyMemberUpdate(BaseModel):
+    binding_id: str
+    priority: int = 0
+    is_required: bool = False
+
+
+@router.get("/{ws_id}/review-policy/members")
+def api_get_review_policy_members(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        _require_ws_access(cur, ws_id, user, required_role="viewer")
+        cur.execute(
+            """
+            SELECT m.*, b.status AS binding_status, k.provider, k.default_chat_model AS model, k.key_hint, u.display_name AS offered_by_name
+            FROM review_policy_members m
+            JOIN workspace_model_bindings b ON b.id = m.binding_id
+            JOIN user_ai_keys k ON k.id = b.model_account_id
+            JOIN users u ON u.id = b.offered_by
+            WHERE m.policy_id = %s
+            ORDER BY m.priority DESC, m.created_at ASC
+            """,
+            (ws_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+@router.put("/{ws_id}/review-policy/members")
+def api_update_review_policy_members(
+    ws_id: str,
+    members: List[PolicyMemberUpdate],
+    user: dict = Depends(get_current_user),
+):
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        # delete existing members
+        cur.execute("DELETE FROM review_policy_members WHERE policy_id = %s", (ws_id,))
+        # insert new members
+        for m in members:
+            # Check that binding exists and belongs to the workspace
+            cur.execute(
+                "SELECT 1 FROM workspace_model_bindings WHERE id = %s AND workspace_id = %s",
+                (m.binding_id, ws_id),
+            )
+            if not cur.fetchone():
+                raise HTTPException(status_code=400, detail=f"Invalid binding ID: {m.binding_id}")
+            cur.execute(
+                """
+                INSERT INTO review_policy_members (policy_id, binding_id, priority, is_required)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (ws_id, m.binding_id, m.priority, m.is_required),
+            )
+        return {"status": "success"}
+
