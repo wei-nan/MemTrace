@@ -44,7 +44,42 @@ def reinforce_paths_in_db(cur):
     
     logger.info(f"Reinforced {reinforced_count} edges from successful paths.")
 
-    # 2. Decay/archive failed paths with no activity for 30 days
+    # 2. Deduct weight for failed paths from the last 24 hours
+    cur.execute(
+        """
+        SELECT id, workspace_id, node_sequence
+        FROM inquiry_paths
+        WHERE outcome = 'failed'
+          AND ended_at >= now() - INTERVAL '1 day'
+          AND archived_at IS NULL
+        """
+    )
+    failed_paths = cur.fetchall()
+
+    deducted_count = 0
+    for p in failed_paths:
+        ws_id = p["workspace_id"]
+        seq = p["node_sequence"] or []
+        if len(seq) < 2:
+            continue
+        for i in range(len(seq) - 1):
+            n1 = seq[i]
+            n2 = seq[i + 1]
+            cur.execute(
+                """
+                UPDATE edges
+                SET weight = GREATEST(weight - 0.05, 0.1)
+                WHERE workspace_id = %s
+                  AND status = 'active'
+                  AND ((from_id = %s AND to_id = %s) OR (from_id = %s AND to_id = %s))
+                """,
+                (ws_id, n1, n2, n2, n1),
+            )
+            deducted_count += cur.rowcount
+
+    logger.info(f"Deducted weight from {deducted_count} edges via failed paths.")
+
+    # 3. Archive old failed paths with no activity for 30 days
     cur.execute(
         """
         UPDATE inquiry_paths

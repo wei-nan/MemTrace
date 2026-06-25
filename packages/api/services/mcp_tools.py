@@ -182,6 +182,7 @@ TOOLS = [
                 "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
                 "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
+                "include_archived": {"type": "boolean", "description": "Whether to include archived/faded nodes (faded memories). Default false.", "default": False},
             },
             "required": ["workspace_id", "query"],
         },
@@ -1060,6 +1061,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         if max_tokens is not None:
             max_tokens = int(max_tokens)
         include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
+        include_archived = bool(args.get("include_archived", False))
         with db_cursor() as cur:
             results = await search_nodes_in_db(
                 cur,
@@ -1068,6 +1070,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 limit,
                 user,
                 include_answered_inquiries=include_answered_inquiries,
+                include_archived=include_archived,
             )
             if not results and query:
                 background_tasks.add_task(handle_search_miss, ws_id, query, user["sub"])
@@ -1695,7 +1698,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         from services.inquiry_paths import record_path_in_db
         with db_cursor(commit=True) as cur:
-            require_ws_access(cur, ws_id, user, write=False)
+            require_ws_access(cur, ws_id, user, required_role="contributor")
             res = await record_path_in_db(cur, ws_id, user["sub"], args)
             return res
 
@@ -2039,7 +2042,17 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         feature_complete_triggered = False
 
         with db_cursor(commit=True) as cur:
-            require_ws_access(cur, ws_id, user, write=True)
+            ws = require_ws_access(cur, ws_id, user)
+            role = ws.get("my_role")
+            if role == "viewer" or not role:
+                raise HTTPException(status_code=403, detail="Contributor or above required to submit outcome")
+
+            # Claim verification: caller must hold the claim
+            _gc_claims()
+            key = _claim_key(ws_id, task_id)
+            entry = _TASK_CLAIMS.get(key)
+            if not entry or entry["agent_sub"] != user.get("sub"):
+                raise HTTPException(status_code=403, detail="Must claim the task before submitting outcome (call claim_task first)")
 
             # Validate inquiry node exists
             cur.execute(
@@ -2051,19 +2064,33 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 raise HTTPException(status_code=404, detail=f"Task node {task_id} not found")
 
             if outcome in ("success", "partial") and impl_id:
-                # Create answered_by edge
-                try:
-                    from services.edges import create_edge_in_db as _create_edge
-                    _create_edge(cur, ws_id, {
-                        "from_id": task_id,
-                        "to_id": impl_id,
-                        "relation": "answered_by",
-                        "weight": 1.0 if outcome == "success" else 0.7,
-                    })
-                except Exception:
-                    pass
+                if role in ("editor", "admin"):
+                    # Direct write for editor/admin
+                    try:
+                        from services.edges import create_edge_in_db as _create_edge
+                        _create_edge(cur, ws_id, {
+                            "from_id": task_id,
+                            "to_id": impl_id,
+                            "relation": "answered_by",
+                            "weight": 1.0 if outcome == "success" else 0.7,
+                        })
+                    except Exception:
+                        pass
+                else:
+                    # Contributor: route answered_by edge through review queue
+                    try:
+                        from services.nodes import propose_change as _propose_change
+                        _propose_change(
+                            cur, ws_id, "create_edge", None,
+                            {"from_id": task_id, "to_id": impl_id, "relation": "answered_by",
+                             "weight": 1.0 if outcome == "success" else 0.7},
+                            "ai", user.get("sub"),
+                            source_info=f"submit_outcome:task={task_id},outcome={outcome}",
+                        )
+                    except Exception:
+                        pass
 
-                if outcome == "success":
+                if outcome == "success" and role in ("editor", "admin"):
                     cur.execute(
                         "UPDATE memory_nodes SET status='answered', updated_at=now() "
                         "WHERE id=%s AND workspace_id=%s",

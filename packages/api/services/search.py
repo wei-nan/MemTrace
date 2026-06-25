@@ -285,22 +285,24 @@ async def search_nodes_in_db(
     limit: int,
     user: Optional[dict],
     include_answered_inquiries: bool = False,
+    include_archived: bool = False,
 ) -> list[dict]:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
     ws = require_ws_access(cur, ws_id, user)
-    
+
     # 1. Text Search
-    filters = ["workspace_id = %s", "status = 'active'"]
+    status_filter = "status IN ('active', 'answered', 'archived')" if include_archived else "status = 'active'"
+    filters = ["workspace_id = %s", status_filter]
     params: list = [ws_id]
     apply_answered_inquiry_filter(filters, include_answered_inquiries)
     apply_text_search(filters, params, query)
-    
+
     cur.execute(
         f"SELECT *, 0.5 as similarity FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY updated_at DESC, created_at DESC LIMIT %s",
         params + [limit],
     )
     text_results = cur.fetchall()
-    
+
     # 2. Semantic Search (gracefully degrade if no provider key configured)
     semantic_results = []
     user_id = user["sub"] if user else "system"
@@ -315,6 +317,7 @@ async def search_nodes_in_db(
             limit,
             ws_model,
             ws_prov,
+            include_archived=include_archived,
             include_answered_inquiries=include_answered_inquiries,
         )
     except (AIProviderUnavailable, RuntimeError, Exception):

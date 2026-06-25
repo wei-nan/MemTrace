@@ -32,6 +32,63 @@ from services.audit import log_audit_event
 logger = logging.getLogger(__name__)
 
 
+# ─── Safety Gate (Tier 1 + Tier 2) ───────────────────────────────────────────
+
+def _tier1_condition(payload: dict) -> bool:
+    """Tier 1: fail-closed. ai/mcp→procedural OR public+non-human."""
+    src = payload.get("source_type", "human")
+    ct  = payload.get("content_type", "factual")
+    vis = payload.get("visibility", "private")
+    return (src in ("ai", "mcp") and ct == "procedural") or (vis == "public" and src != "human")
+
+
+def _tier2_condition(payload: dict) -> bool:
+    """Tier 2: async queue. ai/mcp writes that aren't Tier 1."""
+    src = payload.get("source_type", "human")
+    ct  = payload.get("content_type", "factual")
+    return src in ("ai", "mcp") and ct != "procedural"
+
+
+def _check_tier1_safety(payload: dict) -> None:
+    """Synchronous fail-closed check. Raises HTTPException 400 if risky/dangerous."""
+    if not _tier1_condition(payload):
+        return
+    try:
+        from services.safety_review import classify_safety_rules
+        text = f"{payload.get('title', '')}\n{payload.get('body', '')}"
+        classification = classify_safety_rules(text)
+        if classification in ("risky", "dangerous"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Safety check failed: content classified as '{classification}'. Write blocked.",
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning("Tier 1 safety check error (fail-open): %s", exc)
+
+
+def _enqueue_tier2_safety(cur, ws_id: str, node_id: str, payload: dict) -> None:
+    """Enqueue an async safety proposal for non-procedural ai/mcp writes."""
+    if not _tier2_condition(payload):
+        return
+    try:
+        from services.audit_proposals import create_proposal
+        create_proposal(
+            cur=cur,
+            workspace_id=ws_id,
+            reviewer="safety_realtime",
+            category="realtime_safety",
+            target_ids=[node_id],
+            reasoning="Async safety review for ai/mcp non-procedural node",
+            evidence={"source_type": payload.get("source_type"), "content_type": payload.get("content_type")},
+            suggested_action={"action": "review"},
+            severity="low",
+        )
+    except Exception as exc:
+        logger.warning("Tier 2 safety enqueue failed (best-effort): %s", exc)
+
+
 class NodeValidationError(HTTPException):
     def __init__(self, message: str, field: str, hint: str):
         super().__init__(status_code=400, detail={
@@ -194,6 +251,10 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
         node_data, node_data["author"], node_data.get("source_type", "human"), node_data.get("status", "active")
     )
     node_id = node_data.get("id") or generate_id("mem")
+
+    # Safety gate: Tier 1 before write (fail-closed), Tier 2 after (async queue)
+    _check_tier1_safety(payload)
+
     cur.execute(
         f"""
         INSERT INTO memory_nodes (
@@ -218,9 +279,10 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             node_data.get("cluster_id"),
             payload.get("resolution_status") or 'open',
         ),
-
     )
-    return cur.fetchone()
+    row = cur.fetchone()
+    _enqueue_tier2_safety(cur, ws_id, node_id, payload)
+    return row
 
 
 def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: str) -> dict:
@@ -248,12 +310,16 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
 
     merged = {**dict(existing), **{field: node_data.get(field, existing.get(field)) for field in NODE_EDITABLE_FIELDS}}
     payload = prepare_node_data(merged, actor_id, merged.get("source_type", "human"))
+
+    # Safety gate: Tier 1 before write (fail-closed)
+    _check_tier1_safety(payload)
+
     # S5-T01: Optimistic Locking
     expected_version = payload.get("version")
     version_cond = ""
     if expected_version is not None:
         version_cond = " AND version = %s"
-        
+
     cur.execute(
         f"""
         UPDATE memory_nodes
@@ -323,6 +389,7 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
 
         # S3-T05: Audit Log
         log_audit_event(cur, ws_id, "update_node", "node", node_id, actor_id, {"title": updated["title"]})
+        _enqueue_tier2_safety(cur, ws_id, node_id, payload)
 
     return updated
 
@@ -664,9 +731,10 @@ async def search_nodes_in_db(
     limit: int,
     user: Optional[dict],
     include_answered_inquiries: bool = False,
+    include_archived: bool = False,
 ) -> list[dict]:
     from services.search import search_nodes_in_db as _search
-    return await _search(cur, ws_id, query, limit, user, include_answered_inquiries=include_answered_inquiries)
+    return await _search(cur, ws_id, query, limit, user, include_answered_inquiries=include_answered_inquiries, include_archived=include_archived)
 
 def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
     from services.workspaces import require_ws_access
