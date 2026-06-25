@@ -87,7 +87,12 @@ def _apply_review_item(cur, item: dict):
         return None, deleted
     elif change_type == "create_edge":
         from services.edges import create_edge_in_db
-        create_edge_in_db(cur, ws_id, node_data)
+        try:
+            create_edge_in_db(cur, ws_id, node_data)
+        except HTTPException as exc:
+            if exc.status_code != 409:
+                raise
+            # Edge already exists — accept is a no-op, not an error
         return None, None
     elif change_type in ("split_suggestion", "conflict", "source_updated"):
         return None, None

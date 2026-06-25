@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Brain, Sparkles, Cpu } from "lucide-react";
+import { Bot, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Sparkles, Cpu } from "lucide-react";
 import { ai, aiReviewers, workspaces, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
@@ -1376,28 +1376,6 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
             </div>
           </SectionCard>
 
-
-          <SectionCard>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Brain size={20} color="var(--color-primary)" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? "向量模型 (已鎖定)" : "Embedding Model (Locked)"}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                  {ws?.embedding_model} ({ws?.embedding_dim}d)
-                </div>
-              </div>
-              <div className="info-tooltip-wrapper">
-                <Info size={14} style={{ color: "var(--text-muted)", cursor: "help" }} />
-                <div className="info-tooltip" style={{ width: 240 }}>
-                  {zh 
-                    ? "為確保知識圖譜語義一致，工作區建立後向量模型即鎖定，不可更改。更換模型需建立新工作區並匯入資料。" 
-                    : "To ensure semantic consistency, the embedding model is locked after workspace creation. To use a different model, create a new workspace and import your data."}
-                </div>
-              </div>
-            </div>
-          </SectionCard>
 
           <SectionCard>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
