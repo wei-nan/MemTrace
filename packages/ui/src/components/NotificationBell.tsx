@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Bell, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { notifications as notifApi, type NotificationItem } from '../api';
-import { notificationTitle, severityColor } from './notificationFormat';
+import { notificationTitle, notificationBody, severityColor } from './notificationFormat';
 
 const POLL_MS = 30_000;
 
@@ -174,11 +174,11 @@ const NotificationBell: React.FC<Props> = ({ onNavigate, onViewAll }) => {
                     }}>
                       {notificationTitle(n, zh)}
                     </div>
-                    {n.body && (
+                    {(() => { const b = notificationBody(n, zh); return b && (
                       <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                        {n.body.length > 100 ? `${n.body.slice(0, 100)}…` : n.body}
+                        {b.length > 100 ? `${b.slice(0, 100)}…` : b}
                       </div>
-                    )}
+                    ); })()}
                     <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 3 }}>
                       {new Date(n.created_at).toLocaleString()}
                     </div>

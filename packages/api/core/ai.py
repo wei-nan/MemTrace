@@ -526,23 +526,21 @@ class AnthropicProvider(AIProvider):
                     raise AIProviderError(f"Anthropic Stream {resp.status_code}: {err_body.decode()[:400]}")
                 
                 import json
+                input_tokens = 0
                 async for line in resp.aiter_lines():
                     if not line.startswith("data: "): continue
                     data_str = line[6:].strip()
                     try:
                         chunk = json.loads(data_str)
                         ev_type = chunk.get("type")
-                        if ev_type == "content_block_delta":
+                        if ev_type == "message_start":
+                            input_tokens = chunk.get("message", {}).get("usage", {}).get("input_tokens", 0)
+                        elif ev_type == "content_block_delta":
                             yield chunk["delta"].get("text", ""), 0
-                        elif ev_type == "message_stop":
-                            # Anthropic doesn't easily give tokens in stream without more complex parsing
-                            # but we can get it from message_start or message_delta
-                            pass
                         elif ev_type == "message_delta":
                             usage = chunk.get("usage", {})
                             if "output_tokens" in usage:
-                                # This is partial usage
-                                yield "", usage.get("output_tokens", 0)
+                                yield "", input_tokens + usage.get("output_tokens", 0)
                     except:
                         continue
 

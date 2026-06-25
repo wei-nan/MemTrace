@@ -28,6 +28,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [credits, setCredits] = useState<CreditStatus | null>(null);
   const [proposalStates, setProposalStates] = useState<Record<string, ProposalState>>({});
+  const [expandedNodes, setExpandedNodes] = useState<Record<number, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const abortedRef = useRef(false);
@@ -70,6 +71,30 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   }, [wsId]);
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
+
+  // Persist last-used session per workspace so it survives page refresh.
+  useEffect(() => {
+    if (sessionId) localStorage.setItem(`mt_last_session_${wsId}`, sessionId);
+  }, [sessionId, wsId]);
+
+  // On mount: restore the last session directly via API — no need to wait for sessions list.
+  useEffect(() => {
+    const savedId = localStorage.getItem(`mt_last_session_${wsId}`);
+    if (!savedId) return;
+    ai.getSessionMessages(savedId, 20)
+      .then(msgs => {
+        if (msgs.length === 0) return; // session exists but empty; skip
+        setSessionId(savedId);
+        setMessages(msgs.map(m => ({ role: m.role, content: m.content })));
+        setOldestMessageId(msgs[0]?.id ?? null);
+        setHasOlderMessages(msgs.length >= 20);
+      })
+      .catch(() => {
+        // Session deleted or expired — clear stale reference.
+        localStorage.removeItem(`mt_last_session_${wsId}`);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run exactly once on mount
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -520,7 +545,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
               </div>
               <div style={{ maxWidth: '85%', minWidth: 0 }}>
                 <div style={{ padding: '10px 14px', borderRadius: 12, fontSize: 13, lineHeight: 1.5, background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-base)', color: m.role === 'user' ? 'white' : 'var(--text-primary)', border: m.role === 'assistant' ? '1px solid var(--border-default)' : 'none', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                  {m.role === 'assistant' && m.content === '' && loading && msgIdx === messages.length - 1
+                    ? <TypingDots />
+                    : <div className={m.role === 'assistant' ? 'markdown-body' : undefined}><ReactMarkdown>{m.content}</ReactMarkdown></div>}
                   {m.response?.proposals && m.response.proposals.length > 0 && (
                     <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -533,16 +560,45 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
                     </div>
                   )}
                 </div>
-                {m.response?.source_nodes && m.response.source_nodes.length > 0 && (
-                  <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {m.response.source_nodes.slice(0, 3).map((sn, j) => (
-                      <div key={j} onClick={() => sn.id && (window as any).mt_focus_node?.(sn.id)} title={sn.id ? (zh ? '在 3D 圖譜中定位' : 'Focus in 3D graph') : undefined} style={{ fontSize: 11, padding: '2px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 4, color: 'var(--text-muted)', cursor: sn.id ? 'pointer' : 'default' }}>
-                        {sn.title}
-                      </div>
-                    ))}
-                    {m.response.source_nodes.length > 3 && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>+{m.response.source_nodes.length - 3} more</div>}
-                  </div>
-                )}
+                {m.response?.source_nodes && m.response.source_nodes.length > 0 && (() => {
+                  const nodes = m.response.source_nodes;
+                  const COLLAPSED_LIMIT = 3;
+                  const isExpanded = !!expandedNodes[msgIdx];
+                  const visible = isExpanded ? nodes : nodes.slice(0, COLLAPSED_LIMIT);
+                  const overflow = nodes.length - COLLAPSED_LIMIT;
+                  return (
+                    <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      {visible.map((sn, j) => (
+                        <div
+                          key={j}
+                          onClick={() => sn.id && (window as any).mt_focus_node?.(sn.id, true)}
+                          title={sn.id ? (zh ? '定位節點並開啟詳情' : 'Focus node & open detail') : undefined}
+                          style={{ fontSize: 11, padding: '2px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 4, color: 'var(--text-muted)', cursor: sn.id ? 'pointer' : 'default', transition: 'border-color 0.15s, color 0.15s' }}
+                          onMouseEnter={e => { if (sn.id) { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)'; (e.currentTarget as HTMLElement).style.color = 'var(--color-primary)'; } }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-subtle)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
+                        >
+                          {sn.title}
+                        </div>
+                      ))}
+                      {overflow > 0 && !isExpanded && (
+                        <button
+                          onClick={() => setExpandedNodes(prev => ({ ...prev, [msgIdx]: true }))}
+                          style={{ fontSize: 11, padding: '2px 8px', background: 'transparent', border: '1px dashed var(--border-default)', borderRadius: 4, color: 'var(--color-primary)', cursor: 'pointer' }}
+                        >
+                          +{overflow} {zh ? '更多' : 'more'}
+                        </button>
+                      )}
+                      {isExpanded && overflow > 0 && (
+                        <button
+                          onClick={() => setExpandedNodes(prev => ({ ...prev, [msgIdx]: false }))}
+                          style={{ fontSize: 11, padding: '2px 8px', background: 'transparent', border: '1px dashed var(--border-default)', borderRadius: 4, color: 'var(--text-muted)', cursor: 'pointer' }}
+                        >
+                          {zh ? '收合' : 'collapse'}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
                 {m.role === 'assistant' && m.response !== undefined && (m.response.source_nodes?.length ?? -1) === 0 && (
                   <div style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, background: 'var(--color-warning-subtle, #fef3c7)', border: '1px solid var(--color-warning, #f59e0b)', fontSize: 11, color: 'var(--color-warning, #92400e)', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                     <AlertCircle size={12} style={{ flexShrink: 0, marginTop: 1 }} />
@@ -552,16 +608,6 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
               </div>
             </div>
           ))}
-          {loading && (
-            <div style={{ display: 'flex', gap: 12, width: fullPage ? '100%' : undefined, maxWidth: fullPage ? 800 : undefined }}>
-              <div style={{ width: 32, height: 32, borderRadius: 16, background: 'var(--color-primary-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <SpinnerIcon />
-              </div>
-              <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', fontSize: 13 }}>
-                <span className="animate-pulse">...</span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Input Area */}
@@ -683,6 +729,18 @@ function ProposalCard({ proposal, zh, status, onAccept, onReject }: { proposal: 
   );
 }
 
-function SpinnerIcon() {
-  return <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: '50%' }}></div>;
+function TypingDots() {
+  return (
+    <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center', height: 20 }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text-muted)', display: 'inline-block', animation: 'typing-dot 1.2s ease-in-out infinite', animationDelay: `${i * 0.2}s` }} />
+      ))}
+      <style>{`
+        @keyframes typing-dot {
+          0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-3px); }
+        }
+      `}</style>
+    </span>
+  );
 }

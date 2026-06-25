@@ -665,6 +665,17 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'JetBrains Mono', monospace;
 }
 
+.markdown-body pre {
+  overflow-x: auto;
+  background: var(--bg-elevated);
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
 .markdown-body pre code {
   background: transparent;
   padding: 0;

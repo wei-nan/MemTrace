@@ -333,10 +333,11 @@ export default function GraphView3D({
 
   // ── Global focus API for cross-component navigation (e.g. AI chat source nodes) ──
   useEffect(() => {
-    (window as any).mt_focus_node = (nodeId: string) => {
+    (window as any).mt_focus_node = (nodeId: string, openDetail = false) => {
       const node = graphData.nodes.find((n: any) => n.id === nodeId);
       if (!node) return;
       setSelectedNodeId(nodeId);
+      if (openDetail && (node as any)._api && onEditNode) onEditNode((node as any)._api);
       const dist = 80;
       const mag = Math.hypot((node as any).x ?? 1, (node as any).y ?? 1, (node as any).z ?? 1);
       const r = 1 + dist / mag;
@@ -347,7 +348,7 @@ export default function GraphView3D({
       );
     };
     return () => { delete (window as any).mt_focus_node; };
-  }, [graphData.nodes]);
+  }, [graphData.nodes, onEditNode]);
 
   // Cleanup label & material refs on data change to prevent memory leaks
   useEffect(() => {

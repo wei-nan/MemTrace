@@ -5,7 +5,7 @@ import asyncio
 from typing import Literal, Optional, List, Dict, Any
 
 from core.database import db_cursor
-from core.ai import resolve_provider, chat_completion, AIProviderUnavailable
+from core.ai import resolve_provider, chat_completion, record_usage, AIProviderUnavailable
 from core.security import generate_id
 from services.workspaces import require_ws_access
 from services.safety_review import classify_safety
@@ -80,12 +80,13 @@ async def synthesize_responses(
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_msg}
         ]
-        res_text, _ = await chat_completion(
+        res_text, tokens = await chat_completion(
             resolved=resolved,
             messages=messages,
             max_tokens=512,
             temperature=0.1
         )
+        record_usage(resolved, "chat", tokens, ws_id)
         # Clean markdown wrappers if any
         import re
         cleaned = re.sub(r"```json|```", "", res_text).strip()
@@ -264,7 +265,8 @@ async def consult(
             + "\n".join([f"- ID: {n['id']}, Title: {n['title']}, Type: {n['content_type']}" for n in candidate_nodes])
         )
         
-        res_text, _ = await run_single_consult(resolved, system_prompt, user_msg)
+        res_text, tokens = await run_single_consult(resolved, system_prompt, user_msg)
+        record_usage(resolved, "chat", tokens, ws_id)
         # Clean response
         import re
         res_text = re.sub(r"```json|```", "", res_text).strip()
@@ -324,21 +326,26 @@ async def consult(
             active_provs = list(set(active_provs))[:3] # Up to 3
             if len(active_provs) > 1:
                 tasks = []
+                task_providers = []
                 for p in active_provs:
                     try:
                         p_resolved = resolve_provider(user_id=user_id, feature="chat", preferred_provider=p)
                         tasks.append(run_single_consult(p_resolved, system_prompt, user_msg))
+                        task_providers.append(p_resolved)
                     except Exception:
                         pass
                 if tasks:
                     completed_tasks = await asyncio.gather(*tasks, return_exceptions=True)
-                    for t in completed_tasks:
+                    for t, p_resolved in zip(completed_tasks, task_providers):
                         if isinstance(t, tuple):
                             responses.append(t[0])
-            
+                            if t[1]:
+                                record_usage(p_resolved, "chat", t[1], ws_id)
+
         if not responses:
             # Single model consult fallback
-            res_text, _ = await run_single_consult(resolved, system_prompt, user_msg)
+            res_text, tokens = await run_single_consult(resolved, system_prompt, user_msg)
+            record_usage(resolved, "chat", tokens, ws_id)
             responses.append(res_text)
             
         # Clean responses

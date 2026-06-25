@@ -9,7 +9,10 @@ from __future__ import annotations
 
 from datetime import datetime
 import json
+import logging
 from typing import Literal, Optional
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from pydantic import BaseModel, Field
@@ -647,12 +650,17 @@ async def chat_with_kb_stream(
                     final_answer, [n["id"] for n in source_nodes], body.force_auto_active
                 )
 
-            # Persist session messages (background)
-            background_tasks.add_task(
-                _persist_chat_turn,
-                session_id, body.message, final_answer,
-                [n["id"] for n in source_nodes], total_tokens
-            )
+            # Persist session messages synchronously before yielding done so that
+            # getSessionMessages called immediately after receives the full turn.
+            try:
+                import asyncio as _asyncio
+                await _asyncio.to_thread(
+                    _persist_chat_turn,
+                    session_id, body.message, final_answer,
+                    [n["id"] for n in source_nodes], total_tokens,
+                )
+            except Exception as _persist_err:
+                logger.error("Failed to persist chat turn: %s", _persist_err)
 
             record_usage(resolved, "extraction", total_tokens, body.workspace_id)
             yield json.dumps({"type": "done", "tokens_used": total_tokens, "source": resolved.source}) + "\n"
