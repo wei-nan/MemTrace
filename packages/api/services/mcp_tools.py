@@ -1198,7 +1198,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         with db_cursor(commit=True) as cur:
             require_ws_access(cur, ws_id, user, write=True, required_role="admin")
-            return delete_edge_in_db(cur, ws_id, args["edge_id"])
+            return delete_edge_in_db(cur, ws_id, args["edge_id"], deleted_by=user.get("sub", "system"))
 
     # ── traverse ──────────────────────────────────────────────────────────────
     if name == "traverse":

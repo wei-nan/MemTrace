@@ -115,7 +115,9 @@ def get_node_top_edges(cur, ws_id: str, node_id: str) -> List[Dict[str, Any]]:
             n.title AS target_title
         FROM edges e
         JOIN memory_nodes n ON n.id = CASE WHEN e.from_id = %s THEN e.to_id ELSE e.from_id END
-        WHERE e.workspace_id = %s AND e.status = 'active' AND (e.from_id = %s OR e.to_id = %s)
+        WHERE e.workspace_id = %s AND e.status = 'active'
+          AND e.edge_class <> 'telemetry'
+          AND (e.from_id = %s OR e.to_id = %s)
         """,
         (node_id, node_id, node_id, ws_id, node_id, node_id)
     )

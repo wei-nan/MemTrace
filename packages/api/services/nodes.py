@@ -394,8 +394,21 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
     return updated
 
 
-def delete_node_in_db(cur, ws_id: str, node_id: str) -> dict:
-    """Archive (DELETE) a memory_node and return the deleted row."""
+def delete_node_in_db(
+    cur,
+    ws_id: str,
+    node_id: str,
+    deleted_by: str = "system",
+    reason_category: str = "other",
+    reason_note: str = "",
+) -> dict:
+    """Hard-delete a memory_node and return the deleted row.
+
+    Hard delete is for genuinely mis-created nodes (never-true noise); knowledge
+    that was once true should be archived, not deleted (Decay, mem_3bbdf4dc). The
+    removal is recorded as a tombstone so it stays auditable (mem_347895c4)."""
+    from services.tombstones import record_node_tombstone
+
     cur.execute(
         f"DELETE FROM memory_nodes WHERE id = %s AND workspace_id = %s RETURNING {NODE_PUBLIC_COLUMNS}",
         (node_id, ws_id),
@@ -403,6 +416,10 @@ def delete_node_in_db(cur, ws_id: str, node_id: str) -> dict:
     row = cur.fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Node not found")
+    record_node_tombstone(
+        cur, ws_id, dict(row),
+        deleted_by=deleted_by, reason_category=reason_category, reason_note=reason_note,
+    )
     return row
 
 def confirm_node_validity_in_db(cur, ws_id: str, node_id: str, user_email: str) -> None:
@@ -1035,7 +1052,7 @@ def delete_node_full_in_db(cur, ws_id: str, node_id: str, user: dict) -> tuple[d
         )
         return None, review_id
         
-    node = delete_node_in_db(cur, ws_id, node_id)
+    node = delete_node_in_db(cur, ws_id, node_id, deleted_by=proposer_id)
     return node, None
 
 def list_node_revisions_in_db(cur, ws_id: str, node_id: str, user: Optional[dict]) -> list[dict]:

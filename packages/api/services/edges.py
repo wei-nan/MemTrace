@@ -12,7 +12,7 @@ from typing import Optional
 
 from core.database import db_cursor
 from core.security import generate_id
-from core.constants import VALID_RELATIONS
+from core.constants import VALID_RELATIONS, edge_class_for_relation
 
 logger = logging.getLogger(__name__)
 
@@ -64,10 +64,13 @@ def write_mcp_interaction_edge(
                 "last_hit": now_str,
                 "history": [{"tool": tool_name, "query": query_text, "ts": now_str}],
             }
+            # Telemetry edge: low weight (matches the declared queried_via_mcp
+            # default 0.2, not the old hardcoded 1.0) and edge_class='telemetry'
+            # so it is excluded from top_edges / default traversal / data-quality.
             cur.execute(
                 """
-                INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, metadata)
-                VALUES (%s, %s, %s, %s, 'queried_via_mcp', 1.0, %s)
+                INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, edge_class, metadata)
+                VALUES (%s, %s, %s, %s, 'queried_via_mcp', 0.2, 'telemetry', %s)
                 """,
                 (generate_id("edge"), ws_id, agent_id, node_id, json.dumps(meta)),
             )
@@ -150,11 +153,12 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
     try:
         cur.execute(
             """
-            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, half_life_days, pinned, metadata)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, half_life_days, pinned, edge_class, metadata)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
             """,
-            (edge_id, ws_id, from_id, to_id, relation, weight, half_life_days, pinned, json.dumps(metadata)),
+            (edge_id, ws_id, from_id, to_id, relation, weight, half_life_days, pinned,
+             edge_class_for_relation(relation), json.dumps(metadata)),
         )
         edge = cur.fetchone()
 
@@ -184,11 +188,32 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
         raise
 
 
-def delete_edge_in_db(cur, ws_id: str, edge_id: str) -> dict:
-    """Hard-delete an edge by id. Used to clean up wrong-direction / duplicate edges."""
-    cur.execute("DELETE FROM edges WHERE id = %s AND workspace_id = %s", (edge_id, ws_id))
-    if cur.rowcount == 0:
+def delete_edge_in_db(
+    cur,
+    ws_id: str,
+    edge_id: str,
+    deleted_by: str = "system",
+    reason_category: str = "other",
+    reason_note: str = "",
+) -> dict:
+    """Hard-delete an edge by id (wrong-direction / duplicate / orphaned cleanup).
+
+    A genuinely mis-created edge may be removed, but the removal is recorded as a
+    tombstone so the fact of deletion stays auditable (mem_347895c4)."""
+    from services.tombstones import record_edge_tombstone
+
+    cur.execute(
+        "SELECT id, from_id, to_id, relation FROM edges WHERE id = %s AND workspace_id = %s",
+        (edge_id, ws_id),
+    )
+    row = cur.fetchone()
+    if not row:
         raise HTTPException(status_code=404, detail=f"Edge not found: {edge_id}")
+    record_edge_tombstone(
+        cur, ws_id, dict(row),
+        deleted_by=deleted_by, reason_category=reason_category, reason_note=reason_note,
+    )
+    cur.execute("DELETE FROM edges WHERE id = %s AND workspace_id = %s", (edge_id, ws_id))
     return {"deleted": True, "edge_id": edge_id}
 
 # ─── Backward-compat aliases ──────────────────────────────────────────────────

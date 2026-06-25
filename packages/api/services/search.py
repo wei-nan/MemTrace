@@ -49,6 +49,10 @@ def bfs_neighborhood(
         if relation:
             query += " AND relation = %s"
             params.append(relation)
+        else:
+            # Default traversal shows knowledge, not telemetry: query-history edges
+            # (queried_via_mcp) are excluded unless explicitly requested by relation.
+            query += " AND edge_class <> 'telemetry'"
 
         placeholders = ",".join(["%s"] * len(current_frontier))
         if direction == "forward":

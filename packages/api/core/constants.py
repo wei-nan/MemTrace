@@ -27,6 +27,20 @@ VALID_RELATIONS: frozenset = frozenset({
     "proceeds_to",      # Phase 6.3: conditional next step in troubleshooting graph
 })
 
+# ─── Edge class（語意 / 系統 / telemetry）──────────────────────────────────────
+# 知識圖只放知識：telemetry（查詢痕跡，如 queried_via_mcp）不是決策脈絡，不應污染
+# data-quality checker、top_edges 與預設 traversal。relation → edge_class 的單一來源。
+TELEMETRY_RELATIONS: frozenset = frozenset({"queried_via_mcp"})
+
+
+def edge_class_for_relation(relation: str) -> str:
+    """Map a relation to its edge_class. Telemetry edges record retrieval history,
+    not knowledge semantics, and are routed differently by checkers/top_edges/traversal."""
+    if relation in TELEMETRY_RELATIONS:
+        return "telemetry"
+    return "semantic"
+
+
 VALID_CONTENT_T: frozenset = frozenset({
     "factual",
     "procedural",

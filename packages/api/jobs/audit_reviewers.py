@@ -167,17 +167,24 @@ def reviewer_edge_auditor(cur, workspace_id: str) -> int:
     """
     created = 0
 
-    # Dangling edges
+    # Dangling edges = edges whose endpoint node no longer EXISTS (orphaned
+    # reference). Two deliberate exclusions:
+    #   1. telemetry edges (queried_via_mcp) are not knowledge semantic edges —
+    #      their actor endpoint has a different lifecycle; never audited here.
+    #   2. an endpoint that merely became `archived` is NOT dangling: per the
+    #      Decay stance (mem_3bbdf4dc) archived ≠ deleted, so a semantic edge to a
+    #      faded node is preserved, not flagged. Only truly-missing rows qualify.
     cur.execute(
         """
         SELECT e.id, e.from_id, e.to_id, e.relation
         FROM edges e
         WHERE e.workspace_id = %s
           AND e.status = 'active'
+          AND e.edge_class <> 'telemetry'
           AND (
-            NOT EXISTS (SELECT 1 FROM memory_nodes n WHERE n.id = e.from_id AND n.status = 'active')
+            NOT EXISTS (SELECT 1 FROM memory_nodes n WHERE n.id = e.from_id)
             OR
-            NOT EXISTS (SELECT 1 FROM memory_nodes n WHERE n.id = e.to_id AND n.status = 'active')
+            NOT EXISTS (SELECT 1 FROM memory_nodes n WHERE n.id = e.to_id)
           )
         LIMIT %s
         """,
@@ -191,11 +198,11 @@ def reviewer_edge_auditor(cur, workspace_id: str) -> int:
             category="dangling_edge",
             target_ids=[r["id"]],
             reasoning=(
-                f"邊 {r['from_id']} →[{r['relation']}]→ {r['to_id']} 指向不存在或已停用的節點，"
-                "建議移除此廢棄連結。"
+                f"邊 {r['from_id']} →[{r['relation']}]→ {r['to_id']} 指向已不存在的節點"
+                "（孤兒參照），建議審查後移除。刪除會留下墓碑（tombstone）紀錄。"
             ),
             evidence={"from_id": r["from_id"], "to_id": r["to_id"], "relation": r["relation"]},
-            suggested_action={"action": "delete_edge", "edge_id": r["id"]},
+            suggested_action={"action": "delete_edge", "edge_id": r["id"], "reason_category": "orphaned"},
             severity="mid",
         )
         if prop:

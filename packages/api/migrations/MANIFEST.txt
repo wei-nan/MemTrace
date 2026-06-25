@@ -14,3 +14,4 @@
 114_memory_nodes_updated_at.sql
 115_notification_center.sql
 116_notification_target_node.sql
+117_node_edge_class_and_tombstones.sql
