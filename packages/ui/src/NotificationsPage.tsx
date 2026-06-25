@@ -1,13 +1,20 @@
 /**
  * NotificationsPage — full-page notification center.
  * The header bell dropdown only shows recent items; this page lists everything
- * with all/unread filtering and pagination.
+ * with all/unread filtering, severity filtering, pagination, and per-group preferences.
  */
 import React, { useEffect, useState, useCallback } from 'react';
-import { Check, RefreshCw, X, Trash2 } from 'lucide-react';
+import { Check, RefreshCw, Settings, X, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { notifications as notifApi, type NotificationItem, type NotificationSeverity } from './api';
 import { notificationTitle, severityLabel, severityColor } from './components/notificationFormat';
+import {
+  NOTIF_GROUPS,
+  loadCachedDisabledGroups,
+  loadPrefsFromDB,
+  savePrefsToDb,
+  isNotifVisible,
+} from './components/notificationPrefs';
 
 const PAGE = 30;
 const SEVERITIES: NotificationSeverity[] = ['high', 'mid', 'low'];
@@ -27,6 +34,26 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // ── Preferences ──────────────────────────────────────────────────────────
+  const [showPrefs, setShowPrefs] = useState(false);
+  // Start with cached value so UI renders correctly before API responds.
+  const [disabledGroups, setDisabledGroups] = useState<Set<string>>(loadCachedDisabledGroups);
+
+  // Sync from DB on mount.
+  useEffect(() => {
+    loadPrefsFromDB().then(setDisabledGroups).catch(() => {});
+  }, []);
+
+  const toggleGroup = (key: string) => {
+    setDisabledGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      savePrefsToDb(next).catch(() => {}); // optimistic — cache already updated inside
+      return next;
+    });
+  };
+
+  // ── Data fetching ─────────────────────────────────────────────────────────
   const fetchPage = useCallback(async (startOffset: number, replace: boolean) => {
     setLoading(true);
     try {
@@ -47,16 +74,12 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
     }
   }, [unreadOnly, severity]);
 
-  // Re-fetch from the top whenever the filter changes (fetchPage identity tracks unreadOnly).
   useEffect(() => { fetchPage(0, true); }, [fetchPage]);
 
+  // ── Actions ───────────────────────────────────────────────────────────────
   const handleClick = async (n: NotificationItem) => {
     if (!n.read_at) {
-      try {
-        await notifApi.markRead(n.id);
-      } catch {
-        // ignore
-      }
+      try { await notifApi.markRead(n.id); } catch { /* ignore */ }
       setItems(prev => prev.map(x => (x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x)));
       setUnread(c => Math.max(0, c - 1));
     }
@@ -64,36 +87,29 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
   };
 
   const handleMarkAll = async () => {
-    try {
-      await notifApi.markAllRead();
-    } catch {
-      // ignore
-    }
+    try { await notifApi.markAllRead(); } catch { /* ignore */ }
     setItems(prev => prev.map(x => ({ ...x, read_at: x.read_at ?? new Date().toISOString() })));
     setUnread(0);
     if (unreadOnly) fetchPage(0, true);
   };
 
   const handleDismiss = async (e: React.MouseEvent, n: NotificationItem) => {
-    e.stopPropagation();  // don't trigger navigation
+    e.stopPropagation();
     setItems(prev => prev.filter(x => x.id !== n.id));
     if (!n.read_at) setUnread(c => Math.max(0, c - 1));
-    try {
-      await notifApi.dismiss(n.id);
-    } catch {
-      // ignore — optimistic removal already applied
-    }
+    try { await notifApi.dismiss(n.id); } catch { /* ignore — optimistic */ }
   };
 
   const handleClearRead = async () => {
-    try {
-      await notifApi.dismissAll({ read_only: true, severity: severity ?? undefined });
-    } catch {
-      // ignore
-    }
+    try { await notifApi.dismissAll({ read_only: true, severity: severity ?? undefined }); } catch { /* ignore */ }
     fetchPage(0, true);
   };
 
+  // ── Derived state ─────────────────────────────────────────────────────────
+  const visible = items.filter(n => isNotifVisible(n, disabledGroups));
+  const hiddenCount = items.length - visible.length;
+
+  // ── Style helpers ─────────────────────────────────────────────────────────
   const tabBtn = (active: boolean): React.CSSProperties => ({
     padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-default)', cursor: 'pointer',
     fontSize: 13, fontWeight: 600,
@@ -115,6 +131,8 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
 
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '8px 4px 40px' }}>
+
+      {/* ── Top controls ─────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" style={tabBtn(!unreadOnly)} onClick={() => setUnreadOnly(false)}>
@@ -124,7 +142,7 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
             {zh ? '未讀' : 'Unread'}{unread > 0 ? ` (${unread})` : ''}
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {unread > 0 && (
             <button type="button" onClick={handleMarkAll} style={{ ...actionBtn, color: 'var(--color-primary)' }}>
               <Check size={15} /> {zh ? '全部已讀' : 'Mark all read'}
@@ -133,11 +151,105 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
           <button type="button" onClick={handleClearRead} style={{ ...actionBtn, color: 'var(--text-muted)' }}>
             <Trash2 size={15} /> {zh ? '清除已讀' : 'Clear read'}
           </button>
+          <div style={{ width: 1, height: 18, background: 'var(--border-default)' }} />
+          <button
+            type="button"
+            onClick={() => setShowPrefs(p => !p)}
+            title={zh ? '通知偏好設定' : 'Notification preferences'}
+            style={{
+              ...actionBtn,
+              color: showPrefs ? 'var(--color-primary)' : 'var(--text-muted)',
+              padding: '4px 6px',
+              borderRadius: 6,
+              border: `1px solid ${showPrefs ? 'var(--color-primary)' : 'transparent'}`,
+              background: showPrefs ? 'var(--color-primary-subtle)' : 'transparent',
+            }}
+          >
+            <Settings size={15} />
+            {disabledGroups.size > 0 && (
+              <span style={{
+                fontSize: 10, fontWeight: 700, minWidth: 16, height: 16,
+                background: 'var(--color-primary)', color: '#fff',
+                borderRadius: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0 4px',
+              }}>
+                {disabledGroups.size}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Severity filter */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+      {/* ── Preferences panel ─────────────────────────────────────────────── */}
+      {showPrefs && (
+        <div style={{
+          marginTop: 12, padding: '16px 18px',
+          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+          borderRadius: 10, boxShadow: 'var(--shadow-md)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+              {zh ? '通知類型' : 'Notification types'}
+            </span>
+            {disabledGroups.size > 0 && (
+              <button
+                type="button"
+                onClick={() => { const empty = new Set<string>(); setDisabledGroups(empty); savePrefsToDb(empty).catch(() => {}); }}
+                style={{ ...actionBtn, fontSize: 12, color: 'var(--color-primary)' }}
+              >
+                {zh ? '全部啟用' : 'Enable all'}
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 6 }}>
+            {NOTIF_GROUPS.map(g => {
+              const enabled = !disabledGroups.has(g.key);
+              return (
+                <label
+                  key={g.key}
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
+                    padding: '8px 10px', borderRadius: 8,
+                    border: `1px solid ${enabled ? 'var(--border-default)' : 'var(--border-subtle)'}`,
+                    background: enabled ? 'var(--bg-base)' : 'transparent',
+                    opacity: enabled ? 1 : 0.55,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {/* Toggle switch */}
+                  <div
+                    onClick={() => toggleGroup(g.key)}
+                    style={{
+                      flexShrink: 0, marginTop: 1,
+                      width: 32, height: 18, borderRadius: 9,
+                      background: enabled ? 'var(--color-primary)' : 'var(--border-strong)',
+                      position: 'relative', transition: 'background 0.2s', cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: 3, left: enabled ? 16 : 3,
+                      width: 12, height: 12, borderRadius: '50%', background: '#fff',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }} />
+                  </div>
+                  <div style={{ minWidth: 0 }} onClick={() => toggleGroup(g.key)}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                      {zh ? g.label.zh : g.label.en}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>
+                      {zh ? g.description.zh : g.description.en}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Severity filter ───────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" style={pill(severity === null)} onClick={() => setSeverity(null)}>
           {zh ? '所有等級' : 'All levels'}
         </button>
@@ -151,15 +263,25 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
             {severityLabel(s, zh)}
           </button>
         ))}
+        {hiddenCount > 0 && (
+          <span style={{ fontSize: 11.5, color: 'var(--text-muted)', marginLeft: 4 }}>
+            {zh
+              ? `（已依偏好隱藏 ${hiddenCount} 則）`
+              : `(${hiddenCount} hidden by preferences)`}
+          </span>
+        )}
       </div>
 
+      {/* ── List ─────────────────────────────────────────────────────────── */}
       <div style={{ border: '1px solid var(--border-default)', borderRadius: 12, overflow: 'hidden' }}>
-        {items.length === 0 && !loading ? (
+        {visible.length === 0 && !loading ? (
           <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-            {zh ? '沒有通知' : 'No notifications'}
+            {hiddenCount > 0
+              ? (zh ? '所有通知均已依偏好隱藏' : 'All notifications hidden by preferences')
+              : (zh ? '沒有通知' : 'No notifications')}
           </div>
         ) : (
-          items.map(n => (
+          visible.map(n => (
             <div
               key={n.id}
               onClick={() => handleClick(n)}

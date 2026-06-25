@@ -37,5 +37,9 @@ export const auth = {
   updateOnboarding: (data: Partial<Onboarding>) => request<Onboarding>("PATCH", "/auth/me/onboarding", data),
   updatePassword: (password: string) => request("POST", "/auth/me/password", { new_password: password }),
   getConfig: () => request<AuthConfig>("GET", "/auth/config"),
+  getNotificationPreferences: () =>
+    request<{ disabled_groups: string[] }>("GET", "/auth/me/notification-preferences"),
+  updateNotificationPreferences: (prefs: { disabled_groups: string[] }) =>
+    request<{ disabled_groups: string[] }>("PUT", "/auth/me/notification-preferences", prefs),
 };
 

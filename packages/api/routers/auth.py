@@ -316,6 +316,22 @@ def update_onboarding(body: dict, user: dict = Depends(get_current_user)):
         cur.execute("UPDATE users SET onboarding = %s WHERE id = %s", (json.dumps(new_state), user["sub"]))
         return new_state
 
+@router.get("/me/notification-preferences")
+def get_notification_preferences(user: dict = Depends(get_current_user)):
+    with db_cursor() as cur:
+        cur.execute("SELECT notification_preferences FROM users WHERE id = %s", (user["sub"],))
+        return cur.fetchone()["notification_preferences"]
+
+@router.put("/me/notification-preferences")
+def update_notification_preferences(body: dict, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            "UPDATE users SET notification_preferences = %s WHERE id = %s",
+            (json.dumps(body), user["sub"]),
+        )
+        return body
+
+
 @router.post("/me/password", status_code=204)
 def update_password(body: dict, user: dict = Depends(get_current_user)):
     new_password = body.get("new_password")

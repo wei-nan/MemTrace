@@ -74,10 +74,15 @@ export default function App() {
     const saved = localStorage.getItem('chatPanelWidth');
     return saved ? Math.min(900, Math.max(320, parseInt(saved, 10))) : 450;
   });
+  const [nodePanelWidth, setNodePanelWidth] = useState(() => {
+    const saved = localStorage.getItem('nodePanelWidth');
+    return saved ? Math.min(800, Math.max(280, parseInt(saved, 10))) : 360;
+  });
   const [pageSubtitle, setPageSubtitle] = useState('');
   const wsMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const chatPanelWidthRef = useRef(chatPanelWidth);
+  const nodePanelWidthRef = useRef(nodePanelWidth);
 
   // Validate token before any data loads — prevents race condition where
   // workspaces.list() fires with an expired token and gets public-only data (200, not 401).
@@ -302,9 +307,31 @@ export default function App() {
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleNodePanelResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = nodePanelWidthRef.current;
+    const handleMouseMove = (ev: MouseEvent) => {
+      const newWidth = Math.min(800, Math.max(280, startWidth + (startX - ev.clientX)));
+      nodePanelWidthRef.current = newWidth;
+      setNodePanelWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+      localStorage.setItem('nodePanelWidth', String(nodePanelWidthRef.current));
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
   useEffect(() => {
     chatPanelWidthRef.current = chatPanelWidth;
   }, [chatPanelWidth]);
+
+  useEffect(() => {
+    nodePanelWidthRef.current = nodePanelWidth;
+  }, [nodePanelWidth]);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -448,7 +475,11 @@ export default function App() {
       </main>
 
       {/* ── Panels ──────────────────────────────────────────────────────── */}
-      <aside className={`side-panel ${editingNode === undefined || currentView === 'settings' ? 'hidden' : ''}`}>
+      <aside
+        className={`side-panel ${editingNode === undefined || currentView === 'settings' ? 'hidden' : ''}`}
+        style={editingNode !== undefined && currentView !== 'settings' ? { width: nodePanelWidth } : {}}
+      >
+        <div className="node-panel-resize-handle" onMouseDown={handleNodePanelResizeMouseDown} />
         <Suspense fallback={<div className="loading-overlay"><RefreshCw className="animate-spin" /></div>}>
           {editingNode !== undefined && selectedWs && currentView !== 'settings' && (
             <NodeEditor
@@ -473,7 +504,7 @@ export default function App() {
         <button
           onClick={() => setShowChat(true)}
           className={`ai-fab ${showChat ? 'hidden' : ''}`}
-          style={{ right: editingNode !== undefined ? 482 : 32 }}
+          style={{ right: editingNode !== undefined ? nodePanelWidth + 32 : 32 }}
         >
           <Brain size={24} />
         </button>

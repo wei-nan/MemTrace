@@ -336,7 +336,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--border-default)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border-default)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <div style={{ fontSize: 15, fontWeight: 600 }}>{isCreate ? t("node.title_new") : isEditing ? t("node.title_edit") : t("node.title_detail")}</div>
           {!isCreate && (
@@ -360,7 +360,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: 22, minWidth: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "20px 24px", minWidth: 0 }}>
         {tab === "history" && node ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {revisions.map((revision) => (
