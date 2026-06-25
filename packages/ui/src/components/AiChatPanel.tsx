@@ -116,8 +116,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     const fetchModels = async () => {
       try {
         const list = await ai.listModels(provider);
-        setModels(list);
-        if (list.length > 0) setSelectedModel(list[0].id);
+        const chatModels = list.filter(m => m.model_type !== 'embedding');
+        setModels(chatModels);
+        if (chatModels.length > 0) setSelectedModel(chatModels[0].id);
       } catch {
         // The model picker remains empty until the provider is available.
       }

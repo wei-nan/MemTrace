@@ -5,7 +5,7 @@ import time
 from typing import Literal, Dict, Any, Optional
 
 from core.database import db_cursor
-from core.ai import resolve_provider, chat_completion, AIProviderUnavailable
+from core.ai import resolve_provider, chat_completion, record_usage, AIProviderUnavailable
 from services.job_observability import _duration_ms, finish_job_run, start_job_run
 
 logger = logging.getLogger(__name__)
@@ -153,12 +153,13 @@ async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky'
         ]
         
         # High temperature is bad for classification, lock at 0.1
-        response_text, _ = await chat_completion(
+        response_text, tokens = await chat_completion(
             resolved=resolved,
             messages=messages,
             max_tokens=256,
             temperature=0.1
         )
+        record_usage(resolved, "chat", tokens, ws_id)
         
         # Parse JSON from response
         # Clean potential markdown block formatting

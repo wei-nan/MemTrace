@@ -282,9 +282,10 @@ function AIReviewerSettings({
     setLoadingModels(true);
     try {
       const res = await ai.listModels(p);
-      setModels(res);
-      if (res.length > 0 && !res.find((m: any) => m.id === form.model)) {
-        setForm(f => ({ ...f, model: res[0].id }));
+      const chatModels = res.filter((m: any) => m.model_type !== 'embedding');
+      setModels(chatModels);
+      if (chatModels.length > 0 && !chatModels.find((m: any) => m.id === form.model)) {
+        setForm(f => ({ ...f, model: chatModels[0].id }));
       }
     } catch {
       setModels([]);
