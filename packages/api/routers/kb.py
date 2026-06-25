@@ -334,6 +334,7 @@ async def get_neighborhood(
     relation: Optional[str] = None,
     direction: Literal["both", "outbound", "inbound"] = "both",
     include_source: bool = Query(True),
+    include_faded: bool = Query(False, description="Include faded edges in the neighborhood"),
     current_user = Depends(get_current_user_optional),
 ):
     with db_cursor() as cur:
@@ -348,6 +349,7 @@ async def get_neighborhood(
         result = _bfs_neighborhood(
             cur, workspace_id, node_id, depth, relation, direction,
             include_source=include_source,
+            include_faded=include_faded,
             viewer_role=viewer_role,
         )
 
@@ -426,6 +428,7 @@ async def search_nodes(
     query: str = Query(...),
     limit: int = 20,
     include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
+    include_archived: bool = Query(False, description="Include archived nodes"),
     user: dict = Depends(get_current_user_optional),
 ):
     from services.nodes import search_nodes_in_db
@@ -437,6 +440,7 @@ async def search_nodes(
             limit,
             user,
             include_answered_inquiries=include_answered_inquiries,
+            include_archived=include_archived,
         )
 
 
@@ -446,6 +450,7 @@ async def search_nodes_semantic(
     query: str,
     limit: int = 10,
     include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
+    include_archived: bool = Query(False, description="Include archived nodes"),
     user: dict = Depends(get_current_user),
 ):
     with db_cursor() as cur:
@@ -462,6 +467,7 @@ async def search_nodes_semantic(
             limit,
             ws_model=ws_model,
             ws_prov=ws_prov,
+            include_archived=include_archived,
             include_answered_inquiries=include_answered_inquiries,
         )
         # perform_semantic_search returns raw rows; redact bodies of non-public
@@ -587,10 +593,15 @@ def restore_node_revision(ws_id: str, node_id: str, revision_no: int, background
 
 
 @router.get("/workspaces/{ws_id}/edges", response_model=List[EdgeResponse])
-def list_edges(ws_id: str, node_id: Optional[str] = Query(None), user: dict = Depends(get_current_user_optional)):
+def list_edges(
+    ws_id: str,
+    node_id: Optional[str] = Query(None),
+    include_faded: bool = Query(False, description="Include faded edges"),
+    user: dict = Depends(get_current_user_optional),
+):
     from services.edges import list_edges_in_db
     with db_cursor() as cur:
-        return list_edges_in_db(cur, ws_id, node_id, user)
+        return list_edges_in_db(cur, ws_id, node_id, user, include_faded=include_faded)
 
 
 @router.post("/workspaces/{ws_id}/nodes/connect-orphans", status_code=202)

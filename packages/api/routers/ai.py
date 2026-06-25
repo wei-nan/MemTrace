@@ -200,9 +200,11 @@ def delete_ai_key(
     provider: str,
     user: dict = Depends(get_current_user),
 ):
+    from services.review_policy import revoke_user_model_bindings
     with db_cursor(commit=True) as cur:
         if not delete_user_ai_key(cur, user["sub"], provider):
             raise HTTPException(status_code=404, detail="No key found for this provider")
+        revoke_user_model_bindings(cur, user["sub"], provider)
 
 @router.get("/models/{provider}")
 async def list_models(

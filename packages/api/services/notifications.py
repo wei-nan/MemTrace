@@ -281,3 +281,53 @@ def send_consult_notification(
             
     except Exception as e:
         logger.error(f"Failed to send consult notification: {e}")
+
+
+def send_degradation_notification(ws_id: str, reason: str):
+    """Notify workspace admins about AI reviewer policy degradation."""
+    try:
+        with db_cursor() as cur:
+            cur.execute("SELECT name, settings FROM workspaces WHERE id = %s", (ws_id,))
+            ws = cur.fetchone()
+            if not ws:
+                return
+            ws_name = ws["name"]
+            ws_settings = ws["settings"] or {}
+            if isinstance(ws_settings, str):
+                try:
+                    ws_settings = json.loads(ws_settings)
+                except Exception:
+                    ws_settings = {}
+
+        # 1. Webhook
+        webhook_url = ws_settings.get("webhook_url")
+        webhook_secret = ws_settings.get("webhook_secret")
+        if webhook_url:
+            payload = {
+                "event": "review_policy_degradation",
+                "workspace_id": ws_id,
+                "workspace_name": ws_name,
+                "reason": reason,
+            }
+            asyncio.create_task(deliver_webhook(webhook_url, webhook_secret, payload))
+
+        # 2. Email
+        recipients = get_workspace_admins(ws_id)
+        if not recipients:
+            return
+
+        subject = f"[MemTrace] ⚠️ 警告：知識庫「{ws_name}」AI 審核已安全降級為人工審查"
+        html = (
+            f"<p>您好，</p>"
+            f"<p>知識庫 <strong>{ws_name}</strong> 的 AI 自動審核政策已發生<strong>安全降級 (degradation)</strong>：</p>"
+            f"<p>有效模式已改為 <strong>僅限人工審核 (manual_only)</strong>。</p>"
+            f"<p><strong>降級原因：</strong>{reason}</p>"
+            f"<p>系統已暫停自動審查，所有新提案將保持 Pending 直到人工完成審查。當您重新綁定可用模型後，審查政策將自動恢復運作。</p>"
+        )
+        text = f"警告：知識庫 {ws_name} 的 AI 自動審核已降級為 manual_only。原因：{reason}"
+
+        for to_email in recipients:
+            _dispatch(to_email, subject, html, text)
+    except Exception as e:
+        logger.error(f"Failed to send degradation notification: {e}")
+

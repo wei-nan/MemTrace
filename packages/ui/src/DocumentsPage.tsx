@@ -496,7 +496,7 @@ export default function DocumentsPage({
           >
             <option value="all">{zh ? '全部類型' : 'All Types'}</option>
             <option value="human_upload">{zh ? '人類上傳' : 'Human Upload'}</option>
-            <option value="agent_attached">{zh ? 'Agent 附加' : 'Agent Evidence'}</option>
+            <option value="agent_attached">{zh ? 'Agent 參考資料' : 'Agent References'}</option>
           </select>
           <input
             ref={fileInputRef}

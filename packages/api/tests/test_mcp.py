@@ -49,7 +49,7 @@ async def test_execute_tool_get_node():
 @pytest.mark.asyncio
 async def test_execute_tool_search_nodes():
     user = {"sub": "user_1"}
-    args = {"workspace_id": "ws_1", "query": "test"}
+    args = {"workspace_id": "ws_1", "query": "test", "include_archived": True}
     
     mock_results = [{"id": "mem_1", "title_en": "Test Node"}]
     
@@ -64,6 +64,7 @@ async def test_execute_tool_search_nodes():
                         res = await execute_tool("search_nodes", args, user, background_tasks)
             assert len(res) == 1
             assert res[0]["id"] == "mem_1"
+            assert mock_search.await_args.kwargs["include_archived"] is True
             # Should have recorded interaction edges and logged query
             assert background_tasks.add_task.call_count >= 1
 

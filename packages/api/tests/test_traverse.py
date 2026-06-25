@@ -84,6 +84,24 @@ def test_bfs_relation_filter_passed_to_sql():
     assert "depends_on" in first_call_params
 
 
+def test_bfs_defaults_to_active_edges():
+    cur = _make_cur(edges=[], nodes=[])
+
+    bfs_neighborhood(cur, "ws_test", "mem_root", depth=1)
+
+    first_sql = cur.execute.call_args_list[0].args[0]
+    assert "status = 'active'" in first_sql
+    assert "faded" not in first_sql
+
+
+def test_bfs_can_include_faded_edges():
+    cur = _make_cur(edges=[], nodes=[])
+
+    bfs_neighborhood(cur, "ws_test", "mem_root", depth=1, include_faded=True)
+
+    first_sql = cur.execute.call_args_list[0].args[0]
+    assert "status IN ('active', 'faded')" in first_sql
+
 # ─── MCP traverse handler integration test ────────────────────────────────────
 
 @pytest.mark.asyncio
@@ -95,7 +113,7 @@ async def test_mcp_traverse_no_viewer_id_kwarg():
     from services.mcp_tools import execute_tool
 
     user = {"sub": "usr_test"}
-    args = {"workspace_id": "ws_spec0001", "node_id": "mem_g004", "depth": 1}
+    args = {"workspace_id": "ws_spec0001", "node_id": "mem_g004", "depth": 1, "include_faded": True}
     mock_result = {"nodes": [{"id": "mem_g004"}], "edges": [], "truncated": False, "total_nodes": 1}
     background_tasks = MagicMock()
 
@@ -117,6 +135,7 @@ async def test_mcp_traverse_no_viewer_id_kwarg():
     )
     # Must have viewer_role instead
     assert "viewer_role" in called_kwargs
+    assert called_kwargs["include_faded"] is True
 
 
 @pytest.mark.asyncio

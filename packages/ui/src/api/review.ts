@@ -48,6 +48,80 @@ export interface AIReviewer extends AIReviewerPayload {
   created_at: string;
 }
 
+export interface ReviewPolicy {
+  workspace_id: string;
+  inherit_system_default: boolean;
+  mode: "manual_only" | "fallback_advisory" | "panel_advisory" | "consensus_automatic";
+  minimum_success: number;
+  accept_rule: Record<string, any>;
+  reject_rule: Record<string, any>;
+  policy_version: number;
+  updated_by?: string | null;
+  updated_at: string;
+}
+
+export interface ModelBinding {
+  id: string;
+  workspace_id: string;
+  model_account_id: string;
+  source_scope: "system" | "user";
+  offered_by: string;
+  allowed_usages: string[];
+  billing_owner: string;
+  consent_status: "pending" | "approved" | "rejected";
+  approval_status: "pending" | "approved" | "rejected";
+  status: "offered" | "active" | "paused" | "revoked" | "unavailable" | "disabled_by_admin";
+  priority: number;
+  created_at: string;
+  updated_at: string;
+  revoked_at?: string | null;
+  // joined fields:
+  provider: string;
+  model: string;
+  key_hint: string;
+  offered_by_name: string;
+}
+
+export interface ReviewPolicyUpdate {
+  mode: string;
+  inherit_system_default?: boolean;
+  minimum_success?: number;
+  accept_rule?: Record<string, any>;
+  reject_rule?: Record<string, any>;
+}
+
+export interface ModelBindingCreate {
+  model_account_id: string;
+  allowed_usages: string[];
+  priority?: number;
+}
+
+export interface ModelBindingUpdate {
+  status?: string;
+  priority?: number;
+  allowed_usages?: string[];
+}
+
+export interface PolicyMember {
+  policy_id: string;
+  binding_id: string;
+  priority: number;
+  is_required: boolean;
+  created_at: string;
+  // joined fields:
+  binding_status: string;
+  provider: string;
+  model: string;
+  key_hint: string;
+  offered_by_name: string;
+}
+
+export interface PolicyMemberUpdate {
+  binding_id: string;
+  priority: number;
+  is_required: boolean;
+}
+
 export const review = {
   list: (wsId: string, status = "pending") => request<ReviewItem[]>("GET", `${BASE}/workspaces/${wsId}/review-queue?status=${status}`),
   update: (id: string, data: { node_data?: Record<string, unknown>; suggested_edges?: unknown[]; review_notes?: string }) =>
@@ -59,6 +133,16 @@ export const review = {
   acceptBatch: (wsId: string, ids: string[]) => request<{ accepted_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/accept-batch`, { ids }),
   rejectBatch: (wsId: string, ids: string[]) => request<{ rejected_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/reject-batch`, { ids }),
   aiPrescreen: (wsId: string) => request<{ processed_count: number }>("POST", `${BASE}/workspaces/${wsId}/review-queue/ai-prescreen`),
+  
+  // Policy & Binding API
+  getPolicy: (wsId: string) => request<ReviewPolicy>("GET", `${BASE}/workspaces/${wsId}/review-policy`),
+  updatePolicy: (wsId: string, data: ReviewPolicyUpdate) => request<ReviewPolicy>("PUT", `${BASE}/workspaces/${wsId}/review-policy`, data),
+  listBindings: (wsId: string) => request<ModelBinding[]>("GET", `${BASE}/workspaces/${wsId}/model-bindings`),
+  createBinding: (wsId: string, data: ModelBindingCreate) => request<ModelBinding>("POST", `${BASE}/workspaces/${wsId}/model-bindings`, data),
+  updateBinding: (wsId: string, bindingId: string, data: ModelBindingUpdate) => request<ModelBinding>("PATCH", `${BASE}/workspaces/${wsId}/model-bindings/${bindingId}`, data),
+  deleteBinding: (wsId: string, bindingId: string) => request("DELETE", `${BASE}/workspaces/${wsId}/model-bindings/${bindingId}`),
+  getPolicyMembers: (wsId: string) => request<PolicyMember[]>("GET", `${BASE}/workspaces/${wsId}/review-policy/members`),
+  updatePolicyMembers: (wsId: string, members: PolicyMemberUpdate[]) => request<{ status: string }>("PUT", `${BASE}/workspaces/${wsId}/review-policy/members`, members),
 };
 
 export const aiReviewers = {
@@ -68,3 +152,4 @@ export const aiReviewers = {
     request<AIReviewer>("PATCH", `${BASE}/workspaces/${wsId}/ai-reviewers/${id}`, data),
   delete: (wsId: string, id: string) => request("DELETE", `${BASE}/workspaces/${wsId}/ai-reviewers/${id}`),
 };
+

@@ -54,6 +54,8 @@ services:
       sh -c "
         echo '=== Applying all migrations ===' &&
         python -c \"from core.database import run_migrations; run_migrations()\" &&
+        echo '=== Seeding test database ===' &&
+        PGPASSWORD=memtrace_test_pw psql -h db-test -U memtrace -d memtrace_test -f /app/migrations/003_seed_spec_kb.sql &&
         echo '=== Running P61 migration script ===' &&
         python -m scripts.migrate_doc_links_to_edges &&
         echo '=== Running unit + integration tests ===' &&

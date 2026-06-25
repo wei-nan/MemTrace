@@ -67,7 +67,7 @@ ALTER TYPE content_type RENAME TO content_type_old;
 
 -- Step 2: Create new enum without 'source_document'
 CREATE TYPE content_type AS ENUM (
-  'factual', 'procedural', 'preference', 'context', 'inquiry'
+  'factual', 'procedural', 'preference', 'context', 'inquiry', 'document', 'gap'
 );
 
 -- Step 3: Migrate the column in memory_nodes
