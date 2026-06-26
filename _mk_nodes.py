@@ -1,8 +1,17 @@
-"""Create two inquiry nodes in ws_spec_plan via MCP HTTP API."""
-import json, urllib.request, urllib.error, sys
+"""Create two inquiry nodes in ws_spec_plan via MCP HTTP API.
 
-TOKEN = "mt_5ef478151429e2d28fea0559cb6ac487f84b21a3"
-BASE = "http://localhost:8001/mcp"
+Config comes from the environment — do NOT hardcode tokens in the repo.
+  MEMTRACE_TOKEN : workspace API key (required)
+  MEMTRACE_MCP   : MCP endpoint (default http://localhost:8001/mcp)
+"""
+import json, os, urllib.request, urllib.error, sys
+
+TOKEN = os.environ.get("MEMTRACE_TOKEN", "")
+BASE = os.environ.get("MEMTRACE_MCP", "http://localhost:8001/mcp")
+
+if not TOKEN:
+    print("MEMTRACE_TOKEN env var is required (export your workspace API key).")
+    sys.exit(1)
 
 def mcp_call(method, params, req_id=1):
     payload = json.dumps({
