@@ -1,0 +1,43 @@
+{
+  "id": "mem_98300428_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "queried_via_mcp Telemetry and Edge Class Recording",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Operations performed via MCP tools must record `queried_via_mcp` telemetry:\n\n1. Every MCP `traverse`/`search` call records `edge_class` (the types of edges traversed by the query).\n2. The `queried_via_mcp` flag is attached to the traversal record, distinguishing MCP queries from direct API queries.\n3. `edge_class` statistics are used to analyze which relationship types AI agents use most frequently.\n4. Telemetry does not include query content — only structural paths and edge types are recorded."
+  },
+  "tags": [
+    "telemetry",
+    "mcp",
+    "edge_class",
+    "queried_via_mcp",
+    "traversal"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "j8m6r7t9o0q1426n54pq6789012345pq6789012345pq6789012345abcdef1234567890123",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

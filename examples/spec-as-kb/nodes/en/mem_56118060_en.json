@@ -1,0 +1,43 @@
+{
+  "id": "mem_56118060_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Trust Computation Deferred (v1 Design Decision)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "v1 defers full dynamic trust computation. `trust.score` is currently a static value (linear weighting of accuracy, freshness, utility, author_rep) and does not update in real time in response to behavioral events.\n\n**Reason for deferral**: Complete dynamic trust computation requires an agent feedback loop that has not yet been fully designed.\n\n**Deferred scope**: `author_rep` updates, vote-driven score recalculation, decay-trust interaction effects.\n\nv2 plans to introduce an event-driven trust update mechanism."
+  },
+  "tags": [
+    "trust",
+    "computation",
+    "deferred",
+    "design-decision",
+    "v1"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "e7b5g6i8d9f0315c43ef5678901234ef5678901234ef5678901234abcdef12",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

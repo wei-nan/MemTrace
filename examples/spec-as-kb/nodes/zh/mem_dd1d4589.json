@@ -1,0 +1,43 @@
+{
+  "id": "mem_dd1d4589",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Connector 第三方整合產品立場",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 對 Connector（第三方系統整合）的產品立場：\n\n1. Connector 為選用功能，不是核心路徑的依賴。\n2. 第三方資料透過 `ingest_document` 進入，與手動創建的節點享有同等治理流程。\n3. Connector 不繞過安全審查 battery。\n4. 第三方來源的 `provenance.source_type` 標記為 `\"tool\"`，`author` 記錄 connector 名稱。\n5. UI 連接器頁籤暫時隱藏，功能架構已就緒待啟用。"
+  },
+  "tags": [
+    "connector",
+    "第三方",
+    "整合",
+    "立場",
+    "ingest"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "f4i2n3p5k6m7082j10lm2345678901lm2345678901lm2345678901abcdef123456789",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

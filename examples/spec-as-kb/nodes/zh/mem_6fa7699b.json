@@ -1,0 +1,44 @@
+{
+  "id": "mem_6fa7699b",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "安全審查三層觸發機制",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "寫入觸發安全審查的三層機制：\n\n1. **即時掃描（battery）**：每次 `create_node`/`update_node` 時同步執行 secret_scanner、PII 偵測、contradiction 偵測。\n2. **非同步 Tier0 降級**：battery 發現嚴重問題時，節點降至 Tier0（不可見但保留），非同步通知管理員。\n3. **人工審查佇列**：contradiction 或 safety 旗標觸發 `review_queue`，需人工確認才能升回可見狀態。"
+  },
+  "tags": [
+    "安全",
+    "safety",
+    "審查",
+    "三層觸發",
+    "battery",
+    "Tier0"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "d6a4f5h7c8e9204b32def4567890123def4567890123def4567890123abcde1",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

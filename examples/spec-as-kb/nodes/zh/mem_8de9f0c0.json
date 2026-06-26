@@ -1,0 +1,43 @@
+{
+  "id": "mem_8de9f0c0",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "MemTrace 核心目的定位",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 的核心目的定位：不是通用資料庫，而是**可審計的共享知識圖**，專為人機協作設計。\n\n三個核心差異化：\n1. **可追溯**：知識有來源記錄（provenance）。\n2. **可信賴**：知識有信任度量（trust）。\n3. **有時間語意**：知識有生命週期（decay/freshness）。\n\n所有功能設計（治理、telemetry、通知、衰減）都服務於這個核心：讓知識的生命週期對人類可見、可管理、可信賴。"
+  },
+  "tags": [
+    "核心目的",
+    "產品定位",
+    "知識圖",
+    "設計哲學",
+    "人機協作"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "k9n7s8u0p1r2537o65qr7890123456qr7890123456qr7890123456abcdef12345678901234",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

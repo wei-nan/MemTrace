@@ -1,0 +1,42 @@
+{
+  "id": "mem_19f73d5a",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Decay 產品立場",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 對 decay 的產品立場：衰減是知識新鮮度的自然反映，不是懲罰。未被引用的知識會隨時間降低權重，但不會自動刪除。`pinned` 標記可凍結節點或邊的權重，防止衰減。Decay 參數（`half_life_days`、`min_weight`）可由工作區層級設定，不強制刪除節點。"
+  },
+  "tags": [
+    "衰減",
+    "decay",
+    "pinned",
+    "產品立場"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "a3f1d2e4b5c6071809abcdef1234567890abcdef1234567890abcdef12345678",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

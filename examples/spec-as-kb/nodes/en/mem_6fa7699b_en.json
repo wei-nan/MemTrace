@@ -1,0 +1,43 @@
+{
+  "id": "mem_6fa7699b_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Three-Tier Safety Review Trigger",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Writes trigger safety review through three tiers:\n\n1. **Immediate scan (battery)**: On every `create_node`/`update_node`, synchronously runs secret_scanner, PII detection, and contradiction detection.\n2. **Async Tier0 demotion**: When the battery detects a serious issue, the node is demoted to Tier0 (invisible but retained) and the admin is notified asynchronously.\n3. **Human review queue**: A contradiction or safety flag triggers the `review_queue`; a human must confirm before the node becomes visible again."
+  },
+  "tags": [
+    "safety",
+    "review",
+    "three-tier",
+    "battery",
+    "Tier0"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "d6a4f5h7c8e9204b32def4567890123def4567890123def4567890123abcde1",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "mem_17e5a3aa",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Multi-planner Escalate 至 Review Queue 呈現",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Multi-planner 架構中 escalate 至 `review_queue` 的呈現設計：\n\n1. 來自不同 planner 的 proposals 在 review queue 中顯示各自的 planner 來源。\n2. 同一節點由多個 planner 提出相互衝突的 proposals 時，在 UI 上並列顯示以便人工仲裁。\n3. Escalate 操作觸發通知給 workspace 管理員。\n4. Review queue 的呈現不合併不同 planner 的 proposals，即使語意相似，保留完整溯源。"
+  },
+  "tags": [
+    "multi-planner",
+    "review_queue",
+    "escalate",
+    "呈現",
+    "通知"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "i7l5q6s8n9p0315m43op5678901234op5678901234op5678901234abcdef123456789012",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

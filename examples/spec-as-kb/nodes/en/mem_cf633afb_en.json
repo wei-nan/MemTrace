@@ -1,0 +1,43 @@
+{
+  "id": "mem_cf633afb_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Workspace Agent System Actor Design",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace defines two types of system actors:\n\n1. **Global system actor**: Represents the platform itself; belongs to no workspace; used for cross-workspace infrastructure operations (e.g., global decay scheduler).\n2. **Workspace-scoped system actor**: Bound to a specific workspace; represents that workspace's automated operations (e.g., ingestion pipeline, local decay scheduling).\n\nNeither type contributes to human `author_rep` calculations. Telemetry records use `source_type=\"system\"`."
+  },
+  "tags": [
+    "system-actor",
+    "workspace-agent",
+    "identity",
+    "actor",
+    "telemetry"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "c5f3e4g6b7d8193a21cdef3456789012cdef3456789012cdef3456789012abcd",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "mem_cf633afb",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Workspace Agent 系統 Actor 設計",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 定義兩類系統 actor：\n\n1. **global system actor**：代表平台本身，不屬於任何 workspace，用於跨 workspace 基礎設施操作（如全域 decay scheduler）。\n2. **workspace-scoped system actor**：與特定 workspace 綁定，代表該 workspace 的自動化操作（如 ingestion pipeline、本地 decay 排程）。\n\n兩者都不計入人類 `author_rep` 計算，telemetry 記錄時使用 `source_type=\"system\"`。"
+  },
+  "tags": [
+    "system-actor",
+    "workspace-agent",
+    "actor",
+    "身份",
+    "telemetry"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "c5f3e4g6b7d8193a21cdef3456789012cdef3456789012cdef3456789012abcd",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

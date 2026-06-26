@@ -1,0 +1,44 @@
+{
+  "id": "mem_26ff6cfe",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Harness Proposals 批次處理設計",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Harness 層負責 multi-agent fan-out 的 proposal 批次處理：\n\n1. Harness 收集各 planner 的 proposals，不由單一 conductor 統合。\n2. 同一批次的 proposals 依語意相似度自動分組，減少重複 review。\n3. Conductor 角色僅通知（notify），不調度模型或合併提案。\n4. Harness 本身不持久化 proposals，持久化由 `review_queue` 承接。"
+  },
+  "tags": [
+    "harness",
+    "proposals",
+    "批次",
+    "fan-out",
+    "conductor",
+    "multi-agent"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "e3h1m2o4j5l6971i09kl1234567890kl1234567890kl1234567890abcdef12345678",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

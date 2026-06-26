@@ -1,0 +1,43 @@
+{
+  "id": "mem_75f4fbdc_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Write Governance: Fail-Open Deduplication Gate",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The deduplication gate uses a **fail-open** design: if the dedup service is unavailable or times out, the new node is still written — writes are never blocked by a dedup failure.\n\n- Once the dedup gate passes, the node immediately enters the review queue (**enqueue on write**), with no batching delay.\n- Duplicate detection is based on semantic similarity (embedding distance < threshold), not exact matching.\n- Dedup gate failures are written to the audit log for later tracing."
+  },
+  "tags": [
+    "write-governance",
+    "fail-open",
+    "deduplication",
+    "dedup",
+    "review_queue"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "c1f9k0m2h3j4759g87ij9012345678ij9012345678ij9012345678abcdef123456",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "mem_6c94cec3_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Knowledge Governance v1 Core Policies",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Knowledge governance v1 core policies:\n\n1. All writes enter the review queue; nothing is committed directly to the live knowledge base.\n2. Tier0 nodes are invisible to regular users but are never physically deleted.\n3. Admins may approve, reject, or modify any pending node.\n4. Contradiction nodes require confirmation from both sides' admins before resolution.\n5. The governance log is independent of node history and is immutable.\n\nv1 contains no automatic resolution logic; all conflict resolution requires human participation."
+  },
+  "tags": [
+    "knowledge-governance",
+    "governance",
+    "v1",
+    "policy",
+    "Tier0"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "d2g0l1n3i4k5860h98jk0123456789jk0123456789jk0123456789abcdef1234567",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

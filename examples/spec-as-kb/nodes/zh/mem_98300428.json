@@ -1,0 +1,43 @@
+{
+  "id": "mem_98300428",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "queried_via_mcp Telemetry 與 Edge Class 記錄",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "透過 MCP 工具查詢的操作需記錄 `queried_via_mcp` telemetry：\n\n1. 每次 MCP `traverse`/`search` 呼叫記錄 `edge_class`（查詢走過的邊類型）。\n2. `queried_via_mcp` 標記附在 traversal 記錄，區分 MCP 查詢與直接 API 查詢。\n3. `edge_class` 統計用於分析哪類型的關係最常被 AI agent 使用。\n4. Telemetry 不包含查詢內容，只記錄結構路徑與邊類型。"
+  },
+  "tags": [
+    "telemetry",
+    "mcp",
+    "edge_class",
+    "queried_via_mcp",
+    "traversal"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "j8m6r7t9o0q1426n54pq6789012345pq6789012345pq6789012345abcdef1234567890123",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

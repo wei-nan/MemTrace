@@ -1,0 +1,43 @@
+{
+  "id": "mem_2563d8c1",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Multi-planner claim_task 互動邊界",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Multi-planner 環境中 `claim_task` 的互動邊界規則：\n\n1. 同一 task 只能被一個 planner claim，先到先得（樂觀鎖）。\n2. Planner claim 失敗時應退讓，不重試搶占。\n3. `claim_task` 的 timeout 由 harness 設定，超時自動 release。\n4. Planner 不得 claim 其他 planner 已持有的 task，需透過 harness 協調轉移。\n5. 多個 planner 爭搶同一 task 視為任務分派設計錯誤，需調整策略。"
+  },
+  "tags": [
+    "multi-planner",
+    "claim_task",
+    "任務",
+    "互動",
+    "樂觀鎖"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "h6k4p5r7m8o9204l32no4567890123no4567890123no4567890123abcdef12345678901",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

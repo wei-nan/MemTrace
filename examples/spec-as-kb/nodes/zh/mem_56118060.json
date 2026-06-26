@@ -1,0 +1,43 @@
+{
+  "id": "mem_56118060",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Trust 計算暫緩（v1 設計決策）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "v1 暫緩完整 trust 動態計算。目前 `trust.score` 為靜態值（由 accuracy、freshness、utility、author_rep 線性加權），不隨行為事件即時更新。\n\n**暫緩原因**：完整信任動態計算需要 agent feedback loop，尚未設計完成。\n\n**暫緩範圍**：author_rep 更新、vote 驅動的 score 重算、decay-trust 交互效應。\n\nv2 計畫引入事件驅動的 trust 更新機制。"
+  },
+  "tags": [
+    "trust",
+    "計算",
+    "暫緩",
+    "設計決策",
+    "v1"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "e7b5g6i8d9f0315c43ef5678901234ef5678901234ef5678901234abcdef12",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

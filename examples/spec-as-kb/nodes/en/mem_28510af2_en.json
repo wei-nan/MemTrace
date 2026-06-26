@@ -1,0 +1,43 @@
+{
+  "id": "mem_28510af2_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Feedback Signal Protection Mechanism",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "User votes (up/down) and verifications are feedback signals; the design must prevent manipulation:\n\n1. A single user may cast only one vote per node.\n2. Verification requires sufficient `author_rep` to trigger.\n3. Feedback signals do not directly modify `trust.score`; they are queued asynchronously and applied only after battery validation.\n4. A high volume of rapid feedback (coordinated attack) raises a safety flag and suspends updates until a human review is completed."
+  },
+  "tags": [
+    "feedback",
+    "protection",
+    "write-governance",
+    "vote",
+    "verification"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "a9d7i8k0f1h2537e65gh7890123456gh7890123456gh7890123456abcdef1234",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

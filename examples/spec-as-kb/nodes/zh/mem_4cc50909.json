@@ -1,0 +1,43 @@
+{
+  "id": "mem_4cc50909",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "刪除語意雙軌",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 採雙軌刪除語意：\n\n1. **soft-delete**：節點/邊標記為 `deleted=true`，對一般查詢不可見，但仍保留於審計歷史與刪除日誌。\n2. **hard-delete**：需管理員授權，物理移除資料；所有 hard-delete 操作寫入可審計的刪除日誌，並留下 tombstone 記錄以維持圖結構完整性。\n\nSystem actor 可執行 hard-delete，需通知關聯節點的 owner。"
+  },
+  "tags": [
+    "刪除",
+    "soft-delete",
+    "hard-delete",
+    "語意",
+    "tombstone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "b4e2d3f5a6c7082910bcdef2345678901bcdef2345678901bcdef234567890ab",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

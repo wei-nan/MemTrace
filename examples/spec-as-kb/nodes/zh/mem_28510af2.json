@@ -1,0 +1,44 @@
+{
+  "id": "mem_28510af2",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "回饋信號保護機制",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "使用者投票（up/down）與 verification 為回饋信號，設計上需防止操控：\n\n1. 同一使用者對同一節點只計一票。\n2. Verification 需要足夠的 `author_rep` 才能觸發。\n3. 回饋信號不直接修改 `trust.score`，而是排入非同步佇列，由 battery 驗證後才更新。\n4. 大量短時間回饋（群體攻擊）觸發 safety 旗標，暫停更新直到人工審查。"
+  },
+  "tags": [
+    "回饋",
+    "feedback",
+    "保護",
+    "寫入治理",
+    "vote",
+    "verification"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "a9d7i8k0f1h2537e65gh7890123456gh7890123456gh7890123456abcdef1234",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

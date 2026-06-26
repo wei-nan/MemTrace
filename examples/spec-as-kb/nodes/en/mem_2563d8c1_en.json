@@ -1,0 +1,43 @@
+{
+  "id": "mem_2563d8c1_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Multi-Planner claim_task Interaction Boundaries",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Rules governing `claim_task` interactions in multi-planner environments:\n\n1. A single task may only be claimed by one planner at a time — first come, first served (optimistic lock).\n2. A planner that fails to claim should yield, not retry and compete.\n3. The `claim_task` timeout is set by the harness; it auto-releases on expiry.\n4. Planners must not claim a task already held by another planner; ownership transfers must be coordinated through the harness.\n5. Multiple planners competing for the same task is treated as a task-dispatch design error requiring a revised strategy."
+  },
+  "tags": [
+    "multi-planner",
+    "claim_task",
+    "task",
+    "interaction",
+    "optimistic-lock"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "h6k4p5r7m8o9204l32no4567890123no4567890123no4567890123abcdef12345678901",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

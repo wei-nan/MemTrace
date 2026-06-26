@@ -1,0 +1,43 @@
+{
+  "id": "mem_6c94cec3",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "知識治理 v1 核心政策",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "知識治理 v1 核心政策：\n\n1. 所有寫入進入審查佇列，不直接 commit 到正式知識庫。\n2. Tier0 節點對一般用戶不可見，但不物理刪除。\n3. 管理員可 approve/reject/modify 任何待審節點。\n4. Contradiction 節點需雙方管理員確認才能解決。\n5. 治理日誌（governance log）獨立於節點歷史，不可修改。\n\nv1 不含自動解決邏輯，所有衝突解決需人工參與。"
+  },
+  "tags": [
+    "知識治理",
+    "governance",
+    "v1",
+    "政策",
+    "Tier0"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "d2g0l1n3i4k5860h98jk0123456789jk0123456789jk0123456789abcdef1234567",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

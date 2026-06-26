@@ -1,0 +1,43 @@
+{
+  "id": "mem_67362874",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Provenance 與 Evidence 寫入語意",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "節點的 `provenance` 欄位記錄知識的來源語意：\n\n- `source_type` 可為 `\"human\"`、`\"ai\"`、`\"system\"`、`\"tool\"`。\n- `evidence` 為附件（`attach_evidence`），與 `provenance` 分離，允許事後補充。\n- 寫入時 `signature` 由系統計算，不允許客戶端覆寫。\n- `author` 記錄實際操作者身份（用戶 ID 或 system actor ID），與 `source_type` 互補而非重複。"
+  },
+  "tags": [
+    "provenance",
+    "evidence",
+    "寫入",
+    "語意",
+    "signature"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "f8c6h7j9e0g1426d54fg6789012345fg6789012345fg6789012345abcdef123",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

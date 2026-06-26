@@ -1,0 +1,43 @@
+{
+  "id": "mem_d419e8e3",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "私人工作區設計邊界",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 私人工作區（`visibility=private`）的設計邊界：\n\n1. 私人節點不進入全域搜尋索引。\n2. 跨 workspace 查詢（`search_cross_workspace`）不包含私人 workspace 內容，除非查詢者是該 workspace 成員。\n3. 私人節點可透過邊連結到公開節點，但反向引用對外不可見。\n4. 私人 workspace 的 telemetry 只對管理員可見。"
+  },
+  "tags": [
+    "私人",
+    "private",
+    "workspace",
+    "邊界",
+    "設計決策"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "b0e8j9l1g2i3648f76hi8901234567hi8901234567hi8901234567abcdef12345",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

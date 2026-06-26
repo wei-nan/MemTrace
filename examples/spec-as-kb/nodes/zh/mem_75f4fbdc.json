@@ -1,0 +1,43 @@
+{
+  "id": "mem_75f4fbdc",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "寫入治理：Fail-open 去重閘門",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "去重閘門採 **fail-open** 設計：當去重服務不可用或超時，新節點仍可寫入，不因去重失敗而阻擋。\n\n- 去重閘門通過後，節點立即進入 review queue（**enqueue on write**），不等待批次處理。\n- 重複偵測基於語意相似度（embedding distance < threshold）而非精確比對。\n- 去重閘門失敗時寫入審計日誌，供事後追溯。"
+  },
+  "tags": [
+    "寫入治理",
+    "fail-open",
+    "去重",
+    "dedup",
+    "review_queue"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "c1f9k0m2h3j4759g87ij9012345678ij9012345678ij9012345678abcdef123456",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

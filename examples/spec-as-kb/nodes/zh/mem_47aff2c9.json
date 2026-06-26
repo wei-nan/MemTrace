@@ -1,0 +1,43 @@
+{
+  "id": "mem_47aff2c9",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "多 Planner 語意邊界",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "多 planner 架構的語意邊界規則：\n\n- 每個 planner 只負責自己的子任務語意範圍，不跨越到其他 planner 的領域。\n- Planner 之間的協作透過 harness 的 proposal 機制，而非直接溝通。\n- 邊界衝突（兩個 planner 提出相互矛盾的決策）由 harness 偵測，送入 contradiction 解決流程，不允許 planner 自行解決跨邊界衝突。"
+  },
+  "tags": [
+    "multi-planner",
+    "語意",
+    "邊界",
+    "設計決策",
+    "harness"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-25T00:00:00.000000+00:00",
+    "signature": "g5j3o4q6l7n8193k21mn3456789012mn3456789012mn3456789012abcdef1234567890",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.6,
+      "author_rep": 0.5
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
