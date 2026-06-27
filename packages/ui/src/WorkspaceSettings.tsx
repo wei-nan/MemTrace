@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Brain, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Sparkles, Cpu } from "lucide-react";
-import { ai, aiReviewers, workspaces, review, type AIReviewer, type AIReviewerPayload, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey, type ModelBinding, type ReviewPolicy, type PolicyMember } from "./api";
+import { Brain, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Sparkles, Cpu } from "lucide-react";
+import { ai, workspaces, review, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey, type ModelBinding, type ReviewPolicy, type PolicyMember } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import { ModalOverlay } from "./components/Modal";
