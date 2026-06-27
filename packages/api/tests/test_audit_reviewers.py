@@ -34,9 +34,11 @@ class TestCreateProposalUnit:
     def _make_cur(self, quota_cnt=0, return_row=None):
         from unittest.mock import MagicMock
         cur = MagicMock()
+        # _has_open_duplicate 查詢 -> fetchone 回傳 None（無重複）
         # _quota_ok 查詢 -> fetchone 回傳 {"cnt": quota_cnt}
         # create_proposal INSERT -> fetchone 回傳 return_row
         cur.fetchone.side_effect = [
+            None,
             {"cnt": quota_cnt},
             return_row or {
                 "id": "prop_001",
@@ -72,6 +74,17 @@ class TestCreateProposalUnit:
             ["n1", "n2"], "重複節點"
         )
         assert result is None  # quota 已滿應回傳 None
+
+    def test_create_proposal_skips_duplicate(self):
+        # _has_open_duplicate 找到既有 pending 提案 -> 直接回傳 None，不進 quota / INSERT
+        from unittest.mock import MagicMock
+        cur = MagicMock()
+        cur.fetchone.side_effect = [{"exists": 1}]
+        result = create_proposal(
+            cur, "ws_test", "deduper", "duplicate",
+            ["n1", "n2"], "重複節點"
+        )
+        assert result is None
 
 
 # ─── Integration Tests (Real DB) ─────────────────────────────────────────────
@@ -136,9 +149,38 @@ class TestAuditProposalsIntegration:
                     (f"prop_seed_{i:03d}", ws_id),
                 )
 
-            # 現在 create_proposal 應回傳 None（quota 已滿）
-            result = create_proposal(cur, ws_id, "test_quota", "test", [], "overflow", severity="low")
+            # 現在 create_proposal 應回傳 None（quota 已滿）。用唯一 target_ids 避免被去重
+            # 短路，確保命中的是 quota 防線而非 dedup 防線。
+            result = create_proposal(
+                cur, ws_id, "test_quota", "test", ["overflow_node"], "overflow", severity="low"
+            )
             assert result is None
+
+    def test_create_proposal_dedups_identical(self, db_transaction):
+        """同一 (reviewer, category, target_ids) 重複送出時只留一列；不同 target 仍可建立。"""
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            p1 = create_proposal(
+                cur, ws_id, "safety_queue", "async_safety", ["dup_node"], "first"
+            )
+            p2 = create_proposal(
+                cur, ws_id, "safety_queue", "async_safety", ["dup_node"], "second"
+            )
+            assert p1 is not None
+            assert p2 is None  # 重複被去重
+
+            matching = [
+                r for r in list_proposals(cur, ws_id, status="pending", reviewer="safety_queue")
+                if r["target_ids"] == ["dup_node"]
+            ]
+            assert len(matching) == 1
+
+            # 指向不同節點的發現不應被誤殺
+            p3 = create_proposal(
+                cur, ws_id, "safety_queue", "async_safety", ["other_node"], "third"
+            )
+            assert p3 is not None
 
     def test_mark_proposal_read_and_summary(self, db_transaction):
         conn = db_transaction

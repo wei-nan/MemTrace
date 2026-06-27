@@ -9,6 +9,7 @@ import httpx
 from core.config import settings
 from core.database import db_cursor
 from core.email import _dispatch
+from core.security import generate_id
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +159,88 @@ def get_workspace_admins(ws_id: str) -> list[str]:
         emails.extend(admins)
         return list(set(emails))
 
+def _resolve_inapp_recipients(cur, ws_id: str) -> list[str]:
+    """Owner + admins/editors — mirrors the 115/116 fan-out triggers."""
+    cur.execute(
+        """
+        SELECT owner_id AS uid FROM workspaces WHERE id = %s
+        UNION
+        SELECT user_id FROM workspace_members
+        WHERE workspace_id = %s AND role::text IN ('admin', 'editor')
+        """,
+        (ws_id, ws_id),
+    )
+    return [r["uid"] for r in cur.fetchall() if r and r["uid"]]
+
+
+def emit_notification(
+    cur,
+    *,
+    workspace_id: str,
+    category: str,
+    severity: str,
+    title: str,
+    source_type: str,
+    source_id: str,
+    body: Optional[str] = None,
+    target_node_id: Optional[str] = None,
+    group: Optional[str] = None,
+) -> int:
+    """Write an in-app notification to workspace owner + admins/editors, honoring each
+    recipient's per-user opt-out (``users.notification_preferences[group] is False``).
+
+    This is the Python-side counterpart to the 115/116 DB triggers (which fire for
+    audit_proposals / review_queue inserts). Use it for notification sources that do
+    not flow through those tables — e.g. consult / degradation events, and the
+    safety "passed" trace — so every finding can still reach the inbox while letting
+    users mute noisy groups. ``group`` defaults to ``category``.
+
+    Returns the number of rows inserted. Does not swallow errors itself; callers in
+    best-effort paths should wrap the call in try/except.
+    """
+    grp = group or category
+    recipients = _resolve_inapp_recipients(cur, workspace_id)
+    if not recipients:
+        return 0
+    cur.execute(
+        "SELECT id, notification_preferences FROM users WHERE id = ANY(%s)",
+        (recipients,),
+    )
+    pref_rows = cur.fetchall()
+    inserted = 0
+    for row in pref_rows:
+        prefs = row["notification_preferences"] or {}
+        if isinstance(prefs, str):
+            try:
+                prefs = json.loads(prefs)
+            except Exception:
+                prefs = {}
+        if prefs.get(grp) is False:
+            continue  # recipient muted this notification group
+        cur.execute(
+            """
+            INSERT INTO notifications
+                (id, workspace_id, recipient_id, source_type, source_id,
+                 category, severity, title, body, target_node_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                generate_id("ntf"),
+                workspace_id,
+                row["id"],
+                source_type,
+                source_id,
+                category,
+                severity,
+                title,
+                body,
+                target_node_id,
+            ),
+        )
+        inserted += 1
+    return inserted
+
+
 async def deliver_webhook(webhook_url: str, webhook_secret: Optional[str], payload: dict) -> bool:
     """Deliver webhook POST request with exponential backoff retry.
 
@@ -237,7 +320,32 @@ def send_consult_notification(
             # Run webhook in background task
             asyncio.create_task(deliver_webhook(webhook_url, webhook_secret, webhook_payload))
 
-        # 2. Dispatch Emails
+        # 2. In-app notification center (independent of email/webhook availability).
+        _consult_severity = {"blocked": "high", "escalated": "mid", "auto_merged": "low"}.get(action_taken)
+        if _consult_severity is not None:
+            node_title = (proposal.get("new_node") or {}).get("title") or "診斷節點"
+            _consult_titles = {
+                "blocked": f"⚠️ 危險操作已攔截：{node_title}",
+                "escalated": f"新診斷提案待審核：{node_title}",
+                "auto_merged": f"已自動合入診斷節點：{node_title}",
+            }
+            try:
+                with db_cursor(commit=True) as ncur:
+                    emit_notification(
+                        ncur,
+                        workspace_id=ws_id,
+                        category="consultation",
+                        severity=_consult_severity,
+                        title=_consult_titles[action_taken],
+                        body=f"classification={classification}, action={action_taken}",
+                        source_type="consult",
+                        source_id=proposal_id or session_id,
+                        group="consultation",
+                    )
+            except Exception as e:
+                logger.warning(f"consult in-app notification failed: {e}")
+
+        # 3. Dispatch Emails
         recipients = get_workspace_admins(ws_id)
         if not recipients:
             return
@@ -311,7 +419,24 @@ def send_degradation_notification(ws_id: str, reason: str):
             }
             asyncio.create_task(deliver_webhook(webhook_url, webhook_secret, payload))
 
-        # 2. Email
+        # 2. In-app notification center (independent of email availability).
+        try:
+            with db_cursor(commit=True) as ncur:
+                emit_notification(
+                    ncur,
+                    workspace_id=ws_id,
+                    category="review_degradation",
+                    severity="high",
+                    title="⚠️ AI 審核已安全降級為人工審查",
+                    body=reason,
+                    source_type="review_policy",
+                    source_id=ws_id,
+                    group="review_degradation",
+                )
+        except Exception as e:
+            logger.warning(f"degradation in-app notification failed: {e}")
+
+        # 3. Email
         recipients = get_workspace_admins(ws_id)
         if not recipients:
             return

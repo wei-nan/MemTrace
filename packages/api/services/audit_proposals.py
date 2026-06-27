@@ -34,6 +34,31 @@ def _quota_ok(cur, workspace_id: str, reviewer: str) -> bool:
     return int(cnt) < DAILY_QUOTA_PER_REVIEWER
 
 
+def _has_open_duplicate(
+    cur, workspace_id: str, reviewer: str, category: str, target_ids: List[str]
+) -> bool:
+    """冪等去重：同一 (workspace, reviewer, category, target_ids) 是否已有 pending 提案。
+
+    同一筆發現常被多條觸發路徑（admission-time / 非同步 safety_queue / 排程 sweep）
+    重複送出，造成審核佇列同樣內容出現多列。此處集中把關，讓所有 reviewer 共用一致
+    的去重語意，取代各 reviewer 自行實作的 per-reviewer 檢查。比對採 target_ids 精確
+    相等，確保只折疊真正相同的提案，不會誤殺指向不同節點的不同發現。
+    """
+    cur.execute(
+        """
+        SELECT 1 FROM audit_proposals
+        WHERE workspace_id = %s
+          AND reviewer = %s
+          AND category = %s
+          AND status = 'pending'
+          AND target_ids = %s
+        LIMIT 1
+        """,
+        (workspace_id, reviewer, category, list(target_ids)),
+    )
+    return cur.fetchone() is not None
+
+
 def create_proposal(
     cur,
     workspace_id: str,
@@ -47,8 +72,19 @@ def create_proposal(
 ) -> Optional[Dict[str, Any]]:
     """
     寫入一筆 audit proposal。
+    若同一 (reviewer, category, target_ids) 已有 pending 提案，視為重複並跳過回傳 None
+    （冪等去重，避免審核佇列同樣內容出現多列）。
     若今日該 reviewer 已達 DAILY_QUOTA_PER_REVIEWER 上限則跳過並回傳 None。
     """
+    if _has_open_duplicate(cur, workspace_id, reviewer, category, target_ids):
+        logger.debug(
+            "Duplicate pending proposal skipped: reviewer=%s category=%s targets=%s",
+            reviewer,
+            category,
+            target_ids,
+        )
+        return None
+
     if not _quota_ok(cur, workspace_id, reviewer):
         logger.info(
             "Daily quota reached for reviewer=%s workspace=%s — skipping proposal",

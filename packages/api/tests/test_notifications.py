@@ -139,6 +139,67 @@ def test_webhook_dispatched_when_configured():
     create_task.assert_called_once()
 
 
+# ─── emit_notification (preference-aware in-app fan-out) ──────────────────────
+
+class TestEmitNotification:
+    """emit_notification 單元測試（mock cursor）：opt-out 群組與無收件人。"""
+
+    def _cur(self, recipients, pref_rows):
+        cur = MagicMock()
+        # 第一個 fetchall = 收件人解析；第二個 = 各收件人偏好
+        cur.fetchall.side_effect = [recipients, pref_rows]
+        return cur
+
+    def test_emits_to_all_when_no_optout(self):
+        from services.notifications import emit_notification
+        cur = self._cur(
+            [{"uid": "u1"}, {"uid": "u2"}],
+            [{"id": "u1", "notification_preferences": {}},
+             {"id": "u2", "notification_preferences": {}}],
+        )
+        n = emit_notification(
+            cur, workspace_id="ws", category="safety_passed", severity="low",
+            title="t", source_type="safety_queue", source_id="evt", group="safety_passed",
+        )
+        assert n == 2
+
+    def test_respects_optout_group(self):
+        from services.notifications import emit_notification
+        cur = self._cur(
+            [{"uid": "u1"}, {"uid": "u2"}],
+            [{"id": "u1", "notification_preferences": {"safety_passed": False}},
+             {"id": "u2", "notification_preferences": {}}],
+        )
+        n = emit_notification(
+            cur, workspace_id="ws", category="safety_passed", severity="low",
+            title="t", source_type="safety_queue", source_id="evt", group="safety_passed",
+        )
+        assert n == 1  # u1 已退訂 safety_passed
+
+    def test_no_recipients_returns_zero(self):
+        from services.notifications import emit_notification
+        cur = MagicMock()
+        cur.fetchall.side_effect = [[]]
+        n = emit_notification(
+            cur, workspace_id="ws", category="x", severity="low",
+            title="t", source_type="s", source_id="i",
+        )
+        assert n == 0
+
+    def test_optout_only_affects_named_group(self):
+        # 關閉 'safety_passed' 不影響其他群組（例如 consultation 仍會送達）
+        from services.notifications import emit_notification
+        cur = self._cur(
+            [{"uid": "u1"}],
+            [{"id": "u1", "notification_preferences": {"safety_passed": False}}],
+        )
+        n = emit_notification(
+            cur, workspace_id="ws", category="consultation", severity="mid",
+            title="t", source_type="consult", source_id="i", group="consultation",
+        )
+        assert n == 1
+
+
 # ─── In-app notification center (trigger fan-out + read state) ────────────────
 
 from services.audit_proposals import create_proposal

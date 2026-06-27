@@ -233,6 +233,29 @@ async def process_safety_review_queue_job(limit: int = 25) -> None:
                         if created_prop:
                             result["audit_proposal_id"] = created_prop["id"]
                             created += 1
+                    elif classification == "safe":
+                        # 「已檢查且通過」軌跡：讓 safe 結果在 UI 可見而非靜默。
+                        # 量大易吵，故走 emit_notification 的 group 機制，使用者可在
+                        # notification_preferences 關閉 'safety_passed' 群組退訂。
+                        from services.notifications import emit_notification
+                        try:
+                            emit_notification(
+                                cur,
+                                workspace_id=job["workspace_id"],
+                                category="safety_passed",
+                                severity="low",
+                                title=f"安全檢查通過：{node['title']}",
+                                body=f"event_type={job['event_type']}",
+                                source_type="safety_queue",
+                                source_id=job["event_id"],
+                                target_node_id=job["node_id"],
+                                group="safety_passed",
+                            )
+                        except Exception as exc:
+                            logger.warning(
+                                "safety_passed notification failed: node=%s error=%s",
+                                job["node_id"], exc,
+                            )
                     cur.execute(
                         """
                         UPDATE safety_review_queue
