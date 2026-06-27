@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, LogOut, BookOpen } from 'lucide-react';
+import { Settings, LogOut, BookOpen, BarChart2 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 interface HeaderProps {
@@ -43,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({
       case 'explore': return zh ? '探索知識庫' : 'Explore';
       case 'guide': return zh ? '使用說明' : 'Guide';
       case 'notifications': return zh ? '通知中心' : 'Notifications';
+      case 'usage': return zh ? '使用量統計' : 'Usage Statistics';
       default: return 'MemTrace';
     }
   };
@@ -124,6 +125,15 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   <BookOpen size={16} />
                   <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '使用說明' : 'Guide'}</span>
+                </div>
+                <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+                <div
+                  className="nav-item"
+                  onClick={() => { onSetView('usage'); onSetUserMenuOpen(false); }}
+                  style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                >
+                  <BarChart2 size={16} />
+                  <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '使用量統計' : 'Usage'}</span>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
                 <div

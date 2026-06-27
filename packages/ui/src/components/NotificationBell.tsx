@@ -9,6 +9,11 @@ import { Bell, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { notifications as notifApi, type NotificationItem } from '../api';
 import { notificationTitle, notificationBody, severityColor } from './notificationFormat';
+import {
+  loadCachedDisabledGroups,
+  loadPrefsFromDB,
+  isNotifVisible,
+} from './notificationPrefs';
 
 const POLL_MS = 30_000;
 
@@ -26,7 +31,12 @@ const NotificationBell: React.FC<Props> = ({ onNavigate, onViewAll }) => {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [disabledGroups, setDisabledGroups] = useState<Set<string>>(loadCachedDisabledGroups);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    loadPrefsFromDB().then(setDisabledGroups).catch(() => {});
+  }, []);
 
   const fetchUnread = useCallback(async () => {
     try {
@@ -92,6 +102,8 @@ const NotificationBell: React.FC<Props> = ({ onNavigate, onViewAll }) => {
     setUnread(0);
   };
 
+  const visibleItems = items.filter(n => isNotifVisible(n, disabledGroups));
+
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
@@ -149,12 +161,12 @@ const NotificationBell: React.FC<Props> = ({ onNavigate, onViewAll }) => {
               <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
                 {zh ? '載入中…' : 'Loading…'}
               </div>
-            ) : items.length === 0 ? (
+            ) : visibleItems.length === 0 ? (
               <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
                 {zh ? '沒有通知' : 'No notifications'}
               </div>
             ) : (
-              items.map(n => (
+              visibleItems.map(n => (
                 <div
                   key={n.id}
                   onClick={() => handleItemClick(n)}

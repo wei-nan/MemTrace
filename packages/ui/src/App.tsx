@@ -15,7 +15,7 @@ const NodeEditor = lazy(() => import('./NodeEditor'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[] };
-type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications';
+type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications' | 'usage';
 
 export default function App() {
   const { i18n } = useTranslation();

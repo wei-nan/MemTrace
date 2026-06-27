@@ -753,6 +753,35 @@ async def chat_with_kb(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/usage/me")
+def get_my_usage(user: dict = Depends(get_current_user)):
+    """Return the current user's AI token usage: monthly totals and per-feature breakdown."""
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT
+                TO_CHAR(created_at, 'YYYY-MM') AS year_month,
+                feature,
+                provider,
+                SUM(tokens_used) AS token_count
+            FROM ai_credit_ledger
+            WHERE user_id = %s
+            GROUP BY year_month, feature, provider
+            ORDER BY year_month DESC, token_count DESC
+        """, (user["sub"],))
+        ledger_rows = [dict(r) for r in cur.fetchall()]
+
+        cur.execute("""
+            SELECT id, title, tokens_total, message_count, created_at, last_active_at
+            FROM chat_sessions
+            WHERE user_id = %s
+            ORDER BY last_active_at DESC
+            LIMIT 20
+        """, (user["sub"],))
+        sessions = [dict(r) for r in cur.fetchall()]
+
+    return {"ledger": ledger_rows, "sessions": sessions}
+
+
 @router.post("/chat/feedback", status_code=204)
 
 @router.post("/chat/feedback", status_code=204)

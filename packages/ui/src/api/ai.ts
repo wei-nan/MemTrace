@@ -89,4 +89,10 @@ export const ai = {
     request("PATCH", `${BASE}/ai/sessions/${sessionId}`, { title }),
   deleteSession: (sessionId: string) =>
     request("DELETE", `${BASE}/ai/sessions/${sessionId}`),
+
+  getMyUsage: () =>
+    request<{
+      ledger: Array<{ year_month: string; feature: string; provider: string; token_count: number }>;
+      sessions: Array<{ id: string; title: string; tokens_total: number; message_count: number; created_at: string; last_active_at: string }>;
+    }>("GET", `${BASE}/ai/usage/me`),
 };

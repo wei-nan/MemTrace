@@ -24,6 +24,7 @@ const JobRunsPage = lazy(() => import('./JobRunsPage'));
 const SystemMonitorPage = lazy(() => import('./SystemMonitorPage'));
 const GuidePage = lazy(() => import('./GuidePage'));
 const NotificationsPage = lazy(() => import('./NotificationsPage'));
+const UsagePage = lazy(() => import('./UsagePage'));
 
 interface AppRouterProps {
   authenticated: boolean;
@@ -81,6 +82,11 @@ const AppRouter: React.FC<AppRouterProps> = ({
               <Suspense fallback={<div className="loading-overlay"><RefreshCw className="animate-spin" /></div>}>
                 {currentView === 'guide' && (
                   <GuidePage onOpenSpecKb={onOpenSpecKb} />
+                )}
+                {currentView === 'usage' && (
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    <UsagePage />
+                  </div>
                 )}
                 {currentView === 'explore' && (
                   <ExplorePage
