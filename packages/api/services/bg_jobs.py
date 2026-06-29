@@ -232,9 +232,11 @@ async def bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, 
                         id, workspace_id, from_id, to_id, relation, weight,
                         co_access_count, last_co_accessed, half_life_days,
                         min_weight, traversal_count, rating_sum, rating_count,
-                        status, pinned, created_at
+                        status, pinned, metadata, updated_at, source_type,
+                        proposer, edge_class
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s
                     )
                     """,
                     (
@@ -242,7 +244,10 @@ async def bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, 
                         edge["weight"], edge["co_access_count"], edge["last_co_accessed"],
                         edge["half_life_days"], edge["min_weight"], edge["traversal_count"],
                         edge["rating_sum"], edge["rating_count"], edge["status"],
-                        edge["pinned"], edge["created_at"]
+                        edge["pinned"],
+                        edge.get("metadata"), edge.get("updated_at"),
+                        edge.get("source_type", "human"), edge.get("proposer"),
+                        edge.get("edge_class", "semantic"),
                     )
                 )
 
