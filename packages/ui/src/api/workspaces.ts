@@ -222,6 +222,12 @@ export const workspaces = {
     kb_type: "evergreen" | "ephemeral";
     embedding_model?: string;
     qa_archive_mode?: "auto_active" | "manual_review";
+    auto_split?: boolean;
+    extraction_provider?: string | null;
+    settings?: {
+      mcp_ingest_enabled?: boolean;
+      mcp_ingest_daily_quota?: number;
+    };
   }) =>
     request<Workspace>("POST", `${BASE}/workspaces`, data),
   get: (id: string) => request<Workspace>("GET", `${BASE}/workspaces/${id}`),

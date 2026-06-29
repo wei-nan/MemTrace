@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Brain } from 'lucide-react';
+import { Brain, Cpu, SplitSquareVertical, Plug } from 'lucide-react';
 import { workspaces, type Workspace } from '../api';
 import { Modal, Button, Input, Card } from './ui';
 import { useProviderModels } from '../hooks/useProviderModels';
@@ -19,9 +19,14 @@ export default function CreateWorkspaceModal({
   const [language, setLanguage] = useState<'zh-TW' | 'en'>('zh-TW');
   const [kbType, setKbType] = useState<'evergreen' | 'ephemeral'>('evergreen');
   const [visibility, setVisibility] = useState<'private' | 'restricted' | 'conditional_public' | 'public'>('private');
+  const [qaArchiveMode, setQaArchiveMode] = useState<'manual_review' | 'auto_active'>('manual_review');
+  const [extractionProvider, setExtractionProvider] = useState<string>('');
+  const [autoSplit, setAutoSplit] = useState(false);
+  const [mcpIngestEnabled, setMcpIngestEnabled] = useState(false);
+  const [mcpDailyQuota, setMcpDailyQuota] = useState(5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { models: embedModels, loading: modelsLoading } = useProviderModels('embedding');
   const [selectedEmbedModel, setSelectedEmbedModel] = useState<string>('');
 
@@ -51,6 +56,13 @@ export default function CreateWorkspaceModal({
         visibility,
         kb_type: kbType,
         embedding_model: selectedEmbedModel || undefined,
+        qa_archive_mode: qaArchiveMode,
+        auto_split: autoSplit,
+        extraction_provider: extractionProvider || null,
+        settings: {
+          mcp_ingest_enabled: mcpIngestEnabled,
+          mcp_ingest_daily_quota: mcpDailyQuota,
+        },
       });
       onCreated(ws);
     } catch (e: unknown) {
@@ -158,6 +170,99 @@ export default function CreateWorkspaceModal({
             <option value="conditional_public">{t('ws_settings.vis_conditional_public')}</option>
             <option value="public">{t('ws_settings.vis_public')}</option>
           </select>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}>
+              {zh ? 'Q&A 歸檔模式' : 'Q&A Archive Mode'}
+            </label>
+            <select
+              className="mt-input-field"
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 8, background: 'var(--bg-surface)' }}
+              value={qaArchiveMode}
+              onChange={e => setQaArchiveMode(e.target.value as any)}
+            >
+              <option value="manual_review">{zh ? '手動審核 (推薦)' : 'Manual Review (Recommended)'}</option>
+              <option value="auto_active">{zh ? '自動生效' : 'Auto Active'}</option>
+            </select>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.4 }}>
+              {zh ? '對話萃取的知識點是否需過審核佇列。' : 'Whether extracted Q&A passes through the review queue.'}
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <Cpu size={14} />
+              {zh ? '文件擷取模型' : 'Extraction Provider'}
+            </label>
+            <select
+              className="mt-input-field"
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 8, background: 'var(--bg-surface)' }}
+              value={extractionProvider}
+              onChange={e => setExtractionProvider(e.target.value)}
+            >
+              <option value="">{zh ? '自動 (帳號預設)' : 'Auto (account default)'}</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="gemini">Gemini</option>
+              <option value="ollama">Ollama</option>
+            </select>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.4 }}>
+              {zh ? '上傳文件時使用的 LLM。' : 'LLM used when ingesting documents.'}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ border: '1px solid var(--border-default)', borderRadius: 10, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <SplitSquareVertical size={14} color="var(--text-secondary)" />
+                {zh ? '自動節點拆分 (Auto-split)' : 'Auto-split Nodes'}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                {zh ? 'AI 自動提議拆分過長或多主題節點。' : 'AI suggests splitting long or multi-topic nodes.'}
+              </div>
+            </div>
+            <label className="mt-switch">
+              <input type="checkbox" checked={autoSplit} onChange={e => setAutoSplit(e.target.checked)} />
+              <span className="mt-switch-slider round" />
+            </label>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plug size={14} color="var(--text-secondary)" />
+                {zh ? 'MCP 遠端攝入' : 'MCP Remote Ingestion'}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                {zh ? '允許透過 MCP 協定 (如 IDE 插件) 直接寫入此工作區。' : 'Allow ingestion via MCP protocol (e.g., IDE plugins).'}
+              </div>
+            </div>
+            <label className="mt-switch">
+              <input type="checkbox" checked={mcpIngestEnabled} onChange={e => setMcpIngestEnabled(e.target.checked)} />
+              <span className="mt-switch-slider round" />
+            </label>
+          </div>
+
+          {mcpIngestEnabled && (
+            <div style={{ borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: 'var(--bg-elevated)' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {zh ? '每日攝入配額 (文件數)' : 'Daily Ingestion Quota (docs)'}
+              </span>
+              <input
+                className="mt-input-field"
+                type="number"
+                min={1}
+                max={100}
+                value={mcpDailyQuota}
+                onChange={e => setMcpDailyQuota(Math.max(1, parseInt(e.target.value) || 5))}
+                style={{ width: 70, padding: '6px 10px', border: '1px solid var(--border-default)', borderRadius: 6, background: 'var(--bg-surface)', textAlign: 'center' }}
+              />
+            </div>
+          )}
         </div>
 
         <div>

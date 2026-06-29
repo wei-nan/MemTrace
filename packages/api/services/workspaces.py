@@ -219,12 +219,13 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
             body_dict.get("auto_split", False),
             body_dict.get("consult_trust_tier", "ask"),
             body_dict.get("consult_provider"),
-            json.dumps(body_dict.get("settings", {
+            json.dumps({
                 "node_complexity": {"enabled": True, "char_threshold": 600, "auto_split": False},
                 "auto_dedup_threshold": 0.92,
                 "mcp_ingest_enabled": False,
-                "mcp_ingest_daily_quota": 5
-            }))
+                "mcp_ingest_daily_quota": 5,
+                **(body_dict.get("settings") or {}),
+            })
         ),
     )
     res = cur.fetchone()

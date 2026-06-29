@@ -39,6 +39,8 @@ const CATEGORY_LABELS: Record<string, { zh: string; en: string }> = {
   stale_url: { zh: '來源連結可能失效', en: 'Stale source URL' },
   // safety_sweep
   historical_safety: { zh: '歷史安全掃描標記', en: 'Historical safety flag' },
+  // safety_queue passed
+  safety_passed: { zh: '安全檢查通過', en: 'Safety check passed' },
   // realtime safety (create_node path)
   realtime_safety: { zh: '即時安全審查', en: 'Realtime safety review' },
   // consult escalation
@@ -64,6 +66,10 @@ const SEVERITY_LABELS: Record<string, { zh: string; en: string }> = {
  * are omitted — the caller falls back to the stored n.body in those cases.
  */
 const BODY_TEMPLATES: Record<string, { zh: string; en: string }> = {
+  safety_passed: {
+    zh: '此節點已通過安全審查，內容符合安全規範。',
+    en: 'This node passed the safety review and meets safety guidelines.',
+  },
   realtime_safety: {
     zh: 'AI/MCP 非程序性節點非同步安全審查，請確認內容符合安全規範。',
     en: 'Async safety review for ai/mcp non-procedural node.',

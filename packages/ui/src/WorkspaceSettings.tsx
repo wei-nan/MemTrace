@@ -1191,6 +1191,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
 
   // Embedding Model State
   const [embedProvider, setEmbedProvider] = useState("openai");
+  const [pendingEmbedModel, setPendingEmbedModel] = useState("");
   const [embedModels, setEmbedModels] = useState<any[]>([]);
   const [loadingEmbedModels, setLoadingEmbedModels] = useState(false);
   const [failedEmbeddings, setFailedEmbeddings] = useState(0);
@@ -1200,6 +1201,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   useEffect(() => {
     if (!ws) return;
     setEmbedProvider(ws.embedding_provider || "openai");
+    setPendingEmbedModel(ws.embedding_model || "");
   }, [ws]);
 
   useEffect(() => {
@@ -1467,14 +1469,17 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 )}
               </div>
               
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: 10, alignItems: "end" }}>
                 <div>
                   <label style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6, display: "block" }}>Provider</label>
-                  <select 
-                    className="mt-input" 
-                    value={embedProvider} 
+                  <select
+                    className="mt-input"
+                    value={embedProvider}
                     disabled={!isOwner || ws?.migration_status === 'in_progress'}
-                    onChange={e => setEmbedProvider(e.target.value)}
+                    onChange={e => {
+                      setEmbedProvider(e.target.value);
+                      setPendingEmbedModel("");
+                    }}
                     style={{ width: "100%" }}
                   >
                     <option value="openai">OpenAI</option>
@@ -1485,17 +1490,39 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                 </div>
                 <div>
                   <label style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6, display: "block" }}>Model</label>
-                  <select 
-                    className="mt-input" 
+                  <select
+                    className="mt-input"
                     disabled={!isOwner || ws?.migration_status === 'in_progress' || loadingEmbedModels}
                     style={{ width: "100%" }}
-                    value={ws?.migration_status === 'in_progress' ? ws?.migrating_to_model || "" : ws?.embedding_model || ""}
-                    onChange={async (e) => {
-                      const newModel = e.target.value;
-                      if (!newModel || newModel === ws?.embedding_model) return;
+                    value={ws?.migration_status === 'in_progress' ? ws?.migrating_to_model || "" : pendingEmbedModel}
+                    onChange={e => setPendingEmbedModel(e.target.value)}
+                  >
+                    <option value="">{loadingEmbedModels ? (zh ? "載入中..." : "Loading...") : (zh ? "— 請選擇模型 —" : "— Select a model —")}</option>
+                    {embedProvider === ws?.embedding_provider && ws?.embedding_model && (
+                      <option value={ws.embedding_model}>{ws.embedding_model} ({zh ? "當前" : "Current"})</option>
+                    )}
+                    {embedModels.filter(m => m.id !== ws?.embedding_model || embedProvider !== ws?.embedding_provider).map(m => (
+                      <option key={m.id} value={m.id}>{m.display_name || m.id}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    disabled={
+                      !isOwner ||
+                      !pendingEmbedModel ||
+                      ws?.migration_status === 'in_progress' ||
+                      (pendingEmbedModel === ws?.embedding_model && embedProvider === ws?.embedding_provider)
+                    }
+                    onClick={async () => {
+                      if (!pendingEmbedModel) return;
                       const ok = await confirm({
                         title: zh ? "確認更換向量模型？" : "Change Embedding Model?",
-                        message: zh ? `確定要將模型更改為 ${newModel}？系統將在背景重新計算所有節點。` : `Change model to ${newModel}? All nodes will be re-embedded in the background.`,
+                        message: zh
+                          ? `確定要將模型更改為 ${embedProvider} / ${pendingEmbedModel}？系統將在背景重新計算所有節點。`
+                          : `Change to ${embedProvider} / ${pendingEmbedModel}? All nodes will be re-embedded in the background.`,
                         confirmLabel: zh ? "開始轉移" : "Start Migration",
                         variant: "warning"
                       });
@@ -1503,7 +1530,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                       try {
                         await workspaces.update(wsId, {
                           migrating_to_provider: embedProvider,
-                          migrating_to_model: newModel,
+                          migrating_to_model: pendingEmbedModel,
                           migration_status: 'in_progress'
                         });
                         await loadData();
@@ -1513,12 +1540,8 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                       }
                     }}
                   >
-                    <option value={ws?.embedding_model || ""}>{ws?.embedding_model} ({zh ? "當前" : "Current"})</option>
-                    {embedModels.filter(m => m.id !== ws?.embedding_model).map(m => (
-                      <option key={m.id} value={m.id}>{m.display_name || m.id}</option>
-                    ))}
-                    {!embedModels.length && loadingEmbedModels && <option>{zh ? "載入中..." : "Loading..."}</option>}
-                  </select>
+                    {zh ? "套用" : "Apply"}
+                  </Button>
                 </div>
               </div>
 

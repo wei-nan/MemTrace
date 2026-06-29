@@ -7,7 +7,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Check, RefreshCw, Settings, X, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { notifications as notifApi, type NotificationItem, type NotificationSeverity } from './api';
-import { notificationTitle, severityLabel, severityColor } from './components/notificationFormat';
+import { notificationTitle, notificationBody, severityLabel, severityColor } from './components/notificationFormat';
 import {
   NOTIF_GROUPS,
   loadCachedDisabledGroups,
@@ -308,11 +308,11 @@ const NotificationsPage: React.FC<Props> = ({ onNavigate }) => {
                     </span>
                   )}
                 </div>
-                {n.body && (
+                {(() => { const b = notificationBody(n, zh); return b && (
                   <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.5 }}>
-                    {n.body}
+                    {b}
                   </div>
-                )}
+                ); })()}
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5 }}>
                   {new Date(n.created_at).toLocaleString()}
                 </div>

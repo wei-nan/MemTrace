@@ -260,7 +260,8 @@ const resources = {
         rejectSuccess: '已拒絕變更',
         acceptAllConfirm: '確定要接受所有可見的待審核項目嗎？',
         rejectConfirm: '確定要拒絕此項變更嗎？',
-        conflict_detected: '偵測到知識衝突'
+        conflict_detected: '偵測到知識衝突',
+        acceptAllSuccess: '所有待審核項目已處理完成'
       },
       health: {
         title: '節點健康管理',
@@ -745,7 +746,8 @@ const resources = {
         rejectSuccess: 'Review rejected',
         acceptAllConfirm: 'Accept all visible review items?',
         rejectConfirm: 'Are you sure you want to reject this change?',
-        conflict_detected: 'Knowledge Conflict Detected'
+        conflict_detected: 'Knowledge Conflict Detected',
+        acceptAllSuccess: 'All pending reviews processed'
       },
       health: {
         title: 'Node Health Manager',

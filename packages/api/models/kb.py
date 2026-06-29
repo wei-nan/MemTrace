@@ -16,6 +16,8 @@ class WorkspaceCreate(BaseModel):
     embedding_model: Optional[str] = None                # P4.1-E: user-chosen model; None = auto-resolve
     qa_archive_mode: str = "manual_review"               # auto_active | manual_review
     extraction_provider: Optional[str] = None            # preferred LLM for ingestion; None = user default
+    auto_split: bool = False
+    settings: Optional[dict] = None                      # overrides for mcp_ingest_enabled, mcp_ingest_daily_quota, etc.
     consult_trust_tier: str = "ask"                      # ask | full_trust
     consult_provider: Optional[str] = None
 

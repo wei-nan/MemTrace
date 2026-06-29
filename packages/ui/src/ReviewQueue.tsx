@@ -561,7 +561,7 @@ export default function ReviewQueue({
       await review.acceptAll(wsId);
       setItems([]);
       await loadItems();
-      toast({ message: "All pending reviews processed", variant: "success" });
+      toast({ message: t('review.acceptAllSuccess'), variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
     } finally {
