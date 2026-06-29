@@ -538,8 +538,21 @@ def propose_change(
         before_snapshot = node_row_to_snapshot(existing)
 
     if change_type == "create_edge":
-        # Edge proposals store raw edge data directly — no node-field validation needed.
-        after_snapshot = dict(node_data or {})
+        # Validate both endpoints exist and are active before queuing the proposal.
+        # Fail fast here rather than letting an unacceptable item sit in the review queue.
+        edge_data = node_data or {}
+        for side, nid in (("from_id", edge_data.get("from_id")), ("to_id", edge_data.get("to_id"))):
+            if nid:
+                cur.execute(
+                    "SELECT 1 FROM memory_nodes WHERE id = %s AND workspace_id = %s AND status = 'active'",
+                    (nid, ws_id),
+                )
+                if not cur.fetchone():
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"create_edge proposal rejected: {side} node '{nid}' not found or not active in workspace",
+                    )
+        after_snapshot = dict(edge_data)
     elif change_type not in ("delete", "conflict"):
         payload = dict(node_data or {})
         if change_type == "update" and before_snapshot:

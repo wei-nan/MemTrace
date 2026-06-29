@@ -90,15 +90,55 @@ def _apply_review_item(cur, item: dict):
         try:
             create_edge_in_db(cur, ws_id, node_data)
         except HTTPException as exc:
-            if exc.status_code != 409:
+            if exc.status_code == 409:
+                pass  # Edge already exists — accept is a no-op
+            elif exc.status_code == 404:
+                # One or both endpoint nodes were deleted after the proposal was created.
+                # Auto-reject so the item is not stuck in pending forever.
+                cur.execute(
+                    """
+                    UPDATE review_queue
+                    SET status = 'rejected', reviewer_type = 'system', reviewed_at = now(),
+                        review_notes = %s
+                    WHERE id = %s
+                    """,
+                    (f"Auto-rejected: {exc.detail}", item["id"]),
+                )
+                return None, None
+            else:
                 raise
-            # Edge already exists — accept is a no-op, not an error
         return None, None
     elif change_type in ("split_suggestion", "conflict", "source_updated"):
         return None, None
     else:
         raise HTTPException(status_code=400, detail="Unsupported change type")
     return node, None
+
+
+def _annotate_stale_edge(cur, item: dict) -> dict:
+    """For create_edge items, check if either endpoint node was deleted/archived since proposal time."""
+    if item.get("change_type") != "create_edge":
+        return item
+    node_data = item.get("node_data") or {}
+    from_id = node_data.get("from_id")
+    to_id = node_data.get("to_id")
+    missing = []
+    for nid in filter(None, [from_id, to_id]):
+        cur.execute(
+            "SELECT status FROM memory_nodes WHERE id = %s AND workspace_id = %s",
+            (nid, item["workspace_id"]),
+        )
+        row = cur.fetchone()
+        if not row or row["status"] not in ("active", "answered", "answered-low-trust"):
+            missing.append(nid)
+    if missing:
+        item = dict(item)
+        item["can_review"] = False
+        meta = dict(item.get("proposer_meta") or {})
+        meta["stale_edge"] = True
+        meta["missing_nodes"] = missing
+        item["proposer_meta"] = meta
+    return item
 
 
 @router.get("/{ws_id}/review-queue", response_model=List[ReviewQueueResponse])
@@ -114,7 +154,13 @@ def list_review_queue(ws_id: str, status: str = "pending", user: dict = Depends(
             """,
             (ws_id, status),
         )
-        return [_strip_review_for_role(row, role) for row in cur.fetchall()]
+        rows = cur.fetchall()
+        result = []
+        for row in rows:
+            item = _strip_review_for_role(row, role)
+            item = _annotate_stale_edge(cur, item)
+            result.append(item)
+        return result
 
 
 @router.patch("/review-queue/{id}", response_model=ReviewQueueResponse)

@@ -247,6 +247,7 @@ function ReviewCard({
   const edgeDisplayTitle = item.change_type === "create_edge"
     ? [edgeFromTitle ?? "…", edgeRelation ? `[${edgeRelation}]` : null, edgeToTitle ?? "…"].filter(Boolean).join(" → ")
     : null;
+  const isStaleEdge = !!(item.proposer_meta?.stale_edge);
   const failureMessage = item.proposer_meta?.failure_message as string | undefined;
 
   const handleViewSource = () => {
@@ -358,6 +359,18 @@ function ReviewCard({
                   {zh ? "開啟任務" : "Open Task"}
                 </Button>
               )}
+            </div>
+          )}
+          {isStaleEdge && (
+            <div style={{ marginTop: 12, padding: 12, background: "rgba(234, 179, 8, 0.07)", border: "1px solid rgba(234, 179, 8, 0.35)", borderRadius: 10 }}>
+              <div style={{ color: "#b45309", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                <TriangleAlert size={14} /> {zh ? "節點已不存在" : "Stale Edge Proposal"}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+                {zh
+                  ? "此邊提案所參照的節點在提案建立後已被刪除或封存，無法接受。建議直接拒絕。"
+                  : "One or both endpoint nodes were deleted or archived after this proposal was created. Reject to clear it."}
+              </div>
             </div>
           )}
           {isFeatureComplete && (
