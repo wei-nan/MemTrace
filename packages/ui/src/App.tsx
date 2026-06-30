@@ -415,6 +415,11 @@ export default function App() {
           cloneJob={cloneJob}
           cancellingJob={cancellingJob}
           onSetCancellingJob={setCancellingJob}
+          onDismissCloneJob={async () => {
+            if (!cloneJob) return;
+            try { await workspaces.dismissCloneJob(cloneJob.id); } catch { /* ignore */ }
+            setCloneJob(null);
+          }}
           onShowCreateWs={() => setShowCreateWs(true)}
           onShowForkWs={setShowForkWs}
           canWrite={canWrite}

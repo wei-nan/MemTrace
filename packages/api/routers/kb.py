@@ -177,6 +177,29 @@ def cancel_clone_job(job_id: str, user: dict = Depends(get_current_user)):
         cancel_clone_job_in_db(cur, job_id, user)
 
 
+@router.delete("/clone-jobs/{job_id}", status_code=204)
+def dismiss_clone_job(job_id: str, user: dict = Depends(get_current_user)):
+    """Dismiss (delete) a failed or cancelled clone job so it no longer appears in the UI."""
+    with db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            SELECT cj.id, cj.status, w.owner_id
+            FROM workspace_clone_jobs cj
+            JOIN workspaces w ON w.id = cj.target_ws_id
+            WHERE cj.id = %s
+            """,
+            (job_id,),
+        )
+        job = cur.fetchone()
+        if not job:
+            raise HTTPException(status_code=404, detail="Clone job not found")
+        if job["owner_id"] != user["sub"]:
+            raise HTTPException(status_code=403, detail="Only the target workspace owner can dismiss this job")
+        if job["status"] not in ("failed", "cancelled", "completed"):
+            raise HTTPException(status_code=400, detail=f"Cannot dismiss a job with status '{job['status']}'")
+        cur.execute("DELETE FROM workspace_clone_jobs WHERE id = %s", (job_id,))
+
+
 # ── Re-embed all nodes ────────────────────────────────────────────────────────
 
 @router.post("/workspaces/{ws_id}/reembed-all", status_code=202)

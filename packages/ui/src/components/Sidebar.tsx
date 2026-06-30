@@ -22,6 +22,7 @@ interface SidebarProps {
   cloneJob: WorkspaceCloneJob | null;
   cancellingJob: boolean;
   onSetCancellingJob: (cancelling: boolean) => void;
+  onDismissCloneJob: () => void;
   onShowCreateWs: () => void;
   onShowForkWs: (ws: Workspace) => void;
   canWrite: boolean;
@@ -42,6 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   cloneJob,
   cancellingJob,
   onSetCancellingJob,
+  onDismissCloneJob,
   onShowCreateWs,
   onShowForkWs,
   canWrite,
@@ -220,6 +222,15 @@ const Sidebar: React.FC<SidebarProps> = ({
               </span>
               {['pending', 'running'].includes(cloneJob.status) && cloneJob.total_nodes > 0 && (
                 <span>{cloneJob.processed_nodes} / {cloneJob.total_nodes}</span>
+              )}
+              {['failed', 'cancelled'].includes(cloneJob.status) && (
+                <button
+                  onClick={onDismissCloneJob}
+                  title={zh ? '關閉' : 'Dismiss'}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', lineHeight: 1, color: 'inherit', opacity: 0.6 }}
+                >
+                  ×
+                </button>
               )}
             </div>
 

@@ -265,6 +265,8 @@ export const workspaces = {
     request<WorkspaceCloneJob>("POST", `${BASE}/workspaces/${wsId}/fork`, data),
   cancelCloneJob: (jobId: string) =>
     request("POST", `${BASE}/clone-jobs/${jobId}/cancel`),
+  dismissCloneJob: (jobId: string) =>
+    request("DELETE", `${BASE}/clone-jobs/${jobId}`),
   reembedAll: (wsId: string) =>
     request<{ queued: number }>("POST", `${BASE}/workspaces/${wsId}/reembed-all`),
   getCloneStatus: (wsId: string) =>
