@@ -39,6 +39,7 @@ from routers.job_observability import router as job_observability_router
 from routers.conductor import router as conductor_router
 from routers.notifications import router as notifications_router
 from routers.connectors import router as connectors_router
+from routers.voice import router as voice_router
 
 # ── Background jobs ───────────────────────────────────────────────────────────
 from jobs.ingest import recover_stale_on_startup
@@ -101,6 +102,7 @@ app.include_router(job_observability_router)
 app.include_router(conductor_router)
 app.include_router(notifications_router)
 app.include_router(connectors_router)
+app.include_router(voice_router)
 
 # Top-level /mcp alias for Streamable HTTP (cleaner URL for MCP clients)
 from routers.mcp import mcp_streamable

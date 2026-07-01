@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap } from 'lucide-react';
-import { ai, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
+import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap, Mic, MicOff } from 'lucide-react';
+import { ai, voice, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card } from './ui';
 import { useModal } from './ModalContext';
@@ -47,6 +47,136 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     window.addEventListener('mousedown', handler);
     return () => window.removeEventListener('mousedown', handler);
   }, [providerMenuOpen]);
+
+  // ── Voice mode (mem_bede56ef): toggle-based mic control, TTS queue-not-interrupt,
+  // explicit stop button separate from the mic toggle. Language follows the
+  // browser/system locale, not the workspace language (V4).
+  const voiceLanguage = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+  const [voiceKeys, setVoiceKeys] = useState<{ stt: boolean; tts: boolean }>({ stt: false, tts: false });
+  const [voiceModeActive, setVoiceModeActive] = useState(false);
+  const [micOn, setMicOn] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceQueueCount, setVoiceQueueCount] = useState(0);
+  const isSpeakingRef = useRef(false);
+  const voiceQueueRef = useRef<string[]>([]);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    voice.listKeys()
+      .then(keys => setVoiceKeys({
+        stt: keys.some(k => k.purpose === 'stt'),
+        tts: keys.some(k => k.purpose === 'tts'),
+      }))
+      .catch(() => {
+        // Voice is opt-in; if the lookup fails, controls simply stay hidden.
+      });
+  }, []);
+
+  useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
+
+  // Leaving voice mode tears down any in-flight recording/playback.
+  useEffect(() => {
+    if (voiceModeActive) return;
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach(t => t.stop());
+    currentAudioRef.current?.pause();
+    setMicOn(false);
+    setIsSpeaking(false);
+    voiceQueueRef.current = [];
+    setVoiceQueueCount(0);
+  }, [voiceModeActive]);
+
+  useEffect(() => () => {
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach(t => t.stop());
+    currentAudioRef.current?.pause();
+  }, []);
+
+  /** Merge any queued voice segments (accumulated while TTS was speaking) plus an optional new one. */
+  const flushVoiceQueue = (extra?: string): string => {
+    const parts = [...voiceQueueRef.current];
+    if (extra) parts.push(extra);
+    voiceQueueRef.current = [];
+    setVoiceQueueCount(0);
+    return parts.join(' ');
+  };
+
+  const handleTTSEnded = () => {
+    setIsSpeaking(false);
+    currentAudioRef.current = null;
+    if (voiceQueueRef.current.length > 0) {
+      handleSendRef.current?.(flushVoiceQueue());
+    }
+  };
+
+  // Explicit interrupt: a distinct control from the mic toggle, per spec —
+  // talking while TTS plays queues (doesn't interrupt); this button does.
+  const handleStopSpeaking = () => {
+    currentAudioRef.current?.pause();
+    handleTTSEnded();
+  };
+
+  const playTTS = async (text: string) => {
+    try {
+      const url = await voice.textToSpeech(text, voiceLanguage);
+      const audio = new Audio(url);
+      currentAudioRef.current = audio;
+      setIsSpeaking(true);
+      audio.onended = () => { handleTTSEnded(); URL.revokeObjectURL(url); };
+      audio.onerror = () => { handleTTSEnded(); URL.revokeObjectURL(url); };
+      await audio.play();
+    } catch (e: any) {
+      setIsSpeaking(false);
+      toast({ message: e.message, variant: 'error' });
+    }
+  };
+
+  const handleToggleMic = async () => {
+    if (micOn) {
+      mediaRecorderRef.current?.stop();
+      setMicOn(false);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = async () => {
+        mediaStreamRef.current?.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        audioChunksRef.current = [];
+        if (blob.size === 0) return;
+        setTranscribing(true);
+        try {
+          const transcript = await voice.speechToText(blob, voiceLanguage);
+          if (!transcript.trim()) return;
+          if (isSpeakingRef.current) {
+            // TTS still playing: queue, don't interrupt (V3 decision).
+            voiceQueueRef.current.push(transcript);
+            setVoiceQueueCount(voiceQueueRef.current.length);
+          } else {
+            handleSendRef.current?.(flushVoiceQueue(transcript));
+          }
+        } catch (e: any) {
+          toast({ message: e.message, variant: 'error' });
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setMicOn(true);
+    } catch {
+      toast({ message: zh ? '無法存取麥克風' : 'Microphone access denied', variant: 'error' });
+    }
+  };
 
   // Session state
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -216,6 +346,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
       setMessages(prev => [...prev, { role: 'assistant', content: '', response: { answer: '', proposals: [], source_nodes: [], tokens_used: 0 } }]);
 
       let currentSessionId = sessionId;
+      let assistantText = '';
 
       await ai.chatStream({
         workspace_id: wsId,
@@ -238,6 +369,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
             return next;
           });
         } else if (chunk.type === 'content') {
+          assistantText += chunk.delta;
           setMessages(prev => {
             const next = [...prev];
             if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + chunk.delta };
@@ -257,6 +389,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
           });
           // Refresh sessions to update token count & last_active_at
           loadSessions();
+          if (voiceModeActive && voiceKeys.tts && assistantText.trim()) {
+            playTTS(assistantText);
+          }
         } else if (chunk.type === 'error') {
           setLoading(false);
           if (chunk.detail === 'session_frozen') {
@@ -463,6 +598,23 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
             {zh ? '自動' : 'Auto'}
           </button>
 
+          {(voiceKeys.stt || voiceKeys.tts) && (
+            <button
+              onClick={() => setVoiceModeActive(v => !v)}
+              title={zh ? `語音模式：${voiceModeActive ? '開啟' : '關閉'}` : `Voice mode: ${voiceModeActive ? 'on' : 'off'}`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 6,
+                background: voiceModeActive ? 'var(--color-primary-subtle)' : 'transparent',
+                border: `1px solid ${voiceModeActive ? 'var(--color-primary)' : 'var(--border-default)'}`,
+                color: voiceModeActive ? 'var(--color-primary)' : 'var(--text-muted)',
+                cursor: 'pointer', fontSize: 11, fontWeight: 500, flexShrink: 0,
+              }}
+            >
+              <Mic size={12} />
+              {zh ? '語音' : 'Voice'}
+            </button>
+          )}
+
           {onClose && (
             <Button variant="ghost" size="sm" onClick={onClose} title={zh ? '關閉' : 'Close'} style={{ padding: 4, flexShrink: 0 }}>
               <X size={16} />
@@ -630,6 +782,45 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
               <Button variant="ghost" size="sm" onClick={startNewSession} style={{ marginLeft: 'auto', fontSize: 11 }}>
                 {zh ? '開新對話' : 'New conversation'}
               </Button>
+            </div>
+          )}
+
+          {voiceModeActive && (
+            <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--bg-base)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+              {voiceKeys.stt && (
+                <button
+                  onClick={handleToggleMic}
+                  disabled={transcribing}
+                  title={micOn ? (zh ? '結束本段語音' : 'End this segment') : (zh ? '開始說話' : 'Start talking')}
+                  style={{
+                    width: 36, height: 36, borderRadius: 18, border: 'none', flexShrink: 0,
+                    background: micOn ? 'var(--color-error, #ef4444)' : 'var(--color-primary)',
+                    color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: transcribing ? 'default' : 'pointer', opacity: transcribing ? 0.6 : 1,
+                  }}
+                >
+                  {micOn ? <MicOff size={16} /> : <Mic size={16} />}
+                </button>
+              )}
+              <div style={{ flex: 1, fontSize: 12, color: 'var(--text-muted)' }}>
+                {transcribing
+                  ? (zh ? '辨識中…' : 'Transcribing…')
+                  : isSpeaking
+                    ? (zh ? '模型說話中…' : 'Assistant speaking…')
+                    : micOn
+                      ? (zh ? '聆聽中，再次點擊結束本段' : 'Listening — click again to end')
+                      : (zh ? '點擊麥克風開始說話' : 'Click the mic to talk')}
+                {voiceQueueCount > 0 && (zh ? `（已佇列 ${voiceQueueCount} 段）` : ` (${voiceQueueCount} queued)`)}
+              </div>
+              {isSpeaking && (
+                <button
+                  onClick={handleStopSpeaking}
+                  title={zh ? '打斷模型語音' : 'Interrupt speech'}
+                  style={{ width: 32, height: 32, borderRadius: 16, border: 'none', background: 'var(--color-error, #ef4444)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                >
+                  <Square size={13} />
+                </button>
+              )}
             </div>
           )}
 

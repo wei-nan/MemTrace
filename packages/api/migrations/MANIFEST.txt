@@ -17,3 +17,4 @@
 117_node_edge_class_and_tombstones.sql
 118_notification_preferences.sql
 119_reviewer_model_governance.sql
+120_user_voice_keys.sql

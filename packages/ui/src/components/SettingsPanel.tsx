@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Moon, Sun, LogOut, Key, Plus, RotateCcw, Trash2, Copy,
-  ChevronRight, Cpu, HardDrive, ShieldCheck, Languages,
+  ChevronRight, Cpu, HardDrive, ShieldCheck, Languages, Mic,
 } from 'lucide-react';
 import { auth, users } from '../api';
 import type { PersonalApiKey, PersonalApiKeyCreateResponse } from '../api/workspaces';
 import { useModal } from './ModalContext';
 import BackupSettings from './BackupSettings';
 import AiProviderSettings from './AiProviderSettings';
+import VoiceProviderSettings from './VoiceProviderSettings';
 
 // ── Shared card layout helpers ────────────────────────────────────────────────
 
@@ -261,6 +262,18 @@ export default function SettingsPanel({
           />
           <div style={CARD_BODY}>
             <AiProviderSettings zh={zh} onSaved={loadApiKeys} />
+          </div>
+        </div>
+
+        {/* ── Voice (STT/TTS) ──────────────────────────────────────────── */}
+        <div style={CARD}>
+          <CardHeader
+            icon={<Mic size={15} />}
+            title={zh ? '語音對話' : 'Voice Conversation'}
+            description={zh ? '選填，個人設定' : 'Optional, personal setting'}
+          />
+          <div style={CARD_BODY}>
+            <VoiceProviderSettings zh={zh} />
           </div>
         </div>
 

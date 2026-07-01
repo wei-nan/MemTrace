@@ -10,6 +10,7 @@ import { clusters } from './clusters';
 import { documents } from './documents';
 import { notifications } from './notifications';
 import { connectors } from './connectors';
+import { voice } from './voice';
 import { request } from './client';
 import type { PersonalApiKey, PersonalApiKeyCreateResponse } from './workspaces';
 
@@ -26,6 +27,7 @@ export * from './clusters';
 export * from './documents';
 export * from './notifications';
 export * from './connectors';
+export * from './voice';
 
 export const users = {
   apiKeys: {
@@ -53,4 +55,5 @@ export const api = {
   documents,
   notifications,
   connectors,
+  voice,
 };
