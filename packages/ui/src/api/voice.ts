@@ -72,6 +72,33 @@ export const voice = {
     return data.transcript as string;
   },
 
+  /**
+   * Condense an assistant reply into a spoken-friendly summary before TTS (D7).
+   * The backend falls back to the original text if summarization is unavailable,
+   * so this always resolves to something speakable.
+   */
+  summarizeForSpeech: async (
+    text: string,
+    language: string,
+    preferredProvider?: string,
+    preferredModel?: string,
+  ): Promise<string> => {
+    const res = await fetch(`${BASE}/ai/speech/tts-summary`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...writeHeaders() },
+      body: JSON.stringify({
+        text,
+        language,
+        preferred_provider: preferredProvider,
+        preferred_model: preferredModel,
+      }),
+    });
+    if (!res.ok) throw new Error(await parseErrorDetail(res));
+    const data = await res.json();
+    return data.summary as string;
+  },
+
   /** Synthesize speech for text; returns a playable object URL. */
   textToSpeech: async (text: string, language: string): Promise<string> => {
     const res = await fetch(`${BASE}/ai/speech/tts`, {

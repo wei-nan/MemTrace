@@ -122,7 +122,17 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
 
   const playTTS = async (text: string) => {
     try {
-      const url = await voice.textToSpeech(text, voiceLanguage);
+      // D7 (mem_77b74b8a): speak a concise spoken summary, not the raw reply —
+      // reading code/markdown aloud verbatim is jarring. Backend falls back to
+      // the original text if summarization is unavailable; a network error here
+      // does the same locally.
+      let spoken = text;
+      try {
+        spoken = await voice.summarizeForSpeech(text, voiceLanguage, provider, selectedModel);
+      } catch {
+        spoken = text;
+      }
+      const url = await voice.textToSpeech(spoken, voiceLanguage);
       const audio = new Audio(url);
       currentAudioRef.current = audio;
       setIsSpeaking(true);
