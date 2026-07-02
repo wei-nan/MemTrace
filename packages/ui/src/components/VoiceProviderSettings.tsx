@@ -6,6 +6,8 @@ import { useModal } from './ModalContext';
 const STT_PROVIDERS = ['gcp', 'openai', 'azure', 'deepgram'] as const;
 const TTS_PROVIDERS = ['gcp', 'openai', 'azure', 'elevenlabs'] as const;
 
+const PROVIDER_LABEL: Record<string, string> = { gcp: 'Google' };
+
 function VoicePurposeForm({
   zh,
   purpose,
@@ -76,7 +78,7 @@ function VoicePurposeForm({
             onClick={() => { setProvider(p); setCredentialType('api_key'); }}
             style={{ flex: 1, textTransform: 'capitalize' }}
           >
-            {p}
+            {PROVIDER_LABEL[p] ?? p}
           </button>
         ))}
       </div>
