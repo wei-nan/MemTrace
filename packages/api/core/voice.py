@@ -133,6 +133,21 @@ async def _gcp_bearer_token(credential: str, credential_type: str, scope: str) -
     return token
 
 
+def _raise_gcp_error(label: str, resp: httpx.Response) -> None:
+    try:
+        reason = resp.json().get("error", {}).get("details", [{}])[0].get("reason", "")
+    except Exception:
+        reason = ""
+    if reason == "API_KEY_HTTP_REFERRER_BLOCKED":
+        raise AIProviderError(
+            "Google API 金鑰設定了「HTTP 來源限制」，但 MemTrace 是從伺服器呼叫，"
+            "沒有瀏覽器來源，因此被 Google 封鎖。\n"
+            "請至 GCP Console → API 和服務 → 憑證，找到此金鑰，"
+            "將「應用程式限制」改為「無」或改用「IP 位址」限制後儲存。"
+        )
+    raise AIProviderError(f"GCP {label} {resp.status_code}: {resp.text[:400]}")
+
+
 class GCPVoiceProvider(VoiceProvider):
     name = "gcp"
 
@@ -160,7 +175,7 @@ class GCPVoiceProvider(VoiceProvider):
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(url, headers=headers, json=body)
         if not resp.is_success:
-            raise AIProviderError(f"GCP STT {resp.status_code}: {resp.text[:400]}")
+            _raise_gcp_error("STT", resp)
         data = resp.json()
         results = data.get("results", [])
         if not results:
@@ -187,7 +202,7 @@ class GCPVoiceProvider(VoiceProvider):
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(url, headers=headers, json=body)
         if not resp.is_success:
-            raise AIProviderError(f"GCP TTS {resp.status_code}: {resp.text[:400]}")
+            _raise_gcp_error("TTS", resp)
         import base64
         audio_content = resp.json()["audioContent"]
         return base64.b64decode(audio_content), "audio/mpeg"

@@ -90,6 +90,14 @@ function VoicePurposeForm({
         </select>
       )}
 
+      {provider === 'gcp' && credentialType === 'api_key' && (
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--bg-base)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '6px 10px', lineHeight: 1.6 }}>
+          {zh
+            ? '注意：建立 GCP API 金鑰後，請在「應用程式限制」選擇「無」，否則從伺服器發出的請求會被 Google 封鎖。'
+            : 'Note: when creating your GCP API key, set Application restrictions to "None" — server-side requests have no HTTP referrer and will be blocked otherwise.'}
+        </div>
+      )}
+
       {provider === 'azure' ? (
         <input
           className="mt-input"
