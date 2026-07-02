@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap, Mic, MicOff } from 'lucide-react';
+import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap, Mic, MicOff, Volume2 } from 'lucide-react';
 import { ai, voice, review, VoiceStreamSession, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card } from './ui';
@@ -9,6 +9,8 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   response?: ChatResponse;
+  /** The condensed text spoken by TTS (D7), kept so it can be shown, not just heard. */
+  spokenSummary?: string;
 }
 
 interface ProposalState {
@@ -125,7 +127,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     handleTTSEnded();
   };
 
-  const playTTS = async (text: string) => {
+  const playTTS = async (text: string, msgIdx?: number) => {
     try {
       // D7 (mem_77b74b8a): speak a concise spoken summary, not the raw reply —
       // reading code/markdown aloud verbatim is jarring. Backend falls back to
@@ -136,6 +138,15 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
         spoken = await voice.summarizeForSpeech(text, voiceLanguage, provider, selectedModel);
       } catch {
         spoken = text;
+      }
+      // Keep the spoken summary visible too, but only when it actually differs
+      // from the on-screen reply (i.e. summarization ran, not the fallback).
+      if (msgIdx !== undefined && spoken.trim() && spoken.trim() !== text.trim()) {
+        setMessages(prev => {
+          const next = [...prev];
+          if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], spokenSummary: spoken };
+          return next;
+        });
       }
       const url = await voice.textToSpeech(spoken, voiceLanguage);
       const audio = new Audio(url);
@@ -461,7 +472,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
           // Refresh sessions to update token count & last_active_at
           loadSessions();
           if (voiceModeActive && voiceKeys.tts && assistantText.trim()) {
-            playTTS(assistantText);
+            playTTS(assistantText, msgIdx);
           }
         } else if (chunk.type === 'error') {
           setLoading(false);
@@ -772,6 +783,14 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
                   {m.role === 'assistant' && m.content === '' && loading && msgIdx === messages.length - 1
                     ? <TypingDots />
                     : <div className={m.role === 'assistant' ? 'markdown-body' : undefined}><ReactMarkdown>{m.content}</ReactMarkdown></div>}
+                  {m.spokenSummary && (
+                    <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--color-primary-subtle)', border: '1px solid var(--color-primary)', fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, color: 'var(--color-primary)', marginBottom: 4 }}>
+                        <Volume2 size={13} /> {zh ? '語音摘要' : 'Spoken summary'}
+                      </div>
+                      {m.spokenSummary}
+                    </div>
+                  )}
                   {m.response?.proposals && m.response.proposals.length > 0 && (
                     <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 6 }}>
