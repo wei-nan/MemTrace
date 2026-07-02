@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap, Mic, MicOff } from 'lucide-react';
-import { ai, voice, review, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
+import { ai, voice, review, VoiceStreamSession, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card } from './ui';
 import { useModal } from './ModalContext';
@@ -52,7 +52,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   // explicit stop button separate from the mic toggle. Language follows the
   // browser/system locale, not the workspace language (V4).
   const voiceLanguage = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
-  const [voiceKeys, setVoiceKeys] = useState<{ stt: boolean; tts: boolean }>({ stt: false, tts: false });
+  const [voiceKeys, setVoiceKeys] = useState<{ stt: boolean; tts: boolean; sttProvider: string | null }>({ stt: false, tts: false, sttProvider: null });
   const [voiceModeActive, setVoiceModeActive] = useState(false);
   const [micOn, setMicOn] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -64,12 +64,15 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const streamSessionRef = useRef<VoiceStreamSession | null>(null);
+  const finalTranscriptRef = useRef('');
 
   useEffect(() => {
     voice.listKeys()
       .then(keys => setVoiceKeys({
         stt: keys.some(k => k.purpose === 'stt'),
         tts: keys.some(k => k.purpose === 'tts'),
+        sttProvider: keys.find(k => k.purpose === 'stt')?.provider ?? null,
       }))
       .catch(() => {
         // Voice is opt-in; if the lookup fails, controls simply stay hidden.
@@ -83,6 +86,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     if (voiceModeActive) return;
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach(t => t.stop());
+    streamSessionRef.current?.stop();
     currentAudioRef.current?.pause();
     setMicOn(false);
     setIsSpeaking(false);
@@ -93,6 +97,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   useEffect(() => () => {
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach(t => t.stop());
+    streamSessionRef.current?.stop();
     currentAudioRef.current?.pause();
   }, []);
 
@@ -145,10 +150,66 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     }
   };
 
+  /** Route a completed transcript segment: queue during TTS, else send (V3). */
+  const dispatchTranscript = (transcript: string) => {
+    if (!transcript.trim()) return;
+    if (isSpeakingRef.current) {
+      voiceQueueRef.current.push(transcript);
+      setVoiceQueueCount(voiceQueueRef.current.length);
+    } else {
+      handleSendRef.current?.(flushVoiceQueue(transcript));
+    }
+  };
+
+  // Live streaming STT (Deepgram). Interim results stream into the input box so
+  // the user sees words appear while speaking; the final text is dispatched when
+  // the mic toggles off. Other providers fall through to the batch path below.
+  const startStreamingMic = async () => {
+    finalTranscriptRef.current = '';
+    const session = new VoiceStreamSession({
+      onTranscript: (text, isFinal) => {
+        if (isFinal) {
+          finalTranscriptRef.current = `${finalTranscriptRef.current} ${text}`.trim();
+          setInput(finalTranscriptRef.current);
+        } else {
+          setInput(`${finalTranscriptRef.current} ${text}`.trim());
+        }
+      },
+      onError: (msg) => toast({ message: msg, variant: 'error' }),
+      onClose: () => {
+        streamSessionRef.current = null;
+        setMicOn(false);
+        setTranscribing(false);
+        const finalText = finalTranscriptRef.current.trim();
+        finalTranscriptRef.current = '';
+        setInput('');
+        dispatchTranscript(finalText);
+      },
+    });
+    try {
+      await session.start(voiceLanguage);
+      streamSessionRef.current = session;
+      setMicOn(true);
+    } catch {
+      streamSessionRef.current = null;
+      toast({ message: zh ? '無法存取麥克風' : 'Microphone access denied', variant: 'error' });
+    }
+  };
+
   const handleToggleMic = async () => {
+    const streaming = voiceKeys.sttProvider === 'deepgram';
     if (micOn) {
-      mediaRecorderRef.current?.stop();
-      setMicOn(false);
+      if (streaming) {
+        setTranscribing(true);       // finalizing: waiting for the last results
+        streamSessionRef.current?.stop();
+      } else {
+        mediaRecorderRef.current?.stop();
+        setMicOn(false);
+      }
+      return;
+    }
+    if (streaming) {
+      await startStreamingMic();
       return;
     }
     try {

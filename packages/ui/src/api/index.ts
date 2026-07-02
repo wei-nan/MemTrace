@@ -28,6 +28,7 @@ export * from './documents';
 export * from './notifications';
 export * from './connectors';
 export * from './voice';
+export * from './voiceStream';
 
 export const users = {
   apiKeys: {

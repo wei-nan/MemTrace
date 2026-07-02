@@ -58,6 +58,23 @@ class VoiceProvider(ABC):
         """Synthesize speech from text. Returns (audio_bytes, mime_type)."""
         raise AIProviderError(f"Provider '{self.name}' does not support text-to-speech.")
 
+    #: Whether this provider supports live streaming STT (see stream_stt_endpoint).
+    supports_stt_streaming: bool = False
+
+    def stream_stt_endpoint(
+        self,
+        resolved: "ResolvedVoiceProvider",
+        language: str,
+        sample_rate: int,
+    ) -> tuple[str, dict[str, str]]:
+        """Return (websocket_url, headers) for a live streaming-STT session.
+
+        The router opens this upstream WebSocket and relays raw PCM16 (little-
+        endian, mono) frames from the browser to it, forwarding interim/final
+        transcripts back. Only providers with a streaming STT API implement this.
+        """
+        raise AIProviderError(f"Provider '{self.name}' does not support streaming speech-to-text.")
+
 
 # ── Built-in: OpenAI (STT: whisper-1, TTS: tts-1) ─────────────────────────────
 
@@ -262,6 +279,23 @@ class AzureVoiceProvider(VoiceProvider):
 
 class DeepgramVoiceProvider(VoiceProvider):
     name = "deepgram"
+    supports_stt_streaming = True
+
+    def stream_stt_endpoint(self, resolved, language, sample_rate):
+        from urllib.parse import urlencode
+
+        params = {
+            "model": "nova-2",
+            "encoding": "linear16",
+            "sample_rate": str(sample_rate),
+            "channels": "1",
+            "language": language,
+            "interim_results": "true",
+            "punctuate": "true",
+            "smart_format": "true",
+        }
+        url = "wss://api.deepgram.com/v1/listen?" + urlencode(params)
+        return url, {"Authorization": f"Token {resolved.credential}"}
 
     async def speech_to_text(self, resolved, audio_bytes, mime_type, language):
         async with httpx.AsyncClient(timeout=60) as client:
