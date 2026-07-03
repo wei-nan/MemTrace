@@ -187,7 +187,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
                 )}
                 {currentView === 'ai_chat' && selectedWs && (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <AiChatPanel wsId={selectedWs.id} zh={language === 'zh-TW'} fullPage />
+                    <AiChatPanel key={selectedWs.id} wsId={selectedWs.id} zh={language === 'zh-TW'} fullPage />
                   </div>
                 )}
               </Suspense>
