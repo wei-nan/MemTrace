@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { voice } from '../api';
 import type { VoiceKey } from '../api';
 import { useModal } from './ModalContext';
@@ -137,8 +137,11 @@ function VoicePurposeForm({
 // The chosen voice name is stored in localStorage and read by the AI panel at
 // TTS time. Hidden when there's no TTS key or the provider can't list voices.
 function TtsVoiceSelector({ zh, ttsKey }: { zh: boolean; ttsKey: VoiceKey | undefined }) {
+  const { toast } = useModal();
   const [voices, setVoices] = useState<{ name: string; gender: string }[]>([]);
   const [selected, setSelected] = useState<string>(() => localStorage.getItem('mt_tts_voice') ?? '');
+  const [previewing, setPreviewing] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const language = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
 
   useEffect(() => {
@@ -156,6 +159,28 @@ function TtsVoiceSelector({ zh, ttsKey }: { zh: boolean; ttsKey: VoiceKey | unde
       .catch(() => setVoices([]));
   }, [ttsKey, language]);
 
+  // Stop any in-flight preview when unmounting.
+  useEffect(() => () => { audioRef.current?.pause(); }, []);
+
+  const handlePreview = async () => {
+    audioRef.current?.pause();
+    const sample = language.toLowerCase().startsWith('zh')
+      ? '你好，這是這個嗓音的試聽範例，希望你會喜歡。'
+      : 'Hello, this is a preview of how this voice sounds.';
+    setPreviewing(true);
+    try {
+      const url = await voice.textToSpeech(sample, language, selected || undefined);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { setPreviewing(false); URL.revokeObjectURL(url); };
+      audio.onerror = () => { setPreviewing(false); URL.revokeObjectURL(url); };
+      await audio.play();
+    } catch (e: any) {
+      setPreviewing(false);
+      toast({ message: e.message, variant: 'error' });
+    }
+  };
+
   if (!ttsKey || voices.length === 0) return null;
 
   return (
@@ -164,23 +189,29 @@ function TtsVoiceSelector({ zh, ttsKey }: { zh: boolean; ttsKey: VoiceKey | unde
       <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
         {zh ? `語言 ${language} 可用嗓音（共 ${voices.length} 種）` : `Voices available for ${language} (${voices.length})`}
       </div>
-      <select
-        className="mt-input"
-        value={selected}
-        onChange={e => {
-          const v = e.target.value;
-          setSelected(v);
-          if (v) localStorage.setItem('mt_tts_voice', v);
-          else localStorage.removeItem('mt_tts_voice');
-        }}
-      >
-        <option value="">{zh ? '（預設嗓音）' : '(Default voice)'}</option>
-        {voices.map(v => (
-          <option key={v.name} value={v.name}>
-            {v.name}{v.gender ? ` · ${v.gender}` : ''}
-          </option>
-        ))}
-      </select>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <select
+          className="mt-input"
+          style={{ flex: 1 }}
+          value={selected}
+          onChange={e => {
+            const v = e.target.value;
+            setSelected(v);
+            if (v) localStorage.setItem('mt_tts_voice', v);
+            else localStorage.removeItem('mt_tts_voice');
+          }}
+        >
+          <option value="">{zh ? '（預設嗓音）' : '(Default voice)'}</option>
+          {voices.map(v => (
+            <option key={v.name} value={v.name}>
+              {v.name}{v.gender ? ` · ${v.gender}` : ''}
+            </option>
+          ))}
+        </select>
+        <button className="btn-secondary" onClick={handlePreview} disabled={previewing} style={{ flexShrink: 0 }}>
+          {previewing ? (zh ? '播放中…' : 'Playing…') : (zh ? '試聽' : 'Preview')}
+        </button>
+      </div>
     </div>
   );
 }
