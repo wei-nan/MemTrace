@@ -535,10 +535,12 @@ _SPOKEN_START = "<<<SPOKEN>>>"
 _SPOKEN_END = "<<<END_SPOKEN>>>"
 
 _SPOKEN_SUMMARY_INSTRUCTION = (
-    "\n\nVOICE MODE — begin your reply with a concise summary meant to be read aloud, "
+    "\n\nVOICE MODE — begin your reply with a summary meant to be read aloud, "
     f"wrapped EXACTLY like this:\n{_SPOKEN_START}\n"
-    "one or two natural sentences, in the user's language, capturing the key point; "
-    "no code, markdown, URLs, or lists\n"
+    "a natural, spoken summary in the user's language. Let its length follow the "
+    "answer: a sentence or two for a short reply, a fuller few-sentence rundown for "
+    "a long or detailed one — enough to convey the key points and conclusion without "
+    "reading everything. No code, markdown, URLs, or lists.\n"
     f"{_SPOKEN_END}\n"
     "Then write your full detailed answer as normal after the closing marker."
 )
