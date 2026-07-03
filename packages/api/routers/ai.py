@@ -140,6 +140,7 @@ class ChatRequest(BaseModel):
     preferred_model: Optional[str] = None
     force_auto_active: bool = False
     session_id: Optional[str] = None  # Phase 6: server-side session
+    want_spoken_summary: bool = False  # voice mode: emit a leading spoken summary (D7 / mem_77b74b8a)
 
 class ChatResponse(BaseModel):
     answer: str
@@ -527,6 +528,78 @@ def _persist_chat_turn(
         """, (source_node_ids, tokens, question, session_id))
 
 
+# Voice mode (D7 / mem_77b74b8a): the model leads its reply with a spoken
+# summary wrapped in these markers, so it can be shown/spoken before the full
+# answer finishes streaming. The markers are stripped from the visible answer.
+_SPOKEN_START = "<<<SPOKEN>>>"
+_SPOKEN_END = "<<<END_SPOKEN>>>"
+
+_SPOKEN_SUMMARY_INSTRUCTION = (
+    "\n\nVOICE MODE — begin your reply with a concise summary meant to be read aloud, "
+    f"wrapped EXACTLY like this:\n{_SPOKEN_START}\n"
+    "one or two natural sentences, in the user's language, capturing the key point; "
+    "no code, markdown, URLs, or lists\n"
+    f"{_SPOKEN_END}\n"
+    "Then write your full detailed answer as normal after the closing marker."
+)
+
+
+async def _stream_with_spoken_summary(stream, want: bool):
+    """Wrap chat_stream, splitting a leading <<<SPOKEN>>>...<<<END_SPOKEN>>> block.
+
+    Yields (kind, text, tokens) where kind is 'summary', 'summary_done', or
+    'content'. If the markers never appear (model ignored the instruction) or
+    want is False, everything is emitted as 'content'.
+    """
+    mode = "seek" if want else "content"
+    buf = ""
+    emitted = 0
+    async for chunk, tokens in stream:
+        if mode == "content":
+            yield ("content", chunk or "", tokens)
+            continue
+        if not chunk:
+            yield ("content", "", tokens)  # carry token count; empty text is ignored downstream
+            continue
+        buf += chunk
+        if mode == "seek":
+            i = buf.find(_SPOKEN_START)
+            if i != -1:
+                buf = buf[i + len(_SPOKEN_START):]
+                mode = "summary"
+            elif len(buf) > 2000:
+                # Model isn't going to emit the marker — treat as plain content.
+                yield ("content", buf, tokens)
+                buf = ""
+                mode = "content"
+                continue
+            else:
+                yield ("content", "", tokens)
+                continue
+        if mode == "summary":
+            e = buf.find(_SPOKEN_END)
+            if e != -1:
+                seg = buf[emitted:e]
+                if seg:
+                    yield ("summary", seg, 0)
+                yield ("summary_done", "", 0)
+                remainder = buf[e + len(_SPOKEN_END):].lstrip("\n")
+                buf = ""
+                emitted = 0
+                mode = "content"
+                yield ("content", remainder, tokens)
+            else:
+                # Emit summary text but hold back a tail that could be a partial end marker.
+                safe = len(buf) - len(_SPOKEN_END)
+                if safe > emitted:
+                    yield ("summary", buf[emitted:safe], 0)
+                    emitted = safe
+                yield ("content", "", tokens)
+    # Flush anything left if the stream ended before markers closed.
+    if mode != "content" and buf:
+        yield ("content", buf[emitted:] if mode == "summary" else buf, 0)
+
+
 @router.post("/chat-stream")
 async def chat_with_kb_stream(
     body: ChatRequest,
@@ -620,16 +693,23 @@ async def chat_with_kb_stream(
                 messages.extend(history)
 
             edit_prompt = "\nYou ARE allowed to propose edits/additions. Format them as a JSON block at the end of your response." if body.allow_edits else ""
-            messages.append({"role": "user", "content": f"CONTEXT NODES:\n{context_str}\n\nUSER MESSAGE: {body.message}{edit_prompt}"})
+            summary_prompt = _SPOKEN_SUMMARY_INSTRUCTION if body.want_spoken_summary else ""
+            messages.append({"role": "user", "content": f"CONTEXT NODES:\n{context_str}\n\nUSER MESSAGE: {body.message}{edit_prompt}{summary_prompt}"})
 
             full_answer = ""
             total_tokens = 0
             print(f"[chat-stream] Starting AI stream with provider {resolved.provider.name}...")
 
-            async for chunk, tokens in chat_stream(resolved, messages):
-                if chunk:
-                    full_answer += chunk
-                    yield json.dumps({"type": "content", "delta": chunk}) + "\n"
+            async for kind, text, tokens in _stream_with_spoken_summary(
+                chat_stream(resolved, messages), body.want_spoken_summary
+            ):
+                if kind == "summary":
+                    yield json.dumps({"type": "spoken_summary", "delta": text}) + "\n"
+                elif kind == "summary_done":
+                    yield json.dumps({"type": "spoken_summary_done"}) + "\n"
+                elif kind == "content" and text:
+                    full_answer += text
+                    yield json.dumps({"type": "content", "delta": text}) + "\n"
                 if tokens > 0:
                     total_tokens = tokens
             print(f"[chat-stream] AI stream finished. Total tokens: {total_tokens}")

@@ -25,9 +25,14 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   const [loading, setLoading] = useState(false);
   const [allowEdits, setAllowEdits] = useState(false);
   const [forceAutoActive, setForceAutoActive] = useState(false);
-  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>('openai');
+  // Remember the user's last provider/model choice across sessions so they don't
+  // have to re-pick every time they open the assistant.
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'ollama'>(() => {
+    const saved = localStorage.getItem('mt_chat_provider');
+    return (saved === 'openai' || saved === 'anthropic' || saved === 'gemini' || saved === 'ollama') ? saved : 'openai';
+  });
   const [models, setModels] = useState<ModelInfo[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>(() => localStorage.getItem('mt_chat_model') ?? '');
   const [credits, setCredits] = useState<CreditStatus | null>(null);
   const [proposalStates, setProposalStates] = useState<Record<string, ProposalState>>({});
   const [expandedNodes, setExpandedNodes] = useState<Record<number, boolean>>({});
@@ -133,27 +138,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     handleTTSEnded();
   };
 
-  const playTTS = async (text: string, msgIdx?: number) => {
+  /** Synthesize and play speech for already-spoken-ready text (no summarizing). */
+  const speakText = async (spoken: string) => {
     try {
-      // D7 (mem_77b74b8a): speak a concise spoken summary, not the raw reply —
-      // reading code/markdown aloud verbatim is jarring. Backend falls back to
-      // the original text if summarization is unavailable; a network error here
-      // does the same locally.
-      let spoken = text;
-      try {
-        spoken = await voice.summarizeForSpeech(text, voiceLanguage, provider, selectedModel);
-      } catch {
-        spoken = text;
-      }
-      // Keep the spoken summary visible too, but only when it actually differs
-      // from the on-screen reply (i.e. summarization ran, not the fallback).
-      if (msgIdx !== undefined && spoken.trim() && spoken.trim() !== text.trim()) {
-        setMessages(prev => {
-          const next = [...prev];
-          if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], spokenSummary: spoken };
-          return next;
-        });
-      }
       const url = await voice.textToSpeech(spoken, voiceLanguage);
       const audio = new Audio(url);
       currentAudioRef.current = audio;
@@ -165,6 +152,26 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
       setIsSpeaking(false);
       toast({ message: e.message, variant: 'error' });
     }
+  };
+
+  // Fallback path (used only when the stream did NOT provide a spoken summary,
+  // e.g. the model ignored the instruction): summarize the full reply, then speak.
+  // D7 (mem_77b74b8a): reading code/markdown aloud verbatim is jarring.
+  const playTTS = async (text: string, msgIdx?: number) => {
+    let spoken = text;
+    try {
+      spoken = await voice.summarizeForSpeech(text, voiceLanguage, provider, selectedModel);
+    } catch {
+      spoken = text;
+    }
+    if (msgIdx !== undefined && spoken.trim() && spoken.trim() !== text.trim()) {
+      setMessages(prev => {
+        const next = [...prev];
+        if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], spokenSummary: spoken };
+        return next;
+      });
+    }
+    await speakText(spoken);
   };
 
   /** Route a completed transcript segment: queue during TTS, else send (V3). */
@@ -336,13 +343,23 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
         const list = await ai.listModels(provider);
         const chatModels = list.filter(m => m.model_type !== 'embedding');
         setModels(chatModels);
-        if (chatModels.length > 0) setSelectedModel(chatModels[0].id);
+        if (chatModels.length > 0) {
+          // Keep the user's saved model if it's still offered by this provider;
+          // otherwise default to the first available one.
+          const saved = localStorage.getItem('mt_chat_model');
+          const keep = saved && chatModels.some(m => m.id === saved) ? saved : chatModels[0].id;
+          setSelectedModel(keep);
+        }
       } catch {
         // The model picker remains empty until the provider is available.
       }
     };
     fetchModels();
   }, [provider]);
+
+  // Persist provider/model choice so it's restored on the next visit.
+  useEffect(() => { localStorage.setItem('mt_chat_provider', provider); }, [provider]);
+  useEffect(() => { if (selectedModel) localStorage.setItem('mt_chat_model', selectedModel); }, [selectedModel]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -435,6 +452,12 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
 
       let currentSessionId = sessionId;
       let assistantText = '';
+      // Voice mode (D7): the stream leads with a spoken summary that we show and
+      // speak early, before the full answer finishes. Track it so the done handler
+      // knows whether to fall back to the post-hoc summarize path.
+      const wantSummary = voiceModeActive && voiceKeys.tts;
+      let streamSummary = '';
+      let spokeSummary = false;
 
       await ai.chatStream({
         workspace_id: wsId,
@@ -445,6 +468,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
         preferred_provider: provider,
         preferred_model: selectedModel,
         force_auto_active: forceAutoActive,
+        want_spoken_summary: wantSummary,
       }, (chunk) => {
         if (chunk.type === 'session') {
           currentSessionId = chunk.session_id;
@@ -463,6 +487,19 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
             if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], content: next[msgIdx].content + chunk.delta };
             return next;
           });
+        } else if (chunk.type === 'spoken_summary') {
+          streamSummary += chunk.delta;
+          setMessages(prev => {
+            const next = [...prev];
+            if (next[msgIdx]) next[msgIdx] = { ...next[msgIdx], spokenSummary: (next[msgIdx].spokenSummary ?? '') + chunk.delta };
+            return next;
+          });
+        } else if (chunk.type === 'spoken_summary_done') {
+          // Start speaking the summary now — the full answer keeps streaming meanwhile.
+          if (voiceKeys.tts && streamSummary.trim()) {
+            spokeSummary = true;
+            speakText(streamSummary.trim());
+          }
         } else if (chunk.type === 'proposals') {
           setMessages(prev => {
             const next = [...prev];
@@ -477,7 +514,9 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
           });
           // Refresh sessions to update token count & last_active_at
           loadSessions();
-          if (voiceModeActive && voiceKeys.tts && assistantText.trim()) {
+          // If the stream already delivered (and we spoke) a summary, we're done.
+          // Otherwise fall back to summarizing the full reply post-hoc.
+          if (voiceModeActive && voiceKeys.tts && assistantText.trim() && !spokeSummary) {
             playTTS(assistantText, msgIdx);
           }
         } else if (chunk.type === 'error') {
