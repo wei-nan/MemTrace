@@ -100,6 +100,7 @@ async def _run_consult(
         p("db_cursor", new=fake_db_cursor)
         p("require_ws_access", new=MagicMock(return_value=workspace))
         p("resolve_provider", new=MagicMock(return_value=MagicMock()))
+        p("record_usage", new=MagicMock())  # usage logging opens its own DB cursor
         rsc_mock = AsyncMock(return_value=(_proposal_json(), 100))
         p("run_single_consult", new=rsc_mock)
         p("synthesize_responses", new=AsyncMock(return_value=(synthesis, "reason")))
@@ -266,6 +267,7 @@ async def test_synthesize_single_response_is_consensus():
 @pytest.mark.asyncio
 async def test_synthesize_divergent_verdict():
     with patch("services.consult.resolve_provider", new=MagicMock(return_value=MagicMock())), \
+         patch("services.consult.record_usage", new=MagicMock()), \
          patch("services.consult.chat_completion",
                new=AsyncMock(return_value=('{"synthesis_result": "divergent", "reasoning": "conflict"}', 50))):
         res, reason = await synthesize_responses("ws", "u", ["a", "b"])

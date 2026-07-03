@@ -325,6 +325,7 @@ TOOLS = [
                 "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
                 "tool_output": {"type": "string", "description": "The output of the last tool execution to evaluate conditions (optional)"},
+                "include_faded": {"type": "boolean", "description": "Include faded (decayed) edges in addition to active ones (default false)"},
             },
             "required": ["workspace_id", "node_id"],
         },
@@ -1208,6 +1209,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         detail_level = args.get("detail_level") or get_default_detail_level(user.get("sub"))
         max_tokens = args.get("max_response_tokens")
         tool_output = args.get("tool_output")
+        include_faded = bool(args.get("include_faded", False))
         if max_tokens is not None:
             max_tokens = int(max_tokens)
         with db_cursor() as cur:
@@ -1221,6 +1223,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 include_source=False,
                 viewer_role=viewer_role,
                 tool_output=tool_output,
+                include_faded=include_faded,
             )
             log_mcp_interaction(background_tasks, ws_id, name, node_id=root_id)
             return optimize_traverse_response(cur, ws_id, result, detail_level, max_tokens)

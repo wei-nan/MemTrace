@@ -86,7 +86,8 @@ async def test_classify_safety_llm_dangerous(mock_chat, mock_resolve):
     mock_chat.return_value = ('{"classification": "dangerous", "reason": "Exploit"}', 100)
     
     proposal = {"title": "Exploit check", "body": "Hidden command script injection.", "content_type": "procedural"}
-    res = await classify_safety(proposal, "ws_test")
+    with patch("services.safety_review.record_usage"):  # usage logging opens its own DB cursor
+        res = await classify_safety(proposal, "ws_test")
     assert res == "dangerous"
 
 @pytest.mark.asyncio
@@ -161,8 +162,9 @@ async def test_consult_dangerous_blocked(mock_chat, mock_resolve, mock_db_cursor
     mock_chat.return_value = ('{"action": "create_node_and_edge", "new_node": {"title": "destroy", "body": "rm -rf /"}}', 100)
     
     user = {"sub": "user_123"}
-    res = await consult("ws_123", "mem_1", "error context", "generate", user)
-    
+    with patch("services.consult.record_usage"):
+        res = await consult("ws_123", "mem_1", "error context", "generate", user)
+
     assert res["status"] == "blocked"
     assert res["classification"] == "dangerous"
     assert cur.execute.call_count >= 4
@@ -180,8 +182,6 @@ async def test_consult_risky_timeout(mock_chat, mock_resolve, mock_db_cursor, mo
         {"id": "ws_123", "visibility": "private", "owner_id": "user_123", "settings": "{}", "consult_trust_tier": "full_trust"},
         {"count": 0},
         {"id": "mem_1", "title": "Stuck Node", "body": "stuck here", "tags": [], "content_type": "procedural"},
-        {"cnt": 0}, # quota check in create_proposal
-        {"id": "prop_123"}, # proposal insert returning
         {"status": "pending"}, # poll 1
         {"status": "pending"}, # poll 2
         {"status": "pending"}, # poll 3
@@ -210,7 +210,10 @@ async def test_consult_risky_timeout(mock_chat, mock_resolve, mock_db_cursor, mo
     
     user = {"sub": "user_123"}
     
-    with patch("asyncio.sleep", return_value=None): 
+    with patch("asyncio.sleep", return_value=None), \
+         patch("services.consult.record_usage"), \
+         patch("services.consult.create_proposal", return_value={"id": "prop_123"}), \
+         patch("services.consult.send_consult_notification"):
         res = await consult("ws_123", "mem_1", "error context", "generate", user)
         
     assert res["status"] == "blocked"
@@ -240,8 +243,9 @@ async def test_consult_safe_full_trust(mock_chat, mock_resolve, mock_db_cursor, 
     mock_chat.return_value = ('{"action": "create_node_and_edge", "new_node": {"title": "safe step", "body": "read this log"}}', 100)
     
     user = {"sub": "user_123"}
-    res = await consult("ws_123", "mem_1", "error context", "generate", user)
-    
+    with patch("services.consult.record_usage"):
+        res = await consult("ws_123", "mem_1", "error context", "generate", user)
+
     assert res["status"] == "merged"
     assert res["new_node_id"] == "mem_new"
 

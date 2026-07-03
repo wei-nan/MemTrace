@@ -31,6 +31,7 @@ def bfs_neighborhood(
     include_source: bool = True,
     viewer_role: Optional[str] = "viewer",
     tool_output: Optional[str] = None,
+    include_faded: bool = False,
 ) -> dict:
     """
     Traverse edges up to `depth` from `root_id`.
@@ -46,6 +47,11 @@ def bfs_neighborhood(
 
         query = "SELECT * FROM edges WHERE workspace_id = %s"
         params = [ws_id]
+        # Faded (decayed) edges are hidden by default; opt in with include_faded.
+        if include_faded:
+            query += " AND status IN ('active', 'faded')"
+        else:
+            query += " AND status = 'active'"
         if relation:
             query += " AND relation = %s"
             params.append(relation)
