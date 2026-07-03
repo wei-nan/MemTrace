@@ -194,7 +194,9 @@ async def tts_summary(body: SpeechSummaryRequest, user: dict = Depends(get_curre
         {"role": "user", "content": f"Target language: {body.language}\n\nAssistant reply:\n{body.text}"},
     ]
     try:
-        summary, _ = await chat_completion(resolved, messages, max_tokens=512, temperature=0.3)
+        # Generous cap: "thinking" models (e.g. Gemini 2.5) spend output budget on
+        # reasoning, so a tight limit truncates the actual summary mid-sentence.
+        summary, _ = await chat_completion(resolved, messages, max_tokens=2048, temperature=0.3)
     except AIProviderError:
         return {"summary": body.text, "summarized": False}
 
