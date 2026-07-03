@@ -378,6 +378,9 @@ class TestExtractedFromIntegration:
             # Seed test data if not already present
             cur.execute("SELECT 1 FROM edges WHERE relation = 'extracted_from' LIMIT 1")
             if not cur.fetchone():
+                # FK prerequisites: the workspace and author must exist before child rows.
+                cur.execute("INSERT INTO users (id, display_name, email) VALUES ('system', 'System', 'system@test.local') ON CONFLICT DO NOTHING")
+                cur.execute("INSERT INTO workspaces (id, owner_id, language, name) VALUES ('ws_spec0001', 'system', 'en', 'Spec Test WS') ON CONFLICT DO NOTHING")
                 cur.execute(
                     """
                     INSERT INTO memory_nodes (
@@ -440,6 +443,9 @@ class TestExtractedFromIntegration:
             # Seed test data if not already present
             cur.execute("SELECT 1 FROM node_document_links LIMIT 1")
             if not cur.fetchone():
+                # FK prerequisites: the workspace and uploader must exist before child rows.
+                cur.execute("INSERT INTO users (id, display_name, email) VALUES ('system', 'System', 'system@test.local') ON CONFLICT DO NOTHING")
+                cur.execute("INSERT INTO workspaces (id, owner_id, language, name) VALUES ('ws_spec0001', 'system', 'en', 'Spec Test WS') ON CONFLICT DO NOTHING")
                 cur.execute(
                     """
                     INSERT INTO documents (
