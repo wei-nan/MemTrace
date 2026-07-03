@@ -69,7 +69,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   const streamSessionRef = useRef<VoiceStreamSession | null>(null);
   const finalTranscriptRef = useRef('');
 
-  useEffect(() => {
+  const loadVoiceKeys = useCallback(() => {
     voice.listKeys()
       .then(keys => setVoiceKeys({
         stt: keys.some(k => k.purpose === 'stt'),
@@ -80,6 +80,12 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
         // Voice is opt-in; if the lookup fails, controls simply stay hidden.
       });
   }, []);
+
+  // Load once on mount, and re-load whenever voice mode is switched on, so a
+  // provider change made in Settings (e.g. switching STT to Deepgram) is picked
+  // up without needing a full page reload.
+  useEffect(() => { loadVoiceKeys(); }, [loadVoiceKeys]);
+  useEffect(() => { if (voiceModeActive) loadVoiceKeys(); }, [voiceModeActive, loadVoiceKeys]);
 
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
 
