@@ -54,9 +54,24 @@ class VoiceProvider(ABC):
         resolved: "ResolvedVoiceProvider",
         text: str,
         language: str,
+        voice: Optional[str] = None,
     ) -> tuple[bytes, str]:
-        """Synthesize speech from text. Returns (audio_bytes, mime_type)."""
+        """Synthesize speech from text. Returns (audio_bytes, mime_type).
+
+        `voice` optionally selects a specific named voice (see list_voices).
+        """
         raise AIProviderError(f"Provider '{self.name}' does not support text-to-speech.")
+
+    #: Whether this provider can enumerate available TTS voices (see list_voices).
+    supports_voice_listing: bool = False
+
+    async def list_voices(
+        self,
+        resolved: "ResolvedVoiceProvider",
+        language: str,
+    ) -> list[dict]:
+        """List selectable voices for a language. Each item: {name, gender}."""
+        return []
 
     #: Whether this provider supports live streaming STT (see stream_stt_endpoint).
     supports_stt_streaming: bool = False
@@ -93,7 +108,7 @@ class OpenAIVoiceProvider(VoiceProvider):
             raise AIProviderError(f"OpenAI STT {resp.status_code}: {resp.text[:400]}")
         return resp.json()["text"]
 
-    async def text_to_speech(self, resolved, text, language):
+    async def text_to_speech(self, resolved, text, language, voice=None):
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
                 "https://api.openai.com/v1/audio/speech",
@@ -167,6 +182,40 @@ def _raise_gcp_error(label: str, resp: httpx.Response) -> None:
 
 class GCPVoiceProvider(VoiceProvider):
     name = "gcp"
+    supports_voice_listing = True
+
+    async def _auth(self, resolved, url: str) -> tuple[str, dict]:
+        """Apply GCP auth to a request URL: Bearer token or ?key= query param."""
+        if resolved.credential_type == "service_account_json":
+            token = await _gcp_bearer_token(
+                resolved.credential, resolved.credential_type,
+                "https://www.googleapis.com/auth/cloud-platform",
+            )
+            return url, {"Authorization": f"Bearer {token}"}
+        sep = "&" if "?" in url else "?"
+        return f"{url}{sep}key={resolved.credential}", {}
+
+    async def list_voices(self, resolved, language):
+        url, headers = await self._auth(
+            resolved, f"https://texttospeech.googleapis.com/v1/voices?languageCode={language}"
+        )
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(url, headers=headers)
+        if not resp.is_success:
+            _raise_gcp_error("voices", resp)
+        voices = resp.json().get("voices", [])
+        # Newest/highest-quality families first (Neural2/Studio/Wavenet over Standard).
+        def rank(v):
+            n = v.get("name", "")
+            for i, kw in enumerate(("Studio", "Neural2", "Wavenet", "Standard")):
+                if kw in n:
+                    return i
+            return 99
+        result = [
+            {"name": v["name"], "gender": v.get("ssmlGender", "")}
+            for v in sorted(voices, key=lambda v: (rank(v), v.get("name", "")))
+        ]
+        return result
 
     async def speech_to_text(self, resolved, audio_bytes, mime_type, language):
         import base64
@@ -199,23 +248,18 @@ class GCPVoiceProvider(VoiceProvider):
             return ""
         return " ".join(r["alternatives"][0]["transcript"] for r in results)
 
-    async def text_to_speech(self, resolved, text, language):
+    async def text_to_speech(self, resolved, text, language, voice=None):
+        voice_cfg = {"languageCode": language}
+        if voice:
+            voice_cfg["name"] = voice
         body = {
             "input": {"text": text},
-            "voice": {"languageCode": language},
+            "voice": voice_cfg,
             "audioConfig": {"audioEncoding": "MP3"},
         }
-        url = "https://texttospeech.googleapis.com/v1/text:synthesize"
-        headers = {}
-        if resolved.credential_type == "service_account_json":
-            token = await _gcp_bearer_token(
-                resolved.credential, resolved.credential_type,
-                "https://www.googleapis.com/auth/cloud-platform",
-            )
-            headers["Authorization"] = f"Bearer {token}"
-        else:
-            url += f"?key={resolved.credential}"
-
+        url, headers = await self._auth(
+            resolved, "https://texttospeech.googleapis.com/v1/text:synthesize"
+        )
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(url, headers=headers, json=body)
         if not resp.is_success:
@@ -254,7 +298,7 @@ class AzureVoiceProvider(VoiceProvider):
             raise AIProviderError(f"Azure STT {resp.status_code}: {resp.text[:400]}")
         return resp.json().get("DisplayText", "")
 
-    async def text_to_speech(self, resolved, text, language):
+    async def text_to_speech(self, resolved, text, language, voice=None):
         region, key = self._split(resolved.credential)
         ssml = (
             f"<speak version='1.0' xml:lang='{language}'>"
@@ -320,7 +364,7 @@ class ElevenLabsVoiceProvider(VoiceProvider):
 
     _DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"  # "Rachel", public default voice
 
-    async def text_to_speech(self, resolved, text, language):
+    async def text_to_speech(self, resolved, text, language, voice=None):
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
                 f"https://api.elevenlabs.io/v1/text-to-speech/{self._DEFAULT_VOICE_ID}",

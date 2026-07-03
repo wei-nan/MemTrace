@@ -133,6 +133,58 @@ function VoicePurposeForm({
   );
 }
 
+// Voice picker for providers that can enumerate voices (currently Google/GCP).
+// The chosen voice name is stored in localStorage and read by the AI panel at
+// TTS time. Hidden when there's no TTS key or the provider can't list voices.
+function TtsVoiceSelector({ zh, ttsKey }: { zh: boolean; ttsKey: VoiceKey | undefined }) {
+  const [voices, setVoices] = useState<{ name: string; gender: string }[]>([]);
+  const [selected, setSelected] = useState<string>(() => localStorage.getItem('mt_tts_voice') ?? '');
+  const language = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+
+  useEffect(() => {
+    if (!ttsKey) { setVoices([]); return; }
+    voice.listVoices(language)
+      .then(vs => {
+        setVoices(vs);
+        // Drop a saved voice that this provider/language no longer offers.
+        const saved = localStorage.getItem('mt_tts_voice');
+        if (saved && !vs.some(v => v.name === saved)) {
+          localStorage.removeItem('mt_tts_voice');
+          setSelected('');
+        }
+      })
+      .catch(() => setVoices([]));
+  }, [ttsKey, language]);
+
+  if (!ttsKey || voices.length === 0) return null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 8 }}>
+      <div style={{ fontSize: 13, fontWeight: 600 }}>{zh ? '嗓音' : 'Voice'}</div>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+        {zh ? `語言 ${language} 可用嗓音（共 ${voices.length} 種）` : `Voices available for ${language} (${voices.length})`}
+      </div>
+      <select
+        className="mt-input"
+        value={selected}
+        onChange={e => {
+          const v = e.target.value;
+          setSelected(v);
+          if (v) localStorage.setItem('mt_tts_voice', v);
+          else localStorage.removeItem('mt_tts_voice');
+        }}
+      >
+        <option value="">{zh ? '（預設嗓音）' : '(Default voice)'}</option>
+        {voices.map(v => (
+          <option key={v.name} value={v.name}>
+            {v.name}{v.gender ? ` · ${v.gender}` : ''}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function VoiceProviderSettings({ zh }: { zh: boolean }) {
   const [savedKeys, setSavedKeys] = useState<VoiceKey[]>([]);
 
@@ -170,6 +222,7 @@ export default function VoiceProviderSettings({ zh }: { zh: boolean }) {
         savedKey={savedKeys.find(k => k.purpose === 'tts')}
         onSaved={fetchKeys}
       />
+      <TtsVoiceSelector zh={zh} ttsKey={savedKeys.find(k => k.purpose === 'tts')} />
     </div>
   );
 }

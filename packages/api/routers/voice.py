@@ -67,6 +67,7 @@ class VoiceKeyResponse(BaseModel):
 class TextToSpeechRequest(BaseModel):
     text: str = Field(min_length=1, max_length=4000)
     language: str = "en-US"
+    voice: Optional[str] = None
 
 
 class SpeechSummaryRequest(BaseModel):
@@ -162,7 +163,7 @@ async def text_to_speech(body: TextToSpeechRequest, user: dict = Depends(get_cur
 
     try:
         audio_bytes, mime_type = await resolved.provider.text_to_speech(
-            resolved, body.text, body.language,
+            resolved, body.text, body.language, body.voice,
         )
     except AIProviderError as e:
         raise HTTPException(status_code=502, detail=str(e))
@@ -173,6 +174,24 @@ async def text_to_speech(body: TextToSpeechRequest, user: dict = Depends(get_cur
             (user["sub"],),
         )
     return Response(content=audio_bytes, media_type=mime_type)
+
+
+@router.get("/speech/voices")
+async def list_tts_voices(language: str = "en-US", user: dict = Depends(get_current_user)):
+    """List selectable TTS voices for the user's provider (empty if unsupported)."""
+    try:
+        resolved = resolve_voice_provider(user["sub"], "tts")
+    except AIProviderUnavailable as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if not getattr(resolved.provider, "supports_voice_listing", False):
+        return {"provider": resolved.provider.name, "voices": []}
+
+    try:
+        voices = await resolved.provider.list_voices(resolved, language)
+    except AIProviderError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    return {"provider": resolved.provider.name, "voices": voices}
 
 
 @router.post("/speech/tts-summary")

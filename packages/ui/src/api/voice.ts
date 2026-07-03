@@ -99,13 +99,25 @@ export const voice = {
     return data.summary as string;
   },
 
+  /** List selectable TTS voices for the user's provider (empty if unsupported). */
+  listVoices: async (language: string): Promise<{ name: string; gender: string }[]> => {
+    const res = await fetch(`${BASE}/ai/speech/voices?language=${encodeURIComponent(language)}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { ...authHeaders() },
+    });
+    if (!res.ok) throw new Error(await parseErrorDetail(res));
+    const data = await res.json();
+    return data.voices ?? [];
+  },
+
   /** Synthesize speech for text; returns a playable object URL. */
-  textToSpeech: async (text: string, language: string): Promise<string> => {
+  textToSpeech: async (text: string, language: string, voice?: string): Promise<string> => {
     const res = await fetch(`${BASE}/ai/speech/tts`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...authHeaders(), ...writeHeaders() },
-      body: JSON.stringify({ text, language }),
+      body: JSON.stringify({ text, language, voice }),
     });
     if (!res.ok) throw new Error(await parseErrorDetail(res));
     const audioBlob = await res.blob();

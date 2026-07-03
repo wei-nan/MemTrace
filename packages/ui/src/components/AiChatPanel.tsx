@@ -141,7 +141,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
   /** Synthesize and play speech for already-spoken-ready text (no summarizing). */
   const speakText = async (spoken: string) => {
     try {
-      const url = await voice.textToSpeech(spoken, voiceLanguage);
+      const url = await voice.textToSpeech(spoken, voiceLanguage, localStorage.getItem('mt_tts_voice') || undefined);
       const audio = new Audio(url);
       currentAudioRef.current = audio;
       setIsSpeaking(true);
