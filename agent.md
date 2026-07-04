@@ -32,6 +32,16 @@ Before non-trivial planning, coding, or review work:
 If MemTrace tools are unavailable, record that as a blocker or limitation in the
 handoff. Do not claim that KB read/write-back happened unless it actually did.
 
+MCP access is configured per machine, not committed to git: copy
+`.mcp.json.example` to `.mcp.json` and fill in the real MemTrace URL and API
+key. A fresh checkout without this step has no KB access — treat that as the
+blocker case above.
+
+Knowledge written back to any KB follows the KB's own 全域行為約束 node
+(Traditional Chinese for node content, PII rules, source_type marking). This
+file and other repo docs may be in English; the KB constraint governs KB
+writes, not repo files.
+
 ## Agent Loop Workflow
 
 Use the Agent Loop pipeline for meaningful project work:

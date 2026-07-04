@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "memtrace": {
+      "type": "http",
+      "url": "https://<your-memtrace-host>/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-memtrace-api-key>"
+      }
+    }
+  }
+}
