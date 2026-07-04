@@ -1,0 +1,12 @@
+---
+description: MemTrace Agent Loop operating guide for all Cursor work in this repository.
+alwaysApply: true
+---
+
+Read and follow `agent.md` before non-trivial planning, coding, review, or
+specification work in this repository.
+
+`agent.md` is the authoritative local guide for Agent Loop workflow, private
+MemTrace KB lookup, `ws_spec_plan` write-back, and public spec/seed
+synchronization. Do not duplicate the full policy in Cursor rules.
+
