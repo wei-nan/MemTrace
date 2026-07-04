@@ -13,6 +13,7 @@ The source of truth is the Agent Loop KB (`ws_6aa957c3`).
 - Agent Loop charter: `mem_c1cc4d99`
 - Task loop workflow: `mem_1859526b`
 - Task node schema: `mem_5e6a82ab`
+- Takeover verification playbook (checking the previous stage's "done" claims): `mem_b3158737`
 
 ## Rule
 
