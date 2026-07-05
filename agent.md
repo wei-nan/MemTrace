@@ -147,6 +147,24 @@ Do not copy private planning text directly into public specs. Convert it into
 stable public product language, in Chinese and English, and preserve private
 discussion details in `ws_spec_plan`.
 
+## Checkpoints: When To Stop And Ask
+
+Stop and ask the user before proceeding when any of these applies:
+
+- an irreversible or outward-facing action (pushing to a shared branch,
+  deleting data, releasing/deploying, calling external services) that has not
+  been explicitly authorized for this specific instance;
+- a trade-off only the user can make: product direction, spending money,
+  expanding or cutting scope;
+- the same gate has been rejected twice;
+- a new conclusion contradicts a high-trust KB node;
+- context is insufficient to start and cannot be filled from the KB or the
+  repo.
+
+In an interactive session, ask directly and wait for the answer. In
+unattended/harness mode, write an inquiry or decision-draft node, mark the
+task `status:blocked`, and stop — do not guess and continue.
+
 ## Done Definition
 
 A task can be called done only when:
