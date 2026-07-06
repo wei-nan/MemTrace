@@ -1,3 +1,5 @@
+import json
+
 from core.database import db_cursor
 from core.ai import resolve_provider, embed, record_usage
 from core.security import generate_id
@@ -245,7 +247,9 @@ async def bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, 
                         edge["half_life_days"], edge["min_weight"], edge["traversal_count"],
                         edge["rating_sum"], edge["rating_count"], edge["status"],
                         edge["pinned"],
-                        edge.get("metadata"), edge.get("updated_at"),
+                        # metadata is a jsonb column; psycopg2 can't adapt a raw dict.
+                        json.dumps(edge["metadata"]) if edge.get("metadata") is not None else None,
+                        edge.get("updated_at"),
                         edge.get("source_type", "human"), edge.get("proposer"),
                         edge.get("edge_class", "semantic"),
                     )
