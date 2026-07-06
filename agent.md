@@ -65,6 +65,41 @@ For small read-only answers, use judgment and keep the process lightweight. For
 changes to product behavior, schema, public API, public docs, migrations, KB
 semantics, or cross-agent workflow, run the full loop.
 
+## Task State Machine (Hard Rules)
+
+The Agent Loop is enforced through the MemTrace task tools, not by narrative
+discipline. For any work that changes code, schema, migrations, public docs,
+KB semantics, or cross-agent workflow, the following are mandatory:
+
+1. **A task node must exist before development starts.** The accepted plan is
+   recorded as an inquiry node in the Agent Loop KB (`ws_6aa957c3`). If no
+   task node exists, create one first — that node is the `G1` artifact. Use
+   `get_next_task` to pick up pending work together with its context bundle.
+2. **Claim before touching code.** Call `claim_task` on the inquiry node. If
+   it returns `claimed=false`, another agent owns it — do not work on it.
+   Claims expire after 30 minutes; re-claim during long-running tasks.
+3. **Completion happens only through `submit_outcome`.**
+   - `success` / `partial` requires an `implementation_node_id`: a node
+     recording what changed, the commands run, and verification evidence.
+     That node is the `G2`/`G3` artifact.
+   - `failed` must still be submitted — it flags the visited playbooks for
+     human review instead of hiding the failure.
+   - Include `node_sequence` (the nodes consulted) so path reinforcement
+     works.
+4. **No `submit_outcome`, no done.** A task described as finished in chat or
+   in a commit message but lacking a submitted outcome is, by definition, not
+   done.
+5. **Blocked means release.** When a checkpoint fires or context is missing,
+   call `release_task`, write the blocker as an inquiry or decision-draft
+   node, and stop.
+6. **Gate verdicts are KB artifacts.** A `gate_verdict` exists only if it is
+   recorded in the KB (as a node or inside the implementation node). Verbal
+   PASS statements in a chat session do not count.
+
+Lightweight path: read-only questions and trivial non-behavioral fixes may
+skip the state machine, but any diff that touches product behavior obligates
+it — when in doubt, claim.
+
 ## Planning Rules
 
 Before editing code or specs, produce or retrieve a plan that names:
@@ -169,6 +204,8 @@ task `status:blocked`, and stop — do not guess and continue.
 
 A task can be called done only when:
 
+- the task's `submit_outcome` has been recorded (`success`, `partial`, or
+  `failed`) per the Task State Machine above;
 - the relevant Agent Loop gates have passed or a justified lightweight path was
   used;
 - implementation and verification evidence are available;
