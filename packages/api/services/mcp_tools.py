@@ -143,6 +143,89 @@ def log_mcp_interaction(
         background_tasks.add_task(write_mcp_interaction_edge, ws_id, node_id, tool_name, query_text)
 
 
+# ─── Tool Profiles (P3.1-I-106) ──────────────────────────────────────────────
+MCP_TOOL_PROFILES = {
+    "core": {
+        "list_workspaces",
+        "list_nodes",
+        "get_node",
+        "search_nodes",
+        "create_node",
+        "update_node",
+        "create_edge",
+        "delete_edge",
+        "traverse",
+        "get_schema",
+        "wait_for_embedding",
+        "get_embedding_status",
+    },
+    "agent_loop": {
+        "get_next_task",
+        "claim_task",
+        "release_task",
+        "get_playbook",
+        "propose_decision",
+        "submit_outcome",
+        "emit_residue",
+        "record_path",
+        "converge_check",
+        "converge_proposals",
+    },
+    "ingest_docs": {
+        "extract_from_text",
+        "ingest_document",
+        "get_ingestion_status",
+        "sync_from_source",
+        "list_documents",
+        "get_document",
+        "get_node_sources",
+        "attach_url",
+        "attach_evidence",
+        "upload_file",
+    },
+    "advanced_graph": {
+        "search_cross_workspace",
+        "search_with_history",
+        "consult",
+        "summarize_cluster",
+        "suggest_edges",
+        "list_by_tag",
+    },
+    "review_admin": {
+        "list_review_queue",
+        "resolve_conflict",
+        "verify_audit",
+        "transfer_authorship",
+        "delete_node",
+    },
+    "deprecated": {
+        "complement_node_languages",
+    },
+}
+
+import os
+
+def resolve_profile_tools(profile_str: Optional[str] = None) -> List[dict]:
+    if not profile_str:
+        profile_str = os.environ.get("MEMTRACE_MCP_TOOL_PROFILE", "core+agent_loop")
+    
+    profile_str = profile_str.strip().lower()
+    if profile_str == "full":
+        return TOOLS
+        
+    parts = re.split(r'[+,]', profile_str)
+    allowed_names = set()
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        if part not in MCP_TOOL_PROFILES:
+            raise ValueError(f"Unknown MCP tool profile: '{part}'. Available profiles: {list(MCP_TOOL_PROFILES.keys())} or 'full'")
+        allowed_names.update(MCP_TOOL_PROFILES[part])
+        
+    return [t for t in TOOLS if t["name"] in allowed_names]
+
+
 TOOLS = [
     {
         "name": "list_workspaces",
@@ -2449,17 +2532,22 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
 
     raise ValueError(f"Unknown tool: {name}")
 
-async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks) -> dict:
+async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks, tool_profile: Optional[str] = None) -> dict:
     msg_id = payload.get("id")
     method = payload.get("method")
     params = payload.get("params", {})
 
     try:
+        try:
+            active_tools = resolve_profile_tools(tool_profile)
+        except ValueError as ve:
+            return jsonrpc_error(msg_id, -32602, str(ve))
+
         core_response = await dispatch_core_method(
             payload,
             user,
             background_tasks,
-            tools=TOOLS,
+            tools=active_tools,
             execute_tool=execute_tool,
             user_capabilities=USER_CAPABILITIES,
             logger=logger,

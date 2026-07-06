@@ -199,7 +199,8 @@ async def mcp_messages(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    response = await _dispatch(body, user, background_tasks)
+    tool_profile = request.headers.get("x-memtrace-tool-profile") or request.query_params.get("tool_profile")
+    response = await _dispatch(body, user, background_tasks, tool_profile=tool_profile)
     await queue.put(response)
     return {"ok": True}
 
@@ -222,7 +223,8 @@ async def mcp_streamable(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    response = await _dispatch(body, user, background_tasks)
+    tool_profile = request.headers.get("x-memtrace-tool-profile") or request.query_params.get("tool_profile")
+    response = await _dispatch(body, user, background_tasks, tool_profile=tool_profile)
     return response
 
 

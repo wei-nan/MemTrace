@@ -34,6 +34,33 @@ Each request body must be a JSON-RPC 2.0 envelope:
 
 ---
 
+## Tool Profiles
+
+To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 44 tools, clients can request a specific functional subset.
+
+### Available Profiles
+
+- **`core`**: Basic CRUD operations for workspaces, nodes, and edges.
+- **`agent_loop`**: Agent Loop task management (tasks, playbooks, decisions, outcomes).
+- **`ingest_docs`**: Document, URL, and evidence imports.
+- **`advanced_graph`**: Advanced search and analysis (cross-workspace, similar edges).
+- **`review_admin`**: Governance, conflict resolution, audit trails, and deletion.
+- **`full`**: Exposes all tools.
+
+Profiles can be combined using `+` or `,` (e.g., `core+agent_loop`).
+
+### Selection & Default
+
+- **Default**: `core+agent_loop` (exposes 22 tools)
+- **How to configure**:
+  - **Environment Variable**: Set `MEMTRACE_MCP_TOOL_PROFILE=full` on the server.
+  - **HTTP Header**: Send `X-MemTrace-Tool-Profile: full` in client requests.
+  - **Query Parameter**: Append `?tool_profile=full` to the `/mcp` or `/api/v1/mcp/messages` URL.
+
+If a client attempts to call a tool outside its active profile, the server rejects the call with JSON-RPC error `-32601` (Method not found).
+
+---
+
 ## Tool Reference
 
 ### `list_workspaces`

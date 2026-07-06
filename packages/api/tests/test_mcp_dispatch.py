@@ -39,7 +39,7 @@ async def test_tools_call_serializes_domain_result():
         },
         {"sub": "user_1"},
         MagicMock(),
-        tools=[],
+        tools=[{"name": "list_workspaces"}],
         execute_tool=execute,
         user_capabilities={},
         logger=MagicMock(),

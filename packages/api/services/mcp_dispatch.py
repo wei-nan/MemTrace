@@ -81,6 +81,16 @@ async def dispatch_core_method(
         tool_name = params.get("name")
         tool_args = params.get("arguments", {})
         logger.info("MCP tool call: %s", tool_name)
+        allowed_tool_names = {t["name"] for t in tools}
+        if tool_name not in allowed_tool_names:
+            return {
+                "jsonrpc": "2.0",
+                "id": message_id,
+                "error": {
+                    "code": -32601,
+                    "message": f"Method not found: '{tool_name}' is not available in the active profile."
+                }
+            }
         result = await execute_tool(tool_name, tool_args, user, background_tasks)
         return jsonrpc_ok(
             message_id,
