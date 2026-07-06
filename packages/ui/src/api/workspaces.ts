@@ -58,6 +58,12 @@ export interface Member {
   joined_at: string;
 }
 
+export interface UserCandidate {
+  id: string;
+  display_name: string;
+  email: string;
+}
+
 export interface Invite {
   id: string;
   workspace_id: string;
@@ -232,6 +238,11 @@ export const workspaces = {
     request<Workspace>("POST", `${BASE}/workspaces`, data),
   get: (id: string) => request<Workspace>("GET", `${BASE}/workspaces/${id}`),
   members: (wsId: string) => request<Member[]>("GET", `${BASE}/workspaces/${wsId}/members`),
+  userCandidates: (wsId: string, q: string) =>
+    request<UserCandidate[]>("GET", `${BASE}/workspaces/${wsId}/user-candidates?q=${encodeURIComponent(q)}`),
+  addMember: (wsId: string, data: { user_id: string; role: string }) =>
+    request<Member>("POST", `${BASE}/workspaces/${wsId}/members`, data),
+  leave: (wsId: string) => request("DELETE", `${BASE}/workspaces/${wsId}/members/me`),
   invites: (wsId: string) => request<Invite[]>("GET", `${BASE}/workspaces/${wsId}/invites`),
   createInvite: (wsId: string, data: { email?: string; role: string; expires_in_days?: number }) =>
     request<Invite>("POST", `${BASE}/workspaces/${wsId}/invites`, data),

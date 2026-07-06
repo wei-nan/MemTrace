@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Brain, Clock, Copy, ExternalLink, Info, Key, Link2, RefreshCw, Search, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users, AlertTriangle, Sparkles, Cpu } from "lucide-react";
-import { ai, workspaces, review, type Invite, type JoinRequest, type Member, type Workspace, type WorkspaceAssociation, type PersonalApiKey, type ModelBinding, type ReviewPolicy, type PolicyMember } from "./api";
+import { ai, workspaces, review, type Invite, type JoinRequest, type Member, type UserCandidate, type Workspace, type WorkspaceAssociation, type PersonalApiKey, type ModelBinding, type ReviewPolicy, type PolicyMember } from "./api";
 import { useTranslation } from "react-i18next";
 import { useModal } from "./components/ModalContext";
 import { ModalOverlay } from "./components/Modal";
@@ -1174,6 +1174,11 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [inviteRole, setInviteRole] = useState("viewer");
   const [inviteDays, setInviteDays] = useState(7);
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
+  const [candidateQuery, setCandidateQuery] = useState("");
+  const [candidateRole, setCandidateRole] = useState("viewer");
+  const [candidates, setCandidates] = useState<UserCandidate[]>([]);
+  const [candidateLoading, setCandidateLoading] = useState(false);
+  const [addingUserId, setAddingUserId] = useState<string | null>(null);
   const [associations, setAssociations] = useState<WorkspaceAssociation[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCloneDialog, setShowCloneDialog] = useState(false);
@@ -1197,6 +1202,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [failedEmbeddings, setFailedEmbeddings] = useState(0);
   const [retrying, setRetrying] = useState(false);
   const isOwner = ws?.owner_id === userId;
+  const canManageMembers = isOwner || ws?.my_role === "admin";
 
   useEffect(() => {
     if (!ws) return;
@@ -1268,6 +1274,59 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
       active = false;
     };
   }, [workspaceSearch, wsId]);
+
+  useEffect(() => {
+    let active = true;
+    const term = candidateQuery.trim();
+    if (!canManageMembers || ws?.visibility === "private" || term.length < 2) {
+      setCandidates([]);
+      setCandidateLoading(false);
+      return;
+    }
+    setCandidateLoading(true);
+    workspaces.userCandidates(wsId, term).then((result) => {
+      if (active) setCandidates(result);
+    }).catch(() => {
+      if (active) setCandidates([]);
+    }).finally(() => {
+      if (active) setCandidateLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [candidateQuery, wsId, canManageMembers, ws?.visibility]);
+
+  const addExistingUser = async (candidate: UserCandidate) => {
+    setAddingUserId(candidate.id);
+    try {
+      await workspaces.addMember(wsId, { user_id: candidate.id, role: candidateRole });
+      setCandidateQuery("");
+      setCandidates([]);
+      await loadData();
+      toast({ message: "Member added and notified", variant: "success" });
+    } catch (e) {
+      toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    } finally {
+      setAddingUserId(null);
+    }
+  };
+
+  const leaveCurrentWorkspace = async () => {
+    const ok = await confirm({
+      title: "Leave workspace?",
+      message: `You will lose access to ${ws?.name || "this workspace"}.`,
+      variant: "warning",
+      confirmLabel: "Leave",
+    });
+    if (!ok) return;
+    try {
+      await workspaces.leave(wsId);
+      await loadData();
+      toast({ message: "Left workspace", variant: "success" });
+    } catch (e) {
+      toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
+    }
+  };
 
   const associationIds = useMemo(() => new Set(associations.map((item) => item.target_ws_id)), [associations]);
 
@@ -1934,50 +1993,119 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
           {renderAccessTabs}
 
           {accessTab === "members" && (
-            <section>
-              <h3 style={{ fontSize: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><Users size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.ws_members')}</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {members.map((member) => (
-                  <div key={member.user_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10 }}>
-                    <div>
-                      <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                        {member.display_name}
-                        {member.role === "owner" && <span className="tag"><ShieldCheck size={12} /> Owner</span>}
-                      </div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{member.email}</div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <select
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {canManageMembers && ws?.visibility !== "private" && (
+                <SectionCard>
+                  <h3 style={{ fontSize: 14, margin: "0 0 14px", display: "flex", alignItems: "center", gap: 8 }}>
+                    <UserPlus size={18} style={{ color: "var(--color-primary)" }} /> Add existing user
+                  </h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 130px", gap: 10 }}>
+                    <div style={{ position: "relative" }}>
+                      <Search size={15} style={{ position: "absolute", left: 12, top: 12, color: "var(--text-muted)" }} />
+                      <input
                         className="mt-input"
-                        value={member.role}
-                        style={{ width: 120 }}
-                        disabled={member.role === "owner"}
-                        onChange={async (e) => {
-                          await workspaces.updateMember(wsId, member.user_id, e.target.value);
-                          await loadData();
-                        }}
-                      >
-                        <option value="viewer">Viewer</option>
-                        <option value="editor">Editor</option>
-                        <option value="owner">Owner</option>
-                      </select>
-                      <button
-                        className="btn-secondary"
-                        disabled={member.role === "owner"}
-                        onClick={async () => {
-                          const ok = await confirm({ title: "Remove member", message: `Remove ${member.email}?`, variant: "warning", confirmLabel: "Remove" });
-                          if (!ok) return;
-                          await workspaces.removeMember(wsId, member.user_id);
-                          await loadData();
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                        value={candidateQuery}
+                        onChange={(e) => setCandidateQuery(e.target.value)}
+                        placeholder="Search system users by email or name"
+                        style={{ width: "100%", paddingLeft: 36 }}
+                      />
                     </div>
+                    <select className="mt-input" value={candidateRole} onChange={(e) => setCandidateRole(e.target.value)}>
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                    </select>
                   </div>
-                ))}
-              </div>
-            </section>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                    {candidates.map((candidate) => (
+                      <div key={candidate.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, border: "1px solid var(--border-subtle)", borderRadius: 8, padding: "10px 12px" }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{candidate.display_name}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{candidate.email}</div>
+                        </div>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          loading={addingUserId === candidate.id}
+                          onClick={() => addExistingUser(candidate)}
+                          leftIcon={<UserPlus size={13} />}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    ))}
+                    {candidateQuery.trim().length >= 2 && !candidateLoading && candidates.length === 0 && (
+                      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No matching users found.</div>
+                    )}
+                    {candidateLoading && (
+                      <div style={{ color: "var(--text-muted)", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+                        <RefreshCw size={14} className="animate-spin" /> Searching users...
+                      </div>
+                    )}
+                  </div>
+                </SectionCard>
+              )}
+              {canManageMembers && ws?.visibility === "private" && (
+                <div style={{ padding: "10px 12px", background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", borderRadius: 8, color: "var(--text-muted)", fontSize: 13 }}>
+                  Private workspaces keep owner-only access. Switch visibility before adding members.
+                </div>
+              )}
+              <section>
+                <h3 style={{ fontSize: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><Users size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.ws_members')}</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {members.map((member) => {
+                    const isSelf = member.user_id === userId;
+                    const canLeave = isSelf && member.role !== "owner";
+                    return (
+                      <div key={member.user_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "var(--bg-surface)", border: "1px solid var(--border-default)", borderRadius: 10 }}>
+                        <div>
+                          <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                            {member.display_name}
+                            {member.role === "owner" && <span className="tag"><ShieldCheck size={12} /> Owner</span>}
+                            {isSelf && <span className="tag">You</span>}
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{member.email}</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <select
+                            className="mt-input"
+                            value={member.role}
+                            style={{ width: 120 }}
+                            disabled={member.role === "owner" || !canManageMembers}
+                            onChange={async (e) => {
+                              await workspaces.updateMember(wsId, member.user_id, e.target.value);
+                              await loadData();
+                            }}
+                          >
+                            <option value="viewer">Viewer</option>
+                            <option value="editor">Editor</option>
+                            <option value="owner" disabled>Owner</option>
+                          </select>
+                          {canLeave ? (
+                            <button className="btn-secondary" onClick={() => leaveCurrentWorkspace()}>
+                              <X size={14} />
+                              Leave
+                            </button>
+                          ) : (
+                            <button
+                              className="btn-secondary"
+                              disabled={member.role === "owner" || !canManageMembers}
+                              onClick={async () => {
+                                const ok = await confirm({ title: "Remove member", message: `Remove ${member.email}?`, variant: "warning", confirmLabel: "Remove" });
+                                if (!ok) return;
+                                await workspaces.removeMember(wsId, member.user_id);
+                                await loadData();
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
           )}
 
           {accessTab === "invites" && (
