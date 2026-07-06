@@ -14,8 +14,8 @@ const ForkWorkspaceModal = lazy(() => import('./components/ForkWorkspaceModal'))
 const NodeEditor = lazy(() => import('./NodeEditor'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 
-type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[] };
-type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications' | 'usage';
+type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[]; is_platform_admin?: boolean };
+type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications' | 'usage' | 'job_runs' | 'system_ai' | 'system_monitor' | 'system_users';
 
 export default function App() {
   const { i18n } = useTranslation();

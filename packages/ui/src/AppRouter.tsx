@@ -22,6 +22,7 @@ const SystemAISettings = lazy(() => import('./SystemAISettings'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 const JobRunsPage = lazy(() => import('./JobRunsPage'));
 const SystemMonitorPage = lazy(() => import('./SystemMonitorPage'));
+const SystemUsersPage = lazy(() => import('./SystemUsersPage'));
 const GuidePage = lazy(() => import('./GuidePage'));
 const NotificationsPage = lazy(() => import('./NotificationsPage'));
 const UsagePage = lazy(() => import('./UsagePage'));
@@ -183,6 +184,11 @@ const AppRouter: React.FC<AppRouterProps> = ({
                 {currentView === 'system_monitor' && user?.is_platform_admin && (
                   <div style={{ flex: 1, overflowY: 'auto' }}>
                     <SystemMonitorPage />
+                  </div>
+                )}
+                {currentView === 'system_users' && user?.is_platform_admin && (
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    <SystemUsersPage />
                   </div>
                 )}
                 {currentView === 'ai_chat' && selectedWs && (

@@ -107,6 +107,70 @@ class PromoteDemoteRequest(BaseModel):
     user_id: str
 
 
+class SystemUserResponse(BaseModel):
+    id: str
+    display_name: str
+    email: str
+    email_verified: bool
+    is_platform_admin: bool
+    created_at: datetime
+    last_login_at: Optional[datetime] = None
+    workspace_count: int = 0
+
+
+class SystemUsersPage(BaseModel):
+    users: list[SystemUserResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+@router.get("/users", response_model=SystemUsersPage)
+def list_system_users(
+    q: Optional[str] = Query(None, min_length=1),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: dict = Depends(require_system_admin),
+):
+    conditions: list[str] = []
+    params: list = []
+    if q:
+        like = f"%{q.strip()}%"
+        conditions.append("(u.id ILIKE %s OR u.email ILIKE %s OR u.display_name ILIKE %s)")
+        params.extend([like, like, like])
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+
+    with db_cursor() as cur:
+        cur.execute(f"SELECT COUNT(*) AS cnt FROM users u {where}", tuple(params))
+        total = int(cur.fetchone()["cnt"])
+        cur.execute(
+            f"""
+            SELECT
+                u.id,
+                u.display_name,
+                u.email,
+                u.email_verified,
+                COALESCE(u.is_platform_admin, false) AS is_platform_admin,
+                u.created_at,
+                u.last_login_at,
+                (
+                    SELECT COUNT(*)
+                    FROM (
+                        SELECT w.id FROM workspaces w WHERE w.owner_id = u.id
+                        UNION
+                        SELECT wm.workspace_id FROM workspace_members wm WHERE wm.user_id = u.id
+                    ) memberships
+                ) AS workspace_count
+            FROM users u
+            {where}
+            ORDER BY u.created_at DESC, u.id ASC
+            LIMIT %s OFFSET %s
+            """,
+            tuple(params + [limit, offset]),
+        )
+        return {"users": [dict(r) for r in cur.fetchall()], "total": total, "limit": limit, "offset": offset}
+
+
 @router.post("/promote", status_code=200)
 def promote_user(data: PromoteDemoteRequest, user: dict = Depends(require_system_admin)):
     with db_cursor(commit=True) as cur:
