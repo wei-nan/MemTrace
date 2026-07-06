@@ -353,7 +353,7 @@ async def search_nodes_in_db(
     
     viewer_id = user["sub"] if user else None
     viewer_role = get_effective_role(cur, ws_id, ws["owner_id"], viewer_id)
-    _STRIP_FIELDS = {"embedding", "search_vector"}
+    _STRIP_FIELDS = {"embedding", "secondary_embedding", "search_vector"}
     results = [
         {k: v for k, v in strip_body_if_viewer(r, viewer_role).items() if k not in _STRIP_FIELDS}
         for r in combined[:limit]

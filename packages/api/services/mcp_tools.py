@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, HTTPException
 from core.database import db_cursor
 from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T
-from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db
+from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
 from services.edges import write_mcp_interaction_edge, create_edge_in_db, delete_edge_in_db
 from services.search import bfs_neighborhood, search_nodes_in_db, perform_semantic_search
 from services.analytics import handle_search_miss, log_mcp_query_internal
@@ -166,6 +166,7 @@ TOOLS = [
                 "node_id": {"type": "string"},
                 "detail_level": {"type": "string", "enum": ["probe", "brief", "full"], "description": "Detail level of returned nodes (optional)"},
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
+                "debug": {"type": "boolean", "description": "If true, 'full' detail_level returns the raw DB row (all internal bookkeeping fields) instead of the curated field set. Default false.", "default": False},
             },
             "required": ["workspace_id", "node_id"],
         },
@@ -183,6 +184,7 @@ TOOLS = [
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
                 "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
                 "include_archived": {"type": "boolean", "description": "Whether to include archived/faded nodes (faded memories). Default false.", "default": False},
+                "debug": {"type": "boolean", "description": "If true, 'full' detail_level returns the raw DB row (all internal bookkeeping fields) instead of the curated field set. Default false.", "default": False},
             },
             "required": ["workspace_id", "query"],
         },
@@ -837,18 +839,18 @@ def get_default_detail_level(user_sub: Optional[str]) -> str:
         return "full"
     return "brief"
 
-def optimize_node_response(cur, ws_id: str, node: dict, initial_level: str, max_tokens: Optional[int]) -> dict:
+def optimize_node_response(cur, ws_id: str, node: dict, initial_level: str, max_tokens: Optional[int], debug: bool = False) -> dict:
     from services.node_projection import project_node, get_node_top_edges
-    
+
     top_edges = get_node_top_edges(cur, ws_id, node["id"])
-    
+
     current_level = initial_level
     level_idx = LEVEL_ORDER.index(current_level) if current_level in LEVEL_ORDER else 1
-    
+
     projected = None
     while level_idx < len(LEVEL_ORDER):
         lvl = LEVEL_ORDER[level_idx]
-        projected = project_node(node, lvl, top_edges)
+        projected = project_node(node, lvl, top_edges, debug=debug)
         if max_tokens is None:
             return projected
         
@@ -898,22 +900,22 @@ def optimize_node_response(cur, ws_id: str, node: dict, initial_level: str, max_
     }
     return min_node
 
-def optimize_nodes_list_response(cur, ws_id: str, nodes: list[dict], initial_level: str, max_tokens: Optional[int]) -> Any:
+def optimize_nodes_list_response(cur, ws_id: str, nodes: list[dict], initial_level: str, max_tokens: Optional[int], debug: bool = False) -> Any:
     from services.node_projection import project_node, get_node_top_edges
-    
+
     if not nodes:
         return []
-        
+
     current_level = initial_level
     level_idx = LEVEL_ORDER.index(current_level) if current_level in LEVEL_ORDER else 1
-    
+
     projected_list = []
     while level_idx < len(LEVEL_ORDER):
         lvl = LEVEL_ORDER[level_idx]
         projected_list = []
         for n in nodes:
             top_edges = get_node_top_edges(cur, ws_id, n["id"]) if lvl in ('probe', 'brief') else None
-            projected_list.append(project_node(n, lvl, top_edges))
+            projected_list.append(project_node(n, lvl, top_edges, debug=debug))
             
         if max_tokens is None:
             return projected_list
@@ -1011,7 +1013,19 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
     # ── list_workspaces ───────────────────────────────────────────────────────
     if name == "list_workspaces":
         with db_cursor() as cur:
-            return list_workspaces_in_db(cur, search=None, user=user)
+            workspaces = list_workspaces_in_db(cur, search=None, user=user)
+            return [
+                {
+                    "id": ws.get("id"),
+                    "name": ws.get("name"),
+                    "description": ws.get("description"),
+                    "my_role": ws.get("my_role"),
+                    "visibility": ws.get("visibility"),
+                    "language": ws.get("language"),
+                    "node_count": ws.get("node_count"),
+                }
+                for ws in workspaces
+            ]
 
     # ── list_nodes ────────────────────────────────────────────────────────────
     if name == "list_nodes":
@@ -1045,11 +1059,12 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         max_tokens = args.get("max_response_tokens")
         if max_tokens is not None:
             max_tokens = int(max_tokens)
+        debug = bool(args.get("debug", False))
         with db_cursor() as cur:
             node = get_node_in_db(cur, ws_id, node_id, user)
             if node:
                 log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
-                return optimize_node_response(cur, ws_id, node, detail_level, max_tokens)
+                return optimize_node_response(cur, ws_id, node, detail_level, max_tokens, debug=debug)
             return node
 
     # ── search_nodes ──────────────────────────────────────────────────────────
@@ -1063,6 +1078,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             max_tokens = int(max_tokens)
         include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
         include_archived = bool(args.get("include_archived", False))
+        debug = bool(args.get("debug", False))
         with db_cursor() as cur:
             results = await search_nodes_in_db(
                 cur,
@@ -1079,7 +1095,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 log_mcp_interaction(background_tasks, ws_id, name, query_text=query, result_count=len(results))
                 for r in results[:3]:
                     background_tasks.add_task(write_mcp_interaction_edge, ws_id, r["id"], name, query)
-                results = optimize_nodes_list_response(cur, ws_id, results, detail_level, max_tokens)
+                results = optimize_nodes_list_response(cur, ws_id, results, detail_level, max_tokens, debug=debug)
             return results
 
     # ── search_cross_workspace ────────────────────────────────────────────────
@@ -1112,14 +1128,19 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                     for ws in group_wss:
                         try:
                             ws_res = await perform_semantic_search(
-                                cur, ws["id"], query_text, user["sub"], 
+                                cur, ws["id"], query_text, user["sub"],
                                 limit=limit_per, ws_model=model, ws_prov=prov,
                                 include_archived=include_archived,
                                 include_answered_inquiries=include_answered_inquiries,
                             )
+                            _strip_fields = {"embedding", "secondary_embedding", "search_vector"}
                             for r in ws_res:
-                                r["workspace_name"] = ws["name"]
-                            results.extend(ws_res)
+                                redacted = {
+                                    k: v for k, v in strip_body_if_viewer(r, ws.get("my_role")).items()
+                                    if k not in _strip_fields
+                                }
+                                redacted["workspace_name"] = ws["name"]
+                                results.append(redacted)
                         except Exception as e:
                             warnings.append(f"Skipped workspace '{ws['name']}': {str(e)}")
                 except Exception as group_err:
@@ -1192,7 +1213,17 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         with db_cursor(commit=True) as cur:
             require_ws_access(cur, ws_id, user, write=True, required_role="admin")
-            return create_edge_in_db(cur, ws_id, args)
+            edge = create_edge_in_db(cur, ws_id, args)
+            return {
+                "id": edge.get("id"),
+                "from_id": edge.get("from_id"),
+                "to_id": edge.get("to_id"),
+                "relation": edge.get("relation"),
+                "weight": edge.get("weight"),
+                "status": edge.get("status"),
+                "half_life_days": edge.get("half_life_days"),
+                "updated_at": edge.get("updated_at"),
+            }
 
     # ── delete_edge ───────────────────────────────────────────────────────────
     if name == "delete_edge":

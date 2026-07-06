@@ -96,6 +96,53 @@ def test_project_node():
     assert probe_tokens <= 0.6 * full_tokens
 
 
+def test_project_node_full_whitelists_internal_bookkeeping_fields():
+    """full 等級預設應濾除 signature/dim_*/ask_count 等內部簿記欄位（2026-07-07 瘦身）。"""
+    node = {
+        "id": "mem_1",
+        "title": "Node 1",
+        "content_type": "factual",
+        "body": "some body",
+        "tags": ["tag1"],
+        "trust_score": 0.85,
+        "signature": "deadbeef" * 8,
+        "dim_accuracy": 0.5,
+        "dim_freshness": 1.0,
+        "dim_utility": 0.5,
+        "dim_author_rep": 0.5,
+        "ask_count": 3,
+        "miss_count": 1,
+        "cluster_id": None,
+        "votes_up": 2,
+        "votes_down": 0,
+        "metadata": {"foo": "bar"},
+    }
+
+    full = project_node(node, "full")
+    assert "body" in full
+    assert "signature" not in full
+    assert "dim_accuracy" not in full
+    assert "ask_count" not in full
+    assert "miss_count" not in full
+    assert "votes_up" not in full
+    assert "metadata" not in full
+
+
+def test_project_node_full_debug_returns_raw_row():
+    """debug=True 時 full 等級應回退為完整原始欄位，供維運排查用。"""
+    node = {
+        "id": "mem_1",
+        "title": "Node 1",
+        "body": "some body",
+        "signature": "deadbeef" * 8,
+        "dim_accuracy": 0.5,
+    }
+
+    full_debug = project_node(node, "full", debug=True)
+    assert full_debug["signature"] == "deadbeef" * 8
+    assert full_debug["dim_accuracy"] == 0.5
+
+
 # ─── 3. Capability Handshake 測試 ──────────────────────────────────────────────
 
 @pytest.mark.asyncio

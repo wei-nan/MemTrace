@@ -13,14 +13,92 @@ async def test_execute_tool_list_workspaces():
     user = {"sub": "user_1"}
     cur = MagicMock()
     cur.fetchall.return_value = [{"id": "ws_1", "name_en": "WS 1"}]
-    
+
     mock_db_cursor = MagicMock()
     mock_db_cursor.__enter__.return_value = cur
-    
+
     with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):
         res = await execute_tool("list_workspaces", {}, user, MagicMock())
         assert len(res) == 1
         assert res[0]["id"] == "ws_1"
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_list_workspaces_projects_summary_fields_only():
+    """2026-07-07 瘦身：list_workspaces 只回摘要欄位，不外洩 settings/schema_version 等內部欄位。"""
+    user = {"sub": "user_1"}
+    full_ws_row = {
+        "id": "ws_1",
+        "name": "WS 1",
+        "description": "desc",
+        "my_role": "admin",
+        "visibility": "private",
+        "language": "zh-TW",
+        "node_count": 42,
+        "settings": {"mcp_ingest_enabled": True},
+        "schema_version": "1.0",
+        "embedding_dim": 3072,
+        "agent_node_id": "node_x",
+        "deleted_at": None,
+    }
+
+    with patch("services.mcp_tools.list_workspaces_in_db", return_value=[full_ws_row]):
+        res = await execute_tool("list_workspaces", {}, user, MagicMock())
+
+    assert res == [{
+        "id": "ws_1",
+        "name": "WS 1",
+        "description": "desc",
+        "my_role": "admin",
+        "visibility": "private",
+        "language": "zh-TW",
+        "node_count": 42,
+    }]
+    assert "settings" not in res[0]
+    assert "schema_version" not in res[0]
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_create_edge_projects_response():
+    """2026-07-07 瘦身：create_edge 只回精簡欄位，不外洩 rating_sum/co_access_count 等內部統計。"""
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "from_id": "mem_a", "to_id": "mem_b", "relation": "related_to"}
+
+    full_edge_row = {
+        "id": "edge_1",
+        "workspace_id": "ws_1",
+        "from_id": "mem_a",
+        "to_id": "mem_b",
+        "relation": "related_to",
+        "weight": 0.8,
+        "status": "active",
+        "half_life_days": 30,
+        "updated_at": "2026-07-07T00:00:00Z",
+        "rating_sum": 0,
+        "rating_count": 0,
+        "co_access_count": 5,
+        "metadata": {},
+        "pinned": False,
+        "edge_class": "semantic",
+    }
+
+    with patch("services.mcp_tools.db_cursor"), \
+         patch("services.mcp_tools.require_ws_access", return_value={"owner_id": "user_1"}), \
+         patch("services.mcp_tools.create_edge_in_db", return_value=full_edge_row):
+        res = await execute_tool("create_edge", args, user, MagicMock())
+
+    assert res == {
+        "id": "edge_1",
+        "from_id": "mem_a",
+        "to_id": "mem_b",
+        "relation": "related_to",
+        "weight": 0.8,
+        "status": "active",
+        "half_life_days": 30,
+        "updated_at": "2026-07-07T00:00:00Z",
+    }
+    assert "rating_sum" not in res
+    assert "co_access_count" not in res
 
 @pytest.mark.asyncio
 async def test_execute_tool_get_node():

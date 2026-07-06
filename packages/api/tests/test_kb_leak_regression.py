@@ -239,3 +239,82 @@ async def test_l9_semantic_search_editor_sees_body():
         results = await search_nodes_semantic("ws_target", query="q", limit=10, user={"sub": "usr_editor"})
 
     assert results[0]["body"] == "TOP SECRET"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 修復 4:MCP search_cross_workspace 繞過 strip_body_if_viewer 與欄位過濾
+# (發現於 2026-07-07，見 ws_spec_plan mem_38e3c93e — 同一個 perform_semantic_search
+#  raw row，routers/kb.py 的姊妹端點在 L7-L9 已修過，但 mcp_tools.py 的
+#  search_cross_workspace 一直沒套用同樣的處理)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _cross_ws_row(node_id="mem_secret", vis="private", body="TOP SECRET"):
+    row = _node_row(node_id=node_id, vis=vis, body=body)
+    row["embedding"] = [0.1] * 8
+    row["secondary_embedding"] = [0.2] * 8
+    row["signature"] = "deadbeef" * 8
+    return row
+
+
+@pytest.mark.asyncio
+async def test_l10_cross_workspace_search_strips_body_for_viewer():
+    """viewer 透過 search_cross_workspace 取得的 private 節點 body 必須被遮蔽。"""
+    from services.mcp_tools import execute_tool
+
+    cur = MagicMock()
+    cur.fetchone.return_value = {"embedding_provider": "openai", "embedding_model": "m"}
+    ws = {"id": "ws_target", "name": "Target", "my_role": "viewer"}
+    private_row = _cross_ws_row(vis="private", body="TOP SECRET")
+
+    with patch("services.mcp_tools.db_cursor", return_value=_cm(cur)), \
+         patch("services.mcp_tools.list_workspaces_in_db", return_value=[ws]), \
+         patch("services.mcp_tools.perform_semantic_search", new=AsyncMock(return_value=[private_row])):
+        res = await execute_tool(
+            "search_cross_workspace", {"query": "q"}, {"sub": "usr_viewer"}, MagicMock()
+        )
+
+    assert res["results"][0]["body"] is None
+    assert res["results"][0].get("content_stripped") is True
+
+
+@pytest.mark.asyncio
+async def test_l11_cross_workspace_search_editor_sees_body():
+    """editor 透過 search_cross_workspace 仍可見 private 節點 body(對照組,不應過度遮蔽)。"""
+    from services.mcp_tools import execute_tool
+
+    cur = MagicMock()
+    cur.fetchone.return_value = {"embedding_provider": "openai", "embedding_model": "m"}
+    ws = {"id": "ws_target", "name": "Target", "my_role": "editor"}
+    private_row = _cross_ws_row(vis="private", body="TOP SECRET")
+
+    with patch("services.mcp_tools.db_cursor", return_value=_cm(cur)), \
+         patch("services.mcp_tools.list_workspaces_in_db", return_value=[ws]), \
+         patch("services.mcp_tools.perform_semantic_search", new=AsyncMock(return_value=[private_row])):
+        res = await execute_tool(
+            "search_cross_workspace", {"query": "q"}, {"sub": "usr_editor"}, MagicMock()
+        )
+
+    assert res["results"][0]["body"] == "TOP SECRET"
+
+
+@pytest.mark.asyncio
+async def test_l12_cross_workspace_search_never_leaks_embedding_vectors():
+    """無論角色為何,search_cross_workspace 都不得回傳 embedding/secondary_embedding 向量。"""
+    from services.mcp_tools import execute_tool
+
+    cur = MagicMock()
+    cur.fetchone.return_value = {"embedding_provider": "openai", "embedding_model": "m"}
+    ws = {"id": "ws_target", "name": "Target", "my_role": "editor"}
+    row = _cross_ws_row(vis="public", body="public info")
+
+    with patch("services.mcp_tools.db_cursor", return_value=_cm(cur)), \
+         patch("services.mcp_tools.list_workspaces_in_db", return_value=[ws]), \
+         patch("services.mcp_tools.perform_semantic_search", new=AsyncMock(return_value=[row])):
+        res = await execute_tool(
+            "search_cross_workspace", {"query": "q"}, {"sub": "usr_editor"}, MagicMock()
+        )
+
+    result = res["results"][0]
+    assert "embedding" not in result
+    assert "secondary_embedding" not in result
+    assert result["body"] == "public info"

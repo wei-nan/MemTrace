@@ -7,6 +7,16 @@ import datetime
 from typing import Literal, Optional, List, Dict, Any
 
 
+# Fields useful for reasoning at the 'full' detail level. Internal bookkeeping
+# (signature, dim_*, ask/miss_count, cluster_id, etc.) is excluded by default —
+# pass debug=True to project_node to get the raw row for ops troubleshooting.
+NODE_FULL_FIELDS = {
+    "id", "title", "body", "content_type", "content_format", "tags", "visibility",
+    "trust_score", "status", "created_at", "updated_at", "author", "source_type",
+    "resolution_status",
+}
+
+
 def calculate_top_edges(edges: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Calculate top edges for a node based on the sorting weight:
@@ -126,9 +136,10 @@ def get_node_top_edges(cur, ws_id: str, node_id: str) -> List[Dict[str, Any]]:
 
 
 def project_node(
-    node: Dict[str, Any], 
-    level: Literal['probe', 'brief', 'full'], 
-    top_edges: Optional[List[Dict[str, Any]]] = None
+    node: Dict[str, Any],
+    level: Literal['probe', 'brief', 'full'],
+    top_edges: Optional[List[Dict[str, Any]]] = None,
+    debug: bool = False,
 ) -> Dict[str, Any]:
     """
     Project a node to the desired detail level.
@@ -155,7 +166,10 @@ def project_node(
         return probe
     else:
         # full
-        full_node = dict(node)
+        if debug:
+            full_node = dict(node)
+        else:
+            full_node = {k: node.get(k) for k in NODE_FULL_FIELDS if node.get(k) is not None}
         if top_edges is not None:
             full_node["top_edges"] = top_edges
         if "summary_1line" not in full_node:
