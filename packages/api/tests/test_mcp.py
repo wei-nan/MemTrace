@@ -149,9 +149,19 @@ async def test_execute_tool_search_nodes():
 @pytest.mark.asyncio
 async def test_execute_tool_create_node():
     user = {"sub": "user_1"}
-    args = {"workspace_id": "ws_1", "title_en": "New Node", "body_en": "Content"}
+    args = {"workspace_id": "ws_1", "title": "New Node", "body": "Content"}
     
-    mock_node = {"id": "mem_new", "title_en": "New Node"}
+    mock_node = {
+        "id": "mem_new",
+        "title": "New Node",
+        "body": "Content",
+        "status": "active",
+        "created_at": "2026-07-07T07:10:00+08:00",
+        "signature": "secret-signature",
+        "dim_freshness": 1.0,
+        "ask_count": 7,
+        "workspace_id": "ws_1",
+    }
     
     background_tasks = MagicMock()
     
@@ -160,8 +170,19 @@ async def test_execute_tool_create_node():
         with patch("services.mcp_tools.db_cursor"):
             with patch("services.mcp_tools.trigger_node_background_jobs") as mock_bg:
                 res = await execute_tool("create_node", args, user, background_tasks)
-                assert res["id"] == "mem_new"
+                assert res == {
+                    "id": "mem_new",
+                    "title": "New Node",
+                    "status": "active",
+                    "created_at": "2026-07-07T07:10:00+08:00",
+                }
+                assert "body" not in res
+                assert "signature" not in res
+                assert "dim_freshness" not in res
+                assert "ask_count" not in res
+                assert "workspace_id" not in res
                 mock_bg.assert_called_once()
+                assert mock_bg.call_args.args[4] is mock_node
 
 @pytest.mark.asyncio
 async def test_execute_tool_create_node_duplicate():
@@ -176,6 +197,52 @@ async def test_execute_tool_create_node_duplicate():
             res = await execute_tool("create_node", args, user, MagicMock())
             assert res["action"] == "duplicate_found"
             assert res["existing_node_id"] == "mem_old"
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_create_node_pending_review_stays_compact():
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "title": "Needs Review", "body": "Content"}
+
+    background_tasks = MagicMock()
+
+    with patch("services.mcp_tools.create_node_full_with_dedup", new_callable=AsyncMock) as mock_create:
+        mock_create.return_value = (None, "rev_1", None)
+        with patch("services.mcp_tools.db_cursor"):
+            res = await execute_tool("create_node", args, user, background_tasks)
+            assert res == {"review_id": "rev_1", "status": "pending_review"}
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_update_node_projects_success_response():
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "node_id": "mem_1", "body": "Updated body"}
+    mock_node = {
+        "id": "mem_1",
+        "title": "Updated Node",
+        "body": "Updated body",
+        "status": "active",
+        "updated_at": "2026-07-07T07:12:00+08:00",
+        "signature": "secret-signature",
+        "dim_utility": 1.0,
+        "miss_count": 3,
+        "workspace_id": "ws_1",
+    }
+
+    with patch("services.mcp_tools.update_node_in_db", return_value=mock_node):
+        with patch("services.mcp_tools.db_cursor"):
+            res = await execute_tool("update_node", args, user, MagicMock())
+            assert res == {
+                "id": "mem_1",
+                "title": "Updated Node",
+                "status": "active",
+                "updated_at": "2026-07-07T07:12:00+08:00",
+            }
+            assert "body" not in res
+            assert "signature" not in res
+            assert "dim_utility" not in res
+            assert "miss_count" not in res
+            assert "workspace_id" not in res
 
 @pytest.mark.asyncio
 async def test_execute_tool_traverse():

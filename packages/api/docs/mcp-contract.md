@@ -133,7 +133,13 @@ Create a new knowledge node.
 | `source_type` | string | | `"human"` (default) or `"ai"` |
 | `trust_score` | number | | 0.0–1.0 |
 
-**Output**: Created node object with `id`
+**Output**:
+
+- Active success: compact write summary with `id`, `title`, `status`, and `created_at`.
+- Pending review: `{ "review_id": "...", "status": "pending_review" }`.
+- Duplicate detection: duplicate metadata such as `action` and `existing_node_id`.
+
+The active success response intentionally does not echo `body` or internal bookkeeping fields. Call `get_node` after creation if the full node content is needed.
 
 ---
 
@@ -152,6 +158,13 @@ Update an existing knowledge node.
 | `tags` | string[] | | |
 | `visibility` | string | | |
 | `trust_score` | number | | |
+
+**Output**:
+
+- Active success: compact write summary with `id`, `title`, `status`, and `updated_at`.
+- Pending review: `{ "review_id": "...", "status": "pending_review" }`.
+
+The active success response intentionally does not echo `body` or internal bookkeeping fields. Call `get_node` after updating if the full node content is needed.
 
 ---
 

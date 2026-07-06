@@ -92,6 +92,18 @@ def jsonrpc_ok(id: Any, result: Any) -> dict:
     return {"jsonrpc": "2.0", "id": id, "result": result}
 
 
+def _project_write_success(node: dict, timestamp_field: str) -> dict:
+    """Return the compact MCP write-success shape without echoing node body."""
+    title = node.get("title") or node.get("title_en") or node.get("title_zh")
+    projected = {
+        "id": node.get("id"),
+        "title": title,
+        "status": node.get("status"),
+        timestamp_field: node.get(timestamp_field),
+    }
+    return {k: v for k, v in projected.items() if v is not None}
+
+
 def serialize(obj: Any) -> Any:
     """Convert psycopg2 Row objects and datetime to JSON-serializable types."""
     if obj is None or isinstance(obj, (str, int, float, bool)):
@@ -1188,7 +1200,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             
             log_mcp_interaction(background_tasks, ws_id, name, node_id=node["id"], query_text=f"Created: {node.get('title')}")
             trigger_node_background_jobs(background_tasks, ws_id, node["id"], user["sub"], node)
-            return node
+            return _project_write_success(node, "created_at")
 
     # ── update_node ───────────────────────────────────────────────────────────
     if name == "update_node":
@@ -1197,7 +1209,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor(commit=True) as cur:
             res = update_node_in_db(cur, ws_id, node_id, args, user["sub"])
             log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
-            return res
+            return _project_write_success(res, "updated_at")
 
     # ── delete_node ───────────────────────────────────────────────────────────
     if name == "delete_node":
