@@ -1203,6 +1203,14 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   const [retrying, setRetrying] = useState(false);
   const isOwner = ws?.owner_id === userId;
   const canManageMembers = isOwner || ws?.my_role === "admin";
+  const canWriteWs = isOwner || ws?.my_role === "admin" || ws?.my_role === "editor";
+
+  useEffect(() => {
+    if (ws && !canWriteWs) {
+      setTab("members");
+      setAccessTab("members");
+    }
+  }, [ws, canWriteWs]);
 
   useEffect(() => {
     if (!ws) return;
@@ -1303,7 +1311,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
       setCandidateQuery("");
       setCandidates([]);
       await loadData();
-      toast({ message: "Member added and notified", variant: "success" });
+      toast({ message: t('ws_settings.member_added'), variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
     } finally {
@@ -1313,16 +1321,16 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
 
   const leaveCurrentWorkspace = async () => {
     const ok = await confirm({
-      title: "Leave workspace?",
-      message: `You will lose access to ${ws?.name || "this workspace"}.`,
+      title: t('ws_settings.leave_ws_title'),
+      message: t('ws_settings.leave_ws_confirm', { name: ws?.name || (zh ? '此工作區' : 'this workspace') }),
       variant: "warning",
-      confirmLabel: "Leave",
+      confirmLabel: t('ws_settings.leave'),
     });
     if (!ok) return;
     try {
       await workspaces.leave(wsId);
       await loadData();
-      toast({ message: "Left workspace", variant: "success" });
+      toast({ message: t('ws_settings.left_ws'), variant: "success" });
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
     }
@@ -1351,12 +1359,22 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
   return (
     <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", gap: 20, borderBottom: "1px solid var(--border-subtle)", marginBottom: 8, flexWrap: "wrap" }}>
-        <button onClick={() => setTab("general")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "general" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "general" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.general')}</button>
+        {canWriteWs && (
+          <button onClick={() => setTab("general")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "general" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "general" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.general')}</button>
+        )}
         <button onClick={() => setTab("members")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "members" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "members" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.membersAccess')}</button>
-        <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
-        <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
-        <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "AI 管理" : "AI Management"}</button>
-        <button onClick={() => setTab("connectors")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "connectors" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "connectors" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "外部整合" : "Connectors"}</button>
+        {canWriteWs && (
+          <button onClick={() => setTab("export")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "export" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "export" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.dataExport')}</button>
+        )}
+        {canWriteWs && (
+          <button onClick={() => setTab("assoc")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "assoc" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "assoc" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.kbAssoc')}</button>
+        )}
+        {canWriteWs && (
+          <button onClick={() => setTab("ai_review")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "ai_review" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "ai_review" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "AI 管理" : "AI Management"}</button>
+        )}
+        {canWriteWs && (
+          <button onClick={() => setTab("connectors")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "connectors" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "connectors" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{zh ? "外部整合" : "Connectors"}</button>
+        )}
         {ws?.owner_id === userId && (
           <button onClick={() => setTab("apikeys")} style={{ padding: "12px 4px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tab === "apikeys" ? "var(--color-primary)" : "var(--text-muted)", borderBottom: tab === "apikeys" ? "2px solid var(--color-primary)" : "2px solid transparent" }}>{t('ws_settings.apiKeys')}</button>
         )}
@@ -1990,14 +2008,14 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
         <ConnectorSettings wsId={wsId} zh={zh} />
       ) : (
         <>
-          {renderAccessTabs}
+          {canWriteWs && renderAccessTabs}
 
           {accessTab === "members" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {canManageMembers && ws?.visibility !== "private" && (
                 <SectionCard>
                   <h3 style={{ fontSize: 14, margin: "0 0 14px", display: "flex", alignItems: "center", gap: 8 }}>
-                    <UserPlus size={18} style={{ color: "var(--color-primary)" }} /> Add existing user
+                    <UserPlus size={18} style={{ color: "var(--color-primary)" }} /> {t('ws_settings.add_existing_user')}
                   </h3>
                   <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 130px", gap: 10 }}>
                     <div style={{ position: "relative" }}>
@@ -2006,7 +2024,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                         className="mt-input"
                         value={candidateQuery}
                         onChange={(e) => setCandidateQuery(e.target.value)}
-                        placeholder="Search system users by email or name"
+                        placeholder={t('ws_settings.search_users_ph')}
                         style={{ width: "100%", paddingLeft: 36 }}
                       />
                     </div>
@@ -2029,16 +2047,16 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                           onClick={() => addExistingUser(candidate)}
                           leftIcon={<UserPlus size={13} />}
                         >
-                          Add
+                          {t('ws_settings.add')}
                         </Button>
                       </div>
                     ))}
                     {candidateQuery.trim().length >= 2 && !candidateLoading && candidates.length === 0 && (
-                      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No matching users found.</div>
+                      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t('ws_settings.no_candidates')}</div>
                     )}
                     {candidateLoading && (
                       <div style={{ color: "var(--text-muted)", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
-                        <RefreshCw size={14} className="animate-spin" /> Searching users...
+                        <RefreshCw size={14} className="animate-spin" /> {t('ws_settings.searching_users')}
                       </div>
                     )}
                   </div>
@@ -2046,7 +2064,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
               )}
               {canManageMembers && ws?.visibility === "private" && (
                 <div style={{ padding: "10px 12px", background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", borderRadius: 8, color: "var(--text-muted)", fontSize: 13 }}>
-                  Private workspaces keep owner-only access. Switch visibility before adding members.
+                  {t('ws_settings.private_no_add')}
                 </div>
               )}
               <section>
@@ -2061,7 +2079,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                           <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                             {member.display_name}
                             {member.role === "owner" && <span className="tag"><ShieldCheck size={12} /> Owner</span>}
-                            {isSelf && <span className="tag">You</span>}
+                            {isSelf && <span className="tag">{t('ws_settings.you_tag')}</span>}
                           </div>
                           <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{member.email}</div>
                         </div>
@@ -2083,7 +2101,7 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                           {canLeave ? (
                             <button className="btn-secondary" onClick={() => leaveCurrentWorkspace()}>
                               <X size={14} />
-                              Leave
+                              {t('ws_settings.leave')}
                             </button>
                           ) : (
                             <button

@@ -322,15 +322,15 @@ const Sidebar: React.FC<SidebarProps> = ({
             {!collapsed && <span className="nav-text">{t('sidebar.review')}</span>}
           </div>
         )}
-        {selectedWs && canWrite && (
+        {selectedWs && (
           <div
             className={`nav-item ${currentView === 'ws_settings' ? 'active' : ''}`}
             style={{ marginTop: 4 }}
-            title={collapsed ? t('sidebar.ws_settings') : undefined}
+            title={collapsed ? (canWrite ? t('sidebar.ws_settings') : t('sidebar.ws_members_readonly')) : undefined}
             onClick={() => onSetView('ws_settings')}
           >
             <Users size={18} />
-            {!collapsed && <span className="nav-text">{t('sidebar.ws_settings')}</span>}
+            {!collapsed && <span className="nav-text">{canWrite ? t('sidebar.ws_settings') : t('sidebar.ws_members_readonly')}</span>}
           </div>
         )}
         {selectedWs && canWrite && (
@@ -382,11 +382,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div
               className={`nav-item ${currentView === 'system_users' ? 'active' : ''}`}
-              title={collapsed ? 'System Users' : undefined}
+              title={collapsed ? (t('sidebar.system_users') || (user?.language === 'zh-TW' ? '系統使用者' : 'System Users')) : undefined}
               onClick={() => onSetView('system_users')}
             >
               <UserCog size={18} />
-              {!collapsed && <span className="nav-text">System Users</span>}
+              {!collapsed && <span className="nav-text">{t('sidebar.system_users') || (user?.language === 'zh-TW' ? '系統使用者' : 'System Users')}</span>}
             </div>
           </>
         )}

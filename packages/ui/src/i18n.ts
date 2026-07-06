@@ -19,7 +19,9 @@ const resources = {
         job_runs: '作業紀錄',
         system_ai: '系統 AI 設定',
         system_monitor: '系統監控',
-        admin_section: '管理員設定'
+        system_users: '系統使用者',
+        admin_section: '管理員設定',
+        ws_members_readonly: '工作區成員'
       },
       nav: {
         settings: '個人設定',
@@ -172,7 +174,19 @@ const resources = {
         consult_trust_tier: '自動合入信任層級',
         consult_trust_tier_desc: '控制 AI 產出的安全建議是否需要手動審核。危險/有風險產出將始終被攔截。',
         consult_provider: '自動修復模型 (Consult Provider)',
-        consult_provider_desc: '指定用於自動診斷與合入建議的模型。設為「自動」時沿用系統預設。'
+        consult_provider_desc: '指定用於自動診斷與合入建議的模型。設為「自動」時沿用系統預設。',
+        add_existing_user: '新增現有使用者',
+        search_users_ph: '依電子郵件或姓名搜尋系統使用者',
+        no_candidates: '找不到符合的使用者。',
+        searching_users: '正在搜尋使用者...',
+        add: '新增',
+        member_added: '成員已新增並已通知',
+        private_no_add: '私人工作區僅限擁有者存取，請先變更可見性再新增成員。',
+        you_tag: '您',
+        leave: '離開',
+        leave_ws_title: '離開工作區？',
+        leave_ws_confirm: '您將失去對「{{name}}」的存取權限。',
+        left_ws: '已離開工作區'
       },
       common: {
         enable: '啟用',
@@ -486,6 +500,30 @@ const resources = {
       },
       graph: {
         text_mode: '文字'
+      },
+      system_users: {
+        title: '系統使用者',
+        subtitle: '檢視帳號、平台管理員狀態與工作區參與情形。',
+        refresh: '重新整理',
+        search_ph: '搜尋電子郵件、姓名或使用者 ID',
+        search: '搜尋',
+        col_user: '使用者',
+        col_verified: '已驗證',
+        col_workspaces: '工作區數',
+        col_last_login: '最後登入',
+        col_admin: '平台管理員',
+        yes: '是',
+        no: '否',
+        demote: '取消管理員',
+        promote: '設為管理員',
+        no_users: '找不到使用者',
+        remove_admin_title: '移除平台管理員？',
+        grant_admin_title: '授予平台管理員？',
+        remove_admin_btn: '移除',
+        grant_admin_btn: '授予',
+        role_updated: '使用者權限已更新',
+        previous: '上一頁',
+        next: '下一頁'
       }
     }
   },
@@ -505,7 +543,9 @@ const resources = {
         job_runs: 'Job Runs',
         system_ai: 'System AI',
         system_monitor: 'System Monitor',
-        admin_section: 'Admin'
+        system_users: 'System Users',
+        admin_section: 'Admin',
+        ws_members_readonly: 'Members'
       },
       nav: {
         settings: 'Settings',
@@ -658,7 +698,19 @@ const resources = {
         consult_trust_tier: 'Auto-merge Trust Tier',
         consult_trust_tier_desc: 'Control if safe AI recommendations should be merged automatically. Dangerous/risky proposals are always blocked.',
         consult_provider: 'Auto-healing Provider (Consult)',
-        consult_provider_desc: 'Preferred model for running consult diagnostics and healing recommendations. "Auto" falls back to system default.'
+        consult_provider_desc: 'Preferred model for running consult diagnostics and healing recommendations. "Auto" falls back to system default.',
+        add_existing_user: 'Add existing user',
+        search_users_ph: 'Search system users by email or name',
+        no_candidates: 'No matching users found.',
+        searching_users: 'Searching users...',
+        add: 'Add',
+        member_added: 'Member added and notified',
+        private_no_add: 'Private workspaces keep owner-only access. Switch visibility before adding members.',
+        you_tag: 'You',
+        leave: 'Leave',
+        leave_ws_title: 'Leave workspace?',
+        leave_ws_confirm: 'You will lose access to {{name}}.',
+        left_ws: 'Left workspace'
       },
       common: {
         enable: 'Enable',
@@ -971,6 +1023,30 @@ const resources = {
       },
       graph: {
         text_mode: 'Text'
+      },
+      system_users: {
+        title: 'System Users',
+        subtitle: 'Review accounts, platform-admin status, and workspace participation.',
+        refresh: 'Refresh',
+        search_ph: 'Search email, name, or user id',
+        search: 'Search',
+        col_user: 'User',
+        col_verified: 'Verified',
+        col_workspaces: 'Workspaces',
+        col_last_login: 'Last Login',
+        col_admin: 'Platform Admin',
+        yes: 'Yes',
+        no: 'No',
+        demote: 'Demote',
+        promote: 'Promote',
+        no_users: 'No users found',
+        remove_admin_title: 'Remove platform admin?',
+        grant_admin_title: 'Grant platform admin?',
+        remove_admin_btn: 'Remove',
+        grant_admin_btn: 'Grant',
+        role_updated: 'User role updated',
+        previous: 'Previous',
+        next: 'Next'
       }
     }
   }
