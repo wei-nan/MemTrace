@@ -7,10 +7,51 @@ from core.database import db_cursor
 from core.deps import get_current_user
 from core.config import settings
 from core.security import generate_id
-from models.collaboration import MemberResponse, InviteCreate, InviteResponse, JoinRequestCreate, JoinRequestResponse
+from models.collaboration import (
+    MemberCreate,
+    MemberResponse,
+    InviteCreate,
+    InviteResponse,
+    JoinRequestCreate,
+    JoinRequestResponse,
+    UserCandidateResponse,
+)
 from services.workspaces import get_effective_role as _get_effective_role, require_ws_access as _require_ws_access
 
 router = APIRouter(prefix="/api/v1/workspaces", tags=["collaboration"])
+
+
+def _require_workspace_admin(cur, ws_id: str, user: dict):
+    cur.execute("SELECT owner_id, visibility, name FROM workspaces WHERE id = %s", (ws_id,))
+    ws = cur.fetchone()
+    if not ws:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+    role = _get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="Only workspace admin can manage members")
+    return ws
+
+
+def _notify_member_added(cur, *, ws_id: str, ws_name: str, recipient_id: str, inviter: dict, role: str):
+    cur.execute(
+        """
+        INSERT INTO notifications
+            (id, workspace_id, recipient_id, source_type, source_id,
+             category, severity, title, body)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            generate_id("ntf"),
+            ws_id,
+            recipient_id,
+            "workspace_member",
+            ws_id,
+            "membership",
+            "low",
+            f"You were added to {ws_name}",
+            f"{inviter.get('email') or inviter.get('sub')} added you as {role}. You can leave this workspace from Members & Access.",
+        ),
+    )
 
 @router.get("/{ws_id}/members", response_model=List[MemberResponse])
 def list_members(ws_id: str, user: dict = Depends(get_current_user)):
@@ -32,6 +73,81 @@ def list_members(ws_id: str, user: dict = Depends(get_current_user)):
             WHERE w.id = %s
         """, (ws_id, ws_id))
         return cur.fetchall()
+
+@router.get("/{ws_id}/user-candidates", response_model=List[UserCandidateResponse])
+def list_user_candidates(
+    ws_id: str,
+    q: str = Query(..., min_length=2),
+    limit: int = Query(20, ge=1, le=50),
+    user: dict = Depends(get_current_user),
+):
+    with db_cursor() as cur:
+        ws = _require_workspace_admin(cur, ws_id, user)
+        if ws["visibility"] == "private":
+            raise HTTPException(status_code=400, detail="Private workspaces cannot add members")
+        like = f"%{q.strip()}%"
+        cur.execute(
+            """
+            SELECT u.id, u.display_name, u.email
+            FROM users u
+            WHERE (u.id ILIKE %s OR u.email ILIKE %s OR u.display_name ILIKE %s)
+              AND u.id <> %s
+              AND NOT EXISTS (
+                  SELECT 1 FROM workspace_members wm
+                  WHERE wm.workspace_id = %s AND wm.user_id = u.id
+              )
+            ORDER BY u.email ASC
+            LIMIT %s
+            """,
+            (like, like, like, ws["owner_id"], ws_id, limit),
+        )
+        return cur.fetchall()
+
+@router.post("/{ws_id}/members", response_model=MemberResponse, status_code=201)
+def add_existing_member(ws_id: str, body: MemberCreate, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        ws = _require_workspace_admin(cur, ws_id, user)
+        if ws["visibility"] == "private":
+            raise HTTPException(status_code=400, detail="Private workspaces cannot add members")
+        if body.user_id == ws["owner_id"]:
+            raise HTTPException(status_code=409, detail="User is already the workspace owner")
+
+        cur.execute("SELECT id, display_name, email FROM users WHERE id = %s", (body.user_id,))
+        target = cur.fetchone()
+        if not target:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        cur.execute(
+            "SELECT 1 FROM workspace_members WHERE workspace_id = %s AND user_id = %s",
+            (ws_id, body.user_id),
+        )
+        if cur.fetchone():
+            raise HTTPException(status_code=409, detail="User is already a member")
+
+        cur.execute(
+            """
+            INSERT INTO workspace_members (workspace_id, user_id, role)
+            VALUES (%s, %s, %s)
+            RETURNING user_id, role::text AS role, joined_at
+            """,
+            (ws_id, body.user_id, body.role),
+        )
+        member = dict(cur.fetchone())
+        _notify_member_added(
+            cur,
+            ws_id=ws_id,
+            ws_name=ws["name"],
+            recipient_id=body.user_id,
+            inviter=user,
+            role=body.role,
+        )
+        return {
+            "user_id": member["user_id"],
+            "display_name": target["display_name"],
+            "email": target["email"],
+            "role": member["role"],
+            "joined_at": member["joined_at"],
+        }
 
 @router.post("/{ws_id}/invites", response_model=InviteResponse, status_code=201)
 def create_invite(ws_id: str, body: InviteCreate, user: dict = Depends(get_current_user)):
@@ -176,6 +292,24 @@ def update_member_role(ws_id: str, user_id: str, body: dict, user: dict = Depend
             raise HTTPException(status_code=404, detail="Member not found")
         
         return {"message": "Member role updated"}
+
+@router.delete("/{ws_id}/members/me")
+def leave_workspace(ws_id: str, user: dict = Depends(get_current_user)):
+    with db_cursor(commit=True) as cur:
+        cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
+        ws = cur.fetchone()
+        if not ws:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        if user["sub"] == ws["owner_id"]:
+            raise HTTPException(status_code=400, detail="Workspace owner cannot leave their own workspace")
+
+        cur.execute(
+            "DELETE FROM workspace_members WHERE workspace_id = %s AND user_id = %s RETURNING user_id",
+            (ws_id, user["sub"]),
+        )
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Membership not found")
+        return {"message": "Left workspace"}
 
 @router.delete("/{ws_id}/members/{user_id}")
 def remove_member(ws_id: str, user_id: str, user: dict = Depends(get_current_user)):

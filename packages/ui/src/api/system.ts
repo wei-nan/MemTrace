@@ -33,6 +33,24 @@ export interface BackupConfig {
   last_backup_status?: string;
 }
 
+export interface SystemUser {
+  id: string;
+  display_name: string;
+  email: string;
+  email_verified: boolean;
+  is_platform_admin: boolean;
+  created_at: string;
+  last_login_at?: string | null;
+  workspace_count: number;
+}
+
+export interface SystemUsersPage {
+  users: SystemUser[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 export const system = {
   getBackupConfig: () => request<BackupConfig>("GET", `${BASE}/system/backup-config`),
   updateBackupConfig: (data: Partial<Pick<BackupConfig, "enabled" | "path" | "interval_hours" | "keep_count">>) =>
@@ -42,6 +60,16 @@ export const system = {
   registrations: (status: string) => request<any[]>("GET", `${BASE}/system/registrations?status=${status}`),
   approveRegistration: (id: string) => request("POST", `${BASE}/system/registrations/${id}/approve`),
   rejectRegistration: (id: string) => request("POST", `${BASE}/system/registrations/${id}/reject`),
+  users: (params?: { q?: string; limit?: number; offset?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set('q', params.q);
+    if (params?.limit != null) qs.set('limit', String(params.limit));
+    if (params?.offset != null) qs.set('offset', String(params.offset));
+    const query = qs.toString();
+    return request<SystemUsersPage>("GET", `${BASE}/system/users${query ? `?${query}` : ''}`);
+  },
+  promoteUser: (userId: string) => request("POST", `${BASE}/system/promote`, { user_id: userId }),
+  demoteUser: (userId: string) => request("POST", `${BASE}/system/demote`, { user_id: userId }),
 
   // System-level AI key management (admin only)
   listSystemAIKeys: () => request<SystemAIKey[]>("GET", `${BASE}/system/ai-keys`),
