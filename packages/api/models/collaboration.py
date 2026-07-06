@@ -9,6 +9,15 @@ class MemberResponse(BaseModel):
     role: Literal["viewer", "editor", "owner"]
     joined_at: datetime
 
+class MemberCreate(BaseModel):
+    user_id: str
+    role: Literal["viewer", "editor"] = "viewer"
+
+class UserCandidateResponse(BaseModel):
+    id: str
+    display_name: str
+    email: str
+
 class InviteCreate(BaseModel):
     email: Optional[EmailStr] = None
     role: Literal["viewer", "editor"] = "viewer"
