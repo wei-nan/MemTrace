@@ -463,7 +463,14 @@ Edge creation fields:
 | Half-life     | No       | Integer days; default `30`                                      |
 
 - Direction is always **from the current node → target node**.
-- Duplicate edges (same `from`, `to`, `relation`) are rejected with a validation error.
+- Edges that would be redundant are rejected with a `409` validation error:
+  - the same `(from, to, relation)` triple;
+  - a symmetric relation (`related_to` / `similar_to`) that already exists in the
+    reverse direction — these carry no direction, so `a→b` and `b→a` may not coexist
+    (also enforced structurally by a DB unique index);
+  - a `related_to` on a pair already joined by a specific relation (`depends_on`,
+    `extends`, `answered_by`, `contradicts`, `proceeds_to`, `extracted_from`) —
+    prefer the specific edge.
 - On creation, `co_access_count` is set to `0` and `last_co_accessed` to the current timestamp.
 
 #### 9.3.5 Editing an Existing Node

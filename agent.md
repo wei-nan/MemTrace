@@ -79,9 +79,16 @@ KB semantics, or cross-agent workflow, the following are mandatory:
    it returns `claimed=false`, another agent owns it — do not work on it.
    Claims expire after 30 minutes; re-claim during long-running tasks.
 3. **Completion happens only through `submit_outcome`.**
-   - `success` / `partial` requires an `implementation_node_id`: a node
-     recording what changed, the commands run, and verification evidence.
-     That node is the `G2`/`G3` artifact.
+   - `success` / `partial` requires an `implementation_node_id`: the node
+     recording what changed, the commands run, and verification evidence —
+     the `G2`/`G3` artifact. This evidence, together with the gate verdicts,
+     lives in the domain KB (`ws_spec_plan`), linked by edges to the plan and
+     development nodes, not in the Agent Loop. `implementation_node_id` may
+     therefore be a cross-workspace reference; `submit_outcome` keeps it in the
+     task metadata (the `answered_by` edge only forms when both nodes share a
+     workspace). Agent Loop retains only the task skeleton and `gate_state`
+     control flags. See KB node `mem_41fba6c5` (verification/gate-verdict
+     placement).
    - `failed` must still be submitted — it flags the visited playbooks for
      human review instead of hiding the failure.
    - Include `node_sequence` (the nodes consulted) so path reinforcement
@@ -109,6 +116,13 @@ Before editing code or specs, produce or retrieve a plan that names:
 - scope boundaries, especially what is intentionally not included;
 - dependencies, credentials, data, or external services needed;
 - open questions and whether they block work.
+
+When planning produces many issues or a complex, divergent plan, run the
+Plan-stage triage step before `G1`: decompose into independent issues,
+strengthen under-specified ones, and classify each by priority tier
+(security > correctness > functionality > optimization). Security jumps to the
+front; functionality issues pause for a human decision only when a trade-off is
+involved. The full rule lives in the Agent Loop KB node `mem_0953dbd0`.
 
 If the problem is still a discussion or research topic, keep it in planning.
 Do not open or execute a development task until the scope has passed `G1`.
@@ -139,6 +153,14 @@ During implementation:
 - Record important implementation evidence for `G2`: files changed, commands
   run, tests added, and behavior observed.
 
+When linking KB nodes with `create_edge`, pick the most specific relation that
+fits before falling back to the generic `related_to`: use `answered_by` (an
+inquiry resolved by an answer), `depends_on` (needs the other to be valid),
+`extends` (refines/builds on, directional), or `contradicts`. Do not add a
+`related_to` to a pair that already carries one of these — the write path
+rejects it. `related_to` / `similar_to` are direction-less: never create both
+`a→b` and `b→a`.
+
 If you discover new product questions during development, pause or split the
 work. Write the question to `ws_spec_plan` instead of burying it in code.
 
@@ -159,6 +181,12 @@ Coverage review is not complete until it can answer:
 Development and acceptance outcomes must be written back to `ws_spec_plan`.
 Include concise evidence: diff summary, test commands, pass/fail status, known
 gaps, and the final acceptance decision.
+
+The verification/acceptance node — and the full gate verdicts, including
+`REJECT` records (tag them `gate-reject`) — live in `ws_spec_plan`, linked by
+edges to the plan and development nodes. The Agent Loop keeps only the task
+skeleton and `gate_state`; it references these domain nodes by id rather than
+copying their content. See KB node `mem_41fba6c5`.
 
 ## Public Spec Synchronization
 

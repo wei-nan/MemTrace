@@ -32,6 +32,20 @@ VALID_RELATIONS: frozenset = frozenset({
 # data-quality checker、top_edges 與預設 traversal。relation → edge_class 的單一來源。
 TELEMETRY_RELATIONS: frozenset = frozenset({"queried_via_mcp"})
 
+# ─── 對稱關係（防反向重複）──────────────────────────────────────────────────────
+# 這些關係語意上無方向（a related_to b == b related_to a），但邊存成有向，
+# 唯一鍵 (from_id, to_id, relation) 擋不住反向。create_edge 對這些關係額外檢查
+# 反向是否已存在，避免同一對節點被存成雙向重複邊。
+# contradicts 雖也對稱，但其仲裁邏輯依賴 from/to 方向，故不納入。
+SYMMETRIC_RELATIONS: frozenset = frozenset({"related_to", "similar_to"})
+
+# ─── 具體/有向關係（生成紀律）──────────────────────────────────────────────────
+# 這些關係帶明確語意，優於泛用 related_to。若同一對節點已有其中任一關係，
+# create_edge 會拒絕再補一條 related_to（避免在具體邊上疊冗餘的泛用邊）。
+SPECIFIC_RELATIONS: frozenset = frozenset({
+    "depends_on", "extends", "answered_by", "contradicts", "proceeds_to", "extracted_from",
+})
+
 
 def edge_class_for_relation(relation: str) -> str:
     """Map a relation to its edge_class. Telemetry edges record retrieval history,
