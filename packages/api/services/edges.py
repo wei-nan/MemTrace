@@ -12,7 +12,7 @@ from typing import Optional
 
 from core.database import db_cursor
 from core.security import generate_id
-from core.constants import VALID_RELATIONS, edge_class_for_relation
+from core.constants import VALID_RELATIONS, SYMMETRIC_RELATIONS, SPECIFIC_RELATIONS, edge_class_for_relation
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +129,33 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
         cur.execute("SELECT id FROM memory_nodes WHERE id = %s AND workspace_id = %s", (nid, ws_id))
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail=f"Node not found: {nid}")
+
+    # Write-governance: symmetric relations (related_to / similar_to) carry no
+    # direction, so storing both a→b and b→a is pure redundancy that the
+    # (from_id, to_id, relation) unique key can't catch. Reject when the reverse
+    # already exists; same-direction dups are still handled by unique_edge below.
+    if relation in SYMMETRIC_RELATIONS:
+        cur.execute(
+            "SELECT id FROM edges WHERE workspace_id = %s AND from_id = %s AND to_id = %s AND relation = %s",
+            (ws_id, to_id, from_id, relation),
+        )
+        if cur.fetchone():
+            raise HTTPException(status_code=409, detail="Edge with this relation already exists")
+
+    # Write-governance (P1): a generic related_to is redundant when the pair is
+    # already joined by a specific, meaningful relation — prefer the specific
+    # edge. Rejects stacking related_to on depends_on/extends/answered_by/etc.
+    if relation == "related_to":
+        cur.execute(
+            "SELECT 1 FROM edges WHERE workspace_id = %s AND relation::text = ANY(%s) "
+            "AND ((from_id = %s AND to_id = %s) OR (from_id = %s AND to_id = %s)) LIMIT 1",
+            (ws_id, list(SPECIFIC_RELATIONS), from_id, to_id, to_id, from_id),
+        )
+        if cur.fetchone():
+            raise HTTPException(
+                status_code=409,
+                detail="Pair already has a specific relation; prefer it over a generic related_to",
+            )
 
     # Write-governance: answered_by must point inquiry → answer, never reversed.
     if relation == "answered_by":

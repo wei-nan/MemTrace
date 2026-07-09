@@ -18,3 +18,4 @@
 118_notification_preferences.sql
 119_reviewer_model_governance.sql
 120_user_voice_keys.sql
+121_symmetric_edge_unique_index.sql

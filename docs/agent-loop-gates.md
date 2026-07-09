@@ -12,6 +12,7 @@ The source of truth is the Agent Loop KB (`ws_6aa957c3`).
 - G3 Verify to Coverage: `mem_50b2cd36`
 - Agent Loop charter: `mem_c1cc4d99`
 - Task loop workflow: `mem_1859526b`
+- Planning triage (Plan-stage classify / strengthen / prioritize): `mem_0953dbd0`
 - Task node schema: `mem_5e6a82ab`
 - Takeover verification playbook (checking the previous stage's "done" claims): `mem_b3158737`
 
