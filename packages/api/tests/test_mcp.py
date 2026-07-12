@@ -38,7 +38,6 @@ async def test_execute_tool_list_workspaces_projects_summary_fields_only():
         "settings": {"mcp_ingest_enabled": True},
         "schema_version": "1.0",
         "embedding_dim": 3072,
-        "agent_node_id": "node_x",
         "deleted_at": None,
     }
 
@@ -318,3 +317,51 @@ async def test_get_next_task_excludes_answered_and_resolved_inquiries():
     task_query = cur.execute.call_args_list[0].args[0]
     assert "resolution_status" in task_query
     assert "answered_edges.relation = 'answered_by'" in task_query
+
+
+# ─── log_mcp_interaction: node-level access → traversal_log (keep-alive) ───────
+# ws_spec_plan/mem_ea840fad: retirement of the (Workspace Agent) node + telemetry
+# edges. Only explicit-access tools (get_node/traverse/update_node) with a real
+# actor_id feed traversal_log; search hits and create do not.
+
+from fastapi import BackgroundTasks
+from services.mcp_tools import log_mcp_interaction, record_traversal, log_mcp_query_internal
+
+
+def _scheduled(bt):
+    return [(t.func, t.args) for t in bt.tasks]
+
+
+def test_log_mcp_interaction_keep_alive_tool_records_traversal():
+    bt = BackgroundTasks()
+    log_mcp_interaction(bt, "ws_1", "get_node", node_id="mem_1", actor_id="user_1")
+    scheduled = _scheduled(bt)
+    # analytics query log always scheduled
+    assert any(func is log_mcp_query_internal for func, _ in scheduled)
+    # node-level access recorded to traversal_log with the real actor_id
+    assert (record_traversal, ("ws_1", "mem_1", "user_1")) in scheduled
+
+
+def test_log_mcp_interaction_search_does_not_record_traversal():
+    bt = BackgroundTasks()
+    # search_nodes logs analytics only, with no node_id
+    log_mcp_interaction(bt, "ws_1", "search_nodes", query_text="q", result_count=3)
+    funcs = [func for func, _ in _scheduled(bt)]
+    assert log_mcp_query_internal in funcs
+    assert record_traversal not in funcs
+
+
+def test_log_mcp_interaction_create_is_not_keep_alive():
+    bt = BackgroundTasks()
+    # create_node passes a node_id + actor but must NOT count as keep-alive
+    log_mcp_interaction(bt, "ws_1", "create_node", node_id="mem_2", actor_id="user_1")
+    funcs = [func for func, _ in _scheduled(bt)]
+    assert record_traversal not in funcs
+
+
+def test_log_mcp_interaction_requires_actor_id():
+    bt = BackgroundTasks()
+    # keep-alive tool but no actor_id → skip traversal write gracefully
+    log_mcp_interaction(bt, "ws_1", "get_node", node_id="mem_1")
+    funcs = [func for func, _ in _scheduled(bt)]
+    assert record_traversal not in funcs

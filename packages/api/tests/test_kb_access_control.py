@@ -39,7 +39,6 @@ def _ws(visibility: str = "private", owner_id: str = "usr_owner") -> dict:
         "auto_split": False,
         "consult_trust_tier": "ask",
         "consult_provider": None,
-        "agent_node_id": None,
         "settings": {},
         "schema_version": "1.0",
         "created_at": "2026-01-01T00:00:00+00:00",

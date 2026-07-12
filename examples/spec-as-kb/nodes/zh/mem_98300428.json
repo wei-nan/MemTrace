@@ -2,17 +2,18 @@
   "id": "mem_98300428",
   "schema_version": "1.0",
   "language": "zh-TW",
-  "title": "queried_via_mcp Telemetry 與 Edge Class 記錄",
+  "title": "MCP 節點存取 Telemetry：traversal_log 記錄（queried_via_mcp 已 deprecated）",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "透過 MCP 工具查詢的操作需記錄 `queried_via_mcp` telemetry：\n\n1. 每次 MCP `traverse`/`search` 呼叫記錄 `edge_class`（查詢走過的邊類型）。\n2. `queried_via_mcp` 標記附在 traversal 記錄，區分 MCP 查詢與直接 API 查詢。\n3. `edge_class` 統計用於分析哪類型的關係最常被 AI agent 使用。\n4. Telemetry 不包含查詢內容，只記錄結構路徑與邊類型。"
+    "body": "MCP 工具的 node 級存取 telemetry 記錄於 `traversal_log`，以真實 `actor_id` 為 key：\n\n1. 顯式存取工具（`get_node`／`traverse`／`update_node`）在操作後寫入 `traversal_log`，同時作為 Decay 的 keep-alive 信號。\n2. `search_nodes` 的附帶命中不寫入——節點浮現於結果清單不等於被存取。\n3. 呼叫級統計（工具、查詢、結果數、token）記於 `mcp_query_logs`；telemetry 不含節點內容。\n4. `queried_via_mcp` edge 與每 workspace 的 `(Workspace Agent)` 錨點已 deprecated 並移除；relation enum 值保留以向後相容，但不再寫入。"
   },
   "tags": [
     "telemetry",
     "mcp",
-    "edge_class",
+    "traversal_log",
     "queried_via_mcp",
+    "deprecated",
     "traversal"
   ],
   "visibility": "public",

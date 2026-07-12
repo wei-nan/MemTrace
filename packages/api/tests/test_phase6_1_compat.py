@@ -61,7 +61,6 @@ def test_create_workspace_canonical_allowed(client, override_auth, mock_db):
         "qa_archive_mode": "manual_review",
         "created_at": "2026-05-26T00:00:00",
         "updated_at": "2026-05-26T00:00:00",
-        "agent_node_id": "agent_123",
     }
     
     response = client.post(

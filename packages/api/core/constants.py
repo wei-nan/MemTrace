@@ -22,7 +22,10 @@ VALID_RELATIONS: frozenset = frozenset({
     "contradicts",
     "answered_by",
     "similar_to",
-    "queried_via_mcp",
+    "queried_via_mcp",  # DEPRECATED: retrieval telemetry no longer written; node-level
+                        # MCP access now lives in traversal_log keyed by real actor_id.
+                        # Retained for backward compatibility (relation_type DB enum value
+                        # cannot be dropped). See ws_spec_plan/mem_ea840fad.
     "extracted_from",   # P61-T01: knowledge node → document node
     "proceeds_to",      # Phase 6.3: conditional next step in troubleshooting graph
 })
@@ -30,6 +33,8 @@ VALID_RELATIONS: frozenset = frozenset({
 # ─── Edge class（語意 / 系統 / telemetry）──────────────────────────────────────
 # 知識圖只放知識：telemetry（查詢痕跡，如 queried_via_mcp）不是決策脈絡，不應污染
 # data-quality checker、top_edges 與預設 traversal。relation → edge_class 的單一來源。
+# 註：queried_via_mcp 已 deprecated 且不再寫入（node 級存取改記 traversal_log）；此映射
+# 保留以正確分類任何殘存/外部歷史邊。見 ws_spec_plan/mem_ea840fad。
 TELEMETRY_RELATIONS: frozenset = frozenset({"queried_via_mcp"})
 
 # ─── 對稱關係（防反向重複）──────────────────────────────────────────────────────

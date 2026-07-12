@@ -28,7 +28,7 @@
         "extracted_from",
         "proceeds_to"
       ],
-      "description": "depends_on: requires target. extends: specialises target. related_to: weak semantic link. contradicts: logical conflict. answered_by: inquiry resolved by target. similar_to: semantically parallel. queried_via_mcp: created by MCP traversal. extracted_from: knowledge node sourced from a document. proceeds_to: conditional next step in a workflow/troubleshooting graph."
+      "description": "depends_on: requires target. extends: specialises target. related_to: weak semantic link. contradicts: logical conflict. answered_by: inquiry resolved by target. similar_to: semantically parallel. queried_via_mcp: DEPRECATED — retrieval telemetry, no longer written (node-level MCP access is recorded in traversal_log keyed by actor_id); retained for backward compatibility. extracted_from: knowledge node sourced from a document. proceeds_to: conditional next step in a workflow/troubleshooting graph."
     },
     "weight": {
       "type": "number",

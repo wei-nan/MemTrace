@@ -9,7 +9,7 @@ from core.database import db_cursor
 from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T
 from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
-from services.edges import write_mcp_interaction_edge, create_edge_in_db, delete_edge_in_db
+from services.edges import record_traversal, create_edge_in_db, delete_edge_in_db
 from services.search import bfs_neighborhood, search_nodes_in_db, perform_semantic_search
 from services.analytics import handle_search_miss, log_mcp_query_internal
 from services.nodes import (
@@ -122,6 +122,13 @@ def serialize(obj: Any) -> Any:
 
 # ─── Unified Logging ──────────────────────────────────────────────────────────
 
+# MCP tools that count as explicit node access → feed traversal_log (keep-alive
+# against Decay). search hits and create are intentionally excluded: a node merely
+# surfacing in a result list is not an access, and a freshly created node is not yet
+# subject to archiving. See ws_spec_plan/mem_ea840fad.
+KEEP_ALIVE_TOOLS = frozenset({"get_node", "traverse", "update_node"})
+
+
 def log_mcp_interaction(
     background_tasks: BackgroundTasks,
     ws_id: str,
@@ -129,18 +136,24 @@ def log_mcp_interaction(
     query_text: str = "",
     node_id: Optional[str] = None,
     result_count: int = 0,
-    tokens: int = 0
+    tokens: int = 0,
+    actor_id: Optional[str] = None,
 ):
     """
-    Unified logging for MCP: records both the query log and interaction edges.
-    Fulfills P4.8-S3-5.
+    Unified logging for MCP: records the analytics query log, and — for explicit
+    node access via a keep-alive tool — a traversal_log entry keyed by the real
+    actor_id (feeds Decay keep-alive and traversal counters).
+
+    Retrieval telemetry no longer creates queried_via_mcp edges on a synthetic
+    (Workspace Agent) node; node-level access lives in traversal_log with real
+    actor identity. See ws_spec_plan/mem_ea840fad.
     """
     # 1. Log query for analytics
     background_tasks.add_task(log_mcp_query_internal, ws_id, tool_name, query_text, result_count, tokens)
-    
-    # 2. Record interaction edge if a specific node was involved
-    if node_id:
-        background_tasks.add_task(write_mcp_interaction_edge, ws_id, node_id, tool_name, query_text)
+
+    # 2. Record node-level access for explicit-access tools only
+    if node_id and actor_id and tool_name in KEEP_ALIVE_TOOLS:
+        background_tasks.add_task(record_traversal, ws_id, node_id, actor_id)
 
 
 # ─── Tool Profiles (P3.1-I-106) ──────────────────────────────────────────────
@@ -1158,7 +1171,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor() as cur:
             node = get_node_in_db(cur, ws_id, node_id, user)
             if node:
-                log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+                log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"])
                 return optimize_node_response(cur, ws_id, node, detail_level, max_tokens, debug=debug)
             return node
 
@@ -1188,8 +1201,6 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 background_tasks.add_task(handle_search_miss, ws_id, query, user["sub"])
             elif results:
                 log_mcp_interaction(background_tasks, ws_id, name, query_text=query, result_count=len(results))
-                for r in results[:3]:
-                    background_tasks.add_task(write_mcp_interaction_edge, ws_id, r["id"], name, query)
                 results = optimize_nodes_list_response(cur, ws_id, results, detail_level, max_tokens, debug=debug)
             return results
 
@@ -1291,7 +1302,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         node_id = args["node_id"]
         with db_cursor(commit=True) as cur:
             res = update_node_in_db(cur, ws_id, node_id, args, user["sub"])
-            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"])
             return _project_write_success(res, "updated_at")
 
     # ── delete_node ───────────────────────────────────────────────────────────
@@ -1351,7 +1362,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 tool_output=tool_output,
                 include_faded=include_faded,
             )
-            log_mcp_interaction(background_tasks, ws_id, name, node_id=root_id)
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=root_id, actor_id=user["sub"])
             return optimize_traverse_response(cur, ws_id, result, detail_level, max_tokens)
 
     # ── consult ───────────────────────────────────────────────────────────────

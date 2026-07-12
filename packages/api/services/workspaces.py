@@ -163,7 +163,6 @@ def list_workspaces_in_db(cur, search: Optional[str], user: Optional[dict]) -> l
     return cur.fetchall()
 
 def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
-    from core.agent import get_or_create_agent_node
     from core.ai import resolve_provider, get_embedding_dim, AIProviderUnavailable
 
     if body_dict.get("visibility") not in VALID_KB_VIS:
@@ -229,7 +228,6 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
         ),
     )
     res = cur.fetchone()
-    get_or_create_agent_node(ws_id, cur)
     return {**dict(res), "my_role": "admin"}
 
 def update_workspace_in_db(cur, ws_id: str, uid: str, body_dict: dict) -> dict:

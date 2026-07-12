@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
 from typing import Optional
 
 from core.database import db_cursor
@@ -17,66 +16,12 @@ from core.constants import VALID_RELATIONS, SYMMETRIC_RELATIONS, SPECIFIC_RELATI
 logger = logging.getLogger(__name__)
 
 
-# ─── MCP Interaction Edge ─────────────────────────────────────────────────────
-
-def write_mcp_interaction_edge(
-    ws_id: str,
-    node_id: str,
-    tool_name: str = "unknown",
-    query_text: str = "",
-) -> None:
-    """
-    P4.5-1B-2: Record interaction edges for nodes retrieved via MCP.
-    Updates existing edge count/history or creates a new queried_via_mcp edge.
-
-    Called from routers/mcp.py after any read tool that returns node data.
-    Now lives in services/edges.py so mcp.py doesn't need to lazy-import from routers/kb.
-    """
-    from core.agent import get_or_create_agent_node
-
-    with db_cursor(commit=True) as cur:
-        agent_id = get_or_create_agent_node(ws_id, cur)
-
-        cur.execute(
-            """
-            SELECT id, metadata FROM edges
-            WHERE workspace_id = %s AND from_id = %s AND to_id = %s AND relation = 'queried_via_mcp'
-            """,
-            (ws_id, agent_id, node_id),
-        )
-        edge_row = cur.fetchone()
-
-        now_str = datetime.now(timezone.utc).isoformat()
-        if edge_row:
-            meta = edge_row["metadata"] or {}
-            meta["count"] = meta.get("count", 0) + 1
-            meta["last_hit"] = now_str
-            history = meta.get("history", [])
-            history.insert(0, {"tool": tool_name, "query": query_text, "ts": now_str})
-            meta["history"] = history[:5]
-            cur.execute(
-                "UPDATE edges SET metadata = %s, last_co_accessed = now() WHERE id = %s",
-                (json.dumps(meta), edge_row["id"]),
-            )
-        else:
-            meta = {
-                "count": 1,
-                "last_hit": now_str,
-                "history": [{"tool": tool_name, "query": query_text, "ts": now_str}],
-            }
-            # Telemetry edge: low weight (matches the declared queried_via_mcp
-            # default 0.2, not the old hardcoded 1.0) and edge_class='telemetry'
-            # so it is excluded from top_edges / default traversal / data-quality.
-            cur.execute(
-                """
-                INSERT INTO edges (id, workspace_id, from_id, to_id, relation, weight, edge_class, metadata)
-                VALUES (%s, %s, %s, %s, 'queried_via_mcp', 0.2, 'telemetry', %s)
-                """,
-                (generate_id("edge"), ws_id, agent_id, node_id, json.dumps(meta)),
-            )
-
-
 # ─── Traversal Recording ──────────────────────────────────────────────────────
+#
+# Node-level MCP access telemetry lives here (traversal_log) keyed by the real
+# actor_id, not on a synthetic (Workspace Agent) node via queried_via_mcp edges.
+# The queried_via_mcp relation is retained as a deprecated enum value for backward
+# compatibility but is no longer written. See ws_spec_plan/mem_ea840fad.
 
 def record_traversal(ws_id: str, node_id: str, user_id: str) -> None:
     """
@@ -245,7 +190,6 @@ def delete_edge_in_db(
 
 # ─── Backward-compat aliases ──────────────────────────────────────────────────
 
-_write_mcp_interaction_edge = write_mcp_interaction_edge
 _record_traversal = record_traversal
 _create_edge_in_db = create_edge_in_db
 

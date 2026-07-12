@@ -60,7 +60,7 @@ def _copy_workspace(cur, orig_ws: dict) -> str:
             archive_window_days, min_traversals,
             embedding_model, embedding_dim,
             qa_archive_mode, extraction_provider, embedding_provider,
-            auto_split, settings, agent_node_id
+            auto_split, settings
         )
         VALUES (
             %s, %s, %s, 'en',
@@ -68,7 +68,7 @@ def _copy_workspace(cur, orig_ws: dict) -> str:
             %s, %s,
             %s, %s,
             %s, %s, %s,
-            %s, %s, NULL
+            %s, %s
         )
         ON CONFLICT (id) DO NOTHING
         RETURNING id

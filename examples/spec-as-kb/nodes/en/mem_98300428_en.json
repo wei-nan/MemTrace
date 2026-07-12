@@ -2,17 +2,18 @@
   "id": "mem_98300428_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "queried_via_mcp Telemetry and Edge Class Recording",
+  "title": "MCP Node-Access Telemetry: traversal_log Recording (queried_via_mcp deprecated)",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Operations performed via MCP tools must record `queried_via_mcp` telemetry:\n\n1. Every MCP `traverse`/`search` call records `edge_class` (the types of edges traversed by the query).\n2. The `queried_via_mcp` flag is attached to the traversal record, distinguishing MCP queries from direct API queries.\n3. `edge_class` statistics are used to analyze which relationship types AI agents use most frequently.\n4. Telemetry does not include query content — only structural paths and edge types are recorded."
+    "body": "Node-level access telemetry for MCP tools is recorded in `traversal_log`, keyed by the real `actor_id`:\n\n1. Explicit-access tools (`get_node` / `traverse` / `update_node`) write to `traversal_log` after the operation, which also serves as the Decay keep-alive signal.\n2. Incidental `search_nodes` hits are not recorded — a node surfacing in a result list is not an access.\n3. Call-level statistics (tool, query, result count, tokens) live in `mcp_query_logs`; telemetry contains no node content.\n4. The `queried_via_mcp` edge and the per-workspace `(Workspace Agent)` anchor are deprecated and removed; the relation enum value is retained for backward compatibility but is no longer written."
   },
   "tags": [
     "telemetry",
     "mcp",
-    "edge_class",
+    "traversal_log",
     "queried_via_mcp",
+    "deprecated",
     "traversal"
   ],
   "visibility": "public",

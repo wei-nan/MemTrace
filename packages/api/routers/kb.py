@@ -53,7 +53,6 @@ from models.kb import (
     TableViewRequest,
     KBHealthResponse,
 )
-from core.agent import get_or_create_agent_node
 from models.review import NodeRevisionMetaResponse, NodeRevisionResponse, ApplySplitRequest
 
 
@@ -81,7 +80,6 @@ from services.nodes import (
     confirm_node_validity_in_db as _confirm_node_validity_in_db
 )
 from services.edges import (
-    write_mcp_interaction_edge as _write_mcp_interaction_edge,
     record_traversal as _record_traversal,
     create_edge_in_db as _create_edge_in_db,
 )

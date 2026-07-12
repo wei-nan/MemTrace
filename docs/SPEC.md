@@ -325,7 +325,7 @@ Clusters are per-workspace and created on demand by the AI extraction pipeline o
 | `id`              | TEXT PK       | e.g. `edge_xyz789`             |
 | `from_id`         | TEXT FK       | → `memory_nodes.id`            |
 | `to_id`           | TEXT FK       | → `memory_nodes.id`            |
-| `relation`        | ENUM          | depends_on / extends / related_to / contradicts / answered_by / similar_to / queried_via_mcp |
+| `relation`        | ENUM          | depends_on / extends / related_to / contradicts / answered_by / similar_to / queried_via_mcp _(deprecated — no longer written; node-level MCP access is recorded in traversal_log by actor_id)_ |
 | `weight`          | NUMERIC(6,5)  | 0–1, updated by decay          |
 | `status`          | ENUM          | active / faded / pinned; faded edges are hidden from default traversal |
 | `co_access_count` | INTEGER       |                                |
