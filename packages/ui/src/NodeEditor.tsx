@@ -19,7 +19,7 @@ interface Props {
 
 const CONTENT_TYPES = ["factual", "procedural", "preference", "context", "inquiry"];
 const VISIBILITIES = ["private", "team", "public"];
-const RELATIONS = ["depends_on", "extends", "related_to", "contradicts", "answered_by", "similar_to", "queried_via_mcp"];
+const RELATIONS = ["depends_on", "extends", "related_to", "contradicts", "answered_by", "similar_to"];
 
 function isNodeResponse(value: unknown): value is Node {
   return Boolean(value && typeof value === "object" && "id" in value && "workspace_id" in value);
@@ -551,7 +551,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                 </Button>
               )}
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {nodeEdges.filter(e => e.relation !== 'queried_via_mcp').map((edge) => {
+                {nodeEdges.map((edge) => {
                   const otherId = edge.from_id === node?.id ? edge.to_id : edge.from_id;
                   const otherNode = allNodes.find((candidate) => candidate.id === otherId);
                   return (
@@ -574,25 +574,7 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                     </button>
                   );
                 })}
-                {nodeEdges.some(e => e.relation === 'queried_via_mcp') && (
-                  <div style={{ 
-                    marginTop: 4, 
-                    padding: "8px 12px", 
-                    background: "var(--bg-app)", 
-                    borderRadius: 10, 
-                    border: "1px solid var(--border-subtle)",
-                    fontSize: 13,
-                    color: "var(--text-muted)",
-                    display: "flex",
-                    justifyContent: "space-between"
-                  }}>
-                    <span>{t('node.queried_via_mcp_label', { defaultValue: 'System Query (MCP)' })}</span>
-                    <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>
-                      {nodeEdges.find(e => e.relation === 'queried_via_mcp')?.metadata?.count ?? 0} {t('node.times', { defaultValue: 'hits' })}
-                    </span>
-                  </div>
-                )}
-                {nodeEdges.filter(e => e.relation !== 'queried_via_mcp').length === 0 && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("node.no_associations")}</div>}
+                {nodeEdges.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("node.no_associations")}</div>}
               </div>
 
               {/* AI Suggested Edges */}

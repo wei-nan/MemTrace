@@ -445,7 +445,6 @@ const resources = {
         submit_vote: '提交評分',
         cancel_vote: '取消',
         vote_submitted: '評分已提交',
-        queried_via_mcp_label: '系統查詢 (MCP)',
         times: '次',
         explore_in_graph: '在圖譜中探索'
       },
@@ -455,8 +454,7 @@ const resources = {
         related_to: '相關',
         contradicts: '矛盾',
         answered_by: '答覆於',
-        similar_to: '相似於',
-        queried_via_mcp: '經由 MCP 查詢'
+        similar_to: '相似於'
       },
       content_type: {
         factual: '事實',
@@ -970,7 +968,6 @@ const resources = {
         submit_vote: 'Submit Rating',
         cancel_vote: 'Cancel',
         vote_submitted: 'Rating submitted',
-        queried_via_mcp_label: 'System Query (MCP)',
         times: 'hits'
       },
       relation: {
@@ -979,8 +976,7 @@ const resources = {
         related_to: 'Related to',
         contradicts: 'Contradicts',
         answered_by: 'Answered by',
-        similar_to: 'Similar to',
-        queried_via_mcp: 'Queried via MCP'
+        similar_to: 'Similar to'
       },
       content_type: {
         factual: 'Factual',

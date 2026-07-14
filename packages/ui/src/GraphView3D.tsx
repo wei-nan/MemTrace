@@ -160,7 +160,6 @@ const EDGE_COLORS: Record<string, string> = {
   contradicts: '#f87171',
   answered_by: '#a78bfa',
   similar_to:  '#94a3b8',
-  queried_via_mcp: '#2dd4bf',
 };
 
 const RELATION_LABELS_ZH: Record<string, string> = {
@@ -170,7 +169,6 @@ const RELATION_LABELS_ZH: Record<string, string> = {
   contradicts: '矛盾',
   answered_by: '答覆於',
   similar_to:  '相似於',
-  queried_via_mcp: '經由 MCP 查詢',
 };
 
 function rgbHex([r, g, b]: [number, number, number]): string {

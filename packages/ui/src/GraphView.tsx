@@ -427,7 +427,7 @@ function GraphCanvas({
                 const labelZh: Record<string, string> = {
                   depends_on: '依賴', extends: '延伸', related_to: '關聯',
                   contradicts: '矛盾', answered_by: '答覆於',
-                  similar_to: '相似於', queried_via_mcp: '經由 MCP',
+                  similar_to: '相似於',
                 };
                 return (
                   <div key={relation} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>

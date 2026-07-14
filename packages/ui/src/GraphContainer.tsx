@@ -37,7 +37,6 @@ const RELATION_COLORS: Record<string, string> = {
   contradicts:     'var(--color-error)',
   answered_by:     '#a78bfa',
   similar_to:      '#94a3b8',
-  queried_via_mcp: '#2dd4bf',
 };
 
 interface Props {
