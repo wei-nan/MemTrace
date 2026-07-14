@@ -45,6 +45,26 @@ Feature = Literal["extraction", "embedding", "restructure"]
 VALID_NODE_CONTENT_TYPES = ["factual", "procedural", "preference", "context", "inquiry"]
 VALID_EDGE_RELATIONS     = ["depends_on", "extends", "related_to", "contradicts"]
 
+# Some providers expose non-text generative models (image / speech / video) through
+# the same call surface as chat models — e.g. Gemini's gemini-2.5-flash-image
+# ("Nano Banana"), *-tts, veo-* all support generateContent. These are NOT language
+# models and must not appear in the AI-assistant chat picker. We match on the model
+# id / display name. Note: vision-INPUT multimodal models (e.g. llava) output text and
+# remain valid chat models, so they are intentionally not matched here.
+_NON_TEXT_MODEL_HINTS = (
+    "image", "imagen", "nano-banana",   # image generation
+    "-tts", "tts-", "text-to-speech",   # speech synthesis
+    "veo",                              # video generation
+)
+
+
+def is_non_text_model(model_id: str, display_name: str = "") -> bool:
+    """True if the model produces non-text output (image/speech/video) and therefore
+    must be excluded from language-model (chat) listings, even when it is callable via
+    the same method as chat models."""
+    blob = f"{model_id} {display_name}".lower()
+    return any(hint in blob for hint in _NON_TEXT_MODEL_HINTS)
+
 EXTRACTION_NODE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -272,21 +292,14 @@ class OpenAIProvider(AIProvider):
                         continue
 
     def get_known_models(self) -> list[dict]:
-        return [
-            {"id": "gpt-4.1",                "display_name": "GPT-4.1",               "model_type": "chat"},
-            {"id": "gpt-4.1-mini",           "display_name": "GPT-4.1 Mini",          "model_type": "chat"},
-            {"id": "gpt-4o",                 "display_name": "GPT-4o",                "model_type": "chat"},
-            {"id": "gpt-4o-mini",            "display_name": "GPT-4o Mini",           "model_type": "chat"},
-            {"id": "o3",                     "display_name": "o3",                    "model_type": "chat"},
-            {"id": "o4-mini",                "display_name": "o4 Mini",               "model_type": "chat"},
-            {"id": "text-embedding-3-small", "display_name": "text-embedding-3-small","model_type": "embedding", "embedding_dim": 1536},
-            {"id": "text-embedding-3-large", "display_name": "text-embedding-3-large","model_type": "embedding", "embedding_dim": 3072},
-            {"id": "text-embedding-ada-002", "display_name": "text-embedding-ada-002","model_type": "embedding", "embedding_dim": 1536},
-        ]
+        # Dynamic-only policy: models are fetched live from the provider when the API
+        # key is valid; there is no hardcoded fallback, so an unconfigured/invalid key
+        # yields no usable models. See ws_spec_plan/mem_6ee3ee82.
+        return []
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
         if not resolved.api_key:
-            return self.get_known_models()
+            return []
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
                 f"{self._base_url}/models",
@@ -398,19 +411,12 @@ class AnthropicProvider(AIProvider):
     default_embedding_model = ""  # Anthropic does not offer a native embedding API
 
     def get_known_models(self) -> list[dict]:
-        return [
-            {"id": "claude-opus-4-7",           "display_name": "Claude Opus 4.7",   "model_type": "chat"},
-            {"id": "claude-sonnet-4-6",          "display_name": "Claude Sonnet 4.6", "model_type": "chat"},
-            {"id": "claude-haiku-4-5-20251001",  "display_name": "Claude Haiku 4.5",  "model_type": "chat"},
-            {"id": "claude-opus-4-20250514",     "display_name": "Claude Opus 4",     "model_type": "chat"},
-            {"id": "claude-sonnet-4-20250514",   "display_name": "Claude Sonnet 4",   "model_type": "chat"},
-            {"id": "claude-3-5-sonnet-20241022", "display_name": "Claude 3.5 Sonnet", "model_type": "chat"},
-            {"id": "claude-3-5-haiku-20241022",  "display_name": "Claude 3.5 Haiku",  "model_type": "chat"},
-        ]
+        # Dynamic-only policy: no hardcoded fallback. See ws_spec_plan/mem_6ee3ee82.
+        return []
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
         if not resolved.api_key:
-            return self.get_known_models()
+            return []
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
                 "https://api.anthropic.com/v1/models",
@@ -609,19 +615,12 @@ class GeminiProvider(AIProvider):
     default_embedding_model = "text-embedding-004"
 
     def get_known_models(self) -> list[dict]:
-        return [
-            {"id": "gemini-2.5-flash-preview-05-20", "display_name": "Gemini 2.5 Flash (Preview)", "model_type": "chat"},
-            {"id": "gemini-2.5-pro-preview-05-06",   "display_name": "Gemini 2.5 Pro (Preview)",   "model_type": "chat"},
-            {"id": "gemini-2.0-flash",               "display_name": "Gemini 2.0 Flash",           "model_type": "chat"},
-            {"id": "gemini-2.0-flash-lite",          "display_name": "Gemini 2.0 Flash Lite",      "model_type": "chat"},
-            {"id": "gemini-1.5-pro",                 "display_name": "Gemini 1.5 Pro",             "model_type": "chat"},
-            {"id": "gemini-1.5-flash",               "display_name": "Gemini 1.5 Flash",           "model_type": "chat"},
-            {"id": "text-embedding-004",             "display_name": "text-embedding-004",         "model_type": "embedding"},
-        ]
+        # Dynamic-only policy: no hardcoded fallback. See ws_spec_plan/mem_6ee3ee82.
+        return []
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:
         if not resolved.api_key:
-            return self.get_known_models()
+            return []
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
                 f"https://generativelanguage.googleapis.com/v1beta/models?key={resolved.api_key}"
@@ -635,6 +634,10 @@ class GeminiProvider(AIProvider):
             mid = m["name"].replace("models/", "")
             dname = m.get("displayName", mid)
             if "generateContent" in methods:
+                # Image/TTS/video models (e.g. gemini-2.5-flash-image "Nano Banana")
+                # also expose generateContent but are not language models — skip them.
+                if is_non_text_model(mid, dname):
+                    continue
                 results.append({"id": mid, "display_name": dname, "model_type": "chat"})
             elif "embedContent" in methods:
                 results.append({"id": mid, "display_name": dname, "model_type": "embedding"})
@@ -956,6 +959,10 @@ class OllamaProvider(OpenAIProvider):
         embedding_hints = ("embed", "minilm", "bge-", "e5-", "retrieval")
         if any(h in lower for h in embedding_hints):
             return {"model_type": "embedding"}
+        # Non-text generative models (image/tts/video) are not language models. Vision-input
+        # multimodal models (e.g. llava) output text and remain chat.
+        if is_non_text_model(model_id):
+            return {"model_type": "other"}
         return {"model_type": "chat"}
 
     async def list_models(self, resolved: ResolvedProvider) -> list[dict]:

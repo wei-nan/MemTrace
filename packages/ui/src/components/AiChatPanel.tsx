@@ -32,6 +32,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
     return (saved === 'openai' || saved === 'anthropic' || saved === 'gemini' || saved === 'ollama') ? saved : 'openai';
   });
   const [models, setModels] = useState<ModelInfo[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>(() => localStorage.getItem('mt_chat_model') ?? '');
   const [credits, setCredits] = useState<CreditStatus | null>(null);
   const [proposalStates, setProposalStates] = useState<Record<string, ProposalState>>({});
@@ -339,9 +340,12 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
 
   useEffect(() => {
     const fetchModels = async () => {
+      setModelsLoading(true);
       try {
         const list = await ai.listModels(provider);
-        const chatModels = list.filter(m => m.model_type !== 'embedding');
+        // Positive allowlist: only language (chat) models. Guards against providers
+        // that surface image/tts/other non-language models (see is_non_text_model).
+        const chatModels = list.filter(m => m.model_type === 'chat');
         setModels(chatModels);
         if (chatModels.length > 0) {
           // Keep the user's saved model if it's still offered by this provider;
@@ -351,7 +355,10 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
           setSelectedModel(keep);
         }
       } catch {
-        // The model picker remains empty until the provider is available.
+        // No valid key / provider unavailable → no usable models.
+        setModels([]);
+      } finally {
+        setModelsLoading(false);
       }
     };
     fetchModels();
@@ -787,7 +794,7 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
           <div style={{ width: 1, height: 16, background: 'var(--border-default)' }} />
           <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)} className="model-select" style={{ fontSize: 11, padding: '3px 6px', borderRadius: 6, border: '1px solid var(--border-default)', background: 'var(--bg-surface)', color: 'var(--text-secondary)', flex: 1, minWidth: 100, outline: 'none', cursor: 'pointer' }}>
             {models.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
-            {models.length === 0 && <option value="">Loading...</option>}
+            {models.length === 0 && <option value="">{modelsLoading ? '載入中…' : '無可用模型（請設定有效金鑰）'}</option>}
           </select>
         </div>
 
