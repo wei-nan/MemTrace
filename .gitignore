@@ -41,6 +41,7 @@ desktop.ini
 # Tools
 .claude/
 .mcp.json
+.agents/
 
 # Documentation
 docs/dev/
