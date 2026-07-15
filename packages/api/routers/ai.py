@@ -647,7 +647,7 @@ async def chat_with_kb_stream(
                 with db_cursor() as cur:
                     cur.execute("""
                         SELECT role, content FROM chat_messages
-                        WHERE session_id = %s ORDER BY created_at DESC LIMIT 20
+                        WHERE session_id = %s ORDER BY created_at DESC, id DESC LIMIT 20
                     """, (session_id,))
                     rows = cur.fetchall()
                 history = [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
@@ -962,14 +962,14 @@ async def get_session_messages(
                 SELECT id, role, content, source_node_ids, tokens_used, created_at
                 FROM chat_messages
                 WHERE session_id = %s AND id < %s
-                ORDER BY created_at DESC LIMIT %s
+                ORDER BY created_at DESC, id DESC LIMIT %s
             """, (session_id, before_id, limit))
         else:
             cur.execute("""
                 SELECT id, role, content, source_node_ids, tokens_used, created_at
                 FROM chat_messages
                 WHERE session_id = %s
-                ORDER BY created_at DESC LIMIT %s
+                ORDER BY created_at DESC, id DESC LIMIT %s
             """, (session_id, limit))
         rows = cur.fetchall()
     return list(reversed([dict(r) for r in rows]))
