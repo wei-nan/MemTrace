@@ -1,7 +1,7 @@
 # MemTrace Specification
 
 ## 1. Introduction
-MemTrace is an open platform for building shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to allow any human or AI agent to reach any answer by following the shortest possible path through a graph of small, typed relationships — rather than reading through large documents. This specification outlines all core components, including Memory Schema, Edge Schema, Trust mechanics, and the Decay engine.
+MemTrace is an open platform for building shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to allow any human or AI agent to reach any answer by following the shortest possible path through a graph of small, typed relationships — rather than reading through large documents. This specification outlines all core components, including Memory Schema, Edge Schema, provenance and content integrity, and the Decay engine.
 
 Central to MemTrace is the belief that **knowledge itself has intrinsic value** and that the people who curate it should have full sovereignty over how it is shared — whether openly with the world, conditionally with an audience, or kept entirely private. The platform is designed so that sharing a knowledge base is a deliberate choice, not an accident.
 
@@ -48,7 +48,7 @@ This is not merely a permissions model. It is a statement about the **relationsh
 | **Relationships carry the knowledge** | The value of a Knowledge Base lies in its edges, not in the volume of its nodes. Two small nodes with a typed edge express more than one large node that conflates two ideas. |
 | **Shortest path is the design goal** | Every structural decision — node granularity, edge type, content type — should be evaluated by whether it shortens the path a human or AI agent needs to follow to reach an answer. |
 | **Entry point independence** | Any node can serve as an entry point. Navigation follows edges, not a fixed hierarchy. |
-| **Value is earned** | Trust scores, traversal counts, and edge weights reflect real usage, not just authorship intent. |
+| **Value is earned** | Traversal counts and edge weights reflect real usage, not just authorship intent. |
 | **Knowledge sovereignty and protection** | The core value is knowledge sharing, but the author retains full control over the depth of that sharing. Roles clearly distinguish between those who can only see the graph structure (Viewers) and those who can access and edit detailed content (Editors/Admins). |
 | **Decay shapes attention, not existence** | No node or edge is permanently deleted by the decay engine alone. Faded content is archived, not destroyed. |
 | **Knowledge sovereignty belongs to the curator** | Every Knowledge Base owner decides how their knowledge is shared — fully public, conditionally visible, invitation-only, or entirely private. Sharing is always a deliberate act, never a default. |
@@ -84,7 +84,7 @@ This is not merely a permissions model. It is a statement about the **relationsh
 - Supports multi-lingual title/body (en/zh-TW).
 - Tags array.
 - **Node-level `visibility`** (per-node, distinct from KB-level visibility in §1.1 / §12): one of `public` / `team` / `private`. Controls whether other members of the same workspace can see this individual node. The four-tier sharing level (`public` / `conditional_public` / `restricted` / `private`) in §1.1 is set at the **Knowledge Base** level and is a separate axis.
-- Built in trust dimensions: accuracy, freshness, utility, author reputation.
+- Internal trust dimensions (accuracy, freshness, utility, author reputation) exist in the schema but are **deferred**: retained internally, not surfaced in the UI, and not a guarantee of content correctness (see §5).
 
 ### 4.2 Edge v1
 - Validated via `schema/edge.v1.json`
@@ -94,9 +94,12 @@ This is not merely a permissions model. It is a statement about the **relationsh
 - Decay half-life tracked individually per edge; default varies by workspace `kb_type` and node `content_type` (see §7.3).
 - Edge status: `active` / `faded` / `pinned`. Faded edges are archived, not deleted.
 
-## 5. Trust & Anti-Forgery
-- Memories are digitally fingerprinted with SHA-256 hashes generated from the content.
-- Community and AI votes update the trust scores continuously.
+## 5. Provenance & Content Integrity
+
+- Memories are digitally fingerprinted with SHA-256 hashes generated from the content (`signature`), providing tamper-evidence over a node's stored content.
+- Each node carries provenance: author, timestamps, and `source_type` (human / AI / system / tool). Uploaded documents and attachments are retained as reference sources.
+
+> **Trust scoring is deferred (current positioning).** MemTrace does not currently expose node Trust, verification, or evidence-chain scoring as a public capability. Vote-, verification-, and dimension-based trust computation is **not** part of the current product surface: the related backend fields (`trust_score`, `dim_accuracy`, `dim_freshness`, `dim_utility`, `dim_author_rep`, `votes_up`, `votes_down`, `verifications`) are **retained internally, are not surfaced in the UI, and must not be interpreted as a guarantee of content correctness or authenticity**. This capability is paused, not cancelled — it may be reintroduced only once a simple, reliable closed loop is in place (clear boundaries between reference, evidence, provenance, and verification, plus UI that never presents a numeric score as a truth guarantee). See the decision recorded in the spec-planning KB (`ws_spec_plan`).
 
 ## 6. Operations
 
@@ -289,7 +292,7 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `created_at`   | TIMESTAMPTZ       |                                    |
 | `signature`    | TEXT              | SHA-256 content hash               |
 | `source_type`  | ENUM              | human / ai_generated / ai_verified |
-| `trust_score`  | NUMERIC(4,3)      | Composite 0–1                      |
+| `trust_score`  | NUMERIC(4,3)      | Composite 0–1 — internal, deferred; not surfaced (see §5) |
 | `dim_accuracy` | NUMERIC(4,3)      | Trust dimension                    |
 | `dim_freshness`| NUMERIC(4,3)      | Trust dimension                    |
 | `dim_utility`  | NUMERIC(4,3)      | Trust dimension                    |
@@ -446,7 +449,7 @@ The creation/edit form exposes the following fields:
 - `provenance.author` is auto-filled from the current session user.
 - `provenance.created_at` is auto-set on first save; `updated_at` is added on edit (see §10.1).
 - `provenance.signature` (SHA-256) is recomputed on every save.
-- `trust` fields are initialized to defaults on creation and not user-editable.
+- `trust` fields are initialized to defaults on creation and not user-editable (internal, deferred — not surfaced; see §5).
 
 #### 9.3.4 Creating an Edge (Association) from the Editor
 After saving a node, the editor **immediately opens the Edge creation sub-panel** by default. A node without any edges is visually flagged in the Graph View with an indicator (e.g. a hollow ring instead of a filled node) to signal that it is not yet connected. Users can also initiate edge creation by dragging from one node's handle to another in the Graph View.
@@ -689,7 +692,9 @@ Each node committed from AI extraction carries:
 
 `source_document` and `extraction_model` are appended to the `provenance` object (see §10.2).
 
-#### 11.3.3 Trust Defaults for AI-Extracted Nodes
+#### 11.3.3 Trust-Field Defaults for AI-Extracted Nodes (internal)
+
+> These defaults populate the internal, deferred trust fields (see §5); they are not surfaced in the UI and are not a truth guarantee.
 
 | Dimension | Default |
 |-----------|---------|
@@ -762,7 +767,7 @@ Existing nodes created before the cluster system was introduced will have `clust
 
 ### 11.5 Copying a Node to Another Knowledge Base
 
-Any individual Memory Node can be copied to a different Knowledge Base. Edges are **not** copied — only the node's content, metadata, and trust snapshot are transferred.
+Any individual Memory Node can be copied to a different Knowledge Base. Edges are **not** copied — only the node's content and metadata are transferred. (Internal, deferred trust fields carry over as a snapshot; see §5 and §11.5.2.)
 
 #### 11.5.1 Behavior
 
@@ -773,9 +778,9 @@ Any individual Memory Node can be copied to a different Knowledge Base. Edges ar
 - The original node and its Edges are unaffected.
 - The `signature` (SHA-256) is recomputed from the copied content in the target workspace context.
 
-#### 11.5.2 Trust on Copy
+#### 11.5.2 Trust Fields on Copy (internal)
 
-Trust scores are carried over as a snapshot. They are not linked — subsequent votes or verifications in either workspace do not affect the other copy.
+The internal, deferred trust fields (see §5) are carried over as a snapshot. They are not linked — activity in either workspace does not affect the other copy. These values are not surfaced in the UI.
 
 #### 11.5.3 Visibility on Copy
 
@@ -1319,7 +1324,7 @@ When an AI agent navigates the graph (e.g. fetches node A, follows an edge to no
 3. Updates `unique_traversers` on both nodes if the agent's API key has not previously traversed them.
 4. Keeps the graph "alive" — preventing premature decay of knowledge paths that AI agents find valuable.
 
-Agents are not required to rate paths but are encouraged to call `rate_path` when a path proved useful (rating ≥ 4) or misleading (rating ≤ 2), feeding signal back into the trust layer.
+Agents are not required to rate paths but are encouraged to call `rate_path` when a path proved useful (rating ≥ 4) or misleading (rating ≤ 2), feeding signal back into path ratings and traversal statistics.
 
 ## 15. First-Run Onboarding
 
@@ -2614,9 +2619,9 @@ file=<.memtrace archive>
 conflict_strategy=skip_duplicates | import_all   (default: skip_duplicates)
 ```
 
-#### 22.6.4 Trust on Import
+#### 22.6.4 Trust Fields on Import (internal)
 
-Imported nodes carry their original trust scores as a snapshot (same as §11.4.2). Votes and verifications in the target workspace do not affect scores in the source and vice versa.
+Imported nodes carry their original internal trust fields as a snapshot (same as §11.4.2; deferred and not surfaced — see §5). Activity in the target workspace does not affect values in the source and vice versa.
 
 #### 22.6.5 Visibility on Import
 
@@ -3013,7 +3018,7 @@ In addition to 2D and 3D Graph visualizations, MemTrace provides a **Table View*
 | Title | `title_zh` / `title_en` (language-aware) | ✓ |
 | Content Type | `content_type` | ✓ |
 | Tags | `tags[]` | — |
-| Trust Score | `trust_score` (0.00–1.00, progress bar) | ✓ |
+| Traversal | `traversal_count` (times visited) | ✓ |
 | Created | `created_at` | ✓ |
 | Actions | Edit / Archive buttons | — |
 

@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MemTrace · 讓知識比對話活得更久</title>
+  <meta name="description" content="MemTrace 是一個給團隊與 AI 代理人共用的知識圖譜平台。知識拆成一顆顆聚焦的記憶節點,以帶型別的邊互相連結;常走的路徑會變強,沒人走的會衰退。" />
+
+  <!-- 品牌字體(可離線 fallback 到系統字體) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="alternate" hreflang="en" href="./en.html" />
+
+  <style>
+    /* ---------- Design tokens(取自 MemTrace Design System v3.0) ---------- */
+    :root, :root[data-theme="dark"] {
+      --bg-base: #0B0D11;
+      --bg-surface: #15181E;
+      --bg-elevated: #1E222A;
+      --glass-bg: rgba(21, 24, 30, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+      --primary: #2DD4BF;
+      --primary-hover: #14B8A6;
+      --primary-subtle: rgba(45, 212, 191, 0.12);
+      --primary-glow: rgba(45, 212, 191, 0.35);
+      --secondary: #818CF8;
+      --accent: #F472B6;
+
+      --border-subtle: rgba(255, 255, 255, 0.05);
+      --border-default: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.15);
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --text-on-primary: #0F172A;
+
+      --hero-glow-1: rgba(45, 212, 191, 0.18);
+      --hero-glow-2: rgba(129, 140, 248, 0.14);
+      --grid-line: rgba(255, 255, 255, 0.03);
+    }
+    :root[data-theme="light"] {
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #F1F5F9;
+      --glass-bg: rgba(255, 255, 255, 0.85);
+      --glass-border: rgba(15, 23, 42, 0.08);
+      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+      --primary: #0D9488;
+      --primary-hover: #0F766E;
+      --primary-subtle: rgba(13, 148, 136, 0.09);
+      --primary-glow: rgba(13, 148, 136, 0.22);
+      --secondary: #4F46E5;
+      --accent: #DB2777;
+
+      --border-subtle: #F1F5F9;
+      --border-default: #E2E8F0;
+      --border-strong: #CBD5E1;
+
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #64748B;
+      --text-on-primary: #FFFFFF;
+
+      --hero-glow-1: rgba(13, 148, 136, 0.12);
+      --hero-glow-2: rgba(79, 70, 229, 0.08);
+      --grid-line: rgba(15, 23, 42, 0.035);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    h1, h2, h3 { font-family: 'Outfit', 'PingFang TC', 'Microsoft JhengHei', sans-serif; line-height: 1.2; font-weight: 700; }
+    a { color: inherit; text-decoration: none; }
+    code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--primary); font-weight: 500;
+    }
+
+    /* ---------- Nav ---------- */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      background: var(--glass-bg);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: inline-flex; align-items: center; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 19px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: 14px; color: var(--text-secondary); font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .theme-btn {
+      width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border-default);
+      background: transparent; color: var(--text-secondary); cursor: pointer;
+      display: grid; place-items: center; transition: all 0.2s;
+    }
+    .theme-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+    .lang-link {
+      font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 500;
+      color: var(--text-secondary); padding: 8px 10px; border-radius: 8px;
+      border: 1px solid var(--border-default); transition: all 0.2s;
+    }
+    .lang-link:hover { color: var(--text-primary); border-color: var(--border-strong); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;
+      padding: 10px 18px; border-radius: 10px; cursor: pointer; border: 1px solid transparent;
+      transition: all 0.2s ease; white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: var(--text-on-primary); box-shadow: 0 2px 16px -4px var(--primary-glow); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--text-primary); border-color: var(--border-default); }
+    .btn-ghost:hover { border-color: var(--border-strong); background: var(--bg-surface); }
+    .btn-lg { padding: 13px 26px; font-size: 15px; border-radius: 12px; }
+
+    @media (max-width: 760px) { .nav-links { display: none; } }
+
+    /* ---------- Hero ---------- */
+    header.hero { position: relative; padding: 96px 0 88px; overflow: hidden; }
+    .hero::before {
+      content: ""; position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(60% 50% at 20% 0%, var(--hero-glow-1), transparent 70%),
+        radial-gradient(50% 45% at 90% 10%, var(--hero-glow-2), transparent 70%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(70% 60% at 50% 30%, #000 30%, transparent 100%);
+      -webkit-mask-image: radial-gradient(70% 60% at 50% 30%, #000 30%, transparent 100%);
+    }
+    .hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+      background: var(--primary-subtle); border: 1px solid var(--glass-border);
+      font-size: 12.5px; font-weight: 500; color: var(--primary); margin-bottom: 24px;
+    }
+    .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+    h1.title { font-size: clamp(34px, 5vw, 56px); font-weight: 800; letter-spacing: -0.01em; margin-bottom: 20px; }
+    h1.title .grad { background: linear-gradient(120deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lead { font-size: 18px; color: var(--text-secondary); max-width: 540px; margin-bottom: 16px; }
+    .subtag { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: var(--text-muted); margin-bottom: 32px; }
+    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-meta { display: flex; gap: 26px; margin-top: 36px; flex-wrap: wrap; }
+    .hero-meta div { display: flex; flex-direction: column; }
+    .hero-meta .n { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 22px; color: var(--text-primary); }
+    .hero-meta .l { font-size: 12.5px; color: var(--text-muted); }
+
+    /* graph visual */
+    .hero-visual { position: relative; aspect-ratio: 1 / 1; }
+    .hero-visual svg { width: 100%; height: 100%; overflow: visible; }
+    .edge { stroke: var(--primary); fill: none; stroke-linecap: round; }
+    .edge.weak { stroke: var(--text-muted); }
+    .node-c { fill: var(--bg-elevated); stroke: var(--primary); stroke-width: 2; }
+    .node-c.sec { stroke: var(--secondary); }
+    .node-c.leaf { stroke: var(--text-muted); }
+    .node-core { fill: var(--primary); }
+    .pulse { transform-origin: center; animation: pulse 3.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.5; r: 5; } 50% { opacity: 1; r: 7; } }
+    .flow { stroke-dasharray: 6 10; animation: flow 2.4s linear infinite; }
+    @keyframes flow { to { stroke-dashoffset: -32; } }
+    .float { animation: float 6s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-visual { max-width: 420px; margin: 0 auto; }
+    }
+
+    /* ---------- Section shells ---------- */
+    section { padding: 88px 0; position: relative; }
+    .section-head { max-width: 680px; margin-bottom: 52px; }
+    .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+    .section-head h2 { font-size: clamp(26px, 3.5vw, 38px); margin: 12px 0 14px; letter-spacing: -0.01em; }
+    .section-head p { color: var(--text-secondary); font-size: 16.5px; }
+    .divider { border-top: 1px solid var(--border-subtle); }
+
+    /* ---------- Concept cards ---------- */
+    .concept-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card {
+      background: var(--bg-surface); border: 1px solid var(--border-default);
+      border-radius: 16px; padding: 28px; transition: all 0.25s ease; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--glass-shadow); }
+    .card .ic { width: 44px; height: 44px; border-radius: 11px; display: grid; place-items: center; background: var(--primary-subtle); color: var(--primary); margin-bottom: 18px; }
+    .card .ic svg { width: 22px; height: 22px; }
+    .card h3 { font-size: 18px; margin-bottom: 8px; }
+    .card p { color: var(--text-secondary); font-size: 14.5px; }
+    .card .formula { margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--primary); background: var(--primary-subtle); padding: 8px 10px; border-radius: 8px; display: inline-block; }
+    @media (max-width: 860px) { .concept-grid { grid-template-columns: 1fr; } }
+
+    /* ---------- Inheritance / how ---------- */
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; counter-reset: step; }
+    .step { padding: 28px 26px; border-left: 1px solid var(--border-default); position: relative; }
+    .step:first-child { border-left: none; }
+    .step .num { counter-increment: step; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: var(--text-on-primary); background: var(--primary); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; margin-bottom: 16px; }
+    .step .num::before { content: counter(step); }
+    .step h3 { font-size: 17px; margin-bottom: 8px; }
+    .step p { color: var(--text-secondary); font-size: 14.5px; }
+    @media (max-width: 860px) { .how { grid-template-columns: 1fr; } .step { border-left: none; border-top: 1px solid var(--border-default); } .step:first-child { border-top: none; } }
+
+    /* ---------- Feature grid ---------- */
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .feat { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 18px 20px; transition: all 0.2s; }
+    .feat:hover { border-color: var(--border-strong); }
+    .feat .k { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14.5px; margin-bottom: 5px; }
+    .feat .k .d { width: 7px; height: 7px; border-radius: 2px; background: var(--primary); }
+    .feat p { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+
+    /* ---------- Ecosystem ---------- */
+    .eco-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .eco { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; padding: 26px; transition: all 0.25s; }
+    .eco:hover { border-color: var(--secondary); }
+    .eco .tag { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--secondary); letter-spacing: 0.05em; }
+    .eco h3 { font-size: 17px; margin: 8px 0 8px; }
+    .eco p { color: var(--text-secondary); font-size: 14px; margin-bottom: 14px; }
+    .eco pre { background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; overflow-x: auto; }
+    .eco pre code { font-size: 12.5px; color: var(--text-secondary); line-height: 1.7; white-space: pre; }
+    .eco .cmt { color: var(--text-muted); }
+    .eco .kw { color: var(--secondary); }
+    .eco .str { color: var(--primary); }
+    @media (max-width: 780px) { .eco-grid { grid-template-columns: 1fr; } }
+
+    /* ---------- Quickstart ---------- */
+    .qs-inner { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 44px; align-items: center; }
+    .terminal { background: #0B0D11; border: 1px solid var(--border-strong); border-radius: 14px; overflow: hidden; box-shadow: var(--glass-shadow); }
+    .terminal .bar { display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); background: #15181E; }
+    .terminal .bar span { width: 11px; height: 11px; border-radius: 50%; }
+    .terminal .bar .r { background: #FF5F57; } .terminal .bar .y { background: #FEBC2E; } .terminal .bar .g { background: #28C840; }
+    .terminal .bar .t { margin-left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #64748B; }
+    .terminal pre { padding: 18px 20px; overflow-x: auto; }
+    .terminal code { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; color: #E2E8F0; white-space: pre; }
+    .terminal .c { color: #64748B; } .terminal .p { color: #2DD4BF; } .terminal .a { color: #818CF8; }
+    @media (max-width: 860px) { .qs-inner { grid-template-columns: 1fr; } }
+
+    /* ---------- CTA band ---------- */
+    .cta-band { text-align: center; padding: 80px 0; }
+    .cta-band h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 16px; }
+    .cta-band p { color: var(--text-secondary); font-size: 17px; margin-bottom: 30px; }
+    .cta-band .row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ---------- Footer ---------- */
+    footer { border-top: 1px solid var(--border-default); padding: 44px 0; }
+    .foot-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .foot-inner .brand { font-size: 16px; }
+    .foot-links { display: flex; gap: 24px; font-size: 14px; color: var(--text-secondary); flex-wrap: wrap; }
+    .foot-links a:hover { color: var(--text-primary); }
+    .foot-note { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
+
+    /* reveal on scroll */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .pulse, .flow, .float { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <nav>
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">MemTrace</a>
+      <div class="nav-links">
+        <a href="#concepts">核心概念</a>
+        <a href="#how">運作方式</a>
+        <a href="#features">功能</a>
+        <a href="#ecosystem">生態整合</a>
+        <a href="#start">開始使用</a>
+      </div>
+      <div class="nav-actions">
+        <a class="lang-link" href="./en.html" aria-label="Switch to English">EN</a>
+        <button class="theme-btn" id="themeBtn" aria-label="切換主題">
+          <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <a class="btn btn-ghost" href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero" id="top">
+    <div class="hero-grid"></div>
+    <div class="wrap hero-inner">
+      <div>
+        <span class="badge"><span class="dot"></span>知識圖譜 · 走訪追蹤 · 自動衰退</span>
+        <h1 class="title">讓知識<span class="grad">比對話</span>活得更久</h1>
+        <p class="lead">MemTrace 是一個給團隊與 AI 代理人共用的開放知識平台。知識不必塞進龐大的文件——它拆成一顆顆聚焦的<strong>記憶節點</strong>,以帶型別的邊互相連結,共同長成一張活的知識圖譜。</p>
+        <p class="subtag">// Because knowledge should outlive the conversation.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="#start">開始使用 →</a>
+          <a class="btn btn-ghost btn-lg" href="#concepts">了解運作原理</a>
+        </div>
+        <div class="hero-meta">
+          <div><span class="n">人 · AI · 工具</span><span class="l">寫進同一張圖</span></div>
+          <div><span class="n">zh-TW / EN</span><span class="l">完整雙語介面</span></div>
+          <div><span class="n">MCP · REST</span><span class="l">原生生態整合</span></div>
+        </div>
+      </div>
+
+      <!-- 動態知識圖譜視覺 -->
+      <div class="hero-visual float">
+        <svg viewBox="0 0 400 400" role="img" aria-label="知識圖譜示意">
+          <!-- edges -->
+          <path class="edge flow" d="M200 200 L110 110" stroke-width="2.5"/>
+          <path class="edge flow" d="M200 200 L300 130" stroke-width="2.5"/>
+          <path class="edge" d="M200 200 L130 300" stroke-width="2"/>
+          <path class="edge weak" d="M200 200 L310 290" stroke-width="1.2" opacity="0.5"/>
+          <path class="edge" d="M110 110 L90 210" stroke-width="1.6" opacity="0.7"/>
+          <path class="edge weak" d="M300 130 L340 220" stroke-width="1.1" opacity="0.4"/>
+          <path class="edge" d="M110 110 L200 60" stroke-width="1.6" opacity="0.7"/>
+          <path class="edge weak" d="M130 300 L110 350" stroke-width="1" opacity="0.35"/>
+
+          <!-- outer nodes -->
+          <g class="node-set">
+            <circle class="node-c" cx="110" cy="110" r="16"/>
+            <circle class="node-c sec" cx="300" cy="130" r="13"/>
+            <circle class="node-c" cx="130" cy="300" r="12"/>
+            <circle class="node-c leaf" cx="310" cy="290" r="9"/>
+            <circle class="node-c leaf" cx="90" cy="210" r="8"/>
+            <circle class="node-c leaf" cx="340" cy="220" r="7" opacity="0.6"/>
+            <circle class="node-c sec" cx="200" cy="60" r="10"/>
+            <circle class="node-c leaf" cx="110" cy="350" r="6" opacity="0.5"/>
+          </g>
+
+          <!-- core node -->
+          <circle cx="200" cy="200" r="26" fill="var(--primary-subtle)" stroke="var(--primary)" stroke-width="2"/>
+          <circle class="node-core pulse" cx="200" cy="200" r="6"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ CONCEPTS ============ -->
+  <section id="concepts" class="divider">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Core Concepts</span>
+        <h2>五個核心概念,一張活的圖</h2>
+        <p>價值不在單一節點,而在它們形成的網路。新成員或 AI 代理人可以從任一節點進入,沿著邊走到所有相關的一切——不需要原作者在旁邊帶。</p>
+      </div>
+      <div class="concept-grid">
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6"/></svg></div>
+          <h3>記憶節點 Memory Node</h3>
+          <p>一個結構化、雙語(zh-TW / en)的知識單元,帶內容型別、可見性、標籤與走訪計數。一顆節點,一個想法。</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7 7l4 9M17 7l-4 9"/></svg></div>
+          <h3>知識圖譜 Knowledge Graph</h3>
+          <p>節點以帶型別的邊連結:<code>depends_on</code>、<code>extends</code>、<code>related_to</code>、<code>contradicts</code>。同時被走訪的邊會變強。</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></svg></div>
+          <h3>衰退 Decay</h3>
+          <p>邊的權重隨時間衰減;有人共同走訪時再加回 +0.10–0.30。沒人走的連結,最終會自然消散。</p>
+          <span class="formula">w(t) = w₀ × 0.5 ^ (days / half_life)</span>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 12l4-4M4 12l4 4"/><circle cx="20" cy="12" r="0.5"/></svg></div>
+          <h3>走訪追蹤 Traversal</h3>
+          <p>每顆節點、每條邊都記錄被走訪幾次、被多少不同的行動者(人或 AI)走過。路徑會自我強化。</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+          <h3>知識庫 Knowledge Base</h3>
+          <p>多個工作空間,四種分享層級(公開 / 條件式公開 / 受限 / 私有)與邀請連結。節點可跨知識庫複製攜帶。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW / INHERITANCE ============ -->
+  <section id="how" class="divider">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Knowledge Inheritance</span>
+        <h2>為知識傳承而設計</h2>
+        <p>它對人對人、人對 AI、AI 對 AI 的知識分享一樣有效。每個貢獻者都寫進同一張圖。</p>
+      </div>
+      <div class="how card reveal" style="padding:0">
+        <div class="step">
+          <div class="num"></div>
+          <h3>捕捉</h3>
+          <p>把一個聚焦的想法寫成一顆節點——手動建立,或上傳文件讓 AI 提出候選節點、由你審核後再入庫。</p>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <h3>連結</h3>
+          <p>用帶型別的邊把節點接起來。有用的連結會因為被反覆走訪而變強,沒人走的會逐漸衰退消失。</p>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <h3>傳承</h3>
+          <p>新人或 AI 代理人從任一節點切入,沿邊探索到相關的一切——知識不再隨對話或離職一起消失。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section id="features" class="divider">
+    <div class="wrap">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Feature Overview</span>
+        <h2>一個平台,涵蓋整條知識工作流</h2>
+      </div>
+      <div class="feat-grid">
+        <div class="feat reveal"><div class="k"><span class="d"></span>節點編輯</div><p>純文字或 Markdown、雙語標題、內容型別、標籤、可見性。</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>圖譜與路徑</div><p>型別邊、權重衰退、共走加成、路徑評分(1–5)、走訪計數。</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>AI 抽取</div><p>上傳文件 → AI 提出候選節點 → 使用者審核後才入庫。</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>自帶金鑰</div><p>OpenAI / Anthropic 使用者自帶 API Key,伺服器不留存。</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>來源與出處</div><p>節點記錄由誰、何時、以什麼工具或模型建立;上傳文件保留為參考來源。</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>驗證與登入</div><p>Email 驗證註冊、Google OAuth 2.0。</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>外部 API</div><p>REST API 搭配範圍化金鑰:<code>kb:read</code> / <code>kb:write</code> / <code>node:traverse</code> / <code>node:rate</code>。</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>引導上手</div><p>網頁精靈與互動式 <code>memtrace init</code> CLI 流程。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ECOSYSTEM ============ -->
+  <section id="ecosystem" class="divider">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Ecosystem Integration</span>
+        <h2>接進你現有的 AI 工作流</h2>
+        <p>MemTrace 原生整合更廣的 AI 生態,讓你的知識圖譜可以直接用在標準 LLM 應用裡。</p>
+      </div>
+      <div class="eco-grid">
+        <div class="eco reveal">
+          <span class="tag">MODEL CONTEXT PROTOCOL</span>
+          <h3>原生 MCP 伺服器</h3>
+          <p>讓 Claude Desktop、Cursor、Antigravity 等工具直接搜尋、讀取、建立與更新圖譜節點——不必翻原始文件。支援 SSE 與 Streamable HTTP。</p>
+          <pre><code><span class="cmt"># Streamable HTTP(Cursor / Antigravity)</span>
+URL: https://&lt;host&gt;:8000/mcp
+Auth: Bearer mt_&lt;your_api_key&gt;</code></pre>
+        </div>
+        <div class="eco reveal">
+          <span class="tag">OPENAI-COMPATIBLE API</span>
+          <h3>OpenAI 相容端點</h3>
+          <p>以 <code>/v1/chat/completions</code> 對選定工作空間做混合語意檢索(hybrid RAG),自動注入相關節點並回傳來源引用,支援 SSE 串流。</p>
+          <pre><code><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+client = OpenAI(
+  base_url=<span class="str">"http://localhost:8000/v1"</span>,
+  api_key=<span class="str">"mt_xxx"</span>,
+)</code></pre>
+        </div>
+        <div class="eco reveal">
+          <span class="tag">PYTHON SDK</span>
+          <h3>官方 Python 客戶端</h3>
+          <p>以程式化方式管理工作空間、建立/搜尋節點、進行 chat 與檢索。</p>
+          <pre><code><span class="kw">from</span> memtrace <span class="kw">import</span> MemTraceClient
+c = MemTraceClient(api_key=<span class="str">"mt_xxx"</span>)
+c.search_nodes(query=<span class="str">"how to config auth"</span>)</code></pre>
+        </div>
+        <div class="eco reveal">
+          <span class="tag">LANGCHAIN · LLAMAINDEX</span>
+          <h3>框架 Retriever 整合</h3>
+          <p>LCEL 相容的 <code>MemTraceRetriever</code>,以及 LlamaIndex 的 <code>MemTraceVectorStore</code>,幾行就接進既有 pipeline。</p>
+          <pre><code><span class="kw">from</span> langchain_memtrace <span class="kw">import</span> MemTraceRetriever
+retriever = MemTraceRetriever(workspace_id=<span class="str">"ws_abc"</span>)
+chain = retriever | llm</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUICKSTART ============ -->
+  <section id="start" class="divider">
+    <div class="wrap qs-inner">
+      <div class="section-head reveal" style="margin-bottom:0">
+        <span class="eyebrow">Quick Start</span>
+        <h2>幾分鐘就跑起來</h2>
+        <p>PostgreSQL 17 + pgvector 由 docker compose 自動起,前後端各一行指令。完整步驟見 <code>docs/DEVELOPMENT.md</code>。</p>
+        <div class="hero-cta" style="margin-top:24px">
+          <a class="btn btn-primary" href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">前往 GitHub</a>
+          <a class="btn btn-ghost" href="../docs/SPEC.md">閱讀規格</a>
+        </div>
+      </div>
+      <div class="terminal reveal">
+        <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span><span class="t">bash — memtrace</span></div>
+        <pre><code><span class="c"># 1. 取得原始碼並安裝</span>
+git clone https://github.com/wei-nan/MemTrace.git
+cd MemTrace && cp .env.example .env
+npm install
+
+<span class="c"># 2. 啟動資料庫(PostgreSQL 17 + pgvector)</span>
+docker compose up -d
+
+<span class="c"># 3. 啟動 API</span>
+<span class="p">cd</span> packages/api
+python -m uvicorn main:app --reload
+
+<span class="c"># 4. 啟動前端(另開終端)</span>
+<span class="p">cd</span> packages/ui && npm run dev</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="divider">
+    <div class="wrap cta-band reveal">
+      <h2>知識,值得比對話活得更久。</h2>
+      <p>開始把團隊與 AI 的知識,寫進同一張會成長的圖。</p>
+      <div class="row">
+        <a class="btn btn-primary btn-lg" href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">在 GitHub 開始</a>
+        <a class="btn btn-ghost btn-lg" href="../docs/SPEC.md">閱讀完整規格</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="wrap foot-inner">
+      <div>
+        <a class="brand" href="#top">MemTrace</a>
+        <p class="foot-note">Collaborative memory hub — 共享知識圖譜、走訪追蹤、自動衰退。MIT License.</p>
+      </div>
+      <div class="foot-links">
+        <a href="../docs/README.md">文件首頁</a>
+        <a href="../docs/SPEC.md">規格 SPEC</a>
+        <a href="../docs/DEVELOPMENT.md">開發設定</a>
+        <a href="../README.md">README</a>
+        <a href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ---- 主題切換(預設跟隨系統,記住使用者選擇) ----
+    (function () {
+      const root = document.documentElement;
+      const btn = document.getElementById('themeBtn');
+      const icon = document.getElementById('themeIcon');
+      const moon = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>';
+      const sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+      const saved = localStorage.getItem('mt-theme');
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      let theme = saved || (prefersLight ? 'light' : 'dark');
+      apply(theme);
+      btn.addEventListener('click', function () {
+        theme = (root.getAttribute('data-theme') === 'light') ? 'dark' : 'light';
+        localStorage.setItem('mt-theme', theme);
+        apply(theme);
+      });
+      function apply(t) {
+        root.setAttribute('data-theme', t);
+        icon.innerHTML = (t === 'light') ? moon : sun;
+      }
+    })();
+
+    // ---- 捲動淡入 ----
+    (function () {
+      const els = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('in')); return; }
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((en, i) => {
+          if (en.isIntersecting) { en.target.style.transitionDelay = (i % 3) * 60 + 'ms'; en.target.classList.add('in'); io.unobserve(en.target); }
+        });
+      }, { threshold: 0.12 });
+      els.forEach(e => io.observe(e));
+    })();
+  </script>
+</body>
+</html>
