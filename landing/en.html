@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MemTrace · Because knowledge should outlive the conversation</title>
+  <meta name="description" content="MemTrace is a collaborative memory hub for teams and AI agents. Knowledge lives as small, focused Memory Nodes connected by typed edges — useful paths grow stronger, unused ones decay away." />
+
+  <!-- Brand fonts (fallback to system fonts offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="alternate" hreflang="zh-Hant" href="./index.html" />
+
+  <style>
+    /* ---------- Design tokens (from MemTrace Design System v3.0) ---------- */
+    :root, :root[data-theme="dark"] {
+      --bg-base: #0B0D11;
+      --bg-surface: #15181E;
+      --bg-elevated: #1E222A;
+      --glass-bg: rgba(21, 24, 30, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+      --primary: #2DD4BF;
+      --primary-hover: #14B8A6;
+      --primary-subtle: rgba(45, 212, 191, 0.12);
+      --primary-glow: rgba(45, 212, 191, 0.35);
+      --secondary: #818CF8;
+      --accent: #F472B6;
+
+      --border-subtle: rgba(255, 255, 255, 0.05);
+      --border-default: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.15);
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --text-on-primary: #0F172A;
+
+      --hero-glow-1: rgba(45, 212, 191, 0.18);
+      --hero-glow-2: rgba(129, 140, 248, 0.14);
+      --grid-line: rgba(255, 255, 255, 0.03);
+    }
+    :root[data-theme="light"] {
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #F1F5F9;
+      --glass-bg: rgba(255, 255, 255, 0.85);
+      --glass-border: rgba(15, 23, 42, 0.08);
+      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+      --primary: #0D9488;
+      --primary-hover: #0F766E;
+      --primary-subtle: rgba(13, 148, 136, 0.09);
+      --primary-glow: rgba(13, 148, 136, 0.22);
+      --secondary: #4F46E5;
+      --accent: #DB2777;
+
+      --border-subtle: #F1F5F9;
+      --border-default: #E2E8F0;
+      --border-strong: #CBD5E1;
+
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #64748B;
+      --text-on-primary: #FFFFFF;
+
+      --hero-glow-1: rgba(13, 148, 136, 0.12);
+      --hero-glow-2: rgba(79, 70, 229, 0.08);
+      --grid-line: rgba(15, 23, 42, 0.035);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    h1, h2, h3 { font-family: 'Outfit', sans-serif; line-height: 1.15; font-weight: 700; }
+    a { color: inherit; text-decoration: none; }
+    code, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--primary); font-weight: 500;
+    }
+
+    /* ---------- Nav ---------- */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      background: var(--glass-bg);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: inline-flex; align-items: center; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 19px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: 14px; color: var(--text-secondary); font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .lang-link {
+      font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 500;
+      color: var(--text-secondary); padding: 8px 10px; border-radius: 8px;
+      border: 1px solid var(--border-default); transition: all 0.2s;
+    }
+    .lang-link:hover { color: var(--text-primary); border-color: var(--border-strong); }
+    .theme-btn {
+      width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border-default);
+      background: transparent; color: var(--text-secondary); cursor: pointer;
+      display: grid; place-items: center; transition: all 0.2s;
+    }
+    .theme-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;
+      padding: 10px 18px; border-radius: 10px; cursor: pointer; border: 1px solid transparent;
+      transition: all 0.2s ease; white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: var(--text-on-primary); box-shadow: 0 2px 16px -4px var(--primary-glow); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--text-primary); border-color: var(--border-default); }
+    .btn-ghost:hover { border-color: var(--border-strong); background: var(--bg-surface); }
+    .btn-lg { padding: 13px 26px; font-size: 15px; border-radius: 12px; }
+
+    @media (max-width: 760px) { .nav-links { display: none; } }
+
+    /* ---------- Hero ---------- */
+    header.hero { position: relative; padding: 96px 0 88px; overflow: hidden; }
+    .hero::before {
+      content: ""; position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(60% 50% at 20% 0%, var(--hero-glow-1), transparent 70%),
+        radial-gradient(50% 45% at 90% 10%, var(--hero-glow-2), transparent 70%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(70% 60% at 50% 30%, #000 30%, transparent 100%);
+      -webkit-mask-image: radial-gradient(70% 60% at 50% 30%, #000 30%, transparent 100%);
+    }
+    .hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+      background: var(--primary-subtle); border: 1px solid var(--glass-border);
+      font-size: 12.5px; font-weight: 500; color: var(--primary); margin-bottom: 24px;
+    }
+    .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+    h1.title { font-size: clamp(34px, 5vw, 56px); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 20px; }
+    h1.title .grad { background: linear-gradient(120deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lead { font-size: 18px; color: var(--text-secondary); max-width: 540px; margin-bottom: 16px; }
+    .subtag { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: var(--text-muted); margin-bottom: 32px; }
+    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-meta { display: flex; gap: 26px; margin-top: 36px; flex-wrap: wrap; }
+    .hero-meta div { display: flex; flex-direction: column; }
+    .hero-meta .n { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 22px; color: var(--text-primary); }
+    .hero-meta .l { font-size: 12.5px; color: var(--text-muted); }
+
+    /* graph visual */
+    .hero-visual { position: relative; aspect-ratio: 1 / 1; }
+    .hero-visual svg { width: 100%; height: 100%; overflow: visible; }
+    .edge { stroke: var(--primary); fill: none; stroke-linecap: round; }
+    .edge.weak { stroke: var(--text-muted); }
+    .node-c { fill: var(--bg-elevated); stroke: var(--primary); stroke-width: 2; }
+    .node-c.sec { stroke: var(--secondary); }
+    .node-c.leaf { stroke: var(--text-muted); }
+    .node-core { fill: var(--primary); }
+    .pulse { transform-origin: center; animation: pulse 3.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.5; r: 5; } 50% { opacity: 1; r: 7; } }
+    .flow { stroke-dasharray: 6 10; animation: flow 2.4s linear infinite; }
+    @keyframes flow { to { stroke-dashoffset: -32; } }
+    .float { animation: float 6s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-visual { max-width: 420px; margin: 0 auto; }
+    }
+
+    /* ---------- Section shells ---------- */
+    section { padding: 88px 0; position: relative; }
+    .section-head { max-width: 680px; margin-bottom: 52px; }
+    .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+    .section-head h2 { font-size: clamp(26px, 3.5vw, 38px); margin: 12px 0 14px; letter-spacing: -0.01em; }
+    .section-head p { color: var(--text-secondary); font-size: 16.5px; }
+    .divider { border-top: 1px solid var(--border-subtle); }
+
+    /* ---------- Concept cards ---------- */
+    .concept-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card {
+      background: var(--bg-surface); border: 1px solid var(--border-default);
+      border-radius: 16px; padding: 28px; transition: all 0.25s ease; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--glass-shadow); }
+    .card .ic { width: 44px; height: 44px; border-radius: 11px; display: grid; place-items: center; background: var(--primary-subtle); color: var(--primary); margin-bottom: 18px; }
+    .card .ic svg { width: 22px; height: 22px; }
+    .card h3 { font-size: 18px; margin-bottom: 8px; }
+    .card p { color: var(--text-secondary); font-size: 14.5px; }
+    .card .formula { margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--primary); background: var(--primary-subtle); padding: 8px 10px; border-radius: 8px; display: inline-block; }
+    @media (max-width: 860px) { .concept-grid { grid-template-columns: 1fr; } }
+
+    /* ---------- How / inheritance ---------- */
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; counter-reset: step; }
+    .step { padding: 28px 26px; border-left: 1px solid var(--border-default); position: relative; }
+    .step:first-child { border-left: none; }
+    .step .num { counter-increment: step; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: var(--text-on-primary); background: var(--primary); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; margin-bottom: 16px; }
+    .step .num::before { content: counter(step); }
+    .step h3 { font-size: 17px; margin-bottom: 8px; }
+    .step p { color: var(--text-secondary); font-size: 14.5px; }
+    @media (max-width: 860px) { .how { grid-template-columns: 1fr; } .step { border-left: none; border-top: 1px solid var(--border-default); } .step:first-child { border-top: none; } }
+
+    /* ---------- Feature grid ---------- */
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .feat { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 18px 20px; transition: all 0.2s; }
+    .feat:hover { border-color: var(--border-strong); }
+    .feat .k { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14.5px; margin-bottom: 5px; }
+    .feat .k .d { width: 7px; height: 7px; border-radius: 2px; background: var(--primary); }
+    .feat p { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+
+    /* ---------- Ecosystem ---------- */
+    .eco-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .eco { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; padding: 26px; transition: all 0.25s; }
+    .eco:hover { border-color: var(--secondary); }
+    .eco .tag { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--secondary); letter-spacing: 0.05em; }
+    .eco h3 { font-size: 17px; margin: 8px 0 8px; }
+    .eco p { color: var(--text-secondary); font-size: 14px; margin-bottom: 14px; }
+    .eco pre { background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; overflow-x: auto; }
+    .eco pre code { font-size: 12.5px; color: var(--text-secondary); line-height: 1.7; white-space: pre; }
+    .eco .cmt { color: var(--text-muted); }
+    .eco .kw { color: var(--secondary); }
+    .eco .str { color: var(--primary); }
+    @media (max-width: 780px) { .eco-grid { grid-template-columns: 1fr; } }
+
+    /* ---------- Quickstart ---------- */
+    .qs-inner { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 44px; align-items: center; }
+    .terminal { background: #0B0D11; border: 1px solid var(--border-strong); border-radius: 14px; overflow: hidden; box-shadow: var(--glass-shadow); }
+    .terminal .bar { display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); background: #15181E; }
+    .terminal .bar span { width: 11px; height: 11px; border-radius: 50%; }
+    .terminal .bar .r { background: #FF5F57; } .terminal .bar .y { background: #FEBC2E; } .terminal .bar .g { background: #28C840; }
+    .terminal .bar .t { margin-left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #64748B; }
+    .terminal pre { padding: 18px 20px; overflow-x: auto; }
+    .terminal code { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; color: #E2E8F0; white-space: pre; }
+    .terminal .c { color: #64748B; } .terminal .p { color: #2DD4BF; } .terminal .a { color: #818CF8; }
+    @media (max-width: 860px) { .qs-inner { grid-template-columns: 1fr; } }
+
+    /* ---------- CTA band ---------- */
+    .cta-band { text-align: center; padding: 80px 0; }
+    .cta-band h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 16px; }
+    .cta-band p { color: var(--text-secondary); font-size: 17px; margin-bottom: 30px; }
+    .cta-band .row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ---------- Footer ---------- */
+    footer { border-top: 1px solid var(--border-default); padding: 44px 0; }
+    .foot-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .foot-inner .brand { font-size: 16px; }
+    .foot-links { display: flex; gap: 24px; font-size: 14px; color: var(--text-secondary); flex-wrap: wrap; }
+    .foot-links a:hover { color: var(--text-primary); }
+    .foot-note { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
+
+    /* reveal on scroll */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .pulse, .flow, .float { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <nav>
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">MemTrace</a>
+      <div class="nav-links">
+        <a href="#concepts">Concepts</a>
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#ecosystem">Ecosystem</a>
+        <a href="#start">Get started</a>
+      </div>
+      <div class="nav-actions">
+        <a class="lang-link" href="./index.html" aria-label="切換至繁體中文">中</a>
+        <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+          <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <a class="btn btn-ghost" href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero" id="top">
+    <div class="hero-grid"></div>
+    <div class="wrap hero-inner">
+      <div>
+        <span class="badge"><span class="dot"></span>Knowledge graph · Traversal tracking · Decay</span>
+        <h1 class="title">Knowledge that <span class="grad">outlives</span> the conversation</h1>
+        <p class="lead">MemTrace is an open memory hub for teams and AI agents. Knowledge doesn't need to live in large documents — it lives as small, focused <strong>Memory Nodes</strong>, connected by typed edges that grow into a living knowledge graph.</p>
+        <p class="subtag">// Because knowledge should outlive the conversation.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="#start">Get started →</a>
+          <a class="btn btn-ghost btn-lg" href="#concepts">How it works</a>
+        </div>
+        <div class="hero-meta">
+          <div><span class="n">Human · AI · Tools</span><span class="l">One shared graph</span></div>
+          <div><span class="n">zh-TW / EN</span><span class="l">Fully bilingual UI</span></div>
+          <div><span class="n">MCP · REST</span><span class="l">Native integrations</span></div>
+        </div>
+      </div>
+
+      <!-- Animated knowledge graph visual -->
+      <div class="hero-visual float">
+        <svg viewBox="0 0 400 400" role="img" aria-label="Knowledge graph illustration">
+          <path class="edge flow" d="M200 200 L110 110" stroke-width="2.5"/>
+          <path class="edge flow" d="M200 200 L300 130" stroke-width="2.5"/>
+          <path class="edge" d="M200 200 L130 300" stroke-width="2"/>
+          <path class="edge weak" d="M200 200 L310 290" stroke-width="1.2" opacity="0.5"/>
+          <path class="edge" d="M110 110 L90 210" stroke-width="1.6" opacity="0.7"/>
+          <path class="edge weak" d="M300 130 L340 220" stroke-width="1.1" opacity="0.4"/>
+          <path class="edge" d="M110 110 L200 60" stroke-width="1.6" opacity="0.7"/>
+          <path class="edge weak" d="M130 300 L110 350" stroke-width="1" opacity="0.35"/>
+
+          <g class="node-set">
+            <circle class="node-c" cx="110" cy="110" r="16"/>
+            <circle class="node-c sec" cx="300" cy="130" r="13"/>
+            <circle class="node-c" cx="130" cy="300" r="12"/>
+            <circle class="node-c leaf" cx="310" cy="290" r="9"/>
+            <circle class="node-c leaf" cx="90" cy="210" r="8"/>
+            <circle class="node-c leaf" cx="340" cy="220" r="7" opacity="0.6"/>
+            <circle class="node-c sec" cx="200" cy="60" r="10"/>
+            <circle class="node-c leaf" cx="110" cy="350" r="6" opacity="0.5"/>
+          </g>
+
+          <circle cx="200" cy="200" r="26" fill="var(--primary-subtle)" stroke="var(--primary)" stroke-width="2"/>
+          <circle class="node-core pulse" cx="200" cy="200" r="6"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ CONCEPTS ============ -->
+  <section id="concepts" class="divider">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Core Concepts</span>
+        <h2>Five concepts, one living graph</h2>
+        <p>The value is not in any single node, but in the network they form. A new teammate or an AI agent can enter at any node and follow the edges to everything related — without the original author guiding them.</p>
+      </div>
+      <div class="concept-grid">
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6"/></svg></div>
+          <h3>Memory Node</h3>
+          <p>A structured, bilingual (zh-TW / en) unit of knowledge with a content type, visibility, tags, and a traversal counter. One node, one idea.</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7 7l4 9M17 7l-4 9"/></svg></div>
+          <h3>Knowledge Graph</h3>
+          <p>Nodes connect through typed edges: <code>depends_on</code>, <code>extends</code>, <code>related_to</code>, <code>contradicts</code>. Co-accessed edges grow stronger.</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></svg></div>
+          <h3>Decay</h3>
+          <p>Edge weight decays over time; co-access boosts it back by +0.10–0.30. Connections nobody follows eventually dissolve on their own.</p>
+          <span class="formula">w(t) = w₀ × 0.5 ^ (days / half_life)</span>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 12l4-4M4 12l4 4"/><circle cx="20" cy="12" r="0.5"/></svg></div>
+          <h3>Traversal Tracking</h3>
+          <p>Every node and edge records how many times it has been visited, and by how many distinct actors (humans or agents). Useful paths reinforce themselves.</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+          <h3>Knowledge Base</h3>
+          <p>Multiple workspaces with four sharing levels (public / conditional_public / restricted / private) and invite links. Nodes are portable across knowledge bases.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW / INHERITANCE ============ -->
+  <section id="how" class="divider">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Knowledge Inheritance</span>
+        <h2>Designed for knowledge inheritance</h2>
+        <p>It works equally well for human-to-human, human-to-AI, and AI-to-AI sharing. Every contributor writes into the same graph.</p>
+      </div>
+      <div class="how card reveal" style="padding:0">
+        <div class="step">
+          <div class="num"></div>
+          <h3>Capture</h3>
+          <p>Write one focused idea as a node — create it manually, or upload a document and let AI propose candidate nodes for you to review before committing.</p>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <h3>Connect</h3>
+          <p>Link nodes with typed edges. Useful connections strengthen as they are traversed; unused ones decay and eventually fade away.</p>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <h3>Inherit</h3>
+          <p>A newcomer or AI agent enters at any node and explores outward along the edges — knowledge no longer leaves with the conversation or the person.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section id="features" class="divider">
+    <div class="wrap">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Feature Overview</span>
+        <h2>One platform across the whole knowledge workflow</h2>
+      </div>
+      <div class="feat-grid">
+        <div class="feat reveal"><div class="k"><span class="d"></span>Node editing</div><p>Plain text or Markdown, bilingual titles, content type, tags, visibility.</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>Graph &amp; paths</div><p>Typed edges, weight decay, co-access boost, path ratings (1–5), traversal counts.</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>AI extraction</div><p>Upload a document → AI proposes candidate nodes → you review before commit.</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>Bring your own key</div><p>User-supplied OpenAI / Anthropic API key; never stored server-side.</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>Provenance</div><p>Each node records who created it, when, and with which tool or model; uploaded documents are kept as reference sources.</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>Auth</div><p>Email registration with verification, Google OAuth 2.0.</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>External API</div><p>REST API with scoped keys: <code>kb:read</code> / <code>kb:write</code> / <code>node:traverse</code> / <code>node:rate</code>.</p></div>
+        <div class="feat reveal"><div class="k"><span class="d"></span>Onboarding</div><p>Guided web wizard and the interactive <code>memtrace init</code> CLI flow.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ECOSYSTEM ============ -->
+  <section id="ecosystem" class="divider">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Ecosystem Integration</span>
+        <h2>Plug into your existing AI workflow</h2>
+        <p>MemTrace ships native integrations with the broader AI ecosystem, so your knowledge graph drops straight into standard LLM apps.</p>
+      </div>
+      <div class="eco-grid">
+        <div class="eco reveal">
+          <span class="tag">MODEL CONTEXT PROTOCOL</span>
+          <h3>Native MCP server</h3>
+          <p>Let Claude Desktop, Cursor, Antigravity and others search, read, create, and update graph nodes directly — no raw spec docs. Supports SSE and Streamable HTTP.</p>
+          <pre><code><span class="cmt"># Streamable HTTP (Cursor / Antigravity)</span>
+URL: https://&lt;host&gt;:8000/mcp
+Auth: Bearer mt_&lt;your_api_key&gt;</code></pre>
+        </div>
+        <div class="eco reveal">
+          <span class="tag">OPENAI-COMPATIBLE API</span>
+          <h3>OpenAI-compatible endpoint</h3>
+          <p><code>/v1/chat/completions</code> runs hybrid semantic search (RAG) over the selected workspace, injecting relevant nodes and returning source citations, with SSE streaming.</p>
+          <pre><code><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+client = OpenAI(
+  base_url=<span class="str">"http://localhost:8000/v1"</span>,
+  api_key=<span class="str">"mt_xxx"</span>,
+)</code></pre>
+        </div>
+        <div class="eco reveal">
+          <span class="tag">PYTHON SDK</span>
+          <h3>Official Python client</h3>
+          <p>Manage workspaces, create/search nodes, and run chat &amp; retrieval programmatically.</p>
+          <pre><code><span class="kw">from</span> memtrace <span class="kw">import</span> MemTraceClient
+c = MemTraceClient(api_key=<span class="str">"mt_xxx"</span>)
+c.search_nodes(query=<span class="str">"how to config auth"</span>)</code></pre>
+        </div>
+        <div class="eco reveal">
+          <span class="tag">LANGCHAIN · LLAMAINDEX</span>
+          <h3>Framework retrievers</h3>
+          <p>An LCEL-compatible <code>MemTraceRetriever</code> and a LlamaIndex <code>MemTraceVectorStore</code> — a few lines into your existing pipeline.</p>
+          <pre><code><span class="kw">from</span> langchain_memtrace <span class="kw">import</span> MemTraceRetriever
+retriever = MemTraceRetriever(workspace_id=<span class="str">"ws_abc"</span>)
+chain = retriever | llm</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUICKSTART ============ -->
+  <section id="start" class="divider">
+    <div class="wrap qs-inner">
+      <div class="section-head reveal" style="margin-bottom:0">
+        <span class="eyebrow">Quick Start</span>
+        <h2>Up and running in minutes</h2>
+        <p>PostgreSQL 17 + pgvector come up via docker compose; one line each for API and UI. Full guide in <code>docs/DEVELOPMENT.md</code>.</p>
+        <div class="hero-cta" style="margin-top:24px">
+          <a class="btn btn-primary" href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">Open on GitHub</a>
+          <a class="btn btn-ghost" href="../docs/SPEC.md">Read the spec</a>
+        </div>
+      </div>
+      <div class="terminal reveal">
+        <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span><span class="t">bash — memtrace</span></div>
+        <pre><code><span class="c"># 1. Clone and install</span>
+git clone https://github.com/wei-nan/MemTrace.git
+cd MemTrace && cp .env.example .env
+npm install
+
+<span class="c"># 2. Start the database (PostgreSQL 17 + pgvector)</span>
+docker compose up -d
+
+<span class="c"># 3. Start the API</span>
+<span class="p">cd</span> packages/api
+python -m uvicorn main:app --reload
+
+<span class="c"># 4. Start the UI (new terminal)</span>
+<span class="p">cd</span> packages/ui && npm run dev</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="divider">
+    <div class="wrap cta-band reveal">
+      <h2>Knowledge should outlive the conversation.</h2>
+      <p>Start writing your team's and your agents' knowledge into one graph that grows.</p>
+      <div class="row">
+        <a class="btn btn-primary btn-lg" href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">Start on GitHub</a>
+        <a class="btn btn-ghost btn-lg" href="../docs/SPEC.md">Read the full spec</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="wrap foot-inner">
+      <div>
+        <a class="brand" href="#top">MemTrace</a>
+        <p class="foot-note">Collaborative memory hub — shared knowledge graph, traversal tracking, decay. MIT License.</p>
+      </div>
+      <div class="foot-links">
+        <a href="../docs/README.md">Docs Index</a>
+        <a href="../docs/SPEC.md">Spec</a>
+        <a href="../docs/DEVELOPMENT.md">Development</a>
+        <a href="../README.md">README</a>
+        <a href="https://github.com/wei-nan/MemTrace" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Theme toggle (follows system, remembers choice) ----
+    (function () {
+      const root = document.documentElement;
+      const btn = document.getElementById('themeBtn');
+      const icon = document.getElementById('themeIcon');
+      const moon = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>';
+      const sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+      const saved = localStorage.getItem('mt-theme');
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      let theme = saved || (prefersLight ? 'light' : 'dark');
+      apply(theme);
+      btn.addEventListener('click', function () {
+        theme = (root.getAttribute('data-theme') === 'light') ? 'dark' : 'light';
+        localStorage.setItem('mt-theme', theme);
+        apply(theme);
+      });
+      function apply(t) {
+        root.setAttribute('data-theme', t);
+        icon.innerHTML = (t === 'light') ? moon : sun;
+      }
+    })();
+
+    // ---- Scroll reveal ----
+    (function () {
+      const els = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('in')); return; }
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((en, i) => {
+          if (en.isIntersecting) { en.target.style.transitionDelay = (i % 3) * 60 + 'ms'; en.target.classList.add('in'); io.unobserve(en.target); }
+        });
+      }, { threshold: 0.12 });
+      els.forEach(e => io.observe(e));
+    })();
+  </script>
+</body>
+</html>

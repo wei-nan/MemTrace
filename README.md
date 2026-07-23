@@ -1,6 +1,6 @@
 # MemTrace
 
-> Collaborative memory hub with knowledge graph, trust scoring, and decay — for teams and AI agents.
+> Collaborative memory hub with a knowledge graph, typed edges, and decay — for teams and AI agents.
 
 **MemTrace** is an open platform for capturing, connecting, and sharing knowledge across teams and AI tools.
 
@@ -10,17 +10,17 @@ MemTrace is designed for **knowledge inheritance**: when someone new joins a pro
 
 It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sharing. Every contributor writes into the same graph.
 
-→ Full specification: [docs/SPEC.md](docs/SPEC.md) · Developer setup: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+→ Documentation Index: [docs/README.md](docs/README.md) · Full specification: [docs/SPEC.md](docs/SPEC.md) · Developer setup: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 
 ---
 
 ## Core Concepts
 
-**Memory Node** — A structured, bilingual (zh-TW / en) piece of knowledge with a content type, visibility, tags, trust score, and traversal counter.
+**Memory Node** — A structured, bilingual (zh-TW / en) piece of knowledge with a content type, visibility, tags, and a traversal counter.
 
 **Knowledge Graph** — Nodes connect through typed Edges (`depends_on`, `extends`, `related_to`, `contradicts`). Co-accessed edges grow stronger; unused edges decay and eventually dissolve.
 
-**Trust** — Each node carries a multi-dimensional score built from community votes, author reputation, and verification history. Content is SHA-256 hashed on creation to detect tampering.
+**Provenance** — Each node records who created it, when, and with which tool or model (`source_type`: human / AI / system / tool). Uploaded documents and attachments are retained as reference sources, not as truth guarantees.
 
 **Decay** — Edge weight follows `w(t) = w₀ × 0.5 ^ (days_since_use / half_life)`. Co-access boosts weight by +0.10–0.30 depending on relation type.
 
@@ -38,7 +38,7 @@ It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sh
 | **AI Extraction** | Upload document → AI proposes candidate nodes → user review before commit |
 | **AI Providers** | User-supplied API key (OpenAI / Anthropic); no key stored server-side |
 | **Node Portability** | Copy individual nodes across Knowledge Bases; edges not copied |
-| **Trust** | accuracy, freshness, utility, author\_rep dimensions; SHA-256 anti-forgery |
+| **Provenance** | Per-node origin: author, timestamp, and `source_type` (human / AI / system / tool); original documents retained as reference |
 | **Auth** | Email + password registration with verification, Google OAuth 2.0 |
 | **External API** | REST API with scoped API keys (`kb:read`, `kb:write`, `node:traverse`, `node:rate`) |
 | **MCP Server** | Native integration via Python API (SSE & Streamable HTTP) |
@@ -88,6 +88,7 @@ packages/
 ```
 memtrace/
 ├── docs/
+│   ├── README.md            Documentation directory index
 │   ├── SPEC.md              Full specification
 │   └── DEVELOPMENT.md       Developer setup guide
 ├── schema/
@@ -165,12 +166,10 @@ MemTrace exposes its knowledge base to AI coding tools via the **Model Context P
 | `update_node` | Edit an existing node's fields |
 | `delete_node` | Remove a node (and its edges) |
 | `create_edge` | Connect two nodes with a typed relationship |
-| `vote_trust` | Cast a trust vote on a node |
-| `confirm_node_validity` | Mark a node as verified |
 
 > All node tools accept an optional `workspace_id` parameter. If omitted, they use the `MEMTRACE_WS` default.
 
-> Write tools require a token with `kb:write` scope. `vote_trust` and `confirm_node_validity` require `node:rate`.
+> Write tools require a token with `kb:write` scope.
 
 ---
 
