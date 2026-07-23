@@ -2303,7 +2303,7 @@ VALUES
 | `utility` | 實用程度 | 0.5 |
 | `author_rep` | 作者信譽 | 0.5 |
 
-信任分數隨社群投票（up/down）與驗證次數持續更新。內容以 SHA-256 簽章防偽，每次儲存重新計算。Trust score < 0.3 的節點標記警告；< 0.1 的節點從公開索引移除。',
+> 現階段定位：節點 Trust／驗證評分已暫緩對外（見決策 mem_56118060）。上述維度與 trust_score 為系統內部保留欄位，不在 UI 呈現，不得解讀為內容正確性或真實性之保證，也不會據此將節點標記警告或移出公開索引。內容仍以 SHA-256 簽章（signature）防竄改——此為 provenance／完整性，與 Trust 評分分離。',
    ARRAY['data-model', 'trust', 'anti-forgery']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3','human',
    0.95,0.95,1.0,0.9,0.9,
    0,0,0,0,0)
@@ -6038,7 +6038,7 @@ VALUES
 | `utility` | Practical usefulness | 0.5 |
 | `author_rep` | Author reputation | 0.5 |
 
-Trust scores are updated continuously by community votes (up/down) and verification counts. Content is SHA-256 signed on every save. Nodes with score < 0.3 are flagged; nodes < 0.1 are removed from the public index.',
+> Current positioning: node Trust / verification scoring is deferred from the public surface (see decision mem_56118060). The dimensions above and `trust_score` are internal, retained fields — not surfaced in the UI, not to be interpreted as a guarantee of content correctness or authenticity, and not used to flag nodes or remove them from the public index. Content is still SHA-256 signed (`signature`) for tamper-evidence — this is provenance / integrity, separate from Trust scoring.',
    ARRAY['data-model', 'trust', 'anti-forgery']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3','human',
    0.95,0.95,1.0,0.9,0.9,
    0,0,0,0,0)
