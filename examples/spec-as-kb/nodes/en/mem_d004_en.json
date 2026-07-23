@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Every Memory Node carries a composite trust score (0–1) derived from four dimensions:\n\n| Dimension | Description | Default at creation |\n|-----------|-------------|--------------------|\n| `accuracy` | Factual correctness | 0.5 |\n| `freshness` | Timeliness | 1.0 |\n| `utility` | Practical usefulness | 0.5 |\n| `author_rep` | Author reputation | 0.5 |\n\nTrust scores are updated continuously by community votes (up/down) and verification counts. Content is SHA-256 signed on every save. Nodes with score < 0.3 are flagged; nodes < 0.1 are removed from the public index."
+    "body": "Every Memory Node carries a composite trust score (0–1) derived from four dimensions:\n\n| Dimension | Description | Default at creation |\n|-----------|-------------|--------------------|\n| `accuracy` | Factual correctness | 0.5 |\n| `freshness` | Timeliness | 1.0 |\n| `utility` | Practical usefulness | 0.5 |\n| `author_rep` | Author reputation | 0.5 |\n\n> Current positioning: node Trust / verification scoring is deferred from the public surface (see decision mem_56118060). The dimensions above and `trust_score` are internal, retained fields — not surfaced in the UI, not to be interpreted as a guarantee of content correctness or authenticity, and not used to flag nodes or remove them from the public index. Content is still SHA-256 signed (`signature`) for tamper-evidence — this is provenance / integrity, separate from Trust scoring."
   },
   "tags": [
     "data-model",

@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "每個 Memory Node 帶有一個 0–1 的綜合信任分數，由四個維度合成：\n\n| 維度 | 說明 | 建立時預設 |\n|------|------|----------|\n| `accuracy` | 事實正確性 | 0.5 |\n| `freshness` | 時效性 | 1.0 |\n| `utility` | 實用程度 | 0.5 |\n| `author_rep` | 作者信譽 | 0.5 |\n\n信任分數隨社群投票（up/down）與驗證次數持續更新。內容以 SHA-256 簽章防偽，每次儲存重新計算。Trust score < 0.3 的節點標記警告；< 0.1 的節點從公開索引移除。"
+    "body": "每個 Memory Node 帶有一個 0–1 的綜合信任分數，由四個維度合成：\n\n| 維度 | 說明 | 建立時預設 |\n|------|------|----------|\n| `accuracy` | 事實正確性 | 0.5 |\n| `freshness` | 時效性 | 1.0 |\n| `utility` | 實用程度 | 0.5 |\n| `author_rep` | 作者信譽 | 0.5 |\n\n> 現階段定位：節點 Trust／驗證評分已暫緩對外（見決策 mem_56118060）。上述維度與 trust_score 為系統內部保留欄位，不在 UI 呈現，不得解讀為內容正確性或真實性之保證，也不會據此將節點標記警告或移出公開索引。內容仍以 SHA-256 簽章（signature）防竄改——此為 provenance／完整性，與 Trust 評分分離。"
   },
   "tags": [
     "data-model",
