@@ -180,7 +180,7 @@ def upsert_edges(cur, edges: list[dict], ws_id: str):
             ON CONFLICT (id) DO NOTHING
         """, (
             e["id"], ws_id, e["from"], e["to"], e["relation"],
-            e.get("weight", 1.0), e.get("co_access_count", 0), e.get("last_co_accessed", now_iso()),
+            e.get("weight", 1.0), e.get("co_access_count", 0), (e.get("last_co_accessed") or now_iso()),
             d.get("half_life_days", 90), d.get("min_weight", 0.05), d.get("pinned", False),
             tr.get("count", 0), rating_sum, tr.get("rating_count", 0),
         ))
