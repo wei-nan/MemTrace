@@ -1,0 +1,43 @@
+{
+  "id": "mem_i006",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Python SDK:memtrace 官方客戶端(MemTraceClient)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "`packages/sdk-python` 提供官方 Python 客戶端 `MemTraceClient`,以程式化方式操作 MemTrace REST API(見 mem_i002),認證使用外部 API Key。\n\n```python\nfrom memtrace import MemTraceClient\nc = MemTraceClient(base_url=\"http://localhost:8000\", api_key=\"mt_...\")\nc.search_nodes(workspace_id=\"ws_abc\", query=\"how to config auth\")\n```\n\n## 能力\n- **工作區**:`list_workspaces`、`get_workspace`\n- **節點**:`create_node`、`get_node`、`list_nodes`、`search_nodes`、`search_semantic`、`delete_node`\n- **對話與檢索**:`chat`、`chat_stream`\n\n每個同步方法都有對應的非同步版本(`a` 前綴,例如 `alist_workspaces`、`asearch_nodes`、`achat_stream`)。"
+  },
+  "tags": [
+    "sdk",
+    "python",
+    "client",
+    "integration",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-07-25T00:00:00+00:00",
+    "signature": "a1f55b9b358593ffe74e5f0e978565588ecbde271b1e0769da0fc5f83b0d83d9",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

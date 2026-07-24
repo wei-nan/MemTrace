@@ -1,0 +1,43 @@
+{
+  "id": "mem_i007",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "框架整合:LangChain Retriever 與 LlamaIndex Vector Store",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 提供兩個框架整合套件,讓知識庫幾行就接進既有 LLM pipeline。兩者皆以 `base_url` + `api_key` + `workspace_id` 連線,底層走 REST API(見 mem_i002)。\n\n## LangChain(`packages/langchain-memtrace`)\n`MemTraceRetriever`,相容 LangChain Expression Language(LCEL);`retriever.invoke(query)` 回傳文件。\n\n```python\nfrom langchain_memtrace import MemTraceRetriever\nretriever = MemTraceRetriever(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\", k=5)\nchain = retriever | llm\n```\n\n## LlamaIndex(`packages/llama-index-memtrace`)\n`MemTraceVectorStore`,把工作區當成 LlamaIndex 的向量資料來源 / 索引。\n\n```python\nfrom llama_index_memtrace import MemTraceVectorStore\nvs = MemTraceVectorStore(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\")\n```"
+  },
+  "tags": [
+    "langchain",
+    "llamaindex",
+    "retriever",
+    "vector-store",
+    "integration"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-07-25T00:00:00+00:00",
+    "signature": "a8a980388655beeddb2d3fb9812ac4d155b7811a61d6b805200c778953de3f98",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

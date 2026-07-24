@@ -1326,6 +1326,43 @@ When an AI agent navigates the graph (e.g. fetches node A, follows an edge to no
 
 Agents are not required to rate paths but are encouraged to call `rate_path` when a path proved useful (rating ≥ 4) or misleading (rating ≤ 2), feeding signal back into path ratings and traversal statistics.
 
+### 14.5 Ecosystem Integrations
+
+Beyond the raw REST API (§14.3) and MCP server (§14.4), MemTrace ships first-party client libraries and an OpenAI-compatible surface so a workspace can drop into existing LLM tooling. All authenticate with the same account-level API key (`Authorization: Bearer mt_...`, §14.2).
+
+#### 14.5.1 OpenAI-compatible API (`/v1`)
+
+A workspace is exposed as an OpenAI "model" so existing OpenAI SDKs and tools can run hybrid-RAG chat against it.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/models` | List accessible workspaces as `memtrace-<ws_id>` models |
+| `GET` | `/v1/models/{id}` | Metadata for a single workspace-as-model |
+| `POST` | `/v1/chat/completions` | Hybrid-RAG chat over the workspace; OpenAI `chat.completion` shape |
+
+- **Workspace selection**: `model: memtrace-<ws_id>`, or a system message containing `workspace_id: ws_xxx`. Retrieval spans the workspace and its associated workspaces.
+- Answers use the caller's own AI provider (BYO key, §11.2). The reply appends a `**Sources:**` citation list; non-streaming responses also include an `x_source_nodes` field. `stream: true` returns an SSE stream terminated by `[DONE]`.
+- Only `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/v1/embeddings` endpoint.
+
+#### 14.5.2 Python SDK
+
+`packages/sdk-python` provides `MemTraceClient`, a programmatic wrapper over the REST API.
+
+```python
+from memtrace import MemTraceClient
+c = MemTraceClient(base_url="http://localhost:8000", api_key="mt_...")
+c.search_nodes(workspace_id="ws_abc", query="how to config auth")
+```
+
+It covers workspaces (`list_workspaces`, `get_workspace`), nodes (`create_node`, `get_node`, `list_nodes`, `search_nodes`, `search_semantic`, `delete_node`), and chat/retrieval (`chat`, `chat_stream`). Every synchronous method has an async counterpart (the `a` prefix).
+
+#### 14.5.3 Framework Integrations (LangChain, LlamaIndex)
+
+- **LangChain** (`packages/langchain-memtrace`): `MemTraceRetriever`, LCEL-compatible; `retriever.invoke(query)` returns documents.
+- **LlamaIndex** (`packages/llama-index-memtrace`): `MemTraceVectorStore`, exposing a workspace as a vector data source / index.
+
+Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath.
+
 ## 15. First-Run Onboarding
 
 ### 15.1 Overview

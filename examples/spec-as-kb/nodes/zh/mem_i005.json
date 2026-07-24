@@ -1,0 +1,43 @@
+{
+  "id": "mem_i005",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "OpenAI 相容 API 端點:以工作區為模型的 RAG chat",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 提供 **OpenAI 相容端點**(前綴 `/v1`),讓既有的 OpenAI SDK 或工具能直接把一個工作區當成「模型」做混合檢索問答(hybrid RAG)。認證沿用外部 API Key(`Authorization: Bearer mt_...`,見 mem_i002)。\n\n## 端點\n\n| 方法 | 路徑 | 說明 |\n|------|------|------|\n| `GET` | `/v1/models` | 列出呼叫者可存取的工作區,對應為 `memtrace-<ws_id>` 模型 |\n| `GET` | `/v1/models/{id}` | 取得單一工作區模型的 metadata |\n| `POST` | `/v1/chat/completions` | 以指定工作區做 hybrid RAG chat,回應為 OpenAI `chat.completion` 格式 |\n\n## 工作區選定\n`model` 帶 `memtrace-<ws_id>`;或在 system message 內以 `workspace_id: ws_xxx` 覆寫。檢索範圍含該工作區與其關聯工作區(workspace_associations)。\n\n## 行為\n- 以呼叫者自管的 AI Provider(BYO key)產生回覆;檢索走混合檢索(關鍵字 + 語意)。\n- 回應內文附上 `**Sources:**` 引用清單;非串流回應另帶 `x_source_nodes` 欄位(命中節點原始資料)。\n- 支援 `stream: true` 的 SSE 串流(`text/event-stream`):串完內容後補送 sources,再送帶 `x_source_nodes` 的最後一個 chunk,最後送 `[DONE]`。\n\n## 範圍界線\n目前僅實作 `/v1/models` 與 `/v1/chat/completions`,**未**提供 `/v1/embeddings`。"
+  },
+  "tags": [
+    "api",
+    "openai-compatible",
+    "rag",
+    "integration",
+    "chat"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-07-25T00:00:00+00:00",
+    "signature": "26319322db8dec2367656d189d0b57ae905e41a79dafb2eee155df672c129097",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

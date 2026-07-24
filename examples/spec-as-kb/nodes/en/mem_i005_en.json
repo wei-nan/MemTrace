@@ -1,0 +1,43 @@
+{
+  "id": "mem_i005_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "OpenAI-compatible API: workspace-as-model RAG chat",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace exposes **OpenAI-compatible endpoints** (prefix `/v1`) so existing OpenAI SDKs and tools can treat a workspace as a \"model\" and run hybrid-RAG chat over it. Authentication reuses the external API key (`Authorization: Bearer mt_...`, see mem_i002_en).\n\n## Endpoints\n\n| Method | Path | Description |\n|--------|------|-------------|\n| `GET` | `/v1/models` | List the caller's accessible workspaces, mapped as `memtrace-<ws_id>` models |\n| `GET` | `/v1/models/{id}` | Get metadata for a single workspace-as-model |\n| `POST` | `/v1/chat/completions` | Hybrid-RAG chat over the chosen workspace; responds in OpenAI `chat.completion` shape |\n\n## Workspace selection\nPass `model` as `memtrace-<ws_id>`, or override via a system message containing `workspace_id: ws_xxx`. Retrieval spans the workspace and its associated workspaces (workspace_associations).\n\n## Behaviour\n- Answers are generated with the caller's own AI provider (BYO key); retrieval uses hybrid (keyword + semantic) search.\n- The reply body appends a `**Sources:**` citation list; non-streaming responses also carry an `x_source_nodes` field (raw matched nodes).\n- `stream: true` yields an SSE stream (`text/event-stream`): content deltas, then the sources block, then a final chunk carrying `x_source_nodes`, then `[DONE]`.\n\n## Scope boundary\nOnly `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/v1/embeddings` endpoint."
+  },
+  "tags": [
+    "api",
+    "openai-compatible",
+    "rag",
+    "integration",
+    "chat"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-07-25T00:00:00+00:00",
+    "signature": "e5dc92aeb1637d84c446b8f4b0f7e39572e63be1f4e37692a36a98869b685afb",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

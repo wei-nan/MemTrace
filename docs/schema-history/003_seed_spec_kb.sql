@@ -4448,6 +4448,103 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_i005','1.0','ws_spec0001','OpenAI 相容 API 端點:以工作區為模型的 RAG chat','factual','markdown','MemTrace 提供 **OpenAI 相容端點**(前綴 `/v1`),讓既有的 OpenAI SDK 或工具能直接把一個工作區當成「模型」做混合檢索問答(hybrid RAG)。認證沿用外部 API Key(`Authorization: Bearer mt_...`,見 mem_i002)。
+
+## 端點
+
+| 方法 | 路徑 | 說明 |
+|------|------|------|
+| `GET` | `/v1/models` | 列出呼叫者可存取的工作區,對應為 `memtrace-<ws_id>` 模型 |
+| `GET` | `/v1/models/{id}` | 取得單一工作區模型的 metadata |
+| `POST` | `/v1/chat/completions` | 以指定工作區做 hybrid RAG chat,回應為 OpenAI `chat.completion` 格式 |
+
+## 工作區選定
+`model` 帶 `memtrace-<ws_id>`;或在 system message 內以 `workspace_id: ws_xxx` 覆寫。檢索範圍含該工作區與其關聯工作區(workspace_associations)。
+
+## 行為
+- 以呼叫者自管的 AI Provider(BYO key)產生回覆;檢索走混合檢索(關鍵字 + 語意)。
+- 回應內文附上 `**Sources:**` 引用清單;非串流回應另帶 `x_source_nodes` 欄位(命中節點原始資料)。
+- 支援 `stream: true` 的 SSE 串流(`text/event-stream`):串完內容後補送 sources,再送帶 `x_source_nodes` 的最後一個 chunk,最後送 `[DONE]`。
+
+## 範圍界線
+目前僅實作 `/v1/models` 與 `/v1/chat/completions`,**未**提供 `/v1/embeddings`。',
+   ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','26319322db8dec2367656d189d0b57ae905e41a79dafb2eee155df672c129097','human',
+   0.8,0.9,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_i006','1.0','ws_spec0001','Python SDK:memtrace 官方客戶端(MemTraceClient)','factual','markdown','`packages/sdk-python` 提供官方 Python 客戶端 `MemTraceClient`,以程式化方式操作 MemTrace REST API(見 mem_i002),認證使用外部 API Key。
+
+```python
+from memtrace import MemTraceClient
+c = MemTraceClient(base_url="http://localhost:8000", api_key="mt_...")
+c.search_nodes(workspace_id="ws_abc", query="how to config auth")
+```
+
+## 能力
+- **工作區**:`list_workspaces`、`get_workspace`
+- **節點**:`create_node`、`get_node`、`list_nodes`、`search_nodes`、`search_semantic`、`delete_node`
+- **對話與檢索**:`chat`、`chat_stream`
+
+每個同步方法都有對應的非同步版本(`a` 前綴,例如 `alist_workspaces`、`asearch_nodes`、`achat_stream`)。',
+   ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','a1f55b9b358593ffe74e5f0e978565588ecbde271b1e0769da0fc5f83b0d83d9','human',
+   0.8,0.9,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_i007','1.0','ws_spec0001','框架整合:LangChain Retriever 與 LlamaIndex Vector Store','factual','markdown','MemTrace 提供兩個框架整合套件,讓知識庫幾行就接進既有 LLM pipeline。兩者皆以 `base_url` + `api_key` + `workspace_id` 連線,底層走 REST API(見 mem_i002)。
+
+## LangChain(`packages/langchain-memtrace`)
+`MemTraceRetriever`,相容 LangChain Expression Language(LCEL);`retriever.invoke(query)` 回傳文件。
+
+```python
+from langchain_memtrace import MemTraceRetriever
+retriever = MemTraceRetriever(base_url="http://localhost:8000", api_key="mt_...", workspace_id="ws_abc", k=5)
+chain = retriever | llm
+```
+
+## LlamaIndex(`packages/llama-index-memtrace`)
+`MemTraceVectorStore`,把工作區當成 LlamaIndex 的向量資料來源 / 索引。
+
+```python
+from llama_index_memtrace import MemTraceVectorStore
+vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", workspace_id="ws_abc")
+```',
+   ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','a8a980388655beeddb2d3fb9812ac4d155b7811a61d6b805200c778953de3f98','human',
+   0.8,0.9,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_inq001','1.0','ws_spec0001','缺口：多 planner 規劃討論（fan-out + 共識裁決）','inquiry','markdown','目前迴圈的規劃階段只有單 planner。期望能支援多個 planner 並行產生提案，再裁決是否達成共識。
 
 **待討論的設計問題：**
@@ -10341,6 +10438,103 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_i005_en','1.0','ws_spec0001_en','OpenAI-compatible API: workspace-as-model RAG chat','factual','markdown','MemTrace exposes **OpenAI-compatible endpoints** (prefix `/v1`) so existing OpenAI SDKs and tools can treat a workspace as a "model" and run hybrid-RAG chat over it. Authentication reuses the external API key (`Authorization: Bearer mt_...`, see mem_i002_en).
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/models` | List the caller''s accessible workspaces, mapped as `memtrace-<ws_id>` models |
+| `GET` | `/v1/models/{id}` | Get metadata for a single workspace-as-model |
+| `POST` | `/v1/chat/completions` | Hybrid-RAG chat over the chosen workspace; responds in OpenAI `chat.completion` shape |
+
+## Workspace selection
+Pass `model` as `memtrace-<ws_id>`, or override via a system message containing `workspace_id: ws_xxx`. Retrieval spans the workspace and its associated workspaces (workspace_associations).
+
+## Behaviour
+- Answers are generated with the caller''s own AI provider (BYO key); retrieval uses hybrid (keyword + semantic) search.
+- The reply body appends a `**Sources:**` citation list; non-streaming responses also carry an `x_source_nodes` field (raw matched nodes).
+- `stream: true` yields an SSE stream (`text/event-stream`): content deltas, then the sources block, then a final chunk carrying `x_source_nodes`, then `[DONE]`.
+
+## Scope boundary
+Only `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/v1/embeddings` endpoint.',
+   ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','e5dc92aeb1637d84c446b8f4b0f7e39572e63be1f4e37692a36a98869b685afb','human',
+   0.8,0.9,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_i006_en','1.0','ws_spec0001_en','Python SDK: the official memtrace client (MemTraceClient)','factual','markdown','`packages/sdk-python` ships the official Python client `MemTraceClient` for driving the MemTrace REST API (see mem_i002_en) programmatically, authenticating with an external API key.
+
+```python
+from memtrace import MemTraceClient
+c = MemTraceClient(base_url="http://localhost:8000", api_key="mt_...")
+c.search_nodes(workspace_id="ws_abc", query="how to config auth")
+```
+
+## Capabilities
+- **Workspaces**: `list_workspaces`, `get_workspace`
+- **Nodes**: `create_node`, `get_node`, `list_nodes`, `search_nodes`, `search_semantic`, `delete_node`
+- **Chat & retrieval**: `chat`, `chat_stream`
+
+Every synchronous method has an async counterpart (the `a` prefix, e.g. `alist_workspaces`, `asearch_nodes`, `achat_stream`).',
+   ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','ec6bfad8e71afae13022bb721bf1a4fbe05fa48ef41d81182bcfa98211c22f9e','human',
+   0.8,0.9,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_i007_en','1.0','ws_spec0001_en','Framework integrations: LangChain retriever and LlamaIndex vector store','factual','markdown','MemTrace ships two framework-integration packages that plug a knowledge base into an existing LLM pipeline in a few lines. Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath (see mem_i002_en).
+
+## LangChain (`packages/langchain-memtrace`)
+`MemTraceRetriever`, compatible with the LangChain Expression Language (LCEL); `retriever.invoke(query)` returns documents.
+
+```python
+from langchain_memtrace import MemTraceRetriever
+retriever = MemTraceRetriever(base_url="http://localhost:8000", api_key="mt_...", workspace_id="ws_abc", k=5)
+chain = retriever | llm
+```
+
+## LlamaIndex (`packages/llama-index-memtrace`)
+`MemTraceVectorStore`, exposing a workspace as a LlamaIndex vector data source / index.
+
+```python
+from llama_index_memtrace import MemTraceVectorStore
+vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", workspace_id="ws_abc")
+```',
+   ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','607e222a8d5dc6e00e18b2e87009ca846b225866e687b925a652bdc235d8d107','human',
+   0.8,0.9,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_inq001_en','1.0','ws_spec0001_en','Gap: Multi-planner planning discussion (fan-out + consensus arbitration)','inquiry','markdown','The loop''s planning stage currently has only a single planner. We want to support multiple planners producing proposals in parallel, then arbitrate whether consensus is reached.
 
 **Open design questions:**
@@ -13189,6 +13383,22 @@ INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,
 VALUES ('edge_9c384c71','ws_spec0001','mem_47fe8f58','mem_d001','extends',0.95,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i005i002','ws_spec0001','mem_i005','mem_i002','depends_on',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i006i002','ws_spec0001','mem_i006','mem_i002','depends_on',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i007i002','ws_spec0001','mem_i007','mem_i002','depends_on',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i007i006','ws_spec0001','mem_i007','mem_i006','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
 
 -- ── en edges ────────────────────────────────────────────
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14341,4 +14551,20 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_ns0001_en','ws_spec0001_en','mem_ns002_en','mem_ns001_en','extends',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i005i002_en','ws_spec0001_en','mem_i005_en','mem_i002_en','depends_on',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i006i002_en','ws_spec0001_en','mem_i006_en','mem_i002_en','depends_on',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i007i002_en','ws_spec0001_en','mem_i007_en','mem_i002_en','depends_on',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_i007i006_en','ws_spec0001_en','mem_i007_en','mem_i006_en','related_to',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;

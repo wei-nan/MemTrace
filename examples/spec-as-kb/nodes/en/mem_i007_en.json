@@ -1,0 +1,43 @@
+{
+  "id": "mem_i007_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Framework integrations: LangChain retriever and LlamaIndex vector store",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace ships two framework-integration packages that plug a knowledge base into an existing LLM pipeline in a few lines. Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath (see mem_i002_en).\n\n## LangChain (`packages/langchain-memtrace`)\n`MemTraceRetriever`, compatible with the LangChain Expression Language (LCEL); `retriever.invoke(query)` returns documents.\n\n```python\nfrom langchain_memtrace import MemTraceRetriever\nretriever = MemTraceRetriever(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\", k=5)\nchain = retriever | llm\n```\n\n## LlamaIndex (`packages/llama-index-memtrace`)\n`MemTraceVectorStore`, exposing a workspace as a LlamaIndex vector data source / index.\n\n```python\nfrom llama_index_memtrace import MemTraceVectorStore\nvs = MemTraceVectorStore(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\")\n```"
+  },
+  "tags": [
+    "langchain",
+    "llamaindex",
+    "retriever",
+    "vector-store",
+    "integration"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-07-25T00:00:00+00:00",
+    "signature": "607e222a8d5dc6e00e18b2e87009ca846b225866e687b925a652bdc235d8d107",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
