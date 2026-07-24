@@ -15,6 +15,7 @@ The source of truth is the Agent Loop KB (`ws_6aa957c3`).
 - Planning triage (Plan-stage classify / strengthen / prioritize): `mem_0953dbd0`
 - Task node schema: `mem_5e6a82ab`
 - Takeover verification playbook (checking the previous stage's "done" claims): `mem_b3158737`
+- Spec-Sync gate (G4, conditional — public spec / schema / API changes): `mem_5d8c6ff8`
 
 ## Rule
 
@@ -86,6 +87,24 @@ Coverage audit must question whether verification itself is meaningful:
 - new branches and edge cases have assertions, not only happy paths;
 - existing tests were not weakened, skipped, or broadened just to pass;
 - uncovered gaps are recorded as inquiry/follow-up nodes.
+
+## G4: Spec-Sync (conditional)
+
+A conditional gate that fires only when a change touches public product
+behavior, schema, API/MCP contracts, or public spec content; otherwise its
+verdict is automatically `N/A PASS`. The seed JSON under `examples/spec-as-kb/`
+is the single source of truth — the migration SQL, its schema-history mirror,
+and the live public KB are generated from it. G4 requires:
+
+- if the public surface changed, the seed JSON changed too (else REJECT);
+- the committed seed SQL equals `generate(seed)` — `python scripts/seed_spec_kb.py --check`
+  is byte-identical (deterministic);
+- zh/en node parity: no en node without a zh source (fail); zh-without-en is a warning;
+- new or changed node content is semantically correct (LLM);
+- en is a faithful translation of zh (LLM — the only non-deterministic leg).
+
+Mechanized as a blocking CI gate in `.github/workflows/spec-sync.yml`. After
+editing seed JSON, refresh the generated SQL with `python scripts/seed_spec_kb.py --write`.
 
 ## Reject Handling
 
