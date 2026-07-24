@@ -84,8 +84,24 @@ const BODY_TEMPLATES: Record<string, { zh: string; en: string }> = {
   },
 };
 
+// "membership" notifications bake dynamic values (workspace name / inviter / role)
+// into the stored title+body server-side, so they can't use the static
+// CATEGORY_LABELS/BODY_TEMPLATES tables above. Re-derive a localized string by
+// parsing the fixed format written in `_notify_member_added`
+// (packages/api/routers/collaboration.py); fall back to the raw stored text if
+// the format ever drifts.
+const MEMBERSHIP_TITLE_RE = /^You were added to (.+)$/;
+const MEMBERSHIP_BODY_RE = /^(.+?) added you as (\w+)\. You can leave this workspace from Members & Access\.$/;
+
 /** Localized human title for a notification, derived from its category. */
 export function notificationTitle(n: NotificationItem, zh: boolean): string {
+  if (n.category === 'membership') {
+    if (zh) {
+      const m = MEMBERSHIP_TITLE_RE.exec(n.title);
+      if (m) return `您已被加入「${m[1]}」`;
+    }
+    return n.title;
+  }
   const entry = n.category ? CATEGORY_LABELS[n.category] : undefined;
   if (entry) return zh ? entry.zh : entry.en;
   return n.category ?? n.title;
@@ -104,6 +120,10 @@ export function severityLabel(severity: string | null, zh: boolean): string {
  * (e.g. async_safety, historical_safety, contradiction — contain node names / classifications).
  */
 export function notificationBody(n: NotificationItem, zh: boolean): string | null {
+  if (n.category === 'membership' && zh && n.body) {
+    const m = MEMBERSHIP_BODY_RE.exec(n.body);
+    if (m) return `${m[1]} 已將您加入為 ${m[2]}。您可以在「成員與存取」中離開此工作區。`;
+  }
   if (n.category) {
     const tpl = BODY_TEMPLATES[n.category];
     if (tpl) return zh ? tpl.zh : tpl.en;

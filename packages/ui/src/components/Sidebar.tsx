@@ -121,7 +121,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                   }}
                 >
                   {ws.name}
-                  <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 6 }}>{ws.kb_type}</span>
+                  {ws.kb_type !== 'evergreen' && (
+                    <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 6 }}>{ws.kb_type}</span>
+                  )}
                 </div>
               ))}
               {/* Public / example workspaces */}
@@ -146,7 +148,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {ws.name}
                       </span>
-                      <span style={{ fontSize: 10, opacity: 0.6 }}>{ws.kb_type}</span>
+                      {ws.kb_type !== 'evergreen' && (
+                        <span style={{ fontSize: 10, opacity: 0.6 }}>{ws.kb_type}</span>
+                      )}
                       {user && ws.owner_id !== user.id && (
                         <Button
                           variant="secondary"
