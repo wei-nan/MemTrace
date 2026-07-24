@@ -1,0 +1,44 @@
+{
+  "id": "mem_ws003_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S3 Cross-Workspace Version Sync: sync_from_source",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Background\n\n`copied_from_node` only records the source; after the source node is updated, the copies do not sync, leaving 5 workspaces with 5 divergent copies.\n\n## Sync mechanism\n\n### Automatic notification (LISTEN/NOTIFY)\n\nWhen the original node is updated, PostgreSQL `LISTEN/NOTIFY` pushes all copied nodes into `review_queue`, marked `change_type='source_updated'`. Notification latency <= 5 seconds.\n\n### Manual sync MCP tool\n\n```json\n{\n  \"name\": \"sync_from_source\",\n  \"description\": \"Manually pull the latest version from the source node\",\n  \"parameters\": {\n    \"node_id\": \"id of the copied node to sync\"\n  }\n}\n```\n\n## Related fields\n\n`memory_nodes` table:\n- `copied_from_node` (text): source node id\n- `copied_from_ws` (text): source workspace id\n\n## End-to-end acceptance flow\n\n1. Create node A (ws_a)\n2. Copy to ws_b, becoming node B (`copied_from_node = A.id`)\n3. Update node A\n4. Confirm node B enters `review_queue` with `change_type='source_updated'`\n5. Confirm all copies receive the notification, latency <= 5 seconds\n"
+  },
+  "tags": [
+    "cross-workspace",
+    "sync",
+    "mcp-tool",
+    "copied-node",
+    "governance",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "9371bf9ac6a69c74803ebf20ba282f5d3947113b1ad687d4e444fe4069449859",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

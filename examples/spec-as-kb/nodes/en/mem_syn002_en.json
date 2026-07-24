@@ -1,0 +1,44 @@
+{
+  "id": "mem_syn002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S4 complement_node_languages MCP Tool: Fill Bilingual Gaps",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Overview\n\n`complement_node_languages` detects nodes in a workspace that have \"zh only, no en\" or \"en only, no zh\", and has the AI auto-translate to fill the gap, ensuring language symmetry in a bilingual workspace.\n\n## MCP tool definition\n\n```json\n{\n  \"name\": \"complement_node_languages\",\n  \"description\": \"Scan and fill bilingual gaps in a workspace\",\n  \"parameters\": {\n    \"workspace_id\": \"workspace id\",\n    \"target_language\": \"zh-TW | en\"\n  }\n}\n```\n\n## Implementation location\n\n- `services/mcp_tools.py` (MCP exposure, tool name `complement_node_languages`)\n- Scans the gap against the workspace referenced by `linked_workspace_id`\n\n## Bilingual workspace architecture\n\nspec-as-kb uses a \"two monolingual workspaces\" design:\n- `ws_spec0001` (zh-TW)\n- `ws_spec0001_en` (en)\n- The two are linked to each other via `workspaces.linked_workspace_id`\n\nAn English node id is `{zh_id}_en` (e.g. `mem_d001_en`).\n\n## Translation flow\n\n1. Find nodes that exist in zh but not en\n2. Call the AI to generate the English body\n3. Create the `{id}_en` node with `source_type='ai'` and send it to the review_queue\n4. After approval, add it to the en workspace\n\n## Use cases\n\n- Batch-fill the corresponding English nodes after each new zh node is added\n- After Phase 5, the en node gap (~30 nodes) can be batch-generated with this tool\n"
+  },
+  "tags": [
+    "mcp-tool",
+    "synthesis",
+    "bilingual",
+    "language",
+    "complement",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "9086481e81a6af53429683eb32fd350b5bc682caaffdd70e872aa7c3d7414280",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

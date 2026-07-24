@@ -1,0 +1,45 @@
+{
+  "id": "mem_ta002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S1 KB Health Snapshot: kb_health_daily Table",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "`kb_health_daily` takes a daily snapshot of core KB metrics; it is the persistence source for the North Star measurements (M1–M4).\n\n## Table structure\n\n```sql\nCREATE TABLE kb_health_daily (\n  id                        bigserial PRIMARY KEY,\n  date                      date NOT NULL,\n  workspace_id              text NOT NULL,\n  token_savings_ratio       float,   -- M1: token savings ratio\n  retrieval_recall_at_5     float,   -- M2: Recall@5\n  retrieval_mrr             float,   -- MRR\n  decay_runs_last_14d       int,     -- M3: consecutive decay-run days\n  duplicate_pairs_unlinked  int,     -- M4: unlinked duplicate pairs\n  avg_trust_active          float,\n  active_users_7d           int,\n  review_queue_depth        int,\n  ai_nodes_unverified_ratio float,\n  created_at                timestamptz DEFAULT now(),\n  UNIQUE (date, workspace_id)\n);\n```\n\n## Write timing\n\nA daily 03:30 cron writes a snapshot for all workspaces.\n\n## Health endpoint\n\n`GET /workspaces/{ws_id}/analytics/health` returns the latest snapshot plus a 7-day trend. The UI Dashboard displays these metrics.\n\n## North Star targets\n\n| Metric | Target | Measured (2026-05-16) |\n|------|------|-------------------|\n| M1 Token savings ratio | >= 70% | 82.1% |\n| M2 Recall@5 | >= 0.80 | 0.9471 |\n| M3 Decay 14 consecutive days | no gaps | continuously accumulating |\n| M4 Unlinked duplicate pairs | = 0 | 0 |\n"
+  },
+  "tags": [
+    "analytics",
+    "health",
+    "dashboard",
+    "token",
+    "recall",
+    "schema",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "a69e2b393f6f80f41c24fd2d0b64e718a1987a49506d6ce3594566d4484acdae",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

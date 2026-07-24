@@ -1,0 +1,43 @@
+{
+  "id": "mem_bk001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§30 Scheduled Local Backups",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace ships with a self-healing local backup system to prevent data loss in self-hosted environments. It runs database backups periodically and manages disk space by rotating out old backups.\n\n## Backup execution (§30.1)\n\n- **Frequency:** a background task runs hourly to check the backup schedule\n- **Interval:** the actual backup runs at the configured interval (default: 24 hours)\n- **Format:** the PostgreSQL backup is `gzip`-compressed (format: `.sql.gz`)\n- **Naming:** `memtrace_backup_YYYYMMDD_HHMMSS.sql.gz`\n\n## Rotation policy (§30.2)\n\nTo prevent disk exhaustion, the system maintains a rolling window of backups:\n\n- **Retention count:** the number of most-recent backup files to keep (default: 7)\n- **Cleanup:** after each successful backup, the system scans the backup directory and deletes the oldest files beyond the retention count\n\n## Configuration (§30.3, admin only)\n\nBackup settings are managed centrally from the platform-admin dashboard:\n\n- **Backup path:** absolute path where backups are stored on the server\n- **Enable/disable:** toggle automatic backups\n- **Interval (hours):** how often backups run\n- **Retention count:** how many backups to keep\n\n## Status and monitoring (§30.4)\n\nThe system records the result of every backup attempt in the `system_settings` table (key: `backup_config`):\n\n- `last_backup_at`: ISO timestamp of the last attempt\n- `last_backup_status`: `success` or `failed`\n- `last_backup_file`: path of the last successful backup\n- `error_msg`: detailed error when the last attempt failed\n"
+  },
+  "tags": [
+    "backup",
+    "operations",
+    "admin",
+    "reliability",
+    "self-hosted"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "d5d288f735043052deb54210bee9cb4d3495c894e509d8e8e222575c0d395f1c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_at001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S3 Author Departure and Authorship Transfer: author_tombstones",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Background\n\nAfter a user leaves a workspace, their nodes are still bound to that user_id; `dim_author_rep` computation breaks for dead accounts, and the nodes are effectively unowned.\n\n## author_tombstones table\n\n```sql\nCREATE TABLE author_tombstones (\n  id            serial PRIMARY KEY,\n  user_id       text NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n  workspace_id  text NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,\n  left_at       timestamptz NOT NULL DEFAULT now(),\n  transferred_to text REFERENCES users(id) ON DELETE SET NULL,\n  UNIQUE (user_id, workspace_id)\n);\n```\n\n## Author Rep fix\n\n`dim_author_rep` is redefined as \"node quality over the past 90 days\", avoiding historical baggage — a departed user's old nodes no longer affect the author_rep computation of other nodes.\n\n## transfer_authorship MCP tool\n\n```json\n{\n  \"name\": \"transfer_authorship\",\n  \"description\": \"Transfer authorship of the given nodes to a new author\",\n  \"parameters\": {\n    \"node_ids\": [\"mem_x001\", \"mem_x002\"],\n    \"new_author\": \"user_id_of_new_owner\"\n  }\n}\n```\n\n## Acceptance criteria\n\n- 0% lock on nodes after departure: other users can edit normally\n- `dim_author_rep` computation is unaffected by dead accounts\n"
+  },
+  "tags": [
+    "author",
+    "tombstone",
+    "governance",
+    "mcp-tool",
+    "schema",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "c9ed7bdc4f4c66b372e61f47613d158a2b72c981e3ae2b0aa386c9dc5c801929",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_syn001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S4 summarize_cluster MCP Tool: AI Cluster Summary",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Overview\n\n`summarize_cluster` lets an AI agent automatically generate a summary node for a given cluster, so a querier can grasp the gist of the whole cluster from a single node and avoid the token cost of traversing node by node.\n\n## MCP tool definition\n\n```json\n{\n  \"name\": \"summarize_cluster\",\n  \"description\": \"Generate a summary node for a given cluster and send it for review\",\n  \"parameters\": {\n    \"cluster_id\": \"the cluster's id\",\n    \"workspace_id\": \"workspace id\"\n  }\n}\n```\n\n## Implementation locations\n\n- `services/synthesis.py::generate_cluster_summary`\n- `routers/kb.py::maintenance_summarize_cluster` (route: `POST /workspaces/{ws_id}/maintenance/summarize-cluster`)\n- `services/mcp_tools.py` (MCP exposure)\n\n## Flow\n\n1. Fetch all active nodes in the cluster\n2. Call the AI to generate the summary body\n3. Create a new node with `source_type='ai'`, `content_type='context'`\n4. Send it into `review_queue` for human confirmation\n5. Once confirmed, the node is attached to the cluster and `extends` edges are created to member nodes\n\n## Use cases\n\n- When a cluster has > 10 member nodes, the summary node can act as an \"entry point\"\n- Token savings: a querier that hits the summary is done, without reading each member\n"
+  },
+  "tags": [
+    "mcp-tool",
+    "synthesis",
+    "cluster",
+    "summarize",
+    "ai",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "9663af7dbe98364b9ff89273a0875de54e7af5750479ad2e0eaf80a3d51b0fe7",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

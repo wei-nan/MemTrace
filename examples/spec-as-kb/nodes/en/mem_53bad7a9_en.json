@@ -1,0 +1,43 @@
+{
+  "id": "mem_53bad7a9_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Safety Review Background Jobs: safety_review_queue and safety_sweep",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace has two complementary safety-review background jobs that use different mechanisms.\n\n## safety_review_queue (LLM classification, 30s interval)\n\nWhen a node-write event fires and the source is a non-human input such as an agent / MCP, the node is automatically enqueued into `safety_review_queue`. The scheduler pulls up to 25 items every 30 seconds and processes them one by one:\n\n1. Resolve the LLM provider / model bound to the `system:safety` key\n2. Call `classify_safety(proposal, workspace_id)` to obtain a classification\n3. If classified as `risky` or `dangerous`, create an `audit_proposal` (severity mid / high)\n4. The job run's `summary` field contains `ai_provider` and `ai_model`, viewable on the System Monitoring page\n\nProvider precedence: the key specified by `system:safety` → fall back to the system default.\n\n## safety_sweep (rule-based, 24h interval, heartbeat not tracked)\n\nA daily scan over all active nodes using the pure-rule `classify_safety_rules()`, **without calling an LLM**:\n\n- Matches against a dangerous-keyword list → mark `flagged`, create an audit_proposal\n- Results are not written to `scheduler_heartbeats` (`observable=false`)\n- Suited to high-volume, low-cost first-pass screening, with LLM fine-review left to safety_review_queue\n\n## Comparison\n\n| Aspect | safety_review_queue | safety_sweep |\n|------|---------------------|--------------|\n| Trigger | event-driven (enqueued on write) | scheduled (daily) |\n| Mechanism | LLM semantic classification | rule-based keywords |\n| Interval | 30s | 24h |\n| Heartbeat visible | ✓ | ✗ |\n| Token cost | yes | no |\n"
+  },
+  "tags": [
+    "safety",
+    "background-job",
+    "scheduler",
+    "ai",
+    "rule-based"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "54370fef22a2cb52afc57918283af020592ce5753333d49f6a8b80ea2419997e",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

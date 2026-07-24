@@ -1,0 +1,43 @@
+{
+  "id": "mem_acp001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§19 AI Conversation Panel",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The **AI Conversation Panel** is a standalone first-class UI surface — separate from the graph search bar. It supports persistent, multi-turn conversation grounded in the workspace knowledge graph. Unlike the read-only conversational Q&A (§13A), it supports **in-conversation edit proposals**.\n\n## Access (§19.2)\n\n- Reached via a dedicated panel button in the sidebar (distinct from the search icon)\n- Available to users with the **viewer role and above**\n- Requires authentication — unauthenticated users cannot access it\n\n## Conversation capabilities (§19.3)\n\n| Capability | Description |\n|------|------|\n| **Knowledge base query** | Ask about KB content; the AI retrieves and cites relevant nodes (same pipeline as §13A) |\n| **Content clarification** | Ask the AI to explain, expand, or simplify a specific node, grounded in its body and depth-1 graph neighborhood |\n| **In-conversation edit proposal** | The user says \"update this node to X\" — the AI generates a diff proposal shown as an inline card that the user can accept, edit, or reject |\n| **Cross-KB query** | If linked workspaces (§18) are configured and the user has access, the AI can reference those nodes (marking their source) |\n"
+  },
+  "tags": [
+    "ai",
+    "chat",
+    "conversation-panel",
+    "ui",
+    "edit-proposal"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "50d803c2b340881558e93942d732566ad387dc10c3b169adab355f9731ea2182",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

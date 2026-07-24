@@ -1,0 +1,42 @@
+{
+  "id": "mem_47fe8f58_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Node resolution_status: Three-State Knowledge Lifecycle",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Every Memory Node carries a `resolution_status` field that records the lifecycle state of that piece of knowledge.\n\n## Three states\n\n| State | Meaning | Typical case |\n|------|------|---------|\n| `open` | Not yet resolved or verified; in progress | inquiry (open question), gap (knowledge gap), decisions still under discussion |\n| `resolved` | Has a clear conclusion or answer | inquiry after it receives an answered_by edge; a decision that has landed |\n| `superseded` | Replaced by updated knowledge; the original is kept for audit | an old spec overwritten by a new version, a policy update |\n\n## Transition rules\n\n- On creation the default is `open` (for inquiry / gap types) or unset (for factual / procedural, etc.)\n- Transition happens only when a human or AI explicitly marks `resolved` / `superseded`; **the system never transitions automatically**\n- A `superseded` node keeps `status=active` and is not removed from the graph, ensuring audit traceability\n- Search excludes, by default, inquiry nodes targeted by an `answered_by` edge (to avoid rediscovering already-answered questions)\n\n## Difference from node.status\n\n- `node.status` (active / archived / deleted): whether the node still validly exists\n- `resolution_status` (open / resolved / superseded): the epistemic state of the knowledge itself\n\nThe two are independent; a `status=active` node can simultaneously be `resolution_status=superseded`.\n"
+  },
+  "tags": [
+    "memory-node",
+    "resolution-status",
+    "state-machine",
+    "lifecycle"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "84368cf57f0e0b4b4465851dbcfaa4e5ec5a056d8c7389e713b2163141b770e2",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

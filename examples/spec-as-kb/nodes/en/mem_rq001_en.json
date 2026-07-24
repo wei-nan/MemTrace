@@ -1,0 +1,44 @@
+{
+  "id": "mem_rq001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S2 Review Queue SLA and Steward Rotation",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Background\n\nThe review queue was designed but nobody actually uses it: every node has `validity_confirmed_at = null` and `vote_count = 0`.\n\n## SLA fields\n\nTwo fields are added to the `review_queue` table:\n\n- `assigned_to` (text): the assigned reviewer's user_id\n- `due_at` (timestamptz): review deadline (default: 7 days after assignment)\n\n## Steward rotation cron\n\nRuns automatically every Monday at 09:00:\n1. Find all pending items with `assigned_to IS NULL`\n2. Assign them round-robin among the ws owner + team members\n3. Set `due_at = now() + interval '7 days'`\n4. Send notifications (email / webhook: Slack, Discord)\n\n## SLA penalty\n\nIf not handled within 7 days of assignment:\n- node `dim_freshness x 0.8` (freshness downgrade)\n- the item enters the next assignment round\n\n## Acceptance criterion\n\n```sql\n-- unassigned rate should = 0%\nSELECT count(*) FROM review_queue\nWHERE assigned_to IS NULL\n  AND created_at < now() - interval '1 day'\n  AND status = 'pending';\n```\n\nTarget: weekly active reviewers >= 2\n"
+  },
+  "tags": [
+    "review-queue",
+    "sla",
+    "steward",
+    "governance",
+    "cron",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ed451d811138ddfe82e570f6259f00866ef8ddd4602bb757dfbea2e3300d9f5b",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

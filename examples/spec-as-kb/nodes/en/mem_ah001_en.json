@@ -1,0 +1,44 @@
+{
+  "id": "mem_ah001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S3 Audit Trail Hash Chain and verify_audit_chain",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Goal\n\nThe `audit_trail` table is append-only and uses a hash chain to guarantee it is verifiably tamper-free.\n\n## audit_trail table (hash chain fields)\n\n```sql\n-- relevant audit_trail columns\nid, workspace_id, action, target_type, target_id,\nactor_id, created_at, metadata,\nprev_hash,  -- curr_hash of the previous record\ncurr_hash   -- SHA-256 hash of this record\n```\n\nEach record's `curr_hash = SHA-256(prev_hash || action || target_id || actor_id || created_at)`, forming a tamper-evident chain.\n\n## DB-level protection\n\nA DB trigger rejects UPDATE / DELETE on `audit_trail`, enforcing append-only.\n\n## verify_audit_chain MCP tool\n\n```json\n{\n  \"name\": \"verify_audit_chain\",\n  \"description\": \"Verify the integrity of a workspace's audit trail\",\n  \"parameters\": {\n    \"workspace_id\": \"ws_xxxx\"\n  },\n  \"returns\": {\n    \"status\": \"ok | broken\",\n    \"broken_at_revision_id\": \"audit_trail record id (if broken)\"\n  }\n}\n```\n\nImplemented in `services/audit.py`, exposed in `mcp_tools.py`.\n\n## Acceptance criterion\n\nTamper test: manually alter one audit_trail record -> `verify_audit_chain` returns `broken` and points to the break, with 100% detection rate.\n"
+  },
+  "tags": [
+    "audit",
+    "hash-chain",
+    "integrity",
+    "mcp-tool",
+    "security",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "9c16a2b46c049a4ac23d2c07b101755799addcfc328db6e9863e9fc0fa9318e5",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

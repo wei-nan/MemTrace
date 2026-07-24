@@ -1,0 +1,43 @@
+{
+  "id": "mem_d38edbc7_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Workspace Settings: AI Management Tab (Review Settings and Smart Maintenance)",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "The \"AI Management\" tab on the workspace settings page consolidates the previously separate \"Review Settings\" and \"Smart Maintenance\" pages, centralizing all AI-related features.\n\n## Three functional blocks\n\n### 1. Consult AI settings\n\n| Setting | Description |\n|--------|------|\n| Consult Provider | the model used for diagnosis and merge suggestions (blank uses the system default) |\n| Auto-merge trust level | `ask` (manual confirmation) or `full_trust` (auto-merge; dangerous operations are still intercepted) |\n\nA confirmation dialog warns of the risk before switching to `full_trust`.\n\n### 2. AI Reviewers\n\nQuick create: pick **Provider -> Model -> Create**; the name is auto-generated.\n\nExpand \"Advanced settings\" to modify:\n- Name (custom identifying label)\n- System Prompt (defaults to the standard review prompt)\n- Auto-accept threshold (default 0.95)\n- Auto-reject threshold (default 0.10)\n- Enabled / disabled toggle\n\nCreated reviewers are shown as a card list and can be individually enabled / disabled / deleted.\n\n### 3. Smart Maintenance\n\n| Feature | Description |\n|------|------|\n| Smart hierarchy synthesis | scans orphan nodes and auto-generates summary nodes to optimize graph structure |\n| Potential-link prediction | predicts inter-node links by semantic similarity and suggests them into the review queue |\n\nBoth are manually triggered (button-run), not scheduled.\n\n## Design principles\n\n- Only the workspace owner can modify AI Management settings\n- A reviewer takes effect immediately after creation; disabling does not delete its history\n- When multiple reviewers are enabled, they are tried in creation order and the first success wins\n"
+  },
+  "tags": [
+    "workspace-settings",
+    "ui",
+    "ai-management",
+    "maintenance",
+    "reviewer"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "8adcf188af6271a30edf160f02cf40df24d4826548ebe4fd0032848b12de483e",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

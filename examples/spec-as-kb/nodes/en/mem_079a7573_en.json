@@ -1,0 +1,43 @@
+{
+  "id": "mem_079a7573_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "System Monitoring Page: Scheduler Heartbeats, Job Runs, MCP Logs, AI Usage",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Platform admins can open the \"System Monitoring\" page from the left navigation to observe the overall health of the platform.\n\n## Four Tabs\n\n### 1. Scheduler Heartbeats\n\nShows the current status of all known scheduled jobs, including:\n\n| Field | Description |\n|------|------|\n| Category | KB / AI / System, shown with a colored badge |\n| Interval | Schedule period (10s / 30s / 1m / 1h / 24h / —) |\n| Status | Result of the most recent run |\n| Last success | Timestamp of the last success |\n| Runs / failures | Cumulative counts |\n| Tracked | Jobs with `observable=false` (safety_sweep, audit_reviewers) are marked \"not tracked\" |\n\nJobs that have never run are shown at 60% opacity (grey).\n\n### 2. Job Runs\n\nPer-run execution records for every job, with filters (job name, status).\n\nNew \"AI mechanism\" column:\n- `safety_review_queue`: shows the provider and model used at run time\n- `audit_reviewers`: marked \"vector similarity\"\n- `safety_sweep`: marked \"rule-based\"\n- other jobs: shows \"—\"\n\n### 3. MCP Query Logs\n\nRecords every query issued through MCP tools, including workspace, tool name, query text, token usage, and timestamp.\n\n### 4. AI Token Usage\n\nAggregates token consumption by workspace × month to aid cost tracking.\n\n## Known scheduled jobs\n\n| Job name | Category | Interval |\n|----------|------|------|\n| process_node_events | KB | 10s |\n| audit_writer | System | 5s |\n| safety_review_queue | AI | 30s |\n| retry_embeddings | KB | 1m |\n| stale_ingest | KB | 5m |\n| ephemeral_decay | KB | 1h |\n| backup | System | 1h |\n| decay | KB | 24h |\n| cleanup | System | 24h |\n| deletion_notify | System | 24h |\n| path_reinforcement | KB | 24h |\n| audit_reviewers | AI | 24h |\n| safety_sweep | AI | 24h |\n| conductor_dispatch | System | — |\n"
+  },
+  "tags": [
+    "system-monitor",
+    "admin",
+    "scheduler",
+    "job-runs",
+    "observability"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "091497e10db54939439d91fcc3c4d295a89ebb0a526b1bba5c04effd8a849616",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

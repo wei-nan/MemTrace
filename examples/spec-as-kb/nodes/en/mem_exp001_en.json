@@ -1,0 +1,44 @@
+{
+  "id": "mem_exp001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Knowledge Base Explore Page (Hub) Spec",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Goal\n\nProvide a unified entry point for browsing and searching knowledge bases, solving the problem of finding a target KB once the number of workspaces grows. It has two levels: public KB discovery, and quick switching among personal KBs.\n\n## Navigation logic (Option B)\n\n- When `selectedWs === null` (no workspace selected), the central main content area shows the explore page as the default home\n- Clicking the MemTrace logo -> clears selectedWs, returning to the explore page\n- localStorage remembers the last-used workspace ID and jumps back to it automatically after login\n- The explore page also serves as the landing page for anonymous visitors (when allow_anonymous is on)\n\n## Access\n\n| User state | Content shown |\n|---|---|\n| Not logged in (anonymous) | only public / conditional_public KBs |\n| Logged in | My KBs (private) + public KBs, shown in separate sections |\n\n## Backend endpoint: GET /workspaces/explore\n\nNo auth required (public endpoint). Query params:\n- `q`: fuzzy name search\n- `lang`: `zh-TW` | `en` filter\n- `sort`: `newest` (created_at desc) | `nodes` (node count desc)\n\nReturned fields: `id`, `name`, `description`, `language`, `visibility`, `node_count`, `owner_display_name`, `created_at`\n\nWhen logged in, with an `Authorization: Bearer ...` header the backend additionally merges in that user's private KBs.\n\n## workspaces table new field\n\n`description text` (nullable) — a KB summary shown on explore-page cards. The WorkspaceSettings page adds a description field for the owner to edit.\n\n## Frontend ExplorePage.tsx\n\n**KB card shows:**\n- Name (large heading)\n- Description (truncated to 2 lines)\n- Language tag (Traditional Chinese / English)\n- Node-count badge\n- Visibility badge (Public / Private)\n- Creator's display name\n- Clicking switches to the workspace directly\n\n**Search and filter bar:**\n- Live name search (frontend filter, no debounced API call)\n- Language toggle\n- Sort menu (newest / node count)\n\n**Sections:**\n1. My Knowledge Bases (shown only when logged in)\n2. Public Knowledge Bases\n\n## Status: pending (to be implemented)\n"
+  },
+  "tags": [
+    "feature",
+    "explore",
+    "hub",
+    "workspace",
+    "discovery",
+    "ux"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-06-14T00:00:00+00:00",
+    "signature": "683ac9641e6435751ee8616a9d0b4cb4ec00b387ae9d60263f16239a4dc12e5a",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.85,
+    "dimensions": {
+      "accuracy": 0.88,
+      "freshness": 0.98,
+      "utility": 0.92,
+      "author_rep": 0.88
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

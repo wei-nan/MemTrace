@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq004_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Gap: Conductor — MemTrace actively triggering an external harness",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "Currently an external harness must actively poll to learn about new tasks. We want MemTrace to actively notify the external harness to start the next loop when a pending inquiry / residue appears.\n\n**Open design questions:**\n\n1. **Trigger mechanism:** Webhook (HTTP push) vs. message queue (Redis pub/sub, AMQP). Deployment complexity vs. reliability.\n2. **MemTrace's role boundary:** decision A1 clearly states \"MemTrace is not the loop runtime\". Is a Conductor a reasonable extension on the \"memory side\", or does it overstep?\n3. **Event granularity:** trigger on every pending inquiry, or batch (notify only after N or more)? Avoid over-triggering.\n4. **Harness integration surface:** where does the harness configure its webhook endpoint? Workspace setting or global setting?\n5. **Outcome accounting:** when multiple workers each submit_outcome, will path_reinforcement double-count?\n"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "conductor",
+    "event",
+    "webhook",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "0b153b98673fa0a67e84736d923daba6d4ed6f90035b3e69a21c6f63bdd55e5d",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

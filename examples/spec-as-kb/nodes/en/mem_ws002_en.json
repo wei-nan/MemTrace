@@ -1,0 +1,44 @@
+{
+  "id": "mem_ws002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§17.4 Logical Conflict Detection",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "After any AI-generated or AI-restructured node is submitted, the system runs an **asynchronous conflict check** to detect logical inconsistencies introduced by the AI.\n\n## Conflict types (§17.4.1)\n\n| Type | Description |\n|------|------|\n| `contradicts_existing` | the node body contradicts an existing node linked via a `contradicts` edge |\n| `duplicate_content` | node embedding cosine similarity >= 0.92 (against an existing active node) |\n| `circular_dependency` | a `depends_on` edge would form a cycle in the dependency graph |\n| `orphaned_reference` | the node body references another node by ID, but no corresponding edge exists |\n\n## Conflict-flag schema (§17.4.2)\n\n```sql\nALTER TABLE memory_nodes\n  ADD COLUMN IF NOT EXISTS conflict_status TEXT\n    CHECK (conflict_status IN (NULL, 'flagged', 'resolved')),\n  ADD COLUMN IF NOT EXISTS conflict_detail JSONB;\n  -- { \"type\": \"...\", \"conflicting_node_id\": \"...\", \"message\": \"...\" }\n```\n\nA flagged node shows an **amber warning indicator** in the graph view and a dismissible conflict card in the node editor.\n\n**Resolution:** edit the node to remove the contradiction -> `conflict_status = 'resolved'`; or call `PATCH .../acknowledge-conflict` to dismiss the prompt without changing content.\n\n## AI write rule (§17.4.3)\n\nAI Agents (MCP) are subject to the same write serialization and conflict detection as human users. If a conflict is detected after submission, the `conflict_warning` field is returned in the next tool response:\n\n```json\n{\n  \"result\": \"...\",\n  \"conflict_warning\": {\n    \"node_id\": \"mem_xyz\",\n    \"type\": \"duplicate_content\",\n    \"similar_node_id\": \"mem_abc\"\n  }\n}\n```\n"
+  },
+  "tags": [
+    "concurrency",
+    "conflict-detection",
+    "write-serialization",
+    "ai",
+    "database",
+    "schema"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "64ea1c83980cc716fb87938c6bf06d868a46d8cdf82b5259e4253bab807c1323",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

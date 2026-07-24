@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq006_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Gap (tech debt): single source of truth for schema/sql vs migrations",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "Investigation found: at runtime `core.database.run_migrations()` applies `packages/api/migrations/*.sql` (currently only three files, 054–056); `schema/sql/` is numbered up to 112, yet neither contains the CREATE TABLE SQL for base tables like `inquiry_paths`. `test_inquiry_paths.py` asserts the table exists directly (without creating it), implying there is another base-schema mechanism (likely a one-time external load in shared-postgres), but its source is not present in this repo.\n\n**Open design questions:**\n\n1. **Which is authoritative?** Is `schema/sql/` a spec document, or the migrations actually executed? Is `migrations/` only incremental patches?\n2. **Where is the base schema?** Is shared-postgres an external CI fixture, or is there an uncommitted init script?\n3. **Fix direction:** complete `migrations/` to cover the full table-creation history, or switch to `schema/sql/` as the single source and update the deployment flow?\n4. **Urgency:** Phase 6 features are unaffected (all reuse existing tables). But if the next batch of features needs a new migration, this gap must be clarified first.\n"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "tech-debt",
+    "schema",
+    "migrations",
+    "database"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "72e8b80651f25ae2c69763898229cf151278ecf59b60e64eb7761625078ebcc7",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

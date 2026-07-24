@@ -6044,6 +6044,77 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_079a7573_en','1.0','ws_spec0001_en','System Monitoring Page: Scheduler Heartbeats, Job Runs, MCP Logs, AI Usage','factual','markdown','Platform admins can open the "System Monitoring" page from the left navigation to observe the overall health of the platform.
+
+## Four Tabs
+
+### 1. Scheduler Heartbeats
+
+Shows the current status of all known scheduled jobs, including:
+
+| Field | Description |
+|------|------|
+| Category | KB / AI / System, shown with a colored badge |
+| Interval | Schedule period (10s / 30s / 1m / 1h / 24h / —) |
+| Status | Result of the most recent run |
+| Last success | Timestamp of the last success |
+| Runs / failures | Cumulative counts |
+| Tracked | Jobs with `observable=false` (safety_sweep, audit_reviewers) are marked "not tracked" |
+
+Jobs that have never run are shown at 60% opacity (grey).
+
+### 2. Job Runs
+
+Per-run execution records for every job, with filters (job name, status).
+
+New "AI mechanism" column:
+- `safety_review_queue`: shows the provider and model used at run time
+- `audit_reviewers`: marked "vector similarity"
+- `safety_sweep`: marked "rule-based"
+- other jobs: shows "—"
+
+### 3. MCP Query Logs
+
+Records every query issued through MCP tools, including workspace, tool name, query text, token usage, and timestamp.
+
+### 4. AI Token Usage
+
+Aggregates token consumption by workspace × month to aid cost tracking.
+
+## Known scheduled jobs
+
+| Job name | Category | Interval |
+|----------|------|------|
+| process_node_events | KB | 10s |
+| audit_writer | System | 5s |
+| safety_review_queue | AI | 30s |
+| retry_embeddings | KB | 1m |
+| stale_ingest | KB | 5m |
+| ephemeral_decay | KB | 1h |
+| backup | System | 1h |
+| decay | KB | 24h |
+| cleanup | System | 24h |
+| deletion_notify | System | 24h |
+| path_reinforcement | KB | 24h |
+| audit_reviewers | AI | 24h |
+| safety_sweep | AI | 24h |
+| conductor_dispatch | System | — |
+',
+   ARRAY['system-monitor', 'admin', 'scheduler', 'job-runs', 'observability']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','091497e10db54939439d91fcc3c4d295a89ebb0a526b1bba5c04effd8a849616','ai',
+   0.95,0.95,1.0,0.95,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_08f1c514_en','1.0','ws_spec0001_en','Source Document Node Default Exclusions','factual','markdown','By default, source document nodes are excluded from the graph view (unless "Show source documents" is enabled), from keyword and semantic search results, from Q&A and AI conversation context retrieval, and from MCP `search_nodes` results.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.831618+00:00','8c1c5ae6bf2674b4f5bd74831f3b1e8b63148c33abfec5059782b406519f5e93','ai',
    0.715,0.8,1.0,0.5,0.5,
@@ -6709,6 +6780,45 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_47fe8f58_en','1.0','ws_spec0001_en','Node resolution_status: Three-State Knowledge Lifecycle','factual','markdown','Every Memory Node carries a `resolution_status` field that records the lifecycle state of that piece of knowledge.
+
+## Three states
+
+| State | Meaning | Typical case |
+|------|------|---------|
+| `open` | Not yet resolved or verified; in progress | inquiry (open question), gap (knowledge gap), decisions still under discussion |
+| `resolved` | Has a clear conclusion or answer | inquiry after it receives an answered_by edge; a decision that has landed |
+| `superseded` | Replaced by updated knowledge; the original is kept for audit | an old spec overwritten by a new version, a policy update |
+
+## Transition rules
+
+- On creation the default is `open` (for inquiry / gap types) or unset (for factual / procedural, etc.)
+- Transition happens only when a human or AI explicitly marks `resolved` / `superseded`; **the system never transitions automatically**
+- A `superseded` node keeps `status=active` and is not removed from the graph, ensuring audit traceability
+- Search excludes, by default, inquiry nodes targeted by an `answered_by` edge (to avoid rediscovering already-answered questions)
+
+## Difference from node.status
+
+- `node.status` (active / archived / deleted): whether the node still validly exists
+- `resolution_status` (open / resolved / superseded): the epistemic state of the knowledge itself
+
+The two are independent; a `status=active` node can simultaneously be `resolution_status=superseded`.
+',
+   ARRAY['memory-node', 'resolution-status', 'state-machine', 'lifecycle']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','84368cf57f0e0b4b4465851dbcfaa4e5ec5a056d8c7389e713b2163141b770e2','ai',
+   0.95,0.95,1.0,0.95,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_4abf6ce6_en','1.0','ws_spec0001_en','AI Chat Integration for Cross-KB Context','procedural','markdown','In AI Chat, users should be able to select whether to include associated knowledge bases in the cross-knowledge base context.',
    ARRAY['UI', 'AI Chat', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:47.040241+00:00','d15cbc156c54c6415189a7eab841f4cc072a4aacda160f0d1d45b3eaa8685d13','ai',
    0.715,0.8,1.0,0.5,0.5,
@@ -6845,6 +6955,52 @@ VALUES
   ('mem_53258df1_en','1.0','ws_spec0001_en','JWT Token Lifetime','factual','markdown','The JWT Token lifetime is 7 days. Clients should refresh the token before expiry using the `/auth/refresh` endpoint.',
    ARRAY['jwt', 'token', '生命週期', '重新整理']::text[],'public','system','2026-04-24T11:25:40.146846+00:00','8399bf427db47ef13542102eafca9d11e86950d69a8ad492ce82ba7fd62fe25e','ai',
    0.715,0.8,1.0,0.5,0.5,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_53bad7a9_en','1.0','ws_spec0001_en','Safety Review Background Jobs: safety_review_queue and safety_sweep','factual','markdown','MemTrace has two complementary safety-review background jobs that use different mechanisms.
+
+## safety_review_queue (LLM classification, 30s interval)
+
+When a node-write event fires and the source is a non-human input such as an agent / MCP, the node is automatically enqueued into `safety_review_queue`. The scheduler pulls up to 25 items every 30 seconds and processes them one by one:
+
+1. Resolve the LLM provider / model bound to the `system:safety` key
+2. Call `classify_safety(proposal, workspace_id)` to obtain a classification
+3. If classified as `risky` or `dangerous`, create an `audit_proposal` (severity mid / high)
+4. The job run''s `summary` field contains `ai_provider` and `ai_model`, viewable on the System Monitoring page
+
+Provider precedence: the key specified by `system:safety` → fall back to the system default.
+
+## safety_sweep (rule-based, 24h interval, heartbeat not tracked)
+
+A daily scan over all active nodes using the pure-rule `classify_safety_rules()`, **without calling an LLM**:
+
+- Matches against a dangerous-keyword list → mark `flagged`, create an audit_proposal
+- Results are not written to `scheduler_heartbeats` (`observable=false`)
+- Suited to high-volume, low-cost first-pass screening, with LLM fine-review left to safety_review_queue
+
+## Comparison
+
+| Aspect | safety_review_queue | safety_sweep |
+|------|---------------------|--------------|
+| Trigger | event-driven (enqueued on write) | scheduled (daily) |
+| Mechanism | LLM semantic classification | rule-based keywords |
+| Interval | 30s | 24h |
+| Heartbeat visible | ✓ | ✗ |
+| Token cost | yes | no |
+',
+   ARRAY['safety', 'background-job', 'scheduler', 'ai', 'rule-based']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','54370fef22a2cb52afc57918283af020592ce5753333d49f6a8b80ea2419997e','ai',
+   0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8069,9 +8225,395 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_acp001_en','1.0','ws_spec0001_en','§19 AI Conversation Panel','factual','markdown','The **AI Conversation Panel** is a standalone first-class UI surface — separate from the graph search bar. It supports persistent, multi-turn conversation grounded in the workspace knowledge graph. Unlike the read-only conversational Q&A (§13A), it supports **in-conversation edit proposals**.
+
+## Access (§19.2)
+
+- Reached via a dedicated panel button in the sidebar (distinct from the search icon)
+- Available to users with the **viewer role and above**
+- Requires authentication — unauthenticated users cannot access it
+
+## Conversation capabilities (§19.3)
+
+| Capability | Description |
+|------|------|
+| **Knowledge base query** | Ask about KB content; the AI retrieves and cites relevant nodes (same pipeline as §13A) |
+| **Content clarification** | Ask the AI to explain, expand, or simplify a specific node, grounded in its body and depth-1 graph neighborhood |
+| **In-conversation edit proposal** | The user says "update this node to X" — the AI generates a diff proposal shown as an inline card that the user can accept, edit, or reject |
+| **Cross-KB query** | If linked workspaces (§18) are configured and the user has access, the AI can reference those nodes (marking their source) |
+',
+   ARRAY['ai', 'chat', 'conversation-panel', 'ui', 'edit-proposal']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','50d803c2b340881558e93942d732566ad387dc10c3b169adab355f9731ea2182','ai',
+   0.95,0.95,1.0,0.95,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_acp002_en','1.0','ws_spec0001_en','§19.4–19.6 AI Conversation Panel: Edit Proposal Flow, API, and Cross-KB Boundary','procedural','markdown','## Edit proposal flow (§19.4)
+
+```
+User: "Update mem_a002 to mention the OCR requirement."
+        |
+        v
+AI generates a body diff proposal
+        |
+        v
+Inline proposal card rendered:
+  +------------------------------------------+
+  |  Suggested edit for mem_a002             |
+  |  + Scanned PDFs need OCR (Phase 2+)       |
+  |  [Accept]  [Edit]  [Reject]               |
+  +------------------------------------------+
+        |
+        v
+Contributor -> enters review_queue (pending_admin_review)
+Admin -> applied immediately
+```
+
+## API extension (§19.5)
+
+```http
+POST /api/v1/workspaces/{ws_id}/chat
+{
+  "message": "...",
+  "session_id": "optional",
+  "lang": "zh-TW | en",
+  "allow_edits": true
+}
+```
+
+Response when a proposal is generated:
+
+```json
+{
+  "answer": "Here is the suggested change:",
+  "cited_nodes": ["mem_a002"],
+  "proposal": {
+    "operation": "update_node",
+    "target_node_id": "mem_a002",
+    "diff": { "body_zh": "...", "body_en": "..." },
+    "proposal_id": "prop_xyz"
+  },
+  "session_id": "sess_xyz"
+}
+```
+
+A follow-up request carries `{ "action": "accept" | "reject", "proposal_id": "prop_xyz" }` to apply or discard the change.
+
+## Cross-KB boundary (§19.6)
+
+When `allow_edits: true`, the AI may only propose edits to nodes **within the current workspace**. It can read from linked workspaces but cannot propose writes to them.
+',
+   ARRAY['ai', 'chat', 'conversation-panel', 'edit-proposal', 'api', 'cross-kb', 'review-queue']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9507f0e87255434618769e7e624cf9b494905efcaeb55bca42b5cc66268b1ec1','ai',
+   0.95,0.95,1.0,0.95,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_af74b0f0_en','1.0','ws_spec0001_en','Model Context Protocol (MCP)','factual','markdown','MemTrace implements the Model Context Protocol (MCP) to enable AI agents and LLMs to consume and contribute to the Knowledge Graph without manual REST integration.',
    ARRAY['protocol', 'ai-integration', 'llm', 'knowledge-graph']::text[],'public','system','2026-04-24T11:25:40.290234+00:00','7deee1e16d2dc125019dd48422261a6a6f2a507e63a5af83183cb0baaa6465f0','ai',
    0.715,0.8,1.0,0.5,0.5,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ag001_en','1.0','ws_spec0001_en','§S2 MCP Agent Identity Binding','factual','markdown','## Background
+
+Anonymous MCP calls produce ghost nodes (source_type=''mcp'', author=''system'') — no identity means no accountability.
+
+## Implementation (current)
+
+Each workspace automatically creates an **agent node** on creation (`workspaces.agent_node_id`) that serves as the identity node for MCP operations in that workspace. The `inquiry_paths` table records the executor of each MCP inquiry via its `agent_id` field.
+
+> **Note**: The Phase 5 spec originally called for a separate `mcp_agents(id, owner_user_id, name, created_at)` table; the live system currently substitutes `agent_node_id`, and the `mcp_agents` table has not been created.
+
+## Spec requirement (original)
+
+```
+The POST /mcp/* middleware requires an X-Agent-Id header
+mcp_agents(id, owner_user_id, name, created_at) table
+source_type=''mcp'' AND author=''system'' -> reject 400
+```
+
+## inquiry_paths table (implemented)
+
+```sql
+CREATE TABLE inquiry_paths (
+  id            text PRIMARY KEY,
+  workspace_id  text NOT NULL,
+  agent_id      text NOT NULL,   -- agent identity
+  query_text    text NOT NULL,
+  query_emb     vector(1536),
+  node_sequence text[],
+  outcome       text,  -- ''success''|''partial''|''failed''|''gap''
+  started_at    timestamptz,
+  ended_at      timestamptz,
+  token_used    int,
+  rating        int
+);
+```
+
+## Acceptance criterion
+
+```sql
+-- should = 0
+SELECT count(*) FROM memory_nodes
+WHERE source_type = ''mcp'' AND author = ''system'';
+```
+',
+   ARRAY['mcp', 'agent', 'identity', 'governance', 'inquiry-paths', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','8c1738adce215bb1b636145844913cc97c3801116b9297f1732e956686f043ef','ai',
+   0.93,0.93,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ah001_en','1.0','ws_spec0001_en','§S3 Audit Trail Hash Chain and verify_audit_chain','factual','markdown','## Goal
+
+The `audit_trail` table is append-only and uses a hash chain to guarantee it is verifiably tamper-free.
+
+## audit_trail table (hash chain fields)
+
+```sql
+-- relevant audit_trail columns
+id, workspace_id, action, target_type, target_id,
+actor_id, created_at, metadata,
+prev_hash,  -- curr_hash of the previous record
+curr_hash   -- SHA-256 hash of this record
+```
+
+Each record''s `curr_hash = SHA-256(prev_hash || action || target_id || actor_id || created_at)`, forming a tamper-evident chain.
+
+## DB-level protection
+
+A DB trigger rejects UPDATE / DELETE on `audit_trail`, enforcing append-only.
+
+## verify_audit_chain MCP tool
+
+```json
+{
+  "name": "verify_audit_chain",
+  "description": "Verify the integrity of a workspace''s audit trail",
+  "parameters": {
+    "workspace_id": "ws_xxxx"
+  },
+  "returns": {
+    "status": "ok | broken",
+    "broken_at_revision_id": "audit_trail record id (if broken)"
+  }
+}
+```
+
+Implemented in `services/audit.py`, exposed in `mcp_tools.py`.
+
+## Acceptance criterion
+
+Tamper test: manually alter one audit_trail record -> `verify_audit_chain` returns `broken` and points to the break, with 100% detection rate.
+',
+   ARRAY['audit', 'hash-chain', 'integrity', 'mcp-tool', 'security', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9c16a2b46c049a4ac23d2c07b101755799addcfc328db6e9863e9fc0fa9318e5','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_apidi001_en','1.0','ws_spec0001_en','§27 API Document Ingestion (Programmatic Ingestion)','procedural','markdown','In addition to the UI ingestion form, MemTrace supports programmatic document ingestion via the REST API. This lets CI/CD pipelines, scripts, and third-party tools push knowledge into a workspace without human intervention.
+
+## Endpoint (§27.1)
+
+```
+POST /api/v1/workspaces/{ws_id}/ingest
+Authorization: Bearer <workspace-api-key>  (scope: kb:write)
+Content-Type: multipart/form-data
+
+Fields:
+  file       (optional) — binary file upload (PDF, Markdown, TXT, etc.)
+  text       (optional) — plain-text string (mutually exclusive with file)
+  filename   (optional) — display name of the source document
+```
+
+Exactly one of `file` or `text` must be provided.
+
+## Response (§27.2)
+
+```json
+{
+  "job_id": "job_xxx",
+  "status": "queued",
+  "message": "Ingestion started in background"
+}
+```
+
+## Status polling (§27.3)
+
+```
+GET /api/v1/workspaces/{ws_id}/ingest/{job_id}
+Response: { job_id, status, progress, chunks_total, chunks_done, error? }
+```
+
+Ingestion runs asynchronously in the background. Callers poll for progress and, on completion, get the review-queue status of the extracted nodes.
+',
+   ARRAY['ingestion', 'api', 'programmatic', 'ci-cd', 'async', 'document']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','e08e42fa89d285f0eb87e98488720f841b2fc00580f45eac156100c08fcbc422','ai',
+   0.95,0.95,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_at001_en','1.0','ws_spec0001_en','§S3 Author Departure and Authorship Transfer: author_tombstones','factual','markdown','## Background
+
+After a user leaves a workspace, their nodes are still bound to that user_id; `dim_author_rep` computation breaks for dead accounts, and the nodes are effectively unowned.
+
+## author_tombstones table
+
+```sql
+CREATE TABLE author_tombstones (
+  id            serial PRIMARY KEY,
+  user_id       text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  workspace_id  text NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  left_at       timestamptz NOT NULL DEFAULT now(),
+  transferred_to text REFERENCES users(id) ON DELETE SET NULL,
+  UNIQUE (user_id, workspace_id)
+);
+```
+
+## Author Rep fix
+
+`dim_author_rep` is redefined as "node quality over the past 90 days", avoiding historical baggage — a departed user''s old nodes no longer affect the author_rep computation of other nodes.
+
+## transfer_authorship MCP tool
+
+```json
+{
+  "name": "transfer_authorship",
+  "description": "Transfer authorship of the given nodes to a new author",
+  "parameters": {
+    "node_ids": ["mem_x001", "mem_x002"],
+    "new_author": "user_id_of_new_owner"
+  }
+}
+```
+
+## Acceptance criteria
+
+- 0% lock on nodes after departure: other users can edit normally
+- `dim_author_rep` computation is unaffected by dead accounts
+',
+   ARRAY['author', 'tombstone', 'governance', 'mcp-tool', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','c9ed7bdc4f4c66b372e61f47613d158a2b72c981e3ae2b0aa386c9dc5c801929','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_aul001_en','1.0','ws_spec0001_en','§21 AI Usage Logs: Policy, API, and Retention','factual','markdown','## Rule (§21.1)
+
+**Every AI call — whether it uses a workspace-level or an account-level key — must be logged.** This log is the authoritative record for billing, debugging, and policy enforcement.
+
+## Feature types (§21.2 `feature` field)
+
+The `feature` field must be one of:
+`extraction`, `embedding`, `restructure`, `chat`, `conflict_check`, `conversation_panel`
+
+## Field descriptions (§21.3)
+
+| Field | Description |
+|------|------|
+| `key_source` | `workspace_key`: the key configured on the workspace; `account_key`: the user''s global account key |
+| `feature` | the AI capability that triggered the call |
+| `tokens_input` / `tokens_output` | reported by the provider; used for quota accounting |
+| `latency_ms` | actual duration of the provider call; used for SLO monitoring |
+| `success` | `false` when the provider returns an error |
+| `error_code` | the provider''s raw error code (e.g. `insufficient_quota`, `rate_limit_exceeded`) |
+
+## API endpoints (§21.4)
+
+| Method | Path | Description |
+|------|------|------|
+| `GET` | `/api/v1/user/ai-usage` | paginated log for the current user |
+| `GET` | `/api/v1/user/ai-usage/summary` | aggregated by date, feature, provider |
+
+Query params: `?from=<ISO date>&to=<ISO date>&provider=openai|anthropic|gemini|all`
+
+Example summary response:
+
+```json
+{
+  "period": { "from": "2026-04-01", "to": "2026-04-30" },
+  "by_feature": {
+    "chat": { "calls": 42, "tokens_total": 18400 },
+    "extraction": { "calls": 7, "tokens_total": 31200 }
+  },
+  "by_provider": {
+    "openai": { "tokens_total": 49600 }
+  }
+}
+```
+
+## Retention (§21.5)
+
+Logs are retained for **12 months** and then archived. Logs are never deleted before their retention period expires.
+',
+   ARRAY['ai', 'usage-logging', 'billing', 'api', 'retention', 'monitoring']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','7c8d8308e9f69d99da01887e910c33ac08196e639796fd41b0e2ef05e04c2323','ai',
+   0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8181,6 +8723,55 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_bk001_en','1.0','ws_spec0001_en','§30 Scheduled Local Backups','factual','markdown','MemTrace ships with a self-healing local backup system to prevent data loss in self-hosted environments. It runs database backups periodically and manages disk space by rotating out old backups.
+
+## Backup execution (§30.1)
+
+- **Frequency:** a background task runs hourly to check the backup schedule
+- **Interval:** the actual backup runs at the configured interval (default: 24 hours)
+- **Format:** the PostgreSQL backup is `gzip`-compressed (format: `.sql.gz`)
+- **Naming:** `memtrace_backup_YYYYMMDD_HHMMSS.sql.gz`
+
+## Rotation policy (§30.2)
+
+To prevent disk exhaustion, the system maintains a rolling window of backups:
+
+- **Retention count:** the number of most-recent backup files to keep (default: 7)
+- **Cleanup:** after each successful backup, the system scans the backup directory and deletes the oldest files beyond the retention count
+
+## Configuration (§30.3, admin only)
+
+Backup settings are managed centrally from the platform-admin dashboard:
+
+- **Backup path:** absolute path where backups are stored on the server
+- **Enable/disable:** toggle automatic backups
+- **Interval (hours):** how often backups run
+- **Retention count:** how many backups to keep
+
+## Status and monitoring (§30.4)
+
+The system records the result of every backup attempt in the `system_settings` table (key: `backup_config`):
+
+- `last_backup_at`: ISO timestamp of the last attempt
+- `last_backup_status`: `success` or `failed`
+- `last_backup_file`: path of the last successful backup
+- `error_msg`: detailed error when the last attempt failed
+',
+   ARRAY['backup', 'operations', 'admin', 'reliability', 'self-hosted']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','d5d288f735043052deb54210bee9cb4d3495c894e509d8e8e222575c0d395f1c','ai',
+   0.95,0.95,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_c24bbdad_en','1.0','ws_spec0001_en','AI Agents Must Specify source_type as "ai" When Creating Nodes','factual','markdown','When an AI agent creates a knowledge node, the `source_type` field must be explicitly set to `"ai"`. This results in the `source_type` field in the database being ''ai'' and the `proposer_type` field in the review queue also being ''ai''.',
    ARRAY['ai代理', '節點建立', 'api', '規範']::text[],'public','system','2026-04-25T02:39:26.969779+00:00','59ac0bfa279bf73aaa1a12d438248fbd2ddec10e108d722f3e09e55b42d105dd','ai',
    0.593,0.8,1.0,0.01,0.5,
@@ -8216,6 +8807,62 @@ VALUES
   ('mem_c4ce77e1_en','1.0','ws_spec0001_en','Archived Nodes Visible in Dedicated "Archive" View','factual','markdown','Archived nodes are accessible and displayed within a dedicated "Archive" view, which can be reached from the workspace sidebar.',
    ARRAY['視圖', '封存', '隱藏']::text[],'public','system','2026-04-24T11:25:39.575050+00:00','bf861774dffed73c434ea5c3c5a0d846a0ac249c2558d9ad2e8b12173dcaa5e2','ai',
    0.715,0.8,1.0,0.5,0.5,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_c571ecc8_en','1.0','ws_spec0001_en','AI Reviewers: Automated Review Bot Configuration','factual','markdown','A workspace admin can create one or more AI reviewers (ai_reviewers) on the "AI Management" settings page, letting a specific LLM model automatically give review opinions on proposals that enter the review_queue.
+
+## Quick create
+
+Just pick a Provider and Model and click "Create". If the name is left blank it is auto-generated (e.g. `openai / gpt-4o-mini`).
+
+## Advanced settings (collapsible)
+
+| Field | Description | Default |
+|------|------|--------|
+| Name | identifying label; auto-named if blank | `{provider} / {model}` |
+| System Prompt | the review instruction given to the LLM | see default prompt below |
+| Auto-accept threshold | auto-merge when confidence >= this value and decision=accept | 0.95 |
+| Auto-reject threshold | auto-reject when confidence <= this value and decision=reject | 0.10 |
+| Enabled | whether this reviewer participates | true |
+
+## Default System Prompt
+
+```
+You are an AI reviewer for a collaborative knowledge graph.
+Review the proposed node change and return strict JSON:
+{
+  "decision": "accept" | "reject" | "comment",
+  "confidence": 0.0-1.0,
+  "reasoning": "short explanation"
+}
+
+Prefer accept only for well-scoped, internally consistent, low-risk changes.
+Prefer reject for hallucinations, contradictions, empty edits, or destructive changes without justification.
+Use comment when uncertain.
+```
+
+## Review behavior
+
+- After each review_queue record is created, `run_ai_review_for_item` is triggered in the background
+- Enabled reviewers are tried in order (the first success wins)
+- After the LLM returns JSON, the outcome is decided by decision x confidence:
+  - auto-accept / auto-reject -> status is updated directly and the result is recorded in the ai_review field
+  - comment only -> the AI opinion is noted, but the item still awaits human review
+- Supports four providers: OpenAI, Anthropic, Gemini, Ollama
+',
+   ARRAY['ai-reviewer', 'review-queue', 'workspace-settings', 'automation']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','9e763580aa8ac838983d1d008fa91961000d54d2be889798380312a5dba0394c','ai',
+   0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8406,6 +9053,57 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_cf001_en','1.0','ws_spec0001_en','§S3 Contradicts Conflict Arbitration Flow','procedural','markdown','## Background
+
+A `contradicts` edge is only a marker; it does not force an arbitration flow, so conflicts can stay unresolved indefinitely.
+
+## Auto-enqueue flow
+
+When a `contradicts` edge is created, the system automatically pushes the related nodes into `review_queue` with `change_type=''conflict''`.
+
+## Logical conflict detection (AI layer)
+
+`conflict_status` and `conflict_detail` fields are recorded on `memory_nodes`:
+
+| conflict_status value | Description |
+|-------------------|------|
+| `contradicts_existing` | semantically contradicts an existing node |
+| `duplicate_content` | duplicate content |
+| `circular_dependency` | forms a circular dependency |
+| `orphaned_reference` | references a node that does not exist |
+
+## Arbitration outcomes
+
+The reviewer picks one of four outcomes:
+
+| Outcome | Action |
+|------|------|
+| `keep_a` | keep node A, archive node B |
+| `keep_b` | keep node B, archive node A |
+| `merge` | merge into a new node (enters the propose_merge flow) |
+| `both_valid` | both are valid; remove the contradicts edge |
+
+The arbitration outcome writes back to the related nodes'' `dim_accuracy` and `status`, and leaves a resolution log.
+
+## Acceptance criterion
+
+Every `contradicts` edge should have a corresponding resolution log or pending review item.
+',
+   ARRAY['conflict', 'contradicts', 'arbitration', 'review-queue', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','5b6cd29ff35eb67e2cc0d6cc6984d5b9a190f644862ee08d30b6b93e8a8bd132','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_cf633afb_en','1.0','ws_spec0001_en','Workspace Agent System Actor Design','factual','markdown','MemTrace defines two types of system actors:
 
 1. **Global system actor**: Represents the platform itself; belongs to no workspace; used for cross-workspace infrastructure operations (e.g., global decay scheduler).
@@ -8414,6 +9112,79 @@ VALUES
 Neither type contributes to human `author_rep` calculations. Telemetry records use `source_type="system"`.',
    ARRAY['system-actor', 'workspace-agent', 'identity', 'actor', 'telemetry']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','c5f3e4g6b7d8193a21cdef3456789012cdef3456789012cdef3456789012abcd','ai',
    0.65,0.8,1.0,0.6,0.5,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_cl001_en','1.0','ws_spec0001_en','§11.4 Dynamic Cluster System','factual','markdown','Each workspace owns a set of **node clusters** (the `node_clusters` table). A cluster is a named topic group (e.g. "API Design", "Security Rules") used for visual grouping and filtering in the graph view.
+
+## AI auto-assignment (§11.4.1)
+
+During document ingestion, the extraction prompt is seeded with the workspace''s existing cluster names and instructs the model to:
+
+1. When returning a node, attach `cluster_name_zh` and `cluster_name_en` pointing to the **best-matching existing cluster**.
+2. Only when a node clearly belongs to no existing cluster, **propose a new cluster name** (short, 1–3 words).
+
+The pipeline resolves the proposed name to a cluster id via `get_or_create_cluster` (case-insensitive match on `name_en`). The resolved `cluster_id` is written onto the node before it enters the review queue.
+
+## Table structure
+
+The `node_clusters` table records all clusters in a workspace: names (zh/en), color, and other metadata. The `memory_nodes` table links to it via the `cluster_id` foreign key (nullable).
+',
+   ARRAY['cluster', 'ingestion', 'ai', 'graph-view', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','691804a8b3143ba27e4912cf1419e4e65dc921c373dc29bd5114a0c23a777062','ai',
+   0.95,0.95,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_cl002_en','1.0','ws_spec0001_en','§11.4 Cluster Management: Manual Override, Unclustered Nodes, and Backfill','procedural','markdown','## Manual override (§11.4.2)
+
+Users and editors can reassign a node to a different cluster (or remove the assignment) at any time via:
+
+```
+PATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}/cluster
+{ "cluster_id": "cl_xxx" | null }
+```
+
+Cluster metadata (name, color) is managed via:
+
+```
+GET    /api/v1/workspaces/{ws_id}/clusters
+POST   /api/v1/workspaces/{ws_id}/clusters
+PATCH  /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
+DELETE /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
+```
+
+When a cluster is deleted, the `cluster_id` of all its nodes is set to `NULL`; the nodes themselves are not deleted.
+
+## Unclustered nodes (§11.4.3)
+
+Nodes with `cluster_id = NULL` are considered unclustered. In the 2D graph view they render in a separate area after all cluster groups. The cluster filter bar only shows assigned clusters; with no filter selected, all nodes are shown.
+
+## Backfill (§11.4.4)
+
+Nodes created before the cluster system was introduced have `cluster_id = NULL`. They can be reassigned manually or handled by a future batch backfill job.
+',
+   ARRAY['cluster', 'api', 'graph-view', 'backfill']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','fb2b059b1b9635a97a91dc41d2855a56441c65b4ba31349eb0f7cb70babfcf65','ai',
+   0.95,0.95,1.0,0.9,0.9,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8640,6 +9411,62 @@ VALUES
   ('mem_d3564082_en','1.0','ws_spec0001_en','Handle 202 Response for createNode/updateNode','procedural','markdown','When the createNode or updateNode API returns a 202 status code, the review_id should be extracted from the response body and explicitly returned to the AI agent.',
    ARRAY['api', '錯誤處理', 'ai代理', '審核流程']::text[],'public','system','2026-04-25T02:39:59.693849+00:00','23ae917c2d984d6ff3437a3c309dd34ed183a39846dbcf3156193dc0e779c845','ai',
    0.715,0.8,1.0,0.5,0.5,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_d38edbc7_en','1.0','ws_spec0001_en','Workspace Settings: AI Management Tab (Review Settings and Smart Maintenance)','procedural','markdown','The "AI Management" tab on the workspace settings page consolidates the previously separate "Review Settings" and "Smart Maintenance" pages, centralizing all AI-related features.
+
+## Three functional blocks
+
+### 1. Consult AI settings
+
+| Setting | Description |
+|--------|------|
+| Consult Provider | the model used for diagnosis and merge suggestions (blank uses the system default) |
+| Auto-merge trust level | `ask` (manual confirmation) or `full_trust` (auto-merge; dangerous operations are still intercepted) |
+
+A confirmation dialog warns of the risk before switching to `full_trust`.
+
+### 2. AI Reviewers
+
+Quick create: pick **Provider -> Model -> Create**; the name is auto-generated.
+
+Expand "Advanced settings" to modify:
+- Name (custom identifying label)
+- System Prompt (defaults to the standard review prompt)
+- Auto-accept threshold (default 0.95)
+- Auto-reject threshold (default 0.10)
+- Enabled / disabled toggle
+
+Created reviewers are shown as a card list and can be individually enabled / disabled / deleted.
+
+### 3. Smart Maintenance
+
+| Feature | Description |
+|------|------|
+| Smart hierarchy synthesis | scans orphan nodes and auto-generates summary nodes to optimize graph structure |
+| Potential-link prediction | predicts inter-node links by semantic similarity and suggests them into the review queue |
+
+Both are manually triggered (button-run), not scheduled.
+
+## Design principles
+
+- Only the workspace owner can modify AI Management settings
+- A reviewer takes effect immediately after creation; disabling does not delete its history
+- When multiple reviewers are enabled, they are tried in creation order and the first success wins
+',
+   ARRAY['workspace-settings', 'ui', 'ai-management', 'maintenance', 'reviewer']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','8adcf188af6271a30edf160f02cf40df24d4826548ebe4fd0032848b12de483e','ai',
+   0.95,0.95,1.0,0.95,0.9,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8971,6 +9798,76 @@ VALUES
   ('mem_ef8ec8ec_en','1.0','ws_spec0001_en','AI Chat Uses KB Association Boundaries','factual','markdown','The AI Chat functionality will depend on the boundary settings of knowledge base associations.',
    ARRAY['ai-chat', 'knowledge-base-association']::text[],'public','system','2026-04-25T02:39:58.716612+00:00','386ed5a376b7d7370a26182eaf9146e51d7f02dc1aec134bab2d9fb00a5f2986','ai',
    0.715,0.8,1.0,0.5,0.5,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_exp001_en','1.0','ws_spec0001_en','Knowledge Base Explore Page (Hub) Spec','factual','markdown','## Goal
+
+Provide a unified entry point for browsing and searching knowledge bases, solving the problem of finding a target KB once the number of workspaces grows. It has two levels: public KB discovery, and quick switching among personal KBs.
+
+## Navigation logic (Option B)
+
+- When `selectedWs === null` (no workspace selected), the central main content area shows the explore page as the default home
+- Clicking the MemTrace logo -> clears selectedWs, returning to the explore page
+- localStorage remembers the last-used workspace ID and jumps back to it automatically after login
+- The explore page also serves as the landing page for anonymous visitors (when allow_anonymous is on)
+
+## Access
+
+| User state | Content shown |
+|---|---|
+| Not logged in (anonymous) | only public / conditional_public KBs |
+| Logged in | My KBs (private) + public KBs, shown in separate sections |
+
+## Backend endpoint: GET /workspaces/explore
+
+No auth required (public endpoint). Query params:
+- `q`: fuzzy name search
+- `lang`: `zh-TW` | `en` filter
+- `sort`: `newest` (created_at desc) | `nodes` (node count desc)
+
+Returned fields: `id`, `name`, `description`, `language`, `visibility`, `node_count`, `owner_display_name`, `created_at`
+
+When logged in, with an `Authorization: Bearer ...` header the backend additionally merges in that user''s private KBs.
+
+## workspaces table new field
+
+`description text` (nullable) — a KB summary shown on explore-page cards. The WorkspaceSettings page adds a description field for the owner to edit.
+
+## Frontend ExplorePage.tsx
+
+**KB card shows:**
+- Name (large heading)
+- Description (truncated to 2 lines)
+- Language tag (Traditional Chinese / English)
+- Node-count badge
+- Visibility badge (Public / Private)
+- Creator''s display name
+- Clicking switches to the workspace directly
+
+**Search and filter bar:**
+- Live name search (frontend filter, no debounced API call)
+- Language toggle
+- Sort menu (newest / node count)
+
+**Sections:**
+1. My Knowledge Bases (shown only when logged in)
+2. Public Knowledge Bases
+
+## Status: pending (to be implemented)
+',
+   ARRAY['feature', 'explore', 'hub', 'workspace', 'discovery', 'ux']::text[],'public','system','2026-06-14T00:00:00+00:00','683ac9641e6435751ee8616a9d0b4cb4ec00b387ae9d60263f16239a4dc12e5a','ai',
+   0.85,0.88,0.98,0.92,0.88,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9444,6 +10341,156 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_inq001_en','1.0','ws_spec0001_en','Gap: Multi-planner planning discussion (fan-out + consensus arbitration)','inquiry','markdown','The loop''s planning stage currently has only a single planner. We want to support multiple planners producing proposals in parallel, then arbitrate whether consensus is reached.
+
+**Open design questions:**
+
+1. **Who launches the multiple planners?** External harness fan-out, or a MemTrace conductor actively triggering them?
+2. **Semantic boundary of proposals:** do the planners produce different solutions for "the same task", or does each pick a "different task"?
+3. **UI after escalate:** when converge_proposals returns escalate, how does the review_queue present a "pick-one-of-many" proposal card?
+4. **Interaction with existing claim_task:** when multiple planners claim different tasks simultaneously, does the task-allocation logic need adjusting?
+
+**Existing groundwork:** the `converge_proposals` MCP tool is implemented (reuses the consult synthesizer, returning converge / escalate).
+',
+   ARRAY['inquiry', 'gap', 'multi-agent', 'planner', 'mcp-tool', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','17430ff0bd605b7dd645606a3afe35b03a396a189dcb97431463cbccebdbad4a','ai',
+   0.7,0.8,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_inq002_en','1.0','ws_spec0001_en','Gap: claim registry -> Redis (multi-worker / restart survival)','inquiry','markdown','Currently the run-state for `claim_task` / `release_task` lives in an in-process `_TASK_CLAIMS` dict (TTL 30 minutes). It is lost on restart and not shared across workers.
+
+**Open design questions:**
+
+1. **Redis as a prerequisite:** should Redis become a required dependency for self-hosting? What is the impact on lightweight deployments?
+2. **Alternatives:** DB write (add a column to memory_nodes) vs. Redis; the former violates A7 (run-state must not enter the knowledge graph) but adds no extra dependency.
+3. **TTL policy:** is 30 minutes reasonable? When an agent crashes, is the TTL enough to auto-release the task?
+4. **Is it necessary:** is the multi-worker scenario an actual need today or an anticipated one?
+',
+   ARRAY['inquiry', 'gap', 'claim-registry', 'redis', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','70157464ecdddbd21c328aa1f0a271687d39bd4fe32543857b3dbd26bc58e134','ai',
+   0.7,0.8,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_inq003_en','1.0','ws_spec0001_en','Gap: Human-gate review quality — presentation of flag-only items','inquiry','markdown','Currently `submit_outcome(fail)` failure flags and per-feature integration checks enter the `review_queue` with empty `node_data={}`; the reviewer sees an empty card with no concrete context.
+
+**Open design questions:**
+
+1. **Where does the summary go?** `node_data` (existing field) vs. `proposer_meta` (new field). How does each affect the review card UI?
+2. **UI presentation direction:**
+   - Option A: write the failure reason / integration-check summary into `node_data`, and have the review card show that instead of an empty diff
+   - Option B: acknowledge these are "flag-only" operations and give the UI a distinct style (no diff; show reason + a jump to the node)
+   - The two are not mutually exclusive, but differ in implementation priority
+3. **What does the reviewer actually need?** Can they decide directly after seeing the failure reason, or do they need to jump into node editing to get context?
+',
+   ARRAY['inquiry', 'gap', 'review-queue', 'human-gate', 'ux', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','7e0e7783c43e46a5253ff343daea5ff25118bd2b2fa20984ec11a406fae558c7','ai',
+   0.7,0.8,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_inq004_en','1.0','ws_spec0001_en','Gap: Conductor — MemTrace actively triggering an external harness','inquiry','markdown','Currently an external harness must actively poll to learn about new tasks. We want MemTrace to actively notify the external harness to start the next loop when a pending inquiry / residue appears.
+
+**Open design questions:**
+
+1. **Trigger mechanism:** Webhook (HTTP push) vs. message queue (Redis pub/sub, AMQP). Deployment complexity vs. reliability.
+2. **MemTrace''s role boundary:** decision A1 clearly states "MemTrace is not the loop runtime". Is a Conductor a reasonable extension on the "memory side", or does it overstep?
+3. **Event granularity:** trigger on every pending inquiry, or batch (notify only after N or more)? Avoid over-triggering.
+4. **Harness integration surface:** where does the harness configure its webhook endpoint? Workspace setting or global setting?
+5. **Outcome accounting:** when multiple workers each submit_outcome, will path_reinforcement double-count?
+',
+   ARRAY['inquiry', 'gap', 'conductor', 'event', 'webhook', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','0b153b98673fa0a67e84736d923daba6d4ed6f90035b3e69a21c6f63bdd55e5d','ai',
+   0.7,0.8,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_inq005_en','1.0','ws_spec0001_en','Gap: Multi-agent trust tiering and memory-poisoning defense','inquiry','markdown','The system currently uses a single trusted credential (homogeneous trusted agents, decision A3). As multiple planners are added, we need per-agent identity, trust tiering, and memory-poisoning defenses.
+
+**Open design questions:**
+
+1. **Credential distribution:** the proposer_id field is reserved. How does an agent obtain its own proposer_id? Reuse the existing workspace API key + binding, or add an agent-specific key type?
+2. **Trust-tier thresholds:** writes from low-trust agents always go through a human gate (extending the mem_loop021 decision tiering). How is the threshold set? Does it stack with the operation risk level?
+3. **Poisoning defense:** how are residue nodes emitted (via emit_residue) by low-trust agents marked? Are they automatically deprioritized in the next planning loop?
+4. **Multi-workspace isolation:** when emit_residue emits residue into different workspaces, is there a collision risk in the advisory-lock key space (hashtext(ws_id))?
+5. **Priority:** is the H1 (credential) -> H2 (tiering) -> H3 (isolation) development order reasonable?
+',
+   ARRAY['inquiry', 'gap', 'trust', 'multi-agent', 'security', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','f1cf72bf4461e3f9c0f66995c845d06f16e6d08949f54ea458a980b02fb7460e','ai',
+   0.7,0.8,1.0,0.8,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_inq006_en','1.0','ws_spec0001_en','Gap (tech debt): single source of truth for schema/sql vs migrations','inquiry','markdown','Investigation found: at runtime `core.database.run_migrations()` applies `packages/api/migrations/*.sql` (currently only three files, 054–056); `schema/sql/` is numbered up to 112, yet neither contains the CREATE TABLE SQL for base tables like `inquiry_paths`. `test_inquiry_paths.py` asserts the table exists directly (without creating it), implying there is another base-schema mechanism (likely a one-time external load in shared-postgres), but its source is not present in this repo.
+
+**Open design questions:**
+
+1. **Which is authoritative?** Is `schema/sql/` a spec document, or the migrations actually executed? Is `migrations/` only incremental patches?
+2. **Where is the base schema?** Is shared-postgres an external CI fixture, or is there an uncommitted init script?
+3. **Fix direction:** complete `migrations/` to cover the full table-creation history, or switch to `schema/sql/` as the single source and update the deployment flow?
+4. **Urgency:** Phase 6 features are unaffected (all reuse existing tables). But if the next batch of features needs a new migration, this gap must be clarified first.
+',
+   ARRAY['inquiry', 'gap', 'tech-debt', 'schema', 'migrations', 'database']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','72e8b80651f25ae2c69763898229cf151278ecf59b60e64eb7761625078ebcc7','ai',
+   0.7,0.8,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_k001_en','1.0','ws_spec0001_en','Knowledge Base: the container workspace','factual','plain','A Knowledge Base (Workspace) is the container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Users can create multiple Knowledge Bases. A Knowledge Base has its own sharing level (public / restricted / private), independent from node-level visibility — effective access is the more restrictive of the two. A Knowledge Base may be started blank or bootstrapped from a document with AI extraction. ID format: ws_<hex8>.',
    ARRAY['knowledge-base', 'workspace', 'container']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4','human',
    0.95,0.95,1.0,0.9,0.9,
@@ -9885,6 +10932,576 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
+  ('mem_rq001_en','1.0','ws_spec0001_en','§S2 Review Queue SLA and Steward Rotation','procedural','markdown','## Background
+
+The review queue was designed but nobody actually uses it: every node has `validity_confirmed_at = null` and `vote_count = 0`.
+
+## SLA fields
+
+Two fields are added to the `review_queue` table:
+
+- `assigned_to` (text): the assigned reviewer''s user_id
+- `due_at` (timestamptz): review deadline (default: 7 days after assignment)
+
+## Steward rotation cron
+
+Runs automatically every Monday at 09:00:
+1. Find all pending items with `assigned_to IS NULL`
+2. Assign them round-robin among the ws owner + team members
+3. Set `due_at = now() + interval ''7 days''`
+4. Send notifications (email / webhook: Slack, Discord)
+
+## SLA penalty
+
+If not handled within 7 days of assignment:
+- node `dim_freshness x 0.8` (freshness downgrade)
+- the item enters the next assignment round
+
+## Acceptance criterion
+
+```sql
+-- unassigned rate should = 0%
+SELECT count(*) FROM review_queue
+WHERE assigned_to IS NULL
+  AND created_at < now() - interval ''1 day''
+  AND status = ''pending'';
+```
+
+Target: weekly active reviewers >= 2
+',
+   ARRAY['review-queue', 'sla', 'steward', 'governance', 'cron', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ed451d811138ddfe82e570f6259f00866ef8ddd4602bb757dfbea2e3300d9f5b','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_syn001_en','1.0','ws_spec0001_en','§S4 summarize_cluster MCP Tool: AI Cluster Summary','factual','markdown','## Overview
+
+`summarize_cluster` lets an AI agent automatically generate a summary node for a given cluster, so a querier can grasp the gist of the whole cluster from a single node and avoid the token cost of traversing node by node.
+
+## MCP tool definition
+
+```json
+{
+  "name": "summarize_cluster",
+  "description": "Generate a summary node for a given cluster and send it for review",
+  "parameters": {
+    "cluster_id": "the cluster''s id",
+    "workspace_id": "workspace id"
+  }
+}
+```
+
+## Implementation locations
+
+- `services/synthesis.py::generate_cluster_summary`
+- `routers/kb.py::maintenance_summarize_cluster` (route: `POST /workspaces/{ws_id}/maintenance/summarize-cluster`)
+- `services/mcp_tools.py` (MCP exposure)
+
+## Flow
+
+1. Fetch all active nodes in the cluster
+2. Call the AI to generate the summary body
+3. Create a new node with `source_type=''ai''`, `content_type=''context''`
+4. Send it into `review_queue` for human confirmation
+5. Once confirmed, the node is attached to the cluster and `extends` edges are created to member nodes
+
+## Use cases
+
+- When a cluster has > 10 member nodes, the summary node can act as an "entry point"
+- Token savings: a querier that hits the summary is done, without reading each member
+',
+   ARRAY['mcp-tool', 'synthesis', 'cluster', 'summarize', 'ai', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9663af7dbe98364b9ff89273a0875de54e7af5750479ad2e0eaf80a3d51b0fe7','ai',
+   0.93,0.93,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_syn002_en','1.0','ws_spec0001_en','§S4 complement_node_languages MCP Tool: Fill Bilingual Gaps','factual','markdown','## Overview
+
+`complement_node_languages` detects nodes in a workspace that have "zh only, no en" or "en only, no zh", and has the AI auto-translate to fill the gap, ensuring language symmetry in a bilingual workspace.
+
+## MCP tool definition
+
+```json
+{
+  "name": "complement_node_languages",
+  "description": "Scan and fill bilingual gaps in a workspace",
+  "parameters": {
+    "workspace_id": "workspace id",
+    "target_language": "zh-TW | en"
+  }
+}
+```
+
+## Implementation location
+
+- `services/mcp_tools.py` (MCP exposure, tool name `complement_node_languages`)
+- Scans the gap against the workspace referenced by `linked_workspace_id`
+
+## Bilingual workspace architecture
+
+spec-as-kb uses a "two monolingual workspaces" design:
+- `ws_spec0001` (zh-TW)
+- `ws_spec0001_en` (en)
+- The two are linked to each other via `workspaces.linked_workspace_id`
+
+An English node id is `{zh_id}_en` (e.g. `mem_d001_en`).
+
+## Translation flow
+
+1. Find nodes that exist in zh but not en
+2. Call the AI to generate the English body
+3. Create the `{id}_en` node with `source_type=''ai''` and send it to the review_queue
+4. After approval, add it to the en workspace
+
+## Use cases
+
+- Batch-fill the corresponding English nodes after each new zh node is added
+- After Phase 5, the en node gap (~30 nodes) can be batch-generated with this tool
+',
+   ARRAY['mcp-tool', 'synthesis', 'bilingual', 'language', 'complement', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9086481e81a6af53429683eb32fd350b5bc682caaffdd70e872aa7c3d7414280','ai',
+   0.93,0.93,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_syn003_en','1.0','ws_spec0001_en','§S4 suggest_edges MCP Tool: AI Suggests Missing Edges','factual','markdown','## Overview
+
+`suggest_edges` analyzes the semantic relationships between nodes in a KB, finds edges that should exist but are not yet linked, and proposes them for review. It avoids orphan nodes that break traversal.
+
+## MCP tool definition
+
+```json
+{
+  "name": "suggest_edges",
+  "description": "AI suggests missing semantic edges in a workspace",
+  "parameters": {
+    "workspace_id": "workspace id",
+    "threshold": 0.75
+  }
+}
+```
+
+## Implementation locations
+
+- `services/synthesis.py::suggest_missing_edges` (`run_suggest_edges`)
+- `routers/kb.py::maintenance_suggest_edges` (route: `POST /workspaces/{ws_id}/maintenance/suggest-edges`)
+- `services/nodes.py::suggest_edges_for_node_in_db` (single-node version)
+- `services/mcp_tools.py` (MCP exposure)
+- `services/bg_jobs.py::bg_suggest_edges` (background-job version)
+
+## Triggers
+
+1. **After document ingestion**: `bg_suggest_edges(ws_id, new_node_id, user_id)` is triggered automatically in the background
+2. **Manual**: MCP tool or maintenance endpoint
+
+## Edge proposal flow
+
+1. Compute the embedding cosine of candidate node pairs
+2. cosine >= threshold and no existing edge -> generate an edge proposal
+3. The proposal enters `review_queue` (`change_type=''edge_suggestion''`)
+4. After human confirmation, create the formal edge
+',
+   ARRAY['mcp-tool', 'synthesis', 'edges', 'suggest', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ceffafca0e247c2db843d43a54676b13d2dbb46afea8f43ebea5661203278bb5','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ta001_en','1.0','ws_spec0001_en','§S1 Token Telemetry: retrieval_logs Table','factual','markdown','Every retrieval / chat call writes to the `retrieval_logs` table, the foundation for all token measurement.
+
+## Table structure
+
+```sql
+CREATE TABLE retrieval_logs (
+  id             bigserial PRIMARY KEY,
+  workspace_id   text NOT NULL,
+  user_id        text,
+  mode           text NOT NULL,  -- ''search'' | ''chat'' | ''traverse''
+  query          text,
+  top_k          int,
+  hit_node_ids   text[],
+  similarities   float[],
+  tokens_query   int,
+  tokens_context int,
+  tokens_answer  int,
+  answer_useful  boolean,        -- written back by a later vote
+  trace_id       text,           -- links a chat session
+  created_at     timestamptz DEFAULT now()
+);
+```
+
+Indexes: `(workspace_id, created_at DESC)`, `(workspace_id, mode, created_at DESC)`.
+
+## Write points
+
+- `services/search.py::search_nodes_in_db` -> `mode=''search''`
+- `hybrid_retrieval_for_chat` -> `mode=''chat''`
+- Token counting: tiktoken cl100k_base (OpenAI) / own tokenizer (Ollama), estimated uniformly
+
+## Analytics endpoint
+
+`GET /workspaces/{ws_id}/analytics/tokens?period=7d` returns aggregated query results.
+
+## Acceptance criteria
+
+- log coverage >= 99%
+- token-count error vs. real calls < 2%
+',
+   ARRAY['analytics', 'token', 'retrieval', 'telemetry', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','e605067f468c30cec9c8c119a0cfe72bba127df398cbf95a1f69834d94485136','ai',
+   0.95,0.95,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ta002_en','1.0','ws_spec0001_en','§S1 KB Health Snapshot: kb_health_daily Table','factual','markdown','`kb_health_daily` takes a daily snapshot of core KB metrics; it is the persistence source for the North Star measurements (M1–M4).
+
+## Table structure
+
+```sql
+CREATE TABLE kb_health_daily (
+  id                        bigserial PRIMARY KEY,
+  date                      date NOT NULL,
+  workspace_id              text NOT NULL,
+  token_savings_ratio       float,   -- M1: token savings ratio
+  retrieval_recall_at_5     float,   -- M2: Recall@5
+  retrieval_mrr             float,   -- MRR
+  decay_runs_last_14d       int,     -- M3: consecutive decay-run days
+  duplicate_pairs_unlinked  int,     -- M4: unlinked duplicate pairs
+  avg_trust_active          float,
+  active_users_7d           int,
+  review_queue_depth        int,
+  ai_nodes_unverified_ratio float,
+  created_at                timestamptz DEFAULT now(),
+  UNIQUE (date, workspace_id)
+);
+```
+
+## Write timing
+
+A daily 03:30 cron writes a snapshot for all workspaces.
+
+## Health endpoint
+
+`GET /workspaces/{ws_id}/analytics/health` returns the latest snapshot plus a 7-day trend. The UI Dashboard displays these metrics.
+
+## North Star targets
+
+| Metric | Target | Measured (2026-05-16) |
+|------|------|-------------------|
+| M1 Token savings ratio | >= 70% | 82.1% |
+| M2 Recall@5 | >= 0.80 | 0.9471 |
+| M3 Decay 14 consecutive days | no gaps | continuously accumulating |
+| M4 Unlinked duplicate pairs | = 0 | 0 |
+',
+   ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','a69e2b393f6f80f41c24fd2d0b64e718a1987a49506d6ce3594566d4484acdae','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ta003_en','1.0','ws_spec0001_en','§S1 similar_to Automated Scan and Deduplication','procedural','markdown','## Goal
+
+Eliminate duplicate nodes: any node pair with embedding cosine >= 0.85 should have a `similar_to` edge, to avoid repeatedly feeding highly similar content to the AI (wasting tokens + confusing judgment).
+
+## Automation flow
+
+`bg_suggest_edges` (`services/bg_jobs.py`) is triggered at:
+
+1. **After document ingestion**: `pipeline.py` calls `scheduler.add_job(bg_suggest_edges, args=[ws_id, node_id, user_id])`
+2. **Periodic scan**: a weekly Sunday 02:00 cron reruns across all workspaces
+
+## Similarity threshold rules
+
+| cosine range | Action |
+|------------|------|
+| >= 0.85, < 0.92 | auto-create a `similar_to` edge (weight = cosine value) |
+| >= 0.92 | enter `review_queue`, mark `duplicate_candidate` |
+
+## Acceptance SQL
+
+```sql
+-- expect 0 (no unlinked high-similarity pairs)
+WITH pairs AS (
+  SELECT a.id AS a_id, b.id AS b_id,
+         1 - (a.embedding <=> b.embedding) AS sim
+  FROM memory_nodes a, memory_nodes b
+  WHERE a.workspace_id = b.workspace_id
+    AND a.id < b.id
+    AND 1 - (a.embedding <=> b.embedding) >= 0.85
+)
+SELECT count(*) FROM pairs p
+WHERE NOT EXISTS (
+  SELECT 1 FROM edges e
+  WHERE e.relation = ''similar_to''
+    AND ((e.from_id = p.a_id AND e.to_id = p.b_id)
+         OR (e.from_id = p.b_id AND e.to_id = p.a_id))
+);
+```
+',
+   ARRAY['dedup', 'similar_to', 'automation', 'cron', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','f3af78d19d917180f59bc0ae1a3d3f17d60809d0732a83f3b023741c3bcd5193','ai',
+   0.93,0.93,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ta004_en','1.0','ws_spec0001_en','§S1 propose_merge MCP Tool: Node Granularity Optimization','factual','markdown','## Background
+
+Over-atomized nodes (each < 50 chars, 5 of them) consume more tokens than a single appropriately-sized node (200 chars, 1 of them), because each is stuffed into the context by top-k.
+
+## propose_merge tool
+
+```json
+{
+  "name": "propose_merge",
+  "description": "Merge multiple nodes into one and send the proposal for review",
+  "parameters": {
+    "node_ids": ["mem_x001", "mem_x002"],
+    "reason": "high co-occurrence and each body < 50 chars"
+  }
+}
+```
+
+Trigger condition: analyze the `retrieval_logs.hit_node_ids` co-occurrence matrix to find groups of nodes "co-hit in >= 5 distinct queries, each with body < 50 chars", and auto-generate a merge proposal.
+
+Merge flow: the proposal enters `review_queue` (`change_type=''merge''`) -> a human or AI edits the merged draft -> a new node is created -> the old nodes are archived -> an `extends` edge is created pointing to the new node.
+
+## Acceptance criteria
+
+Run the same golden set after merging:
+- avg context tokens drop >= 15%
+- accuracy (LLM-judge rubric) does not drop
+',
+   ARRAY['mcp-tool', 'merge', 'granularity', 'token', 'review-queue', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','dee18981cec89090326dadb7251ca06c1fb182db659ab0855c32128cb167297d','ai',
+   0.93,0.93,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_tg001_en','1.0','ws_spec0001_en','§S5 TraversalGuard: Graph Traversal Rate Limiting','factual','markdown','## Goal
+
+Prevent a malicious or runaway AI agent from traversing the knowledge graph without bound, causing DoS or embedding abuse.
+
+## Implementation location
+
+`core/ratelimit.py::TraversalGuard`
+
+## Call sites
+
+- `routers/kb.py`: node-read routes (`TraversalGuard.check(viewer_id)`)
+- `services/nodes.py`: `get_node_in_db`
+- `services/edges.py`: edge-related operations
+
+## Limit rules
+
+`TraversalGuard.check(user_id)` triggers a rejection when:
+
+| Dimension | Default limit |
+|------|----------|
+| Traversals per minute per user | configurable |
+| Traversals per hour per user | configurable |
+| MCP agent traversals | counted separately |
+
+Exceeding a limit returns `429 Too Many Requests`.
+
+## Design principles
+
+- The limit targets `viewer_id` (user_id or agent_id), not IP
+- It does not affect normal traversal by cron / maintenance jobs (system operations are excluded)
+- Rate counting uses an in-memory cache (can be swapped for Redis, see mem_inq002)
+
+## Related nodes
+
+- [[mem_d006]] Traversal Tracking: the traversal-counting mechanism
+- [[mem_inq002]] claim registry -> Redis (includes the rate-limiting discussion)
+',
+   ARRAY['security', 'rate-limit', 'traversal', 'guard', 'hardening', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','d0cc4221d4e57c1c91a8c1b3ae3d38a7fa311229be5e909290d8667d23722f01','ai',
+   0.95,0.95,1.0,0.9,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_tr001_en','1.0','ws_spec0001_en','§S2 Default Trust Downgrade for AI Nodes','factual','markdown','## Problem
+
+If `source_type=ai` nodes simply keep the default high trust (dim_accuracy=0.95), it amounts to "whatever the AI wrote is correct", violating the intent of the trust mechanism.
+
+## Spec
+
+When a node is stored, if `source_type=''ai''` and `validity_confirmed_at IS NULL`, it **must** use the downgraded defaults:
+
+| Dimension | Default (human/spec) | Downgraded (AI unverified) |
+|------|---------------------|--------------------|
+| dim_accuracy | 0.95 | **0.50** |
+| dim_utility | 0.90 | **0.50** |
+| trust_score (computed) | ~0.924 | **<= 0.65** |
+
+## Upgrade conditions
+
+If any of the following holds, dim_accuracy may rise to >= 0.80:
+
+1. Accumulated >= 1 `vote_trust(accuracy >= 0.8)`
+2. `validity_confirmed_at IS NOT NULL` (confirmed by a human or high-trust AI)
+
+## Acceptance SQL
+
+```sql
+-- unverified AI nodes'' average trust should be <= 0.65
+SELECT avg(trust_score)
+FROM memory_nodes
+WHERE source_type = ''ai''
+  AND validity_confirmed_at IS NULL
+  AND status = ''active'';
+```
+
+> Note: the live DB currently has an average trust of ~0.76 for unverified AI nodes (above threshold); this spec has not yet been fully applied.
+',
+   ARRAY['trust', 'ai', 'governance', 'source-type', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9d1e0e5b3d2442431913c1acf618106cb3cf25640a0fcaa9719472f41df3d1ce','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_vt001_en','1.0','ws_spec0001_en','§S3 Vote Anti-Manipulation: UNIQUE Constraint and Time Decay','factual','markdown','## Background
+
+Without a "one user counts as one vote per node" constraint, a single user can inflate or deflate trust.
+
+## Database constraint
+
+The `node_trust_votes` table has:
+
+```sql
+UNIQUE (node_id, user_id)  -- one user can have only one vote record per node
+```
+
+A later vote **overwrites** the earlier one (ON CONFLICT UPDATE); votes do not accumulate.
+
+## Minimum voter rule
+
+A node needs >= 3 distinct voters in the same workspace before it counts toward trust (below the threshold it does not move trust_score).
+
+## Time decay
+
+Vote time decay: votes older than 30 days get weight x 0.5, to avoid early votes permanently locking trust.
+
+## Simulation acceptance
+
+- Manipulation test: a single user voting 100 times on the same node -> final trust_score change <= 0.05
+- Normal test: 3 distinct users each casting 1 vote -> trust takes full effect
+
+## Related table fields
+
+```sql
+-- node_trust_votes
+id, workspace_id, node_id, user_id,
+accuracy (1–5), utility (1–5), created_at
+```
+',
+   ARRAY['trust', 'vote', 'anti-manipulation', 'governance', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9db76298f0b43a6eb538218dc8e740a6dd21da4c65fd04249f5eb65037b1db86','ai',
+   0.95,0.95,1.0,0.92,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
   ('mem_w001_en','1.0','ws_spec0001_en','Project Package Structure','factual','markdown','MemTrace uses an npm workspaces monorepo. The root `package.json` manages six packages:
 
 | Package | Path | Language | Role |
@@ -10011,6 +11628,166 @@ VALUES
 | P4-G | Self-hosted Ollama provider (local/LAN/reverse proxy) | ✅ |',
    ARRAY['dev', 'workflow', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0.8,0.8,1.0,0.8,0.8,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ws001_en','1.0','ws_spec0001_en','§17 Concurrent Write Safety: Optimistic Locking and Write Queue','factual','markdown','When multiple users or AI agents submit writes to the same knowledge base simultaneously, the following failure modes must be prevented: a node modified by two parties at once producing a split state; concurrent document ingestion producing duplicate nodes or conflicting edges; AI restructuring proposing against a stale snapshot while a human edit is being saved.
+
+## 17.2 Node optimistic locking
+
+Each `memory_nodes` row carries an `updated_at` timestamp and a `version` integer. All update endpoints require the caller to provide the last known version:
+
+```http
+PATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}
+X-Node-Version: <integer>
+```
+
+If the node has been modified since the provided version, the server returns:
+
+```
+HTTP 412 Precondition Failed
+{ "detail": "Node was modified by another actor since your last fetch. Reload and retry." }
+```
+
+The client must refetch the node, merge changes, and resubmit. Silent overwrites are not allowed.
+
+```sql
+ALTER TABLE memory_nodes ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;
+-- on each successful UPDATE: version = version + 1
+```
+
+## 17.3 Workspace write queue (Advisory Lock)
+
+To prevent race conditions among document ingestion, batch AI extraction, and concurrent node creation, **writes to the same workspace are serialized via a per-workspace Advisory Lock**:
+
+```sql
+SELECT pg_advisory_xact_lock(hashtext(ws_id));
+-- released automatically on transaction commit or rollback
+```
+
+- If the lock cannot be acquired before timeout, the server returns `HTTP 429 Write queue busy — try again shortly`
+- The lock scope is per-workspace; writes to different workspaces run fully in parallel
+- Read operations are **not** subject to the write lock
+- The timeout is configurable via `WS_WRITE_LOCK_TIMEOUT_SECONDS` (default: 5 seconds)
+',
+   ARRAY['concurrency', 'write-serialization', 'optimistic-locking', 'advisory-lock', 'database', 'api']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cb2fd109595f2fcba8e3985b8843c898222e3d815079168ca2c375a0339a58ea','ai',
+   0.95,0.95,1.0,0.95,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ws002_en','1.0','ws_spec0001_en','§17.4 Logical Conflict Detection','factual','markdown','After any AI-generated or AI-restructured node is submitted, the system runs an **asynchronous conflict check** to detect logical inconsistencies introduced by the AI.
+
+## Conflict types (§17.4.1)
+
+| Type | Description |
+|------|------|
+| `contradicts_existing` | the node body contradicts an existing node linked via a `contradicts` edge |
+| `duplicate_content` | node embedding cosine similarity >= 0.92 (against an existing active node) |
+| `circular_dependency` | a `depends_on` edge would form a cycle in the dependency graph |
+| `orphaned_reference` | the node body references another node by ID, but no corresponding edge exists |
+
+## Conflict-flag schema (§17.4.2)
+
+```sql
+ALTER TABLE memory_nodes
+  ADD COLUMN IF NOT EXISTS conflict_status TEXT
+    CHECK (conflict_status IN (NULL, ''flagged'', ''resolved'')),
+  ADD COLUMN IF NOT EXISTS conflict_detail JSONB;
+  -- { "type": "...", "conflicting_node_id": "...", "message": "..." }
+```
+
+A flagged node shows an **amber warning indicator** in the graph view and a dismissible conflict card in the node editor.
+
+**Resolution:** edit the node to remove the contradiction -> `conflict_status = ''resolved''`; or call `PATCH .../acknowledge-conflict` to dismiss the prompt without changing content.
+
+## AI write rule (§17.4.3)
+
+AI Agents (MCP) are subject to the same write serialization and conflict detection as human users. If a conflict is detected after submission, the `conflict_warning` field is returned in the next tool response:
+
+```json
+{
+  "result": "...",
+  "conflict_warning": {
+    "node_id": "mem_xyz",
+    "type": "duplicate_content",
+    "similar_node_id": "mem_abc"
+  }
+}
+```
+',
+   ARRAY['concurrency', 'conflict-detection', 'write-serialization', 'ai', 'database', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','64ea1c83980cc716fb87938c6bf06d868a46d8cdf82b5259e4253bab807c1323','ai',
+   0.95,0.95,1.0,0.95,0.9,
+   0,0,0,0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
+  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
+  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
+   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+VALUES
+  ('mem_ws003_en','1.0','ws_spec0001_en','§S3 Cross-Workspace Version Sync: sync_from_source','procedural','markdown','## Background
+
+`copied_from_node` only records the source; after the source node is updated, the copies do not sync, leaving 5 workspaces with 5 divergent copies.
+
+## Sync mechanism
+
+### Automatic notification (LISTEN/NOTIFY)
+
+When the original node is updated, PostgreSQL `LISTEN/NOTIFY` pushes all copied nodes into `review_queue`, marked `change_type=''source_updated''`. Notification latency <= 5 seconds.
+
+### Manual sync MCP tool
+
+```json
+{
+  "name": "sync_from_source",
+  "description": "Manually pull the latest version from the source node",
+  "parameters": {
+    "node_id": "id of the copied node to sync"
+  }
+}
+```
+
+## Related fields
+
+`memory_nodes` table:
+- `copied_from_node` (text): source node id
+- `copied_from_ws` (text): source workspace id
+
+## End-to-end acceptance flow
+
+1. Create node A (ws_a)
+2. Copy to ws_b, becoming node B (`copied_from_node = A.id`)
+3. Update node A
+4. Confirm node B enters `review_queue` with `change_type=''source_updated''`
+5. Confirm all copies receive the notification, latency <= 5 seconds
+',
+   ARRAY['cross-workspace', 'sync', 'mcp-tool', 'copied-node', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9371bf9ac6a69c74803ebf20ba282f5d3947113b1ad687d4e444fe4069449859','ai',
+   0.93,0.93,1.0,0.9,0.9,
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,

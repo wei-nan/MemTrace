@@ -1,0 +1,43 @@
+{
+  "id": "mem_tr001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S2 Default Trust Downgrade for AI Nodes",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Problem\n\nIf `source_type=ai` nodes simply keep the default high trust (dim_accuracy=0.95), it amounts to \"whatever the AI wrote is correct\", violating the intent of the trust mechanism.\n\n## Spec\n\nWhen a node is stored, if `source_type='ai'` and `validity_confirmed_at IS NULL`, it **must** use the downgraded defaults:\n\n| Dimension | Default (human/spec) | Downgraded (AI unverified) |\n|------|---------------------|--------------------|\n| dim_accuracy | 0.95 | **0.50** |\n| dim_utility | 0.90 | **0.50** |\n| trust_score (computed) | ~0.924 | **<= 0.65** |\n\n## Upgrade conditions\n\nIf any of the following holds, dim_accuracy may rise to >= 0.80:\n\n1. Accumulated >= 1 `vote_trust(accuracy >= 0.8)`\n2. `validity_confirmed_at IS NOT NULL` (confirmed by a human or high-trust AI)\n\n## Acceptance SQL\n\n```sql\n-- unverified AI nodes' average trust should be <= 0.65\nSELECT avg(trust_score)\nFROM memory_nodes\nWHERE source_type = 'ai'\n  AND validity_confirmed_at IS NULL\n  AND status = 'active';\n```\n\n> Note: the live DB currently has an average trust of ~0.76 for unverified AI nodes (above threshold); this spec has not yet been fully applied.\n"
+  },
+  "tags": [
+    "trust",
+    "ai",
+    "governance",
+    "source-type",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "9d1e0e5b3d2442431913c1acf618106cb3cf25640a0fcaa9719472f41df3d1ce",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

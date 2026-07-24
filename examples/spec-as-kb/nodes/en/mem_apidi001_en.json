@@ -1,0 +1,44 @@
+{
+  "id": "mem_apidi001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§27 API Document Ingestion (Programmatic Ingestion)",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "In addition to the UI ingestion form, MemTrace supports programmatic document ingestion via the REST API. This lets CI/CD pipelines, scripts, and third-party tools push knowledge into a workspace without human intervention.\n\n## Endpoint (§27.1)\n\n```\nPOST /api/v1/workspaces/{ws_id}/ingest\nAuthorization: Bearer <workspace-api-key>  (scope: kb:write)\nContent-Type: multipart/form-data\n\nFields:\n  file       (optional) — binary file upload (PDF, Markdown, TXT, etc.)\n  text       (optional) — plain-text string (mutually exclusive with file)\n  filename   (optional) — display name of the source document\n```\n\nExactly one of `file` or `text` must be provided.\n\n## Response (§27.2)\n\n```json\n{\n  \"job_id\": \"job_xxx\",\n  \"status\": \"queued\",\n  \"message\": \"Ingestion started in background\"\n}\n```\n\n## Status polling (§27.3)\n\n```\nGET /api/v1/workspaces/{ws_id}/ingest/{job_id}\nResponse: { job_id, status, progress, chunks_total, chunks_done, error? }\n```\n\nIngestion runs asynchronously in the background. Callers poll for progress and, on completion, get the review-queue status of the extracted nodes.\n"
+  },
+  "tags": [
+    "ingestion",
+    "api",
+    "programmatic",
+    "ci-cd",
+    "async",
+    "document"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "e08e42fa89d285f0eb87e98488720f841b2fc00580f45eac156100c08fcbc422",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

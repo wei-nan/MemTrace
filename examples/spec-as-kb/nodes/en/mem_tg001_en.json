@@ -1,0 +1,44 @@
+{
+  "id": "mem_tg001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S5 TraversalGuard: Graph Traversal Rate Limiting",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Goal\n\nPrevent a malicious or runaway AI agent from traversing the knowledge graph without bound, causing DoS or embedding abuse.\n\n## Implementation location\n\n`core/ratelimit.py::TraversalGuard`\n\n## Call sites\n\n- `routers/kb.py`: node-read routes (`TraversalGuard.check(viewer_id)`)\n- `services/nodes.py`: `get_node_in_db`\n- `services/edges.py`: edge-related operations\n\n## Limit rules\n\n`TraversalGuard.check(user_id)` triggers a rejection when:\n\n| Dimension | Default limit |\n|------|----------|\n| Traversals per minute per user | configurable |\n| Traversals per hour per user | configurable |\n| MCP agent traversals | counted separately |\n\nExceeding a limit returns `429 Too Many Requests`.\n\n## Design principles\n\n- The limit targets `viewer_id` (user_id or agent_id), not IP\n- It does not affect normal traversal by cron / maintenance jobs (system operations are excluded)\n- Rate counting uses an in-memory cache (can be swapped for Redis, see mem_inq002)\n\n## Related nodes\n\n- [[mem_d006]] Traversal Tracking: the traversal-counting mechanism\n- [[mem_inq002]] claim registry -> Redis (includes the rate-limiting discussion)\n"
+  },
+  "tags": [
+    "security",
+    "rate-limit",
+    "traversal",
+    "guard",
+    "hardening",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "d0cc4221d4e57c1c91a8c1b3ae3d38a7fa311229be5e909290d8667d23722f01",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

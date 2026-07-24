@@ -1,0 +1,44 @@
+{
+  "id": "mem_ta004_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S1 propose_merge MCP Tool: Node Granularity Optimization",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Background\n\nOver-atomized nodes (each < 50 chars, 5 of them) consume more tokens than a single appropriately-sized node (200 chars, 1 of them), because each is stuffed into the context by top-k.\n\n## propose_merge tool\n\n```json\n{\n  \"name\": \"propose_merge\",\n  \"description\": \"Merge multiple nodes into one and send the proposal for review\",\n  \"parameters\": {\n    \"node_ids\": [\"mem_x001\", \"mem_x002\"],\n    \"reason\": \"high co-occurrence and each body < 50 chars\"\n  }\n}\n```\n\nTrigger condition: analyze the `retrieval_logs.hit_node_ids` co-occurrence matrix to find groups of nodes \"co-hit in >= 5 distinct queries, each with body < 50 chars\", and auto-generate a merge proposal.\n\nMerge flow: the proposal enters `review_queue` (`change_type='merge'`) -> a human or AI edits the merged draft -> a new node is created -> the old nodes are archived -> an `extends` edge is created pointing to the new node.\n\n## Acceptance criteria\n\nRun the same golden set after merging:\n- avg context tokens drop >= 15%\n- accuracy (LLM-judge rubric) does not drop\n"
+  },
+  "tags": [
+    "mcp-tool",
+    "merge",
+    "granularity",
+    "token",
+    "review-queue",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "dee18981cec89090326dadb7251ca06c1fb182db659ab0855c32128cb167297d",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_ta001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S1 Token Telemetry: retrieval_logs Table",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Every retrieval / chat call writes to the `retrieval_logs` table, the foundation for all token measurement.\n\n## Table structure\n\n```sql\nCREATE TABLE retrieval_logs (\n  id             bigserial PRIMARY KEY,\n  workspace_id   text NOT NULL,\n  user_id        text,\n  mode           text NOT NULL,  -- 'search' | 'chat' | 'traverse'\n  query          text,\n  top_k          int,\n  hit_node_ids   text[],\n  similarities   float[],\n  tokens_query   int,\n  tokens_context int,\n  tokens_answer  int,\n  answer_useful  boolean,        -- written back by a later vote\n  trace_id       text,           -- links a chat session\n  created_at     timestamptz DEFAULT now()\n);\n```\n\nIndexes: `(workspace_id, created_at DESC)`, `(workspace_id, mode, created_at DESC)`.\n\n## Write points\n\n- `services/search.py::search_nodes_in_db` -> `mode='search'`\n- `hybrid_retrieval_for_chat` -> `mode='chat'`\n- Token counting: tiktoken cl100k_base (OpenAI) / own tokenizer (Ollama), estimated uniformly\n\n## Analytics endpoint\n\n`GET /workspaces/{ws_id}/analytics/tokens?period=7d` returns aggregated query results.\n\n## Acceptance criteria\n\n- log coverage >= 99%\n- token-count error vs. real calls < 2%\n"
+  },
+  "tags": [
+    "analytics",
+    "token",
+    "retrieval",
+    "telemetry",
+    "schema",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "e605067f468c30cec9c8c119a0cfe72bba127df398cbf95a1f69834d94485136",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

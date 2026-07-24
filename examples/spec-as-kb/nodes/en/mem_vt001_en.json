@@ -1,0 +1,44 @@
+{
+  "id": "mem_vt001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S3 Vote Anti-Manipulation: UNIQUE Constraint and Time Decay",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Background\n\nWithout a \"one user counts as one vote per node\" constraint, a single user can inflate or deflate trust.\n\n## Database constraint\n\nThe `node_trust_votes` table has:\n\n```sql\nUNIQUE (node_id, user_id)  -- one user can have only one vote record per node\n```\n\nA later vote **overwrites** the earlier one (ON CONFLICT UPDATE); votes do not accumulate.\n\n## Minimum voter rule\n\nA node needs >= 3 distinct voters in the same workspace before it counts toward trust (below the threshold it does not move trust_score).\n\n## Time decay\n\nVote time decay: votes older than 30 days get weight x 0.5, to avoid early votes permanently locking trust.\n\n## Simulation acceptance\n\n- Manipulation test: a single user voting 100 times on the same node -> final trust_score change <= 0.05\n- Normal test: 3 distinct users each casting 1 vote -> trust takes full effect\n\n## Related table fields\n\n```sql\n-- node_trust_votes\nid, workspace_id, node_id, user_id,\naccuracy (1–5), utility (1–5), created_at\n```\n"
+  },
+  "tags": [
+    "trust",
+    "vote",
+    "anti-manipulation",
+    "governance",
+    "schema",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "9db76298f0b43a6eb538218dc8e740a6dd21da4c65fd04249f5eb65037b1db86",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

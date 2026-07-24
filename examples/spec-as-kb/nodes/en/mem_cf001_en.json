@@ -1,0 +1,44 @@
+{
+  "id": "mem_cf001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S3 Contradicts Conflict Arbitration Flow",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Background\n\nA `contradicts` edge is only a marker; it does not force an arbitration flow, so conflicts can stay unresolved indefinitely.\n\n## Auto-enqueue flow\n\nWhen a `contradicts` edge is created, the system automatically pushes the related nodes into `review_queue` with `change_type='conflict'`.\n\n## Logical conflict detection (AI layer)\n\n`conflict_status` and `conflict_detail` fields are recorded on `memory_nodes`:\n\n| conflict_status value | Description |\n|-------------------|------|\n| `contradicts_existing` | semantically contradicts an existing node |\n| `duplicate_content` | duplicate content |\n| `circular_dependency` | forms a circular dependency |\n| `orphaned_reference` | references a node that does not exist |\n\n## Arbitration outcomes\n\nThe reviewer picks one of four outcomes:\n\n| Outcome | Action |\n|------|------|\n| `keep_a` | keep node A, archive node B |\n| `keep_b` | keep node B, archive node A |\n| `merge` | merge into a new node (enters the propose_merge flow) |\n| `both_valid` | both are valid; remove the contradicts edge |\n\nThe arbitration outcome writes back to the related nodes' `dim_accuracy` and `status`, and leaves a resolution log.\n\n## Acceptance criterion\n\nEvery `contradicts` edge should have a corresponding resolution log or pending review item.\n"
+  },
+  "tags": [
+    "conflict",
+    "contradicts",
+    "arbitration",
+    "review-queue",
+    "governance",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "5b6cd29ff35eb67e2cc0d6cc6984d5b9a190f644862ee08d30b6b93e8a8bd132",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

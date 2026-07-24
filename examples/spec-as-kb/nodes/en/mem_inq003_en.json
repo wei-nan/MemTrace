@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq003_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Gap: Human-gate review quality — presentation of flag-only items",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "Currently `submit_outcome(fail)` failure flags and per-feature integration checks enter the `review_queue` with empty `node_data={}`; the reviewer sees an empty card with no concrete context.\n\n**Open design questions:**\n\n1. **Where does the summary go?** `node_data` (existing field) vs. `proposer_meta` (new field). How does each affect the review card UI?\n2. **UI presentation direction:**\n   - Option A: write the failure reason / integration-check summary into `node_data`, and have the review card show that instead of an empty diff\n   - Option B: acknowledge these are \"flag-only\" operations and give the UI a distinct style (no diff; show reason + a jump to the node)\n   - The two are not mutually exclusive, but differ in implementation priority\n3. **What does the reviewer actually need?** Can they decide directly after seeing the failure reason, or do they need to jump into node editing to get context?\n"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "review-queue",
+    "human-gate",
+    "ux",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "7e0e7783c43e46a5253ff343daea5ff25118bd2b2fa20984ec11a406fae558c7",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

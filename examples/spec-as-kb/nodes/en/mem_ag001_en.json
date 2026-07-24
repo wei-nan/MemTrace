@@ -1,0 +1,44 @@
+{
+  "id": "mem_ag001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S2 MCP Agent Identity Binding",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Background\n\nAnonymous MCP calls produce ghost nodes (source_type='mcp', author='system') — no identity means no accountability.\n\n## Implementation (current)\n\nEach workspace automatically creates an **agent node** on creation (`workspaces.agent_node_id`) that serves as the identity node for MCP operations in that workspace. The `inquiry_paths` table records the executor of each MCP inquiry via its `agent_id` field.\n\n> **Note**: The Phase 5 spec originally called for a separate `mcp_agents(id, owner_user_id, name, created_at)` table; the live system currently substitutes `agent_node_id`, and the `mcp_agents` table has not been created.\n\n## Spec requirement (original)\n\n```\nThe POST /mcp/* middleware requires an X-Agent-Id header\nmcp_agents(id, owner_user_id, name, created_at) table\nsource_type='mcp' AND author='system' -> reject 400\n```\n\n## inquiry_paths table (implemented)\n\n```sql\nCREATE TABLE inquiry_paths (\n  id            text PRIMARY KEY,\n  workspace_id  text NOT NULL,\n  agent_id      text NOT NULL,   -- agent identity\n  query_text    text NOT NULL,\n  query_emb     vector(1536),\n  node_sequence text[],\n  outcome       text,  -- 'success'|'partial'|'failed'|'gap'\n  started_at    timestamptz,\n  ended_at      timestamptz,\n  token_used    int,\n  rating        int\n);\n```\n\n## Acceptance criterion\n\n```sql\n-- should = 0\nSELECT count(*) FROM memory_nodes\nWHERE source_type = 'mcp' AND author = 'system';\n```\n"
+  },
+  "tags": [
+    "mcp",
+    "agent",
+    "identity",
+    "governance",
+    "inquiry-paths",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "8c1738adce215bb1b636145844913cc97c3801116b9297f1732e956686f043ef",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

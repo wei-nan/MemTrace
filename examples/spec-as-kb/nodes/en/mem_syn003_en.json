@@ -1,0 +1,44 @@
+{
+  "id": "mem_syn003_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S4 suggest_edges MCP Tool: AI Suggests Missing Edges",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Overview\n\n`suggest_edges` analyzes the semantic relationships between nodes in a KB, finds edges that should exist but are not yet linked, and proposes them for review. It avoids orphan nodes that break traversal.\n\n## MCP tool definition\n\n```json\n{\n  \"name\": \"suggest_edges\",\n  \"description\": \"AI suggests missing semantic edges in a workspace\",\n  \"parameters\": {\n    \"workspace_id\": \"workspace id\",\n    \"threshold\": 0.75\n  }\n}\n```\n\n## Implementation locations\n\n- `services/synthesis.py::suggest_missing_edges` (`run_suggest_edges`)\n- `routers/kb.py::maintenance_suggest_edges` (route: `POST /workspaces/{ws_id}/maintenance/suggest-edges`)\n- `services/nodes.py::suggest_edges_for_node_in_db` (single-node version)\n- `services/mcp_tools.py` (MCP exposure)\n- `services/bg_jobs.py::bg_suggest_edges` (background-job version)\n\n## Triggers\n\n1. **After document ingestion**: `bg_suggest_edges(ws_id, new_node_id, user_id)` is triggered automatically in the background\n2. **Manual**: MCP tool or maintenance endpoint\n\n## Edge proposal flow\n\n1. Compute the embedding cosine of candidate node pairs\n2. cosine >= threshold and no existing edge -> generate an edge proposal\n3. The proposal enters `review_queue` (`change_type='edge_suggestion'`)\n4. After human confirmation, create the formal edge\n"
+  },
+  "tags": [
+    "mcp-tool",
+    "synthesis",
+    "edges",
+    "suggest",
+    "embedding",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "ceffafca0e247c2db843d43a54676b13d2dbb46afea8f43ebea5661203278bb5",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.92,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

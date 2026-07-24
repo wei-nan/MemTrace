@@ -1,0 +1,42 @@
+{
+  "id": "mem_c571ecc8_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "AI Reviewers: Automated Review Bot Configuration",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "A workspace admin can create one or more AI reviewers (ai_reviewers) on the \"AI Management\" settings page, letting a specific LLM model automatically give review opinions on proposals that enter the review_queue.\n\n## Quick create\n\nJust pick a Provider and Model and click \"Create\". If the name is left blank it is auto-generated (e.g. `openai / gpt-4o-mini`).\n\n## Advanced settings (collapsible)\n\n| Field | Description | Default |\n|------|------|--------|\n| Name | identifying label; auto-named if blank | `{provider} / {model}` |\n| System Prompt | the review instruction given to the LLM | see default prompt below |\n| Auto-accept threshold | auto-merge when confidence >= this value and decision=accept | 0.95 |\n| Auto-reject threshold | auto-reject when confidence <= this value and decision=reject | 0.10 |\n| Enabled | whether this reviewer participates | true |\n\n## Default System Prompt\n\n```\nYou are an AI reviewer for a collaborative knowledge graph.\nReview the proposed node change and return strict JSON:\n{\n  \"decision\": \"accept\" | \"reject\" | \"comment\",\n  \"confidence\": 0.0-1.0,\n  \"reasoning\": \"short explanation\"\n}\n\nPrefer accept only for well-scoped, internally consistent, low-risk changes.\nPrefer reject for hallucinations, contradictions, empty edits, or destructive changes without justification.\nUse comment when uncertain.\n```\n\n## Review behavior\n\n- After each review_queue record is created, `run_ai_review_for_item` is triggered in the background\n- Enabled reviewers are tried in order (the first success wins)\n- After the LLM returns JSON, the outcome is decided by decision x confidence:\n  - auto-accept / auto-reject -> status is updated directly and the result is recorded in the ai_review field\n  - comment only -> the AI opinion is noted, but the item still awaits human review\n- Supports four providers: OpenAI, Anthropic, Gemini, Ollama\n"
+  },
+  "tags": [
+    "ai-reviewer",
+    "review-queue",
+    "workspace-settings",
+    "automation"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-19T00:00:00+00:00",
+    "signature": "9e763580aa8ac838983d1d008fa91961000d54d2be889798380312a5dba0394c",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

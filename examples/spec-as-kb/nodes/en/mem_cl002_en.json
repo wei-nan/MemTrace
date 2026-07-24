@@ -1,0 +1,42 @@
+{
+  "id": "mem_cl002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§11.4 Cluster Management: Manual Override, Unclustered Nodes, and Backfill",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Manual override (§11.4.2)\n\nUsers and editors can reassign a node to a different cluster (or remove the assignment) at any time via:\n\n```\nPATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}/cluster\n{ \"cluster_id\": \"cl_xxx\" | null }\n```\n\nCluster metadata (name, color) is managed via:\n\n```\nGET    /api/v1/workspaces/{ws_id}/clusters\nPOST   /api/v1/workspaces/{ws_id}/clusters\nPATCH  /api/v1/workspaces/{ws_id}/clusters/{cluster_id}\nDELETE /api/v1/workspaces/{ws_id}/clusters/{cluster_id}\n```\n\nWhen a cluster is deleted, the `cluster_id` of all its nodes is set to `NULL`; the nodes themselves are not deleted.\n\n## Unclustered nodes (§11.4.3)\n\nNodes with `cluster_id = NULL` are considered unclustered. In the 2D graph view they render in a separate area after all cluster groups. The cluster filter bar only shows assigned clusters; with no filter selected, all nodes are shown.\n\n## Backfill (§11.4.4)\n\nNodes created before the cluster system was introduced have `cluster_id = NULL`. They can be reassigned manually or handled by a future batch backfill job.\n"
+  },
+  "tags": [
+    "cluster",
+    "api",
+    "graph-view",
+    "backfill"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "fb2b059b1b9635a97a91dc41d2855a56441c65b4ba31349eb0f7cb70babfcf65",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

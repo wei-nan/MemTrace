@@ -1,0 +1,45 @@
+{
+  "id": "mem_acp002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§19.4–19.6 AI Conversation Panel: Edit Proposal Flow, API, and Cross-KB Boundary",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Edit proposal flow (§19.4)\n\n```\nUser: \"Update mem_a002 to mention the OCR requirement.\"\n        |\n        v\nAI generates a body diff proposal\n        |\n        v\nInline proposal card rendered:\n  +------------------------------------------+\n  |  Suggested edit for mem_a002             |\n  |  + Scanned PDFs need OCR (Phase 2+)       |\n  |  [Accept]  [Edit]  [Reject]               |\n  +------------------------------------------+\n        |\n        v\nContributor -> enters review_queue (pending_admin_review)\nAdmin -> applied immediately\n```\n\n## API extension (§19.5)\n\n```http\nPOST /api/v1/workspaces/{ws_id}/chat\n{\n  \"message\": \"...\",\n  \"session_id\": \"optional\",\n  \"lang\": \"zh-TW | en\",\n  \"allow_edits\": true\n}\n```\n\nResponse when a proposal is generated:\n\n```json\n{\n  \"answer\": \"Here is the suggested change:\",\n  \"cited_nodes\": [\"mem_a002\"],\n  \"proposal\": {\n    \"operation\": \"update_node\",\n    \"target_node_id\": \"mem_a002\",\n    \"diff\": { \"body_zh\": \"...\", \"body_en\": \"...\" },\n    \"proposal_id\": \"prop_xyz\"\n  },\n  \"session_id\": \"sess_xyz\"\n}\n```\n\nA follow-up request carries `{ \"action\": \"accept\" | \"reject\", \"proposal_id\": \"prop_xyz\" }` to apply or discard the change.\n\n## Cross-KB boundary (§19.6)\n\nWhen `allow_edits: true`, the AI may only propose edits to nodes **within the current workspace**. It can read from linked workspaces but cannot propose writes to them.\n"
+  },
+  "tags": [
+    "ai",
+    "chat",
+    "conversation-panel",
+    "edit-proposal",
+    "api",
+    "cross-kb",
+    "review-queue"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "9507f0e87255434618769e7e624cf9b494905efcaeb55bca42b5cc66268b1ec1",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

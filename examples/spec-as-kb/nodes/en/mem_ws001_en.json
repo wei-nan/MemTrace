@@ -1,0 +1,44 @@
+{
+  "id": "mem_ws001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§17 Concurrent Write Safety: Optimistic Locking and Write Queue",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "When multiple users or AI agents submit writes to the same knowledge base simultaneously, the following failure modes must be prevented: a node modified by two parties at once producing a split state; concurrent document ingestion producing duplicate nodes or conflicting edges; AI restructuring proposing against a stale snapshot while a human edit is being saved.\n\n## 17.2 Node optimistic locking\n\nEach `memory_nodes` row carries an `updated_at` timestamp and a `version` integer. All update endpoints require the caller to provide the last known version:\n\n```http\nPATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}\nX-Node-Version: <integer>\n```\n\nIf the node has been modified since the provided version, the server returns:\n\n```\nHTTP 412 Precondition Failed\n{ \"detail\": \"Node was modified by another actor since your last fetch. Reload and retry.\" }\n```\n\nThe client must refetch the node, merge changes, and resubmit. Silent overwrites are not allowed.\n\n```sql\nALTER TABLE memory_nodes ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;\n-- on each successful UPDATE: version = version + 1\n```\n\n## 17.3 Workspace write queue (Advisory Lock)\n\nTo prevent race conditions among document ingestion, batch AI extraction, and concurrent node creation, **writes to the same workspace are serialized via a per-workspace Advisory Lock**:\n\n```sql\nSELECT pg_advisory_xact_lock(hashtext(ws_id));\n-- released automatically on transaction commit or rollback\n```\n\n- If the lock cannot be acquired before timeout, the server returns `HTTP 429 Write queue busy — try again shortly`\n- The lock scope is per-workspace; writes to different workspaces run fully in parallel\n- Read operations are **not** subject to the write lock\n- The timeout is configurable via `WS_WRITE_LOCK_TIMEOUT_SECONDS` (default: 5 seconds)\n"
+  },
+  "tags": [
+    "concurrency",
+    "write-serialization",
+    "optimistic-locking",
+    "advisory-lock",
+    "database",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "cb2fd109595f2fcba8e3985b8843c898222e3d815079168ca2c375a0339a58ea",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_inq002_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Gap: claim registry -> Redis (multi-worker / restart survival)",
+  "content": {
+    "type": "inquiry",
+    "format": "markdown",
+    "body": "Currently the run-state for `claim_task` / `release_task` lives in an in-process `_TASK_CLAIMS` dict (TTL 30 minutes). It is lost on restart and not shared across workers.\n\n**Open design questions:**\n\n1. **Redis as a prerequisite:** should Redis become a required dependency for self-hosting? What is the impact on lightweight deployments?\n2. **Alternatives:** DB write (add a column to memory_nodes) vs. Redis; the former violates A7 (run-state must not enter the knowledge graph) but adds no extra dependency.\n3. **TTL policy:** is 30 minutes reasonable? When an agent crashes, is the TTL enough to auto-release the task?\n4. **Is it necessary:** is the multi-worker scenario an actual need today or an anticipated one?\n"
+  },
+  "tags": [
+    "inquiry",
+    "gap",
+    "claim-registry",
+    "redis",
+    "infra",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "70157464ecdddbd21c328aa1f0a271687d39bd4fe32543857b3dbd26bc58e134",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.7,
+    "dimensions": {
+      "accuracy": 0.8,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

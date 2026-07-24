@@ -1,0 +1,44 @@
+{
+  "id": "mem_ta003_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§S1 similar_to Automated Scan and Deduplication",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Goal\n\nEliminate duplicate nodes: any node pair with embedding cosine >= 0.85 should have a `similar_to` edge, to avoid repeatedly feeding highly similar content to the AI (wasting tokens + confusing judgment).\n\n## Automation flow\n\n`bg_suggest_edges` (`services/bg_jobs.py`) is triggered at:\n\n1. **After document ingestion**: `pipeline.py` calls `scheduler.add_job(bg_suggest_edges, args=[ws_id, node_id, user_id])`\n2. **Periodic scan**: a weekly Sunday 02:00 cron reruns across all workspaces\n\n## Similarity threshold rules\n\n| cosine range | Action |\n|------------|------|\n| >= 0.85, < 0.92 | auto-create a `similar_to` edge (weight = cosine value) |\n| >= 0.92 | enter `review_queue`, mark `duplicate_candidate` |\n\n## Acceptance SQL\n\n```sql\n-- expect 0 (no unlinked high-similarity pairs)\nWITH pairs AS (\n  SELECT a.id AS a_id, b.id AS b_id,\n         1 - (a.embedding <=> b.embedding) AS sim\n  FROM memory_nodes a, memory_nodes b\n  WHERE a.workspace_id = b.workspace_id\n    AND a.id < b.id\n    AND 1 - (a.embedding <=> b.embedding) >= 0.85\n)\nSELECT count(*) FROM pairs p\nWHERE NOT EXISTS (\n  SELECT 1 FROM edges e\n  WHERE e.relation = 'similar_to'\n    AND ((e.from_id = p.a_id AND e.to_id = p.b_id)\n         OR (e.from_id = p.b_id AND e.to_id = p.a_id))\n);\n```\n"
+  },
+  "tags": [
+    "dedup",
+    "similar_to",
+    "automation",
+    "cron",
+    "embedding",
+    "phase5"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "f3af78d19d917180f59bc0ae1a3d3f17d60809d0732a83f3b023741c3bcd5193",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.93,
+    "dimensions": {
+      "accuracy": 0.93,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "mem_cl001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§11.4 Dynamic Cluster System",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Each workspace owns a set of **node clusters** (the `node_clusters` table). A cluster is a named topic group (e.g. \"API Design\", \"Security Rules\") used for visual grouping and filtering in the graph view.\n\n## AI auto-assignment (§11.4.1)\n\nDuring document ingestion, the extraction prompt is seeded with the workspace's existing cluster names and instructs the model to:\n\n1. When returning a node, attach `cluster_name_zh` and `cluster_name_en` pointing to the **best-matching existing cluster**.\n2. Only when a node clearly belongs to no existing cluster, **propose a new cluster name** (short, 1–3 words).\n\nThe pipeline resolves the proposed name to a cluster id via `get_or_create_cluster` (case-insensitive match on `name_en`). The resolved `cluster_id` is written onto the node before it enters the review queue.\n\n## Table structure\n\nThe `node_clusters` table records all clusters in a workspace: names (zh/en), color, and other metadata. The `memory_nodes` table links to it via the `cluster_id` foreign key (nullable).\n"
+  },
+  "tags": [
+    "cluster",
+    "ingestion",
+    "ai",
+    "graph-view",
+    "schema"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "691804a8b3143ba27e4912cf1419e4e65dc921c373dc29bd5114a0c23a777062",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.9,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_aul001_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "§21 AI Usage Logs: Policy, API, and Retention",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Rule (§21.1)\n\n**Every AI call — whether it uses a workspace-level or an account-level key — must be logged.** This log is the authoritative record for billing, debugging, and policy enforcement.\n\n## Feature types (§21.2 `feature` field)\n\nThe `feature` field must be one of:\n`extraction`, `embedding`, `restructure`, `chat`, `conflict_check`, `conversation_panel`\n\n## Field descriptions (§21.3)\n\n| Field | Description |\n|------|------|\n| `key_source` | `workspace_key`: the key configured on the workspace; `account_key`: the user's global account key |\n| `feature` | the AI capability that triggered the call |\n| `tokens_input` / `tokens_output` | reported by the provider; used for quota accounting |\n| `latency_ms` | actual duration of the provider call; used for SLO monitoring |\n| `success` | `false` when the provider returns an error |\n| `error_code` | the provider's raw error code (e.g. `insufficient_quota`, `rate_limit_exceeded`) |\n\n## API endpoints (§21.4)\n\n| Method | Path | Description |\n|------|------|------|\n| `GET` | `/api/v1/user/ai-usage` | paginated log for the current user |\n| `GET` | `/api/v1/user/ai-usage/summary` | aggregated by date, feature, provider |\n\nQuery params: `?from=<ISO date>&to=<ISO date>&provider=openai|anthropic|gemini|all`\n\nExample summary response:\n\n```json\n{\n  \"period\": { \"from\": \"2026-04-01\", \"to\": \"2026-04-30\" },\n  \"by_feature\": {\n    \"chat\": { \"calls\": 42, \"tokens_total\": 18400 },\n    \"extraction\": { \"calls\": 7, \"tokens_total\": 31200 }\n  },\n  \"by_provider\": {\n    \"openai\": { \"tokens_total\": 49600 }\n  }\n}\n```\n\n## Retention (§21.5)\n\nLogs are retained for **12 months** and then archived. Logs are never deleted before their retention period expires.\n"
+  },
+  "tags": [
+    "ai",
+    "usage-logging",
+    "billing",
+    "api",
+    "retention",
+    "monitoring"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-06-13T00:00:00+00:00",
+    "signature": "7c8d8308e9f69d99da01887e910c33ac08196e639796fd41b0e2ef05e04c2323",
+    "source_type": "ai"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
