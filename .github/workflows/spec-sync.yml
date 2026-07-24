@@ -1,0 +1,31 @@
+name: Spec Sync Check
+
+# Advisory drift check for the spec-as-kb seed. Regenerates the seed SQL from
+# the JSON source of truth and compares it to the committed copies, and reports
+# zh/en parity. It does NOT block merges yet: the tree currently has known drift
+# (committed SQL lags the seed JSON). Once the drift is reconciled and a
+# canonical SQL path is chosen, drop the `|| echo` fallback below to make this a
+# hard gate.
+
+on:
+  pull_request:
+    paths:
+      - 'examples/spec-as-kb/**'
+      - 'scripts/seed_spec_kb.py'
+      - 'packages/api/migrations/003_seed_spec_kb.sql'
+      - 'docs/schema-history/003_seed_spec_kb.sql'
+
+jobs:
+  spec-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install check dependencies
+        run: pip install psycopg2-binary python-dotenv
+      - name: Spec-sync drift check (advisory)
+        run: |
+          python scripts/seed_spec_kb.py --check \
+            || echo "::warning::spec-sync drift detected — regenerate seed SQL and/or reconcile zh/en parity. Advisory only; becomes blocking after reconcile."

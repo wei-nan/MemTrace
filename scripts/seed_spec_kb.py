@@ -45,9 +45,8 @@ EN_EDGES_FILE = KB_DIR / "edges" / "edges.en.json"
 
 load_dotenv(REPO_ROOT / ".env")
 DATABASE_URL = os.environ.get("DATABASE_URL")
-if not DATABASE_URL:
-    print("DATABASE_URL not set. Copy .env.example to .env and fill in credentials.")
-    sys.exit(1)
+# DATABASE_URL is only required for the seeding path; --check is DB-free and
+# guards for it inside main() instead of at import time.
 
 # ── Seed workspaces ─────────────────────────────────────────────────────────────
 
@@ -198,7 +197,15 @@ def upsert_edges(cur, edges: list[dict], ws_id: str):
 
 # ── SQL generation ──────────────────────────────────────────────────────────────
 
-SQL_SEED_FILE = REPO_ROOT / "schema" / "sql" / "003_seed_spec_kb.sql"
+# Generated seed SQL outputs. The generator writes identical SQL to every path
+# here so the migration and its schema-history mirror never hand-drift. The
+# first path is canonical (the migration that actually runs); the second is a
+# generated mirror. --check compares the regenerated SQL against exactly these.
+SQL_OUTPUT_PATHS = [
+    REPO_ROOT / "packages" / "api" / "migrations" / "003_seed_spec_kb.sql",  # canonical
+    REPO_ROOT / "docs" / "schema-history" / "003_seed_spec_kb.sql",          # generated mirror
+]
+COMMITTED_SQL_PATHS = SQL_OUTPUT_PATHS
 
 
 def _esc(s: str) -> str:
@@ -296,9 +303,99 @@ def generate_sql_seed(zh_nodes, en_nodes, zh_edges, en_edges) -> str:
     return "\n".join(lines)
 
 
+# ── Check (dry-run drift detection) ───────────────────────────────────────────
+
+def run_check() -> int:
+    """Read-only: regenerate SQL from seed JSON and compare to committed copies;
+    report zh/en parity. No DB connection. Returns process exit code."""
+    zh_nodes = load_nodes(ZH_NODES_DIR)
+    en_nodes = load_nodes(EN_NODES_DIR)
+    zh_edges = load_edges(ZH_EDGES_FILE)
+    en_edges = load_edges(EN_EDGES_FILE)
+
+    regenerated = generate_sql_seed(zh_nodes, en_nodes, zh_edges, en_edges)
+    gen_nodes = regenerated.count("INSERT INTO memory_nodes")
+    gen_edges = regenerated.count("INSERT INTO edges")
+
+    print(">>  spec-sync --check (dry-run, no DB)\n")
+    print(f"  seed JSON:   {len(zh_nodes)} zh + {len(en_nodes)} en nodes, "
+          f"{len(zh_edges)} zh + {len(en_edges)} en edges")
+    print(f"  regenerated: {gen_nodes} node-inserts, {gen_edges} edge-inserts\n")
+
+    drift = False
+
+    # 1. seed JSON <-> committed SQL
+    existing = [p for p in COMMITTED_SQL_PATHS if p.exists()]
+    if not existing:
+        print("  ! no committed seed SQL found to compare against")
+        drift = True
+    for p in existing:
+        committed = p.read_text(encoding="utf-8")
+        c_nodes = committed.count("INSERT INTO memory_nodes")
+        c_edges = committed.count("INSERT INTO edges")
+        rel = p.relative_to(REPO_ROOT)
+        if committed == regenerated:
+            print(f"  OK    {rel}  (byte-identical)")
+        elif c_nodes == gen_nodes and c_edges == gen_edges:
+            print(f"  WARN  {rel}  same insert counts, content differs "
+                  f"(likely timestamps/owner) — {c_nodes} nodes")
+        else:
+            drift = True
+            print(f"  DRIFT {rel}  committed {c_nodes} nodes / {c_edges} edges "
+                  f"!= regenerated {gen_nodes} / {gen_edges}")
+
+    # 2. zh/en parity (by node id; en ids carry an _en suffix)
+    zh_ids = {n["id"] for n in zh_nodes}
+    en_ids = {n["id"].removesuffix("_en") for n in en_nodes}
+    zh_only = sorted(zh_ids - en_ids)
+    en_orphan = sorted(en_ids - zh_ids)
+    print()
+    print(f"  parity: {len(zh_ids)} zh, {len(en_ids)} en; "
+          f"{len(zh_only)} zh-without-en (warn), {len(en_orphan)} en-orphan (error)")
+    if zh_only:
+        preview = ", ".join(zh_only[:10])
+        more = f" …(+{len(zh_only) - 10})" if len(zh_only) > 10 else ""
+        print(f"  WARN  zh without en: {preview}{more}")
+    if en_orphan:
+        drift = True
+        print(f"  ERROR en orphan (no zh source): {', '.join(en_orphan)}")
+
+    print()
+    if drift:
+        print("FAIL  spec drift detected (regenerate SQL and/or reconcile parity).")
+        return 1
+    print("OK    spec in sync.")
+    return 0
+
+
+def write_sql_outputs(sql: str) -> None:
+    for p in SQL_OUTPUT_PATHS:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(sql, encoding="utf-8")
+        print(f">>  SQL written: {p.relative_to(REPO_ROOT)}")
+
+
+def run_write() -> int:
+    """Regenerate the seed SQL from the JSON source of truth and write all
+    committed copies. No DB connection."""
+    zh_nodes = load_nodes(ZH_NODES_DIR)
+    en_nodes = load_nodes(EN_NODES_DIR)
+    zh_edges = load_edges(ZH_EDGES_FILE)
+    en_edges = load_edges(EN_EDGES_FILE)
+    sql = generate_sql_seed(zh_nodes, en_nodes, zh_edges, en_edges)
+    write_sql_outputs(sql)
+    print(f">>  regenerated {sql.count('INSERT INTO memory_nodes')} nodes / "
+          f"{sql.count('INSERT INTO edges')} edges")
+    return 0
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
+    if not DATABASE_URL:
+        print("DATABASE_URL not set. Copy .env.example to .env and fill in credentials.")
+        sys.exit(1)
+
     zh_nodes = load_nodes(ZH_NODES_DIR)
     en_nodes = load_nodes(EN_NODES_DIR)
     zh_edges = load_edges(ZH_EDGES_FILE)
@@ -328,9 +425,12 @@ def main():
         conn.close()
 
     sql = generate_sql_seed(zh_nodes, en_nodes, zh_edges, en_edges)
-    SQL_SEED_FILE.write_text(sql, encoding="utf-8")
-    print(f">>  SQL init file updated: {SQL_SEED_FILE.name}")
+    write_sql_outputs(sql)
 
 
 if __name__ == "__main__":
+    if "--check" in sys.argv[1:]:
+        sys.exit(run_check())
+    if "--write" in sys.argv[1:]:
+        sys.exit(run_write())
     main()
