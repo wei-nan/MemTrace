@@ -1,0 +1,43 @@
+{
+  "id": "mem_i006_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Python SDK: the official memtrace client (MemTraceClient)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "`packages/sdk-python` ships the official Python client `MemTraceClient` for driving the MemTrace REST API (see mem_i002_en) programmatically, authenticating with an external API key.\n\n```python\nfrom memtrace import MemTraceClient\nc = MemTraceClient(base_url=\"http://localhost:8000\", api_key=\"mt_...\")\nc.search_nodes(workspace_id=\"ws_abc\", query=\"how to config auth\")\n```\n\n## Capabilities\n- **Workspaces**: `list_workspaces`, `get_workspace`\n- **Nodes**: `create_node`, `get_node`, `list_nodes`, `search_nodes`, `search_semantic`, `delete_node`\n- **Chat & retrieval**: `chat`, `chat_stream`\n\nEvery synchronous method has an async counterpart (the `a` prefix, e.g. `alist_workspaces`, `asearch_nodes`, `achat_stream`)."
+  },
+  "tags": [
+    "sdk",
+    "python",
+    "client",
+    "integration",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-07-25T00:00:00+00:00",
+    "signature": "ec6bfad8e71afae13022bb721bf1a4fbe05fa48ef41d81182bcfa98211c22f9e",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.8,
+    "dimensions": {
+      "accuracy": 0.9,
+      "freshness": 1.0,
+      "utility": 0.8,
+      "author_rep": 0.9
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
