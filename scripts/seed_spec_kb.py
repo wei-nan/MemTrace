@@ -26,13 +26,8 @@ import pathlib
 import sys
 from datetime import datetime, timezone
 
-try:
-    import psycopg2
-    import psycopg2.extras
-    from dotenv import load_dotenv
-except ImportError:
-    print("Missing dependencies. Run:  pip install psycopg2-binary python-dotenv")
-    sys.exit(1)
+# psycopg2 and python-dotenv are imported lazily inside main(); the --check /
+# --write paths are DB-free and must run without those packages installed.
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -43,10 +38,7 @@ EN_NODES_DIR = KB_DIR / "nodes" / "en"
 ZH_EDGES_FILE = KB_DIR / "edges" / "edges.zh.json"
 EN_EDGES_FILE = KB_DIR / "edges" / "edges.en.json"
 
-load_dotenv(REPO_ROOT / ".env")
-DATABASE_URL = os.environ.get("DATABASE_URL")
-# DATABASE_URL is only required for the seeding path; --check is DB-free and
-# guards for it inside main() instead of at import time.
+# DATABASE_URL and .env are loaded lazily in main() (the only DB path).
 
 # ── Seed workspaces ─────────────────────────────────────────────────────────────
 
@@ -392,7 +384,17 @@ def run_write() -> int:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    if not DATABASE_URL:
+    try:
+        import psycopg2
+        import psycopg2.extras
+        from dotenv import load_dotenv
+    except ImportError:
+        print("Missing dependencies. Run:  pip install psycopg2-binary python-dotenv")
+        sys.exit(1)
+
+    load_dotenv(REPO_ROOT / ".env")
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
         print("DATABASE_URL not set. Copy .env.example to .env and fill in credentials.")
         sys.exit(1)
 
@@ -402,7 +404,7 @@ def main():
     en_edges = load_edges(EN_EDGES_FILE)
 
     print("\n>>  Connecting to database...")
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+    conn = psycopg2.connect(database_url, cursor_factory=psycopg2.extras.RealDictCursor)
     conn.autocommit = False
     conn.set_client_encoding("UTF8")
 
