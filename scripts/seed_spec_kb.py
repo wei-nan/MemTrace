@@ -17,7 +17,15 @@ Requires the database running (docker compose up -d) and DATABASE_URL in env.
 
 Usage:
   cd packages/api && source venv/bin/activate
-  python ../../scripts/seed_spec_kb.py
+  python ../../scripts/seed_spec_kb.py               # upsert seed into the DB
+  python ../../scripts/seed_spec_kb.py --check       # seed -> generated SQL (no DB)
+  python ../../scripts/seed_spec_kb.py --write       # regenerate the committed SQL
+  python ../../scripts/seed_spec_kb.py --check-live  # seed <-> live DB (needs DATABASE_URL)
+
+--check and --check-live answer different questions. --check proves the committed
+SQL matches the seed JSON; it never touches the database. --check-live proves the
+*database* matches the seed JSON — which --check cannot do, because an edited seed
+file is a no-op on an existing deployment (migrations are tracked by filename).
 """
 
 import json
@@ -360,6 +368,169 @@ def run_check() -> int:
     return 0
 
 
+# ── Check live (drift detection against the database) ─────────────────────────
+#
+# --check is DB-free: it proves seed -> generated SQL. It cannot prove
+# seed <-> live, because the seed SQL only ever reaches a *fresh* database —
+# run_migrations() tracks applied files by filename, so editing an already
+# applied seed file is a no-op on an existing deployment. Live therefore drifts
+# silently. --check-live closes that gap.
+#
+# Only *declared* fields are compared. trust_score, the four dim_* columns,
+# traversal/vote counters, version and updated_at are computed or accumulated
+# live; the seed's values for them are initial values, not assertions. Diffing
+# them would report permanent, expected noise.
+
+DECLARED_FIELDS = ("title", "content_type", "content_format", "body", "visibility")
+
+
+def _seed_declared(n: dict) -> dict:
+    c = n["content"]
+    return {
+        "title": n["title"],
+        "content_type": c["type"],
+        "content_format": c.get("format", "plain"),
+        "body": c["body"],
+        "visibility": n.get("visibility", "public"),
+        "tags": sorted(n.get("tags") or []),
+    }
+
+
+def _live_declared(row: dict) -> dict:
+    return {
+        "title": row["title"],
+        "content_type": row["content_type"],
+        "content_format": row["content_format"],
+        "body": row["body"],
+        "visibility": row["visibility"],
+        "tags": sorted(row["tags"] or []),
+    }
+
+
+def _compare_workspace(cur, ws_id: str, seed_nodes: list[dict]) -> dict:
+    cur.execute(
+        "SELECT id, title, content_type, content_format, body, tags, visibility, status "
+        "FROM memory_nodes WHERE workspace_id = %s",
+        (ws_id,),
+    )
+    live = {r["id"]: r for r in cur.fetchall()}
+    seed = {n["id"]: n for n in seed_nodes}
+
+    live_only = sorted(set(live) - set(seed))
+    return {
+        "live_total": len(live),
+        "seed_total": len(seed),
+        "seed_only": sorted(set(seed) - set(live)),
+        "live_only_active": [i for i in live_only if live[i]["status"] == "active"],
+        "live_only_other": [i for i in live_only if live[i]["status"] != "active"],
+        "mismatch": _field_mismatches(seed, live),
+    }
+
+
+def _field_mismatches(seed: dict, live: dict) -> list[tuple[str, str, str]]:
+    """Return (node_id, field, severity) for declared-field differences."""
+    out = []
+    for nid in sorted(set(seed) & set(live)):
+        s, l = _seed_declared(seed[nid]), _live_declared(live[nid])
+        for f in (*DECLARED_FIELDS, "tags"):
+            if s[f] == l[f]:
+                continue
+            # The write path trims trailing whitespace, so a seed value that
+            # differs only in a trailing newline is a formatting artifact of the
+            # seed file, not real content drift.
+            if (
+                isinstance(s[f], str)
+                and isinstance(l[f], str)
+                and s[f].rstrip() == l[f].rstrip()
+            ):
+                out.append((nid, f, "WARN"))
+            else:
+                out.append((nid, f, "DRIFT"))
+    return out
+
+
+def run_check_live() -> int:
+    """Read-only: compare the live database against the seed source of truth.
+    Requires DATABASE_URL. Returns process exit code."""
+    try:
+        import psycopg2
+        import psycopg2.extras
+        from dotenv import load_dotenv
+    except ImportError:
+        print("Missing dependencies. Run:  pip install psycopg2-binary python-dotenv")
+        return 1
+
+    load_dotenv(REPO_ROOT / ".env")
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        print("DATABASE_URL not set. Copy .env.example to .env and fill in credentials.")
+        return 1
+
+    print(">>  spec-sync --check-live (compares the database against seed JSON)\n")
+    print("    declared fields only: " + ", ".join((*DECLARED_FIELDS, "tags")))
+    print("    ignored (computed live): trust_score, dim_*, traversal, votes, version\n")
+
+    try:
+        conn = psycopg2.connect(database_url, cursor_factory=psycopg2.extras.RealDictCursor)
+    except psycopg2.OperationalError as e:
+        # A diagnostic must not traceback on an unreachable database — the
+        # caller needs to tell "cannot check" apart from "drift found".
+        print(f"  ! cannot reach the database: {str(e).strip().splitlines()[0]}")
+        print("\nSKIP  --check-live could not run. This is not a clean result.")
+        return 2
+    conn.set_client_encoding("UTF8")
+    drift = False
+    try:
+        with conn.cursor() as cur:
+            for ws_id, seed_nodes in (
+                (ZH_WS_ID, load_nodes(ZH_NODES_DIR)),
+                (EN_WS_ID, load_nodes(EN_NODES_DIR)),
+            ):
+                r = _compare_workspace(cur, ws_id, seed_nodes)
+                print(f"  {ws_id}:  live {r['live_total']} nodes, seed {r['seed_total']} nodes")
+
+                if r["seed_only"]:
+                    drift = True
+                    print(f"    ERROR seed-only, never reached the DB ({len(r['seed_only'])}): "
+                          f"{_preview(r['seed_only'])}")
+
+                if r["live_only_active"]:
+                    drift = True
+                    print(f"    ERROR live-only and active — unmanaged public content "
+                          f"({len(r['live_only_active'])}): {_preview(r['live_only_active'])}")
+
+                if r["live_only_other"]:
+                    print(f"    WARN  live-only, not active — historical residue "
+                          f"({len(r['live_only_other'])}): {_preview(r['live_only_other'])}")
+
+                hard = [m for m in r["mismatch"] if m[2] == "DRIFT"]
+                soft = [m for m in r["mismatch"] if m[2] == "WARN"]
+                if hard:
+                    drift = True
+                    print(f"    ERROR declared-field drift ({len(hard)}): "
+                          f"{_preview([f'{n}.{f}' for n, f, _ in hard])}")
+                if soft:
+                    print(f"    WARN  trailing-whitespace only ({len(soft)}): "
+                          f"{_preview([f'{n}.{f}' for n, f, _ in soft])}")
+
+                if not (r["seed_only"] or r["live_only_active"] or hard):
+                    print("    OK    no blocking drift")
+                print()
+    finally:
+        conn.close()
+
+    if drift:
+        print("FAIL  live drift detected. Reconcile seed and database before relying on either.")
+        return 1
+    print("OK    live matches seed on all declared fields.")
+    return 0
+
+
+def _preview(items: list[str], n: int = 8) -> str:
+    head = ", ".join(items[:n])
+    return head + (f" …(+{len(items) - n})" if len(items) > n else "")
+
+
 def write_sql_outputs(sql: str) -> None:
     for p in SQL_OUTPUT_PATHS:
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -431,6 +602,11 @@ def main():
 
 
 if __name__ == "__main__":
+    # --check-live must be tested before --check: "--check" is a prefix of it,
+    # and an `in` test on the argv list would not distinguish them if the order
+    # were reversed after a refactor.
+    if "--check-live" in sys.argv[1:]:
+        sys.exit(run_check_live())
     if "--check" in sys.argv[1:]:
         sys.exit(run_check())
     if "--write" in sys.argv[1:]:
