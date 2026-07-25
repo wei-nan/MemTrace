@@ -33,9 +33,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -49,9 +48,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -84,9 +82,8 @@ c.search_nodes(workspace_id="ws_abc", query="how to config auth")
    0,0,0,2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -100,9 +97,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -145,9 +141,8 @@ In other modes, invitation links redirect to the standard register form.',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -161,9 +156,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -207,9 +201,8 @@ VALUES
    0,0,0,12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -223,9 +216,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -239,9 +231,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -309,9 +300,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -325,9 +315,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -341,9 +330,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -357,9 +345,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -373,9 +360,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -389,9 +375,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -405,9 +390,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -421,9 +405,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -442,9 +425,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -458,9 +440,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -474,9 +455,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -490,9 +470,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -506,9 +485,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -522,9 +500,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -544,9 +521,8 @@ v2 plans to introduce an event-driven trust update mechanism.',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -560,9 +536,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -576,9 +551,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -614,9 +588,8 @@ Decodes JWT payload exp field with a 60-second buffer to avoid boundary race con
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -630,9 +603,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -646,9 +618,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -668,9 +639,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -684,9 +654,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -700,9 +669,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -716,9 +684,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -732,9 +699,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -753,9 +719,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -769,9 +734,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -790,9 +754,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -806,9 +769,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -822,9 +784,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -838,9 +799,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -875,9 +835,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -891,9 +850,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -907,9 +865,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -923,9 +880,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -944,9 +900,8 @@ System actors may perform hard-deletes and must notify the owners of associated 
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -978,9 +933,8 @@ AI agent、coding agent、外部 harness 與自動化流程操作 MemTrace 時�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -994,9 +948,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1030,9 +983,8 @@ This node is a condensed companion to `mem_a005_en`, which carries the full fiel
    0,0,0,3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1046,9 +998,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1076,9 +1027,8 @@ MCP 工具可等待單一節點 embedding 就緒，或查看 workspace 的 pendi
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1120,9 +1070,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1143,9 +1092,8 @@ All features — governance, telemetry, notifications, decay — serve this core
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1159,9 +1107,8 @@ VALUES
    0,0,0,2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1175,9 +1122,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1191,9 +1137,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1207,9 +1152,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1223,9 +1167,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1239,9 +1182,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1283,9 +1225,8 @@ Role hierarchy: viewer < contributor < admin (owner treated as admin)
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1303,9 +1244,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1341,9 +1281,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1357,9 +1296,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1373,9 +1311,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1389,9 +1326,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1410,9 +1346,8 @@ System actor 可執行 hard-delete，需通知關聯節點的 owner。',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1426,9 +1361,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1447,9 +1381,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1463,9 +1396,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1479,9 +1411,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1495,9 +1426,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1511,9 +1441,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1557,9 +1486,8 @@ provider 來源優先順序：`system:safety` 指定金鑰 → fallback 至系�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1573,9 +1501,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1589,9 +1516,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1611,9 +1537,8 @@ v2 計畫引入事件驅動的 trust 更新機制。',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1627,9 +1552,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1643,9 +1567,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1659,9 +1582,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1675,9 +1597,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1691,9 +1612,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1707,9 +1627,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1723,9 +1642,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1739,9 +1657,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1755,9 +1672,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1771,9 +1687,8 @@ VALUES
    0,0,0,10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1792,9 +1707,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1813,9 +1727,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1829,9 +1742,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1853,9 +1765,8 @@ v1 不含自動解決邏輯，所有衝突解決需人工參與。',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1869,9 +1780,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1889,9 +1799,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1905,9 +1814,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1921,9 +1829,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1943,9 +1850,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -1989,9 +1895,8 @@ Small local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON s
    0,0,0,12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2005,9 +1910,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2044,9 +1948,8 @@ Migration 058_inquiry_paths.sql；record_path 工具記錄 agent 探索路徑；
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2060,9 +1963,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2081,9 +1983,8 @@ Neither type contributes to human `author_rep` calculations. Telemetry records u
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2101,9 +2002,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2117,9 +2017,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2133,9 +2032,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2149,9 +2047,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2173,9 +2070,8 @@ v1 contains no automatic resolution logic; all conflict resolution requires huma
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2189,9 +2085,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2205,9 +2100,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2221,9 +2115,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2248,9 +2141,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2264,9 +2156,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2280,9 +2171,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2296,9 +2186,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2312,9 +2201,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2328,9 +2216,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2344,9 +2231,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2360,9 +2246,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2376,9 +2261,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2392,9 +2276,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2408,9 +2291,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2429,9 +2311,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2445,9 +2326,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2492,9 +2372,8 @@ MemTrace 的核心治理保證:**每一筆進入知識庫的寫入,都有一個�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2508,9 +2387,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2524,9 +2402,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2547,9 +2424,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2563,9 +2439,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2579,9 +2454,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2595,9 +2469,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2611,9 +2484,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2632,9 +2504,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2648,9 +2519,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2664,9 +2534,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2680,9 +2549,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2696,9 +2564,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2712,9 +2579,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2728,9 +2594,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2744,9 +2609,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2779,9 +2643,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2802,9 +2665,8 @@ VALUES
    0,0,0,2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2818,9 +2680,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2853,9 +2714,8 @@ Schema：chat_sessions（id, workspace_id, user_id, created_at, updated_at）和
    0,0,0,3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2910,9 +2770,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2931,9 +2790,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2951,9 +2809,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2967,9 +2824,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2983,9 +2839,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -2999,9 +2854,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3015,9 +2869,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3031,9 +2884,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3068,9 +2920,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3084,9 +2935,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3100,9 +2950,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3116,9 +2965,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3147,9 +2995,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3213,9 +3060,8 @@ POST /api/v1/workspaces/{ws_id}/chat
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3229,9 +3075,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3245,9 +3090,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3303,9 +3147,8 @@ WHERE source_type = ''mcp'' AND author = ''system'';
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3359,9 +3202,8 @@ DB trigger 拒絕對 `audit_trail` 執行 UPDATE / DELETE，確保 append-only�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3409,9 +3251,8 @@ GET /api/v1/workspaces/{ws_id}/ingest/{job_id}
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3462,9 +3303,8 @@ CREATE TABLE author_tombstones (
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3524,9 +3364,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3586,9 +3425,8 @@ Conductor 是 MemTrace 的主動通知層：當 workspace 中出現 `scale=major
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3602,9 +3440,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3618,9 +3455,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3666,9 +3502,8 @@ Preferred mid-term approach for the current one-machine deployment: pinned basel
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3705,9 +3540,8 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
    0,0,0,2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3721,9 +3555,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3737,9 +3570,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3753,9 +3585,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3769,9 +3600,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3817,9 +3647,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3833,9 +3662,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3849,9 +3677,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3865,9 +3692,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3920,9 +3746,8 @@ Use comment when uncertain.
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3953,9 +3778,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3969,9 +3793,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -3985,9 +3808,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4001,9 +3823,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4021,9 +3842,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4041,9 +3861,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4057,9 +3876,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4073,9 +3891,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4089,9 +3906,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4110,9 +3926,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4126,9 +3941,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4142,9 +3956,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4158,9 +3971,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4208,9 +4020,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4229,9 +4040,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4258,9 +4068,8 @@ Pipeline 透過 `get_or_create_cluster`（不區分大小寫比對 `name_en`）�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4300,9 +4109,8 @@ DELETE /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4337,9 +4145,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4361,9 +4168,8 @@ Edge ID 格式：`edge_<hex8>`。同一對節點間相同 relation type 的 Edge
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4389,9 +4195,8 @@ Content Type 影響：搜尋過濾、AI 萃取分類、預設 decay half-life（
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4414,9 +4219,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4430,9 +4234,8 @@ VALUES
    0,0,0,2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4446,9 +4249,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4462,9 +4264,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4478,9 +4279,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4494,9 +4294,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4529,9 +4328,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4569,9 +4367,8 @@ Migration `060_audit_proposals.sql`；提供 proposal 建立、列出、讀取�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4585,9 +4382,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4601,9 +4397,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4656,9 +4451,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4677,9 +4471,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4693,9 +4486,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4709,9 +4501,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4725,9 +4516,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4746,9 +4536,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4762,9 +4551,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4778,9 +4566,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4794,9 +4581,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4816,9 +4602,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4849,9 +4634,8 @@ Applies to human-AI maintained knowledge graph systems that allow agent writes.'
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4865,9 +4649,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4881,9 +4664,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4897,9 +4679,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4913,9 +4694,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4929,9 +4709,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4945,9 +4724,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4961,9 +4739,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4977,9 +4754,8 @@ VALUES
    0,0,0,10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -4999,9 +4775,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5015,9 +4790,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5031,9 +4805,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5047,9 +4820,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5063,9 +4835,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5133,9 +4904,8 @@ WorkspaceSettings 頁面新增描述欄位供 owner 編輯。
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5149,9 +4919,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5212,9 +4981,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5228,9 +4996,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5244,9 +5011,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5260,9 +5026,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5276,9 +5041,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5292,9 +5056,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5308,9 +5071,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5324,9 +5086,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5340,9 +5101,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5356,9 +5116,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5372,9 +5131,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5407,9 +5165,8 @@ weight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5432,9 +5189,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5455,9 +5211,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5504,9 +5259,8 @@ trust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5535,9 +5289,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5559,9 +5312,8 @@ list_by_tag 適合已知 tag 的清單需求。所有操作均依 MCP tool schem
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5584,9 +5336,8 @@ Agent 只依 MCP tool schema 傳入參數與解讀結果，不使用 REST endpoi
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5648,9 +5399,8 @@ wait_for_embedding(workspace_id, node_id, timeout_seconds=30)
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5691,9 +5441,8 @@ document node 保存原始文件內容，供後續閱讀、理解上下文與重
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5758,9 +5507,8 @@ history = search_with_history(
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5784,9 +5532,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5800,9 +5547,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5825,9 +5571,8 @@ VALUES
    0,0,0,4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5869,9 +5614,8 @@ Agent 每次沿 Edge 移動時應呼叫 traverse 工具，讓常用路徑保持�
    0,0,0,3,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5906,9 +5650,8 @@ Contributor 提案流程：POST /workspaces/{ws_id}/proposals → review_queue�
    0,0,0,5,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5941,9 +5684,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -5974,9 +5716,8 @@ c.search_nodes(workspace_id="ws_abc", query="how to config auth")
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6011,9 +5752,8 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6036,9 +5776,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6059,9 +5798,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6084,9 +5822,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6108,9 +5845,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6132,9 +5868,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6155,9 +5890,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6171,9 +5905,8 @@ VALUES
    0,0,0,3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6196,9 +5929,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6212,9 +5944,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6246,9 +5977,8 @@ ALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT ''active'' CHECK 
    0,0,0,4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6273,9 +6003,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6310,9 +6039,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6337,9 +6065,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6363,9 +6090,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6379,9 +6105,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6395,9 +6120,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6411,9 +6135,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6455,9 +6178,8 @@ Phase 4.10 將 MCP / API 金鑰從「工作區綁定 + 固定 scope」改為「�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6512,9 +6234,8 @@ UI 透過 `GET /auth/config`（無需 auth）取得 `registration_mode`：
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6550,9 +6271,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6569,9 +6289,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6588,9 +6307,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6608,9 +6326,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6659,9 +6376,8 @@ WHERE assigned_to IS NULL
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6709,9 +6425,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6766,9 +6481,8 @@ spec-as-kb 採「兩個單語工作區」設計：
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6817,9 +6531,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6871,9 +6584,8 @@ CREATE TABLE retrieval_logs (
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6926,9 +6638,8 @@ CREATE TABLE kb_health_daily (
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -6979,9 +6690,8 @@ WHERE NOT EXISTS (
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7020,9 +6730,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7071,9 +6780,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7119,9 +6827,8 @@ WHERE source_type = ''ai''
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7168,9 +6875,8 @@ accuracy (1–5), utility (1–5), created_at
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7195,9 +6901,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7239,9 +6944,8 @@ API：http://localhost:8000 / UI：http://localhost:5173',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7270,9 +6974,8 @@ docker compose down -v && docker compose up -d
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7307,9 +7010,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7360,9 +7062,8 @@ SELECT pg_advisory_xact_lock(hashtext(<ws_id)));
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7414,9 +7115,8 @@ AI Agent（MCP）受到與人類使用者相同的寫入串行化與衝突偵測
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7464,9 +7164,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 
 -- ── en nodes ────────────────────────────────────────────
@@ -7482,9 +7181,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7498,9 +7196,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7533,9 +7230,8 @@ Every synchronous method has an async counterpart (the `a` prefix, e.g. `alist_w
    0,0,0,2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7549,9 +7245,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7594,9 +7289,8 @@ In other modes, invitation links redirect to the standard register form.',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7610,9 +7304,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7656,9 +7349,8 @@ Small local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON s
    0,0,0,12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7672,9 +7364,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7688,9 +7379,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7759,9 +7449,8 @@ Aggregates token consumption by workspace × month to aid cost tracking.
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7775,9 +7464,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7791,9 +7479,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7807,9 +7494,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7823,9 +7509,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7839,9 +7524,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7855,9 +7539,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7871,9 +7554,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7892,9 +7574,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7908,9 +7589,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7924,9 +7604,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7940,9 +7619,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7956,9 +7634,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7972,9 +7649,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -7994,9 +7670,8 @@ v2 plans to introduce an event-driven trust update mechanism.',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8010,9 +7685,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8026,9 +7700,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8064,9 +7737,8 @@ Decodes JWT payload exp field with a 60-second buffer to avoid boundary race con
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8080,9 +7752,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8096,9 +7767,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8118,9 +7788,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8134,9 +7803,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8150,9 +7818,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8166,9 +7833,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8182,9 +7848,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8203,9 +7868,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8219,9 +7883,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8240,9 +7903,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8256,9 +7918,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8272,9 +7933,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8288,9 +7948,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8325,9 +7984,8 @@ Only `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8341,9 +7999,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8357,9 +8014,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8373,9 +8029,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8394,9 +8049,8 @@ System actors may perform hard-deletes and must notify the owners of associated 
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8428,9 +8082,8 @@ AI agent、coding agent、外部 harness 與自動化流程操作 MemTrace 時�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8444,9 +8097,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8480,9 +8132,8 @@ This node is a condensed companion to `mem_a005_en`, which carries the full fiel
    0,0,0,3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8496,9 +8147,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8526,9 +8176,8 @@ MCP tools wait for a node embedding to become ready or report pending and retry 
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8570,9 +8219,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8593,9 +8241,8 @@ All features — governance, telemetry, notifications, decay — serve this core
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8609,9 +8256,8 @@ VALUES
    0,0,0,2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8625,9 +8271,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8641,9 +8286,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8657,9 +8301,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8673,9 +8316,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8689,9 +8331,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8733,9 +8374,8 @@ Role hierarchy: viewer < contributor < admin (owner treated as admin)
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8753,9 +8393,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8792,9 +8431,8 @@ The two are independent; a `status=active` node can simultaneously be `resolutio
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8808,9 +8446,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8824,9 +8461,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8840,9 +8476,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8861,9 +8496,8 @@ System actors may perform hard-deletes and must notify the owners of associated 
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8877,9 +8511,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8898,9 +8531,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8914,9 +8546,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8930,9 +8561,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8946,9 +8576,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -8962,9 +8591,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9009,9 +8637,8 @@ A daily scan over all active nodes using the pure-rule `classify_safety_rules()`
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9025,9 +8652,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9041,9 +8667,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9063,9 +8688,8 @@ v2 plans to introduce an event-driven trust update mechanism.',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9079,9 +8703,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9095,9 +8718,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9111,9 +8733,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9127,9 +8748,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9143,9 +8763,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9159,9 +8778,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9175,9 +8793,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9191,9 +8808,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9207,9 +8823,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9223,9 +8838,8 @@ VALUES
    0,0,0,10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9244,9 +8858,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9265,9 +8878,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9281,9 +8893,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9305,9 +8916,8 @@ v1 contains no automatic resolution logic; all conflict resolution requires huma
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9321,9 +8931,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9341,9 +8950,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9357,9 +8965,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9373,9 +8980,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9395,9 +9001,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9441,9 +9046,8 @@ Small local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON s
    0,0,0,12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9457,9 +9061,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9496,9 +9099,8 @@ Migration `058_inquiry_paths.sql`; `record_path` tool records agent exploration 
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9512,9 +9114,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9533,9 +9134,8 @@ Neither type contributes to human `author_rep` calculations. Telemetry records u
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9553,9 +9153,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9569,9 +9168,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9585,9 +9183,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9601,9 +9198,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9625,9 +9221,8 @@ v1 contains no automatic resolution logic; all conflict resolution requires huma
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9641,9 +9236,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9657,9 +9251,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9673,9 +9266,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9700,9 +9292,8 @@ Valid relations only: depends_on / extends / related_to / contradicts / proceeds
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9716,9 +9307,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9732,9 +9322,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9748,9 +9337,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9764,9 +9352,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9780,9 +9367,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9796,9 +9382,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9812,9 +9397,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9828,9 +9412,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9844,9 +9427,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9860,9 +9442,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9881,9 +9462,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9897,9 +9477,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9944,9 +9523,8 @@ MemTrace 的核心治理保證:**每一筆進入知識庫的寫入,都有一個�
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9960,9 +9538,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9976,9 +9553,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -9999,9 +9575,8 @@ All features — governance, telemetry, notifications, decay — serve this core
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10015,9 +9590,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10031,9 +9605,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10047,9 +9620,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10063,9 +9635,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10084,9 +9655,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10100,9 +9670,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10116,9 +9685,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10132,9 +9700,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10148,9 +9715,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10164,9 +9730,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10180,9 +9745,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10196,9 +9760,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10231,9 +9794,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10254,9 +9816,8 @@ All results enter the **Review Queue** — never auto-committed. Extracted node 
    0,0,0,2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10270,9 +9831,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10305,9 +9865,8 @@ Note: Q&A requires authentication even on public workspaces. Unauthenticated use
    0,0,0,3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10362,9 +9921,8 @@ Data source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / tra
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10383,9 +9941,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10403,9 +9960,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10419,9 +9975,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10435,9 +9990,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10451,9 +10005,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10467,9 +10020,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10483,9 +10035,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10520,9 +10071,8 @@ Full teaching docs: docs/dev/node-splitting-example.md (decision networks) and t
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10536,9 +10086,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10552,9 +10101,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10568,9 +10116,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10600,9 +10147,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10670,9 +10216,8 @@ When `allow_edits: true`, the AI may only propose edits to nodes **within the cu
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10686,9 +10231,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10702,9 +10246,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10761,9 +10304,8 @@ WHERE source_type = ''mcp'' AND author = ''system'';
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10818,9 +10360,8 @@ Tamper test: manually alter one audit_trail record -> `verify_audit_chain` retur
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10869,9 +10410,8 @@ Ingestion runs asynchronously in the background. Callers poll for progress and, 
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10923,9 +10463,8 @@ CREATE TABLE author_tombstones (
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -10986,9 +10525,8 @@ Logs are retained for **12 months** and then archived. Logs are never deleted be
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11048,9 +10586,8 @@ Conductor 是 MemTrace 的主動通知層：當 workspace 中出現 `scale=major
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11064,9 +10601,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11080,9 +10616,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11128,9 +10663,8 @@ Preferred mid-term approach for the current one-machine deployment: pinned basel
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11167,9 +10701,8 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
    0,0,0,2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11183,9 +10716,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11199,9 +10731,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11215,9 +10746,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11231,9 +10761,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11280,9 +10809,8 @@ The system records the result of every backup attempt in the `system_settings` t
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11296,9 +10824,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11312,9 +10839,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11328,9 +10854,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11384,9 +10909,8 @@ Use comment when uncertain.
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11417,9 +10941,8 @@ Applies to all human-AI co-maintained knowledge graph systems that allow agent w
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11433,9 +10956,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11449,9 +10971,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11465,9 +10986,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11485,9 +11005,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11505,9 +11024,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11521,9 +11039,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11537,9 +11054,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11553,9 +11069,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11574,9 +11089,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11590,9 +11104,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11606,9 +11119,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11622,9 +11134,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11673,9 +11184,8 @@ Every `contradicts` edge should have a corresponding resolution log or pending r
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11694,9 +11204,8 @@ Neither type contributes to human `author_rep` calculations. Telemetry records u
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11724,9 +11233,8 @@ The `node_clusters` table records all clusters in a workspace: names (zh/en), co
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11767,9 +11275,8 @@ Nodes created before the cluster system was introduced have `cluster_id = NULL`.
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11804,9 +11311,8 @@ Node ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`.',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11828,9 +11334,8 @@ Edge ID format: `edge_<hex8>`. Duplicate edges (same from, to, relation) are rej
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11856,9 +11361,8 @@ Content Type affects: search filtering, AI extraction classification, default de
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11881,9 +11385,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11897,9 +11400,8 @@ VALUES
    0,0,0,2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11913,9 +11415,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11929,9 +11430,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11945,9 +11445,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11961,9 +11460,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -11996,9 +11494,8 @@ New data is written to both edges and the legacy junction table during transitio
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12033,9 +11530,8 @@ Pending-review indicators, proposal overlays, and toolbar counters expose mainte
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12049,9 +11545,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12065,9 +11560,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12121,9 +11615,8 @@ Both are manually triggered (button-run), not scheduled.
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12142,9 +11635,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12158,9 +11650,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12174,9 +11665,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12190,9 +11680,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12211,9 +11700,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12227,9 +11715,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12243,9 +11730,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12259,9 +11745,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12281,9 +11766,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12314,9 +11798,8 @@ Applies to human-AI maintained knowledge graph systems that allow agent writes.'
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12330,9 +11813,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12346,9 +11828,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12362,9 +11843,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12378,9 +11858,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12394,9 +11873,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12410,9 +11888,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12426,9 +11903,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12442,9 +11918,8 @@ VALUES
    0,0,0,10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12464,9 +11939,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12480,9 +11954,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12496,9 +11969,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12512,9 +11984,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12528,9 +11999,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12598,9 +12068,8 @@ When logged in, with an `Authorization: Bearer ...` header the backend additiona
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12614,9 +12083,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12677,9 +12145,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12693,9 +12160,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12709,9 +12175,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12725,9 +12190,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12741,9 +12205,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12757,9 +12220,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12773,9 +12235,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12789,9 +12250,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12805,9 +12265,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12821,9 +12280,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12837,9 +12295,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12872,9 +12329,8 @@ Trigger: daily by the `apply_edge_decay()` SQL function (mirrors `packages/core/
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12897,9 +12353,8 @@ Also increments co_access_count, updates last_co_accessed, and caps weight at 1.
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12920,9 +12375,8 @@ Choosing the correct relation type matters: it determines co-access boost streng
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -12969,9 +12423,8 @@ Scores are submitted as **integers 1–5** (API accepts accuracy and utility). T
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13000,9 +12453,8 @@ Author Reputation (dim_author_rep):
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13044,9 +12496,8 @@ After exploration, call `record_path(workspace_id, query_text, node_sequence, ou
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13113,9 +12564,8 @@ Call `initialize` to declare your capabilities so the server can adapt:
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13177,9 +12627,8 @@ To add documentary evidence to an existing node, use `attach_evidence` or `attac
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13220,9 +12669,8 @@ The document node preserves the original material for reading, context, and re-e
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13285,9 +12733,8 @@ If results are returned, follow the `node_sequence` from the best match rather t
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13362,9 +12809,8 @@ else:
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13378,9 +12824,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13403,9 +12848,8 @@ All API endpoints prefixed with `/api/v1`, using `Authorization: Bearer` for bot
    0,0,0,4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13446,9 +12890,8 @@ Agents should call traverse when following an edge, keeping frequently used path
    0,0,0,3,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13483,9 +12926,8 @@ Default role on join:
    0,0,0,5,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13518,9 +12960,8 @@ Only `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13551,9 +12992,8 @@ Every synchronous method has an async counterpart (the `a` prefix, e.g. `alist_w
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13588,9 +13028,8 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13614,9 +13053,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13638,9 +13076,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13664,9 +13101,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13689,9 +13125,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13714,9 +13149,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13738,9 +13172,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13754,9 +13187,8 @@ VALUES
    0,0,0,3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13779,9 +13211,8 @@ Node-level visibility (`public` / `team` / `private`) is independent of KB-level
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13795,9 +13226,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13829,9 +13259,8 @@ ALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT ''active'' CHECK 
    0,0,0,4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13856,9 +13285,8 @@ Valid relations only: depends_on / extends / related_to / contradicts / proceeds
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13893,9 +13321,8 @@ Full teaching docs: docs/dev/node-splitting-example.md (decision networks) and t
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13920,9 +13347,8 @@ Progress tracked server-side via the `onboarding` object (`steps_done[]` + `step
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13946,9 +13372,8 @@ Re-running: prompts which setting to update — AI provider / switch default wor
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13962,9 +13387,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13978,9 +13402,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -13994,9 +13417,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14038,9 +13460,8 @@ Role hierarchy: viewer < contributor < admin (owner treated as admin)
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14083,9 +13504,8 @@ In other modes, invitation links redirect to the standard register form.',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14121,9 +13541,8 @@ Decodes JWT payload exp field with a 60-second buffer to avoid boundary race con
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14140,9 +13559,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14159,9 +13577,8 @@ VALUES
    0,0,0,1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14179,9 +13596,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14231,9 +13647,8 @@ Target: weekly active reviewers >= 2
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14282,9 +13697,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14340,9 +13754,8 @@ An English node id is `{zh_id}_en` (e.g. `mem_d001_en`).
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14392,9 +13805,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14447,9 +13859,8 @@ Indexes: `(workspace_id, created_at DESC)`, `(workspace_id, mode, created_at DES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14502,9 +13913,8 @@ Note: the `token_savings_ratio` column remains in the schema (see the DDL above)
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14556,9 +13966,8 @@ WHERE NOT EXISTS (
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14598,9 +14007,8 @@ Run the same golden set after merging:
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14650,9 +14058,8 @@ Exceeding a limit returns `429 Too Many Requests`.
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14699,9 +14106,8 @@ WHERE source_type = ''ai''
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14749,9 +14155,8 @@ accuracy (1–5), utility (1–5), created_at
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14776,9 +14181,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14820,9 +14224,8 @@ API: http://localhost:8000 / UI: http://localhost:5173',
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14851,9 +14254,8 @@ docker compose down -v && docker compose up -d
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14888,9 +14290,8 @@ VALUES
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14942,9 +14343,8 @@ SELECT pg_advisory_xact_lock(hashtext(ws_id));
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -14997,9 +14397,8 @@ AI Agents (MCP) are subject to the same write serialization and conflict detecti
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
@@ -15048,9 +14447,8 @@ When the original node is updated, PostgreSQL `LISTEN/NOTIFY` pushes all copied 
    0,0,0,0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
-  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,
-  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,
-  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
 
 
 -- ── zh-TW edges ─────────────────────────────────────────

@@ -145,12 +145,7 @@ def upsert_nodes(cur, nodes: list[dict], ws_id: str):
                 body = EXCLUDED.body,
                 content_type = EXCLUDED.content_type,
                 content_format = EXCLUDED.content_format,
-                tags = EXCLUDED.tags,
-                trust_score = EXCLUDED.trust_score,
-                dim_accuracy = EXCLUDED.dim_accuracy,
-                dim_freshness = EXCLUDED.dim_freshness,
-                dim_utility = EXCLUDED.dim_utility,
-                dim_author_rep = EXCLUDED.dim_author_rep
+                tags = EXCLUDED.tags
         """, (
             n["id"], n.get("schema_version", "1.0"), ws_id,
             n["title"], c["type"], c.get("format", "plain"), c["body"],
@@ -241,9 +236,8 @@ def _node_sql(n: dict, ws_id: str) -> list[str]:
         f"{tr.get('count',0)},{tr.get('unique_traversers',0)})",
         "ON CONFLICT (id) DO UPDATE SET",
         "  title=EXCLUDED.title, body=EXCLUDED.body,",
-        "  tags=EXCLUDED.tags, trust_score=EXCLUDED.trust_score,",
-        "  dim_accuracy=EXCLUDED.dim_accuracy, dim_freshness=EXCLUDED.dim_freshness,",
-        "  dim_utility=EXCLUDED.dim_utility, dim_author_rep=EXCLUDED.dim_author_rep;",
+        "  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,",
+        "  tags=EXCLUDED.tags;",
         "",
     ]
 

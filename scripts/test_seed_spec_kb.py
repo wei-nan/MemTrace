@@ -10,12 +10,45 @@ reports a clean result, so a wrong classification here would produce a false
 "OK" — worse than having no drift detector at all.
 """
 
+import inspect
 import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
-from seed_spec_kb import _field_mismatches, _preview, _seed_declared, _live_declared
+from seed_spec_kb import _field_mismatches, _preview, _seed_declared, _live_declared, _node_sql, upsert_nodes
+
+
+def test_node_sql_never_writes_computed_fields_on_conflict():
+    """Regression guard: _node_sql() generates the committed migration SQL
+    (packages/api/migrations/003_seed_spec_kb.sql), which run_migrations()
+    executes on fresh deployments — a separate code path from upsert_nodes().
+    trust_score/dim_* are computed live; a seed upsert must never overwrite
+    them on conflict. See ws_spec_plan/mem_82155065 and mem_be783548."""
+    node = {
+        "id": "mem_x", "title": "T",
+        "content": {"type": "factual", "format": "markdown", "body": "B"},
+        "tags": [], "visibility": "public",
+        "provenance": {"author": "system", "source_type": "human"},
+    }
+    sql = "\n".join(_node_sql(node, "ws_spec0001"))
+    set_clause = sql.split("DO UPDATE SET")[1]
+    for forbidden in ("trust_score", "dim_accuracy", "dim_freshness", "dim_utility", "dim_author_rep", "status"):
+        assert forbidden not in set_clause, f"_node_sql() DO UPDATE SET must not touch {forbidden}"
+
+
+def test_upsert_nodes_never_writes_computed_fields_on_conflict():
+    """Same guard for upsert_nodes(), the live-DB-write path used by main().
+
+    status is a second, subtler regression: `status = EXCLUDED.status` looks
+    like an ordinary upsert pattern but resolves to the column's DEFAULT
+    ('active') because status is never in the INSERT's column list — silently
+    re-activating archived nodes on every seed run, identical in effect to
+    the literal `status = 'active'` this project already removed once."""
+    sql = inspect.getsource(upsert_nodes)
+    set_clause = sql.split("DO UPDATE SET")[1].split('"""')[0]
+    for forbidden in ("trust_score", "dim_accuracy", "dim_freshness", "dim_utility", "dim_author_rep", "status"):
+        assert forbidden not in set_clause, f"upsert_nodes() DO UPDATE SET must not touch {forbidden}"
 
 
 def seed_node(**over):
