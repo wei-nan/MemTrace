@@ -463,22 +463,6 @@ client = OpenAI(
   api_key=<span class="str">"mt_xxx"</span>,
 )</code></pre>
         </div>
-        <div class="eco reveal">
-          <span class="tag">PYTHON SDK</span>
-          <h3>Official Python client</h3>
-          <p>Manage workspaces, create/search nodes, and run chat &amp; retrieval programmatically.</p>
-          <pre><code><span class="kw">from</span> memtrace <span class="kw">import</span> MemTraceClient
-c = MemTraceClient(api_key=<span class="str">"mt_xxx"</span>)
-c.search_nodes(query=<span class="str">"how to config auth"</span>)</code></pre>
-        </div>
-        <div class="eco reveal">
-          <span class="tag">LANGCHAIN · LLAMAINDEX</span>
-          <h3>Framework retrievers</h3>
-          <p>An LCEL-compatible <code>MemTraceRetriever</code> and a LlamaIndex <code>MemTraceVectorStore</code> — a few lines into your existing pipeline.</p>
-          <pre><code><span class="kw">from</span> langchain_memtrace <span class="kw">import</span> MemTraceRetriever
-retriever = MemTraceRetriever(workspace_id=<span class="str">"ws_abc"</span>)
-chain = retriever | llm</code></pre>
-        </div>
       </div>
     </div>
   </section>

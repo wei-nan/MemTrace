@@ -466,22 +466,6 @@ client = OpenAI(
   api_key=<span class="str">"mt_xxx"</span>,
 )</code></pre>
         </div>
-        <div class="eco reveal">
-          <span class="tag">PYTHON SDK</span>
-          <h3>官方 Python 客戶端</h3>
-          <p>以程式化方式管理工作空間、建立/搜尋節點、進行 chat 與檢索。</p>
-          <pre><code><span class="kw">from</span> memtrace <span class="kw">import</span> MemTraceClient
-c = MemTraceClient(api_key=<span class="str">"mt_xxx"</span>)
-c.search_nodes(query=<span class="str">"how to config auth"</span>)</code></pre>
-        </div>
-        <div class="eco reveal">
-          <span class="tag">LANGCHAIN · LLAMAINDEX</span>
-          <h3>框架 Retriever 整合</h3>
-          <p>LCEL 相容的 <code>MemTraceRetriever</code>,以及 LlamaIndex 的 <code>MemTraceVectorStore</code>,幾行就接進既有 pipeline。</p>
-          <pre><code><span class="kw">from</span> langchain_memtrace <span class="kw">import</span> MemTraceRetriever
-retriever = MemTraceRetriever(workspace_id=<span class="str">"ws_abc"</span>)
-chain = retriever | llm</code></pre>
-        </div>
       </div>
     </div>
   </section>
