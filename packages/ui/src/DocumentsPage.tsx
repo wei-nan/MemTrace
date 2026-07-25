@@ -279,6 +279,30 @@ function DocumentDetailPanel({
             }}>
               {preview}
             </pre>
+          ) : doc.source_url && !doc.size_bytes ? (
+            <div style={{
+              padding: '12px 14px', borderRadius: 8,
+              background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
+              display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-primary)', fontWeight: 500 }}>
+                <ExternalLink size={14} />
+                {zh ? '外部網址參考 (URL Document)' : 'External URL Reference'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', wordBreak: 'break-all' }}>
+                {doc.source_url}
+              </div>
+              <a
+                href={doc.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, width: 'fit-content', padding: '5px 12px', fontSize: 12, marginTop: 4, textDecoration: 'none' }}
+              >
+                <ExternalLink size={12} />
+                {zh ? '前往開啟外部連結' : 'Open External Link'}
+              </a>
+            </div>
           ) : (
             <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
               {zh ? '此格式不支援預覽，請下載查看' : 'Preview not available for this format. Download to view.'}
