@@ -1,0 +1,43 @@
+{
+  "id": "mem_a1c53b2a_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Multi-Planner Semantic Boundaries",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "Semantic boundary rules for multi-planner architecture:\n\n- Each planner is responsible only for the semantic scope of its own subtask and must not encroach on another planner's domain.\n- Collaboration between planners goes through the harness proposal mechanism, not direct communication.\n- Boundary conflicts (two planners proposing contradictory decisions) are detected by the harness and routed into the contradiction resolution flow; planners may not resolve cross-boundary conflicts themselves."
+  },
+  "tags": [
+    "multi-planner",
+    "semantics",
+    "boundaries",
+    "design-decision",
+    "harness"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-25T21:58:08.173230+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_d2955487_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Phase 6.2 — Behavior, Governance & Visual (Track B, T10–T24)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Phase 6.2 Track B — Behavior, Governance & Visual\n\n**Released**: 2026-05-29\n\n### Gap content type\nSearch misses can be recorded as `gap` nodes.\n\n### Path reinforcement and cleanup\nA daily job reinforces successful route edges and cleans up long-inactive failed paths.\n\n### Audit proposal framework\nProposal creation, listing, reading, and resolution are available through service and REST layers.\n\n### AI maintenance reviewers\n- duplicate node detection\n- tag normalization\n- orphaned or dangling edge detection\n- embedding/body consistency checks\n- knowledge coverage gap detection\n\n### Visual notifications\nPending-review indicators, proposal overlays, and toolbar counters expose maintenance work to users."
+  },
+  "tags": [
+    "phase-6.2",
+    "audit",
+    "reviewer",
+    "ui",
+    "governance",
+    "milestone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:12:42.989025+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.667,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "mem_guide_g04_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Document ingestion: long documents and short text",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Document ingestion\n\n| Path | Tool | Use case | Returns |\n|------|------|----------|---------|\n| Full document extraction | `ingest_document` | Complete documents over 2,000 characters | job_id; polling required |\n| Short text extraction | `extract_from_text` | Snippets up to 8,000 characters | Immediate node list |\n\n### Full document ingestion\n\nSubmit `ingest_document`, then poll with `get_ingestion_status`. On completion, the system creates a document node and `extracted_from` relationships.\n\n### Short text extraction\n\n`extract_from_text` returns extracted nodes immediately and routes them through the workspace's review workflow.\n\n### Resulting graph structure\n\n```text\n[knowledge_node] --extracted_from--> [document_node]\n```\n\nThe document node preserves the original material for reading, context, and re-extraction.\n\n### Common mistakes\n\n- Using `extract_from_text` for text over 8,000 characters\n- Polling ingestion status too frequently\n- Running semantic search before embeddings are ready"
+  },
+  "tags": [
+    "agent-guide",
+    "ingest",
+    "document",
+    "polling",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.667,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

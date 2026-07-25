@@ -1,0 +1,44 @@
+{
+  "id": "mem_8ac95ea6",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "寫入當責模型:每筆寫入都有可究責的人(三條路徑)",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "# 寫入當責模型\n\nMemTrace 的核心治理保證:**每一筆進入知識庫的寫入,都有一個可究責的人**。差別只在當責者是誰,取決於寫入路徑。\n\n## 三條寫入路徑與當責歸屬\n\n### 1. 人 ↔ AI 對話、AI 代為寫入（human-accountable, model-assisted）\n\n經認證的使用者在對話中指揮 agent,透過 MCP `create_node` / `update_node` 寫入。\n\n- 節點 `author` 記錄為該使用者;該使用者即當責人。\n- 持有 write scope 時直接 active。這是正規路徑,**不是繞過審核的捷徑**。\n\n### 2. 文件攝入 → AI 萃取候選\n\n`ingest_document` 後由 AI 萃取的候選節點,沒有逐一指定的人類作者。\n\n- 必須通過 review queue 人工審核（Accept / Edit then Accept / Reject）才入庫。\n- 當責人 = 審核者。詳見 mem_a003。\n\n### 3. AI 審核員自動裁決（opt-in）\n\n工作區 owner 可建立 AI 審核員,讓 LLM 對 review queue 提案自動 accept/reject（confidence ≥ 門檻）。詳見 mem_c571ecc8。\n\n- 只有 owner 能建立/啟用 AI 審核員;**啟用即視為 owner 預先授權並為其自動裁決當責**。\n- 自動裁決記為 `reviewer_type='ai'`,可沿 `reviewer_id → ai_reviewers → workspace owner` 追溯到當責人。\n\n## 不變式\n\n- 沒有任何路徑會產生「無人當責」的寫入。\n- AI 在路徑 1 是代筆、在路徑 3 是受 owner 授權執行;**AI 本身不是最終當責主體**。\n- 安全 / admission 審查（safety review、dedup、PII/secret）對所有路徑一律適用,與當責歸屬獨立。"
+  },
+  "tags": [
+    "governance",
+    "write-accountability",
+    "human-accountable",
+    "review-queue",
+    "ai-reviewer",
+    "public-policy"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-23T02:51:40.032826+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

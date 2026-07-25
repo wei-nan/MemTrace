@@ -1,0 +1,44 @@
+{
+  "id": "mem_d26a1946",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Phase 6.1 — 文件成為圖的一等公民",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Phase 6.1 — 文件成為圖的一等公民\n\n**發布日期**：2026-05-29\n\n### 核心架構變更\n\n- `document` content type：每份上傳文件在圖中對應一個文件節點\n- `extracted_from` relation：方向為知識節點 → 文件節點\n- `documents.node_id`：文件紀錄連結到對應的圖節點\n\n### 主要元件\n\n- 文件節點與關係 migration\n- 建立文件節點與連結的 service\n- 一次性文件連結遷移腳本\n- CI 與文件關係測試\n\n### 雙寫／雙讀過渡\n\n過渡期間，新資料同時寫入 edges 與舊 junction table；讀取優先使用 edge path，必要時 fallback，並依 document id 去重。"
+  },
+  "tags": [
+    "phase-6.1",
+    "architecture",
+    "documents",
+    "extracted_from",
+    "graph",
+    "milestone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:11:43.018234+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.647,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

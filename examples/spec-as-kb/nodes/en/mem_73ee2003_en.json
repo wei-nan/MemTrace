@@ -1,0 +1,44 @@
+{
+  "id": "mem_73ee2003_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Phase 6.2 — MCP Expression Layer (Track A, T01–T09)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Phase 6.2 Track A — MCP Expression Layer\n\n**Released**: 2026-05-29 | **Status**: T01–T09 all complete\n\n### T01 detail_level (probe / brief / full)\n`node_projection.py` implements three projection levels. All node-returning MCP tools support `detail_level` and `max_response_tokens`.\n\n### T02 top_edges projection\n`get_node_top_edges()` injects top-5 high-weight edges at probe/brief level.\n\n### T03 Markdown Resource URI\n`resources/templates/list` returns `memtrace://node/{id}` and `memtrace://workspace/{id}/summary` templates; `resources/read` handles retrieval as Markdown.\n\n### T04 Capability Handshake\n`initialize` stores `client_capabilities` (model_size, context_limit, prefer_format) in `USER_CAPABILITIES[user_sub]` for downstream tool auto-tuning.\n\n### T05 Token Budget\n`optimize_node_response()` accepts `max_tokens` and auto-downgrades detail_level until the response fits.\n\n### T06 mcp-contract.md\n`packages/api/docs/mcp-contract.md` created — covers all 33 tools, Schema, Relations (incl. `extracted_from`), Content Types (incl. `document`/`gap`), Detail Levels, Rate Limits, and MCP client config examples.\n\n### T07–T09 Inquiry Paths\nMigration `058_inquiry_paths.sql`; `record_path` tool records agent exploration paths; `search_with_history` finds similar past paths for replay."
+  },
+  "tags": [
+    "phase-6.2",
+    "mcp",
+    "detail_level",
+    "token_budget",
+    "inquiry_paths",
+    "milestone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:12:42.989025+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 1,
+    "unique_traversers": 1
+  }
+}

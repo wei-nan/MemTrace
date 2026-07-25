@@ -1,0 +1,43 @@
+{
+  "id": "mem_b848a97e_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Framework integrations: LangChain retriever and LlamaIndex vector store",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace ships two framework-integration packages that plug a knowledge base into an existing LLM pipeline in a few lines. Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath.\n\n## LangChain (`packages/langchain-memtrace`)\n`MemTraceRetriever`, compatible with the LangChain Expression Language (LCEL); `retriever.invoke(query)` returns documents.\n\n```python\nfrom langchain_memtrace import MemTraceRetriever\nretriever = MemTraceRetriever(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\", k=5)\nchain = retriever | llm\n```\n\n## LlamaIndex (`packages/llama-index-memtrace`)\n`MemTraceVectorStore`, exposing a workspace as a LlamaIndex vector data source / index.\n\n```python\nfrom llama_index_memtrace import MemTraceVectorStore\nvs = MemTraceVectorStore(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\")\n```\n\n## Release status\n\n**Neither package is published to the package index (PyPI) yet.** The code lives under `packages/langchain-memtrace` and `packages/llama-index-memtrace` in this repository and is exercised by CI (`.github/workflows/packages.yml`), but that workflow deliberately does not publish. The imports shown above require obtaining the packages from source; they cannot be fetched from the package index. Both are at version `0.1.0`.\n\n> Mirrors seed node mem_i007_en; code: packages/langchain-memtrace, packages/llama-index-memtrace."
+  },
+  "tags": [
+    "langchain",
+    "llamaindex",
+    "retriever",
+    "vector-store",
+    "integration"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-07-24T22:53:53.161295+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 2,
+    "unique_traversers": 1
+  }
+}

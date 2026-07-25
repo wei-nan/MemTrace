@@ -1,0 +1,44 @@
+{
+  "id": "mem_3c063665_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Phase 6.2 — Infrastructure (Track C, T25–T32)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Phase 6.2 Track C — Infrastructure\n\n**Released**: 2026-05-29\n\n### Embedding migration\nMigration `062_embedding_migration.sql` supports workspace embedding-provider migration, secondary embeddings, and dual-embedding search during transition.\n\n### embed_retry_queue\nMigration `063_embed_retry_queue.sql` retries failed embedding tasks with exponential backoff.\n\n### Event-driven edge suggestion\nMigration `064_node_events.sql` triggers edge suggestion after embedding completes and removes fixed sleep-based sequencing.\n\n### wait_for_embedding / get_embedding_status\nMCP tools wait for a node embedding to become ready or report pending and retry queue counts for a workspace."
+  },
+  "tags": [
+    "phase-6.2",
+    "embedding",
+    "retry",
+    "event-driven",
+    "infrastructure",
+    "milestone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:12:42.989025+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.667,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

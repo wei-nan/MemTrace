@@ -1,0 +1,43 @@
+{
+  "id": "mem_01d117a9",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Python SDK:memtrace 官方客戶端(MemTraceClient)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "`packages/sdk-python` 提供官方 Python 客戶端 `MemTraceClient`,以程式化方式操作 MemTrace REST API,認證使用外部 API Key。\n\n```python\nfrom memtrace import MemTraceClient\nc = MemTraceClient(base_url=\"http://localhost:8000\", api_key=\"mt_...\")\nc.search_nodes(workspace_id=\"ws_abc\", query=\"how to config auth\")\n```\n\n## 能力\n- **工作區**:`list_workspaces`、`get_workspace`\n- **節點**:`create_node`、`get_node`、`list_nodes`、`search_nodes`、`search_semantic`、`delete_node`\n- **對話與檢索**:`chat`、`chat_stream`\n\n每個同步方法都有對應的非同步版本(`a` 前綴,例如 `alist_workspaces`、`asearch_nodes`、`achat_stream`)。\n\n## 發布狀態\n\n**尚未發布到套件索引（PyPI）。** 程式碼位於本 repo 的 `packages/sdk-python`，並由 CI（`.github/workflows/packages.yml`）執行測試，但該流程刻意不做發布。上述範例中的 import 需先從原碼取得套件才能運作，無法直接從套件索引取得。版本 `0.1.0`。\n\n> 對應 seed 節點 mem_i006;程式碼:packages/sdk-python。"
+  },
+  "tags": [
+    "sdk",
+    "python",
+    "client",
+    "integration",
+    "api"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-07-24T22:53:28.075831+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 2,
+    "unique_traversers": 1
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "mem_guide_g02_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Large vs Small Model Strategy for Using MemTrace",
+  "content": {
+    "type": "preference",
+    "format": "markdown",
+    "body": "## Large vs Small Model Strategy for Using MemTrace\n\n### Capability Handshake (at the start of every session)\n\nCall `initialize` to declare your capabilities so the server can adapt:\n\n```json\n// Large model (Claude Opus / GPT-4o etc.)\n{\n  \"model_size\": \"large\",\n  \"context_limit\": 128000,\n  \"prefer_format\": \"markdown\"\n}\n\n// Small model (Claude Haiku / GPT-4o-mini etc.)\n{\n  \"model_size\": \"small\",\n  \"context_limit\": 8192,\n  \"prefer_format\": \"json\"\n}\n```\n\n### detail_level Selection\n\n| Scenario | Recommended detail_level | Notes |\n|----------|--------------------------|-------|\n| Confirm node existence | `probe` | Only id/title/tags — most token-efficient |\n| Understand overview and connections | `brief` | Adds top_edges; suitable for most cases |\n| Need full body text | `full` | Only when quoting original content |\n\n### Small Model Guidelines\n- Always start with `probe`; upgrade only if needed.\n- Keep node body to **≤ 300 characters** when creating — no long-form extraction.\n- Avoid `ingest_document` (long-form ingestion); use `attach_evidence` for snippet attribution instead.\n- Check every response for `\"truncated\": true` — if present, the token budget was exceeded.\n\n### Large Model Guidelines\n- Use `full` to retrieve complete nodes for cross-node reasoning.\n- Use `ingest_document` for long documents and poll `get_ingestion_status`.\n- Pass `max_response_tokens` explicitly to prevent over-truncation.\n- After complex knowledge extraction, call `record_path` to record the successful path for small models to replay.\n\n### Token Budget Example\n```json\n{\n  \"name\": \"search_nodes\",\n  \"arguments\": {\n    \"workspace_id\": \"ws_xxx\",\n    \"query\": \"Python async patterns\",\n    \"detail_level\": \"brief\",\n    \"max_response_tokens\": 2000\n  }\n}\n```"
+  },
+  "tags": [
+    "agent-guide",
+    "model-size",
+    "detail-level",
+    "token-budget",
+    "capability-handshake",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

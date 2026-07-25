@@ -1,0 +1,43 @@
+{
+  "id": "mem_guide_g01_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Standard Workflow for Agent Knowledge Base Exploration",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Standard Workflow for Agent Knowledge Base Exploration\n\nEvery time an agent needs to retrieve information from the knowledge base, follow these four steps:\n\n### Step 1: Replay Historical Paths (Priority)\nCall `search_with_history(workspace_id, query_text)`.\n- If a similar path with score ≥ 0.85 is found, replay the `node_sequence` directly and skip to Step 4.\n- Avoids re-exploring known territory; saves tokens.\n\n### Step 2: Semantic Search\nCall `search_nodes(workspace_id, query, detail_level=\"probe\")`.\n- Start with `probe` to get a lightweight node list (id/title/tags only) and confirm direction.\n- If recall is low, decompose the query or try synonyms.\n- **Zero results**: create a `gap` content_type node to record the knowledge gap; never fabricate an answer.\n\n### Step 3: Graph Traversal for Depth\nCall `traverse(workspace_id, node_id, depth=2, detail_level=\"brief\")` on key nodes.\n- depth=1 for immediate neighbours, depth=2 for second-order associations.\n- Only upgrade to `detail_level=\"full\"` when you need the complete body text.\n\n### Step 4: Record the Path\nAfter exploration, call `record_path(workspace_id, query_text, node_sequence, outcome)`.\n- Set `outcome` to `\"success\"` / `\"partial\"` / `\"failed\"` / `\"gap\"`.\n- This recording becomes a historical path for the next agent — enabling collective learning.\n\n### Notes\n- Never re-issue the exact same query in the same session — check `search_with_history` first.\n- `list_by_tag` is for list-style requests with known tags, not open-ended semantic exploration.\n- Declare `model_size` in `initialize` at session start so the server auto-adjusts response granularity."
+  },
+  "tags": [
+    "agent-guide",
+    "exploration",
+    "search",
+    "inquiry-paths",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

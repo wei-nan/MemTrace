@@ -1,0 +1,44 @@
+{
+  "id": "mem_d2955487",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Phase 6.2 — 行為治理層 (Track B, T10–T24)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Phase 6.2 Track B — Behavior, Governance & Visual\n\n**完成日期**：2026-05-29\n\n### T10 gap content_type\n`constants.py` 的 `VALID_CONTENT_T` 新增 `gap`，代表搜尋未命中時建立的知識缺口節點。\n\n### T11 路徑強化與衰退\n`jobs/path_reinforcement.py` 每日強化成功路徑的邊權重，並清理長期無活動的失敗路徑。\n\n### T12 audit_proposals 框架\nMigration `060_audit_proposals.sql`；提供 proposal 建立、列出、讀取與處理流程。\n\n### AI 維護審查員\n- `reviewer_deduper`：偵測語意重複節點\n- `reviewer_tag_normalizer`：標籤格式統一\n- `reviewer_edge_auditor`：孤立邊、懸空邊偵測\n- `reviewer_embedding_consistency`：embedding 與 body 不一致偵測\n- `reviewer_coverage_gap_detector`：知識覆蓋缺口\n\n### 視覺通知\n- proposal severity 與閱讀狀態\n- pending-review 節點提示\n- ReviewOverlay 接受／拒絕面板\n- 工具列待審計數器"
+  },
+  "tags": [
+    "phase-6.2",
+    "audit",
+    "reviewer",
+    "ui",
+    "governance",
+    "milestone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:11:43.018234+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.647,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

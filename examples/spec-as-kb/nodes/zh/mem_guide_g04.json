@@ -1,0 +1,43 @@
+{
+  "id": "mem_guide_g04",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "文件攝入流程：長文件與短文本",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 文件攝入流程\n\n| 路徑 | 工具 | 適用情境 | 回傳 |\n|------|------|---------|------|\n| 長文件全文萃取 | `ingest_document` | 完整文件（文章、規格書、報告）> 2,000 字 | job_id，需 polling |\n| 短文本直接萃取 | `extract_from_text` | ≤ 8,000 字的片段或貼上文字 | 立即回傳節點列表 |\n\n### 長文件 ingest\n\n送出 `ingest_document` 後，以 `get_ingestion_status` 輪詢；完成後系統建立 document 節點與 `extracted_from` 關係。\n\n### 短文本萃取\n\n`extract_from_text` 立即回傳萃取節點，並依工作區設定進入後續審查流程。\n\n### 攝入後的圖結構\n\n```text\n[knowledge_node] --extracted_from--> [document_node]\n```\n\ndocument node 保存原始文件內容，供後續閱讀、理解上下文與重新萃取。\n\n### 常見錯誤\n\n- 對超過 8,000 字的文件使用 `extract_from_text`\n- 過度頻繁輪詢 ingestion status\n- embedding 完成前立即進行語意搜尋"
+  },
+  "tags": [
+    "agent-guide",
+    "ingest",
+    "document",
+    "polling",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.647,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

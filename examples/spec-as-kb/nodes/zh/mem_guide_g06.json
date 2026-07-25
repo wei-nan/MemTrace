@@ -1,0 +1,44 @@
+{
+  "id": "mem_guide_g06",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Inquiry Paths：Agent 探索路徑的記錄與重播",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Inquiry Paths：Agent 探索路徑的記錄與重播\n\nPhase 6.2 引入的 inquiry_paths 機制，讓 agent 的探索經驗可以被後續 agent 重用，形成集體學習。\n\n### 何時記錄路徑？\n\n每次完成一次有意義的知識探索後記錄，不論成功或失敗：\n\n```python\nrecord_path(\n    workspace_id = \"ws_xxx\",\n    query_text   = \"如何處理 Python async 例外\",   # 原始查詢意圖\n    node_sequence = [\"mem_aaa\", \"mem_bbb\", \"mem_ccc\"],  # 實際走過的節點\n    outcome      = \"success\",   # \"success\" | \"partial\" | \"failed\" | \"gap\"\n    started_at   = \"2026-05-29T10:00:00Z\",\n    token_used   = 1200,        # 可選，供效率分析\n    rating       = 5,           # 可選，1-5，探索品質自評\n)\n```\n\n### outcome 選用指引\n\n| outcome | 使用時機 |\n|---------|---------|\n| `success` | 完整找到並回答了查詢 |\n| `partial` | 找到部分資訊，但有缺口 |\n| `failed` | 未找到任何有用資訊 |\n| `gap` | 確認知識庫沒有此資訊（已建立 gap 節點）|\n\n### 何時重播歷史路徑？\n\n每次新探索**開始前**先查詢：\n\n```python\nhistory = search_with_history(\n    workspace_id        = \"ws_xxx\",\n    query_text          = \"如何處理 Python async 例外\",\n    similarity_threshold = 0.85,\n    limit               = 3\n)\n```\n\n若回傳結果不為空，優先按 `node_sequence` 重播，而非重新搜尋。\n\n### 路徑品質累積\n- **成功路徑** 會透過 `path_reinforcement_job` 每日強化相關 edge 的權重。\n- **失敗路徑** 30 天無活動後自動軟刪除。\n- 這使得「常被走過且成功」的知識路徑，在語意搜尋中自然浮現。\n\n### 注意\n- 不要記錄探索個人隱私或敏感操作的路徑。\n- `node_sequence` 只記錄實際查看過的節點 ID，不要填入猜測或未存取的節點。"
+  },
+  "tags": [
+    "agent-guide",
+    "inquiry-paths",
+    "record-path",
+    "search-with-history",
+    "collective-learning",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

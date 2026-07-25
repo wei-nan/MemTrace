@@ -1,0 +1,43 @@
+{
+  "id": "mem_guide_g07",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "MCP 錯誤處理與重試指南",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "Agent 應依 MCP tool 回傳的結構化錯誤處理，不依賴 HTTP status code。\n\n處理原則：\n- validation：修正 tool 參數後再呼叫，不盲目重試。\n- permission / access denied：停止寫入，確認 workspace、visibility 與角色權限。\n- conflict / duplicate：重新讀取目前節點或邊，再決定更新、合併或放棄。\n- rate limit / temporary unavailable：採指數退避並限制重試次數。\n- async / pending：使用 get_ingestion_status、get_embedding_status 或相應狀態 MCP tool 查詢，不重複提交。\n- unknown tool / capability unavailable：建立 inquiry/gap 或交由 UI，不得改用 REST API 繞過限制。\n\n每次重試前都要確認操作具冪等性；create 類操作應先搜尋是否已成功建立。"
+  },
+  "tags": [
+    "agent-guide",
+    "mcp",
+    "mcp-only",
+    "error-handling",
+    "retry"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.646,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

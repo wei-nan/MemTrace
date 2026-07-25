@@ -1,0 +1,44 @@
+{
+  "id": "mem_guide_g06_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Inquiry Paths: Recording and Replaying Agent Exploration",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Inquiry Paths: Recording and Replaying Agent Exploration\n\nThe inquiry_paths mechanism (Phase 6.2) allows agent exploration experience to be reused by future agents, forming collective learning.\n\n### When to Record a Path\nRecord after every meaningful knowledge exploration, regardless of success or failure:\n\n```python\nrecord_path(\n    workspace_id  = \"ws_xxx\",\n    query_text    = \"How to handle Python async exceptions\",\n    node_sequence = [\"mem_aaa\", \"mem_bbb\", \"mem_ccc\"],  # actual nodes visited\n    outcome       = \"success\",   # \"success\" | \"partial\" | \"failed\" | \"gap\"\n    started_at    = \"2026-05-29T10:00:00Z\",\n    token_used    = 1200,        # optional, for efficiency analytics\n    rating        = 5,           # optional, 1–5 self-assessed quality\n)\n```\n\n### outcome Guide\n\n| outcome | When to use |\n|---------|-------------|\n| `success` | Query fully answered |\n| `partial` | Partial information found; gaps remain |\n| `failed` | No useful information found |\n| `gap` | Confirmed the knowledge base has nothing on this topic (gap node created) |\n\n### When to Replay Historical Paths\nQuery **before** starting any new exploration:\n\n```python\nhistory = search_with_history(\n    workspace_id         = \"ws_xxx\",\n    query_text           = \"How to handle Python async exceptions\",\n    similarity_threshold = 0.85,\n    limit                = 3\n)\n```\n\nIf results are returned, follow the `node_sequence` from the best match rather than searching from scratch.\n\n### Path Quality Accumulation\n- **Successful paths** have their associated edge weights boosted daily by `path_reinforcement_job`.\n- **Failed paths** with no activity for 30 days are soft-deleted automatically.\n- This means frequently-walked, successful knowledge paths naturally surface in semantic search.\n\n### Notes\n- Do not record paths involving personal privacy or sensitive operations.\n- `node_sequence` should only contain IDs of nodes actually accessed — not guesses or unvisited nodes."
+  },
+  "tags": [
+    "agent-guide",
+    "inquiry-paths",
+    "record-path",
+    "search-with-history",
+    "collective-learning",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

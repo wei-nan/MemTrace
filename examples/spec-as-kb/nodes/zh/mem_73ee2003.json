@@ -1,0 +1,44 @@
+{
+  "id": "mem_73ee2003",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Phase 6.2 — MCP 表達層 (Track A, T01–T09)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Phase 6.2 Track A — MCP Expression Layer\n\n**完成日期**：2026-05-29 ｜ **狀態**：T01–T09 全部完成\n\n### T01 detail_level (probe / brief / full)\nnode_projection.py 實作三層投影；probe 只回傳 id/title/tags，brief 加 top_edges，full 回傳完整欄位。所有 MCP 節點類工具均支援 detail_level 與 max_response_tokens 參數。\n\n### T02 top_edges projection\nget_node_top_edges() 在 probe/brief level 注入前 5 條高權重邊。\n\n### T03 Markdown Resource URI\nresources/templates/list 回傳 memtrace://node/{id} 與 memtrace://workspace/{id}/summary 模板；resources/read 處理讀取。\n\n### T04 Capability Handshake\ninitialize 方法讀取 client_capabilities（model_size、context_limit、prefer_format），儲存於 USER_CAPABILITIES[user_sub]，供後續工具依模型大小自動調整 detail_level。\n\n### T05 Token Budget\noptimize_node_response() 接受 max_tokens，自動降級 detail_level 直到符合預算。\n\n### T06 mcp-contract.md\npackages/api/docs/mcp-contract.md 建立，涵蓋全部 33 個工具、Schema、Relations（含 extracted_from）、Content Types（含 document/gap）、Detail Levels、Rate Limits、MCP Client 設定範例。\n\n### T07–T09 Inquiry Paths\nMigration 058_inquiry_paths.sql；record_path 工具記錄 agent 探索路徑；search_with_history 工具查找相似歷史路徑供重播。"
+  },
+  "tags": [
+    "phase-6.2",
+    "mcp",
+    "detail_level",
+    "token_budget",
+    "inquiry_paths",
+    "milestone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:11:43.018234+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

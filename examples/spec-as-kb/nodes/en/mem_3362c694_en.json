@@ -1,0 +1,43 @@
+{
+  "id": "mem_3362c694_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Dual-Track Deletion Semantics",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace uses dual-track deletion semantics:\n\n1. **Soft-delete**: The node/edge is marked `deleted=true`, invisible to normal queries but retained in audit history and the deletion log.\n2. **Hard-delete**: Requires admin authorization; data is physically removed. All hard-delete operations are written to an auditable deletion log, and a tombstone record is left behind to preserve graph structural integrity.\n\nSystem actors may perform hard-deletes and must notify the owners of associated nodes."
+  },
+  "tags": [
+    "deletion",
+    "soft-delete",
+    "hard-delete",
+    "tombstone",
+    "semantics"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-25T21:57:03.223515+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

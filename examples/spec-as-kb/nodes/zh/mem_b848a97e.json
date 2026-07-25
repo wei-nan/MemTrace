@@ -1,0 +1,43 @@
+{
+  "id": "mem_b848a97e",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "框架整合:LangChain Retriever 與 LlamaIndex Vector Store",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 提供兩個框架整合套件,讓知識庫幾行就接進既有 LLM pipeline。兩者皆以 `base_url` + `api_key` + `workspace_id` 連線,底層走 REST API。\n\n## LangChain(`packages/langchain-memtrace`)\n`MemTraceRetriever`,相容 LangChain Expression Language(LCEL);`retriever.invoke(query)` 回傳文件。\n\n```python\nfrom langchain_memtrace import MemTraceRetriever\nretriever = MemTraceRetriever(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\", k=5)\nchain = retriever | llm\n```\n\n## LlamaIndex(`packages/llama-index-memtrace`)\n`MemTraceVectorStore`,把工作區當成 LlamaIndex 的向量資料來源 / 索引。\n\n```python\nfrom llama_index_memtrace import MemTraceVectorStore\nvs = MemTraceVectorStore(base_url=\"http://localhost:8000\", api_key=\"mt_...\", workspace_id=\"ws_abc\")\n```\n\n## 發布狀態\n\n**兩個套件皆尚未發布到套件索引（PyPI）。** 程式碼位於本 repo 的 `packages/langchain-memtrace` 與 `packages/llama-index-memtrace`，並由 CI（`.github/workflows/packages.yml`）執行測試，但該流程刻意不做發布。上述範例中的 import 需先從原碼取得套件才能運作，無法直接從套件索引取得。版本皆為 `0.1.0`。\n\n> 對應 seed 節點 mem_i007;程式碼:packages/langchain-memtrace、packages/llama-index-memtrace。"
+  },
+  "tags": [
+    "langchain",
+    "llamaindex",
+    "retriever",
+    "vector-store",
+    "integration"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-07-24T22:53:35.076879+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 2,
+    "unique_traversers": 1
+  }
+}

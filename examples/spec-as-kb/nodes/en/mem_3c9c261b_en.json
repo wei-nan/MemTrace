@@ -1,0 +1,45 @@
+{
+  "id": "mem_3c9c261b_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Conductor:設計結論與角色邊界",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "# Conductor:設計結論與角色邊界\n\n回應公開缺口 mem_inq004。Conductor 的設計問題已收斂並實作。\n\n## 角色邊界（回答「是否越界」）\n\n- MemTrace 是記憶層,**不是 loop runtime**（A1 原則）。\n- Conductor 只做「主動通知」:偵測 `scale=major` 的 pending inquiry,通知已訂閱的外部 harness 啟動處理迴圈。\n- MemTrace **不自己調用大模型、不做 fan-out**;實際推理由 harness 負責。\n- **結論:Conductor 屬於記憶側的合理延伸（通知層）,未越界成為執行引擎。**\n\n## 觸發機制\n\n- 採 webhook（HTTP push）opt-in,而非內建訊息佇列。\n- harness 在工作區設定訂閱 conductor hook,可用 `event_filter` 按 scale / content_type / tags 篩選。\n- 安全:HTTP-only webhook 僅限 localhost/loopback,其餘須 HTTPS（防 SSRF）。\n\n## 事件粒度\n\n- 由 inquiry 的 `metadata.scale` 控制:`minor`（預設）不觸發、`major` 才通知。\n- `minor → major` 需由人或人授權的 agent 升級;agent emit 的 residue 一律從 minor 起。\n\n## 冪等\n\n- 同一 `(hook_id, event_id)` 只投遞一次。\n\n## 狀態\n\n已實作（`services/conductor.py`、`routers/conductor.py`）。延伸主題:自我審議迴圈（pending inquiry → conductor → fan-out → converge → 分層回寫）與回寫規則。"
+  },
+  "tags": [
+    "conductor",
+    "webhook",
+    "scale",
+    "inquiry",
+    "agent-loop",
+    "design-conclusion",
+    "public"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-23T02:51:51.700125+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

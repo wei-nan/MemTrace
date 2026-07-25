@@ -1,0 +1,44 @@
+{
+  "id": "mem_3c063665",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Phase 6.2 — 基礎設施層 (Track C, T25–T32)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Phase 6.2 Track C — Infrastructure\n\n**完成日期**：2026-05-29\n\n### Embedding 遷移\nMigration `062_embedding_migration.sql`：workspace 支援 embedding provider 遷移；節點可保留 secondary embedding，搜尋期間使用雙 embedding 過渡。\n\n### embed_retry_queue\nMigration `063_embed_retry_queue.sql`；失敗的 embedding 任務以指數退避重試。\n\n### Event-Driven Edge Suggestion\nMigration `064_node_events.sql`；embedding 完成後由事件觸發 edge suggestion，移除固定等待時間。\n\n### wait_for_embedding / get_embedding_status\nMCP 工具可等待單一節點 embedding 就緒，或查看 workspace 的 pending 與 retry queue 數量。"
+  },
+  "tags": [
+    "phase-6.2",
+    "embedding",
+    "retry",
+    "event-driven",
+    "infrastructure",
+    "milestone"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:11:43.018234+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.647,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

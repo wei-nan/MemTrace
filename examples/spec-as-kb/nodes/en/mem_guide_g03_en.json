@@ -1,0 +1,44 @@
+{
+  "id": "mem_guide_g03_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Node Creation Decision Tree: When, What Type, and What Next",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Node Creation Decision Tree\n\n### Before Creating: Deduplicate First\nAlways run `search_nodes(query=title)` to confirm no similar node exists.\nSimilarity ≥ 0.92 → do not create; use `update_node` to augment the existing node instead.\n\n### content_type Selection\n\n```\nWhat am I recording?\n│\n├─ Concrete fact, definition, data → factual\n├─ Steps, SOP, how-to guide → procedural\n├─ Preference, style, design choice → preference\n├─ Background context, prerequisite info → context\n├─ Question, open problem → inquiry\n├─ Uploaded file or URL → document  ← auto-created by ingest pipeline; do NOT create manually\n├─ Knowledge gap on search miss → gap  ← create when search returns nothing\n└─ Can't categorise → factual (default)\n```\n\n### After Creating: Do You Need to Wait for Embedding?\n\n| Next action | Need wait_for_embedding? |\n|------------|--------------------------|\n| Immediately do semantic search | ✅ Call wait_for_embedding |\n| Create an extracted_from edge | ❌ Not needed (edges don't depend on embeddings) |\n| No immediate search after creation | ❌ Not needed (background task handles it) |\n\n```python\nnode = create_node(workspace_id, title, content_type, body)\n# If semantic search follows immediately:\nwait_for_embedding(workspace_id, node_id, timeout_seconds=30)\n```\n\n### gap Node Convention\n```json\n{\n  \"title\": \"Python 3.12 new typing features\",\n  \"content_type\": \"gap\",\n  \"body\": \"Search returned no results. Recording this knowledge gap for future fill-in.\",\n  \"tags\": [\"gap\", \"python\", \"typing\"]\n}\n```\nAfter creating a gap, stop retrying the same topic — mark it and let humans or future agents fill it.\n\n### document Nodes\nCreated automatically by the ingest pipeline. **Agents should NOT create document nodes manually.**\nTo add documentary evidence to an existing node, use `attach_evidence` or `attach_url`."
+  },
+  "tags": [
+    "agent-guide",
+    "create-node",
+    "content-type",
+    "decision-tree",
+    "wait-for-embedding",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

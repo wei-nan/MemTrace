@@ -1,0 +1,45 @@
+{
+  "id": "mem_guide_g07_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Error Handling and Rate-Limit Resilience Patterns",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Error Handling and Rate-Limit Resilience Patterns\n\n### HTTP Status Code Reference\n\n| Status | Meaning | Agent Response |\n|--------|---------|----------------|\n| `200` | Success | Process normally |\n| `202` | Accepted, background processing | Capture `job_id`, poll `get_ingestion_status` |\n| `409` | Duplicate / conflict | Do not retry; use `update_node` on the existing node |\n| `422` | Validation failure | Read `detail` field; fix parameters and retry once |\n| `429` | Rate limit exceeded | Exponential backoff (see below); **do not retry immediately** |\n| `500` / `503` | Server error | Wait 10 seconds, retry once; give up if still failing |\n\n### Rate Limit Specs\n- Per user per minute: **120 requests**\n- Burst cap: **30 requests**\n- Exceeded: HTTP 429 with `Retry-After: N` (seconds) header\n\n### Exponential Backoff Implementation\n\n```python\nimport time, random\n\ndef call_with_backoff(fn, *args, max_retries=4, **kwargs):\n    for attempt in range(max_retries):\n        try:\n            return fn(*args, **kwargs)\n        except RateLimitError as e:\n            if attempt == max_retries - 1:\n                raise\n            wait = (2 ** attempt) + random.uniform(0, 1)\n            time.sleep(wait)\n    raise Exception(\"Max retries exceeded\")\n```\n\n### 202 Polling Pattern\n\n```python\njob = ingest_document(...)\njob_id = job[\"job_id\"]\ndeadline = time.time() + 300  # max 5 minutes\n\nwhile time.time() < deadline:\n    status = get_ingestion_status(workspace_id, job_id)\n    if status[\"status\"] == \"completed\":\n        break\n    if status[\"status\"] == \"failed\":\n        raise Exception(f\"Ingest failed: {status}\")\n    time.sleep(3)\nelse:\n    raise TimeoutError(\"Ingest did not complete in time\")\n```\n\n### Common Error Quick Reference\n\n| Error message | Cause | Fix |\n|--------------|-------|-----|\n| `\"relation not valid\"` | Unrecognised edge relation | Call `get_schema` for valid relation list |\n| `\"workspace not found\"` | Wrong workspace_id or no access | Call `list_workspaces` to confirm accessible workspaces |\n| `\"Semantic search failed\"` | Embedding service not running | Wait for service recovery, or fall back to keyword search |\n| `\"Node not found or no access\"` | node_id doesn't exist or cross-workspace | Confirm node belongs to current workspace |\n| `\"daily quota exceeded\"` | audit_proposal exceeded 20/day | Wait until next day, or ask admin to raise quota |"
+  },
+  "tags": [
+    "agent-guide",
+    "error-handling",
+    "rate-limit",
+    "retry",
+    "202",
+    "429",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

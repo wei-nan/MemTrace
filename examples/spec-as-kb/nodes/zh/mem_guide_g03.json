@@ -1,0 +1,44 @@
+{
+  "id": "mem_guide_g03",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "節點建立決策樹：何時建、建什麼型別、建後做什麼",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 節點建立決策樹\n\n### 建立前：先去重\n永遠先執行 `search_nodes(query=title)` 確認沒有相似節點。\n相似度 ≥ 0.92 → 不建立，改用 `update_node` 補充資訊。\n\n### content_type 選用\n\n```\n我要記錄什麼？\n│\n├─ 具體事實、定義、數據 → factual\n├─ 步驟、SOP、操作指南 → procedural\n├─ 偏好、風格、設計選擇 → preference\n├─ 背景脈絡、前提說明 → context\n├─ 問題、待解謎題 → inquiry\n├─ 上傳的文件/URL → document  ← 由 ingest pipeline 自動建立，不應手動建\n├─ 搜尋未命中的知識缺口 → gap  ← 搜尋無結果時建立\n└─ 無法歸類 → factual（預設）\n```\n\n### 建立後：是否需要等待 Embedding？\n\n| 後續動作 | 是否需要 wait_for_embedding |\n|---------|--------------------------|\n| 立即做語意搜尋 | ✅ 需要呼叫 wait_for_embedding |\n| 建立 extracted_from edge | ❌ 不需要（edge 不依賴 embedding）|\n| 建立後不立即搜尋 | ❌ 不需要（背景任務自動完成）|\n\n```python\nnode = create_node(workspace_id, title, content_type, body)\n# 若接下來要做語意搜尋：\nwait_for_embedding(workspace_id, node_id, timeout_seconds=30)\n```\n\n### gap 節點建立規範\n```json\n{\n  \"title\": \"Python 3.12 新增的 typing 特性\",\n  \"content_type\": \"gap\",\n  \"body\": \"搜尋未命中。記錄此知識缺口供後續補充。\",\n  \"tags\": [\"gap\", \"python\", \"typing\"]\n}\n```\n建立 gap 後，不要繼續嘗試搜尋同一主題——標記完即可，讓人類或後續 agent 填補。\n\n### document 節點\n由 ingest pipeline 自動建立，**agent 不應手動建立 document 節點**。\n若要為現有節點補充文件依據，使用 `attach_evidence` 或 `attach_url`。"
+  },
+  "tags": [
+    "agent-guide",
+    "create-node",
+    "content-type",
+    "decision-tree",
+    "wait-for-embedding",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-05-29T00:45:54.425932+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.95,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

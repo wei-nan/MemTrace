@@ -1,0 +1,43 @@
+{
+  "id": "mem_de31d9fc_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Lesson: Self-propagation of dirty data in a knowledge base — agents replicate and amplify existing errors as authoritative convention",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## The lesson\n\nIn a human-AI maintained knowledge graph, an erroneous node or misdirected edge may be generalized by later agents as an established convention. The error can then be copied, amplified, or frozen into shared guidance.\n\n## Typical scenario\n\nAn agent infers a write convention, such as edge direction, from the only existing sample in the KB. That sample is incorrect. The agent follows it and may add it to a shared playbook. Comparing the result with the system's code or formal specification later shows that the sample—not the schema—was wrong.\n\n## Defensive principles\n\n1. Defer to actual code behavior, formal specifications, and reproducible observations rather than a single data sample.\n2. Never generalize a convention from one sample; inspect multiple records, their context, version, and scope.\n3. Fix or archive reversed, stale, or contradictory nodes and edges promptly to shorten the contamination window.\n4. Before writing, read the knowledge base's write-convention playbook when one exists.\n\n## Scope\n\nApplies to human-AI maintained knowledge graph systems that allow agent writes."
+  },
+  "tags": [
+    "lesson-learned",
+    "governance",
+    "agent-safety",
+    "data-quality",
+    "knowledge-graph"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-20T03:58:37.371202+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.719
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

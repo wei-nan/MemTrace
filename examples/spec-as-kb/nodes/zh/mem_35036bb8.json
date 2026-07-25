@@ -1,0 +1,44 @@
+{
+  "id": "mem_35036bb8",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Agent 操作介面規範：僅使用 MCP，不直接呼叫 REST API",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 規範\n\nAI agent、coding agent、外部 harness 與自動化流程操作 MemTrace 時，必須使用 MemTrace 提供的 MCP tools。公開知識庫不提供 curl、REST endpoint、Bearer Token、HTTP method 或 request body 作為操作教學。\n\n## 操作原則\n\n1. 先用 `list_workspaces` 確認可存取工作區。\n2. 讀取使用 `search_nodes`、`get_node`、`traverse`、`list_by_tag` 等 MCP tools。\n3. 寫入使用 `create_node`、`update_node`、`create_edge`、`emit_residue`、`submit_outcome` 等 MCP tools。\n4. 長文件使用 `ingest_document`，短文本使用 `extract_from_text`；狀態以對應 MCP status tool 查詢。\n5. 工具參數與合法 enum 以 `get_schema` 及 MCP tool schema 為準。\n6. MCP tool 不存在時，不得改用直接 REST API 繞過；應建立 inquiry／gap，要求補齊 MCP 能力或由人工透過 UI 處理。\n\n## 安全邊界\n\n- 不在記憶節點保存 API token、Bearer Token、curl 指令或可直接重播的 HTTP 請求。\n- 不自行推導未公開的 endpoint。\n- MCP 回傳權限不足、驗證失敗、限流或暫時錯誤時，依 tool result 處理，不依賴 HTTP status code。\n- 所有寫入仍遵守 workspace 權限、safety review 與適用的審核機制。當責歸屬見「寫入當責模型」（mem_8ac95ea6）：經認證使用者指揮 agent 的寫入，以該使用者為 author 並由其當責，屬正規路徑而非繞過審核的捷徑。"
+  },
+  "tags": [
+    "agent-guide",
+    "mcp-only",
+    "governance",
+    "security",
+    "tool-usage",
+    "public-policy"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-21T15:44:37.421027+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

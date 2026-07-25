@@ -1,0 +1,45 @@
+{
+  "id": "mem_b0b85a7c_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Conductor：webhook push opt-in 與 inquiry scale 開關",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 功能定位\n\nConductor 是 MemTrace 的主動通知層：當 workspace 中出現 `scale=major` 的 pending inquiry 節點時，通知已訂閱的外部 harness 啟動處理迴圈。\n\n**邊界**：MemTrace 不自己調用大模型，不做 fan-out。實際推理由 harness 負責。\n\n## inquiry scale 開關\n\n`metadata.scale` 欄位：\n- `minor`（預設）：不觸發 conductor，純人工審議。\n- `major`：conductor 偵測後發 webhook。\n\n升級 minor → major 需由人或人授權的 agent 操作；agent emit 的 residue 一律從 minor 開始。\n\n## Webhook 訂閱（opt-in）\n\n- Harness 在 workspace 設定中新增 `conductor_hook_subscriptions`（POST /workspaces/{ws_id}/conductor/hooks）。\n- 可設 `event_filter`：按 scale / content_type / tags 篩選要接收的事件。\n- HTTP-only webhook 僅允許 localhost/loopback；其他 host 必須 HTTPS（防 SSRF）。\n\n## 事件格式\n\n```json\n{\n  \"event\": \"major_inquiry\",\n  \"event_id\": \"<sha256>\",\n  \"correlation_id\": \"conductor:<prefix>\",\n  \"workspace_id\": \"ws_xxx\",\n  \"task_node_id\": \"mem_xxx\",\n  \"scale\": \"major\",\n  \"trigger_reason\": \"...\",\n  \"title\": \"...\",\n  \"body\": \"...\",\n  \"tags\": [...]\n}\n```\n\n## 冪等保證\n\n同一 `(hook_id, event_id)` 組合只 deliver 一次（`ON CONFLICT DO NOTHING`）。\n\n## 相關實作\n\n- `services/conductor.py` — 核心邏輯\n- `routers/conductor.py` — REST API\n- `migrations/111_conductor_safety_queue.sql` — schema\n- `tests/test_conductor_safety_queue.py`"
+  },
+  "tags": [
+    "conductor",
+    "webhook",
+    "scale",
+    "inquiry",
+    "agent-loop",
+    "spec",
+    "implemented"
+  ],
+  "visibility": "private",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-16T10:30:36.396484+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

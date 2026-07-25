@@ -1,0 +1,45 @@
+{
+  "id": "mem_f0a4f717",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "背景作業可觀測性：scheduler_heartbeats + job_runs 兩層設計",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 設計目標\n\n讓所有背景作業（11 個排程 loop + 7 大審查員）留下持久紀錄，可追查「跑了沒、跑出幾筆、哪個 reviewer 出錯」。\n\n## 兩層結構\n\n### 第一層：scheduler_heartbeats（高頻 job，upsert）\n\n每個 job 一列，每次跑更新：\n\n| 欄位 | 說明 |\n|---|---|\n| `job_name` | 唯一識別（PK） |\n| `status` | running / success / failed |\n| `last_run_at` / `last_success_at` / `last_failure_at` | 時間戳 |\n| `duration_ms` | 最後一次執行時長 |\n| `run_count` / `failure_count` | 累計計數 |\n| `last_error` | 最後一次錯誤訊息 |\n\n### 第二層：job_runs（有意義 job，append）\n\n每次執行 append 一列，不覆蓋：\n\n| 欄位 | 說明 |\n|---|---|\n| `id` | `jobrun_xxx` |\n| `job_name` | 作業名稱 |\n| `workspace_id` | 可選，per-workspace 作業使用 |\n| `trigger` | scheduler / node_event / manual |\n| `status` | running / success / failed / skipped |\n| `scanned/processed/created/failed_count` | 數量統計 |\n| `summary` | JSON，存 reviewer 提案數等細節 |\n| `error` | 錯誤訊息 |\n\n## 自動儀器化\n\n`scheduler.register_loop(name, fn, interval, observable=True)` 自動記 heartbeat。需要更細紀錄的 job（如 audit_reviewers）標 `observable=False` 並自己呼叫 `start_job_run / finish_job_run`。\n\n## 7 大審查員整合\n\n`audit_reviewers_job` 為每個 workspace 建一筆 job_run，`summary.reviewers` 記錄各 reviewer 提案數與失敗數，不再靜默吞掉錯誤。\n\n## 相關實作\n\n- `services/job_observability.py`\n- `routers/job_observability.py`\n- `migrations/110_job_observability.sql`\n- `tests/test_job_observability.py`"
+  },
+  "tags": [
+    "background-jobs",
+    "observability",
+    "scheduler",
+    "audit-reviewers",
+    "job-runs",
+    "spec",
+    "implemented"
+  ],
+  "visibility": "private",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-06-16T10:38:14.153514+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.65,
+    "dimensions": {
+      "accuracy": 0.5,
+      "freshness": 1.0,
+      "utility": 0.5,
+      "author_rep": 0.71
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

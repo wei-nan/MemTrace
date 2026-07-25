@@ -1,0 +1,45 @@
+{
+  "id": "mem_38c3acd8",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "Analytics dashboard and token efficiency report",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## KB health summary\n\n`GET /workspaces/{ws_id}/analytics` returns structural and usage metrics for a 30-day window: active nodes and edges, orphan nodes, faded-edge ratio, traversal counts, top nodes, traversal trend, and KB-type-aware metrics.\n\nKB-type-aware metrics include isolated subgraphs and average edges per node for evergreen KBs, and never-traversed ratio and average days between traversals for operational or ephemeral KBs.\n\n## Token efficiency report\n\n`GET /workspaces/{ws_id}/analytics/token-efficiency` returns average query tokens, estimated full-context tokens, `full_context_reduction_ratio`, and monthly query count.\n\nNote: `full_context_reduction_ratio` is measured against a counterfactual baseline — it assumes the alternative behaviour is loading the entire knowledge base into context. That baseline grows with the knowledge base, so the ratio improves automatically and **must not be used as a performance guarantee or an external claim**. A prior published token-savings figure was withdrawn on 2026-07-25 for this reason. A vendor-comparable measurement method is being revised (tokenizers differ per vendor).\n\nData is recorded in `mcp_query_logs` for read tools. These analytics describe structure and use; they do not establish content correctness.\n\n## UI component\n\n`packages/ui/src/AnalyticsDashboard.tsx` displays metric cards, traversal trends, top nodes, token efficiency, and KB-type metrics.\n\n---\n\nThis node is a condensed companion to `mem_a005_en`, which carries the full field-by-field reference. It is not currently managed by the `examples/spec-as-kb/` seed source of truth; consolidation is pending review."
+  },
+  "tags": [
+    "analytics",
+    "dashboard",
+    "token-efficiency",
+    "kb-health",
+    "mcp-logs",
+    "ui",
+    "mcp-tool"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-04-29T00:00:00+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "trust": {
+    "score": 0.651,
+    "dimensions": {
+      "accuracy": 0.95,
+      "freshness": 1.0,
+      "utility": 0.95,
+      "author_rep": 0.726
+    },
+    "votes": {
+      "up": 0,
+      "down": 0,
+      "verifications": 0
+    }
+  },
+  "traversal": {
+    "count": 3,
+    "unique_traversers": 1
+  }
+}
