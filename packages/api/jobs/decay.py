@@ -26,10 +26,20 @@ async def decay_job():
         with db_cursor(commit=True) as cur:
             # S1-T02: Recalculate freshness for all nodes
             recalculate_freshness(cur)
-            
-            # S3-T03: Recalculate author reputation
-            recalculate_author_rep(cur)
-            
+
+            # S3-T03: Recalculate author reputation — PAUSED 2026-07-25.
+            # recalculate_author_rep() writes dim_author_rep = AVG(trust_score) per
+            # author, and dim_author_rep in turn feeds every trust_score formula in
+            # the codebase (prepare_node_data, confirm_validity, vote_trust_in_db).
+            # On 2026-07-25 an unauthorized backfill script wrote trust_score using a
+            # formula that appears nowhere else in the codebase, across ~1300 active
+            # nodes in 56+ workspaces (see ws_spec_plan/mem_82155065). Leaving this
+            # call live would launder that bad data into dim_author_rep on every
+            # 24h decay run and compound it into future trust_score writes. Frozen
+            # (not reformulated) until trust semantics are decided — do not silently
+            # re-enable without resolving that incident first.
+            # recalculate_author_rep(cur)
+
             # S1-T08: Snapshot health for all active workspaces
             cur.execute("SELECT id FROM workspaces WHERE kb_type != 'ephemeral'")
             ws_ids = [r["id"] for r in cur.fetchall()]
