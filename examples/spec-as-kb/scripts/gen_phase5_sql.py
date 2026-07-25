@@ -9,7 +9,7 @@ NODES = [
      0.95, 0.95, 1.0, 0.9),
     ("mem_ta002", "factual",    ["analytics","health","dashboard","token","recall","schema","phase5"],
      "§S1 KB 健康度快照：kb_health_daily 表",
-     "kb_health_daily 每日快照記錄知識庫核心指標，是 North Star 量測（M1-M4）的持久化來源。\n\n欄位：id, date, workspace_id, token_savings_ratio, retrieval_recall_at_5, retrieval_mrr, decay_runs_last_14d, duplicate_pairs_unlinked, avg_trust_active, active_users_7d, review_queue_depth, ai_nodes_unverified_ratio。UNIQUE (date, workspace_id)。\n\n每日 03:30 cron 快照寫入所有工作區。\n\n北極星指標（2026-05-16 實測）：M1 Token 節省率 82.1%（目標 ≥70%）、M2 Recall@5 0.9471（目標 ≥0.80）、M3 Decay 14天無中斷、M4 未連結重複對=0。",
+     "kb_health_daily 每日快照記錄知識庫核心指標，是 North Star 量測（M2-M4）的持久化來源。\n\n欄位：id, date, workspace_id, token_savings_ratio, retrieval_recall_at_5, retrieval_mrr, decay_runs_last_14d, duplicate_pairs_unlinked, avg_trust_active, active_users_7d, review_queue_depth, ai_nodes_unverified_ratio。UNIQUE (date, workspace_id)。\n\n每日 03:30 cron 快照寫入所有工作區。\n\n北極星指標（2026-05-16 實測）：M2 Recall@5 0.9471（目標 ≥0.80）、M3 Decay 14天無中斷、M4 未連結重複對=0。",
      0.95, 0.95, 1.0, 0.92),
     ("mem_ta003", "procedural", ["dedup","similar_to","automation","cron","embedding","phase5"],
      "§S1 similar_to 自動化掃描與去重",

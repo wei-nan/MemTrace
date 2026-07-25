@@ -2195,9 +2195,11 @@ VALUES
 | 欄位 | 說明 |
 |------|------|
 | `avg_tokens_per_query` | 本月 MCP 呼叫平均回傳 token 數 |
-| `estimated_full_doc_tokens` | 全文讀取的估算 token 數（body 字元數 / 4）|
-| `savings_ratio` | `1 - avg_per_query / full_doc`（節省比例）|
+| `estimated_full_doc_tokens` | 全部 active 節點 body 串接後的估算 token 數（tiktoken）|
+| `full_context_reduction_ratio` | `1 - avg_per_query / full_doc`，相對於「載入整個知識庫」的縮減比率 |
 | `monthly_query_count` | 本月 MCP 呼叫次數 |
+
+註：`full_context_reduction_ratio` 的分母為反事實假設——它假定替代行為是把整個知識庫載入脈絡。該分母隨知識庫成長而變大，因此比率會自動改善，**不應作為效能承諾或對外主張**。此欄位僅供單一工作區內的相對觀察。跨廠商可比的量測方法修訂中（分詞器因廠商而異）。
 
 資料來源：`mcp_query_logs` 表。每次 MCP read tool（search_nodes / traverse / get_node / list_by_tag / vote_trust）呼叫後非同步寫入一筆 log，記錄 `tool_name`、`result_node_count`、`estimated_tokens`、`provider`。
 
@@ -5405,7 +5407,7 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ta002','1.0','ws_spec0001','§S1 KB 健康度快照：kb_health_daily 表','factual','markdown','`kb_health_daily` 每日快照記錄知識庫核心指標，是 North Star 量測（M1–M4）的持久化來源。
+  ('mem_ta002','1.0','ws_spec0001','§S1 KB 健康度快照：kb_health_daily 表','factual','markdown','`kb_health_daily` 每日快照記錄知識庫核心指標，是 North Star 量測（M2–M4）的持久化來源。
 
 ## 表結構
 
@@ -5440,10 +5442,11 @@ CREATE TABLE kb_health_daily (
 
 | 指標 | 目標 | 實測（2026-05-16） |
 |------|------|-------------------|
-| M1 Token 節省率 | ≥ 70% | 82.1% |
 | M2 Recall@5 | ≥ 0.80 | 0.9471 |
 | M3 Decay 連續 14 天 | 無中斷 | 持續累積 |
-| M4 未連結重複對 | = 0 | 0 |',
+| M4 未連結重複對 | = 0 | 0 |
+
+註：`token_savings_ratio` 欄位仍保留於 schema（DDL 如上），但其衍生的 token 縮減 KPI 已於 2026-07-25 撤下。原公布值的量測基線為反事實假設（假定替代行為是載入整個知識庫），且會隨知識庫成長而自動改善，不構成可驗證的效能主張。量測方法修訂中。',
    ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0.95,0.95,1.0,0.92,0.9,
    0,0,0,0,0)
@@ -8170,9 +8173,11 @@ VALUES
 | Field | Description |
 |-------|-------------|
 | `avg_tokens_per_query` | Average tokens returned per MCP call this month |
-| `estimated_full_doc_tokens` | Estimated full-read tokens (body char count / 4) |
-| `savings_ratio` | `1 - avg_per_query / full_doc` |
+| `estimated_full_doc_tokens` | Estimated tokens for all active node bodies concatenated (tiktoken) |
+| `full_context_reduction_ratio` | `1 - avg_per_query / full_doc`, the reduction relative to loading the entire knowledge base |
 | `monthly_query_count` | MCP call count this month |
+
+Note: the denominator of `full_context_reduction_ratio` is a counterfactual — it assumes the alternative behaviour is loading the entire knowledge base into context. That denominator grows with the knowledge base, so the ratio improves automatically and **must not be used as a performance guarantee or an external claim**. Treat the field as a relative observation within a single workspace. A vendor-comparable measurement method is being revised (tokenizers differ per vendor).
 
 Data source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / traverse / get_node / list_by_tag / vote_trust) writes one log entry asynchronously, recording `tool_name`, `result_node_count`, `estimated_tokens`, and `provider`.
 
@@ -11394,7 +11399,7 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ta002_en','1.0','ws_spec0001_en','§S1 KB Health Snapshot: kb_health_daily Table','factual','markdown','`kb_health_daily` takes a daily snapshot of core KB metrics; it is the persistence source for the North Star measurements (M1–M4).
+  ('mem_ta002_en','1.0','ws_spec0001_en','§S1 KB Health Snapshot: kb_health_daily Table','factual','markdown','`kb_health_daily` takes a daily snapshot of core KB metrics; it is the persistence source for the North Star measurements (M2–M4).
 
 ## Table structure
 
@@ -11429,11 +11434,11 @@ A daily 03:30 cron writes a snapshot for all workspaces.
 
 | Metric | Target | Measured (2026-05-16) |
 |------|------|-------------------|
-| M1 Token savings ratio | >= 70% | 82.1% |
 | M2 Recall@5 | >= 0.80 | 0.9471 |
 | M3 Decay 14 consecutive days | no gaps | continuously accumulating |
 | M4 Unlinked duplicate pairs | = 0 | 0 |
-',
+
+Note: the `token_savings_ratio` column remains in the schema (see the DDL above), but the token-reduction KPI derived from it was withdrawn on 2026-07-25. The published figure rested on a counterfactual baseline (assuming the alternative behaviour is loading the entire knowledge base) and improves automatically as the knowledge base grows, so it does not constitute a verifiable performance claim. The measurement method is being revised.',
    ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','a69e2b393f6f80f41c24fd2d0b64e718a1987a49506d6ce3594566d4484acdae','ai',
    0.95,0.95,1.0,0.92,0.9,
    0,0,0,0,0)
