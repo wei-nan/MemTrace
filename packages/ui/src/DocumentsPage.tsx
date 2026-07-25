@@ -111,16 +111,26 @@ function DocumentDetailPanel({
 
   useEffect(() => {
     if (!doc) return;
-    // Images are displayed inline — no text preview needed
+    let createdUrl: string | null = null;
+    setPreviewLoading(true);
+
     if (doc.mime_type?.startsWith('image/')) {
       setIsImagePreview(true);
-      setPreview(documents.contentUrl(wsId, docId));
-      return;
+      documents.fetchBlob(wsId, docId)
+        .then(blob => {
+          createdUrl = URL.createObjectURL(blob);
+          setPreview(createdUrl);
+        })
+        .catch(() => setPreview(null))
+        .finally(() => setPreviewLoading(false));
+      return () => {
+        if (createdUrl) URL.revokeObjectURL(createdUrl);
+      };
     }
+
     setIsImagePreview(false);
-    setPreviewLoading(true);
     documents.preview(wsId, docId)
-      .then(text => setPreview(text as unknown as string))
+      .then(text => setPreview(text))
       .catch(() => setPreview(null))
       .finally(() => setPreviewLoading(false));
   }, [wsId, docId, doc]);

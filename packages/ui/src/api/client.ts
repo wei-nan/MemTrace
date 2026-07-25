@@ -139,6 +139,47 @@ export async function request<T>(method: string, path: string, body?: unknown): 
   return res.json();
 }
 
+export async function requestText(method: string, path: string, body?: unknown): Promise<string> {
+  const isMutating = !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+  const doFetch = (accessToken?: string) =>
+    fetch(path, {
+      method,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : authHeaders()),
+        ...(isMutating ? writeHeaders() : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+
+  let res = await doFetch();
+
+  if (res.status === 401 && path !== "/auth/refresh" && path !== "/auth/login") {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      res = await doFetch(newToken);
+    } else {
+      localStorage.removeItem("mt_token");
+      _broadcastSessionExpired();
+      window.dispatchEvent(new CustomEvent("mt:session-expired"));
+    }
+  }
+
+  if (!res.ok) {
+    let errDetail;
+    try {
+      const err = await res.json();
+      errDetail = err.detail ?? err.message ?? err;
+      if (typeof errDetail === 'object') errDetail = JSON.stringify(errDetail);
+    } catch {
+      errDetail = res.statusText;
+    }
+    throw new Error(errDetail ?? `HTTP ${res.status}`);
+  }
+  return res.text();
+}
+
 export async function requestStream(path: string, body: unknown, onChunk: (data: any) => void, signal?: AbortSignal): Promise<void> {
   const doFetch = (accessToken?: string) =>
     fetch(path, {

@@ -1,4 +1,4 @@
-import { BASE, request, authHeaders, writeHeaders } from './client';
+import { BASE, request, requestText, authHeaders, writeHeaders } from './client';
 
 /**
  * Thrown by `documents.upload` when the workspace already contains a document
@@ -65,7 +65,15 @@ export const documents = {
     request<DocumentDetail>('GET', `${BASE}/workspaces/${wsId}/documents/${docId}`),
 
   preview: (wsId: string, docId: string) =>
-    request<string>('GET', `${BASE}/workspaces/${wsId}/documents/${docId}/preview`),
+    requestText('GET', `${BASE}/workspaces/${wsId}/documents/${docId}/preview`),
+
+  fetchBlob: (wsId: string, docId: string): Promise<Blob> =>
+    fetch(`${BASE}/workspaces/${wsId}/documents/${docId}/content`, {
+      headers: { ...authHeaders() },
+    }).then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.blob();
+    }),
 
   update: (wsId: string, docId: string, data: { title?: string; summary?: string; filename?: string }) =>
     request<Document>('PATCH', `${BASE}/workspaces/${wsId}/documents/${docId}`, data),
