@@ -75,13 +75,98 @@ def test_update_node_in_db(mock_prepare, mock_audit):
     assert res["title"] == "upd"
     assert cur.execute.call_count == 3
 
+def _update_call(cur):
+    """Return the (sql, params) of the UPDATE memory_nodes statement."""
+    for call in cur.execute.call_args_list:
+        if "UPDATE memory_nodes" in call.args[0]:
+            return call.args[0], call.args[1]
+    raise AssertionError("no UPDATE memory_nodes statement was issued")
+
+
+@patch("services.nodes.log_audit_event")
+@patch("services.nodes.prepare_node_data")
+def test_update_node_does_not_write_trust(mock_prepare, mock_audit):
+    """A content edit must leave trust_score and dim_freshness untouched.
+
+    prepare_node_data() computes an *initial* trust from hardcoded dims, so
+    writing it on update collapsed curated nodes to ~0.66 and dropped them below
+    the trust_score >= 0.8 gate in jobs/audit_reviewers.py.
+    """
+    mock_prepare.return_value = {
+        "title": "upd", "content_type": "factual",
+        "content_format": "plain", "body": "upd",
+        "tags": [], "visibility": "public", "signature": "sig_upd",
+        "trust_score": 0.6644,
+    }
+
+    cur = MagicMock()
+    cur.fetchone.side_effect = [
+        {"id": "mem_1", "title": "old", "source_type": "human", "updated_at": None},
+        {"id": "mem_1", "title": "upd"},
+    ]
+
+    update_node_in_db(cur, "ws_test", "mem_1", {"title": "upd"}, "admin")
+    sql, params = _update_call(cur)
+
+    set_clause = sql.split("WHERE")[0]
+    assert "trust_score" not in set_clause
+    assert "dim_freshness" not in set_clause
+    assert "dim_accuracy" not in set_clause
+    assert "dim_utility" not in set_clause
+    assert 0.6644 not in params
+
+
+@patch("services.nodes.log_audit_event")
+@patch("services.nodes.prepare_node_data")
+def test_update_node_param_count_matches_placeholders(mock_prepare, mock_audit):
+    """Guard against tuple misalignment — a silent data-corruption failure mode."""
+    mock_prepare.return_value = {
+        "title": "upd", "content_type": "factual",
+        "content_format": "plain", "body": "upd",
+        "tags": [], "visibility": "public", "signature": "sig_upd",
+        "trust_score": 0.5,
+    }
+
+    cur = MagicMock()
+    cur.fetchone.side_effect = [
+        {"id": "mem_1", "title": "old", "source_type": "human", "updated_at": None},
+        {"id": "mem_1", "title": "upd"},
+    ]
+
+    update_node_in_db(cur, "ws_test", "mem_1", {"title": "upd"}, "admin")
+    sql, params = _update_call(cur)
+    assert sql.count("%s") == len(params)
+
+
+@patch("services.nodes.generate_id")
+@patch("services.nodes.prepare_node_data")
+def test_create_node_still_sets_initial_trust(mock_prepare, mock_gen_id):
+    """Freezing trust on update must not stop new nodes getting an initial score."""
+    mock_gen_id.return_value = "mem_new"
+    mock_prepare.return_value = {
+        "title": "test", "content_type": "factual",
+        "content_format": "plain", "body": "test",
+        "tags": [], "visibility": "public", "author": "admin", "signature": "sig",
+        "source_type": "human", "copied_from_node": None, "copied_from_ws": None,
+        "dim_author_rep": 0.8, "trust_score": 0.575,
+    }
+
+    cur = MagicMock()
+    cur.fetchone.return_value = {"id": "mem_new", "title": "test"}
+
+    create_node_in_db(cur, "ws_test", {"author": "admin"})
+    sql, params = cur.execute.call_args_list[0].args[0], cur.execute.call_args_list[0].args[1]
+    assert "trust_score" in sql
+    assert 0.575 in params
+
+
 def test_delete_node_in_db():
     cur = MagicMock()
     cur.fetchone.return_value = {"id": "mem_1"}
-    
+
     res = delete_node_in_db(cur, "ws_test", "mem_1")
     assert res["id"] == "mem_1"
-    
+
     cur.fetchone.return_value = None
     with pytest.raises(HTTPException):
         delete_node_in_db(cur, "ws_test", "mem_missing")

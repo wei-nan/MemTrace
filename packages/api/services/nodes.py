@@ -320,12 +320,18 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
     if expected_version is not None:
         version_cond = " AND version = %s"
 
+    # A content edit must not touch trust. prepare_node_data() computes an
+    # *initial* trust_score from hardcoded dims (acc=0.5, util=0.5); writing it
+    # here collapsed every edited node to ~0.66 regardless of its curated
+    # dim_accuracy/dim_utility, and dropped it below the trust_score >= 0.8 gate
+    # in jobs/audit_reviewers.py, silently exempting it from trust calibration.
+    # trust_score/dim_freshness are recomputed only where the actual dims are
+    # read: confirm_validity() and vote_trust_in_db(). See ws_spec_plan/mem_46b8046c.
     cur.execute(
         f"""
         UPDATE memory_nodes
         SET title = %s, content_type = %s, content_format = %s,
             body = %s, tags = %s, visibility = %s, signature = %s, updated_at = %s,
-            dim_freshness = 1.0, trust_score = %s,
             source_id = %s, source_doc_node_id = %s, source_paragraph_ref = %s,
             cluster_id = COALESCE(%s, cluster_id),
             resolution_status = %s,
@@ -338,7 +344,6 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
             payload["content_type"], payload["content_format"],
             payload["body"],
             payload["tags"], payload["visibility"], payload["signature"], datetime.now(timezone.utc),
-            payload["trust_score"],
             node_data.get("source_id", existing.get("source_id")),
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
             payload.get("cluster_id"),
