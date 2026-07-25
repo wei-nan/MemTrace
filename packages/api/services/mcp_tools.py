@@ -923,14 +923,9 @@ TOOLS = [
 USER_CAPABILITIES: dict[str, dict] = {}
 LEVEL_ORDER = ["full", "brief", "probe"]
 
-try:
-    import tiktoken
-    _encoder = tiktoken.get_encoding("cl100k_base")
-    def estimate_tokens(text: str) -> int:
-        return len(_encoder.encode(text))
-except Exception:
-    def estimate_tokens(text: str) -> int:
-        return len(text) // 4 + 1
+def estimate_tokens(text: str) -> int:
+    from core.token_estimator import TokenEstimator
+    return TokenEstimator.estimate(text, provider="generic", mode="lexical")
 
 def serialize_and_estimate_tokens(obj: Any) -> tuple[str, int]:
     serialized_str = json.dumps(serialize(obj), ensure_ascii=False)

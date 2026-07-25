@@ -1240,17 +1240,9 @@ def record_usage(
 
 
 def estimate_tokens(text: str, model_name: str = "gpt-4o-mini") -> int:
-    """Roughly estimate token count using tiktoken (OpenAI) or simple heuristic."""
-    try:
-        import tiktoken
-        try:
-            encoding = tiktoken.encoding_for_model(model_name)
-        except (KeyError, ValueError):
-            encoding = tiktoken.get_encoding("cl100k_base")
-        return len(encoding.encode(text))
-    except (ImportError, Exception):
-        # Fallback heuristic: 1 token per 3 chars
-        return len(text) // 3
+    """Estimate token count using TokenEstimator."""
+    from core.token_estimator import TokenEstimator
+    return TokenEstimator.estimate(text, provider="openai", model_name=model_name)
 
 
 def record_retrieval_log(
