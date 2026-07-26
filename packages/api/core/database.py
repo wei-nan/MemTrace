@@ -1,3 +1,4 @@
+import hashlib
 import os
 import pathlib
 import sqlite3
@@ -8,6 +9,17 @@ from .config import settings
 
 
 MIGRATION_MANIFEST = "MANIFEST.txt"
+
+# Schema version is independent of the app's semver — it's a monotonically
+# increasing integer bumped only when a migration changes schema semantics
+# (not on every file). 1 corresponds to the 2026-07-26 baseline recut
+# (Trust removal + migration history consolidation). See
+# ws_spec_plan/mem_d74aa763.
+REQUIRED_SCHEMA_VERSION = 1
+
+
+def _checksum(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def get_conn():
@@ -104,32 +116,73 @@ def run_migrations():
                 else tracking_row[0]
             )
         )
-        if not tracking_exists and migration_files and migration_files[0].name == "000_baseline.sql":
+        if not tracking_exists and migration_files and migration_files[0].name.startswith("000_baseline"):
             baseline = migration_files.pop(0)
             logger.info("Applying migration baseline: %s", baseline.name)
             # utf-8-sig strips the BOM the baseline dump carries (matches the
             # per-migration read below); plain utf-8 leaves it and Postgres errors.
-            cur.execute(baseline.read_text(encoding="utf-8-sig"))
+            baseline_text = baseline.read_text(encoding="utf-8-sig")
+            cur.execute(baseline_text)
             # The pg_dump baseline sets search_path='' for the session; restore it so
             # the tracking INSERT and the unqualified table names in later migrations resolve.
             cur.execute("SET search_path TO public")
             cur.execute(
-                "INSERT INTO schema_migrations (filename) VALUES (%s) ON CONFLICT DO NOTHING",
-                (baseline.name,),
+                "INSERT INTO schema_migrations (filename, checksum) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (baseline.name, _checksum(baseline_text)),
+            )
+            cur.execute(
+                "INSERT INTO system_state (key, value) VALUES ('schema_version', %s) ON CONFLICT DO NOTHING",
+                (str(REQUIRED_SCHEMA_VERSION),),
             )
             logger.info("Migration applied: %s", baseline.name)
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS schema_migrations (
               filename TEXT PRIMARY KEY,
-              applied_at TIMESTAMPTZ DEFAULT now()
+              applied_at TIMESTAMPTZ DEFAULT now(),
+              checksum TEXT
             )
         """)
         for sql_file in migration_files:
-            cur.execute("SELECT 1 FROM schema_migrations WHERE filename = %s", (sql_file.name,))
-            if cur.fetchone():
+            sql_text = sql_file.read_text(encoding="utf-8-sig")
+            checksum = _checksum(sql_text)
+            cur.execute(
+                "SELECT checksum FROM schema_migrations WHERE filename = %s", (sql_file.name,)
+            )
+            existing = cur.fetchone()
+            if existing:
+                stored = existing.get("checksum") if hasattr(existing, "get") else existing[0]
+                if stored is not None and stored != checksum:
+                    raise RuntimeError(
+                        f"Applied migration {sql_file.name} has changed since it was run "
+                        f"(checksum mismatch) — migrations must never be edited after being "
+                        f"applied. Add a new migration instead."
+                    )
                 continue
             logger.info("Applying migration: %s", sql_file.name)
-            cur.execute(sql_file.read_text(encoding="utf-8-sig"))
-            cur.execute("INSERT INTO schema_migrations (filename) VALUES (%s)", (sql_file.name,))
+            cur.execute(sql_text)
+            cur.execute(
+                "INSERT INTO schema_migrations (filename, checksum) VALUES (%s, %s)",
+                (sql_file.name, checksum),
+            )
             logger.info("Migration applied: %s", sql_file.name)
+
+
+def assert_schema_version(cur):
+    """Fail closed if the live DB's schema_version doesn't match the code's
+    REQUIRED_SCHEMA_VERSION. Call after run_migrations() on startup.
+    """
+    cur.execute("SELECT value FROM system_state WHERE key = 'schema_version'")
+    row = cur.fetchone()
+    if not row:
+        raise RuntimeError(
+            "system_state.schema_version is not set — the database has not been "
+            "initialized from the current baseline. Run run_migrations() first."
+        )
+    live_version = row.get("value") if hasattr(row, "get") else row[0]
+    if int(live_version) != REQUIRED_SCHEMA_VERSION:
+        raise RuntimeError(
+            f"Schema version mismatch: database is at {live_version}, code requires "
+            f"{REQUIRED_SCHEMA_VERSION}. Refusing to start — this database does not "
+            f"match this deployment's code."
+        )

@@ -103,10 +103,13 @@ def test_revoke_connector_account_clears_stored_credential():
 
 
 def test_connector_migration_is_in_runtime_manifest():
+    """113_connector_framework.sql was folded into the 2026-07-26 baseline
+    recut (schema_version 1); its tables now ship as part of the baseline
+    file rather than a standalone migration. See ws_spec_plan/mem_d74aa763."""
     from core.database import load_migration_files
     from pathlib import Path
 
     migrations = Path(__file__).parents[1] / "migrations"
     names = [path.name for path in load_migration_files(migrations)]
 
-    assert "113_connector_framework.sql" in names
+    assert "000_baseline_v1.sql" in names

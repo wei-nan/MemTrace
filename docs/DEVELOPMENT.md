@@ -97,12 +97,23 @@ Schema is **not** applied by the database container's init mechanism. The
 API container applies it on startup: `run_migrations()` (in
 `packages/api/core/database.py`) executes each file listed in
 `packages/api/migrations/MANIFEST.txt`, in order, starting from
-`000_baseline.sql`.
+`000_baseline_v1.sql`.
 
 **Migration convention:** new schema changes are added as a new numbered file,
 never by editing existing files. Every runtime migration must also be added to
 `packages/api/migrations/MANIFEST.txt`; only manifest entries are executed.
 This prevents historical or scratch SQL files from being applied accidentally.
+Each applied migration's file content is checksummed (`schema_migrations.
+checksum`); if an already-applied file's content changes, `run_migrations()`
+raises rather than silently re-running or ignoring it.
+
+**Schema version:** `packages/api/core/database.py::REQUIRED_SCHEMA_VERSION`
+is a small integer, independent of the app's semver, bumped only when a
+migration changes schema semantics (not on every file). It's recorded in
+`system_state` (key `schema_version`) when the baseline is applied. On every
+API startup, `assert_schema_version()` compares the live value against
+`REQUIRED_SCHEMA_VERSION` and refuses to start on mismatch — a stale or
+ahead-of-code database is a real bug, not something to run through anyway.
 
 **Public Spec-as-KB seed data** (`003_seed_spec_kb.sql`) is deliberately
 *not* in the manifest — seed data isn't a schema migration, so it's applied
@@ -254,7 +265,7 @@ memtrace/
 │
 ├── packages/api/migrations/  Runtime migrations, applied by run_migrations()
 │   ├── MANIFEST.txt         Only listed files are executed, in order
-│   ├── 000_baseline.sql     Full schema baseline (pg_dump)
+│   ├── 000_baseline_v1.sql     Full schema baseline (pg_dump)
 │   ├── NNN_*.sql            Numbered migrations (add new ones; never edit old ones)
 │   └── 003_seed_spec_kb.sql Public spec-as-KB seed — NOT in MANIFEST, applied
 │                             manually (see docs/DEPLOYMENT.md)
@@ -350,7 +361,7 @@ The system exposes tools via the Model Context Protocol (MCP).
 ### Modifying the Decay Engine
 
 - Logic lives in `packages/core/src/decay.ts`.
-- The SQL mirror is `apply_edge_decay()` in `packages/api/migrations/000_baseline.sql`.
+- The SQL mirror is `apply_edge_decay()` in `packages/api/migrations/000_baseline_v1.sql`.
 - Both must stay in sync — update them together and note the change in `docs/SPEC.md` §7.
 
 ---

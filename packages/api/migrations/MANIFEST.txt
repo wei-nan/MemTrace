@@ -3,22 +3,11 @@
 # Only files listed here are executed by core.database.run_migrations().
 # Historical or scratch SQL may coexist in this directory locally without
 # being applied accidentally. Add every new production migration explicitly.
-000_baseline.sql
-054_language_not_null.sql
-055_drop_bilingual_columns.sql
-056_drop_source_doc_enum.sql
-110_job_observability.sql
-111_conductor_safety_queue.sql
-112_resolution_status.sql
-113_connector_framework.sql
-114_memory_nodes_updated_at.sql
-115_notification_center.sql
-116_notification_target_node.sql
-117_node_edge_class_and_tombstones.sql
-118_notification_preferences.sql
-119_reviewer_model_governance.sql
-120_user_voice_keys.sql
-121_symmetric_edge_unique_index.sql
-122_retire_workspace_agent_telemetry.sql
-123_remove_trust.sql
-124_remove_trust_followup.sql
+#
+# 000_baseline_v1.sql is the 1.0 baseline: a pg_dump --schema-only snapshot
+# taken 2026-07-26 after Trust removal (P2) and migration history
+# consolidation (P1). schema_version = 1 (see core/database.py). All prior
+# migrations (000_baseline.sql, 054-056, 110-124) are retired — their
+# content is folded into this baseline; recover them via git history if
+# ever needed. See ws_spec_plan/mem_d74aa763.
+000_baseline_v1.sql

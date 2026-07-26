@@ -11,7 +11,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from core.backup import get_backup_config
 from core.config import settings
-from core.database import run_migrations
+from core.database import run_migrations, assert_schema_version, db_cursor, is_postgres
 from core.csrf import CsrfMiddleware
 from core.ratelimit import RateLimitMiddleware
 from core.audit import AuditLogMiddleware, audit_writer_loop
@@ -56,6 +56,14 @@ async def lifespan(app: FastAPI):
         bootstrap_safety_from_env()
     except Exception as exc:
         logger.warning("Migration failed: %s", exc)
+
+    # Schema version must match the running code, or refuse to start — a
+    # migration failure above is logged and tolerated, but a real mismatch
+    # (this database predates or postdates this deployment's baseline) is
+    # not recoverable at runtime and must not be silently ignored.
+    if is_postgres():
+        with db_cursor() as cur:
+            assert_schema_version(cur)
 
     # Security warnings
     try:
