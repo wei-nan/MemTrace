@@ -17,6 +17,7 @@ from jobs.audit_reviewers import (
     reviewer_deduper,
     reviewer_tag_normalizer,
     reviewer_edge_auditor,
+    reviewer_canonical_key_conflict,
     reviewer_coverage_gap_detector,
     reviewer_source_decay_monitor,
     reviewer_integrity_auditor,
@@ -240,6 +241,28 @@ class TestReviewersIntegration:
             assert isinstance(count, int)
             assert count >= 0
 
+    def test_reviewer_canonical_key_conflict_no_crash(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            count = reviewer_canonical_key_conflict(cur, ws_id)
+            assert isinstance(count, int)
+            assert count >= 0
+
+    def test_reviewer_canonical_key_conflict_detects_duplicate_current(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            from services.nodes import create_node_in_db
+            for i in range(2):
+                create_node_in_db(cur, ws_id, {
+                    "title": f"conflict node {i}", "content_type": "factual",
+                    "body": "b", "author": "tester", "visibility": "private",
+                    "metadata": {"canonical_key": "test.conflict-key", "spec_status": "current"},
+                })
+            count = reviewer_canonical_key_conflict(cur, ws_id)
+            assert count >= 1
+
     def test_reviewer_coverage_gap_detector_no_crash(self, db_transaction):
         conn = db_transaction
         ws_id = "ws_spec0001"
@@ -385,10 +408,10 @@ class TestReviewersIntegration:
         with conn.cursor() as cur:
             summary = run_all_reviewers_for_workspace(cur, ws_id)
         assert isinstance(summary, dict)
-        # 8 個 reviewers，每個都應有整數值（>=0 表示成功，-1 表示錯誤）
+        # 9 個 reviewers，每個都應有整數值（>=0 表示成功，-1 表示錯誤）
         expected_keys = {
             "deduper", "tag_normalizer", "edge_auditor",
-            "embedding_consistency",
+            "embedding_consistency", "canonical_key_conflict",
             "coverage_gap_detector", "source_decay_monitor",
             "integrity_auditor", "secret_scanner",
         }

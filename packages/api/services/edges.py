@@ -113,6 +113,35 @@ def create_edge_in_db(cur, ws_id: str, body_dict: dict) -> dict:
                 detail="answered_by direction looks reversed: 'from' must be the inquiry being answered, 'to' the answering node",
             )
 
+    # Write-governance (spec validity, 2026-07-26): extends ("builds on,
+    # still valid") and superseded_by ("no longer valid") are mutually
+    # exclusive on the same pair. Direction (which node is older) is the
+    # caller's responsibility — created_at is not a reliable enough signal
+    # to auto-detect it (nodes published together can share a timestamp),
+    # so unlike answered_by this is not auto-validated. See mem_310a1c2d.
+    if relation == "superseded_by":
+        cur.execute(
+            "SELECT 1 FROM edges WHERE workspace_id = %s AND relation = 'extends' "
+            "AND ((from_id = %s AND to_id = %s) OR (from_id = %s AND to_id = %s)) LIMIT 1",
+            (ws_id, from_id, to_id, to_id, from_id),
+        )
+        if cur.fetchone():
+            raise HTTPException(
+                status_code=409,
+                detail="This pair already has an extends edge; extends and superseded_by are mutually exclusive",
+            )
+    if relation == "extends":
+        cur.execute(
+            "SELECT 1 FROM edges WHERE workspace_id = %s AND relation = 'superseded_by' "
+            "AND ((from_id = %s AND to_id = %s) OR (from_id = %s AND to_id = %s)) LIMIT 1",
+            (ws_id, from_id, to_id, to_id, from_id),
+        )
+        if cur.fetchone():
+            raise HTTPException(
+                status_code=409,
+                detail="This pair already has a superseded_by edge; extends and superseded_by are mutually exclusive",
+            )
+
     if half_life_days == 30:
         cur.execute("SELECT content_type FROM memory_nodes WHERE id = %s", (from_id,))
         row = cur.fetchone()

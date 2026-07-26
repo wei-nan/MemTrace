@@ -110,7 +110,8 @@ NODE_PUBLIC_COLUMNS = """
     signature, source_type,
     traversal_count, unique_traverser_count, status, archived_at,
     copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
-    ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status
+    ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status,
+    metadata
 """
 
 NODE_EDITABLE_FIELDS = [
@@ -233,8 +234,8 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             id, workspace_id, title, content_type, content_format, body,
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
             status, source_id,
-            source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status, updated_at
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,now())
+            source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status, metadata, updated_at
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,now())
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
@@ -250,11 +251,62 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
             node_data.get("cluster_id"),
             payload.get("resolution_status") or 'open',
+            json.dumps(node_data.get("metadata") or {}),
         ),
     )
     row = cur.fetchone()
     _enqueue_tier2_safety(cur, ws_id, node_id, payload)
     return row
+
+
+def publish_new_version(cur, ws_id: str, canonical_key: str, node_data: dict) -> dict:
+    """
+    Spec validity (2026-07-26, ws_spec_plan/mem_310a1c2d): publish a new
+    current version of a canonical_key, transactionally superseding whatever
+    was current before. Three things happen atomically:
+      1. The new node is created with metadata.spec_status = 'current'.
+      2. Every other active node in this workspace sharing canonical_key
+         and currently spec_status = 'current' is flipped to 'superseded'.
+      3. A superseded_by edge is drawn from each of those old nodes to the
+         new one.
+    Existing edges into the old node(s) are left untouched — they recorded
+    a fact about the graph at the time, not a live pointer to be rewritten.
+    """
+    from services.edges import create_edge_in_db
+
+    if not canonical_key:
+        raise HTTPException(status_code=400, detail="canonical_key is required")
+
+    metadata = dict(node_data.get("metadata") or {})
+    metadata["canonical_key"] = canonical_key
+    metadata["spec_status"] = "current"
+    metadata.setdefault("effective_from", datetime.now(timezone.utc).date().isoformat())
+    node_data = {**node_data, "metadata": metadata}
+
+    new_node = create_node_in_db(cur, ws_id, node_data)
+
+    cur.execute(
+        """
+        SELECT id FROM memory_nodes
+        WHERE workspace_id = %s AND status = 'active' AND id != %s
+          AND metadata->>'canonical_key' = %s
+          AND metadata->>'spec_status' = 'current'
+        """,
+        (ws_id, new_node["id"], canonical_key),
+    )
+    superseded_ids = [r["id"] for r in cur.fetchall()]
+
+    for old_id in superseded_ids:
+        cur.execute(
+            "UPDATE memory_nodes SET metadata = jsonb_set(metadata, '{spec_status}', '\"superseded\"') "
+            "WHERE id = %s AND workspace_id = %s",
+            (old_id, ws_id),
+        )
+        create_edge_in_db(cur, ws_id, {
+            "from_id": old_id, "to_id": new_node["id"], "relation": "superseded_by",
+        })
+
+    return {"node": new_node, "superseded": superseded_ids}
 
 
 def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: str) -> dict:
@@ -711,9 +763,10 @@ async def search_nodes_in_db(
     user: Optional[dict],
     include_answered_inquiries: bool = False,
     include_archived: bool = False,
+    include_superseded: bool = False,
 ) -> list[dict]:
     from services.search import search_nodes_in_db as _search
-    return await _search(cur, ws_id, query, limit, user, include_answered_inquiries=include_answered_inquiries, include_archived=include_archived)
+    return await _search(cur, ws_id, query, limit, user, include_answered_inquiries=include_answered_inquiries, include_archived=include_archived, include_superseded=include_superseded)
 
 def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
     from services.workspaces import require_ws_access

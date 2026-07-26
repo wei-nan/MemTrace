@@ -30,6 +30,8 @@ const CATEGORY_LABELS: Record<string, { zh: string; en: string }> = {
   resolution_drift: { zh: '結案狀態未同步', en: 'Resolution status drift' },
   // embedding_consistency
   embedding_drift: { zh: '向量可能已過期', en: 'Embedding may be stale' },
+  // canonical_key_conflict
+  canonical_key_conflict: { zh: '同一概念出現多個現行版', en: 'Multiple current versions of one concept' },
   // coverage_gap_detector
   stale_gap: { zh: '長期未補的缺口', en: 'Stale knowledge gap' },
   // source_decay_monitor

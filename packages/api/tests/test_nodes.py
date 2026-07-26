@@ -7,7 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from services.nodes import (
     validate_node_payload, prepare_node_data, create_node_in_db,
-    update_node_in_db, delete_node_in_db, node_row_to_snapshot
+    update_node_in_db, delete_node_in_db, node_row_to_snapshot,
+    publish_new_version,
 )
 from fastapi import HTTPException
 
@@ -148,3 +149,50 @@ def test_delete_node_in_db():
     cur.fetchone.return_value = None
     with pytest.raises(HTTPException):
         delete_node_in_db(cur, "ws_test", "mem_missing")
+
+
+# ─── Spec validity: publish_new_version (ws_spec_plan/mem_310a1c2d) ───────────
+
+def test_publish_new_version_requires_canonical_key():
+    cur = MagicMock()
+    with pytest.raises(HTTPException, match="canonical_key"):
+        publish_new_version(cur, "ws_test", "", {"title": "x", "content_type": "factual"})
+
+
+@patch("services.edges.create_edge_in_db")
+@patch("services.nodes.create_node_in_db")
+def test_publish_new_version_supersedes_prior_current_and_links_edge(mock_create_node, mock_create_edge):
+    mock_create_node.return_value = {"id": "mem_new", "metadata": {"canonical_key": "k", "spec_status": "current"}}
+    cur = MagicMock()
+    cur.fetchall.return_value = [{"id": "mem_old_1"}, {"id": "mem_old_2"}]
+
+    result = publish_new_version(cur, "ws_test", "k", {"title": "v2", "content_type": "factual"})
+
+    assert result["node"]["id"] == "mem_new"
+    assert result["superseded"] == ["mem_old_1", "mem_old_2"]
+
+    # metadata passed into create_node_in_db carries the canonical_key/current status
+    passed_node_data = mock_create_node.call_args.args[2]
+    assert passed_node_data["metadata"]["canonical_key"] == "k"
+    assert passed_node_data["metadata"]["spec_status"] == "current"
+
+    # a superseded_by edge is drawn from each old node to the new one
+    assert mock_create_edge.call_count == 2
+    edge_targets = {call.args[2]["from_id"] for call in mock_create_edge.call_args_list}
+    assert edge_targets == {"mem_old_1", "mem_old_2"}
+    for call in mock_create_edge.call_args_list:
+        assert call.args[2]["to_id"] == "mem_new"
+        assert call.args[2]["relation"] == "superseded_by"
+
+
+@patch("services.edges.create_edge_in_db")
+@patch("services.nodes.create_node_in_db")
+def test_publish_new_version_no_prior_current_supersedes_nothing(mock_create_node, mock_create_edge):
+    mock_create_node.return_value = {"id": "mem_new", "metadata": {}}
+    cur = MagicMock()
+    cur.fetchall.return_value = []
+
+    result = publish_new_version(cur, "ws_test", "k", {"title": "v1", "content_type": "factual"})
+
+    assert result["superseded"] == []
+    mock_create_edge.assert_not_called()

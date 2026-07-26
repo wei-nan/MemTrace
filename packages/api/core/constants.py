@@ -28,6 +28,10 @@ VALID_RELATIONS: frozenset = frozenset({
                         # cannot be dropped). See ws_spec_plan/mem_ea840fad.
     "extracted_from",   # P61-T01: knowledge node → document node
     "proceeds_to",      # Phase 6.3: conditional next step in troubleshooting graph
+    "superseded_by",    # Spec validity (2026-07-26): old node -> the node that
+                        # replaced it. Directional, symmetric to answered_by
+                        # (no reverse-named "supersedes" value, same as
+                        # answered_by has no "answers"). See ws_spec_plan/mem_310a1c2d.
 })
 
 # ─── Edge class（語意 / 系統 / telemetry）──────────────────────────────────────
@@ -49,6 +53,7 @@ SYMMETRIC_RELATIONS: frozenset = frozenset({"related_to", "similar_to"})
 # create_edge 會拒絕再補一條 related_to（避免在具體邊上疊冗餘的泛用邊）。
 SPECIFIC_RELATIONS: frozenset = frozenset({
     "depends_on", "extends", "answered_by", "contradicts", "proceeds_to", "extracted_from",
+    "superseded_by",
 })
 
 

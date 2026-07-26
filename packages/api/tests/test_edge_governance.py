@@ -113,6 +113,43 @@ class TestRelatedToRedundancyGovernance:
 
 
 @pytest.mark.integration
+class TestSupersededByGovernance:
+    """Spec validity (ws_spec_plan/mem_310a1c2d): superseded_by must point
+    old -> new, and is mutually exclusive with extends on the same pair."""
+
+    def test_superseded_by_forward_direction_allowed(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            old = _mk_node(cur, ws_id, "factual", "old")
+            new = _mk_node(cur, ws_id, "factual", "new")
+            edge = create_edge_in_db(cur, ws_id, {"from_id": old, "to_id": new, "relation": "superseded_by"})
+            assert edge["relation"] == "superseded_by"
+
+    def test_superseded_by_rejected_when_extends_exists(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            old = _mk_node(cur, ws_id, "factual", "old")
+            new = _mk_node(cur, ws_id, "factual", "new")
+            create_edge_in_db(cur, ws_id, {"from_id": new, "to_id": old, "relation": "extends"})
+            with pytest.raises(HTTPException) as exc:
+                create_edge_in_db(cur, ws_id, {"from_id": old, "to_id": new, "relation": "superseded_by"})
+            assert exc.value.status_code == 409
+
+    def test_extends_rejected_when_superseded_by_exists(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            old = _mk_node(cur, ws_id, "factual", "old")
+            new = _mk_node(cur, ws_id, "factual", "new")
+            create_edge_in_db(cur, ws_id, {"from_id": old, "to_id": new, "relation": "superseded_by"})
+            with pytest.raises(HTTPException) as exc:
+                create_edge_in_db(cur, ws_id, {"from_id": new, "to_id": old, "relation": "extends"})
+            assert exc.value.status_code == 409
+
+
+@pytest.mark.integration
 class TestDeleteEdge:
 
     def test_delete_edge_removes_edge(self, db_transaction):

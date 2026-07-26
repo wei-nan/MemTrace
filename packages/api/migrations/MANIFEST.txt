@@ -11,3 +11,4 @@
 # content is folded into this baseline; recover them via git history if
 # ever needed. See ws_spec_plan/mem_d74aa763.
 000_baseline_v1.sql
+001_spec_validity.sql

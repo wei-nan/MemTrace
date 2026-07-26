@@ -164,7 +164,17 @@ class NodeResponse(BaseModel):
     ask_count: int = 0
     miss_count: int = 0
     resolution_status: str = "open"
+    metadata: dict = {}
 
+
+
+class PublishVersionRequest(NodeCreate):
+    canonical_key: str
+
+
+class PublishVersionResponse(BaseModel):
+    node: NodeResponse
+    superseded: list[str]
 
 
 class ValidityConfirmationResponse(BaseModel):

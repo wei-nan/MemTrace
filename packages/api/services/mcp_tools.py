@@ -292,6 +292,7 @@ TOOLS = [
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
                 "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
                 "include_archived": {"type": "boolean", "description": "Whether to include archived/faded nodes (faded memories). Default false.", "default": False},
+                "include_superseded": {"type": "boolean", "description": "Whether to include superseded/withdrawn spec-validity nodes. Default false.", "default": False},
                 "debug": {"type": "boolean", "description": "If true, 'full' detail_level returns the raw DB row (all internal bookkeeping fields) instead of the curated field set. Default false.", "default": False},
             },
             "required": ["workspace_id", "query"],
@@ -1179,6 +1180,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             max_tokens = int(max_tokens)
         include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
         include_archived = bool(args.get("include_archived", False))
+        include_superseded = bool(args.get("include_superseded", False))
         debug = bool(args.get("debug", False))
         with db_cursor() as cur:
             results = await search_nodes_in_db(
@@ -1189,6 +1191,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 user,
                 include_answered_inquiries=include_answered_inquiries,
                 include_archived=include_archived,
+                include_superseded=include_superseded,
             )
             if not results and query:
                 background_tasks.add_task(handle_search_miss, ws_id, query, user["sub"])

@@ -31,6 +31,8 @@ from models.kb import (
     GraphPreviewResponse,
     NodeCreate,
     NodeResponse,
+    PublishVersionRequest,
+    PublishVersionResponse,
     NodeUpdate,
     RateEdgeRequest,
     TraverseEdgeRequest,
@@ -442,6 +444,7 @@ async def search_nodes(
     limit: int = 20,
     include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
     include_archived: bool = Query(False, description="Include archived nodes"),
+    include_superseded: bool = Query(False, description="Include superseded/withdrawn spec-validity nodes"),
     user: dict = Depends(get_current_user_optional),
 ):
     from services.nodes import search_nodes_in_db
@@ -454,6 +457,7 @@ async def search_nodes(
             user,
             include_answered_inquiries=include_answered_inquiries,
             include_archived=include_archived,
+            include_superseded=include_superseded,
         )
 
 
@@ -464,6 +468,7 @@ async def search_nodes_semantic(
     limit: int = 10,
     include_answered_inquiries: bool = Query(False, description="Include inquiry nodes that already have answered_by edges"),
     include_archived: bool = Query(False, description="Include archived nodes"),
+    include_superseded: bool = Query(False, description="Include superseded/withdrawn spec-validity nodes"),
     user: dict = Depends(get_current_user),
 ):
     with db_cursor() as cur:
@@ -482,6 +487,7 @@ async def search_nodes_semantic(
             ws_prov=ws_prov,
             include_archived=include_archived,
             include_answered_inquiries=include_answered_inquiries,
+            include_superseded=include_superseded,
         )
         # perform_semantic_search returns raw rows; redact bodies of non-public
         # nodes for viewers, matching the hybrid search / list / get-node paths.
@@ -513,6 +519,22 @@ def suggest_edges_for_node(ws_id: str, node_id: str, user: dict = Depends(get_cu
     from services.nodes import suggest_edges_for_node_in_db
     with db_cursor(commit=True) as cur:
         return suggest_edges_for_node_in_db(cur, ws_id, node_id, user)
+
+
+@router.post("/workspaces/{ws_id}/nodes/publish-version", response_model=PublishVersionResponse, status_code=201)
+def publish_version(ws_id: str, body: PublishVersionRequest, user: dict = Depends(get_current_user)):
+    """Spec validity (mem_310a1c2d): publish a new current version of a
+    canonical_key, transactionally superseding whatever was current before.
+    Admin-only — this bypasses the normal create/review flow by design."""
+    from services.nodes import publish_new_version
+    from services.workspaces import require_ws_access
+    with db_cursor(commit=True) as cur:
+        require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        data = body.model_dump()
+        canonical_key = data.pop("canonical_key")
+        data["author"] = user["sub"]
+        result = publish_new_version(cur, ws_id, canonical_key, data)
+        return result
 
 
 @router.get("/workspaces/{ws_id}/nodes/{node_id}", response_model=NodeResponse)

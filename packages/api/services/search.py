@@ -169,6 +169,7 @@ async def perform_semantic_search(
     ws_prov: str = None,
     include_archived: bool = False,
     include_answered_inquiries: bool = False,
+    include_superseded: bool = False,
 ) -> list[dict]:
     """Execute vector search over nodes in a workspace using the configured embedding model."""
     try:
@@ -179,9 +180,14 @@ async def perform_semantic_search(
         resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
         vector, tokens = await embed(resolved, query)
         record_usage(resolved, "search", tokens, ws_id)
-        
+
         status_filter = "" if include_archived else "AND status = 'active'"
         answered_filter = "" if include_answered_inquiries else f"AND {exclude_answered_inquiries_filter()}"
+        # Spec validity (ws_spec_plan/mem_310a1c2d): superseded/withdrawn nodes
+        # are excluded by default, same treatment as archived — a separate
+        # axis from `status`, so it's its own flag rather than folding into
+        # include_archived.
+        validity_filter = "" if include_superseded else "AND COALESCE(metadata->>'spec_status', '') NOT IN ('superseded', 'withdrawn')"
         
         if in_migration:
             target_prov = ws_mig["migrating_to_provider"]
@@ -198,7 +204,7 @@ async def perform_semantic_search(
                     CASE WHEN secondary_embedding IS NOT NULL THEN (1 - (secondary_embedding <=> %s::vector)) ELSE -1 END
                   ) AS similarity
                 FROM memory_nodes
-                WHERE workspace_id = %s AND (embedding IS NOT NULL OR secondary_embedding IS NOT NULL) {status_filter} {answered_filter}
+                WHERE workspace_id = %s AND (embedding IS NOT NULL OR secondary_embedding IS NOT NULL) {status_filter} {answered_filter} {validity_filter}
                 ORDER BY similarity DESC
                 LIMIT %s
                 """,
@@ -209,7 +215,7 @@ async def perform_semantic_search(
                 f"""
                 SELECT *, (1 - (embedding <=> %s::vector)) AS similarity
                 FROM memory_nodes
-                WHERE workspace_id = %s AND embedding IS NOT NULL {status_filter} {answered_filter}
+                WHERE workspace_id = %s AND embedding IS NOT NULL {status_filter} {answered_filter} {validity_filter}
                 ORDER BY similarity DESC
                 LIMIT %s
                 """,
@@ -296,6 +302,7 @@ async def search_nodes_in_db(
     user: Optional[dict],
     include_answered_inquiries: bool = False,
     include_archived: bool = False,
+    include_superseded: bool = False,
 ) -> list[dict]:
     from services.workspaces import require_ws_access, get_effective_role, strip_body_if_viewer
     ws = require_ws_access(cur, ws_id, user)
@@ -306,6 +313,10 @@ async def search_nodes_in_db(
     params: list = [ws_id]
     apply_answered_inquiry_filter(filters, include_answered_inquiries)
     apply_text_search(filters, params, query)
+    if not include_superseded:
+        # Spec validity (ws_spec_plan/mem_310a1c2d): excluded by default,
+        # same treatment as archived but a separate axis from `status`.
+        filters.append("COALESCE(metadata->>'spec_status', '') NOT IN ('superseded', 'withdrawn')")
 
     cur.execute(
         f"SELECT *, 0.5 as similarity FROM memory_nodes WHERE {' AND '.join(filters)} ORDER BY updated_at DESC, created_at DESC LIMIT %s",
@@ -329,6 +340,7 @@ async def search_nodes_in_db(
             ws_prov,
             include_archived=include_archived,
             include_answered_inquiries=include_answered_inquiries,
+            include_superseded=include_superseded,
         )
     except (AIProviderUnavailable, RuntimeError, Exception):
         pass  # fall through to keyword-only results

@@ -416,6 +416,56 @@ def reviewer_coverage_gap_detector(cur, workspace_id: str) -> int:
     return created
 
 
+# ─── Canonical Key Conflict (spec validity, ws_spec_plan/mem_310a1c2d) ────────
+
+def reviewer_canonical_key_conflict(cur, workspace_id: str) -> int:
+    """
+    偵測同一 canonical_key 底下出現多個 spec_status='current' 的節點——
+    publish_new_version() 端點本身保證交易一致，但直接用 create_node/
+    update_node 手動設定 metadata 仍可能繞過它，造成同一概念有兩個「現行版」。
+    系統不應依任何分數任選其一，而是開一張 review_queue 項目交人裁決。
+    """
+    created = 0
+    cur.execute(
+        """
+        SELECT metadata->>'canonical_key' AS canonical_key,
+               array_agg(id) AS node_ids,
+               array_agg(title) AS titles,
+               count(*) AS n
+        FROM memory_nodes
+        WHERE workspace_id = %s
+          AND status = 'active'
+          AND metadata->>'canonical_key' IS NOT NULL
+          AND metadata->>'spec_status' = 'current'
+        GROUP BY metadata->>'canonical_key'
+        HAVING count(*) > 1
+        LIMIT %s
+        """,
+        (workspace_id, DAILY_QUOTA_PER_REVIEWER),
+    )
+    for r in cur.fetchall():
+        prop = create_proposal(
+            cur,
+            workspace_id=workspace_id,
+            reviewer="canonical_key_conflict",
+            category="canonical_key_conflict",
+            target_ids=list(r["node_ids"]),
+            reasoning=(
+                f"canonical_key「{r['canonical_key']}」底下有 {r['n']} 個節點同時"
+                f"標記 spec_status=current：{', '.join(r['titles'])}。同一概念只能有"
+                "一個現行版，需人工裁決哪個才是 current。"
+            ),
+            evidence={"canonical_key": r["canonical_key"], "node_ids": list(r["node_ids"])},
+            suggested_action={"action": "resolve_canonical_key_conflict", "node_ids": list(r["node_ids"])},
+            severity="high",
+        )
+        if prop:
+            created += 1
+
+    logger.info("[canonical_key_conflict] workspace=%s created=%d proposals", workspace_id, created)
+    return created
+
+
 # ─── T19: Source Decay Monitor ────────────────────────────────────────────────
 
 def reviewer_source_decay_monitor(cur, workspace_id: str) -> int:
@@ -626,6 +676,7 @@ REVIEWERS = [
     reviewer_tag_normalizer,
     reviewer_edge_auditor,
     reviewer_embedding_consistency,
+    reviewer_canonical_key_conflict,
     reviewer_coverage_gap_detector,
     reviewer_source_decay_monitor,
     reviewer_integrity_auditor,
