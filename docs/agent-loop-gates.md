@@ -95,7 +95,12 @@ Verify must compare the plan and the diff in both directions:
 - every plan item has an implementation/evidence match;
 - every diff item is in scope or has a written reason;
 - no unrelated formatting, dependency, or cleanup changes are mixed in;
-- the change does not violate trust or safety constraints.
+- no data-integrity fields (signature, provenance, schema_version) are
+  touched beyond what the plan requires;
+- no unauthorized live-DB write path is introduced (new write branch, a
+  batch operation that bypasses G0, an unconfirmed backfill/migration);
+- if the change is a bug fix, it names the bug's *category* and shows the
+  same pattern was checked elsewhere, not just at the original report site.
 
 ## G3: Verify to Coverage
 
@@ -112,15 +117,19 @@ Coverage audit must question whether verification itself is meaningful:
 A conditional gate that fires only when a change touches public product
 behavior, schema, API/MCP contracts, or public spec content; otherwise its
 verdict is automatically `N/A PASS`. The seed JSON under `examples/spec-as-kb/`
-is the single source of truth — the migration SQL, its schema-history mirror,
-and the live public KB are generated from it. G4 requires:
+is the single source of truth — `packages/api/migrations/003_seed_spec_kb.sql`
+(the sole canonical output; not in MANIFEST.txt, applied manually per
+docs/DEPLOYMENT.md) and the live public KB are generated from it. G4 requires:
 
 - if the public surface changed, the seed JSON changed too (else REJECT);
 - the committed seed SQL equals `generate(seed)` — `python scripts/seed_spec_kb.py --check`
   is byte-identical (deterministic);
 - zh/en node parity: no en node without a zh source (fail); zh-without-en is a warning;
 - new or changed node content is semantically correct (LLM);
-- en is a faithful translation of zh (LLM — the only non-deterministic leg).
+- en is a faithful translation of zh (LLM — the only non-deterministic leg);
+- schema changes: a fresh install (new baseline) and an existing upgrade
+  (incremental migration) converge to the same schema — enforced by
+  `core/database.py::assert_schema_version()` at API startup.
 
 Mechanized as a blocking CI gate in `.github/workflows/spec-sync.yml`. After
 editing seed JSON, refresh the generated SQL with `python scripts/seed_spec_kb.py --write`.

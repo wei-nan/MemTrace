@@ -220,7 +220,9 @@ Stop and ask the user before proceeding when any of these applies:
 - a trade-off only the user can make: product direction, spending money,
   expanding or cutting scope;
 - the same gate has been rejected twice;
-- a new conclusion contradicts a high-trust KB node;
+- a new conclusion contradicts an existing high-confidence KB node (an
+  explicit `contradicts` edge, or a node with `resolution_status: resolved`)
+  without resolving or flagging the conflict;
 - context is insufficient to start and cannot be filled from the KB or the
   repo.
 
