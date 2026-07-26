@@ -7,6 +7,8 @@ The source of truth is the Agent Loop KB (`ws_6aa957c3`).
 
 - Gate general rules: `mem_929a4e9b`
 - Gate verdict schema: `mem_2d23c205`
+- G0 Data-plane gate (conditional — any live DB write: migration, backfill,
+  seed write, `--write` scripts, raw SQL): `mem_e41ae3a5`
 - G1 Plan to Dev: `mem_b86a48aa`
 - G2 Dev to Verify: `mem_7d7fbdd2`
 - G3 Verify to Coverage: `mem_50b2cd36`
@@ -26,7 +28,7 @@ should only point models to the KB nodes above.
 ## Pipeline
 
 ```text
-Plan -> G1 -> Dev -> G2 -> Verify -> G3 -> Coverage -> Converge
+Plan -> G1 -> Dev -> [G0 before any live DB write] -> G2 -> Verify -> G3 -> Coverage -> Converge
 ```
 
 Each gate is checked by the next stage. The next stage should assume the
@@ -58,6 +60,23 @@ the gate did not pass.
   "ts": "ISO-8601 timestamp"
 }
 ```
+
+## G0: Data-Plane (conditional)
+
+Fires before any action that writes to the live DB: migration, backfill,
+seed write, a script run with `--write`, or raw SQL. Otherwise `N/A PASS`,
+same convention as G4. Full policy: `mem_e41ae3a5`.
+
+Requires all four:
+
+- scope stated explicitly: `WHERE` clause, affected workspaces, expected row
+  count;
+- a dry-run first, reporting actual affected row count — mismatch vs.
+  expected is REJECT;
+- a reversibility statement: backup exists, or the action is explicitly
+  marked irreversible;
+- human authorization in-session (the SQL/WHERE clause pasted into chat for
+  the user to confirm) — an agent may never self-PASS this gate.
 
 ## G1: Plan to Dev
 
