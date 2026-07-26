@@ -24,13 +24,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_00d32c49','1.0','ws_spec0001','節點極小化原則','factual','markdown','知識圖譜設計的核心原則，主張使用更小的節點、更多的邊以及更短的走訪路徑，以提高資訊檢索效率並降低認知負荷。',
    ARRAY['knowledge-graph', 'design-principle', 'ai-restructuring']::text[],'public','system','2026-04-24T11:31:27.681728+00:00','9371b1b41df3cfd13fc796a731df2f30c24170405d5e9772324e1620188ba65f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -39,13 +37,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_013d11be','1.0','ws_spec0001','Markdown 輸入模式','factual','markdown','在 `markdown` 模式下，輸入內容在閱讀視圖中被渲染為 HTML，而原始 Markdown 內容被儲存。',
    ARRAY['input-mode', 'markdown']::text[],'public','system','2026-04-24T11:25:39.414292+00:00','3f5ab1967571ab79453c47895d21ed5af47489952515e7f2b69c52dd17c70c39','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -54,8 +50,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_01d117a9','1.0','ws_spec0001','Python SDK:memtrace 官方客戶端(MemTraceClient)','factual','markdown','`packages/sdk-python` 提供官方 Python 客戶端 `MemTraceClient`,以程式化方式操作 MemTrace REST API,認證使用外部 API Key。
 
@@ -78,8 +73,7 @@ c.search_nodes(workspace_id="ws_abc", query="how to config auth")
 
 > 對應 seed 節點 mem_i006;程式碼:packages/sdk-python。',
    ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','usr_6bc7b4c7','2026-07-24T22:53:28.075831+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,2,1)
+   2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -88,13 +82,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_033baf41','1.0','ws_spec0001','NODE_GUIDE 內容定義','factual','markdown','`NODE_GUIDE` 常數定義了節點欄位規格、`content_type` 說明、`visibility` 說明、建立最佳實踐以及常見錯誤。',
    ARRAY['node_guide', 'node', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:28.703205+00:00','e455fd7e83ae5aa06dfc303f056131a6fba3450abac4370621b5128c99d786f6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -103,8 +95,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_0531d95e','1.0','ws_spec0001','Magic Link: Restricted to invite_only Mode (Phase 4.10)','factual','markdown','## Mechanism
 
@@ -137,8 +128,7 @@ and shows the magic link option only in invite_only mode.
 In invite_only mode, workspace invitation links still trigger Magic Link (magic_link_tokens includes invitation_id).
 In other modes, invitation links redirect to the standard register form.',
    ARRAY['auth', 'magic-link', 'registration', 'security']::text[],'public','system','2026-05-11T00:00:00+00:00','','human',
-   0.85,0.92,1.0,0.88,0.726,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -147,13 +137,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_05ce17d1','1.0','ws_spec0001','AI 使用日誌表索引','factual','markdown','在 `ai_usage_log` 表上建立三個索引：`idx_ai_usage_user` (基於 `user_id`, `called_at` 降序), `idx_ai_usage_feature` (基於 `feature`, `called_at` 降序), 以及 `idx_ai_usage_provider` (基於 `provider`, `called_at` 降序)。',
    ARRAY['ai', '說明']::text[],'public','system','2026-04-24T11:25:40.908853+00:00','7a1280b6e7a2bff93fc5743846592250a33fd7b5f18dc420af70ec1fee8983b6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -162,8 +150,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_064d70b7','1.0','ws_spec0001','Phase 4 P4-G：自管 Ollama Provider 規劃決策','preference','markdown','**決策日期：** 2026-04-27
 **狀態：** 已寫入 `docs/dev/phase4-plan.md`，等待實作排程
@@ -197,8 +184,7 @@ VALUES
 
 地端小模型（< 8B、低於 Q5 量化）的 JSON 格式幻覺率偏高，會增加 Review Queue 的拒絕率；緩解策略包括 UI 提示、Review Queue 顯示來源 model、後續用 `mcp_query_logs` 累積品質訊號做雲端 vs 地端比較報表。',
    ARRAY['phase-4', 'ollama', 'ai-provider', 'knowledge-sovereignty', 'planning', 'roadmap', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-04-27T13:20:55.037625+00:00','9a07537effbb587826c7d8e3b6a303f1dd6274459d91c1d45db99427c5bc5fd3','ai',
-   0.925,0.95,0.908,0.98,0.929,
-   0,0,0,12,1)
+   12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -207,13 +193,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_07334d61','1.0','ws_spec0001','記憶導出/匯入範圍','factual','markdown','支持節點級別和全知識庫級別的導出/匯入。',
    ARRAY['export', 'import', 'scope']::text[],'public','system','2026-04-24T11:25:39.270852+00:00','c097f8f7975d3ca47dd120efbcc14faf227f40b75fb9f2ad81971d7bc57ae2ed','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -222,13 +206,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_0752c920','1.0','ws_spec0001','貢獻者角色能力：提議更改','factual','markdown','貢獻者可以提議對節點或邊進行更改。這些提案進入審核隊列，需要管理員核准後才能應用。',
    ARRAY['role', 'contributor', 'proposal', 'review-queue']::text[],'public','system','2026-04-24T11:25:40.486330+00:00','c9e0f98fe56cae12c67d59594eb46922bacdf9e4aa36e3df1f975b9552b4828e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -237,8 +219,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_079a7573','1.0','ws_spec0001','系統監控頁面：排程、作業紀錄、MCP 日誌、AI 用量','factual','markdown','系統管理員（platform admin）可在左側導覽進入「系統監控」頁面，觀察平台整體健康狀況。
 
@@ -296,8 +277,7 @@ VALUES
 | safety_sweep | AI | 24h |
 | conductor_dispatch | System | — |',
    ARRAY['system-monitor', 'admin', 'scheduler', 'job-runs', 'observability']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','4a0c5f89ec74ed26c4903ed8abb17feb058c58bf1f89e23c6b16c6789fe4898f','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -306,13 +286,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_08f1c514','1.0','ws_spec0001','來源文件節點預設排除項','factual','markdown','來源文件節點預設會從圖譜視圖（除非啟動「顯示來源文件」）、關鍵字與語義搜尋結果、問答與 AI 對話上下文檢索以及 MCP search_nodes 結果中排除。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.831618+00:00','8c1c5ae6bf2674b4f5bd74831f3b1e8b63148c33abfec5059782b406519f5e93','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -321,13 +299,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_097ff069','1.0','ws_spec0001','AI 提供者抽象與 API 金鑰模型','factual','markdown','MemTrace 的 AI 功能共享通用的提供者抽象和 API 金鑰模型，使用者需自行提供金鑰。',
    ARRAY['ai', 'api', 'security', 'configuration']::text[],'public','system','2026-04-24T11:25:40.454141+00:00','3670462d56d5294b06b1cdd0f98f5e5570062473d91f2c8839b81a34659a4a11','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -336,13 +312,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_0d6a7214','1.0','ws_spec0001','工作區存取授權','factual','markdown','工作區的存取權限僅透過管理員的明確邀請授予。',
    ARRAY['access-control', 'admin', 'invitation']::text[],'public','system','2026-04-24T11:25:39.592594+00:00','7565ff5c348962f12749977db91aa8c4ec162aaa28a3d45be254023066708312','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -351,13 +325,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_107440f8','1.0','ws_spec0001','簡化圖譜載荷中的節點 ID','factual','markdown','簡化圖譜載荷中的真實 `memory_node.id` 值被替換為不透明的順序預覽 ID (`node_preview_N`)，這些 ID 在不同請求之間是不穩定的。',
    ARRAY['節點ID', '簡化結構', '資料載荷']::text[],'public','system','2026-04-24T11:25:39.758281+00:00','1deb02df329cb170fcdc2a70609066f0765abe86315b577b6bdf3c214b6cb7e7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -366,13 +338,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_10a89b1f','1.0','ws_spec0001','受邀使用者角色分配','factual','markdown','受邀使用者將以邀請令牌中指定的角色添加到工作區中。',
    ARRAY['roles', 'invitation', 'access-control']::text[],'public','system','2026-04-24T11:25:39.631905+00:00','7cf62b3b242f03e9b7889e041598b464fd164b5d7d1f01cba4a9eda874bbb8ed','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -381,13 +351,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1185cce5','1.0','ws_spec0001','建立 API 金鑰','procedural','markdown','使用 `curl` 命令向 `/api/v1/users/me/api-keys` 端點發送 POST 請求，以建立一個新的 API 金鑰。請求需包含授權 Bearer Token、Content-Type 為 `application/json`，以及包含金鑰名稱和範圍（例如 `kb:read`, `kb:write`）的 JSON 資料。',
    ARRAY[]::text[],'public','system','2026-04-25T02:39:30.610529+00:00','64f3676e69b048faf93b180a7bd9c33f59d965f34af7acd616c3933fa4b44cd7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -396,13 +364,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_156804b8','1.0','ws_spec0001','API 金鑰權限範圍：kb:write','factual','markdown','`kb:write` 權限範圍的 API 金鑰授予管理員角色能力，提供完全寫入權限。',
    ARRAY['api-key', 'scope', 'admin', 'write-access']::text[],'public','system','2026-04-24T11:25:40.640994+00:00','956a647920f96b7a1b1d0aff71ff87d58dc65179427575b5a85f87acd1dacaa3','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -411,8 +377,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_17e5a3aa','1.0','ws_spec0001','Multi-planner Escalate 至 Review Queue 呈現','factual','markdown','Multi-planner 架構中 escalate 至 `review_queue` 的呈現設計：
 
@@ -421,8 +386,7 @@ VALUES
 3. Escalate 操作觸發通知給 workspace 管理員。
 4. Review queue 的呈現不合併不同 planner 的 proposals，即使語意相似，保留完整溯源。',
    ARRAY['multi-planner', 'review_queue', 'escalate', '呈現', '通知']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','i7l5q6s8n9p0315m43op5678901234op5678901234op5678901234abcdef123456789012','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -431,13 +395,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_184116bb','1.0','ws_spec0001','入門流程物件結構','factual','markdown','入門流程狀態由一個 `onboarding` 物件表示，包括 `completed`、`steps_done`、`steps_skipped` 和 `first_kb_id` 等欄位。',
    ARRAY['onboarding', 'data-model', 'json']::text[],'public','system','2026-04-24T11:25:40.381562+00:00','5651cf39b30ea36b6a4a87ddb2eef33aa78408a213d5570ebbd306c438554bb1','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -446,13 +408,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_19f73d5a','1.0','ws_spec0001','Decay 產品立場','factual','markdown','MemTrace 對 decay 的產品立場：衰減是知識新鮮度的自然反映，不是懲罰。未被引用的知識會隨時間降低權重，但不會自動刪除。`pinned` 標記可凍結節點或邊的權重，防止衰減。Decay 參數（`half_life_days`、`min_weight`）可由工作區層級設定，不強制刪除節點。',
    ARRAY['衰減', 'decay', 'pinned', '產品立場']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','a3f1d2e4b5c6071809abcdef1234567890abcdef1234567890abcdef12345678','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -461,28 +421,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_1b09b6ed','1.0','ws_spec0001','記憶節點準確性維度','factual','markdown','`memory_nodes` 表中的 `dim_accuracy` 欄位類型為 NUMERIC(4,3)，表示信任分數的一個維度。',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'trust_dimension']::text[],'public','system','2026-04-24T11:25:39.152271+00:00','15656e7278fb5473c5f316278cbe9a4ad0be33234c87f6b7dd9d4e505fcd217b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1b0a6c77','1.0','ws_spec0001','API 金鑰/對談停權閾值','factual','markdown','如果走訪率在 10 分鐘內超過 2000 次請求，API 金鑰或對談將被停權。',
    ARRAY['api-key', 'session', 'security', 'rate-limiting', 'threshold']::text[],'public','system','2026-04-24T11:31:27.743224+00:00','b44ed89375ac73f6c55e71e4e97b9521aa00be67b37609a04552c515ac852362','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -491,13 +434,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1b50a9b1','1.0','ws_spec0001','記憶節點編輯器欄位','factual','markdown','建立／編輯表單提供多個欄位供使用者輸入。',
    ARRAY['editor', 'fields', 'memory-node']::text[],'public','system','2026-04-24T11:25:39.497376+00:00','b20effdba67a36c189fcc02d6a494aa870056bd4e8a4f6b878040a55275100d1','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -506,34 +447,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_1f68ceaf','1.0','ws_spec0001','Trust Computation Deferred (v1 Design Decision)','factual','markdown','v1 defers full dynamic trust computation. `trust.score` is currently a static value (linear weighting of accuracy, freshness, utility, author_rep) and does not update in real time in response to behavioral events.
-
-**Reason for deferral**: Complete dynamic trust computation requires an agent feedback loop that has not yet been fully designed.
-
-**Deferred scope**: `author_rep` updates, vote-driven score recalculation, decay-trust interaction effects.
-
-v2 plans to introduce an event-driven trust update mechanism.',
-   ARRAY['trust', 'computation', 'deferred', 'design-decision', 'v1']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:22.059749+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1fc8782f','1.0','ws_spec0001','記憶節點英文內文','factual','markdown','`memory_nodes` 表中的 `body_en` 欄位類型為 TEXT，存儲記憶節點的英文正文。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.987893+00:00','38def61e607255d825e41054e1ef73f9bbe01b69d8df3be4d7d18a59eb8e41ac','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -542,13 +460,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1fc9c6b4','1.0','ws_spec0001','AI 代理工作流程：搜尋現有節點','procedural','markdown','AI 代理在建立新節點前，應先呼叫 `search_nodes("認證機制")` 等功能，確認知識庫中是否已存在相關節點，避免重複。',
    ARRAY['ai代理', '工作流程', '節點建立', '搜尋']::text[],'public','system','2026-04-25T02:40:02.057085+00:00','ce76ce6a71d629231411b6006cde3379e98c2074b2cf40c3fc050542c9a16cfb','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -557,8 +473,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_21482947','1.0','ws_spec0001','JWT Token Refresh Race Condition Fix (authChecking Pattern)','preference','markdown','## Problem
 
@@ -584,8 +499,7 @@ Added authChecking state to block all data loading until token validation comple
 
 Decodes JWT payload exp field with a 60-second buffer to avoid boundary race conditions.',
    ARRAY['auth', 'frontend', 'jwt', 'race-condition', 'ux']::text[],'public','system','2026-05-11T00:00:00+00:00','','human',
-   0.85,0.92,1.0,0.85,0.726,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -594,13 +508,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_21638c34','1.0','ws_spec0001','POST /edges/{edge_id}/rate 端點','procedural','markdown','此端點用於為路徑提交明確的評分（1-5）。',
    ARRAY['api', 'rest', 'rating', 'edge']::text[],'public','system','2026-04-24T11:25:40.201027+00:00','cb4131be818878d469bd1c212bcc26506d6ca08b7a42d30d9a8991f3ffa33f05','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -609,13 +521,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_22c9d8d6','1.0','ws_spec0001','自然衰減機制','factual','markdown','系統會自動管理知識的衰減，除非節點或邊被手動釘選（pinned）。',
    ARRAY['衰減', '權重', 'decay']::text[],'public','system','2026-04-24T11:31:27.612477+00:00','81794826c7a783c9fbfa0d8eaa2e8526a26dc20b3f852f4a42811973c0866b02','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -624,8 +534,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2563d8c1','1.0','ws_spec0001','Multi-planner claim_task 互動邊界','factual','markdown','Multi-planner 環境中 `claim_task` 的互動邊界規則：
 
@@ -635,8 +544,7 @@ VALUES
 4. Planner 不得 claim 其他 planner 已持有的 task，需透過 harness 協調轉移。
 5. 多個 planner 爭搶同一 task 視為任務分派設計錯誤，需調整策略。',
    ARRAY['multi-planner', 'claim_task', '任務', '互動', '樂觀鎖']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','h6k4p5r7m8o9204l32no4567890123no4567890123no4567890123abcdef12345678901','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -645,13 +553,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_25ad6564','1.0','ws_spec0001','個人工作區可見性','factual','markdown','「私有」(private) 工作區對所有其他使用者完全隱藏。',
    ARRAY['workspace-type', 'visibility', 'private']::text[],'public','system','2026-04-24T11:25:39.649243+00:00','d9e0ea13c43e0e843f62e0fde909343ab684ea90f2dd3e4d953aaf5dbb099de5','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -660,13 +566,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_25b80084','1.0','ws_spec0001','非成員存取條件式公開工作區','factual','markdown','當非成員使用者存取 `conditional_public`（條件式公開）工作區時，伺服器會回傳經過精簡的圖譜內容（stripped graph payload）。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.722141+00:00','1ad8d1c6a71fd754a34836bb2dcb3ae02a1792f1819065808a800393d273da28','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -675,13 +579,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_263e8dd9','1.0','ws_spec0001','邀請 API 端點','factual','markdown','發出工作區邀請的 API 端點為 `POST /workspaces/{ws_id}/invites`。',
    ARRAY['api', 'invitation', 'admin']::text[],'public','system','2026-04-24T11:25:39.611211+00:00','6fc2382e4ea2d6fb918a89b618c797778a7778327c86d6939a3571ef142d5cfc','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -690,13 +592,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2698efe6','1.0','ws_spec0001','POST /edges/{edge_id}/traverse 請求體','factual','markdown','請求體包含一個 `actor_id` (例如 `usr_abc123` 或 `apikey_abc123`) 以及一個可選的 `note` 欄位。',
    ARRAY['api', 'request-body', 'traversal']::text[],'public','system','2026-04-24T11:25:40.220298+00:00','8da827ee692a2b067d6b98da026c3001d951a76bece032cb35ba88cef2a09dda','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -705,8 +605,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_26ff6cfe','1.0','ws_spec0001','Harness Proposals 批次處理設計','factual','markdown','Harness 層負責 multi-agent fan-out 的 proposal 批次處理：
 
@@ -715,8 +614,7 @@ VALUES
 3. Conductor 角色僅通知（notify），不調度模型或合併提案。
 4. Harness 本身不持久化 proposals，持久化由 `review_queue` 承接。',
    ARRAY['harness', 'proposals', '批次', 'fan-out', 'conductor', 'multi-agent']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','e3h1m2o4j5l6971i09kl1234567890kl1234567890kl1234567890abcdef12345678','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -725,13 +623,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_27e2935e','1.0','ws_spec0001','工作區角色與權限','factual','markdown','工作區內的知識存取嚴格基於角色，特別是對於「有條件公開」(conditional_public) 和「受限」(restricted) 的工作區。',
    ARRAY['access-control', 'roles', 'permissions']::text[],'public','system','2026-04-24T11:25:39.701124+00:00','d1a47e7c44150c33817a30ae6a42bfaf25f2225950b5aff7824c979513ec19be','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -740,33 +636,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_28510af2','1.0','ws_spec0001','回饋信號保護機制','factual','markdown','使用者投票（up/down）與 verification 為回饋信號，設計上需防止操控：
-
-1. 同一使用者對同一節點只計一票。
-2. Verification 需要足夠的 `author_rep` 才能觸發。
-3. 回饋信號不直接修改 `trust.score`，而是排入非同步佇列，由 battery 驗證後才更新。
-4. 大量短時間回饋（群體攻擊）觸發 safety 旗標，暫停更新直到人工審查。',
-   ARRAY['回饋', 'feedback', '保護', '寫入治理', 'vote', 'verification']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','a9d7i8k0f1h2537e65gh7890123456gh7890123456gh7890123456abcdef1234','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2a909fec','1.0','ws_spec0001','create_node 驗收情境：僅填寫 title_en','factual','markdown','驗收情境之一是測試 `create_node` 函數在只填寫 `title_en` 而不填寫 `title_zh` 的情況下，是否能正常建立節點，且 `title_zh` 預設為空字串。',
    ARRAY['驗收情境', '節點建立', 'api', '測試']::text[],'public','system','2026-04-25T02:39:27.638354+00:00','ad2e98d78ac8c1440456beee48b50a220b21705bd120a7fbdb0c32c8d6ca88fa','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -775,13 +649,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2c0de61a','1.0','ws_spec0001','驗收情境：不傳 workspace_id','procedural','markdown','驗收情境之一：當呼叫工具不傳遞 `workspace_id` 時，系統應使用 `MEMTRACE_WS` 的預設值，且行為應與現有版本相同。',
    ARRAY['驗收測試', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.160150+00:00','89d20e0e7af63433f78a354afc2310c674a8000d91be7a2f7763c8b069a72691','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -790,13 +662,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2c1bd9d5','1.0','ws_spec0001','對話 API：發送消息 (POST /chat)','procedural','markdown','透過 POST 請求向指定的工作區發送消息。可以傳遞可選的 `session_id` 以繼續現有對話。',
    ARRAY['api', 'chat', 'message', 'conversation', 'post']::text[],'public','system','2026-04-24T11:31:27.693915+00:00','6b15654db2b55b29e7943d96ebfe8bd110b52e5febab150f4e704a1b2117ab6b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -805,8 +675,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2ccb546a','1.0','ws_spec0001','OpenAI 相容 API 端點:以工作區為模型的 RAG chat','factual','markdown','MemTrace 提供 **OpenAI 相容端點**(前綴 `/v1`),讓既有的 OpenAI SDK 或工具能直接把一個工作區當成「模型」做混合檢索問答(hybrid RAG)。認證沿用外部 API Key(`Authorization: Bearer mt_...`,見「REST API 與外部 API Key」)。
 
@@ -831,8 +700,7 @@ VALUES
 
 > 對應 seed 節點 mem_i005;程式碼:packages/api/routers/openai_compat.py。',
    ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','usr_6bc7b4c7','2026-07-24T22:53:22.095197+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -841,13 +709,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2e101ff1','1.0','ws_spec0001','AI 使用日誌表結構','factual','markdown','建立新的 `ai_usage_log` 表，包含 `id`, `user_id`, `key_source`, `provider`, `model`, `feature`, `workspace_id`, `node_id`, `tokens_input`, `tokens_output`, `tokens_total`, `latency_ms`, `success`, `error_code`, `called_at` 等欄位。',
    ARRAY['ai', '說明']::text[],'public','system','2026-04-24T11:25:40.887123+00:00','aca74ab39cb65f069516c41944edd02ff6232f8dea53e0413c1c026bad64746c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -856,13 +722,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_31b38aa1','1.0','ws_spec0001','指南內容來源共用','factual','markdown','`NODE_GUIDE` 和 `EDGE_GUIDE` 的內容與 `get_schema` 工具共用同一份來源，該來源是從 `SCHEMA_GUIDE` 常數拆分而來。',
    ARRAY['schema_guide', 'node_guide', 'edge_guide', 'get_schema', 'source']::text[],'public','system','2026-04-25T02:39:31.349734+00:00','6dd2202e0239d34dcbc455ca48e987489b046a8e53676f2c290064bc4f23d649','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -871,13 +735,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_32bc6360','1.0','ws_spec0001','排程呼叫 `apply_node_archiving()`','procedural','markdown','排程器應補上對 `apply_node_archiving()` 函式的每日 UTC 02:00 呼叫，該函式已存在但目前未被觸發。',
    ARRAY['scheduler', 'node-archiving']::text[],'public','system','2026-04-25T02:38:35.076074+00:00','014a6e02054ebb86a8d31ec981406f8fa1b145a2fe86d02590c5310b59f8a95d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -886,8 +748,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3362c694','1.0','ws_spec0001','Dual-Track Deletion Semantics','factual','markdown','MemTrace uses dual-track deletion semantics:
 
@@ -896,8 +757,7 @@ VALUES
 
 System actors may perform hard-deletes and must notify the owners of associated nodes.',
    ARRAY['deletion', 'soft-delete', 'hard-delete', 'tombstone', 'semantics']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:03.223515+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -906,8 +766,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_35036bb8','1.0','ws_spec0001','Agent 操作介面規範：僅使用 MCP，不直接呼叫 REST API','procedural','markdown','## 規範
 
@@ -929,8 +788,7 @@ AI agent、coding agent、外部 harness 與自動化流程操作 MemTrace 時�
 - MCP 回傳權限不足、驗證失敗、限流或暫時錯誤時，依 tool result 處理，不依賴 HTTP status code。
 - 所有寫入仍遵守 workspace 權限、safety review 與適用的審核機制。當責歸屬見「寫入當責模型」（mem_8ac95ea6）：經認證使用者指揮 agent 的寫入，以該使用者為 author 並由其當責，屬正規路徑而非繞過審核的捷徑。',
    ARRAY['agent-guide', 'mcp-only', 'governance', 'security', 'tool-usage', 'public-policy']::text[],'public','usr_6bc7b4c7','2026-06-21T15:44:37.421027+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -939,13 +797,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
-  ('mem_35f0002a','1.0','ws_spec0001','檢視者角色能力','factual','markdown','檢視者可以搜索、列出和獲取節點、追蹤走訪、對節點進行評分（votes_up / votes_down），以及使用對話式問答。他們不能創建、修改或刪除任何節點、邊或工作區設置，也不能提出更改建議。',
+  ('mem_35f0002a','1.0','ws_spec0001','檢視者角色能力','factual','markdown','檢視者可以搜索、列出和獲取節點、追蹤走訪，以及使用對話式問答。他們不能創建、修改或刪除任何節點、邊或工作區設置，也不能提出更改建議。',
    ARRAY['role', 'viewer', 'capabilities', 'restrictions']::text[],'public','system','2026-04-24T11:25:40.544502+00:00','05de91add0c34978b1ec1aceb37bff828648288caadf274fa3b0143c5f95a75a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -954,8 +810,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_38c3acd8','1.0','ws_spec0001','Analytics dashboard and token efficiency report','procedural','markdown','## KB health summary
 
@@ -979,8 +834,7 @@ Data is recorded in `mcp_query_logs` for read tools. These analytics describe st
 
 This node is a condensed companion to `mem_a005_en`, which carries the full field-by-field reference. It is not currently managed by the `examples/spec-as-kb/` seed source of truth; consolidation is pending review.',
    ARRAY['analytics', 'dashboard', 'token-efficiency', 'kb-health', 'mcp-logs', 'ui', 'mcp-tool']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
-   0.651,0.95,1.0,0.95,0.726,
-   0,0,0,3,1)
+   3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -989,13 +843,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3b303d15','1.0','ws_spec0001','處理 createNode/updateNode 的 422 驗證錯誤','procedural','markdown','當 createNode 或 updateNode API 回傳 422 驗證錯誤時，應將回應中的 detail 陣列萃取為可讀的提示訊息。',
    ARRAY['api', '錯誤處理', '驗證']::text[],'public','system','2026-04-25T02:40:01.366196+00:00','409f48944a83ee3860534aa1c918f07f3d9c337c4c946bf715b933bd5360ea67','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1004,8 +856,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3c063665','1.0','ws_spec0001','Phase 6.2 — 基礎設施層 (Track C, T25–T32)','factual','markdown','## Phase 6.2 Track C — Infrastructure
 
@@ -1023,8 +874,7 @@ Migration `064_node_events.sql`；embedding 完成後由事件觸發 edge sugges
 ### wait_for_embedding / get_embedding_status
 MCP 工具可等待單一節點 embedding 就緒，或查看 workspace 的 pending 與 retry queue 數量。',
    ARRAY['phase-6.2', 'embedding', 'retry', 'event-driven', 'infrastructure', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:11:43.018234+00:00','','human',
-   0.647,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1033,8 +883,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3c9c261b','1.0','ws_spec0001','Conductor:設計結論與角色邊界','factual','markdown','# Conductor:設計結論與角色邊界
 
@@ -1066,8 +915,7 @@ VALUES
 
 已實作（`services/conductor.py`、`routers/conductor.py`）。延伸主題:自我審議迴圈（pending inquiry → conductor → fan-out → converge → 分層回寫）與回寫規則。',
    ARRAY['conductor', 'webhook', 'scale', 'inquiry', 'agent-loop', 'design-conclusion', 'public']::text[],'public','usr_6bc7b4c7','2026-06-23T02:51:51.700125+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1076,8 +924,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_412b32d4','1.0','ws_spec0001','MemTrace Core Purpose and Positioning','factual','markdown','MemTrace''s core purpose: it is not a general-purpose database but an **auditable shared knowledge graph** designed for human-AI collaboration.
 
@@ -1088,8 +935,7 @@ Three core differentiators:
 
 All features — governance, telemetry, notifications, decay — serve this core: making the knowledge lifecycle visible, manageable, and trustworthy for humans.',
    ARRAY['core-purpose', 'product-positioning', 'knowledge-graph', 'design-philosophy', 'human-ai-collaboration']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:25.972210+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1098,13 +944,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_41c6465d','1.0','ws_spec0001','POST /edges/{edge_id}/traverse 端點實作','procedural','markdown','此端點用於記錄邊的走訪，這會觸發共同存取加成（co-access boost）並增加端點兩側節點的走訪計數。',
    ARRAY['api', 'rest', 'traversal', 'edge', 'co-access-boost']::text[],'public','system','2026-04-24T11:25:40.181154+00:00','92857f221640729e4aed86a22587b9cceb30a11eb100a6498d8ffcc15cb2ba88','ai',
-   0.595,0.8,1.0,0.02,0.5,
-   0,0,0,2,2)
+   2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1113,13 +957,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_42669ba9','1.0','ws_spec0001','POST /edges/{edge_id}/rate 請求體','factual','markdown','請求體包含一個 `rating` 欄位（1 到 5 之間的整數）和一個可選的 `note` 欄位。每個執行者對每條邊只能提交一次評分，後續提交將覆蓋先前的評分。',
    ARRAY['api', 'request-body', 'rating', 'constraints']::text[],'public','system','2026-04-24T11:25:40.239378+00:00','a5a308930ff1aefa0598e53a5f2529fd427006c614b29d6f873d4ac68e4b6ed4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1128,13 +970,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4379cf51','1.0','ws_spec0001','內容格式欄位','factual','markdown','所選的輸入模式會作為 content.format 欄位持久化在節點中（參見 §4.1 schema 擴充）。',
    ARRAY['memory-node', 'schema', 'content-format']::text[],'public','system','2026-04-24T11:25:39.438284+00:00','c8318b292f3ffcbd257b802a6890d12035f468d5483c527af32c73489ff3955d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1143,13 +983,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_45350e40','1.0','ws_spec0001','AI 呼叫執行位置','factual','markdown','AI 呼叫由客戶端或伺服器使用使用者提供的金鑰發出。',
    ARRAY['ai', 'client-side', 'server-side', 'api']::text[],'public','system','2026-04-24T11:25:40.470219+00:00','a3a3895d6cb9185703b032de058c6dd65efd9cc05ede25cb259018cb9089e18c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1158,13 +996,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_45b2269d','1.0','ws_spec0001','記憶節點作者','factual','markdown','`memory_nodes` 表中的 `author` 欄位類型為 TEXT，存儲記憶節點的作者。',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:39.051144+00:00','a6702d11b7568adb799d43ae69e7fccd6ac9372871cf1d585ea67034809ab809','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1173,13 +1009,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4621ebb5','1.0','ws_spec0001','MemTrace 功能實作展開細項 - 第二階段完成','context','markdown','本文件將待辦事項中的高階規格，展開為提供給前端 (UI)、後端 (API)、資料庫 (DB) 開發人員具體可執行的工作細項。',
    ARRAY['memtrace', 'feature-breakdown', 'project-management', 'phase-2']::text[],'public','system','2026-04-25T02:39:32.330603+00:00','3fefc7da371b9f5f6f0dd7fcadad0fc77650f3b51d4496bafe2bace9ab83ce41','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1188,8 +1022,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4789a116','1.0','ws_spec0001','Account-Level API Key: Design Decision (Phase 4.10)','preference','markdown','## Decision
 
@@ -1221,8 +1054,7 @@ Role hierarchy: viewer < contributor < admin (owner treated as admin)
 - idx_wsm_user index ensures performant role lookups
 - UI Settings > MCP / API Keys removes scope/workspace selectors',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','','human',
-   0.85,0.92,1.0,0.88,0.726,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1231,8 +1063,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_47aff2c9','1.0','ws_spec0001','多 Planner 語意邊界','factual','markdown','多 planner 架構的語意邊界規則：
 
@@ -1240,8 +1071,7 @@ VALUES
 - Planner 之間的協作透過 harness 的 proposal 機制，而非直接溝通。
 - 邊界衝突（兩個 planner 提出相互矛盾的決策）由 harness 偵測，送入 contradiction 解決流程，不允許 planner 自行解決跨邊界衝突。',
    ARRAY['multi-planner', '語意', '邊界', '設計決策', 'harness']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','g5j3o4q6l7n8193k21mn3456789012mn3456789012mn3456789012abcdef1234567890','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1250,8 +1080,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_47fe8f58','1.0','ws_spec0001','節點 resolution_status：知識狀態三態機','factual','markdown','每個 Memory Node 包含 `resolution_status` 欄位，記錄該知識的生命週期狀態。
 
@@ -1277,8 +1106,7 @@ VALUES
 
 兩者獨立，一個 `status=active` 節點可以同時是 `resolution_status=superseded`。',
    ARRAY['memory-node', 'resolution-status', 'state-machine', 'lifecycle']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','004a12e1c529f26716c3cfad043f971bb7aa91d2c719cb1a051c69bf708ba770','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1287,13 +1115,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4abf6ce6','1.0','ws_spec0001','AI Chat 整合跨知識庫上下文','procedural','markdown','在 AI Chat 中，使用者應能選擇是否將關聯的知識庫納入跨知識庫上下文。',
    ARRAY['UI', 'AI Chat', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:47.040241+00:00','d15cbc156c54c6415189a7eab841f4cc072a4aacda160f0d1d45b3eaa8685d13','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1302,13 +1128,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4b0125e0','1.0','ws_spec0001','攝入節點的來源文件保留策略','factual','markdown','當文件被攝入時，其原始來源文件會被保留為一個特殊節點，以確保萃取的可溯性，並提供從任何萃取節點回到其來源段落的直接連結，而不污染主知識圖譜。',
    ARRAY['存取', '來源', '文件']::text[],'public','system','2026-04-24T11:25:40.736854+00:00','944b98fa9abb8ad8331129296039305a02c7b9291c5257066ca17a2918a88b3a','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1317,13 +1141,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4c589d76','1.0','ws_spec0001','記憶節點創建時間戳','factual','markdown','`memory_nodes` 表中的 `created_at` 欄位類型為 TIMESTAMPTZ，記錄記憶節點的創建時間。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'timestamp']::text[],'public','system','2026-04-24T11:25:39.069241+00:00','6469215e9e84619bfd84e3c3039b487afc9a7f9de83a8e3c6098ba15e5a4ad33','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1332,8 +1154,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4cc50909','1.0','ws_spec0001','刪除語意雙軌','factual','markdown','MemTrace 採雙軌刪除語意：
 
@@ -1342,8 +1163,7 @@ VALUES
 
 System actor 可執行 hard-delete，需通知關聯節點的 owner。',
    ARRAY['刪除', 'soft-delete', 'hard-delete', '語意', 'tombstone']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','b4e2d3f5a6c7082910bcdef2345678901bcdef2345678901bcdef234567890ab','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1352,23 +1172,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_4f8e3f0b','1.0','ws_spec0001','記憶節點新鮮度維度','factual','markdown','`memory_nodes` 表中的 `dim_freshness` 欄位類型為 NUMERIC(4,3)，表示信任分數的一個維度。',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'trust_dimension']::text[],'public','system','2026-04-24T11:25:39.174808+00:00','c1f8cd3af9c051f8cfc0a733c22430151a7cc93d1acb0271c531b2a83dc854ec','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_51900d65','1.0','ws_spec0001','queried_via_mcp Telemetry and Edge Class Recording','factual','markdown','Operations performed via MCP tools must record `queried_via_mcp` telemetry:
 
@@ -1377,8 +1181,7 @@ VALUES
 3. `edge_class` statistics are used to analyze which relationship types AI agents use most frequently.
 4. Telemetry does not include query content — only structural paths and edge types are recorded.',
    ARRAY['telemetry', 'mcp', 'edge_class', 'queried_via_mcp', 'traversal']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:21.641743+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1387,13 +1190,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_524c73f6','1.0','ws_spec0001','D4 節點歸檔排程完整化','procedural','markdown','此功能目標是補齊缺失的排程呼叫，以完整實作節點從衰減到歸檔的生命週期。',
    ARRAY['scheduler', 'node-management', 'archiving']::text[],'public','system','2026-04-25T02:40:00.508542+00:00','4c99e0484ce778915b995e295444a4ca0df29299e9704f530886f6082898b1b1','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1402,13 +1203,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_526945e4','1.0','ws_spec0001','MCP 傳輸模式：HTTP + SSE','factual','markdown','當 `memtrace serve --mcp` 運行時（第二階段），可以使用 HTTP + SSE 傳輸模式。',
    ARRAY['mcp', 'transport', 'http', 'sse', 'phase-2']::text[],'public','system','2026-04-24T11:25:40.327756+00:00','8dfd08b535e9fe8263dcd1cf08eebf3b2f95bc51b3a1c9d7fc574a6d12ecbb5d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1417,13 +1216,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_52ac8940','1.0','ws_spec0001','純文本輸入模式','factual','markdown','在 `plain` 模式下，輸入內容會按原樣存儲在 `content.body` 中，不進行任何渲染標記。',
    ARRAY['input-mode', 'plain-text']::text[],'public','system','2026-04-24T11:25:39.391767+00:00','0d46112da947dead20360dc05d449e40425556481707045ac95fe29254d918b3','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1432,13 +1229,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_53258df1','1.0','ws_spec0001','JWT Token 生命週期','factual','markdown','JWT Token 的生命週期為 7 天。用戶端應在過期前透過 `/auth/refresh` 端點重新整理 Token。',
    ARRAY['jwt', 'token', '生命週期', '重新整理']::text[],'public','system','2026-04-24T11:25:40.146846+00:00','8399bf427db47ef13542102eafca9d11e86950d69a8ad492ce82ba7fd62fe25e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1447,8 +1242,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_53bad7a9','1.0','ws_spec0001','安全審查背景作業：safety_review_queue 與 safety_sweep','factual','markdown','MemTrace 有兩個互補的安全審查背景作業，分別採用不同機制。
 
@@ -1482,8 +1276,7 @@ provider 來源優先順序：`system:safety` 指定金鑰 → fallback 至系�
 | 心跳可見 | ✓ | ✗ |
 | Token 消耗 | 有 | 無 |',
    ARRAY['safety', 'background-job', 'scheduler', 'ai', 'rule-based']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','24554e25cc48541d90c9a4c9bd73834c60abb4f94b522b6c33e97c88cb5899f0','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1492,13 +1285,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_54473627','1.0','ws_spec0001','POST /nodes/{node_id}/traverse 端點','procedural','markdown','此端點用於記錄調用者已訪問特定節點。',
    ARRAY['api', 'rest', 'traversal', 'node']::text[],'public','system','2026-04-24T11:25:40.164919+00:00','d4a83d290c2c0d364f5d646e3c3032f7dc70ea68d28ded6eaba1f5cb0b7834e4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1507,13 +1298,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_54cc2c31','1.0','ws_spec0001','非成員存取單一節點權限','factual','markdown','非成員嘗試執行 GET /api/v1/workspaces/{ws_id}/nodes/{id} 將會回傳 HTTP 403。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.810020+00:00','b459d17d111fb8c96441d6b90de474522e0adef6a244d7932ff73fa93c624ea2','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1522,34 +1311,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_56118060','1.0','ws_spec0001','Trust 計算暫緩（v1 設計決策）','factual','markdown','v1 暫緩完整 trust 動態計算。目前 `trust.score` 為靜態值（由 accuracy、freshness、utility、author_rep 線性加權），不隨行為事件即時更新。
-
-**暫緩原因**：完整信任動態計算需要 agent feedback loop，尚未設計完成。
-
-**暫緩範圍**：author_rep 更新、vote 驅動的 score 重算、decay-trust 交互效應。
-
-v2 計畫引入事件驅動的 trust 更新機制。',
-   ARRAY['trust', '計算', '暫緩', '設計決策', 'v1']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','e7b5g6i8d9f0315c43ef5678901234ef5678901234ef5678901234abcdef12','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_565d7142','1.0','ws_spec0001','記憶節點新增來源文件參考欄位','factual','markdown','為了將萃取節點連結到其來源段落，memory_nodes 表中新增了 source_doc_node_id（引用來源文件節點 ID）和 source_paragraph_ref（段落級參考）欄位。',
    ARRAY['來源', '文件']::text[],'public','system','2026-04-24T11:25:40.793451+00:00','4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1558,13 +1324,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5a3bd1b0','1.0','ws_spec0001','輸入模式切換與內容轉換','factual','markdown','切換輸入模式不會自動轉換現有內容。',
    ARRAY['editor', 'input-mode', 'content-conversion']::text[],'public','system','2026-04-24T11:25:39.480432+00:00','d021d2e82b6639637bd114078242f8e2b2c15fd730461f24e271137b0b3c8e9a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1573,13 +1337,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5b28def8','1.0','ws_spec0001','移除知識庫關聯按鈕','procedural','markdown','使用者介面應包含一個按鈕，用於移除知識庫關聯，並附帶確認對話框。',
    ARRAY['UI', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:47.019233+00:00','63987de6f6b609d100025c5009e0017cc37a1357adbb70f5fa4d00659a74843d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1588,13 +1350,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5b9dd113','1.0','ws_spec0001','記憶導出功能','factual','markdown','使用者可以將目前的工作記憶導出為本機檔案。',
    ARRAY['memory-management', 'export']::text[],'public','system','2026-04-24T11:25:39.214139+00:00','e642c5361a573c1ec70f8f5f549a951819bcedae6c4c0110291c72e3bde360d4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1603,13 +1363,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5e292da7','1.0','ws_spec0001','來源格式參考範本','factual','markdown','不同的來源格式使用特定的參考格式：Markdown/純文字使用 §<heading> 或 ¶<paragraph_index>；PDF/DOCX 使用 page:<n>, para:<m>；PPTX 使用 slide:<n>；影片/音訊使用 <HH:MM:SS>-<HH:MM:SS>；網頁使用 <section heading or XPath fragment>。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.812338+00:00','588186fe569c2ea8746c1b3951552737e78c888f03e512bb9c31ce683af3aa0f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1618,13 +1376,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5e486c31','1.0','ws_spec0001','記憶節點內容類型','factual','markdown','`memory_nodes` 表中的 `content_type` 欄位類型為 ENUM，可能的值為 `factual` / `procedural` / `preference` / `context`。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:38.931076+00:00','179fb1239331cc5bbd9a469a659b3dfaa27968ce2e431f888b057fc4aff9e393','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1633,13 +1389,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5e541a9d','1.0','ws_spec0001','Markdown 模式下的即時預覽','factual','markdown','編輯器在 `markdown` 模式下必須提供即時預覽面板。',
    ARRAY['editor', 'markdown', 'preview']::text[],'public','system','2026-04-24T11:25:39.463663+00:00','cd53c9cd3540a9cc3d0e9462e2fb041b0f9775acd9c1c20a372955a4aa590bce','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1648,13 +1402,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6089d7d9','1.0','ws_spec0001','私有工作區搜尋與列表不可見性','factual','markdown','「私有」(private) 工作區不會出現在任何列表或搜尋結果中。',
    ARRAY['workspace-type', 'private', 'visibility']::text[],'public','system','2026-04-24T11:25:39.682293+00:00','f17d1b398b13665411a5e123be8e90e901051f72a5292d56240efdf3c25e755c','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1663,13 +1415,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_62d07b1d','1.0','ws_spec0001','AI 代理工作流程：確認節點建立狀態','procedural','markdown','在 AI 代理呼叫 `create_node` 後，若 API 回傳 201 狀態碼，應呼叫 `traverse(node.id)` 確認邊已建立；若回傳 202 狀態碼並帶有 `review_id`，則應呼叫 `list_review_queue()` 確認審核佇列狀態。',
    ARRAY['ai代理', '工作流程', '節點建立', 'api', '審核流程']::text[],'public','system','2026-04-25T02:39:26.187830+00:00','900865976521e0a50bd83f5ae1e63ce3cad6a2db9ff6e46516532a3dde144e24','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1678,13 +1428,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6709672b','1.0','ws_spec0001','B 關聯管理 UI','procedural','markdown','此功能目標是為跨知識庫關聯提供一個完整的設定介面，以補充現有的 API 功能。',
    ARRAY['ui', 'knowledge-base', 'association']::text[],'public','system','2026-04-25T02:39:05.267545+00:00','23d35304327fc4430ebc791c6c9b00a2c222a6c3516e33b32fb27dcf9990b9e9','ai',
-   0.924,0.95,0.901,0.98,0.92,
-   0,0,0,10,3)
+   10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1693,8 +1441,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_67362874','1.0','ws_spec0001','Provenance 與 Evidence 寫入語意','factual','markdown','節點的 `provenance` 欄位記錄知識的來源語意：
 
@@ -1703,8 +1450,7 @@ VALUES
 - 寫入時 `signature` 由系統計算，不允許客戶端覆寫。
 - `author` 記錄實際操作者身份（用戶 ID 或 system actor ID），與 `source_type` 互補而非重複。',
    ARRAY['provenance', 'evidence', '寫入', '語意', 'signature']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','f8c6h7j9e0g1426d54fg6789012345fg6789012345fg6789012345abcdef123','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1713,8 +1459,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_67912352','1.0','ws_spec0001','Private Workspace Design Boundaries','factual','markdown','Design boundaries for private workspaces (`visibility=private`) in MemTrace:
 
@@ -1723,8 +1468,7 @@ VALUES
 3. Private nodes may link to public nodes via edges, but back-references remain invisible externally.
 4. Telemetry for private workspaces is visible only to admins.',
    ARRAY['private', 'workspace', 'boundaries', 'design-decision', 'visibility']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:35.293874+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1733,13 +1477,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6a46a549','1.0','ws_spec0001','知識庫導出與匯入規範','context','markdown','關於導出類型、可篩選範圍和格式詳情的完整規範，請參閱 禮22。',
    ARRAY['specification', 'export', 'import']::text[],'public','system','2026-04-24T11:25:39.289665+00:00','1fe072bfa79a235c67cbcb708caaa9f62839ddcb301956885e5fc13d472ac11f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1748,8 +1490,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6c94cec3','1.0','ws_spec0001','知識治理 v1 核心政策','factual','markdown','知識治理 v1 核心政策：
 
@@ -1761,8 +1502,7 @@ VALUES
 
 v1 不含自動解決邏輯，所有衝突解決需人工參與。',
    ARRAY['知識治理', 'governance', 'v1', '政策', 'Tier0']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','d2g0l1n3i4k5860h98jk0123456789jk0123456789jk0123456789abcdef1234567','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1771,13 +1511,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6d8524a7','1.0','ws_spec0001','新數據模型欄位','factual','markdown','數據模型中新增了 `version`, `conflict_status`, `conflict_detail`, `source_doc_node_id`, 和 `source_paragraph_ref` 等欄位。',
    ARRAY['data-model', 'schema', 'update']::text[],'public','system','2026-04-24T11:31:27.718604+00:00','ce86c3a5dbe8e825cb9600f783656939236cc44481125fd58c074491c61e572c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1786,8 +1524,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6fa7699b','1.0','ws_spec0001','安全審查三層觸發機制','factual','markdown','寫入觸發安全審查的三層機制：
 
@@ -1795,8 +1532,7 @@ VALUES
 2. **非同步 Tier0 降級**：battery 發現嚴重問題時，節點降至 Tier0（不可見但保留），非同步通知管理員。
 3. **人工審查佇列**：contradiction 或 safety 旗標觸發 `review_queue`，需人工確認才能升回可見狀態。',
    ARRAY['安全', 'safety', '審查', '三層觸發', 'battery', 'Tier0']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','d6a4f5h7c8e9204b32def4567890123def4567890123def4567890123abcde1','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1805,13 +1541,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_71aebf92','1.0','ws_spec0001','驗收情境：查詢指定工作區節點','procedural','markdown','驗收情境之一：呼叫 `search_nodes(query="認證", workspace_id="ws_project_abc")` 應能成功查詢 `ws_project_abc` 工作區中的節點。',
    ARRAY['驗收測試', '工作區', '查詢']::text[],'public','system','2026-04-25T02:39:48.355492+00:00','8afa92eb018c4301321a6ed7b199a7ec28ba488e9f2e899f75ef028ff4ea9e09','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1820,13 +1554,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_727c2cb2','1.0','ws_spec0001','入門流程完成狀態追蹤','factual','markdown','MemTrace 在服務端追蹤每個使用者的入門 (onboarding) 流程完成進度。',
    ARRAY['onboarding', 'user-state', 'server-side']::text[],'public','system','2026-04-24T11:25:40.365178+00:00','7afcc2ae675a0fe89085bcc1e691fed58e025a908cae57ce7cfdb000934644f6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1835,8 +1567,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_73103b60','1.0','ws_spec0001','Multi-Planner claim_task Interaction Boundaries','factual','markdown','Rules governing `claim_task` interactions in multi-planner environments:
 
@@ -1846,8 +1577,7 @@ VALUES
 4. Planners must not claim a task already held by another planner; ownership transfers must be coordinated through the harness.
 5. Multiple planners competing for the same task is treated as a task-dispatch design error requiring a revised strategy.',
    ARRAY['multi-planner', 'claim_task', 'task', 'interaction', 'optimistic-lock']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:12.837060+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1856,8 +1586,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_739a4f45','1.0','ws_spec0001','Phase 4 P4-G: Self-hosted Ollama Provider Planning Decisions','preference','markdown','**Decision date:** 2026-04-27
 **Status:** Recorded in `docs/dev/phase4-plan.md`, awaiting implementation scheduling.
@@ -1891,8 +1620,7 @@ VALUES
 
 Small local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON schema, raising Review Queue rejection rates. Mitigations: UI hint to use ≥ 8B / Q5+, Review Queue surfaces the source provider/model, and longer-term `mcp_query_logs` lets the Analytics page show a cloud-vs-local extraction success-rate comparison.',
    ARRAY['phase-4', 'ollama', 'ai-provider', 'knowledge-sovereignty', 'planning', 'roadmap', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-04-27T13:20:55.037625+00:00','','human',
-   0.925,0.95,1.0,0.98,0.719,
-   0,0,0,12,1)
+   12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1901,13 +1629,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_73ea8135','1.0','ws_spec0001','簡化圖譜載荷結構','factual','markdown','簡化圖譜載荷包含 `preview_mode: true` 以及簡化後的 `nodes` 和 `edges` 數組。節點僅包含 `id` 和 `position`，而邊包含 `from`, `to`, 和 `relation`。',
    ARRAY['API優化', '簡化結構', 'api優化', '結構', '載荷']::text[],'public','system','2026-04-24T11:25:39.742298+00:00','cda26ec974454fdbdab284c8fb6a214080176621f450398f2a91a6605e980ddf','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1916,8 +1642,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_73ee2003','1.0','ws_spec0001','Phase 6.2 — MCP 表達層 (Track A, T01–T09)','factual','markdown','## Phase 6.2 Track A — MCP Expression Layer
 
@@ -1944,8 +1669,7 @@ packages/api/docs/mcp-contract.md 建立，涵蓋全部 33 個工具、Schema、
 ### T07–T09 Inquiry Paths
 Migration 058_inquiry_paths.sql；record_path 工具記錄 agent 探索路徑；search_with_history 工具查找相似歷史路徑供重播。',
    ARRAY['phase-6.2', 'mcp', 'detail_level', 'token_budget', 'inquiry_paths', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:11:43.018234+00:00','','human',
-   0.95,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1954,13 +1678,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7484cfc2','1.0','ws_spec0001','README/使用文件更新：多庫、不知 ID 使用情境','procedural','markdown','README 和使用文件已更新，說明多庫、不知 ID 使用情境：設定 `MEMTRACE_TOKEN`，然後先呼叫 `list_workspaces` 取得工作區清單，再決定要操作哪個工作區。',
    ARRAY['文件', '使用情境', '工作區', 'API']::text[],'public','system','2026-04-26T00:29:47.140277+00:00','6983266fb92ae46b22414142a0280713c5effeace03270342f52ae2abd1ed078','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1969,8 +1691,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_75368c60','1.0','ws_spec0001','Workspace Agent System Actor Design','factual','markdown','MemTrace defines two types of system actors:
 
@@ -1979,8 +1700,7 @@ VALUES
 
 Neither type contributes to human `author_rep` calculations. Telemetry records use `source_type="system"`.',
    ARRAY['system-actor', 'workspace-agent', 'identity', 'actor', 'telemetry']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:07.470915+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -1989,8 +1709,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_75f4fbdc','1.0','ws_spec0001','寫入治理：Fail-open 去重閘門','factual','markdown','去重閘門採 **fail-open** 設計：當去重服務不可用或超時，新節點仍可寫入，不因去重失敗而阻擋。
 
@@ -1998,8 +1717,7 @@ VALUES
 - 重複偵測基於語意相似度（embedding distance < threshold）而非精確比對。
 - 去重閘門失敗時寫入審計日誌，供事後追溯。',
    ARRAY['寫入治理', 'fail-open', '去重', 'dedup', 'review_queue']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','c1f9k0m2h3j4759g87ij9012345678ij9012345678ij9012345678abcdef123456','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2008,13 +1726,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_76037494','1.0','ws_spec0001','手動創建與編輯記憶節點','procedural','markdown','使用者可以透過 UI 中專用的編輯面板手動創建和編輯記憶節點。',
    ARRAY['memory-node', 'creation', 'editing', 'ui']::text[],'public','system','2026-04-24T11:25:39.311534+00:00','e1d24b6e7c1be1933fca1f5c438ed6deae3ddb38f9887c720feb6bd537e5e981','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2023,13 +1739,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_76d6491f','1.0','ws_spec0001','.mcp.json 設定檔更新為單實例寫法','procedural','markdown','`.mcp.json` 設定檔已更新為單實例寫法，移除了對每個知識庫一個實例的依賴，並整合了 token 設定。這簡化了配置，使其更易於管理。',
    ARRAY['設定檔', 'mcp', '架構', '配置']::text[],'public','system','2026-04-25T02:39:38.497095+00:00','61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2038,13 +1752,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_79dce6e3','1.0','ws_spec0001','記憶節點 Schema 版本','factual','markdown','`memory_nodes` 表中的 `schema_version` 欄位類型為 TEXT，固定為 ''1.0''。',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:38.872833+00:00','ba4fdaf3d15b468f342627140d094e4d7edd8e03d683ca2e527e33dca2be84ed','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2053,8 +1765,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7a94260e','1.0','ws_spec0001','Knowledge Governance v1 Core Policies','factual','markdown','Knowledge governance v1 core policies:
 
@@ -2066,8 +1777,7 @@ VALUES
 
 v1 contains no automatic resolution logic; all conflict resolution requires human participation.',
    ARRAY['knowledge-governance', 'governance', 'v1', 'policy', 'Tier0']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:47.882234+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2076,13 +1786,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7dfe253a','1.0','ws_spec0001','MCP 身份驗證','factual','markdown','驗證是透過傳遞 API 金鑰完成的，該金鑰作為 `MEMTRACE_API_KEY` 環境變量（stdio 模式）或 `Authorization` 標頭（HTTP 模式）傳遞。',
    ARRAY['mcp', 'authentication', 'api-key', 'environment-variable', 'http-header']::text[],'public','system','2026-04-24T11:25:40.347126+00:00','40ba3456cf0cbbf4aa1cf85bbac939f6d6e95a7488dd0d987161188f20053de6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2091,13 +1799,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7e3f40a4','1.0','ws_spec0001','新增知識庫關聯','procedural','markdown','使用者介面應提供功能，讓使用者可以搜尋並選擇目標知識庫進行關聯，僅限公共或已有存取權的知識庫。',
    ARRAY['UI', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:47.001045+00:00','f2473369340496fcb6392f6e752729905ea8a7cb37a37cebb1ce91ffeb268882','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2106,13 +1812,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7e74197c','1.0','ws_spec0001','AI Provider `embed` 方法簽名','factual','markdown','`embed` 方法接受 API 金鑰、模型名稱和文本字串，並返回包含浮點數列表（嵌入向量）和所用 token 數量的元組。',
    ARRAY['ai', 'embedding', 'api', 'method-signature']::text[],'public','system','2026-04-24T11:31:27.640059+00:00','8ca7e05bc01d9b03cc82dfdd508527e481f07deb3644e4b1dbdbb685d9ebe61e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2121,8 +1825,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7ed2003b','1.0','ws_spec0001','節點拆分原則(agent 寫入前必讀)','factual','markdown','一顆節點 = 一個能獨立檢索、獨立為真、獨立被更新的單元。
 
@@ -2137,8 +1840,7 @@ VALUES
 
 可用 relation 僅:depends_on / extends / related_to / contradicts / proceeds_to,勿自創。實例見「節點拆分範例:決策網(plan)怎麼拆」。',
    ARRAY['authoring', 'node-splitting', 'meta']::text[],'public','usr_6bc7b4c7','2026-05-31T08:38:20.119711+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2147,13 +1849,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7f0a2526','1.0','ws_spec0001','工作區設定中的「關聯知識庫」分頁','procedural','markdown','在使用者介面的工作區設定中新增一個分頁，用於管理關聯的知識庫。',
    ARRAY['UI', 'Workspace Settings', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:13:59.077027+00:00','b07954d0440f7a87d0c57d8eb15595501425aa56ef273f4c8fbf4159e9bb2f4f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2162,28 +1862,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_7f8829ed','1.0','ws_spec0001','記憶節點實用性維度','factual','markdown','`memory_nodes` 表中的 `dim_utility` 欄位類型為 NUMERIC(4,3)，表示信任分數的一個維度。',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'trust_dimension']::text[],'public','system','2026-04-24T11:25:39.190339+00:00','020d80e8d3685d96e7721f3ea118c1bd2cb4ea2707e2725207fdfa2f04ecdd0f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7f9fadcd','1.0','ws_spec0001','記憶節點中文正文','factual','markdown','`memory_nodes` 表中的 `body_zh` 欄位類型為 TEXT，存儲記憶節點的繁體中文正文。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.966141+00:00','d7824a074eb822f728708f7437e9754dbf474edae0ed0e7f62c5e84b47844983','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2192,13 +1875,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
-  ('mem_80054468','1.0','ws_spec0001','簡化圖譜載荷中省略的欄位','factual','markdown','簡化圖譜載荷響應中完全省略的欄位包括 `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, `trust_score` 以及所有來源 (provenance) 欄位。',
+  ('mem_80054468','1.0','ws_spec0001','簡化圖譜載荷中省略的欄位','factual','markdown','簡化圖譜載荷響應中完全省略的欄位包括 `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature` 以及所有來源 (provenance) 欄位。',
    ARRAY['資料載荷', 'API優化', '簡化結構']::text[],'public','system','2026-04-24T11:25:39.775592+00:00','b6201a17eb809238e3e05fdce0623986c75613178b63db97cecd1176547cd3ec','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2207,13 +1888,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8145c1ad','1.0','ws_spec0001','個人工作區邀請限制','factual','markdown','無法為「私有」工作區發出邀請，且不能添加非所有者使用者。',
    ARRAY['workspace-type', 'private', 'invitation', 'restriction']::text[],'public','system','2026-04-24T11:25:39.666242+00:00','435ab2d509c4abf3d81388b7bcca68ec976f2116156fc76bc3ee0e5a9a6baf63','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2222,13 +1901,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_82683707','1.0','ws_spec0001','MCP 傳輸模式：stdio','factual','markdown','stdio 是本地 CLI 使用的默認 MCP 傳輸模式。',
    ARRAY['mcp', 'transport', 'cli']::text[],'public','system','2026-04-24T11:25:40.307697+00:00','f880922d12b02e864797d55776d62aa807c4e9908e7c0cd744586cd744afcf2c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2237,13 +1914,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_82b732f5','1.0','ws_spec0001','內容格式欄位 (`content.format`)','factual','markdown','`content.format` 欄位是一個必填字串，接受值 `"plain"` 或 `"markdown"`，預設為 `"plain"`。',
    ARRAY['schema', '格式', '內容']::text[],'public','system','2026-04-24T11:25:39.870431+00:00','c804559e5fa18383474f35358a7146e7a9493a0cbf66038ca86a8e45800a35c4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2252,13 +1927,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8575b4a1','1.0','ws_spec0001','封存節點在預設視圖與搜尋中隱藏','factual','markdown','封存節點不會顯示在預設的圖譜視圖中，且會從搜尋結果中排除。',
    ARRAY['視圖', '隱藏', '封存']::text[],'public','system','2026-04-24T11:25:39.518038+00:00','0d0565328c95ff76b4d7bddc886b99868a2cef6b224c8263f7cfb5763f7e465f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2267,13 +1940,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_861a5678','1.0','ws_spec0001','記憶節點中文標題','factual','markdown','`memory_nodes` 表中的 `title_zh` 欄位類型為 TEXT，存儲記憶節點的繁體中文標題。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.887496+00:00','12328509dc7671ad30f9527c83a236ec95851b5d63e6c5365783c6b50b757d97','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2282,13 +1953,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_87639252','1.0','ws_spec0001','驗收情境：列出所有可存取工作區','procedural','markdown','驗收情境之一：當設定 `MEMTRACE_TOKEN` 後，呼叫 `list_workspaces()` 應回傳該 token 可存取的所有工作區清單。',
    ARRAY['驗收測試', '工作區', 'API', '認證']::text[],'public','system','2026-04-26T00:29:47.179895+00:00','f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2297,8 +1966,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8834dade','1.0','ws_spec0001','Multi-Planner Escalate to Review Queue Presentation','factual','markdown','Presentation design for escalations to `review_queue` in multi-planner architecture:
 
@@ -2307,8 +1975,7 @@ VALUES
 3. Escalation triggers a notification to workspace admins.
 4. The review queue does not merge proposals from different planners even when semantically similar — full provenance is preserved.',
    ARRAY['multi-planner', 'review_queue', 'escalate', 'presentation', 'notification']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:17.072353+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2317,13 +1984,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8a8214f3','1.0','ws_spec0001','記憶節點來源類型','factual','markdown','`memory_nodes` 表中的 `source_type` 欄位類型為 ENUM，可能的值為 `human` / `ai_generated` / `ai_verified`。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:39.108336+00:00','5dce0a872a0e0bec6f9fc2e51d4e0fc0593f549fbac11c16734de343d7cce113','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2332,8 +1997,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8ac95ea6','1.0','ws_spec0001','寫入當責模型:每筆寫入都有可究責的人(三條路徑)','procedural','markdown','# 寫入當責模型
 
@@ -2368,8 +2032,7 @@ MemTrace 的核心治理保證:**每一筆進入知識庫的寫入,都有一個�
 - AI 在路徑 1 是代筆、在路徑 3 是受 owner 授權執行;**AI 本身不是最終當責主體**。
 - 安全 / admission 審查（safety review、dedup、PII/secret）對所有路徑一律適用,與當責歸屬獨立。',
    ARRAY['governance', 'write-accountability', 'human-accountable', 'review-queue', 'ai-reviewer', 'public-policy']::text[],'public','usr_6bc7b4c7','2026-06-23T02:51:40.032826+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2378,13 +2041,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8c9d6883','1.0','ws_spec0001','列出已關聯知識庫','procedural','markdown','使用者介面應顯示目前已關聯的知識庫清單，包含其名稱、可見性及加入日期。',
    ARRAY['UI', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:46.907519+00:00','19f346e6b9ce368196351ab310fcc0fe214b2868b43cce79cd4c9920e8be0aa8','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2393,13 +2054,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8dc3944b','1.0','ws_spec0001','撤銷工作區邀請 API','procedural','markdown','提供 `DELETE /workspaces/{ws_id}/invites/{token}` 端點，用於撤銷已發送的工作區邀請。',
    ARRAY['api', '邀請管理']::text[],'public','system','2026-04-25T02:39:01.850026+00:00','93a44d63a64aa6011cdb805134454d4bf38d2959fdfc83f09af4b64fd2048c5d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2408,20 +2067,18 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8de9f0c0','1.0','ws_spec0001','MemTrace 核心目的定位','factual','markdown','MemTrace 的核心目的定位：不是通用資料庫，而是**可審計的共享知識圖**，專為人機協作設計。
 
 三個核心差異化：
 1. **可追溯**：知識有來源記錄（provenance）。
-2. **可信賴**：知識有信任度量（trust）。
+2. **可延續**：知識可被結構化串連、持續累積，不是一次性問答（structured & continuable）。
 3. **有時間語意**：知識有生命週期（decay/freshness）。
 
-所有功能設計（治理、telemetry、通知、衰減）都服務於這個核心：讓知識的生命週期對人類可見、可管理、可信賴。',
+所有功能設計（治理、telemetry、通知、衰減）都服務於這個核心：讓知識的生命週期對人類可見、可管理、可延續。',
    ARRAY['核心目的', '產品定位', '知識圖', '設計哲學', '人機協作']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','k9n7s8u0p1r2537o65qr7890123456qr7890123456qr7890123456abcdef12345678901234','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2430,13 +2087,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9209a508','1.0','ws_spec0001','記憶節點標籤','factual','markdown','`memory_nodes` 表中的 `tags` 欄位類型為 TEXT[]，存儲記憶節點的標籤，並已建立 GIN 索引。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'indexing']::text[],'public','system','2026-04-24T11:25:39.008653+00:00','56e5ce2c9c37c38be23ac86af4fe6b4d09f5df89d845026f4202d553b0f40f75','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2445,13 +2100,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_960858c8','1.0','ws_spec0001','.mcp.json 設定範例','factual','markdown','更新後的 `.mcp.json` 範例結構包含 `mcpServers` 物件，其中 `memtrace` 服務定義了 `command`、`args` 和 `env` 變數，如 `MEMTRACE_API`、`MEMTRACE_WS`、`MEMTRACE_LANG` 和 `MEMTRACE_TOKEN`。',
    ARRAY['設定檔', 'MCP', '範例', '環境變數']::text[],'public','system','2026-04-26T00:29:47.081337+00:00','cb8a163dc1c365306103f3ad0ff2315f25bf59e91ccf68703c3ca99fda285996','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2460,13 +2113,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_964c73a3','1.0','ws_spec0001','MEMTRACE_TOKEN 匿名行為','factual','markdown','若未傳遞 `MEMTRACE_TOKEN`，系統將維持匿名行為，僅能存取公開工作區，`list_workspaces` 將返回公開庫或空列表。',
    ARRAY['環境變數', 'API', '認證', '匿名存取']::text[],'public','system','2026-04-26T00:29:47.061108+00:00','12b69126a9d518c5b28e719a150430576fa04e99ea78b9b1c86d9a7769fee9eb','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2475,13 +2126,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_97757fb8','1.0','ws_spec0001','來源文件節點存取方法','factual','markdown','來源文件節點可透過直接 GET /workspaces/{ws_id}/nodes/{node_id}、專用的 GET /workspaces/{ws_id}/source-documents 端點，以及節點編輯器側邊欄中的「查看來源段落」連結進行存取。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.853431+00:00','20054bbc0e4ca5efb9dc19d5efcf7549ce87b43972a0aa5f0489f4250824e2a4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2490,8 +2139,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_98300428','1.0','ws_spec0001','MCP 節點存取 Telemetry：traversal_log 記錄（queried_via_mcp 已 deprecated）','factual','markdown','MCP 工具的 node 級存取 telemetry 記錄於 `traversal_log`，以真實 `actor_id` 為 key：
 
@@ -2500,8 +2148,7 @@ VALUES
 3. 呼叫級統計（工具、查詢、結果數、token）記於 `mcp_query_logs`；telemetry 不含節點內容。
 4. `queried_via_mcp` edge 與每 workspace 的 `(Workspace Agent)` 錨點已 deprecated 並移除；relation enum 值保留以向後相容，但不再寫入。',
    ARRAY['telemetry', 'mcp', 'traversal_log', 'queried_via_mcp', 'deprecated', 'traversal']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','j8m6r7t9o0q1426n54pq6789012345pq6789012345pq6789012345abcdef1234567890123','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2510,13 +2157,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_993fc9e6','1.0','ws_spec0001','節點走訪統計數據結構','factual','markdown','節點響應中的 `traversal` 物件包含 `count`（走訪次數）和 `unique_traversers`（唯一走訪者數量）欄位。',
    ARRAY['data-structure', 'traversal-stats', 'node']::text[],'public','system','2026-04-24T11:25:40.257768+00:00','66359e4b04b32eb74bda754d4a7ce4bb86ffb941c45a7f46889bfa738edbffd8','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2525,13 +2170,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_99877db7','1.0','ws_spec0001','管理員角色能力詳情','factual','markdown','管理員擁有所有貢獻者能力，並可以直接寫入節點和邊，繞過審核隊列。他們可以批准或拒絕貢獻者的提案、更改成員角色、移除成員、創建邀請連結、啟動工作區軟刪除以及取消待處理的刪除。',
    ARRAY['role', 'admin', 'capabilities', 'direct-write', 'member-management', 'workspace-lifecycle']::text[],'public','system','2026-04-24T11:25:40.578811+00:00','9595d963ebb096bb9babefc681a5b117abc51207b0587a462f1d2f5a847fb7f3','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2540,13 +2183,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9b4c8d95','1.0','ws_spec0001','新增內容類型：source_document','factual','markdown','content_type 列舉中新增了 source_document 值，以支援來源文件的保留。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.757174+00:00','82ce2be4c99239eecb2f93776b4e69fda7149935e80c8f2a181d4424f7672e7f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2555,13 +2196,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9d2bb35f','1.0','ws_spec0001','API 金鑰範圍與工具行為','factual','markdown','一個 API 金鑰可以持有這三種範圍中的恰好一種。MCP 工具遵循金鑰的範圍，行為與相同角色的真人使用者完全一致；例如，`kb:read` 金鑰不能調用 `create_node`，而 `kb:write` 金鑰可以直接調用 `create_node`。',
    ARRAY['api-key', 'scope', 'restriction', 'tool-integration']::text[],'public','system','2026-04-24T11:25:40.662171+00:00','ebf39bff13bb90908583ff5cb051532e6a089703a636a2ef60cb0edc2de260b1','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2570,13 +2209,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9d419d24','1.0','ws_spec0001','記憶節點表','factual','markdown','數據庫中的 `memory_nodes` 表存儲所有記憶節點的數據。',
    ARRAY['database', 'schema', 'memory_nodes']::text[],'public','system','2026-04-24T11:25:38.834888+00:00','6d5d61fadf3d71c95c9a3003ed98545b06907cc17eaf4fb39604b234efd3aec2','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2585,13 +2222,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9fbbb5eb','1.0','ws_spec0001','Memory Node v1 手動編輯的新增欄位','factual','markdown','為了支持手動創建和編輯，`content.format` 和 `provenance.updated_at` 欄位被附加到 `node.v1.json`。',
    ARRAY['schema', '編輯', '欄位']::text[],'public','system','2026-04-24T11:25:39.850666+00:00','452abb112c53437818f068b051dae5b3ed9838e84f1596251e5802d0afdf7c11','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2600,13 +2235,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9fe95573','1.0','ws_spec0001','純文本導出格式結構','factual','markdown','純文本導出格式的整體結構包含一個頁首，列出知識庫名稱、範圍標籤、導出的 ISO 時間戳以及工作區 ID。',
    ARRAY['export', 'format', 'plain-text']::text[],'public','system','2026-04-24T11:25:40.929029+00:00','8be687263181850916849d41e4c5a323a08df03632ea41235d3f0b3ceb3b7198','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2615,8 +2248,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a001','1.0','ws_spec0001','AI Provider 與 API Key 自管','procedural','markdown','MemTrace 不自營 AI 推論服務。所有 AI 功能由使用者選擇的供應商提供。
 
@@ -2639,8 +2271,7 @@ VALUES
 
 **未來商業模式**：可能提供 MemTrace 代管額度（免費層 + 付費方案）；架構透過 provider interface 抽象，日後切換不影響上層邏輯。',
    ARRAY['ai', 'api-key', 'provider', 'security', 'gemini', 'ollama', 'embedding']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2649,8 +2280,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a002','1.0','ws_spec0001','文件攝入與 AI 節點萃取','procedural','markdown','支援格式：`.md`、`.txt`、`.pdf`、`.docx`。萃取流程：
 
@@ -2661,8 +2291,7 @@ VALUES
 
 所有結果進入 **Review Queue**，不自動 commit。萃取節點的 source_type 預設為 `ai_generated`，人工無修改接受 → `ai_verified`，人工修改後接受 → `human`。每個節點記錄 source_document 與 extraction_model。',
    ARRAY['ai', 'ingestion', 'extraction', 'document']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,2,1)
+   2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2671,13 +2300,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a003','1.0','ws_spec0001','Review Queue：人工審核 AI 萃取結果','procedural','plain','AI 萃取的候選節點不自動進入知識庫，必須通過人工審核。三種操作：Accept（接受原樣）、Edit then Accept（修改後接受）、Reject（捨棄）。支援批次操作（Accept all / Reject all）。至少需接受一個節點才能關閉審核步驟。審核完成後，被接受的節點以正確的 source_type 寫入知識庫，被拒絕的候選永久丟棄。這是 MemTrace 確保 AI 生成內容不污染知識庫的核心機制。',
    ARRAY['ai', 'review-queue', 'quality-control', 'ingestion']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2686,8 +2313,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a004','1.0','ws_spec0001','對話式問答（Conversational Q&A）','procedural','plain','viewer 以上角色可對知識庫進行自然語言問答。Q&A 為唯讀操作，不修改知識庫內容。
 
@@ -2710,8 +2336,7 @@ Schema：chat_sessions（id, workspace_id, user_id, created_at, updated_at）和
 
 注意：即使是 public 工作區，Q&A 也需要登入。未認證使用者無法使用此功能。',
    ARRAY['ai', 'chat', 'q&a', 'conversational', 'session', 'read-only']::text[],'public','system','2026-04-12T00:00:00+00:00','f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,3,1)
+   3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2720,8 +2345,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a005','1.0','ws_spec0001','Analytics 儀表板與 Token 效率報告','procedural','markdown','## KB 健康摘要
 
@@ -2732,7 +2356,6 @@ VALUES
 | `total_nodes` | 活躍節點總數 |
 | `active_edges` | weight > 0.3 的活躍邊數 |
 | `orphan_node_count` | 沒有任何活躍邊的孤立節點數 |
-| `avg_trust_score` | 工作區平均 trust_score |
 | `faded_edge_ratio` | faded 邊佔全部邊的比例 |
 | `monthly_traversal_count` | 近 30 日走訪總次數 |
 | `top_nodes` | 走訪次數最高的 5 個節點 |
@@ -2760,14 +2383,13 @@ VALUES
 
 註：`full_context_reduction_ratio` 的分母為反事實假設——它假定替代行為是把整個知識庫載入脈絡。該分母隨知識庫成長而變大，因此比率會自動改善，**不應作為效能承諾或對外主張**。此欄位僅供單一工作區內的相對觀察。跨廠商可比的量測方法修訂中（分詞器因廠商而異）。
 
-資料來源：`mcp_query_logs` 表。每次 MCP read tool（search_nodes / traverse / get_node / list_by_tag / vote_trust）呼叫後非同步寫入一筆 log，記錄 `tool_name`、`result_node_count`、`estimated_tokens`、`provider`。
+資料來源：`mcp_query_logs` 表。每次 MCP read tool（search_nodes / traverse / get_node / list_by_tag）呼叫後非同步寫入一筆 log，記錄 `tool_name`、`result_node_count`、`estimated_tokens`、`provider`。
 
 ## UI 元件
 
 `packages/ui/src/AnalyticsDashboard.tsx`：4 格指標卡片 + 30 日走訪折線圖 + Top Nodes 清單 + Token 效率區塊 + KB 類型指標格。透過 workspace 詳情頁的 Analytics 分頁開啟。',
    ARRAY['analytics', 'dashboard', 'token-efficiency', 'kb-health', 'mcp-logs', 'ui']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2776,8 +2398,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a0b27a20','1.0','ws_spec0001','Provenance and Evidence Write Semantics','factual','markdown','A node''s `provenance` field records the semantic origin of knowledge:
 
@@ -2786,8 +2407,7 @@ VALUES
 - The `signature` is computed by the system on write; clients may not override it.
 - `author` records the actual operator''s identity (user ID or system actor ID), complementing `source_type` rather than duplicating it.',
    ARRAY['provenance', 'evidence', 'write-semantics', 'signature']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:26.728727+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2796,8 +2416,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a1c53b2a','1.0','ws_spec0001','Multi-Planner Semantic Boundaries','factual','markdown','Semantic boundary rules for multi-planner architecture:
 
@@ -2805,8 +2424,7 @@ VALUES
 - Collaboration between planners goes through the harness proposal mechanism, not direct communication.
 - Boundary conflicts (two planners proposing contradictory decisions) are detected by the harness and routed into the contradiction resolution flow; planners may not resolve cross-boundary conflicts themselves.',
    ARRAY['multi-planner', 'semantics', 'boundaries', 'design-decision', 'harness']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:08.173230+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2815,13 +2433,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a28ca156','1.0','ws_spec0001','支持的記憶導出格式','factual','markdown','記憶可以以 JSON、Markdown 或純文本格式導出。',
    ARRAY['export', 'file-format']::text[],'public','system','2026-04-24T11:25:39.232184+00:00','75a768bb0777511311b5dd2bd3fc4b6ac90d651224dd1d6cee54e45d817fe664','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2830,13 +2446,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a4bdc8a9','1.0','ws_spec0001','從歸檔還原節點 API','procedural','markdown','提供一個 API 端點 `POST /nodes/{id}/restore`，允許編輯者或更高權限的使用者從歸檔中還原節點。',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:45.094920+00:00','029e98ddd550f5a3e9de0fffe6caf0393b841248c6f5db9ba68f07f14c5c8c28','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2845,13 +2459,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a590bb10','1.0','ws_spec0001','工作區創建者的默認角色','factual','markdown','當使用者創建工作區時，他們會自動被分配管理員（所有者）角色。',
    ARRAY['role', 'default', 'workspace-creation', 'admin', 'owner']::text[],'public','system','2026-04-24T11:25:40.680957+00:00','39f9a4ffb3fb89db47b80bab32db52d8c4accf6828180b79d56d1eef56cff254','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2860,13 +2472,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a6a2a683','1.0','ws_spec0001','記憶節點 ID','factual','markdown','`memory_nodes` 表中的 `id` 欄位是主鍵，類型為 TEXT，例如 `mem_abc123`。',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:38.856937+00:00','b9327bb4b77a1cdb973a11d5f37e2eea745b8d5da337fc61dc0c6f2f5bcc77b7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2875,13 +2485,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a71dcf58','1.0','ws_spec0001','手動歸檔節點 API','procedural','markdown','提供一個 API 端點 `POST /nodes/{id}/archive`，允許編輯者或更高權限的使用者手動歸檔節點。',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:43.473681+00:00','26e451b46c407090a14f1a4895054227a8666715f81b890e1197f195286486f6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2890,8 +2498,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a9200005','1.0','ws_spec0001','節點拆分範例:決策網(plan)怎麼拆','procedural','markdown','以一份『計畫 / 決策』文件(Phase 6.4)為例,示範決策網怎麼拆。
 
@@ -2916,8 +2523,7 @@ VALUES
 
 完整教學見 docs/dev/node-splitting-example.md(決策網)與 troubleshooting-graph-authoring.md(動作流)。',
    ARRAY['authoring', 'node-splitting', 'example', 'meta']::text[],'public','usr_6bc7b4c7','2026-05-31T08:38:35.779321+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2926,13 +2532,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a9dee7ad','1.0','ws_spec0001','AI 編輯限制：僅限當前工作區節點','factual','markdown','當 allow_edits: true 時，AI 只能對當前工作區中的節點提出編輯建議。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.697058+00:00','e7bf10d2741911fda9174cec1c320fb1aa084b441af68b4ccf38eb16825802f4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2941,13 +2545,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_aab6d931','1.0','ws_spec0001','簡化圖譜載荷的快取政策','factual','markdown','預覽載荷不可由客戶端快取，這由響應標頭 `Cache-Control: no-store` 指示。',
    ARRAY['快取', 'API優化', '性能']::text[],'public','system','2026-04-24T11:25:39.829461+00:00','6e6398e27fe86238ff08625e26c0b131b6cabffda49bd17964086ec5d8f0d341','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2956,13 +2558,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ac50a001','1.0','ws_spec0001','對談管理：JWTs','factual','markdown','對談由使用 HS256 算法簽署的 JWT (JSON Web Tokens) 表示，密鑰存儲在環境中。',
    ARRAY['對談管理', 'jwt', 'hs256', '安全']::text[],'public','system','2026-04-24T11:25:40.107288+00:00','cd442ccb55c20dab87ed4f4c0ff1e966f5a7ba54018623f6ec3172ab3c6d9d5e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2971,8 +2571,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_acp001','1.0','ws_spec0001','§19 AI 對話面板（AI Conversation Panel）','factual','markdown','**AI 對話面板**是一個獨立的一級 UI 介面——與圖形搜尋列分開。它支援持久、多輪對話，並以工作區知識圖為基礎。與唯讀的對話式 Q&A（§13A）不同，它支援**對話中的編輯提案**。
 
@@ -2991,8 +2590,7 @@ VALUES
 | **對話中的編輯提案** | 使用者說「將此節點更新為 X」—— AI 生成 diff 提案，以內嵌卡片呈現，使用者可接受、編輯或拒絕 |
 | **跨知識庫查詢** | 若設定了關聯工作區（§18）且使用者有存取權，AI 可參照那些節點（並標示來源） |',
    ARRAY['ai', 'chat', 'conversation-panel', 'ui', 'edit-proposal']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','acp001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3001,8 +2599,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_acp002','1.0','ws_spec0001','§19.4–19.6 AI 對話面板：編輯提案流程、API 與跨知識庫邊界','procedural','markdown','## 編輯提案流程（§19.4）
 
@@ -3056,8 +2653,7 @@ POST /api/v1/workspaces/{ws_id}/chat
 
 當 `allow_edits: true` 時，AI 只能對**當前工作區內**的節點提出編輯提案。它可以從關聯工作區讀取，但不能對其提出寫入提案。',
    ARRAY['ai', 'chat', 'conversation-panel', 'edit-proposal', 'api', 'cross-kb', 'review-queue']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','acp002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3066,13 +2662,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_af74b0f0','1.0','ws_spec0001','模型上下文協議 (MCP)','factual','markdown','MemTrace 實現了模型上下文協議 (MCP)，使 AI 代理和 LLM 能夠在無需手動 REST 集成的情況下消耗和貢獻知識圖譜。',
    ARRAY['protocol', 'ai-integration', 'llm', 'knowledge-graph']::text[],'public','system','2026-04-24T11:25:40.290234+00:00','7deee1e16d2dc125019dd48422261a6a6f2a507e63a5af83183cb0baaa6465f0','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3081,13 +2675,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_afac29a2','1.0','ws_spec0001','Decay Product Stance','factual','markdown','MemTrace''s product stance on decay: decay is a natural reflection of knowledge freshness, not a punishment. Unreferenced knowledge loses weight over time but is never automatically deleted. The `pinned` flag freezes the weight of a node or edge to prevent decay. Decay parameters (`half_life_days`, `min_weight`) are configurable at the workspace level; no forced deletion occurs.',
    ARRAY['decay', 'pinned', 'product-stance', 'freshness']::text[],'public','usr_6bc7b4c7','2026-06-25T21:56:58.571088+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3096,8 +2688,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ag001','1.0','ws_spec0001','§S2 MCP Agent 身份綁定','factual','markdown','## 問題背景
 
@@ -3143,8 +2734,7 @@ SELECT count(*) FROM memory_nodes
 WHERE source_type = ''mcp'' AND author = ''system'';
 ```',
    ARRAY['mcp', 'agent', 'identity', 'governance', 'inquiry-paths', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ag001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3153,8 +2743,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ah001','1.0','ws_spec0001','§S3 Audit Trail Hash Chain 與 verify_audit_chain','factual','markdown','## 目標
 
@@ -3198,8 +2787,7 @@ DB trigger 拒絕對 `audit_trail` 執行 UPDATE / DELETE，確保 append-only�
 
 篡改測試：手動改一筆 audit_trail → `verify_audit_chain` 回 `broken` 並指出斷點，偵測率 100%。',
    ARRAY['audit', 'hash-chain', 'integrity', 'mcp-tool', 'security', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ah001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3208,8 +2796,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_apidi001','1.0','ws_spec0001','§27 API 文件攝入（程式化攝入）','procedural','markdown','除了 UI 攝入表單外，MemTrace 也支援透過 REST API 以程式化方式攝入文件。這讓 CI/CD Pipeline、腳本與第三方工具無需人工介入即可將知識推送到工作區。
 
@@ -3247,8 +2834,7 @@ GET /api/v1/workspaces/{ws_id}/ingest/{job_id}
 
 攝入作業在背景非同步執行。呼叫者可透過輪詢取得進度，並在完成後取得萃取節點的 review queue 狀態。',
    ARRAY['ingestion', 'api', 'programmatic', 'ci-cd', 'async', 'document']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','apidi001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3257,12 +2843,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_at001','1.0','ws_spec0001','§S3 Author 離職與著作權轉移：author_tombstones','factual','markdown','## 問題背景
 
-使用者離開工作區後，其節點仍綁定該 user_id；`dim_author_rep` 計算對死帳號失效，且節點實質上無人負責。
+使用者離開工作區後，其節點仍綁定該 user_id，實質上無人負責。
 
 ## author_tombstones 表
 
@@ -3276,10 +2861,6 @@ CREATE TABLE author_tombstones (
   UNIQUE (user_id, workspace_id)
 );
 ```
-
-## Author Rep 修正
-
-`dim_author_rep` 改為「過去 90 天內節點品質」，避開歷史包袱——已離職 user 的舊節點不再影響其他節點的 author_rep 計算。
 
 ## transfer_authorship MCP 工具
 
@@ -3296,11 +2877,9 @@ CREATE TABLE author_tombstones (
 
 ## 驗收標準
 
-- 離職後節點 0% lock：其他 user 可正常編輯
-- `dim_author_rep` 計算不受死帳號干擾',
+- 離職後節點 0% lock：其他 user 可正常編輯',
    ARRAY['author', 'tombstone', 'governance', 'mcp-tool', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','at001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3309,8 +2888,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_aul001','1.0','ws_spec0001','§21 AI 使用日誌：政策、API 與保留期','factual','markdown','## 規定（§21.1）
 
@@ -3360,8 +2938,7 @@ VALUES
 
 日誌保留 **12 個月**後封存。在保留期到期前絕不刪除日誌。',
    ARRAY['ai', 'usage-logging', 'billing', 'api', 'retention', 'monitoring']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','aul001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3370,8 +2947,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b0b85a7c','1.0','ws_spec0001','Conductor：webhook push opt-in 與 inquiry scale 開關','factual','markdown','## 功能定位
 
@@ -3421,8 +2997,7 @@ Conductor 是 MemTrace 的主動通知層：當 workspace 中出現 `scale=major
 - `migrations/111_conductor_safety_queue.sql` — schema
 - `tests/test_conductor_safety_queue.py`',
    ARRAY['conductor', 'webhook', 'scale', 'inquiry', 'agent-loop', 'spec', 'implemented']::text[],'private','usr_6bc7b4c7','2026-06-16T10:30:36.396484+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3431,13 +3006,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b3ee2495','1.0','ws_spec0001','MEMTRACE_WS 作為預設工作區','factual','markdown','`MEMTRACE_WS` 環境變數被設定為預設工作區。當工具呼叫未傳遞 `workspace_id` 參數時，將會使用此預設值。',
    ARRAY['環境變數', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.097515+00:00','fc08a173c8a31db9d4fbf0232313d32789b8d3c9b4b025c8947b7c51a658ee1b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3446,13 +3019,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b41097bf','1.0','ws_spec0001','記憶節點複製功能','factual','markdown','任何單獨的記憶節點都可以複製到不同的知識庫。',
    ARRAY['memory-node', 'knowledge-base', 'copy']::text[],'public','system','2026-04-24T11:31:27.655142+00:00','cea540a33f70ed93236f0dbdc41def46a9b3201f9f8378d4a7f27aa582019b77','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3461,8 +3032,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b848a97e','1.0','ws_spec0001','框架整合:LangChain Retriever 與 LlamaIndex Vector Store','factual','markdown','MemTrace 提供兩個框架整合套件,讓知識庫幾行就接進既有 LLM pipeline。兩者皆以 `base_url` + `api_key` + `workspace_id` 連線,底層走 REST API。
 
@@ -3489,8 +3059,7 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
 
 > 對應 seed 節點 mem_i007;程式碼:packages/langchain-memtrace、packages/llama-index-memtrace。',
    ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','usr_6bc7b4c7','2026-07-24T22:53:35.076879+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,2,1)
+   2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3499,13 +3068,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bb9aff63','1.0','ws_spec0001','管理員角色概覽','factual','markdown','管理員是知識庫的所有者或維護者。他們擁有所有貢獻者能力、直接寫入權限、批准或拒絕提案的能力、管理成員以及軟刪除和恢復工作區的能力。',
    ARRAY['role', 'admin', 'capabilities']::text[],'public','system','2026-04-24T11:25:40.503845+00:00','e887ffec2fead0932c9e9c9281169b35a204c219a609098713d149f87b622012','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3514,13 +3081,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bcc8e28c','1.0','ws_spec0001','記憶節點可見性','factual','markdown','`memory_nodes` 表中的 `visibility` 欄位類型為 ENUM，可能的值為 `public` / `team` / `private`。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:39.029513+00:00','07adf4dc6273637faa730c865f2b2953aa0ea1a717679492657b03f24f16450e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3529,13 +3094,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bd6996dd','1.0','ws_spec0001','記憶節點內容輸入模式','factual','markdown','每個記憶節點的正文 (`content.body`) 支持兩種輸入模式。',
    ARRAY['memory-node', 'content', 'input']::text[],'public','system','2026-04-24T11:25:39.354196+00:00','0d9fdbf1ccbc62f8451c6a16bd834ea4e2ef14bebea32091c6e3fb59657e02f4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3544,13 +3107,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bf7d06a5','1.0','ws_spec0001','記憶匯入功能','factual','markdown','使用者可以將現有的存檔匯入回任何工作區。',
    ARRAY['memory-management', 'import']::text[],'public','system','2026-04-24T11:25:39.253573+00:00','ec2855a3149c8bc86122529991ed1de3b55a67fed7374831c98c416815915ad0','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3559,8 +3120,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bk001','1.0','ws_spec0001','§30 排程本地備份（Scheduled Local Backups）','factual','markdown','MemTrace 內建自我修復的本地備份系統，防止自架環境中的資料遺失。定期執行資料庫備份，並透過輪替舊備份來管理磁碟空間。
 
@@ -3596,8 +3156,7 @@ VALUES
 - `last_backup_file`：最後一次成功備份的路徑
 - `error_msg`：最後一次嘗試失敗時的詳細錯誤',
    ARRAY['backup', 'operations', 'admin', 'reliability', 'self-hosted']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','bk001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3606,13 +3165,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c24bbdad','1.0','ws_spec0001','AI 代理建立節點時必須指定 source_type 為 "ai"','factual','markdown','當 AI 代理建立知識節點時，`source_type` 欄位必須明確設定為 `"ai"`。這會導致資料庫中的 `source_type` 欄位為 ''ai''，且審核佇列中的 `proposer_type` 欄位也為 ''ai''。',
    ARRAY['ai代理', '節點建立', 'api', '規範']::text[],'public','system','2026-04-25T02:39:26.969779+00:00','59ac0bfa279bf73aaa1a12d438248fbd2ddec10e108d722f3e09e55b42d105dd','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3621,13 +3178,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c3e5a685','1.0','ws_spec0001','貢獻者角色能力詳情','factual','markdown','貢獻者擁有所有檢視者能力，並可以提交新節點、編輯現有節點或新/刪除邊的提案。這些提案進入審核隊列，狀態為 `pending_admin_review`，直到管理員批准。貢獻者不得批准自己的提案。',
    ARRAY['role', 'contributor', 'capabilities', 'proposal', 'review-queue']::text[],'public','system','2026-04-24T11:25:40.561589+00:00','e9503d1f90e13846bc35650c0f983527ccabd9b7209e4b6faab958cab6bd02f8','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3636,13 +3191,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c4ce77e1','1.0','ws_spec0001','封存節點在專屬的「封存」視圖中可見','factual','markdown','封存節點可以在專用的「封存」視圖中訪問和顯示，該視圖可從工作區側邊欄進入。',
    ARRAY['視圖', '封存', '隱藏']::text[],'public','system','2026-04-24T11:25:39.575050+00:00','bf861774dffed73c434ea5c3c5a0d846a0ac249c2558d9ad2e8b12173dcaa5e2','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3651,8 +3204,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c571ecc8','1.0','ws_spec0001','AI 審核員：自動審核機器人設定','factual','markdown','工作區管理員可在「AI 管理」設定頁建立一或多個 AI 審核員（ai_reviewers），讓特定 LLM 模型自動對進入 review_queue 的提案給出審查意見。
 
@@ -3695,8 +3247,7 @@ Use comment when uncertain.
   - comment only → 標記 AI 意見，仍待人工審核
 - 支援 OpenAI、Anthropic、Gemini、Ollama 四種 provider',
    ARRAY['ai-reviewer', 'review-queue', 'workspace-settings', 'automation']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','b9b5d4d75c79e8f6f2e3f86e7fa48cb6c4d5c99dbc5d85e21663c354bef3eb35','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3705,12 +3256,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c789e5cb','1.0','ws_spec0001','教訓：知識庫髒資料的自我傳播 — agent 會把既有錯誤當權威慣例複製放大','factual','markdown','## 教訓（普世）
 
-在人機共維的知識圖中，任何一筆錯誤節點或方向寫反的 edge，會被後續讀取它的 agent 當成「既有慣例 / 權威事實」來概括，於是錯誤被**複製、放大、甚至固化成寫入指引**。錯誤的停留時間，就是它持續污染後續每一個 agent 的時間窗。`trust_score` / `source_type` 等信任防線雖然存在，但 agent 普遍傾向把任何既有節點視為權威，而忽略其信任分數。
+在人機共維的知識圖中，任何一筆錯誤節點或方向寫反的 edge，會被後續讀取它的 agent 當成「既有慣例 / 權威事實」來概括，於是錯誤被**複製、放大、甚至固化成寫入指引**。錯誤的停留時間，就是它持續污染後續每一個 agent 的時間窗。`source_type` / `validity_confirmed_at` 等出處線索雖然存在，但 agent 普遍傾向把任何既有節點視為權威，而忽略這些線索。
 
 ## 典型情境
 
@@ -3719,7 +3269,7 @@ VALUES
 ## 防禦原則
 
 1. **以系統程式碼 / 規格的實際行為為準**，不以單一既有資料樣本為準；當資料與規格衝突，規格優先。
-2. **不可用單一樣本概括慣例**；至少參照多筆，並檢視其 `trust_score` / `source_type`。
+2. **不可用單一樣本概括慣例**；至少參照多筆，並檢視其 `source_type` / `validity_confirmed_at`。
 3. **髒資料即風險窗**：一旦偵測到方向反向、過時或矛盾的節點 / edge，應盡快修正或封存，縮短污染窗。
 4. 任何寫入前，先讀該知識庫的寫入慣例 playbook（若有）。
 
@@ -3727,8 +3277,7 @@ VALUES
 
 適用於所有由人與 AI 共同維護、且允許 agent 寫入的知識圖系統。',
    ARRAY['lesson-learned', 'governance', 'agent-safety', 'data-quality', 'trust', 'knowledge-graph']::text[],'public','memtrace-spec','2026-06-20T00:00:00+00:00','d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7','human',
-   0.9,0.9,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3737,13 +3286,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c8db759e','1.0','ws_spec0001','連向封存節點的邊會自動衰減','factual','markdown','所有連向已封存節點的邊，其外觀會自動變為「衰減」狀態，但不會從資料庫中刪除。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.557633+00:00','e2889812266b17efc364454a6ee3ea5a6881e8250b720564bfa2dc84bbaddf20','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3752,13 +3299,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c9bd6c49','1.0','ws_spec0001','memory_nodes 表中的 `conflict_status` 欄位','factual','markdown','`memory_nodes` 表包含一個名為 `conflict_status` 的文本欄位，其值可以為 `NULL`, `''flagged''`, 或 `''resolved''`。',
    ARRAY['database_schema', 'conflict_management']::text[],'public','system','2026-04-24T11:31:27.706468+00:00','155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3767,13 +3312,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c9dd39d4','1.0','ws_spec0001','知識庫保護機制概覽','factual','markdown','本節定義了旨在防止知識盜竊的保護機制，同時保留對授權成員和核准預覽的合法可用性。',
    ARRAY['安全', '概覽', '介紹', '權限', '保護']::text[],'public','system','2026-04-24T11:31:27.730201+00:00','a78ac73dff4068fc8b90f4c1d73ea5fd9589364d6f39cd0d31951ca205b53a5a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3782,8 +3325,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_caa8e5ec','1.0','ws_spec0001','Write Governance: Fail-Open Deduplication Gate','factual','markdown','The deduplication gate uses a **fail-open** design: if the dedup service is unavailable or times out, the new node is still written — writes are never blocked by a dedup failure.
 
@@ -3791,8 +3333,7 @@ VALUES
 - Duplicate detection is based on semantic similarity (embedding distance < threshold), not exact matching.
 - Dedup gate failures are written to the audit log for later tracing.',
    ARRAY['write-governance', 'fail-open', 'deduplication', 'dedup', 'review_queue']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:43.331284+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3801,8 +3342,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cbd7f18f','1.0','ws_spec0001','Three-Tier Safety Review Trigger','factual','markdown','Writes trigger safety review through three tiers:
 
@@ -3810,8 +3350,7 @@ VALUES
 2. **Async Tier0 demotion**: When the battery detects a serious issue, the node is demoted to Tier0 (invisible but retained) and the admin is notified asynchronously.
 3. **Human review queue**: A contradiction or safety flag triggers the `review_queue`; a human must confirm before the node becomes visible again.',
    ARRAY['safety', 'review', 'three-tier', 'battery', 'Tier0']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:11.879898+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3820,13 +3359,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cbe1be4b','1.0','ws_spec0001','工作區類型分配','factual','markdown','工作區類型是在創建過程中分配的（Web UI 第 4 步或 CLI 第 3 步）。',
    ARRAY['workspace', 'creation', 'configuration']::text[],'public','system','2026-04-24T11:31:27.627383+00:00','a0a8bffabfa012bb38c759fc8c239a205e5a471557bd7e38294d264dd464e45b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3835,13 +3372,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cce15a1a','1.0','ws_spec0001','節點修訂表唯一約束','factual','markdown','在 `node_revisions` 資料表中，`node_id` 和 `revision_no` 的組合必須是唯一的，確保每個節點的每個修訂版本都有獨特的識別。',
    ARRAY['資料庫', '資料表', '節點修訂', '唯一約束']::text[],'public','system','2026-04-25T02:39:32.871852+00:00','1c84d32a9837c44a5f42f009e966b613ed097d1fb83d089d9741a87ae2b34222','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3850,13 +3385,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cd89f403','1.0','ws_spec0001','暫時性知識庫邊緣衰減排程','procedural','markdown','暫時性知識庫的邊緣衰減排程應從每日觸發改為每 1 小時觸發。',
    ARRAY['scheduler', 'ephemeral-kb', 'edge-decay']::text[],'public','system','2026-04-25T02:38:39.851283+00:00','0880355a86987c4a47300e767f68c6870b43bc47586c6c8c16f1825998a6e90b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3865,33 +3398,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_cd97df70','1.0','ws_spec0001','Feedback Signal Protection Mechanism','factual','markdown','User votes (up/down) and verifications are feedback signals; the design must prevent manipulation:
-
-1. A single user may cast only one vote per node.
-2. Verification requires sufficient `author_rep` to trigger.
-3. Feedback signals do not directly modify `trust.score`; they are queued asynchronously and applied only after battery validation.
-4. A high volume of rapid feedback (coordinated attack) raises a safety flag and suspends updates until a human review is completed.',
-   ARRAY['feedback', 'protection', 'write-governance', 'vote', 'verification']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:31.565366+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cdea5189','1.0','ws_spec0001','封存節點永不銷毀原則','factual','markdown','封存的節點將無限期保留，永遠不會被永久刪除。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.539979+00:00','50b0515bc00d8ed2ec480923fd0e3b1837b27543d57436eb4770e741c478f558','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3900,13 +3411,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ce00334f','1.0','ws_spec0001','MemTrace 平台概覽','factual','markdown','MemTrace 是一個開放平台，旨在透過最小、連接良好的記憶節點（Memory Nodes）構建共享知識。其核心設計目標是讓任何人類或 AI 代理都能通過最短路徑在小型、分型關係圖中找到答案，而不是閱讀大量文檔。',
    ARRAY['memtrace', '概覽', '介紹', '平台']::text[],'public','system','2026-04-24T11:26:52.690912+00:00','7c0dc21b5b1a8849d7704332f76000351e9532b56aad2bbacdb5d7e28acbbb42','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3915,13 +3424,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ce794c4c','1.0','ws_spec0001','MemTrace 功能計畫 - 任務拆解文件','factual','markdown','本文件概述了 MemTrace 功能計畫的開發任務，依功能群組（A-H）分類，並標註各任務所屬的層級（DB、API、UI、MCP、CLI、Core、Scheduler）。',
    ARRAY[]::text[],'public','system','2026-04-25T02:38:58.002264+00:00','ceb8023eca96714907c41e68f043ba347de980648324aa76cae44df509ed922a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3930,8 +3437,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cf001','1.0','ws_spec0001','§S3 Contradicts 衝突仲裁流程','procedural','markdown','## 問題背景
 
@@ -3963,14 +3469,13 @@ VALUES
 | `merge` | 合併為新節點（進 propose_merge 流程）|
 | `both_valid` | 兩者均有效，移除 contradicts edge |
 
-仲裁結果回寫相關節點的 `dim_accuracy` 與 `status`，並留下 resolution log。
+仲裁結果回寫相關節點的 `status`，並留下 resolution log。
 
 ## 驗收標準
 
 每筆 `contradicts` edge 都應有對應的 resolution log 或待審項目。',
    ARRAY['conflict', 'contradicts', 'arbitration', 'review-queue', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cf001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3979,8 +3484,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cf633afb','1.0','ws_spec0001','Workspace Agent 系統 Actor 設計','factual','markdown','MemTrace 定義兩類系統 actor：
 
@@ -3989,8 +3493,7 @@ VALUES
 
 兩者都不計入人類 `author_rep` 計算，telemetry 記錄時使用 `source_type="system"`。',
    ARRAY['system-actor', 'workspace-agent', 'actor', '身份', 'telemetry']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','c5f3e4g6b7d8193a21cdef3456789012cdef3456789012cdef3456789012abcd','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -3999,8 +3502,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cl001','1.0','ws_spec0001','§11.4 動態叢集系統（Dynamic Cluster System）','factual','markdown','每個工作區擁有一組**節點叢集**（`node_clusters` 資料表）。叢集是具名的主題群組（例如「API Design」、「Security Rules」），用於在圖形視圖中做視覺分組與篩選。
 
@@ -4017,8 +3519,7 @@ Pipeline 透過 `get_or_create_cluster`（不區分大小寫比對 `name_en`）�
 
 `node_clusters` 表記錄工作區內所有叢集：名稱（zh/en）、顏色等元資料。`memory_nodes` 表透過 `cluster_id` 外鍵關聯至此表（可為 NULL）。',
    ARRAY['cluster', 'ingestion', 'ai', 'graph-view', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cl001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4027,8 +3528,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cl002','1.0','ws_spec0001','§11.4 叢集管理：人工覆寫、未分類節點與回填','procedural','markdown','## 人工覆寫（§11.4.2）
 
@@ -4058,8 +3558,7 @@ DELETE /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
 
 在叢集系統引入前建立的節點，`cluster_id` 為 `NULL`。可手動重新指派，或透過未來的批次回填作業處理。',
    ARRAY['cluster', 'api', 'graph-view', 'backfill']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cl002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4068,8 +3567,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d001','1.0','ws_spec0001','Memory Node：知識的最小單位','factual','markdown','Memory Node 是 MemTrace 中知識的最小單位。每個節點捕捉**一個**想法，包含：
 
@@ -4079,7 +3577,6 @@ VALUES
 - **Tags**：字串陣列，用於分類與搜尋
 - **Visibility**：`public` / `team` / `private`
 - **Provenance**：作者、建立時間、SHA-256 簽章、source_type
-- **Trust**：四維度信任分數
 - **Traversal**：走訪計數與不重複訪客數
 - **Status**：`active` / `archived`（archived 從預設視圖隱藏，不刪除）
 
@@ -4094,8 +3591,7 @@ VALUES
 
 節點 ID 格式：`mem_<hex8>`，例如 `mem_a1b2c3d4`。',
    ARRAY['data-model', 'schema', 'core', 'version', 'conflict']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4104,8 +3600,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d002','1.0','ws_spec0001','Edge：有向有型的關係','factual','markdown','Edge 連接兩個 Memory Node，方向為 `from → to`。每條 Edge 包含：
 
@@ -4117,8 +3612,7 @@ VALUES
 
 Edge ID 格式：`edge_<hex8>`。同一對節點間相同 relation type 的 Edge 不重複。',
    ARRAY['data-model', 'schema', 'graph', 'core']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4127,8 +3621,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d003','1.0','ws_spec0001','Content Type：節點的知識性質','factual','markdown','每個 Memory Node 必須標記一種 Content Type：
 
@@ -4144,8 +3637,7 @@ VALUES
 
 Content Type 影響：搜尋過濾、AI 萃取分類、預設 decay half-life（ephemeral 工作區）、Export Scope 配對（`procedural` → user-manual，`factual` → functional-spec 等）。',
    ARRAY['data-model', 'schema', 'content-type', 'source-document']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4154,37 +3646,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_d004','1.0','ws_spec0001','Trust 系統：信任如何被計算','factual','markdown','每個 Memory Node 帶有一個 0–1 的綜合信任分數，由四個維度合成：
-
-| 維度 | 說明 | 建立時預設 |
-|------|------|----------|
-| `accuracy` | 事實正確性 | 0.5 |
-| `freshness` | 時效性 | 1.0 |
-| `utility` | 實用程度 | 0.5 |
-| `author_rep` | 作者信譽 | 0.5 |
-
-> 現階段定位：節點 Trust／驗證評分已暫緩對外（見決策 mem_56118060）。上述維度與 trust_score 為系統內部保留欄位，不在 UI 呈現，不得解讀為內容正確性或真實性之保證，也不會據此將節點標記警告或移出公開索引。內容仍以 SHA-256 簽章（signature）防竄改——此為 provenance／完整性，與 Trust 評分分離。',
-   ARRAY['data-model', 'trust', 'anti-forgery']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d005','1.0','ws_spec0001','Provenance：來源與可溯性','factual','plain','每個節點的 provenance 物件記錄知識的來源資訊：author（作者）、created_at（建立時間）、signature（SHA-256 內容雜湊）、source_type（human / ai_generated / ai_verified）。編輯後新增 updated_at。AI 萃取的節點額外記錄 source_document（來源文件）與 extraction_model（使用的 AI 模型）。複製到其他知識庫的節點記錄 copied_from.node_id 與 copied_from.workspace_id。Provenance 永遠記錄，但不構成存取限制。',
    ARRAY['data-model', 'provenance', 'traceability']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,2,2)
+   2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4193,13 +3659,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d006','1.0','ws_spec0001','Traversal Tracking：走訪計數','factual','plain','節點與 Edge 各自記錄走訪數據。節點記錄：traversal_count（總走訪次數）、unique_traverser_count（不重複訪客數）。Edge 記錄：traversal_count、rating_avg（1–5 平均評分，無評分時為 null）、rating_count。走訪透過 API 的 POST /nodes/{id}/traverse 或 POST /edges/{id}/traverse 記錄。MCP tool traverse_edge 也會觸發計數。這些數字反映知識的實際使用頻率，不只是被記錄的事實。',
    ARRAY['data-model', 'traversal', 'usage-tracking']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4208,13 +3672,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d07c29a1','1.0','ws_spec0001','更新時間欄位 (provenance.updated_at)','factual','markdown','`provenance.updated_at` 欄位是一個選填的字串（date-time 格式），會在初次建立後的每次編輯時設定。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.886390+00:00','fde73fc348c926db7350610cbd46f6cc5b253b7227e3720fad21e1ac55261d00','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4223,13 +3685,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d0961cfa','1.0','ws_spec0001','記憶節點編輯器存取方法','procedural','markdown','編輯器可從圖譜視圖（透過工具列按鈕或雙擊空白畫布區域）以及節點的上下文菜單存取。',
    ARRAY['editor', 'access', 'ui']::text[],'public','system','2026-04-24T11:25:39.331044+00:00','8a3d4055ab327d3e4acebfb2c8f2e9c165b22d5051ede17ec4d37ec45d66869a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4238,13 +3698,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d1d90285','1.0','ws_spec0001','API Key 權限範圍：kb:propose','factual','markdown','具有 kb:propose 權限範圍的 API Key 授予貢獻者（contributor）角色的能力，包括所有讀取權限以及提交建議的能力。',
    ARRAY['api-key', 'scope', 'contributor', 'proposal']::text[],'public','system','2026-04-24T11:25:40.620555+00:00','676665976061e64f48291d081a2edea8a4ae9b7eafef376b42fd6438a6a74965','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4253,8 +3711,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d26a1946','1.0','ws_spec0001','Phase 6.1 — 文件成為圖的一等公民','factual','markdown','## Phase 6.1 — 文件成為圖的一等公民
 
@@ -4277,8 +3734,7 @@ VALUES
 
 過渡期間，新資料同時寫入 edges 與舊 junction table；讀取優先使用 edge path，必要時 fallback，並依 document id 去重。',
    ARRAY['phase-6.1', 'architecture', 'documents', 'extracted_from', 'graph', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:11:43.018234+00:00','','human',
-   0.647,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4287,8 +3743,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d2955487','1.0','ws_spec0001','Phase 6.2 — 行為治理層 (Track B, T10–T24)','factual','markdown','## Phase 6.2 Track B — Behavior, Governance & Visual
 
@@ -4316,8 +3771,7 @@ Migration `060_audit_proposals.sql`；提供 proposal 建立、列出、讀取�
 - ReviewOverlay 接受／拒絕面板
 - 工具列待審計數器',
    ARRAY['phase-6.2', 'audit', 'reviewer', 'ui', 'governance', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:11:43.018234+00:00','','human',
-   0.647,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4326,13 +3780,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d2b5ef2f','1.0','ws_spec0001','MCP 伺服器中的資源 URI 處理','factual','markdown','MCP 伺服器根據請求參數中的 URI，處理對 `memtrace://guide/node` 和 `memtrace://guide/edge` 的請求，並回傳對應的 Markdown 內容。對於未知資源 URI，伺服器會拋出錯誤。',
    ARRAY['mcp', 'server', 'resource', 'uri', 'api']::text[],'public','system','2026-04-25T02:39:28.168325+00:00','2a481a49932b3fe3aaa57af8df71c64f827b6103478398eaaae36179a315ab44','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4341,13 +3793,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d3564082','1.0','ws_spec0001','處理 createNode/updateNode 的 202 回應','procedural','markdown','當 createNode 或 updateNode API 回傳 202 狀態碼時，應從回應主體中提取 review_id 並明確回傳給 AI 代理。',
    ARRAY['api', '錯誤處理', 'ai代理', '審核流程']::text[],'public','system','2026-04-25T02:39:59.693849+00:00','23ae917c2d984d6ff3437a3c309dd34ed183a39846dbcf3156193dc0e779c845','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4356,8 +3806,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d38edbc7','1.0','ws_spec0001','工作區設定：AI 管理 Tab（審核設定與智慧維護）','procedural','markdown','工作區設定頁的「AI 管理」Tab 整合了原先分散的「審核設定」與「智慧維護」兩個頁面，集中管理所有 AI 相關功能。
 
@@ -4400,8 +3849,7 @@ VALUES
 - 審核員建立後立即生效；停用不刪除歷史紀錄
 - 多個審核員啟用時，依建立順序嘗試，第一個成功的結果為準',
    ARRAY['workspace-settings', 'ui', 'ai-management', 'maintenance', 'reviewer']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','b29d7fb38c4eb0bdd508282a860f32251ace8676ad9e18d187bb0b33132d60e0','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4410,8 +3858,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d419e8e3','1.0','ws_spec0001','私人工作區設計邊界','factual','markdown','MemTrace 私人工作區（`visibility=private`）的設計邊界：
 
@@ -4420,8 +3867,7 @@ VALUES
 3. 私人節點可透過邊連結到公開節點，但反向引用對外不可見。
 4. 私人 workspace 的 telemetry 只對管理員可見。',
    ARRAY['私人', 'private', 'workspace', '邊界', '設計決策']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','b0e8j9l1g2i3648f76hi8901234567hi8901234567hi8901234567abcdef12345','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4430,28 +3876,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_d4ea05e2','1.0','ws_spec0001','記憶節點信任分數','factual','markdown','`memory_nodes` 表中的 `trust_score` 欄位類型為 NUMERIC(4,3)，表示 0 到 1 之間的綜合信任分數。',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'score']::text[],'public','system','2026-04-24T11:25:39.130605+00:00','7c28f4b6744720099944e0b00fe9f6eacea46d6715cdde3f103aa4ba4cab8d00','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d679d993','1.0','ws_spec0001','MemTrace 核心哲學：知識與策展人關係','factual','markdown','MemTrace 的設計理念超越了單純的權限模型，闡述了知識與其策展人之間的關係。',
    ARRAY['memtrace', 'philosophy', 'knowledge-management']::text[],'public','system','2026-04-24T11:27:02.088865+00:00','f8f87913529c03f880e7c1e82cea98b7b4b167dcf7d43215cacf3e98218bd995','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4460,13 +3889,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d692bb11','1.0','ws_spec0001','README/使用文件更新：多庫、已知 ID 使用情境','procedural','markdown','README 和使用文件已更新，說明多庫、已知 ID 使用情境：將 `MEMTRACE_WS` 設定為最常用工作區，並在查詢其他工作區時，每次呼叫工具都帶上 `workspace_id` 參數。',
    ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-26T00:29:47.118808+00:00','9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4475,8 +3902,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d9fc8038','1.0','ws_spec0001','Harness Proposal Batch Processing Design','factual','markdown','The harness layer handles proposal batch processing for multi-agent fan-out:
 
@@ -4485,8 +3911,7 @@ VALUES
 3. The conductor role is notification-only (notify); it neither schedules models nor merges proposals.
 4. The harness does not itself persist proposals; persistence is handled by the `review_queue`.',
    ARRAY['harness', 'proposals', 'batch', 'fan-out', 'conductor', 'multi-agent']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:52.142012+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4495,13 +3920,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_da5739b0','1.0','ws_spec0001','匯入預覽畫面概覽','factual','markdown','匯入預覽畫面顯示匯入作業的摘要，包括節點和邊的總數，以及哪些節點是乾淨的或可能是重複的。',
    ARRAY['import', 'ui', 'preview']::text[],'public','system','2026-04-24T11:25:40.950895+00:00','33e0e380ea727d436286ac1bf2851417357f1fbec9cdf77e3c99a89c6c790c2a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4510,13 +3933,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_dbaef1ba','1.0','ws_spec0001','工作區所有者角色','factual','markdown','工作區所有者始終是管理員，且不能從該角色降級。',
    ARRAY['role', 'owner', 'admin', 'restriction']::text[],'public','system','2026-04-24T11:25:40.522712+00:00','5adde963a195e4b5f2c42f464fcdc25d634412c734ad62d4e46760cb4799b819','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4525,13 +3946,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_dc852972','1.0','ws_spec0001','MEMTRACE_TOKEN 安全提醒','factual','markdown','關於 `MEMTRACE_TOKEN` 的安全提醒文字已加入伺服器啟動時的標準錯誤日誌 (stderr log) 中。',
    ARRAY['環境變數', '安全性', '日誌']::text[],'public','system','2026-04-25T02:39:36.926692+00:00','656f7b6e924f07b2bef8f84a0a2a011de8f9270d6618c86707eb069cb8973af7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4540,8 +3959,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_dd1d4589','1.0','ws_spec0001','Connector 第三方整合產品立場','factual','markdown','MemTrace 對 Connector（第三方系統整合）的產品立場：
 
@@ -4551,8 +3969,7 @@ VALUES
 4. 第三方來源的 `provenance.source_type` 標記為 `"tool"`，`author` 記錄 connector 名稱。
 5. UI 連接器頁籤暫時隱藏，功能架構已就緒待啟用。',
    ARRAY['connector', '第三方', '整合', '立場', 'ingest']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','f4i2n3p5k6m7082j10lm2345678901lm2345678901lm2345678901abcdef123456789','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4561,8 +3978,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_de31d9fc','1.0','ws_spec0001','Lesson: Self-propagation of dirty data in a knowledge base — agents replicate and amplify existing errors as authoritative convention','factual','markdown','## The lesson
 
@@ -4583,8 +3999,7 @@ An agent infers a write convention, such as edge direction, from the only existi
 
 Applies to human-AI maintained knowledge graph systems that allow agent writes.',
    ARRAY['lesson-learned', 'governance', 'agent-safety', 'data-quality', 'knowledge-graph']::text[],'public','usr_6bc7b4c7','2026-06-20T03:58:37.371202+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4593,13 +4008,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_df5063bd','1.0','ws_spec0001','列出已歸檔節點 API','procedural','markdown','提供一個 API 端點 `GET /workspaces/{ws_id}/nodes?filter=archived`，用於列出指定工作區中所有已歸檔的節點。',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:49.910036+00:00','50c10babc72825ea1a4c613a30ae476d998c5a3f0fbe90f05d8277b528f729c9','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4608,13 +4021,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e0ebc6e5','1.0','ws_spec0001','README/使用文件更新：單庫使用情境','procedural','markdown','README 和使用文件已更新，說明單庫（最簡單）使用情境：只需設定 `MEMTRACE_WS` 環境變數，並在呼叫工具時不傳遞 `workspace_id` 參數。',
    ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-25T02:39:36.230691+00:00','e59e02c6a9011e9b691d3806389ed96d8988532eecc222d1c30c7876176156ef','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4623,13 +4034,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e10a0200','1.0','ws_spec0001','顯示新金鑰的一次性複製對話框','procedural','markdown','金鑰建立後，應顯示一個一次性複製對話框。',
    ARRAY['api-key', 'ui']::text[],'public','system','2026-04-25T02:38:53.632458+00:00','04c3b3db95c39e7be32de5edbd26fc9e83a18b2fc27939e5c70d2740b8e39975','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4638,13 +4047,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e3e6a8a4','1.0','ws_spec0001','UI 入門流程進度條','factual','markdown','在每個步驟的頂部都會顯示一個持久的進度條，例如「步驟 X / Y」。必填步驟會被標記，可跳過的步驟則顯示「暫時跳過」連結。',
    ARRAY['ui', 'onboarding', 'progress']::text[],'public','system','2026-04-24T11:31:27.668692+00:00','b765919fa3c8d7ca9d84e73220b483af69ddf3e5317b220e195ca32f868b427d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4653,13 +4060,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e73ea399','1.0','ws_spec0001','EDGE_GUIDE 內容定義','factual','markdown','`EDGE_GUIDE` 常數定義了關聯類型語意、權重範圍、`half_life_days` 說明以及 409 衝突處理方式。',
    ARRAY['edge_guide', 'edge', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:29.242927+00:00','5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4668,13 +4073,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e778fedf','1.0','ws_spec0001','記憶節點簽名','factual','markdown','`memory_nodes` 表中的 `signature` 欄位類型為 TEXT，存儲記憶節點內容的 SHA-256 哈希值。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'hash']::text[],'public','system','2026-04-24T11:25:39.089390+00:00','b3e2a69453c440c83d3d584bf7789a00fa68991922c6de7dd86d5e94dc6f159b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4683,28 +4086,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_e7f9e165','1.0','ws_spec0001','節點創建時的預設值','factual','markdown','新節點創建的預設值包括 `content.format` 為 `"plain"`, `trust.score` 為 0.5, `trust.dimensions` (accuracy 0.5, freshness 1.0, utility 0.5, author_rep 0.5), 以及 `trust.votes` (up 0, down 0, verifications 0)。',
-   ARRAY['設定', '預設值']::text[],'public','system','2026-04-24T11:25:39.907406+00:00','11dce764ed34376c489501afe7fa9330e9e93e1b549033f0c531a25cf39e346c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e9875476','1.0','ws_spec0001','輸入模式選擇','procedural','markdown','輸入模式可透過編輯器內的分頁切換來選擇。',
    ARRAY['editor', 'input-mode', 'ui']::text[],'public','usr_6bc7b4c7','2026-04-24T11:25:39.374323+00:00','585df44f3ba32837cd36c7de38c486adf0a047f38a72f9bbf983f9615d86b47b','ai',
-   0.924,0.95,0.898,0.98,0.929,
-   0,0,0,10,3)
+   10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4713,8 +4099,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_eafe5fce','1.0','ws_spec0001','Connector Third-Party Integration Product Stance','factual','markdown','MemTrace''s product stance on Connectors (third-party system integrations):
 
@@ -4724,8 +4109,7 @@ VALUES
 4. Third-party source nodes have `provenance.source_type` set to `"tool"`; `author` records the connector name.
 5. The Connectors UI tab is temporarily hidden; the architectural foundation is in place and ready to enable.',
    ARRAY['connector', 'third-party', 'integration', 'product-stance', 'ingest']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:57.877522+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4734,13 +4118,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ee62ef2c','1.0','ws_spec0001','簡化圖譜載荷的 API 端點','factual','markdown','端點 `GET /api/v1/workspaces/{ws_id}/graph?preview=true` 用於提供簡化圖譜載荷。',
    ARRAY['api', '端點', '簡化結構']::text[],'public','system','2026-04-24T11:25:39.793666+00:00','692f0b08e25bd54aa1bb741d90fa13d17d3c521fb8eae5d5eea3f70315d0124c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4749,13 +4131,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_eedc4eef','1.0','ws_spec0001','API 金鑰權限範圍：kb:read','factual','markdown','`kb:read` 權限範圍的 API 金鑰授予檢視者角色能力，允許搜索、讀取、走訪和評分操作。',
    ARRAY['api-key', 'scope', 'viewer', 'read-access']::text[],'public','system','2026-04-24T11:25:40.597989+00:00','1be172568b159d3b911a49177c590a9d5b74b6ec33a344f7abd355388b2c30c5','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4764,13 +4144,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ef3bebe9','1.0','ws_spec0001','JWT Token 載荷結構','factual','markdown','JWT Token 載荷包括 `sub` (使用者 ID)、`email`、`display_name`、`iat` (簽發時間) 和 `exp` (過期時間) 等欄位。',
    ARRAY['jwt', 'token', '載荷', '對談管理']::text[],'public','system','2026-04-24T11:25:40.127115+00:00','28b7156405594bd26902d892ca1e916dbbde4c482b49dbb04839f3fec346da9a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4779,13 +4157,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ef8ec8ec','1.0','ws_spec0001','AI Chat 使用知識庫關聯邊界','factual','markdown','AI Chat 功能將依賴知識庫關聯的邊界設定。',
    ARRAY['ai-chat', 'knowledge-base-association']::text[],'public','system','2026-04-25T02:39:58.716612+00:00','386ed5a376b7d7370a26182eaf9146e51d7f02dc1aec134bab2d9fb00a5f2986','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4794,8 +4170,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_exp001','1.0','ws_spec0001','知識庫探索頁（Hub）規格','factual','markdown','## 目標
 
@@ -4853,8 +4228,7 @@ WorkspaceSettings 頁面新增描述欄位供 owner 編輯。
 
 ## 狀態：pending（待實作）',
    ARRAY['feature', 'explore', 'hub', 'workspace', 'discovery', 'ux']::text[],'public','system','2026-06-14T00:00:00+00:00','exp001_explore_hub_spec','ai',
-   0.85,0.88,0.98,0.92,0.88,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4863,13 +4237,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f027cd84','1.0','ws_spec0001','MemTrace AI 功能概覽','factual','markdown','MemTrace 在三個不同的上下文中使用 AI，所有這些都共享相同的提供者抽象和 API 金鑰模型。',
    ARRAY['ai', 'features', 'architecture']::text[],'public','system','2026-04-24T11:25:40.433573+00:00','613853d08868de023cab46df86662e05317b460277273a997266163eb98cd87a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4878,8 +4250,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f0a4f717','1.0','ws_spec0001','背景作業可觀測性：scheduler_heartbeats + job_runs 兩層設計','factual','markdown','## 設計目標
 
@@ -4930,8 +4301,7 @@ VALUES
 - `migrations/110_job_observability.sql`
 - `tests/test_job_observability.py`',
    ARRAY['background-jobs', 'observability', 'scheduler', 'audit-reviewers', 'job-runs', 'spec', 'implemented']::text[],'private','usr_6bc7b4c7','2026-06-16T10:38:14.153514+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4940,13 +4310,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f2edb572','1.0','ws_spec0001','邊走訪統計數據結構','factual','markdown','邊響應中的 `traversal` 物件包含 `count`（走訪次數）、`rating_avg`（平均評分）和 `rating_count`（評分次數）欄位。',
    ARRAY['data-structure', 'traversal-stats', 'edge', 'rating']::text[],'public','system','2026-04-24T11:25:40.274389+00:00','44138550101d58d53cf07a6ec12d41ed6fae6e149da9cf27f11fffac79788237','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4955,13 +4323,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f70b4273','1.0','ws_spec0001','判斷入門流程進度','factual','markdown','`steps_done` 與 `steps_skipped` 兩個欄位共同決定目前的入門步驟與進度條數值。',
    ARRAY['onboarding', 'progress', 'ui']::text[],'public','system','2026-04-24T11:25:40.398911+00:00','16aaf873e830ab998ec1834add380b9d5bafa80ec0b980ad6bc58c2a60e90b4a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4970,13 +4336,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f8057a39','1.0','ws_spec0001','工具 description 更新','procedural','markdown','`search_nodes`、`get_node`、`traverse`、`list_by_tag` 等工具的描述已更新，新增一行說明如何使用 `workspace_id` 參數查詢特定知識庫，或省略以使用預設值 `MEMTRACE_WS`。',
    ARRAY['工具', '文件', '工作區']::text[],'public','system','2026-04-25T02:39:37.786358+00:00','619066f74e4abdca14e319bcd9cbfe613562619b098582a5070872003bddedae','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -4985,13 +4349,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f83d6e1b','1.0','ws_spec0001','AI 代理工作流程：建立新節點','procedural','markdown','AI 代理應呼叫 `create_node` 函數來建立新節點，並提供 `title_zh`、`title_en`、`content_type`、`content_format`、`body_zh` 等欄位。特別是，AI 代理必須設定 `source_type: "ai"`。',
    ARRAY['ai代理', '工作流程', '節點建立', 'api']::text[],'public','system','2026-04-25T02:39:25.137437+00:00','04fe85dcca072d61a5b4587e35961b2be16ec3bc52a01b288b2e17f13a480e33','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5000,13 +4362,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f9a2bb47','1.0','ws_spec0001','來源文件節點欄位定義','factual','markdown','來源文件節點包含以下欄位：`content_type` 為 `source_document`，`title_zh`/`title_en` 為原始檔名 + 匯入時間戳，`body_zh`/`body_en` 為完整的提取文本或轉錄稿，`visibility` 預設為 `private`，且 `source_type` 為 `human`。',
    ARRAY['後端資料', '來源', '文件']::text[],'public','system','2026-04-24T11:25:40.773860+00:00','7d2711cfebac275319bf5ebc62579cd1b3de62a9d03f2952bdd65e03bb984b84','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5015,13 +4375,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fb026368','1.0','ws_spec0001','記憶節點英文標題','factual','markdown','`memory_nodes` 表中的 `title_en` 欄位類型為 TEXT，存儲記憶節點的英文標題。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.909891+00:00','3a62af0adbac099be083237631539bac551d692c9362add2123ac306fa432351','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5030,13 +4388,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fb0354ee','1.0','ws_spec0001','新增 MEMTRACE_TOKEN 環境變數','factual','markdown','為支援 `list_workspaces` 及未來寫入工具存取 `/api/v1/workspaces`，新增 `MEMTRACE_TOKEN` 環境變數。此變數將 API token 注入 `apiFetch` 的 `Authorization: Bearer` 標頭中。',
    ARRAY['環境變數', 'api', '認證', '安全性']::text[],'public','system','2026-04-25T02:39:33.890766+00:00','5a92752ad8e42bd741785135c860e72414dc35b7ea7f68525e8f904ee3b40f5f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5045,13 +4401,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fcfc3360','1.0','ws_spec0001','AI 呼叫日誌要求','factual','markdown','所有 AI 呼叫，無論是使用工作區級別還是帳戶級別的金鑰，都必須記錄。日誌作為計費、調試和政策執行的權威記錄。',
    ARRAY['ai', '說明', '記錄', '錯誤', '結構']::text[],'public','system','2026-04-24T11:25:40.870968+00:00','d602c01a63a9d7c9de1f73258fc8a94b375dadb29578da5d267ed59f356eb6fa','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5060,13 +4414,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fee2f20e','1.0','ws_spec0001','AI 讀取權限：關聯的工作區','factual','markdown','AI 可以從關聯的工作區讀取內容，但不被允許向其提議寫入操作。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.718460+00:00','bf0b60327f5653184e709699864ee935ead4af7a24ab35a084ed82d36c9699b5','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5075,13 +4427,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ff4e804e','1.0','ws_spec0001','入門精靈自動顯示條件','factual','markdown','一旦 `completed: true`，入門精靈便不會再自動顯示。',
    ARRAY['onboarding', 'ui', 'completion']::text[],'public','system','2026-04-24T11:25:40.415959+00:00','0c8adbf4e2f1b9f5bc07fac93f031d00d9a0cf53f41896d28bb69c72e0415ce9','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5090,8 +4440,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_g001','1.0','ws_spec0001','Decay：Edge 權重的自然衰減','factual','markdown','Edge 權重隨時間依以下公式衰減（v1）：
 
@@ -5114,8 +4463,7 @@ weight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)
 
 衰減觸發：每日由 `apply_edge_decay()` SQL 函式執行（鏡射 `packages/core/src/decay.ts`）。',
    ARRAY['graph-mechanics', 'decay', 'weight', 'faded', 'archive']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5124,8 +4472,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_g002','1.0','ws_spec0001','Co-Access Boost：共存取加成','factual','markdown','當兩個相連節點在同一情境下被循序或同時存取（Co-Access），對應 Edge 的 weight 會得到加成，加成量依 relation type 而異：
 
@@ -5138,8 +4485,7 @@ VALUES
 
 同時觸發：co_access_count +1、last_co_accessed 更新、weight 上限 1.0。API 路徑 POST /edges/{id}/traverse 或 MCP tool traverse_edge 皆會觸發 co-access boost。',
    ARRAY['graph-mechanics', 'co-access', 'boost', 'weight']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5148,8 +4494,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_g003','1.0','ws_spec0001','Edge 關係類型：四種語意方向','factual','markdown','| Relation | 語意 | 使用時機 |
 |----------|------|----------|
@@ -5160,8 +4505,7 @@ VALUES
 
 選擇正確的 relation type 很重要，因為它決定了 co-access boost 的強度，以及 AI agent 在遍歷圖時如何解讀關係。',
    ARRAY['graph-mechanics', 'relation-type', 'edge', 'schema']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5170,86 +4514,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_g004','1.0','ws_spec0001','Trust Score：節點可信度四維評分','factual','markdown','每個節點有一個合成 `trust_score`（0–1），由四個維度加權計算：
-
-| 維度 | 欄位 | 權重 | 說明 |
-|------|------|------|------|
-| 準確度 | `dim_accuracy` | 40% | 內容是否正確無誤 |
-| 新鮮度 | `dim_freshness` | 25% | 資訊是否仍為最新 |
-| 實用度 | `dim_utility` | 25% | 對讀者是否有實際幫助 |
-| 作者聲譽 | `dim_author_rep` | 10% | 貢獻者的歷史可靠性 |
-
-```
-trust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1
-```
-
-## 投票機制（vote_trust）
-
-評分以 **1–5 整數**提交（API 接受 accuracy 與 utility 兩個維度），後端取所有投票的平均值除以 5 換算為 0–1 浮點數後更新節點。
-
-**API**：`POST /workspaces/{ws_id}/nodes/{node_id}/vote-trust`
-```json
-{ "accuracy": 4, "utility": 5 }
-```
-
-**MCP Tool**：`vote_trust(node_id, accuracy, utility)`
-- AI agent 在讀取節點後，若認為內容正確且有用，應主動呼叫
-- 每位使用者對同一節點只能有一筆投票（ON CONFLICT DO UPDATE）
-- 投票記錄存於 `node_trust_votes` 表
-
-## confirm_node_validity
-
-`POST /workspaces/{ws_id}/nodes/{node_id}/confirm-validity` 可對節點進行一鍵確認：自動將 `dim_accuracy` 提升至 1.0 並重算 `trust_score`，同時更新 `validity_confirmed_at` 時間戳。等同於「我已人工核實此節點仍然正確」。
-
-## TypeScript 實作
-
-`packages/core/src/trust.ts` 提供 `computeTrustScore()` 與 `updateTrustScore()`，與 Python 端計算結果一致（誤差 < 0.01）。',
-   ARRAY['graph-mechanics', 'trust', 'vote', 'quality', 'mcp-tool', 'credibility']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_g005','1.0','ws_spec0001','MemTrace 信任維度：新鮮度與作者聲望','factual','plain','MemTrace 使用四個維度來計算綜合信任分數 (trust_score, 0.0-1.0)：
-1. 準確度 (Accuracy)：手動驗證或投票。
-2. 實用度 (Utility)：使用頻率與正面回饋。
-3. 新鮮度 (Freshness)：可靠性的時間衰減。
-4. 作者聲望 (Author Reputation)：該作者過去建立節點的歷史品質。
-
-新鮮度 (dim_freshness)：
-- 初始值為 1.0。
-- 若節點長期未更新，隨時間自動衰減。
-- 當 updated_at 或 validity_confirmed_at 更新時，重置為 1.0。
-- 演算法：1.0 * (0.5 ^ (距今更新天數 / 180))。
-
-作者聲望 (dim_author_rep)：
-- 取自該作者過去所有節點的平均信任分數。
-- 防止低質量的 AI 或人工大量產出影響品質。
-- 擁有良好記錄的作者，其新建立節點的初始信任度會較高。',
-   ARRAY['trust', 'spec']::text[],'public','system','2026-05-12T03:31:10.175315+00:00','818e5b9d24d7e3606e3568e8b1b435dc63f32bcdf7b9134d9b6006b2095fbc08','human',
-   0.625,0.5,0.962,0.5,0.92,
-   0,0,0,1,1)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g01','1.0','ws_spec0001','Agent 探索知識庫的 MCP 標準流程','procedural','markdown','Agent 需要從知識庫取得資訊時，依序使用 MCP tools：
 
@@ -5261,8 +4526,7 @@ VALUES
 
 list_by_tag 適合已知 tag 的清單需求。所有操作均依 MCP tool schema；不得直接呼叫 REST API。',
    ARRAY['agent-guide', 'mcp', 'mcp-only', 'exploration', 'inquiry-paths']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.646,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5271,8 +4535,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g02','1.0','ws_spec0001','MCP Token 預算與分層讀取指南','procedural','markdown','所有讀取均使用 MCP tools，並依任務需要控制 detail_level 與 max_response_tokens。
 
@@ -5285,8 +4548,7 @@ VALUES
 
 Agent 只依 MCP tool schema 傳入參數與解讀結果，不使用 REST endpoint、HTTP payload 或 curl 範例。',
    ARRAY['agent-guide', 'mcp', 'mcp-only', 'token-budget', 'retrieval']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.646,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5295,8 +4557,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g03','1.0','ws_spec0001','節點建立決策樹：何時建、建什麼型別、建後做什麼','procedural','markdown','## 節點建立決策樹
 
@@ -5348,8 +4609,7 @@ wait_for_embedding(workspace_id, node_id, timeout_seconds=30)
 由 ingest pipeline 自動建立，**agent 不應手動建立 document 節點**。
 若要為現有節點補充文件依據，使用 `attach_evidence` 或 `attach_url`。',
    ARRAY['agent-guide', 'create-node', 'content-type', 'decision-tree', 'wait-for-embedding', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.95,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5358,8 +4618,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g04','1.0','ws_spec0001','文件攝入流程：長文件與短文本','procedural','markdown','## 文件攝入流程
 
@@ -5390,8 +4649,7 @@ document node 保存原始文件內容，供後續閱讀、理解上下文與重
 - 過度頻繁輪詢 ingestion status
 - embedding 完成前立即進行語意搜尋',
    ARRAY['agent-guide', 'ingest', 'document', 'polling', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.647,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5400,8 +4658,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g06','1.0','ws_spec0001','Inquiry Paths：Agent 探索路徑的記錄與重播','procedural','markdown','## Inquiry Paths：Agent 探索路徑的記錄與重播
 
@@ -5456,8 +4713,7 @@ history = search_with_history(
 - 不要記錄探索個人隱私或敏感操作的路徑。
 - `node_sequence` 只記錄實際查看過的節點 ID，不要填入猜測或未存取的節點。',
    ARRAY['agent-guide', 'inquiry-paths', 'record-path', 'search-with-history', 'collective-learning', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.95,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5466,8 +4722,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g07','1.0','ws_spec0001','MCP 錯誤處理與重試指南','procedural','markdown','Agent 應依 MCP tool 回傳的結構化錯誤處理，不依賴 HTTP status code。
 
@@ -5481,8 +4736,7 @@ VALUES
 
 每次重試前都要確認操作具冪等性；create 類操作應先搜尋是否已成功建立。',
    ARRAY['agent-guide', 'mcp', 'mcp-only', 'error-handling', 'retry']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.646,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5491,13 +4745,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i001','1.0','ws_spec0001','使用者認證：Email 與密碼','procedural','plain','MemTrace 採用 Email + Password 認證路徑。安全措施包括：bcrypt 雜湊（cost ≥ 12）、密碼政策（8–128 字元、大小寫+數字、HaveIBeenPwned 洩漏檢查）、email 驗證信（24 小時效期）、失敗 5 次鎖定 15 分鐘。登入後核發 JWT Session（7 天），透過 Authorization: Bearer 標頭傳遞，登出以 blocklist 立即失效。目前不支援第三方 OAuth 登入，以簡化認證表面並減少外部依賴。',
    ARRAY['auth', 'security', 'jwt', 'password-policy']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5506,8 +4758,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i002','1.0','ws_spec0001','REST API 與外部 API Key','factual','markdown','外部服務與腳本以 **API Key** 認證（格式：`mt_live_<hex>`），而非 session JWT。Key 可綁定至特定 workspace 或跨 workspace，建立後完整金鑰只顯示一次。四種 scope：
 
@@ -5520,8 +4771,7 @@ VALUES
 
 所有 API 端點前綴 `/api/v1`，使用 `Authorization: Bearer` 傳遞 key 或 token（伺服器依前綴區分）。',
    ARRAY['api', 'api-key', 'access-control', 'integration']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6','human',
-   0.73,0.95,1.0,0.04,0.9,
-   0,0,0,4,2)
+   4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5530,8 +4780,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i003','1.0','ws_spec0001','MCP Server：AI Agent 整合','factual','markdown','MemTrace 實作 **Model Context Protocol (MCP)**，讓 AI agent（如 Claude Code）可以將 MemTrace 知識庫作為 context provider，無需直接讀取規格文件。
 
@@ -5563,8 +4812,7 @@ VALUES
 
 Agent 每次沿 Edge 移動時應呼叫 traverse 工具，讓常用路徑保持活躍，抵抗 decay。',
    ARRAY['mcp', 'ai-agent', 'integration', 'api']::text[],'public','system','2026-04-11T00:00:00+00:00','c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,3,2)
+   3,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5573,13 +4821,12 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i004','1.0','ws_spec0001','存取控制與權限角色：viewer / contributor / admin','factual','plain','MemTrace 採用類 git 的三層權限模型，適用於人類使用者與 AI 工具（含 MCP）。
 
 角色定義：
-- viewer：唯讀 + 問答 + 節點評分（rate）
+- viewer：唯讀 + 問答
 - contributor：viewer 全部能力 + 提出修改建議（→ review queue，需管理員審核）
 - admin：contributor 全部能力 + 直接寫入 + 審核提案 + 管理成員 + 邀請使用者 + 軟刪除/還原工作區
 
@@ -5599,8 +4846,7 @@ Contributor 提案流程：POST /workspaces/{ws_id}/proposals → review_queue�
 - 透過邀請連結加入 → 邀請建立時指定的角色
 - 跨庫複製節點 → 不授予任何成員資格',
    ARRAY['access-control', 'permissions', 'roles', 'viewer', 'contributor', 'admin', 'mcp', 'api-key']::text[],'public','system','2026-04-12T00:00:00+00:00','d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,5,2)
+   5,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5609,8 +4855,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i005','1.0','ws_spec0001','OpenAI 相容 API 端點:以工作區為模型的 RAG chat','factual','markdown','MemTrace 提供 **OpenAI 相容端點**(前綴 `/v1`),讓既有的 OpenAI SDK 或工具能直接把一個工作區當成「模型」做混合檢索問答(hybrid RAG)。認證沿用外部 API Key(`Authorization: Bearer mt_...`,見 mem_i002)。
 
@@ -5633,8 +4878,7 @@ VALUES
 ## 範圍界線
 目前僅實作 `/v1/models` 與 `/v1/chat/completions`,**未**提供 `/v1/embeddings`。',
    ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','26319322db8dec2367656d189d0b57ae905e41a79dafb2eee155df672c129097','human',
-   0.8,0.9,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5643,8 +4887,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i006','1.0','ws_spec0001','Python SDK:memtrace 官方客戶端(MemTraceClient)','factual','markdown','`packages/sdk-python` 提供官方 Python 客戶端 `MemTraceClient`,以程式化方式操作 MemTrace REST API(見 mem_i002),認證使用外部 API Key。
 
@@ -5665,8 +4908,7 @@ c.search_nodes(workspace_id="ws_abc", query="how to config auth")
 
 **尚未發布到套件索引（PyPI）。** 程式碼位於本 repo 的 `packages/` 之下並由 CI （`.github/workflows/packages.yml`）執行測試，但該流程刻意不做發布。上述範例中的 import 需先從原碼取得套件才能運作，無法直接從套件索引取得。版本 `0.1.0`。',
    ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','a1f55b9b358593ffe74e5f0e978565588ecbde271b1e0769da0fc5f83b0d83d9','human',
-   0.8,0.9,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5675,8 +4917,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i007','1.0','ws_spec0001','框架整合:LangChain Retriever 與 LlamaIndex Vector Store','factual','markdown','MemTrace 提供兩個框架整合套件,讓知識庫幾行就接進既有 LLM pipeline。兩者皆以 `base_url` + `api_key` + `workspace_id` 連線,底層走 REST API(見 mem_i002)。
 
@@ -5701,8 +4942,7 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
 
 **尚未發布到套件索引（PyPI）。** 程式碼位於本 repo 的 `packages/` 之下並由 CI （`.github/workflows/packages.yml`）執行測試，但該流程刻意不做發布。上述範例中的 import 需先從原碼取得套件才能運作，無法直接從套件索引取得。版本 `0.1.0`。',
    ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','a8a980388655beeddb2d3fb9812ac4d155b7811a61d6b805200c778953de3f98','human',
-   0.8,0.9,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5711,8 +4951,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq001','1.0','ws_spec0001','缺口：多 planner 規劃討論（fan-out + 共識裁決）','inquiry','markdown','目前迴圈的規劃階段只有單 planner。期望能支援多個 planner 並行產生提案，再裁決是否達成共識。
 
@@ -5725,8 +4964,7 @@ VALUES
 
 **現有備料：** `converge_proposals` MCP 工具已實作（複用 consult synthesizer，回傳 converge / escalate）。',
    ARRAY['inquiry', 'gap', 'multi-agent', 'planner', 'mcp-tool', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5735,8 +4973,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq002','1.0','ws_spec0001','缺口：claim registry 換 Redis（多 worker / 重啟存活）','inquiry','markdown','目前 `claim_task` / `release_task` 的 run-state 存在行程內 `_TASK_CLAIMS` dict（TTL 30 分鐘）。重啟即失、多 worker 不共享。
 
@@ -5747,8 +4984,7 @@ VALUES
 3. **TTL 策略：** 30 分鐘是否合理？agent 當機時 TTL 是否足夠讓任務自動釋放？
 4. **是否必要：** 多 worker 場景目前是實際需求還是預期需求？',
    ARRAY['inquiry', 'gap', 'claim-registry', 'redis', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5757,8 +4993,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq003','1.0','ws_spec0001','缺口：人 gate 送審品質 — flag-only 項目的呈現方式','inquiry','markdown','目前 `submit_outcome(fail)` 失敗標記與 per-feature 整合檢查，送入 `review_queue` 時帶空 `node_data={}`，reviewer 看到的是空卡片，沒有具體脈絡。
 
@@ -5771,8 +5006,7 @@ VALUES
    - 兩者並不互斥，但實作優先序不同
 3. **reviewer 真正需要什麼？** 看失敗原因後直接能做決定，還是需要跳到節點編輯才有感？',
    ARRAY['inquiry', 'gap', 'review-queue', 'human-gate', 'ux', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5781,8 +5015,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq004','1.0','ws_spec0001','缺口：Conductor — MemTrace 主動觸發外部 harness','inquiry','markdown','目前外部 harness 需主動輪詢才能知道有新任務。期望在 pending inquiry / residue 出現時，MemTrace 能主動通知外部 harness 啟動下一圈。
 
@@ -5794,8 +5027,7 @@ VALUES
 4. **harness 的接入面：** harness 需要在哪裡設定 webhook endpoint？是工作區設定還是全域設定？
 5. **outcome 回流計帳：** 多個 worker 各自 submit_outcome 時，path_reinforcement 是否會重複計算？',
    ARRAY['inquiry', 'gap', 'conductor', 'event', 'webhook', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq004a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5804,8 +5036,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq005','1.0','ws_spec0001','缺口：多 agent 信任分級與記憶污染防禦','inquiry','markdown','目前系統採單一 trusted 憑證（同質可信 agent，A3 決策）。隨著多 planner 加入，需補 per-agent 身分、信任分級與記憶污染防禦機制。
 
@@ -5817,8 +5048,7 @@ VALUES
 4. **多 workspace 隔離：** emit_residue 吐出 residue 到不同 workspace 時，advisory lock（hashtext(ws_id)）的 key 空間是否有碰撞風險？
 5. **優先序：** H1（憑證）→ H2（分級）→ H3（隔離）的開發順序是否合理？',
    ARRAY['inquiry', 'gap', 'trust', 'multi-agent', 'security', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq005a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5827,13 +5057,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k001','1.0','ws_spec0001','Knowledge Base：知識庫（Workspace）','factual','plain','Knowledge Base（又稱 Workspace）是 Memory Node 與 Edge 的容器，對應一個獨立的知識領域或專案。每個使用者可建立多個知識庫。知識庫本身有共享層級（public / restricted / private），與節點的 visibility 各自獨立——有效存取權取兩者較嚴格的一方。知識庫可以從空白開始，也可以從一份文件啟動並由 AI 萃取節點。ID 格式：ws_<hex8>。',
    ARRAY['knowledge-base', 'workspace', 'container']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,3,1)
+   3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5842,8 +5070,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k002','1.0','ws_spec0001','知識庫共享層級：四種可見性','factual','markdown','| 層級 | 識別碼 | 說明 |
 |------|--------|------|
@@ -5856,8 +5083,7 @@ VALUES
 
 節點層級的 visibility（public / team / private）獨立於知識庫層級，最終存取權取兩者較嚴格的一方。',
    ARRAY['knowledge-base', 'sharing', 'visibility', 'access-control', 'four-tier']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5866,13 +5092,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k003','1.0','ws_spec0001','節點跨庫複製：可攜性','procedural','plain','任何節點可被複製到另一個知識庫，但 Edge 不隨行。複製行為：目標庫中取得新 id；created_at 重設為複製時間；provenance.copied_from 記錄 { node_id, workspace_id } 供溯源；目標庫中 visibility 預設為 private；Trust 分數以快照帶入，兩邊後續互不影響；signature 在目標庫環境重新計算。CLI 指令：memtrace copy-node <node-id> --to <workspace-id>。API：POST /workspaces/{ws_id}/nodes（帶 copied_from 參數）。',
    ARRAY['knowledge-base', 'portability', 'copy', 'provenance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5881,8 +5105,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k004','1.0','ws_spec0001','工作區生命週期與軟刪除（30 天寬限期）','procedural','plain','工作區有三個狀態：active（正常）、pending_deletion（軟刪除中）、deleted（已清除）。
 
@@ -5904,8 +5127,7 @@ KB 類型寬限期差異：
 Schema 新增：
 ALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT ''active'' CHECK (status IN (''active'',''pending_deletion'',''deleted'')), ADD COLUMN deleted_at TIMESTAMPTZ;',
    ARRAY['workspace', 'lifecycle', 'soft-delete', 'grace-period', 'deletion', 'restore']::text[],'public','system','2026-04-12T00:00:00+00:00','e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,4,2)
+   4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5914,8 +5136,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ns001','1.0','ws_spec0001','節點拆分原則(agent 寫入前必讀)','factual','markdown','一顆節點 = 一個能獨立檢索、獨立為真、獨立被更新的單元。
 
@@ -5930,8 +5151,7 @@ VALUES
 
 可用 relation 僅:depends_on / extends / related_to / contradicts / proceeds_to,勿自創。實例見「節點拆分範例:決策網(plan)怎麼拆」。',
    ARRAY['authoring', 'node-splitting', 'meta']::text[],'public','system','2026-05-31T12:40:44.790751+00:00','2c5410e8e0cb0d2ad5b33fe10cf0a806bb945c9cc797d57ffb4b023e43c4d769','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5940,8 +5160,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ns002','1.0','ws_spec0001','節點拆分範例:決策網(plan)怎麼拆','procedural','markdown','以一份『計畫 / 決策』文件(Phase 6.4)為例,示範決策網怎麼拆。
 
@@ -5966,8 +5185,7 @@ VALUES
 
 完整教學見 docs/dev/node-splitting-example.md(決策網)與 troubleshooting-graph-authoring.md(動作流)。',
    ARRAY['authoring', 'node-splitting', 'example', 'meta']::text[],'public','system','2026-05-31T12:40:44.790751+00:00','32f40e87cbd4a9e98a8551df9077b8398b24c3f25dbbc234d7ff701a9e999c0c','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5976,8 +5194,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_o001','1.0','ws_spec0001','初次使用引導：Web UI 精靈','procedural','plain','首次登入後自動顯示，完成後永久不再彈出（可從 Settings → Getting Started 重新開啟）。八步流程：
 
@@ -5992,8 +5209,7 @@ VALUES
 
 進度以伺服器端的 `onboarding` 物件追蹤（`steps_done[]` + `steps_skipped[]`），中斷後可從上次未完成步驟恢復。`completed: true` 後永遠不再自動顯示。',
    ARRAY['onboarding', 'ui', 'wizard', 'ux', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6002,8 +5218,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_o002','1.0','ws_spec0001','初次使用引導：CLI memtrace init','procedural','plain','執行 `memtrace init` 啟動終端機互動式精靈，五步：
 
@@ -6017,8 +5232,7 @@ VALUES
 
 重複執行：詢問要更新 AI provider / 切換預設工作區 / 重新認證 / 退出，不自動覆寫現有設定。',
    ARRAY['onboarding', 'cli', 'init', 'setup', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6027,13 +5241,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p001','1.0','ws_spec0001','知識透過連結而非積累','context','plain','MemTrace 的核心前提：知識不需要存在於龐大的文件中。每個節點只捕捉一個想法，價值來自節點之間的連結網絡。節點本身輕量，但透過關聯性形成龐大的知識庫。知識庫的規模不是由單一節點的大小決定，而是由節點之間關係的密度與品質決定。',
    ARRAY['philosophy', 'core', 'design-principle']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6042,13 +5254,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p002','1.0','ws_spec0001','為知識傳承而設計','context','plain','MemTrace 為「非作者」設計。無論是剛加入的團隊成員、中途加入的協作者，還是在陌生情境中運作的 AI agent，都能從任何節點進入知識庫，沿著 Edge 找到所有相關內容，不需要原作者引導。每個節點設計上要自給自足到可以獨立閱讀，同時又透過 Edge 連結讓讀者可以自然深入探索。',
    ARRAY['philosophy', 'core', 'design-principle', 'inheritance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6057,13 +5267,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p003','1.0','ws_spec0001','人與 AI 的協作知識圖','context','plain','MemTrace 中，人與 AI 寫入同一張圖。圖的結構——Edge 的權重、走訪計數、評分——反映哪些知識實際上被證明有用，而非只是被記錄。Decay 確保圖的誠實性：沒人走的連結自然消退，頻繁被使用的連結強化並持續存在。最終形成一個圍繞「真正重要的知識」自我組織的知識庫。',
    ARRAY['philosophy', 'core', 'ai', 'co-authorship']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6072,8 +5280,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p410a','1.0','ws_spec0001','帳號層級 API 金鑰：設計決策（Phase 4.10）','preference','markdown','## 決策
 
@@ -6105,8 +5312,7 @@ Phase 4.10 將 MCP / API 金鑰從「工作區綁定 + 固定 scope」改為「�
 - 新增 `idx_wsm_user` 索引確保查詢效能
 - UI Settings → MCP / API Keys 移除 scope / workspace selector',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
-   0.85,0.92,0.955,0.88,0.92,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6115,8 +5321,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p410m','1.0','ws_spec0001','Magic Link：僅限 invite_only 模式（Phase 4.10）','factual','markdown','## Magic Link 機制
 
@@ -6161,8 +5366,7 @@ UI 透過 `GET /auth/config`（無需 auth）取得 `registration_mode`：
 `invite_only` 模式下，workspace 邀請連結仍觸發 Magic Link（magic_link_tokens 含 invitation_id）。
 其他模式下邀請連結改為導向一般密碼 register 表單。',
    ARRAY['auth', 'magic-link', 'registration', 'security']::text[],'public','system','2026-05-11T00:00:00+00:00','p410m_magic_link_invite_only_restriction','ai',
-   0.85,0.92,0.955,0.88,0.92,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6171,8 +5375,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p410t','1.0','ws_spec0001','JWT Token 刷新競態條件修復（authChecking 模式）','preference','markdown','## 問題
 
@@ -6198,8 +5401,7 @@ VALUES
 
 解碼 JWT payload 的 `exp` 欄位，提前 60 秒視為過期，避免邊界競態。',
    ARRAY['auth', 'frontend', 'jwt', 'race-condition', 'ux']::text[],'public','system','2026-05-11T00:00:00+00:00','p410t_token_refresh_race_condition_fix','ai',
-   0.85,0.92,0.955,0.85,0.92,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6208,16 +5410,14 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_playbook_001','1.0','ws_spec0001','MemTrace Playbook：知識圖譜原則','context','markdown','### 核心原則
 1. **原子性**：每個節點應精確描述一個獨立的概念。
 2. **雙語對稱**：提供英文和中文內容，以確保跨語言發現。
 3. **關係優先**：沒有邊的節點是孤立的記憶。始終考慮它如何與現有知識相關聯。',
    ARRAY['playbook', 'philosophy', 'core']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_001','ai',
-   0.5,0.5,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6226,16 +5426,14 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_playbook_002','1.0','ws_spec0001','工作流程：人機協作審核週期','procedural','markdown','### 協作流程
 1. **AI 提案**：AI 在對話或攝入過程中生成建議節點，並進入 review_queue。
 2. **人工審核**：使用者定期檢查隊列以完善、合併或拒絕提案。
 3. **提交**：批准的知識成為永久 Evergreen 圖譜的一部分。',
    ARRAY['workflow', 'review', 'collaboration']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_002','ai',
-   0.503,0.5,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6244,8 +5442,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_playbook_003','1.0','ws_spec0001','最佳實踐：區分節點類型','factual','markdown','### 內容類型指南
 - **事實性 (Factual)**：客觀事實、技術規格、定義。
@@ -6253,8 +5450,7 @@ VALUES
 - **偏好性 (Preference)**：團隊決策、設計偏好、選擇理由。
 - **背景性 (Context)**：專案背景、高層次哲學、設計意圖。',
    ARRAY['best-practice', 'content-type', 'guide']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_003','ai',
-   0.5,0.5,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6263,8 +5459,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_rq001','1.0','ws_spec0001','§S2 Review Queue SLA 與 Steward 輪值','procedural','markdown','## 問題背景
 
@@ -6287,9 +5482,7 @@ VALUES
 
 ## SLA 懲罰
 
-分配後 7 天未處理：
-- 節點 `dim_freshness × 0.8`（freshness 降級）
-- 項目進入下一輪分配
+分配後 7 天未處理：項目進入下一輪分配
 
 ## 驗收標準
 
@@ -6303,8 +5496,7 @@ WHERE assigned_to IS NULL
 
 目標：週活躍 reviewer ≥ 2',
    ARRAY['review-queue', 'sla', 'steward', 'governance', 'cron', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','rq001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6313,8 +5505,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_syn001','1.0','ws_spec0001','§S4 summarize_cluster MCP 工具：叢集 AI 摘要','factual','markdown','## 功能說明
 
@@ -6352,8 +5543,7 @@ VALUES
 - 叢集成員 > 10 個節點時，摘要節點可作為「入口」
 - token 節省：查詢者命中摘要即可，無需一一讀取成員',
    ARRAY['mcp-tool', 'synthesis', 'cluster', 'summarize', 'ai', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','syn001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.93,0.93,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6362,8 +5552,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_syn002','1.0','ws_spec0001','§S4 complement_node_languages MCP 工具：補全雙語缺口','factual','markdown','## 功能說明
 
@@ -6408,8 +5597,7 @@ spec-as-kb 採「兩個單語工作區」設計：
 - 每次新增 zh 節點後批次補全對應英文節點
 - Phase 5 後 en 節點缺口（~30 個）可用此工具批量生成',
    ARRAY['mcp-tool', 'synthesis', 'bilingual', 'language', 'complement', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','syn002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.93,0.93,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6418,8 +5606,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_syn003','1.0','ws_spec0001','§S4 suggest_edges MCP 工具：AI 建議缺失邊','factual','markdown','## 功能說明
 
@@ -6458,8 +5645,7 @@ VALUES
 3. 提案進 `review_queue`（`change_type=''edge_suggestion''`）
 4. 人工確認後建立正式邊',
    ARRAY['mcp-tool', 'synthesis', 'edges', 'suggest', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','syn003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6468,8 +5654,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta001','1.0','ws_spec0001','§S1 Token 遙測：retrieval_logs 表','factual','markdown','每次 retrieval / chat 呼叫都寫入 `retrieval_logs` 表，作為一切 token 量測的地基。
 
@@ -6511,8 +5696,7 @@ CREATE TABLE retrieval_logs (
 - log 覆蓋率 ≥ 99%
 - 與真實呼叫的 token 數誤差 < 2%',
    ARRAY['analytics', 'token', 'retrieval', 'telemetry', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6521,8 +5705,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta002','1.0','ws_spec0001','§S1 KB 健康度快照：kb_health_daily 表','factual','markdown','`kb_health_daily` 每日快照記錄知識庫核心指標，是 North Star 量測（M2–M4）的持久化來源。
 
@@ -6565,8 +5748,7 @@ CREATE TABLE kb_health_daily (
 
 註：`token_savings_ratio` 欄位仍保留於 schema（DDL 如上），但其衍生的 token 縮減 KPI 已於 2026-07-25 撤下。原公布值的量測基線為反事實假設（假定替代行為是載入整個知識庫），且會隨知識庫成長而自動改善，不構成可驗證的效能主張。量測方法修訂中。',
    ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6575,8 +5757,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta003','1.0','ws_spec0001','§S1 similar_to 自動化掃描與去重','procedural','markdown','## 目標
 
@@ -6617,8 +5798,7 @@ WHERE NOT EXISTS (
 );
 ```',
    ARRAY['dedup', 'similar_to', 'automation', 'cron', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6627,8 +5807,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta004','1.0','ws_spec0001','§S1 propose_merge MCP 工具：節點粒度優化','factual','markdown','## 問題背景
 
@@ -6657,8 +5836,7 @@ VALUES
 - avg context tokens 降低 ≥ 15%
 - 正確率（LLM judge rubric）不降',
    ARRAY['mcp-tool', 'merge', 'granularity', 'token', 'review-queue', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta004a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6667,8 +5845,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_tg001','1.0','ws_spec0001','§S5 TraversalGuard：圖遍歷速率限制','factual','markdown','## 目標
 
@@ -6707,8 +5884,7 @@ VALUES
 - [[mem_d006]] Traversal Tracking：遍歷計數機制
 - [[mem_inq002]] claim registry 換 Redis（含速率限制討論）',
    ARRAY['security', 'rate-limit', 'traversal', 'guard', 'hardening', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','tg001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6717,103 +5893,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_tr001','1.0','ws_spec0001','§S2 AI 節點預設 Trust 降級','factual','markdown','## 問題
-
-`source_type=ai` 節點若直接沿用預設高 trust（dim_accuracy=0.95），等同「AI 寫的就是對的」，違反 trust 機制初衷。
-
-## 規格
-
-節點入庫時，`source_type=''ai''` 且 `validity_confirmed_at IS NULL` 者，**必須**使用降級預設值：
-
-| 維度 | 預設值（human/spec） | 降級值（AI 未驗證） |
-|------|---------------------|--------------------|
-| dim_accuracy | 0.95 | **0.50** |
-| dim_utility | 0.90 | **0.50** |
-| trust_score（計算後） | ~0.924 | **≤ 0.65** |
-
-## 升級條件
-
-滿足以下任一條件，dim_accuracy 可升至 ≥ 0.80：
-
-1. 累積 ≥ 1 次 `vote_trust(accuracy ≥ 0.8)`
-2. `validity_confirmed_at IS NOT NULL`（人工或高信任 AI 確認）
-
-## 驗收 SQL
-
-```sql
--- 未驗證 AI 節點平均 trust 應 ≤ 0.65
-SELECT avg(trust_score)
-FROM memory_nodes
-WHERE source_type = ''ai''
-  AND validity_confirmed_at IS NULL
-  AND status = ''active'';
-```
-
-> ⚠️ 注意：目前 live DB 未驗證 AI 節點平均 trust ≈ 0.76（高於門檻），此規格尚待完整套用。',
-   ARRAY['trust', 'ai', 'governance', 'source-type', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','tr001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_vt001','1.0','ws_spec0001','§S3 投票防操縱：UNIQUE 約束與時間衰減','factual','markdown','## 問題背景
-
-沒有「同 user 對同 node 僅能算一票」的約束，單一使用者可刷高或刷低 trust。
-
-## 資料庫約束
-
-`node_trust_votes` 表設有：
-
-```sql
-UNIQUE (node_id, user_id)  -- 同 user 對同 node 只能有一筆投票紀錄
-```
-
-後票**覆蓋**前票（ON CONFLICT UPDATE），不會累積。
-
-## 最低投票人數規則
-
-同工作區節點需 ≥ 3 個不同 voter 才採計 trust 計算（低於門檻不影響 trust_score 升降）。
-
-## 時間衰減
-
-投票時間衰減：超過 30 天的票 weight × 0.5，避免早期投票永久鎖定 trust。
-
-## 模擬驗收
-
-- 操縱測試：單一 user 對同一節點投 100 次 → 最終 trust_score 變化 ≤ 0.05
-- 正常測試：3 個不同 user 各投 1 票 → trust 完整生效
-
-## 相關資料表欄位
-
-```sql
--- node_trust_votes
-id, workspace_id, node_id, user_id,
-accuracy (1–5), utility (1–5), created_at
-```',
-   ARRAY['trust', 'vote', 'anti-manipulation', 'governance', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','vt001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w001','1.0','ws_spec0001','專案套件結構','factual','markdown','MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理六個套件：
 
@@ -6828,8 +5908,7 @@ VALUES
 
 `core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。',
    ARRAY['dev', 'architecture', 'monorepo']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6838,8 +5917,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w002','1.0','ws_spec0001','本地開發環境啟動','procedural','markdown','## 前置需求
 - Node.js 20 LTS+
@@ -6871,8 +5949,7 @@ cd packages/ui && npm run dev
 
 API：http://localhost:8000 / UI：http://localhost:5173',
    ARRAY['dev', 'setup', 'database', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6881,8 +5958,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w003','1.0','ws_spec0001','Spec KB 初始化說明','procedural','markdown','## Spec KB 是如何建立的？
 規格知識庫（`ws_spec0001`）由 `packages/api/migrations/003_seed_spec_kb.sql`（由 `scripts/seed_spec_kb.py` 產生）建立。
@@ -6905,8 +5981,7 @@ docker compose down -v && docker compose up -d   # 重建空白 DB
 # 接著重新手動套用 003_seed_spec_kb.sql（見上）
 ```',
    ARRAY['dev', 'seed', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6915,8 +5990,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w004','1.0','ws_spec0001','開發實作順序與現況','procedural','markdown','## 完成進度（Phase 1–4）
 
@@ -6941,8 +6015,7 @@ VALUES
 | P4-D | CLI ingest/copy-node/init、Core contentTypeHalfLife/SHA-256、Scheduler jobs | ✅ |
 | P4-G | 自管 Ollama Provider（本機/LAN/Reverse Proxy）| ✅ |',
    ARRAY['dev', 'workflow', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6951,8 +6024,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ws001','1.0','ws_spec0001','§17 並行寫入安全：樂觀鎖與寫入佇列','factual','markdown','當多位使用者或 AI agent 同時對同一知識庫提交寫入時，必須防止以下失敗模式：節點被兩方同時修改造成分裂狀態；文件攝入並行執行造成重複節點或衝突邊；AI 重組在過時快照上提案、同時有人工編輯正在儲存。
 
@@ -6993,8 +6065,7 @@ SELECT pg_advisory_xact_lock(hashtext(<ws_id)));
 - 讀取操作**不受**寫入鎖限制
 - 逾時可透過 `WS_WRITE_LOCK_TIMEOUT_SECONDS` 設定（預設：5 秒）',
    ARRAY['concurrency', 'write-serialization', 'optimistic-locking', 'advisory-lock', 'database', 'api']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ws001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7003,8 +6074,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ws002','1.0','ws_spec0001','§17.4 邏輯衝突偵測','factual','markdown','任何 AI 生成或 AI 重組的節點提交後，系統會執行**非同步衝突檢查**，偵測 AI 引入的邏輯不一致。
 
@@ -7046,8 +6116,7 @@ AI Agent（MCP）受到與人類使用者相同的寫入串行化與衝突偵測
 }
 ```',
    ARRAY['concurrency', 'conflict-detection', 'write-serialization', 'ai', 'database', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ws002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7056,8 +6125,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ws003','1.0','ws_spec0001','§S3 跨工作區版本同步：sync_from_source','procedural','markdown','## 問題背景
 
@@ -7095,8 +6163,7 @@ VALUES
 4. 確認節點 B 進入 `review_queue`，`change_type=''source_updated''`
 5. 確認所有 copies 都收到通知，延遲 ≤ 5 秒',
    ARRAY['cross-workspace', 'sync', 'mcp-tool', 'copied-node', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ws003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7107,13 +6174,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_00d32c49_en','1.0','ws_spec0001_en','Node Minimization Principle','factual','markdown','A core principle of knowledge graph design that advocates for smaller nodes, more edges, and shorter traversal paths to improve information retrieval efficiency and reduce cognitive load.',
    ARRAY['knowledge-graph', 'design-principle', 'ai-restructuring']::text[],'public','system','2026-04-24T11:31:27.681728+00:00','9371b1b41df3cfd13fc796a731df2f30c24170405d5e9772324e1620188ba65f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7122,13 +6187,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_013d11be_en','1.0','ws_spec0001_en','Markdown Input Mode','factual','markdown','In `markdown` mode, input is rendered as HTML in read view, while raw Markdown is stored.',
    ARRAY['input-mode', 'markdown']::text[],'public','system','2026-04-24T11:25:39.414292+00:00','3f5ab1967571ab79453c47895d21ed5af47489952515e7f2b69c52dd17c70c39','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7137,8 +6200,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_01d117a9_en','1.0','ws_spec0001_en','Python SDK: the official memtrace client (MemTraceClient)','factual','markdown','`packages/sdk-python` ships the official Python client `MemTraceClient` for driving the MemTrace REST API programmatically, authenticating with an external API key.
 
@@ -7161,8 +6223,7 @@ Every synchronous method has an async counterpart (the `a` prefix, e.g. `alist_w
 
 > Mirrors seed node mem_i006_en; code: packages/sdk-python.',
    ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','usr_6bc7b4c7','2026-07-24T22:53:47.579070+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,2,1)
+   2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7171,13 +6232,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_033baf41_en','1.0','ws_spec0001_en','NODE_GUIDE Content Definition','factual','markdown','The `NODE_GUIDE` constant defines node field specifications, `content_type` explanation, `visibility` explanation, best practices for creation, and common errors.',
    ARRAY['node_guide', 'node', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:28.703205+00:00','e455fd7e83ae5aa06dfc303f056131a6fba3450abac4370621b5128c99d786f6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7186,8 +6245,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_0531d95e_en','1.0','ws_spec0001_en','Magic Link: Restricted to invite_only Mode (Phase 4.10)','factual','markdown','## Mechanism
 
@@ -7220,8 +6278,7 @@ and shows the magic link option only in invite_only mode.
 In invite_only mode, workspace invitation links still trigger Magic Link (magic_link_tokens includes invitation_id).
 In other modes, invitation links redirect to the standard register form.',
    ARRAY['auth', 'magic-link', 'registration', 'security']::text[],'public','system','2026-05-11T00:00:00+00:00','','human',
-   0.85,0.92,1.0,0.88,0.726,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7230,13 +6287,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_05ce17d1_en','1.0','ws_spec0001_en','AI Usage Log Table Indexes','factual','markdown','Three indexes are created on the `ai_usage_log` table: `idx_ai_usage_user` (on `user_id`, `called_at` DESC), `idx_ai_usage_feature` (on `feature`, `called_at` DESC), and `idx_ai_usage_provider` (on `provider`, `called_at` DESC).',
    ARRAY['ai', '說明']::text[],'public','system','2026-04-24T11:25:40.908853+00:00','7a1280b6e7a2bff93fc5743846592250a33fd7b5f18dc420af70ec1fee8983b6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7245,8 +6300,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_064d70b7_en','1.0','ws_spec0001_en','Phase 4 P4-G: Self-hosted Ollama Provider Planning Decisions','preference','markdown','**Decision date:** 2026-04-27
 **Status:** Recorded in `docs/dev/phase4-plan.md`, awaiting implementation scheduling.
@@ -7280,8 +6334,7 @@ VALUES
 
 Small local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON schema, raising Review Queue rejection rates. Mitigations: UI hint to use ≥ 8B / Q5+, Review Queue surfaces the source provider/model, and longer-term `mcp_query_logs` lets the Analytics page show a cloud-vs-local extraction success-rate comparison.',
    ARRAY['phase-4', 'ollama', 'ai-provider', 'knowledge-sovereignty', 'planning', 'roadmap', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-04-27T13:20:55.037625+00:00','9a07537effbb587826c7d8e3b6a303f1dd6274459d91c1d45db99427c5bc5fd3','ai',
-   0.925,0.95,0.908,0.98,0.929,
-   0,0,0,12,1)
+   12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7290,13 +6343,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_07334d61_en','1.0','ws_spec0001_en','Memory Export/Import Scope','factual','markdown','Node-level and full-Knowledge Base export/import are supported.',
    ARRAY['export', 'import', 'scope']::text[],'public','system','2026-04-24T11:25:39.270852+00:00','c097f8f7975d3ca47dd120efbcc14faf227f40b75fb9f2ad81971d7bc57ae2ed','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7305,13 +6356,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_0752c920_en','1.0','ws_spec0001_en','Contributor Role Capability: Proposing Changes','factual','markdown','Contributors can propose changes to nodes or edges. These proposals enter a review queue and require admin approval to be applied.',
    ARRAY['role', 'contributor', 'proposal', 'review-queue']::text[],'public','system','2026-04-24T11:25:40.486330+00:00','c9e0f98fe56cae12c67d59594eb46922bacdf9e4aa36e3df1f975b9552b4828e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7320,8 +6369,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_079a7573_en','1.0','ws_spec0001_en','System Monitoring Page: Scheduler Heartbeats, Job Runs, MCP Logs, AI Usage','factual','markdown','Platform admins can open the "System Monitoring" page from the left navigation to observe the overall health of the platform.
 
@@ -7380,8 +6428,7 @@ Aggregates token consumption by workspace × month to aid cost tracking.
 | conductor_dispatch | System | — |
 ',
    ARRAY['system-monitor', 'admin', 'scheduler', 'job-runs', 'observability']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','091497e10db54939439d91fcc3c4d295a89ebb0a526b1bba5c04effd8a849616','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7390,13 +6437,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_08f1c514_en','1.0','ws_spec0001_en','Source Document Node Default Exclusions','factual','markdown','By default, source document nodes are excluded from the graph view (unless "Show source documents" is enabled), from keyword and semantic search results, from Q&A and AI conversation context retrieval, and from MCP `search_nodes` results.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.831618+00:00','8c1c5ae6bf2674b4f5bd74831f3b1e8b63148c33abfec5059782b406519f5e93','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7405,13 +6450,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_097ff069_en','1.0','ws_spec0001_en','AI Provider Abstraction and API Key Model','factual','markdown','MemTrace''s AI features share a common provider abstraction and API key model, where users supply their own keys.',
    ARRAY['ai', 'api', 'security', 'configuration']::text[],'public','system','2026-04-24T11:25:40.454141+00:00','3670462d56d5294b06b1cdd0f98f5e5570062473d91f2c8839b81a34659a4a11','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7420,13 +6463,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_0d6a7214_en','1.0','ws_spec0001_en','Workspace Access Granting','factual','markdown','Access to a workspace is granted only via explicit admin invitation.',
    ARRAY['access-control', 'admin', 'invitation']::text[],'public','system','2026-04-24T11:25:39.592594+00:00','7565ff5c348962f12749977db91aa8c4ec162aaa28a3d45be254023066708312','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7435,13 +6476,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_107440f8_en','1.0','ws_spec0001_en','Node IDs in Stripped Graph Payload','factual','markdown','Real `memory_node.id` values in the stripped graph payload are replaced with opaque sequential preview IDs (`node_preview_N`) that are not stable across requests.',
    ARRAY['節點ID', '簡化結構', '資料載荷']::text[],'public','system','2026-04-24T11:25:39.758281+00:00','1deb02df329cb170fcdc2a70609066f0765abe86315b577b6bdf3c214b6cb7e7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7450,13 +6489,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_10a89b1f_en','1.0','ws_spec0001_en','Invited User Role Assignment','factual','markdown','Invited users are added to the workspace with the role specified in the invite token.',
    ARRAY['roles', 'invitation', 'access-control']::text[],'public','system','2026-04-24T11:25:39.631905+00:00','7cf62b3b242f03e9b7889e041598b464fd164b5d7d1f01cba4a9eda874bbb8ed','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7465,13 +6502,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1185cce5_en','1.0','ws_spec0001_en','Create API Key','procedural','markdown','Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new API key. The request must include an Authorization Bearer Token, Content-Type as `application/json`, and JSON data containing the key name and scopes (e.g., `kb:read`, `kb:write`).',
    ARRAY[]::text[],'public','system','2026-04-25T02:39:30.610529+00:00','64f3676e69b048faf93b180a7bd9c33f59d965f34af7acd616c3933fa4b44cd7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7480,13 +6515,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_156804b8_en','1.0','ws_spec0001_en','API Key Scope: kb:write','factual','markdown','An API key with the `kb:write` scope grants admin role capabilities, providing full write access.',
    ARRAY['api-key', 'scope', 'admin', 'write-access']::text[],'public','system','2026-04-24T11:25:40.640994+00:00','956a647920f96b7a1b1d0aff71ff87d58dc65179427575b5a85f87acd1dacaa3','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7495,8 +6528,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_17e5a3aa_en','1.0','ws_spec0001_en','Multi-Planner Escalate to Review Queue Presentation','factual','markdown','Presentation design for escalations to `review_queue` in multi-planner architecture:
 
@@ -7505,8 +6537,7 @@ VALUES
 3. Escalation triggers a notification to workspace admins.
 4. The review queue does not merge proposals from different planners even when semantically similar — full provenance is preserved.',
    ARRAY['multi-planner', 'review_queue', 'escalate', 'presentation', 'notification']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','i7l5q6s8n9p0315m43op5678901234op5678901234op5678901234abcdef123456789012','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7515,13 +6546,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_184116bb_en','1.0','ws_spec0001_en','Onboarding Object Structure','factual','markdown','The onboarding state is represented by an `onboarding` object, including `completed`, `steps_done`, `steps_skipped`, and `first_kb_id` fields.',
    ARRAY['onboarding', 'data-model', 'json']::text[],'public','system','2026-04-24T11:25:40.381562+00:00','5651cf39b30ea36b6a4a87ddb2eef33aa78408a213d5570ebbd306c438554bb1','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7530,13 +6559,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_19f73d5a_en','1.0','ws_spec0001_en','Decay Product Stance','factual','markdown','MemTrace''s product stance on decay: decay is a natural reflection of knowledge freshness, not a punishment. Unreferenced knowledge loses weight over time but is never automatically deleted. The `pinned` flag freezes the weight of a node or edge to prevent decay. Decay parameters (`half_life_days`, `min_weight`) are configurable at the workspace level; no forced deletion occurs.',
    ARRAY['衰減', 'decay', 'pinned', 'product-stance']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','a3f1d2e4b5c6071809abcdef1234567890abcdef1234567890abcdef12345678','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7545,28 +6572,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_1b09b6ed_en','1.0','ws_spec0001_en','Memory Node Accuracy Dimension','factual','markdown','The `dim_accuracy` column in the `memory_nodes` table is of type NUMERIC(4,3), representing a dimension of the trust score.',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'trust_dimension']::text[],'public','system','2026-04-24T11:25:39.152271+00:00','15656e7278fb5473c5f316278cbe9a4ad0be33234c87f6b7dd9d4e505fcd217b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1b0a6c77_en','1.0','ws_spec0001_en','API Key/Session Suspension Threshold','factual','markdown','An API key or session is suspended if the traversal rate exceeds 2000 requests within a 10-minute period.',
    ARRAY['api-key', 'session', 'security', 'rate-limiting', 'threshold']::text[],'public','system','2026-04-24T11:31:27.743224+00:00','b44ed89375ac73f6c55e71e4e97b9521aa00be67b37609a04552c515ac852362','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7575,13 +6585,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1b50a9b1_en','1.0','ws_spec0001_en','Memory Node Editor Fields','factual','markdown','The creation/edit form exposes several fields for user input.',
    ARRAY['editor', 'fields', 'memory-node']::text[],'public','system','2026-04-24T11:25:39.497376+00:00','b20effdba67a36c189fcc02d6a494aa870056bd4e8a4f6b878040a55275100d1','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7590,34 +6598,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_1f68ceaf_en','1.0','ws_spec0001_en','Trust Computation Deferred (v1 Design Decision)','factual','markdown','v1 defers full dynamic trust computation. `trust.score` is currently a static value (linear weighting of accuracy, freshness, utility, author_rep) and does not update in real time in response to behavioral events.
-
-**Reason for deferral**: Complete dynamic trust computation requires an agent feedback loop that has not yet been fully designed.
-
-**Deferred scope**: `author_rep` updates, vote-driven score recalculation, decay-trust interaction effects.
-
-v2 plans to introduce an event-driven trust update mechanism.',
-   ARRAY['trust', 'computation', 'deferred', 'design-decision', 'v1']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:22.059749+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1fc8782f_en','1.0','ws_spec0001_en','Memory Node English Body','factual','markdown','The `body_en` column in the `memory_nodes` table is of type TEXT, storing the English body of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.987893+00:00','38def61e607255d825e41054e1ef73f9bbe01b69d8df3be4d7d18a59eb8e41ac','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7626,13 +6611,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_1fc9c6b4_en','1.0','ws_spec0001_en','AI Agent Workflow: Search Existing Nodes','procedural','markdown','Before creating a new node, an AI agent should first call `search_nodes("authentication mechanism")` or similar functions to check if related nodes already exist in the knowledge base, preventing duplication.',
    ARRAY['ai代理', '工作流程', '節點建立', '搜尋']::text[],'public','system','2026-04-25T02:40:02.057085+00:00','ce76ce6a71d629231411b6006cde3379e98c2074b2cf40c3fc050542c9a16cfb','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7641,8 +6624,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_21482947_en','1.0','ws_spec0001_en','JWT Token Refresh Race Condition Fix (authChecking Pattern)','preference','markdown','## Problem
 
@@ -7668,8 +6650,7 @@ Added authChecking state to block all data loading until token validation comple
 
 Decodes JWT payload exp field with a 60-second buffer to avoid boundary race conditions.',
    ARRAY['auth', 'frontend', 'jwt', 'race-condition', 'ux']::text[],'public','system','2026-05-11T00:00:00+00:00','','human',
-   0.85,0.92,1.0,0.85,0.726,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7678,13 +6659,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_21638c34_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/rate Endpoint','procedural','markdown','This endpoint is used to submit an explicit rating (1-5) for a path.',
    ARRAY['api', 'rest', 'rating', 'edge']::text[],'public','system','2026-04-24T11:25:40.201027+00:00','cb4131be818878d469bd1c212bcc26506d6ca08b7a42d30d9a8991f3ffa33f05','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7693,13 +6672,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_22c9d8d6_en','1.0','ws_spec0001_en','Natural Decay Mechanism','factual','markdown','The system automatically manages the decay of knowledge unless a node or edge is manually pinned.',
    ARRAY['衰減', '權重', 'decay']::text[],'public','system','2026-04-24T11:31:27.612477+00:00','81794826c7a783c9fbfa0d8eaa2e8526a26dc20b3f852f4a42811973c0866b02','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7708,8 +6685,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2563d8c1_en','1.0','ws_spec0001_en','Multi-Planner claim_task Interaction Boundaries','factual','markdown','Rules governing `claim_task` interactions in multi-planner environments:
 
@@ -7719,8 +6695,7 @@ VALUES
 4. Planners must not claim a task already held by another planner; ownership transfers must be coordinated through the harness.
 5. Multiple planners competing for the same task is treated as a task-dispatch design error requiring a revised strategy.',
    ARRAY['multi-planner', 'claim_task', 'task', 'interaction', 'optimistic-lock']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','h6k4p5r7m8o9204l32no4567890123no4567890123no4567890123abcdef12345678901','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7729,13 +6704,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_25ad6564_en','1.0','ws_spec0001_en','Private Workspace Visibility','factual','markdown','A `private` workspace is completely hidden from all other users.',
    ARRAY['workspace-type', 'visibility', 'private']::text[],'public','system','2026-04-24T11:25:39.649243+00:00','d9e0ea13c43e0e843f62e0fde909343ab684ea90f2dd3e4d953aaf5dbb099de5','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7744,13 +6717,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_25b80084_en','1.0','ws_spec0001_en','Non-Member Access to Conditional-Public Workspaces','factual','markdown','When a non-member user accesses a `conditional_public` workspace, the server returns a stripped graph payload.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.722141+00:00','1ad8d1c6a71fd754a34836bb2dcb3ae02a1792f1819065808a800393d273da28','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7759,13 +6730,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_263e8dd9_en','1.0','ws_spec0001_en','Invitation API Endpoint','factual','markdown','The API endpoint for issuing workspace invitations is `POST /workspaces/{ws_id}/invites`.',
    ARRAY['api', 'invitation', 'admin']::text[],'public','system','2026-04-24T11:25:39.611211+00:00','6fc2382e4ea2d6fb918a89b618c797778a7778327c86d6939a3571ef142d5cfc','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7774,13 +6743,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2698efe6_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/traverse Request Body','factual','markdown','The request body includes an `actor_id` (e.g., `usr_abc123` or `apikey_abc123`) and an optional `note` field.',
    ARRAY['api', 'request-body', 'traversal']::text[],'public','system','2026-04-24T11:25:40.220298+00:00','8da827ee692a2b067d6b98da026c3001d951a76bece032cb35ba88cef2a09dda','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7789,8 +6756,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_26ff6cfe_en','1.0','ws_spec0001_en','Harness Proposal Batch Processing Design','factual','markdown','The harness layer handles proposal batch processing for multi-agent fan-out:
 
@@ -7799,8 +6765,7 @@ VALUES
 3. The conductor role is notification-only (notify); it neither schedules models nor merges proposals.
 4. The harness does not itself persist proposals; persistence is handled by the `review_queue`.',
    ARRAY['harness', 'proposals', 'batch', 'fan-out', 'conductor', 'multi-agent']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','e3h1m2o4j5l6971i09kl1234567890kl1234567890kl1234567890abcdef12345678','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7809,13 +6774,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_27e2935e_en','1.0','ws_spec0001_en','Workspace Roles & Permissions','factual','markdown','Access to knowledge within a workspace is strictly role-based, especially for `conditional_public` and `restricted` workspaces.',
    ARRAY['access-control', 'roles', 'permissions']::text[],'public','system','2026-04-24T11:25:39.701124+00:00','d1a47e7c44150c33817a30ae6a42bfaf25f2225950b5aff7824c979513ec19be','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7824,33 +6787,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_28510af2_en','1.0','ws_spec0001_en','Feedback Signal Protection Mechanism','factual','markdown','User votes (up/down) and verifications are feedback signals; the design must prevent manipulation:
-
-1. A single user may cast only one vote per node.
-2. Verification requires sufficient `author_rep` to trigger.
-3. Feedback signals do not directly modify `trust.score`; they are queued asynchronously and applied only after battery validation.
-4. A high volume of rapid feedback (coordinated attack) raises a safety flag and suspends updates until a human review is completed.',
-   ARRAY['feedback', 'protection', 'write-governance', 'vote', 'verification']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','a9d7i8k0f1h2537e65gh7890123456gh7890123456gh7890123456abcdef1234','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2a909fec_en','1.0','ws_spec0001_en','create_node Acceptance Scenario: title_en Only','factual','markdown','One acceptance scenario is to test if the `create_node` function can successfully create a node when only `title_en` is provided and `title_zh` is left empty, with `title_zh` defaulting to an empty string.',
    ARRAY['驗收情境', '節點建立', 'api', '測試']::text[],'public','system','2026-04-25T02:39:27.638354+00:00','ad2e98d78ac8c1440456beee48b50a220b21705bd120a7fbdb0c32c8d6ca88fa','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7859,13 +6800,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2c0de61a_en','1.0','ws_spec0001_en','Acceptance Scenario: No workspace_id Provided','procedural','markdown','One acceptance scenario: when calling a tool without providing `workspace_id`, the system should use the default value from `MEMTRACE_WS`, and its behavior should be identical to the current version.',
    ARRAY['驗收測試', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.160150+00:00','89d20e0e7af63433f78a354afc2310c674a8000d91be7a2f7763c8b069a72691','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7874,13 +6813,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2c1bd9d5_en','1.0','ws_spec0001_en','Chat API: Send Message (POST /chat)','procedural','markdown','Sends a message to a specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation.',
    ARRAY['api', 'chat', 'message', 'conversation', 'post']::text[],'public','system','2026-04-24T11:31:27.693915+00:00','6b15654db2b55b29e7943d96ebfe8bd110b52e5febab150f4e704a1b2117ab6b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7889,8 +6826,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2ccb546a_en','1.0','ws_spec0001_en','OpenAI-compatible API: workspace-as-model RAG chat','factual','markdown','MemTrace exposes **OpenAI-compatible endpoints** (prefix `/v1`) so existing OpenAI SDKs and tools can treat a workspace as a "model" and run hybrid-RAG chat over it. Authentication reuses the external API key (`Authorization: Bearer mt_...`, see "REST API and external API keys").
 
@@ -7915,8 +6851,7 @@ Only `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/
 
 > Mirrors seed node mem_i005_en; code: packages/api/routers/openai_compat.py.',
    ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','usr_6bc7b4c7','2026-07-24T22:53:42.604381+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7925,13 +6860,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_2e101ff1_en','1.0','ws_spec0001_en','AI Usage Log Table Schema','factual','markdown','A new `ai_usage_log` table is created with fields such as `id`, `user_id`, `key_source`, `provider`, `model`, `feature`, `workspace_id`, `node_id`, `tokens_input`, `tokens_output`, `tokens_total`, `latency_ms`, `success`, `error_code`, and `called_at`.',
    ARRAY['ai', '說明']::text[],'public','system','2026-04-24T11:25:40.887123+00:00','aca74ab39cb65f069516c41944edd02ff6232f8dea53e0413c1c026bad64746c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7940,13 +6873,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_31b38aa1_en','1.0','ws_spec0001_en','Guide Content Source Sharing','factual','markdown','The content for `NODE_GUIDE` and `EDGE_GUIDE` shares the same source as the `get_schema` tool, derived from a split `SCHEMA_GUIDE` constant.',
    ARRAY['schema_guide', 'node_guide', 'edge_guide', 'get_schema', 'source']::text[],'public','system','2026-04-25T02:39:31.349734+00:00','6dd2202e0239d34dcbc455ca48e987489b046a8e53676f2c290064bc4f23d649','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7955,13 +6886,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_32bc6360_en','1.0','ws_spec0001_en','Schedule Call for `apply_node_archiving()`','procedural','markdown','The scheduler should add a daily UTC 02:00 call to the `apply_node_archiving()` function, which exists but is currently not triggered.',
    ARRAY['scheduler', 'node-archiving']::text[],'public','system','2026-04-25T02:38:35.076074+00:00','014a6e02054ebb86a8d31ec981406f8fa1b145a2fe86d02590c5310b59f8a95d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7970,8 +6899,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3362c694_en','1.0','ws_spec0001_en','Dual-Track Deletion Semantics','factual','markdown','MemTrace uses dual-track deletion semantics:
 
@@ -7980,8 +6908,7 @@ VALUES
 
 System actors may perform hard-deletes and must notify the owners of associated nodes.',
    ARRAY['deletion', 'soft-delete', 'hard-delete', 'tombstone', 'semantics']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:03.223515+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7990,8 +6917,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_35036bb8_en','1.0','ws_spec0001_en','Agent 操作介面規範：僅使用 MCP，不直接呼叫 REST API','procedural','markdown','## 規範
 
@@ -8013,8 +6939,7 @@ AI agent、coding agent、外部 harness 與自動化流程操作 MemTrace 時�
 - MCP 回傳權限不足、驗證失敗、限流或暫時錯誤時，依 tool result 處理，不依賴 HTTP status code。
 - 所有寫入仍遵守 workspace 權限、safety review 與適用的審核機制。當責歸屬見「寫入當責模型」（mem_8ac95ea6）：經認證使用者指揮 agent 的寫入，以該使用者為 author 並由其當責，屬正規路徑而非繞過審核的捷徑。',
    ARRAY['agent-guide', 'mcp-only', 'governance', 'security', 'tool-usage', 'public-policy']::text[],'public','usr_6bc7b4c7','2026-06-21T15:44:37.421027+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8023,13 +6948,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
-  ('mem_35f0002a_en','1.0','ws_spec0001_en','Viewer Role Capabilities','factual','markdown','Viewers can search, list, and get nodes, track traversals, rate nodes (votes_up / votes_down), and use conversational Q&A. They cannot create, modify, or delete any nodes, edges, or workspace settings, nor can they propose changes.',
+  ('mem_35f0002a_en','1.0','ws_spec0001_en','Viewer Role Capabilities','factual','markdown','Viewers can search, list, and get nodes, track traversals, and use conversational Q&A. They cannot create, modify, or delete any nodes, edges, or workspace settings, nor can they propose changes.',
    ARRAY['role', 'viewer', 'capabilities', 'restrictions']::text[],'public','system','2026-04-24T11:25:40.544502+00:00','05de91add0c34978b1ec1aceb37bff828648288caadf274fa3b0143c5f95a75a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8038,8 +6961,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_38c3acd8_en','1.0','ws_spec0001_en','Analytics dashboard and token efficiency report','procedural','markdown','## KB health summary
 
@@ -8063,8 +6985,7 @@ Data is recorded in `mcp_query_logs` for read tools. These analytics describe st
 
 This node is a condensed companion to `mem_a005_en`, which carries the full field-by-field reference. It is not currently managed by the `examples/spec-as-kb/` seed source of truth; consolidation is pending review.',
    ARRAY['analytics', 'dashboard', 'token-efficiency', 'kb-health', 'mcp-logs', 'ui', 'mcp-tool']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
-   0.651,0.95,1.0,0.95,0.726,
-   0,0,0,3,1)
+   3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8073,13 +6994,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3b303d15_en','1.0','ws_spec0001_en','Handle 422 Validation Errors for createNode/updateNode','procedural','markdown','When the createNode or updateNode API returns a 422 validation error, the ''detail'' array from the response should be extracted into readable prompt messages.',
    ARRAY['api', '錯誤處理', '驗證']::text[],'public','system','2026-04-25T02:40:01.366196+00:00','409f48944a83ee3860534aa1c918f07f3d9c337c4c946bf715b933bd5360ea67','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8088,8 +7007,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3c063665_en','1.0','ws_spec0001_en','Phase 6.2 — Infrastructure (Track C, T25–T32)','factual','markdown','## Phase 6.2 Track C — Infrastructure
 
@@ -8107,8 +7025,7 @@ Migration `064_node_events.sql` triggers edge suggestion after embedding complet
 ### wait_for_embedding / get_embedding_status
 MCP tools wait for a node embedding to become ready or report pending and retry queue counts for a workspace.',
    ARRAY['phase-6.2', 'embedding', 'retry', 'event-driven', 'infrastructure', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:12:42.989025+00:00','','human',
-   0.667,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8117,8 +7034,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_3c9c261b_en','1.0','ws_spec0001_en','Conductor:設計結論與角色邊界','factual','markdown','# Conductor:設計結論與角色邊界
 
@@ -8150,8 +7066,7 @@ VALUES
 
 已實作（`services/conductor.py`、`routers/conductor.py`）。延伸主題:自我審議迴圈（pending inquiry → conductor → fan-out → converge → 分層回寫）與回寫規則。',
    ARRAY['conductor', 'webhook', 'scale', 'inquiry', 'agent-loop', 'design-conclusion', 'public']::text[],'public','usr_6bc7b4c7','2026-06-23T02:51:51.700125+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8160,8 +7075,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_412b32d4_en','1.0','ws_spec0001_en','MemTrace Core Purpose and Positioning','factual','markdown','MemTrace''s core purpose: it is not a general-purpose database but an **auditable shared knowledge graph** designed for human-AI collaboration.
 
@@ -8172,8 +7086,7 @@ Three core differentiators:
 
 All features — governance, telemetry, notifications, decay — serve this core: making the knowledge lifecycle visible, manageable, and trustworthy for humans.',
    ARRAY['core-purpose', 'product-positioning', 'knowledge-graph', 'design-philosophy', 'human-ai-collaboration']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:25.972210+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8182,13 +7095,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_41c6465d_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/traverse Endpoint Implementation','procedural','markdown','This endpoint records a traversal of an edge, which triggers the co-access boost and increments the traversal count of the nodes on both ends of the edge.',
    ARRAY['api', 'rest', 'traversal', 'edge', 'co-access-boost']::text[],'public','system','2026-04-24T11:25:40.181154+00:00','92857f221640729e4aed86a22587b9cceb30a11eb100a6498d8ffcc15cb2ba88','ai',
-   0.595,0.8,1.0,0.02,0.5,
-   0,0,0,2,2)
+   2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8197,13 +7108,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_42669ba9_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/rate Request Body','factual','markdown','The request body includes a `rating` field (an integer between 1 and 5) and an optional `note` field. Only one rating per actor per edge is enforced, with subsequent submissions overwriting previous ratings.',
    ARRAY['api', 'request-body', 'rating', 'constraints']::text[],'public','system','2026-04-24T11:25:40.239378+00:00','a5a308930ff1aefa0598e53a5f2529fd427006c614b29d6f873d4ac68e4b6ed4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8212,13 +7121,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4379cf51_en','1.0','ws_spec0001_en','Content Format Field','factual','markdown','The selected input mode is persisted on the node as the `content.format` field (see §4.1 schema extension).',
    ARRAY['memory-node', 'schema', 'content-format']::text[],'public','system','2026-04-24T11:25:39.438284+00:00','c8318b292f3ffcbd257b802a6890d12035f468d5483c527af32c73489ff3955d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8227,13 +7134,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_45350e40_en','1.0','ws_spec0001_en','AI Call Execution Location','factual','markdown','AI calls are made from the client or server using the user''s supplied key.',
    ARRAY['ai', 'client-side', 'server-side', 'api']::text[],'public','system','2026-04-24T11:25:40.470219+00:00','a3a3895d6cb9185703b032de058c6dd65efd9cc05ede25cb259018cb9089e18c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8242,13 +7147,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_45b2269d_en','1.0','ws_spec0001_en','Memory Node Author','factual','markdown','The `author` column in the `memory_nodes` table is of type TEXT, storing the author of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:39.051144+00:00','a6702d11b7568adb799d43ae69e7fccd6ac9372871cf1d585ea67034809ab809','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8257,13 +7160,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4621ebb5_en','1.0','ws_spec0001_en','MemTrace Feature Breakdown - Phase 2 Completed','context','markdown','This document details high-level specifications from the backlog into concrete subtasks for UI, API, and DB developers.',
    ARRAY['memtrace', 'feature-breakdown', 'project-management', 'phase-2']::text[],'public','system','2026-04-25T02:39:32.330603+00:00','3fefc7da371b9f5f6f0dd7fcadad0fc77650f3b51d4496bafe2bace9ab83ce41','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8272,8 +7173,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4789a116_en','1.0','ws_spec0001_en','Account-Level API Key: Design Decision (Phase 4.10)','preference','markdown','## Decision
 
@@ -8305,8 +7205,7 @@ Role hierarchy: viewer < contributor < admin (owner treated as admin)
 - idx_wsm_user index ensures performant role lookups
 - UI Settings > MCP / API Keys removes scope/workspace selectors',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','','human',
-   0.85,0.92,1.0,0.88,0.726,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8315,8 +7214,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_47aff2c9_en','1.0','ws_spec0001_en','Multi-Planner Semantic Boundaries','factual','markdown','Semantic boundary rules for multi-planner architecture:
 
@@ -8324,8 +7222,7 @@ VALUES
 - Collaboration between planners goes through the harness proposal mechanism, not direct communication.
 - Boundary conflicts (two planners proposing contradictory decisions) are detected by the harness and routed into the contradiction resolution flow; planners may not resolve cross-boundary conflicts themselves.',
    ARRAY['multi-planner', 'semantics', 'boundaries', 'design-decision', 'harness']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','g5j3o4q6l7n8193k21mn3456789012mn3456789012mn3456789012abcdef1234567890','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8334,8 +7231,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_47fe8f58_en','1.0','ws_spec0001_en','Node resolution_status: Three-State Knowledge Lifecycle','factual','markdown','Every Memory Node carries a `resolution_status` field that records the lifecycle state of that piece of knowledge.
 
@@ -8362,8 +7258,7 @@ VALUES
 The two are independent; a `status=active` node can simultaneously be `resolution_status=superseded`.
 ',
    ARRAY['memory-node', 'resolution-status', 'state-machine', 'lifecycle']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','84368cf57f0e0b4b4465851dbcfaa4e5ec5a056d8c7389e713b2163141b770e2','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8372,13 +7267,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4abf6ce6_en','1.0','ws_spec0001_en','AI Chat Integration for Cross-KB Context','procedural','markdown','In AI Chat, users should be able to select whether to include associated knowledge bases in the cross-knowledge base context.',
    ARRAY['UI', 'AI Chat', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:47.040241+00:00','d15cbc156c54c6415189a7eab841f4cc072a4aacda160f0d1d45b3eaa8685d13','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8387,13 +7280,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4b0125e0_en','1.0','ws_spec0001_en','Source Document Retention Policy for Ingested Nodes','factual','markdown','When a document is ingested, its original source document is retained as a special node to ensure the traceability of extractions, providing a direct link from any extracted node back to its source paragraph without polluting the main knowledge graph.',
    ARRAY['存取', '來源', '文件']::text[],'public','system','2026-04-24T11:25:40.736854+00:00','944b98fa9abb8ad8331129296039305a02c7b9291c5257066ca17a2918a88b3a','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8402,13 +7293,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4c589d76_en','1.0','ws_spec0001_en','Memory Node Creation Timestamp','factual','markdown','The `created_at` column in the `memory_nodes` table is of type TIMESTAMPTZ, recording the creation time of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'timestamp']::text[],'public','system','2026-04-24T11:25:39.069241+00:00','6469215e9e84619bfd84e3c3039b487afc9a7f9de83a8e3c6098ba15e5a4ad33','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8417,8 +7306,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_4cc50909_en','1.0','ws_spec0001_en','Dual-Track Deletion Semantics','factual','markdown','MemTrace uses dual-track deletion semantics:
 
@@ -8427,8 +7315,7 @@ VALUES
 
 System actors may perform hard-deletes and must notify the owners of associated nodes.',
    ARRAY['deletion', 'soft-delete', 'hard-delete', 'semantics', 'tombstone']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','b4e2d3f5a6c7082910bcdef2345678901bcdef2345678901bcdef234567890ab','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8437,23 +7324,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_4f8e3f0b_en','1.0','ws_spec0001_en','Memory Node Freshness Dimension','factual','markdown','The `dim_freshness` column in the `memory_nodes` table is of type NUMERIC(4,3), representing a dimension of the trust score.',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'trust_dimension']::text[],'public','system','2026-04-24T11:25:39.174808+00:00','c1f8cd3af9c051f8cfc0a733c22430151a7cc93d1acb0271c531b2a83dc854ec','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_51900d65_en','1.0','ws_spec0001_en','queried_via_mcp Telemetry and Edge Class Recording','factual','markdown','Operations performed via MCP tools must record `queried_via_mcp` telemetry:
 
@@ -8462,8 +7333,7 @@ VALUES
 3. `edge_class` statistics are used to analyze which relationship types AI agents use most frequently.
 4. Telemetry does not include query content — only structural paths and edge types are recorded.',
    ARRAY['telemetry', 'mcp', 'edge_class', 'queried_via_mcp', 'traversal']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:21.641743+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8472,13 +7342,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_524c73f6_en','1.0','ws_spec0001_en','D4 Node Archiving Schedule Completion','procedural','markdown','The goal of this feature is to complete missing scheduled calls to fully implement the node lifecycle from decay to archiving.',
    ARRAY['scheduler', 'node-management', 'archiving']::text[],'public','system','2026-04-25T02:40:00.508542+00:00','4c99e0484ce778915b995e295444a4ca0df29299e9704f530886f6082898b1b1','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8487,13 +7355,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_526945e4_en','1.0','ws_spec0001_en','MCP Transport Mode: HTTP + SSE','factual','markdown','The HTTP + SSE transport mode is available when `memtrace serve --mcp` is running (Phase 2).',
    ARRAY['mcp', 'transport', 'http', 'sse', 'phase-2']::text[],'public','system','2026-04-24T11:25:40.327756+00:00','8dfd08b535e9fe8263dcd1cf08eebf3b2f95bc51b3a1c9d7fc574a6d12ecbb5d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8502,13 +7368,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_52ac8940_en','1.0','ws_spec0001_en','Plain Text Input Mode','factual','markdown','In `plain` mode, input is stored as-is in `content.body` with no rendering markup.',
    ARRAY['input-mode', 'plain-text']::text[],'public','system','2026-04-24T11:25:39.391767+00:00','0d46112da947dead20360dc05d449e40425556481707045ac95fe29254d918b3','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8517,13 +7381,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_53258df1_en','1.0','ws_spec0001_en','JWT Token Lifetime','factual','markdown','The JWT Token lifetime is 7 days. Clients should refresh the token before expiry using the `/auth/refresh` endpoint.',
    ARRAY['jwt', 'token', '生命週期', '重新整理']::text[],'public','system','2026-04-24T11:25:40.146846+00:00','8399bf427db47ef13542102eafca9d11e86950d69a8ad492ce82ba7fd62fe25e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8532,8 +7394,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_53bad7a9_en','1.0','ws_spec0001_en','Safety Review Background Jobs: safety_review_queue and safety_sweep','factual','markdown','MemTrace has two complementary safety-review background jobs that use different mechanisms.
 
@@ -8568,8 +7429,7 @@ A daily scan over all active nodes using the pure-rule `classify_safety_rules()`
 | Token cost | yes | no |
 ',
    ARRAY['safety', 'background-job', 'scheduler', 'ai', 'rule-based']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','54370fef22a2cb52afc57918283af020592ce5753333d49f6a8b80ea2419997e','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8578,13 +7438,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_54473627_en','1.0','ws_spec0001_en','POST /nodes/{node_id}/traverse Endpoint','procedural','markdown','This endpoint is used to record that the caller has visited a specific node.',
    ARRAY['api', 'rest', 'traversal', 'node']::text[],'public','system','2026-04-24T11:25:40.164919+00:00','d4a83d290c2c0d364f5d646e3c3032f7dc70ea68d28ded6eaba1f5cb0b7834e4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8593,13 +7451,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_54cc2c31_en','1.0','ws_spec0001_en','Non-Member Single-Node Access Permission','factual','markdown','A non-member attempting `GET /api/v1/workspaces/{ws_id}/nodes/{id}` will receive an HTTP 403 response.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.810020+00:00','b459d17d111fb8c96441d6b90de474522e0adef6a244d7932ff73fa93c624ea2','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8608,34 +7464,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_56118060_en','1.0','ws_spec0001_en','Trust Computation Deferred (v1 Design Decision)','factual','markdown','v1 defers full dynamic trust computation. `trust.score` is currently a static value (linear weighting of accuracy, freshness, utility, author_rep) and does not update in real time in response to behavioral events.
-
-**Reason for deferral**: Complete dynamic trust computation requires an agent feedback loop that has not yet been fully designed.
-
-**Deferred scope**: `author_rep` updates, vote-driven score recalculation, decay-trust interaction effects.
-
-v2 plans to introduce an event-driven trust update mechanism.',
-   ARRAY['trust', 'computation', 'deferred', 'design-decision', 'v1']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','e7b5g6i8d9f0315c43ef5678901234ef5678901234ef5678901234abcdef12','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_565d7142_en','1.0','ws_spec0001_en','New Source Document Reference Fields on Memory Nodes','factual','markdown','To link extracted nodes to their source paragraphs, the `memory_nodes` table adds the `source_doc_node_id` field (referencing the source document node ID) and the `source_paragraph_ref` field (a paragraph-level reference).',
    ARRAY['來源', '文件']::text[],'public','system','2026-04-24T11:25:40.793451+00:00','4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8644,13 +7477,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5a3bd1b0_en','1.0','ws_spec0001_en','Input Mode Switching and Content Conversion','factual','markdown','Switching input modes does not automatically convert existing content.',
    ARRAY['editor', 'input-mode', 'content-conversion']::text[],'public','system','2026-04-24T11:25:39.480432+00:00','d021d2e82b6639637bd114078242f8e2b2c15fd730461f24e271137b0b3c8e9a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8659,13 +7490,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5b28def8_en','1.0','ws_spec0001_en','Remove Knowledge Base Association Button','procedural','markdown','The UI should include a button to remove knowledge base associations, accompanied by a confirmation dialog.',
    ARRAY['UI', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:47.019233+00:00','63987de6f6b609d100025c5009e0017cc37a1357adbb70f5fa4d00659a74843d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8674,13 +7503,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5b9dd113_en','1.0','ws_spec0001_en','Memory Export','factual','markdown','Users can export their current working memory to a local file.',
    ARRAY['memory-management', 'export']::text[],'public','system','2026-04-24T11:25:39.214139+00:00','e642c5361a573c1ec70f8f5f549a951819bcedae6c4c0110291c72e3bde360d4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8689,13 +7516,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5e292da7_en','1.0','ws_spec0001_en','Source Format Reference Templates','factual','markdown','Different source formats use specific reference formats: Markdown/plain text uses `§<heading>` or `¶<paragraph_index>`; PDF/DOCX uses `page:<n>, para:<m>`; PPTX uses `slide:<n>`; video/audio uses `<HH:MM:SS>-<HH:MM:SS>`; web pages use `<section heading or XPath fragment>`.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.812338+00:00','588186fe569c2ea8746c1b3951552737e78c888f03e512bb9c31ce683af3aa0f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8704,13 +7529,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5e486c31_en','1.0','ws_spec0001_en','Memory Node Content Type','factual','markdown','The `content_type` column in the `memory_nodes` table is of type ENUM, with possible values `factual` / `procedural` / `preference` / `context`.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:38.931076+00:00','179fb1239331cc5bbd9a469a659b3dfaa27968ce2e431f888b057fc4aff9e393','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8719,13 +7542,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_5e541a9d_en','1.0','ws_spec0001_en','Live Preview in Markdown Mode','factual','markdown','The editor must provide a live preview panel when in `markdown` mode.',
    ARRAY['editor', 'markdown', 'preview']::text[],'public','system','2026-04-24T11:25:39.463663+00:00','cd53c9cd3540a9cc3d0e9462e2fb041b0f9775acd9c1c20a372955a4aa590bce','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8734,13 +7555,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6089d7d9_en','1.0','ws_spec0001_en','Private Workspace Search/Listing Invisibility','factual','markdown','A `private` workspace does not appear in any listing or search result.',
    ARRAY['workspace-type', 'private', 'visibility']::text[],'public','system','2026-04-24T11:25:39.682293+00:00','f17d1b398b13665411a5e123be8e90e901051f72a5292d56240efdf3c25e755c','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8749,13 +7568,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_62d07b1d_en','1.0','ws_spec0001_en','AI Agent Workflow: Confirm Node Creation Status','procedural','markdown','After an AI agent calls `create_node`, if the API returns a 201 status code, it should call `traverse(node.id)` to confirm edge creation. If a 202 status code with a `review_id` is returned, it should call `list_review_queue()` to check the review queue status.',
    ARRAY['ai代理', '工作流程', '節點建立', 'api', '審核流程']::text[],'public','system','2026-04-25T02:39:26.187830+00:00','900865976521e0a50bd83f5ae1e63ce3cad6a2db9ff6e46516532a3dde144e24','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8764,13 +7581,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6709672b_en','1.0','ws_spec0001_en','B Association Management UI','procedural','markdown','The goal of this feature is to provide a complete UI for cross-knowledge base association settings, complementing existing API functionality.',
    ARRAY['ui', 'knowledge-base', 'association']::text[],'public','system','2026-04-25T02:39:05.267545+00:00','23d35304327fc4430ebc791c6c9b00a2c222a6c3516e33b32fb27dcf9990b9e9','ai',
-   0.924,0.95,0.901,0.98,0.92,
-   0,0,0,10,3)
+   10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8779,8 +7594,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_67362874_en','1.0','ws_spec0001_en','Provenance and Evidence Write Semantics','factual','markdown','A node''s `provenance` field records the semantic origin of knowledge:
 
@@ -8789,8 +7603,7 @@ VALUES
 - The `signature` is computed by the system on write; clients may not override it.
 - `author` records the actual operator''s identity (user ID or system actor ID), complementing `source_type` rather than duplicating it.',
    ARRAY['provenance', 'evidence', 'write-semantics', 'signature']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','f8c6h7j9e0g1426d54fg6789012345fg6789012345fg6789012345abcdef123','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8799,8 +7612,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_67912352_en','1.0','ws_spec0001_en','Private Workspace Design Boundaries','factual','markdown','Design boundaries for private workspaces (`visibility=private`) in MemTrace:
 
@@ -8809,8 +7621,7 @@ VALUES
 3. Private nodes may link to public nodes via edges, but back-references remain invisible externally.
 4. Telemetry for private workspaces is visible only to admins.',
    ARRAY['private', 'workspace', 'boundaries', 'design-decision', 'visibility']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:35.293874+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8819,13 +7630,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6a46a549_en','1.0','ws_spec0001_en','Knowledge Base Export and Import Specification','context','markdown','For the complete specification of export types, filterable scopes, and format details, see §22.',
    ARRAY['specification', 'export', 'import']::text[],'public','system','2026-04-24T11:25:39.289665+00:00','1fe072bfa79a235c67cbcb708caaa9f62839ddcb301956885e5fc13d472ac11f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8834,8 +7643,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6c94cec3_en','1.0','ws_spec0001_en','Knowledge Governance v1 Core Policies','factual','markdown','Knowledge governance v1 core policies:
 
@@ -8847,8 +7655,7 @@ VALUES
 
 v1 contains no automatic resolution logic; all conflict resolution requires human participation.',
    ARRAY['knowledge-governance', 'governance', 'v1', 'policy', 'Tier0']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','d2g0l1n3i4k5860h98jk0123456789jk0123456789jk0123456789abcdef1234567','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8857,13 +7664,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6d8524a7_en','1.0','ws_spec0001_en','New Data Model Fields','factual','markdown','New fields `version`, `conflict_status`, `conflict_detail`, `source_doc_node_id`, and `source_paragraph_ref` have been added to the data model.',
    ARRAY['data-model', 'schema', 'update']::text[],'public','system','2026-04-24T11:31:27.718604+00:00','ce86c3a5dbe8e825cb9600f783656939236cc44481125fd58c074491c61e572c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8872,8 +7677,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_6fa7699b_en','1.0','ws_spec0001_en','Three-Tier Safety Review Trigger','factual','markdown','Writes trigger safety review through three tiers:
 
@@ -8881,8 +7685,7 @@ VALUES
 2. **Async Tier0 demotion**: When the battery detects a serious issue, the node is demoted to Tier0 (invisible but retained) and the admin is notified asynchronously.
 3. **Human review queue**: A contradiction or safety flag triggers the `review_queue`; a human must confirm before the node becomes visible again.',
    ARRAY['safety', 'review', 'three-tier', 'battery', 'Tier0']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','d6a4f5h7c8e9204b32def4567890123def4567890123def4567890123abcde1','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8891,13 +7694,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_71aebf92_en','1.0','ws_spec0001_en','Acceptance Scenario: Querying Nodes in a Specific Workspace','procedural','markdown','One acceptance scenario: calling `search_nodes(query="authentication", workspace_id="ws_project_abc")` should successfully query nodes in the `ws_project_abc` workspace.',
    ARRAY['驗收測試', '工作區', '查詢']::text[],'public','system','2026-04-25T02:39:48.355492+00:00','8afa92eb018c4301321a6ed7b199a7ec28ba488e9f2e899f75ef028ff4ea9e09','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8906,13 +7707,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_727c2cb2_en','1.0','ws_spec0001_en','Onboarding Completion State Tracking','factual','markdown','MemTrace tracks onboarding completion status per user on the server-side.',
    ARRAY['onboarding', 'user-state', 'server-side']::text[],'public','system','2026-04-24T11:25:40.365178+00:00','7afcc2ae675a0fe89085bcc1e691fed58e025a908cae57ce7cfdb000934644f6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8921,8 +7720,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_73103b60_en','1.0','ws_spec0001_en','Multi-Planner claim_task Interaction Boundaries','factual','markdown','Rules governing `claim_task` interactions in multi-planner environments:
 
@@ -8932,8 +7730,7 @@ VALUES
 4. Planners must not claim a task already held by another planner; ownership transfers must be coordinated through the harness.
 5. Multiple planners competing for the same task is treated as a task-dispatch design error requiring a revised strategy.',
    ARRAY['multi-planner', 'claim_task', 'task', 'interaction', 'optimistic-lock']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:12.837060+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8942,8 +7739,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_739a4f45_en','1.0','ws_spec0001_en','Phase 4 P4-G: Self-hosted Ollama Provider Planning Decisions','preference','markdown','**Decision date:** 2026-04-27
 **Status:** Recorded in `docs/dev/phase4-plan.md`, awaiting implementation scheduling.
@@ -8977,8 +7773,7 @@ VALUES
 
 Small local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON schema, raising Review Queue rejection rates. Mitigations: UI hint to use ≥ 8B / Q5+, Review Queue surfaces the source provider/model, and longer-term `mcp_query_logs` lets the Analytics page show a cloud-vs-local extraction success-rate comparison.',
    ARRAY['phase-4', 'ollama', 'ai-provider', 'knowledge-sovereignty', 'planning', 'roadmap', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-04-27T13:20:55.037625+00:00','','human',
-   0.925,0.95,1.0,0.98,0.719,
-   0,0,0,12,1)
+   12,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8987,13 +7782,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_73ea8135_en','1.0','ws_spec0001_en','Stripped Graph Payload Structure','factual','markdown','The stripped graph payload includes `preview_mode: true` and stripped `nodes` and `edges` arrays. Nodes only contain `id` and `position`, while edges contain `from`, `to`, and `relation`.',
    ARRAY['API優化', '簡化結構', 'api優化', '結構', '載荷']::text[],'public','system','2026-04-24T11:25:39.742298+00:00','cda26ec974454fdbdab284c8fb6a214080176621f450398f2a91a6605e980ddf','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9002,8 +7795,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_73ee2003_en','1.0','ws_spec0001_en','Phase 6.2 — MCP Expression Layer (Track A, T01–T09)','factual','markdown','## Phase 6.2 Track A — MCP Expression Layer
 
@@ -9030,8 +7822,7 @@ VALUES
 ### T07–T09 Inquiry Paths
 Migration `058_inquiry_paths.sql`; `record_path` tool records agent exploration paths; `search_with_history` finds similar past paths for replay.',
    ARRAY['phase-6.2', 'mcp', 'detail_level', 'token_budget', 'inquiry_paths', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:12:42.989025+00:00','','human',
-   0.95,0.5,1.0,0.5,0.719,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9040,13 +7831,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7484cfc2_en','1.0','ws_spec0001_en','README/Usage Document Update: Multiple Workspaces, Unknown ID Scenario','procedural','markdown','The README and usage documentation have been updated to describe the multiple workspaces, unknown ID scenario: set `MEMTRACE_TOKEN`, then first call `list_workspaces` to retrieve the list of workspaces before deciding which one to operate on.',
    ARRAY['文件', '使用情境', '工作區', 'API']::text[],'public','system','2026-04-26T00:29:47.140277+00:00','6983266fb92ae46b22414142a0280713c5effeace03270342f52ae2abd1ed078','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9055,8 +7844,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_75368c60_en','1.0','ws_spec0001_en','Workspace Agent System Actor Design','factual','markdown','MemTrace defines two types of system actors:
 
@@ -9065,8 +7853,7 @@ VALUES
 
 Neither type contributes to human `author_rep` calculations. Telemetry records use `source_type="system"`.',
    ARRAY['system-actor', 'workspace-agent', 'identity', 'actor', 'telemetry']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:07.470915+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9075,8 +7862,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_75f4fbdc_en','1.0','ws_spec0001_en','Write Governance: Fail-Open Deduplication Gate','factual','markdown','The deduplication gate uses a **fail-open** design: if the dedup service is unavailable or times out, the new node is still written — writes are never blocked by a dedup failure.
 
@@ -9084,8 +7870,7 @@ VALUES
 - Duplicate detection is based on semantic similarity (embedding distance < threshold), not exact matching.
 - Dedup gate failures are written to the audit log for later tracing.',
    ARRAY['write-governance', 'fail-open', 'deduplication', 'dedup', 'review_queue']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','c1f9k0m2h3j4759g87ij9012345678ij9012345678ij9012345678abcdef123456','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9094,13 +7879,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_76037494_en','1.0','ws_spec0001_en','Manual Memory Node Creation & Editing','procedural','markdown','Users can manually create and edit Memory Nodes through a dedicated editor panel within the UI.',
    ARRAY['memory-node', 'creation', 'editing', 'ui']::text[],'public','system','2026-04-24T11:25:39.311534+00:00','e1d24b6e7c1be1933fca1f5c438ed6deae3ddb38f9887c720feb6bd537e5e981','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9109,13 +7892,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_76d6491f_en','1.0','ws_spec0001_en','.mcp.json Configuration Update to Single Instance','procedural','markdown','The `.mcp.json` configuration file has been updated to a single-instance approach, removing the dependency on one instance per knowledge base and integrating token settings. This simplifies configuration and makes it easier to manage.',
    ARRAY['設定檔', 'mcp', '架構', '配置']::text[],'public','system','2026-04-25T02:39:38.497095+00:00','61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9124,13 +7905,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_79dce6e3_en','1.0','ws_spec0001_en','Memory Node Schema Version','factual','markdown','The `schema_version` column in the `memory_nodes` table is of type TEXT, fixed to ''1.0''.',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:38.872833+00:00','ba4fdaf3d15b468f342627140d094e4d7edd8e03d683ca2e527e33dca2be84ed','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9139,8 +7918,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7a94260e_en','1.0','ws_spec0001_en','Knowledge Governance v1 Core Policies','factual','markdown','Knowledge governance v1 core policies:
 
@@ -9152,8 +7930,7 @@ VALUES
 
 v1 contains no automatic resolution logic; all conflict resolution requires human participation.',
    ARRAY['knowledge-governance', 'governance', 'v1', 'policy', 'Tier0']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:47.882234+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9162,13 +7939,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7dfe253a_en','1.0','ws_spec0001_en','MCP Authentication','factual','markdown','Authentication is via an API key passed as the `MEMTRACE_API_KEY` environment variable (stdio mode) or `Authorization` header (HTTP mode).',
    ARRAY['mcp', 'authentication', 'api-key', 'environment-variable', 'http-header']::text[],'public','system','2026-04-24T11:25:40.347126+00:00','40ba3456cf0cbbf4aa1cf85bbac939f6d6e95a7488dd0d987161188f20053de6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9177,13 +7952,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7e3f40a4_en','1.0','ws_spec0001_en','Add Knowledge Base Association','procedural','markdown','The UI should provide functionality to search and select target knowledge bases for association, limited to public KBs or those with existing access.',
    ARRAY['UI', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:47.001045+00:00','f2473369340496fcb6392f6e752729905ea8a7cb37a37cebb1ce91ffeb268882','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9192,13 +7965,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7e74197c_en','1.0','ws_spec0001_en','AI Provider `embed` Method Signature','factual','markdown','The `embed` method takes an API key, model name, and text string, returning a tuple containing a list of floats (the embedding vector) and the number of tokens used.',
    ARRAY['ai', 'embedding', 'api', 'method-signature']::text[],'public','system','2026-04-24T11:31:27.640059+00:00','8ca7e05bc01d9b03cc82dfdd508527e481f07deb3644e4b1dbdbb685d9ebe61e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9207,8 +7978,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7ed2003b_en','1.0','ws_spec0001_en','Node-splitting principles (read before writing)','factual','markdown','A node = one unit that can be independently retrieved, independently true, and independently updated.
 
@@ -9223,8 +7993,7 @@ Co-variance test (the only discriminator): will these two things always change t
 
 Valid relations only: depends_on / extends / related_to / contradicts / proceeds_to. Don''t invent new ones. See "Node-splitting example: how to split a decision network (plan)".',
    ARRAY['authoring', 'node-splitting', 'meta']::text[],'public','usr_6bc7b4c7','2026-05-31T08:51:14.490903+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9233,13 +8002,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7f0a2526_en','1.0','ws_spec0001_en','"Associated Knowledge Bases" Tab in Workspace Settings','procedural','markdown','Add a new tab in the Workspace Settings UI for managing associated knowledge bases.',
    ARRAY['UI', 'Workspace Settings', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:13:59.077027+00:00','b07954d0440f7a87d0c57d8eb15595501425aa56ef273f4c8fbf4159e9bb2f4f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9248,28 +8015,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_7f8829ed_en','1.0','ws_spec0001_en','Memory Node Utility Dimension','factual','markdown','The `dim_utility` column in the `memory_nodes` table is of type NUMERIC(4,3), representing a dimension of the trust score.',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'trust_dimension']::text[],'public','system','2026-04-24T11:25:39.190339+00:00','020d80e8d3685d96e7721f3ea118c1bd2cb4ea2707e2725207fdfa2f04ecdd0f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_7f9fadcd_en','1.0','ws_spec0001_en','Memory Node Chinese Body','factual','markdown','The `body_zh` column in the `memory_nodes` table is of type TEXT, storing the Traditional Chinese body of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.966141+00:00','d7824a074eb822f728708f7437e9754dbf474edae0ed0e7f62c5e84b47844983','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9278,13 +8028,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
-  ('mem_80054468_en','1.0','ws_spec0001_en','Omitted Fields in Stripped Graph Payload','factual','markdown','Fields entirely omitted from the stripped graph payload response include `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, `trust_score`, and all provenance fields.',
+  ('mem_80054468_en','1.0','ws_spec0001_en','Omitted Fields in Stripped Graph Payload','factual','markdown','Fields entirely omitted from the stripped graph payload response include `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, and all provenance fields.',
    ARRAY['資料載荷', 'API優化', '簡化結構']::text[],'public','system','2026-04-24T11:25:39.775592+00:00','b6201a17eb809238e3e05fdce0623986c75613178b63db97cecd1176547cd3ec','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9293,13 +8041,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8145c1ad_en','1.0','ws_spec0001_en','Private Workspace Invitation Restriction','factual','markdown','Invitations cannot be issued for `private` workspaces, and no non-owner user may be added.',
    ARRAY['workspace-type', 'private', 'invitation', 'restriction']::text[],'public','system','2026-04-24T11:25:39.666242+00:00','435ab2d509c4abf3d81388b7bcca68ec976f2116156fc76bc3ee0e5a9a6baf63','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9308,13 +8054,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_82683707_en','1.0','ws_spec0001_en','MCP Transport Mode: stdio','factual','markdown','stdio is the default MCP transport mode for local CLI usage.',
    ARRAY['mcp', 'transport', 'cli']::text[],'public','system','2026-04-24T11:25:40.307697+00:00','f880922d12b02e864797d55776d62aa807c4e9908e7c0cd744586cd744afcf2c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9323,13 +8067,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_82b732f5_en','1.0','ws_spec0001_en','Content Format Field (`content.format`)','factual','markdown','The `content.format` field is a required string, accepting values `"plain"` or `"markdown"`, and defaults to `"plain"`.',
    ARRAY['schema', '格式', '內容']::text[],'public','system','2026-04-24T11:25:39.870431+00:00','c804559e5fa18383474f35358a7146e7a9493a0cbf66038ca86a8e45800a35c4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9338,13 +8080,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8575b4a1_en','1.0','ws_spec0001_en','Archived Nodes Hidden in Default View and Search','factual','markdown','Archived nodes are not shown in the default graph view and are excluded from search results.',
    ARRAY['視圖', '隱藏', '封存']::text[],'public','system','2026-04-24T11:25:39.518038+00:00','0d0565328c95ff76b4d7bddc886b99868a2cef6b224c8263f7cfb5763f7e465f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9353,13 +8093,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_861a5678_en','1.0','ws_spec0001_en','Memory Node Chinese Title','factual','markdown','The `title_zh` column in the `memory_nodes` table is of type TEXT, storing the Traditional Chinese title of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.887496+00:00','12328509dc7671ad30f9527c83a236ec95851b5d63e6c5365783c6b50b757d97','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9368,13 +8106,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_87639252_en','1.0','ws_spec0001_en','Acceptance Scenario: List All Accessible Workspaces','procedural','markdown','One acceptance scenario: after setting `MEMTRACE_TOKEN`, calling `list_workspaces()` should return a list of all workspaces accessible by that token.',
    ARRAY['驗收測試', '工作區', 'API', '認證']::text[],'public','system','2026-04-26T00:29:47.179895+00:00','f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9383,8 +8119,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8834dade_en','1.0','ws_spec0001_en','Multi-Planner Escalate to Review Queue Presentation','factual','markdown','Presentation design for escalations to `review_queue` in multi-planner architecture:
 
@@ -9393,8 +8128,7 @@ VALUES
 3. Escalation triggers a notification to workspace admins.
 4. The review queue does not merge proposals from different planners even when semantically similar — full provenance is preserved.',
    ARRAY['multi-planner', 'review_queue', 'escalate', 'presentation', 'notification']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:17.072353+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9403,13 +8137,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8a8214f3_en','1.0','ws_spec0001_en','Memory Node Source Type','factual','markdown','The `source_type` column in the `memory_nodes` table is of type ENUM, with possible values `human` / `ai_generated` / `ai_verified`.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:39.108336+00:00','5dce0a872a0e0bec6f9fc2e51d4e0fc0593f549fbac11c16734de343d7cce113','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9418,8 +8150,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8ac95ea6_en','1.0','ws_spec0001_en','寫入當責模型:每筆寫入都有可究責的人(三條路徑)','procedural','markdown','# 寫入當責模型
 
@@ -9454,8 +8185,7 @@ MemTrace 的核心治理保證:**每一筆進入知識庫的寫入,都有一個�
 - AI 在路徑 1 是代筆、在路徑 3 是受 owner 授權執行;**AI 本身不是最終當責主體**。
 - 安全 / admission 審查（safety review、dedup、PII/secret）對所有路徑一律適用,與當責歸屬獨立。',
    ARRAY['governance', 'write-accountability', 'human-accountable', 'review-queue', 'ai-reviewer', 'public-policy']::text[],'public','usr_6bc7b4c7','2026-06-23T02:51:40.032826+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9464,13 +8194,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8c9d6883_en','1.0','ws_spec0001_en','List Associated Knowledge Bases','procedural','markdown','The UI should display a list of currently associated knowledge bases, including their name, visibility, and join date.',
    ARRAY['UI', 'Knowledge Base Association']::text[],'public','system','2026-04-26T00:29:46.907519+00:00','19f346e6b9ce368196351ab310fcc0fe214b2868b43cce79cd4c9920e8be0aa8','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9479,13 +8207,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8dc3944b_en','1.0','ws_spec0001_en','Revoke Workspace Invitation API','procedural','markdown','Provides the `DELETE /workspaces/{ws_id}/invites/{token}` endpoint to revoke a sent workspace invitation.',
    ARRAY['api', '邀請管理']::text[],'public','system','2026-04-25T02:39:01.850026+00:00','93a44d63a64aa6011cdb805134454d4bf38d2959fdfc83f09af4b64fd2048c5d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9494,20 +8220,18 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_8de9f0c0_en','1.0','ws_spec0001_en','MemTrace Core Purpose and Positioning','factual','markdown','MemTrace''s core purpose: it is not a general-purpose database but an **auditable shared knowledge graph** designed for human-AI collaboration.
 
 Three core differentiators:
 1. **Traceable**: Knowledge has source provenance (`provenance`).
-2. **Trustworthy**: Knowledge has a trust measure (`trust`).
+2. **Continuable**: Knowledge is structured and cumulative, not a one-off Q&A (structured & continuable).
 3. **Time-semantic**: Knowledge has a lifecycle (`decay`/`freshness`).
 
-All features — governance, telemetry, notifications, decay — serve this core: making the knowledge lifecycle visible, manageable, and trustworthy for humans.',
+All features — governance, telemetry, notifications, decay — serve this core: making the knowledge lifecycle visible, manageable, and continuable for humans.',
    ARRAY['core-purpose', 'product-positioning', 'knowledge-graph', 'design-philosophy', 'human-ai-collaboration']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','k9n7s8u0p1r2537o65qr7890123456qr7890123456qr7890123456abcdef12345678901234','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9516,13 +8240,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9209a508_en','1.0','ws_spec0001_en','Memory Node Tags','factual','markdown','The `tags` column in the `memory_nodes` table is of type TEXT[], storing tags for the memory node, and is GIN-indexed.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'indexing']::text[],'public','system','2026-04-24T11:25:39.008653+00:00','56e5ce2c9c37c38be23ac86af4fe6b4d09f5df89d845026f4202d553b0f40f75','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9531,13 +8253,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_960858c8_en','1.0','ws_spec0001_en','.mcp.json Configuration Example','factual','markdown','The updated `.mcp.json` example structure includes an `mcpServers` object, where the `memtrace` service defines `command`, `args`, and `env` variables such as `MEMTRACE_API`, `MEMTRACE_WS`, `MEMTRACE_LANG`, and `MEMTRACE_TOKEN`.',
    ARRAY['設定檔', 'MCP', '範例', '環境變數']::text[],'public','system','2026-04-26T00:29:47.081337+00:00','cb8a163dc1c365306103f3ad0ff2315f25bf59e91ccf68703c3ca99fda285996','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9546,13 +8266,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_964c73a3_en','1.0','ws_spec0001_en','MEMTRACE_TOKEN Anonymous Behavior','factual','markdown','If `MEMTRACE_TOKEN` is not provided, the system will maintain anonymous behavior, allowing access only to public workspaces. `list_workspaces` will return public repositories or an empty list.',
    ARRAY['環境變數', 'API', '認證', '匿名存取']::text[],'public','system','2026-04-26T00:29:47.061108+00:00','12b69126a9d518c5b28e719a150430576fa04e99ea78b9b1c86d9a7769fee9eb','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9561,13 +8279,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_97757fb8_en','1.0','ws_spec0001_en','Source Document Node Access Methods','factual','markdown','Source document nodes can be accessed directly via `GET /workspaces/{ws_id}/nodes/{node_id}`, via the dedicated `GET /workspaces/{ws_id}/source-documents` endpoint, and via the "View source paragraph" link in the node editor sidebar.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.853431+00:00','20054bbc0e4ca5efb9dc19d5efcf7549ce87b43972a0aa5f0489f4250824e2a4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9576,8 +8292,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_98300428_en','1.0','ws_spec0001_en','MCP Node-Access Telemetry: traversal_log Recording (queried_via_mcp deprecated)','factual','markdown','Node-level access telemetry for MCP tools is recorded in `traversal_log`, keyed by the real `actor_id`:
 
@@ -9586,8 +8301,7 @@ VALUES
 3. Call-level statistics (tool, query, result count, tokens) live in `mcp_query_logs`; telemetry contains no node content.
 4. The `queried_via_mcp` edge and the per-workspace `(Workspace Agent)` anchor are deprecated and removed; the relation enum value is retained for backward compatibility but is no longer written.',
    ARRAY['telemetry', 'mcp', 'traversal_log', 'queried_via_mcp', 'deprecated', 'traversal']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','j8m6r7t9o0q1426n54pq6789012345pq6789012345pq6789012345abcdef1234567890123','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9596,13 +8310,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_993fc9e6_en','1.0','ws_spec0001_en','Node Traversal Statistics Data Structure','factual','markdown','The `traversal` object in a node response includes `count` (number of traversals) and `unique_traversers` (number of unique traversers) fields.',
    ARRAY['data-structure', 'traversal-stats', 'node']::text[],'public','system','2026-04-24T11:25:40.257768+00:00','66359e4b04b32eb74bda754d4a7ce4bb86ffb941c45a7f46889bfa738edbffd8','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9611,13 +8323,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_99877db7_en','1.0','ws_spec0001_en','Admin Role Capabilities Detail','factual','markdown','Admins have all contributor capabilities and can directly write to nodes and edges, bypassing the review queue. They can approve or reject contributor proposals, change member roles, remove members, create invite links, initiate workspace soft-deletion, and cancel pending deletions.',
    ARRAY['role', 'admin', 'capabilities', 'direct-write', 'member-management', 'workspace-lifecycle']::text[],'public','system','2026-04-24T11:25:40.578811+00:00','9595d963ebb096bb9babefc681a5b117abc51207b0587a462f1d2f5a847fb7f3','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9626,13 +8336,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9b4c8d95_en','1.0','ws_spec0001_en','New Content Type: source_document','factual','markdown','A `source_document` value has been added to the `content_type` enumeration to support source document retention.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.757174+00:00','82ce2be4c99239eecb2f93776b4e69fda7149935e80c8f2a181d4424f7672e7f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9641,13 +8349,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9d2bb35f_en','1.0','ws_spec0001_en','API Key Scopes and Tool Behavior','factual','markdown','An API key can hold exactly one of these three scopes. MCP tools respect the key''s scope identically to a human user of the same role; for example, a `kb:read` key cannot call `create_node`, while a `kb:write` key can call `create_node` directly.',
    ARRAY['api-key', 'scope', 'restriction', 'tool-integration']::text[],'public','system','2026-04-24T11:25:40.662171+00:00','ebf39bff13bb90908583ff5cb051532e6a089703a636a2ef60cb0edc2de260b1','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9656,13 +8362,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9d419d24_en','1.0','ws_spec0001_en','Memory Nodes Table','factual','markdown','The `memory_nodes` table in the database stores data for all memory nodes.',
    ARRAY['database', 'schema', 'memory_nodes']::text[],'public','system','2026-04-24T11:25:38.834888+00:00','6d5d61fadf3d71c95c9a3003ed98545b06907cc17eaf4fb39604b234efd3aec2','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9671,13 +8375,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9fbbb5eb_en','1.0','ws_spec0001_en','Additional Fields for Manual Editing in Memory Node v1','factual','markdown','To support manual creation and editing, `content.format` and `provenance.updated_at` fields are appended to `node.v1.json`.',
    ARRAY['schema', '編輯', '欄位']::text[],'public','system','2026-04-24T11:25:39.850666+00:00','452abb112c53437818f068b051dae5b3ed9838e84f1596251e5802d0afdf7c11','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9686,13 +8388,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_9fe95573_en','1.0','ws_spec0001_en','Plain Text Export Format Structure','factual','markdown','The overall structure of the plain text export format includes a header with the Knowledge Base Name, Scope Label, ISO datetime of export, and Workspace ID.',
    ARRAY['export', 'format', 'plain-text']::text[],'public','system','2026-04-24T11:25:40.929029+00:00','8be687263181850916849d41e4c5a323a08df03632ea41235d3f0b3ceb3b7198','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9701,8 +8401,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a001_en','1.0','ws_spec0001_en','AI provider and self-managed API keys','procedural','markdown','MemTrace does not operate its own AI inference service. All AI features are powered by the user''s chosen provider.
 
@@ -9725,8 +8424,7 @@ VALUES
 
 **Future business model**: a managed credit option (free tier + paid) may be introduced. The provider interface abstraction lets this swap in without touching extraction logic.',
    ARRAY['ai', 'api-key', 'provider', 'security', 'gemini', 'ollama', 'embedding']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9735,8 +8433,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a002_en','1.0','ws_spec0001_en','Document ingestion and AI node extraction','procedural','markdown','Supported formats: `.md`, `.txt`, `.pdf`, `.docx`. Extraction flow:
 
@@ -9747,8 +8444,7 @@ VALUES
 
 All results enter the **Review Queue** — never auto-committed. Extracted node source_type defaults to `ai_generated`; accepted without edits → `ai_verified`; accepted after edits → `human`. Each node records source_document and extraction_model.',
    ARRAY['ai', 'ingestion', 'extraction', 'document']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,2,1)
+   2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9757,13 +8453,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a003_en','1.0','ws_spec0001_en','Review Queue: human review of AI-extracted candidates','procedural','plain','AI-extracted candidate nodes do not enter the Knowledge Base automatically — they must pass human review. Three actions: Accept (as-is), Edit then Accept (modify before committing), Reject (discard). Bulk operations (Accept all / Reject all) are supported. At least one node must be accepted before the review step can be closed. After review, accepted nodes are written with the correct source_type; rejected candidates are permanently discarded. This is MemTrace''s core mechanism for preventing AI-generated content from polluting the Knowledge Base.',
    ARRAY['ai', 'review-queue', 'quality-control', 'ingestion']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9772,8 +8466,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a004_en','1.0','ws_spec0001_en','Conversational Q&A against the knowledge base','procedural','plain','Any member with viewer role or above can ask natural-language questions against a workspace''s KB. Q&A is read-only — it never writes to the KB.
 
@@ -9796,8 +8489,7 @@ Schema: chat_sessions (id, workspace_id, user_id, created_at, updated_at) and ch
 
 Note: Q&A requires authentication even on public workspaces. Unauthenticated users cannot use this feature.',
    ARRAY['ai', 'chat', 'q&a', 'conversational', 'session', 'read-only']::text[],'public','system','2026-04-12T00:00:00+00:00','f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,3,1)
+   3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9806,8 +8498,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a005_en','1.0','ws_spec0001_en','Analytics dashboard and token efficiency report','procedural','markdown','## KB health summary
 
@@ -9818,7 +8509,6 @@ VALUES
 | `total_nodes` | Total active node count |
 | `active_edges` | Edges with weight > 0.3 |
 | `orphan_node_count` | Nodes with no active edges |
-| `avg_trust_score` | Workspace-wide average trust_score |
 | `faded_edge_ratio` | Ratio of faded edges to all edges |
 | `monthly_traversal_count` | Total traversals in the last 30 days |
 | `top_nodes` | Top-5 nodes by traversal count |
@@ -9846,14 +8536,13 @@ VALUES
 
 Note: the denominator of `full_context_reduction_ratio` is a counterfactual — it assumes the alternative behaviour is loading the entire knowledge base into context. That denominator grows with the knowledge base, so the ratio improves automatically and **must not be used as a performance guarantee or an external claim**. Treat the field as a relative observation within a single workspace. A vendor-comparable measurement method is being revised (tokenizers differ per vendor).
 
-Data source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / traverse / get_node / list_by_tag / vote_trust) writes one log entry asynchronously, recording `tool_name`, `result_node_count`, `estimated_tokens`, and `provider`.
+Data source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / traverse / get_node / list_by_tag) writes one log entry asynchronously, recording `tool_name`, `result_node_count`, `estimated_tokens`, and `provider`.
 
 ## UI component
 
 `packages/ui/src/AnalyticsDashboard.tsx`: 4-card metric grid + 30-day traversal sparkline + Top Nodes list + token efficiency block + KB-type metrics grid. Opened via the Analytics tab in the workspace detail view.',
    ARRAY['analytics', 'dashboard', 'token-efficiency', 'kb-health', 'mcp-logs', 'ui']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9862,8 +8551,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a0b27a20_en','1.0','ws_spec0001_en','Provenance and Evidence Write Semantics','factual','markdown','A node''s `provenance` field records the semantic origin of knowledge:
 
@@ -9872,8 +8560,7 @@ VALUES
 - The `signature` is computed by the system on write; clients may not override it.
 - `author` records the actual operator''s identity (user ID or system actor ID), complementing `source_type` rather than duplicating it.',
    ARRAY['provenance', 'evidence', 'write-semantics', 'signature']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:26.728727+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9882,8 +8569,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a1c53b2a_en','1.0','ws_spec0001_en','Multi-Planner Semantic Boundaries','factual','markdown','Semantic boundary rules for multi-planner architecture:
 
@@ -9891,8 +8577,7 @@ VALUES
 - Collaboration between planners goes through the harness proposal mechanism, not direct communication.
 - Boundary conflicts (two planners proposing contradictory decisions) are detected by the harness and routed into the contradiction resolution flow; planners may not resolve cross-boundary conflicts themselves.',
    ARRAY['multi-planner', 'semantics', 'boundaries', 'design-decision', 'harness']::text[],'public','usr_6bc7b4c7','2026-06-25T21:58:08.173230+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9901,13 +8586,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a28ca156_en','1.0','ws_spec0001_en','Supported Memory Export Formats','factual','markdown','Memory can be exported in JSON, Markdown, or plain text formats.',
    ARRAY['export', 'file-format']::text[],'public','system','2026-04-24T11:25:39.232184+00:00','75a768bb0777511311b5dd2bd3fc4b6ac90d651224dd1d6cee54e45d817fe664','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9916,13 +8599,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a4bdc8a9_en','1.0','ws_spec0001_en','Restore Node from Archive API','procedural','markdown','Provide an API endpoint `POST /nodes/{id}/restore` allowing editors or higher-privileged users to restore nodes from archive.',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:45.094920+00:00','029e98ddd550f5a3e9de0fffe6caf0393b841248c6f5db9ba68f07f14c5c8c28','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9931,13 +8612,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a590bb10_en','1.0','ws_spec0001_en','Default Role for Workspace Creator','factual','markdown','When a user creates a workspace, they are automatically assigned the admin (owner) role.',
    ARRAY['role', 'default', 'workspace-creation', 'admin', 'owner']::text[],'public','system','2026-04-24T11:25:40.680957+00:00','39f9a4ffb3fb89db47b80bab32db52d8c4accf6828180b79d56d1eef56cff254','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9946,13 +8625,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a6a2a683_en','1.0','ws_spec0001_en','Memory Node ID','factual','markdown','The `id` column in the `memory_nodes` table is the primary key, of type TEXT, e.g., `mem_abc123`.',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:38.856937+00:00','b9327bb4b77a1cdb973a11d5f37e2eea745b8d5da337fc61dc0c6f2f5bcc77b7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9961,13 +8638,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a71dcf58_en','1.0','ws_spec0001_en','Manual Node Archiving API','procedural','markdown','Provide an API endpoint `POST /nodes/{id}/archive` allowing editors or higher-privileged users to manually archive nodes.',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:43.473681+00:00','26e451b46c407090a14f1a4895054227a8666715f81b890e1197f195286486f6','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9976,8 +8651,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a9200005_en','1.0','ws_spec0001_en','Node-splitting example: how to split a decision network (plan)','procedural','markdown','Using a "plan / decision" document (Phase 6.4) as an example of how to split a decision network.
 
@@ -10002,8 +8676,7 @@ Splitting rationale (co-variance test):
 
 Full teaching docs: docs/dev/node-splitting-example.md (decision networks) and troubleshooting-graph-authoring.md (action flows).',
    ARRAY['authoring', 'node-splitting', 'example', 'meta']::text[],'public','usr_6bc7b4c7','2026-05-31T12:30:32.519217+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10012,13 +8685,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_a9dee7ad_en','1.0','ws_spec0001_en','AI Editing Restriction: Current Workspace Nodes Only','factual','markdown','When `allow_edits: true`, the AI may only propose edits to nodes in the current workspace.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.697058+00:00','e7bf10d2741911fda9174cec1c320fb1aa084b441af68b4ccf38eb16825802f4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10027,13 +8698,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_aab6d931_en','1.0','ws_spec0001_en','Caching Policy for Stripped Graph Payload','factual','markdown','The preview payload is not cacheable by the client, indicated by the response header `Cache-Control: no-store`.',
    ARRAY['快取', 'API優化', '性能']::text[],'public','system','2026-04-24T11:25:39.829461+00:00','6e6398e27fe86238ff08625e26c0b131b6cabffda49bd17964086ec5d8f0d341','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10042,13 +8711,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ac50a001_en','1.0','ws_spec0001_en','Session Management: JWTs','factual','markdown','Sessions are represented as signed JWTs (JSON Web Tokens) using the HS256 algorithm, with the secret stored in the environment.',
    ARRAY['對談管理', 'jwt', 'hs256', '安全']::text[],'public','system','2026-04-24T11:25:40.107288+00:00','cd442ccb55c20dab87ed4f4c0ff1e966f5a7ba54018623f6ec3172ab3c6d9d5e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10057,8 +8724,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_acp001_en','1.0','ws_spec0001_en','§19 AI Conversation Panel','factual','markdown','The **AI Conversation Panel** is a standalone first-class UI surface — separate from the graph search bar. It supports persistent, multi-turn conversation grounded in the workspace knowledge graph. Unlike the read-only conversational Q&A (§13A), it supports **in-conversation edit proposals**.
 
@@ -10078,8 +8744,7 @@ VALUES
 | **Cross-KB query** | If linked workspaces (§18) are configured and the user has access, the AI can reference those nodes (marking their source) |
 ',
    ARRAY['ai', 'chat', 'conversation-panel', 'ui', 'edit-proposal']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','50d803c2b340881558e93942d732566ad387dc10c3b169adab355f9731ea2182','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10088,8 +8753,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_acp002_en','1.0','ws_spec0001_en','§19.4–19.6 AI Conversation Panel: Edit Proposal Flow, API, and Cross-KB Boundary','procedural','markdown','## Edit proposal flow (§19.4)
 
@@ -10147,8 +8811,7 @@ A follow-up request carries `{ "action": "accept" | "reject", "proposal_id": "pr
 When `allow_edits: true`, the AI may only propose edits to nodes **within the current workspace**. It can read from linked workspaces but cannot propose writes to them.
 ',
    ARRAY['ai', 'chat', 'conversation-panel', 'edit-proposal', 'api', 'cross-kb', 'review-queue']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9507f0e87255434618769e7e624cf9b494905efcaeb55bca42b5cc66268b1ec1','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10157,13 +8820,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_af74b0f0_en','1.0','ws_spec0001_en','Model Context Protocol (MCP)','factual','markdown','MemTrace implements the Model Context Protocol (MCP) to enable AI agents and LLMs to consume and contribute to the Knowledge Graph without manual REST integration.',
    ARRAY['protocol', 'ai-integration', 'llm', 'knowledge-graph']::text[],'public','system','2026-04-24T11:25:40.290234+00:00','7deee1e16d2dc125019dd48422261a6a6f2a507e63a5af83183cb0baaa6465f0','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10172,13 +8833,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_afac29a2_en','1.0','ws_spec0001_en','Decay Product Stance','factual','markdown','MemTrace''s product stance on decay: decay is a natural reflection of knowledge freshness, not a punishment. Unreferenced knowledge loses weight over time but is never automatically deleted. The `pinned` flag freezes the weight of a node or edge to prevent decay. Decay parameters (`half_life_days`, `min_weight`) are configurable at the workspace level; no forced deletion occurs.',
    ARRAY['decay', 'pinned', 'product-stance', 'freshness']::text[],'public','usr_6bc7b4c7','2026-06-25T21:56:58.571088+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10187,8 +8846,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ag001_en','1.0','ws_spec0001_en','§S2 MCP Agent Identity Binding','factual','markdown','## Background
 
@@ -10235,8 +8893,7 @@ WHERE source_type = ''mcp'' AND author = ''system'';
 ```
 ',
    ARRAY['mcp', 'agent', 'identity', 'governance', 'inquiry-paths', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','8c1738adce215bb1b636145844913cc97c3801116b9297f1732e956686f043ef','ai',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10245,8 +8902,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ah001_en','1.0','ws_spec0001_en','§S3 Audit Trail Hash Chain and verify_audit_chain','factual','markdown','## Goal
 
@@ -10291,8 +8947,7 @@ Implemented in `services/audit.py`, exposed in `mcp_tools.py`.
 Tamper test: manually alter one audit_trail record -> `verify_audit_chain` returns `broken` and points to the break, with 100% detection rate.
 ',
    ARRAY['audit', 'hash-chain', 'integrity', 'mcp-tool', 'security', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9c16a2b46c049a4ac23d2c07b101755799addcfc328db6e9863e9fc0fa9318e5','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10301,8 +8956,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_apidi001_en','1.0','ws_spec0001_en','§27 API Document Ingestion (Programmatic Ingestion)','procedural','markdown','In addition to the UI ingestion form, MemTrace supports programmatic document ingestion via the REST API. This lets CI/CD pipelines, scripts, and third-party tools push knowledge into a workspace without human intervention.
 
@@ -10341,8 +8995,7 @@ Response: { job_id, status, progress, chunks_total, chunks_done, error? }
 Ingestion runs asynchronously in the background. Callers poll for progress and, on completion, get the review-queue status of the extracted nodes.
 ',
    ARRAY['ingestion', 'api', 'programmatic', 'ci-cd', 'async', 'document']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','e08e42fa89d285f0eb87e98488720f841b2fc00580f45eac156100c08fcbc422','ai',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10351,12 +9004,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_at001_en','1.0','ws_spec0001_en','§S3 Author Departure and Authorship Transfer: author_tombstones','factual','markdown','## Background
 
-After a user leaves a workspace, their nodes are still bound to that user_id; `dim_author_rep` computation breaks for dead accounts, and the nodes are effectively unowned.
+After a user leaves a workspace, their nodes are still bound to that user_id and are effectively unowned.
 
 ## author_tombstones table
 
@@ -10370,10 +9022,6 @@ CREATE TABLE author_tombstones (
   UNIQUE (user_id, workspace_id)
 );
 ```
-
-## Author Rep fix
-
-`dim_author_rep` is redefined as "node quality over the past 90 days", avoiding historical baggage — a departed user''s old nodes no longer affect the author_rep computation of other nodes.
 
 ## transfer_authorship MCP tool
 
@@ -10391,11 +9039,9 @@ CREATE TABLE author_tombstones (
 ## Acceptance criteria
 
 - 0% lock on nodes after departure: other users can edit normally
-- `dim_author_rep` computation is unaffected by dead accounts
 ',
    ARRAY['author', 'tombstone', 'governance', 'mcp-tool', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','c9ed7bdc4f4c66b372e61f47613d158a2b72c981e3ae2b0aa386c9dc5c801929','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10404,8 +9050,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_aul001_en','1.0','ws_spec0001_en','§21 AI Usage Logs: Policy, API, and Retention','factual','markdown','## Rule (§21.1)
 
@@ -10456,8 +9101,7 @@ Example summary response:
 Logs are retained for **12 months** and then archived. Logs are never deleted before their retention period expires.
 ',
    ARRAY['ai', 'usage-logging', 'billing', 'api', 'retention', 'monitoring']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','7c8d8308e9f69d99da01887e910c33ac08196e639796fd41b0e2ef05e04c2323','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10466,8 +9110,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b0b85a7c_en','1.0','ws_spec0001_en','Conductor：webhook push opt-in 與 inquiry scale 開關','factual','markdown','## 功能定位
 
@@ -10517,8 +9160,7 @@ Conductor 是 MemTrace 的主動通知層：當 workspace 中出現 `scale=major
 - `migrations/111_conductor_safety_queue.sql` — schema
 - `tests/test_conductor_safety_queue.py`',
    ARRAY['conductor', 'webhook', 'scale', 'inquiry', 'agent-loop', 'spec', 'implemented']::text[],'private','usr_6bc7b4c7','2026-06-16T10:30:36.396484+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10527,13 +9169,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b3ee2495_en','1.0','ws_spec0001_en','MEMTRACE_WS as Default Workspace','factual','markdown','The `MEMTRACE_WS` environment variable is configured as the default workspace. This default value will be used when tool calls do not provide a `workspace_id` parameter.',
    ARRAY['環境變數', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.097515+00:00','fc08a173c8a31db9d4fbf0232313d32789b8d3c9b4b025c8947b7c51a658ee1b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10542,13 +9182,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b41097bf_en','1.0','ws_spec0001_en','Memory Node Copying Functionality','factual','markdown','Any individual Memory Node can be copied to a different Knowledge Base.',
    ARRAY['memory-node', 'knowledge-base', 'copy']::text[],'public','system','2026-04-24T11:31:27.655142+00:00','cea540a33f70ed93236f0dbdc41def46a9b3201f9f8378d4a7f27aa582019b77','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10557,8 +9195,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_b848a97e_en','1.0','ws_spec0001_en','Framework integrations: LangChain retriever and LlamaIndex vector store','factual','markdown','MemTrace ships two framework-integration packages that plug a knowledge base into an existing LLM pipeline in a few lines. Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath.
 
@@ -10585,8 +9222,7 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
 
 > Mirrors seed node mem_i007_en; code: packages/langchain-memtrace, packages/llama-index-memtrace.',
    ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','usr_6bc7b4c7','2026-07-24T22:53:53.161295+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,2,1)
+   2,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10595,13 +9231,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bb9aff63_en','1.0','ws_spec0001_en','Admin Role Overview','factual','markdown','Admins are repository owners or maintainers. They possess all contributor capabilities, direct write access, the ability to approve or reject proposals, manage members, and soft-delete and restore workspaces.',
    ARRAY['role', 'admin', 'capabilities']::text[],'public','system','2026-04-24T11:25:40.503845+00:00','e887ffec2fead0932c9e9c9281169b35a204c219a609098713d149f87b622012','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10610,13 +9244,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bcc8e28c_en','1.0','ws_spec0001_en','Memory Node Visibility','factual','markdown','The `visibility` column in the `memory_nodes` table is of type ENUM, with possible values `public` / `team` / `private`.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:39.029513+00:00','07adf4dc6273637faa730c865f2b2953aa0ea1a717679492657b03f24f16450e','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10625,13 +9257,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bd6996dd_en','1.0','ws_spec0001_en','Memory Node Content Input Modes','factual','markdown','Each Memory Node body (`content.body`) supports two input modes.',
    ARRAY['memory-node', 'content', 'input']::text[],'public','system','2026-04-24T11:25:39.354196+00:00','0d9fdbf1ccbc62f8451c6a16bd834ea4e2ef14bebea32091c6e3fb59657e02f4','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10640,13 +9270,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bf7d06a5_en','1.0','ws_spec0001_en','Memory Import Functionality','factual','markdown','Users can import an existing archive back into any workspace.',
    ARRAY['memory-management', 'import']::text[],'public','system','2026-04-24T11:25:39.253573+00:00','ec2855a3149c8bc86122529991ed1de3b55a67fed7374831c98c416815915ad0','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10655,8 +9283,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_bk001_en','1.0','ws_spec0001_en','§30 Scheduled Local Backups','factual','markdown','MemTrace ships with a self-healing local backup system to prevent data loss in self-hosted environments. It runs database backups periodically and manages disk space by rotating out old backups.
 
@@ -10693,8 +9320,7 @@ The system records the result of every backup attempt in the `system_settings` t
 - `error_msg`: detailed error when the last attempt failed
 ',
    ARRAY['backup', 'operations', 'admin', 'reliability', 'self-hosted']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','d5d288f735043052deb54210bee9cb4d3495c894e509d8e8e222575c0d395f1c','ai',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10703,13 +9329,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c24bbdad_en','1.0','ws_spec0001_en','AI Agents Must Specify source_type as "ai" When Creating Nodes','factual','markdown','When an AI agent creates a knowledge node, the `source_type` field must be explicitly set to `"ai"`. This results in the `source_type` field in the database being ''ai'' and the `proposer_type` field in the review queue also being ''ai''.',
    ARRAY['ai代理', '節點建立', 'api', '規範']::text[],'public','system','2026-04-25T02:39:26.969779+00:00','59ac0bfa279bf73aaa1a12d438248fbd2ddec10e108d722f3e09e55b42d105dd','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10718,13 +9342,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c3e5a685_en','1.0','ws_spec0001_en','Contributor Role Capabilities Detail','factual','markdown','Contributors have all viewer capabilities and can submit proposals for new nodes, edits to existing nodes, or new/deleted edges. These proposals enter a review queue with `status = pending_admin_review` until an admin approves. A contributor may not approve their own proposals.',
    ARRAY['role', 'contributor', 'capabilities', 'proposal', 'review-queue']::text[],'public','system','2026-04-24T11:25:40.561589+00:00','e9503d1f90e13846bc35650c0f983527ccabd9b7209e4b6faab958cab6bd02f8','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10733,13 +9355,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c4ce77e1_en','1.0','ws_spec0001_en','Archived Nodes Visible in Dedicated "Archive" View','factual','markdown','Archived nodes are accessible and displayed within a dedicated "Archive" view, which can be reached from the workspace sidebar.',
    ARRAY['視圖', '封存', '隱藏']::text[],'public','system','2026-04-24T11:25:39.575050+00:00','bf861774dffed73c434ea5c3c5a0d846a0ac249c2558d9ad2e8b12173dcaa5e2','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10748,8 +9368,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c571ecc8_en','1.0','ws_spec0001_en','AI Reviewers: Automated Review Bot Configuration','factual','markdown','A workspace admin can create one or more AI reviewers (ai_reviewers) on the "AI Management" settings page, letting a specific LLM model automatically give review opinions on proposals that enter the review_queue.
 
@@ -10793,8 +9412,7 @@ Use comment when uncertain.
 - Supports four providers: OpenAI, Anthropic, Gemini, Ollama
 ',
    ARRAY['ai-reviewer', 'review-queue', 'workspace-settings', 'automation']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','9e763580aa8ac838983d1d008fa91961000d54d2be889798380312a5dba0394c','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10803,12 +9421,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c789e5cb_en','1.0','ws_spec0001_en','Lesson: Self-propagation of dirty data in a knowledge base — agents replicate and amplify existing errors as authoritative convention','factual','markdown','## The lesson (universal)
 
-In a human-AI co-maintained knowledge graph, any single erroneous node or mis-directed edge can be picked up by later agents as "established convention / authoritative fact", and thereby **copied, amplified, and even frozen into written guidance**. The dwell time of an error is exactly the window during which it keeps contaminating every subsequent agent. Trust defenses such as `trust_score` / `source_type` exist, but agents broadly tend to treat any existing node as authoritative and ignore its trust score.
+In a human-AI co-maintained knowledge graph, any single erroneous node or mis-directed edge can be picked up by later agents as "established convention / authoritative fact", and thereby **copied, amplified, and even frozen into written guidance**. The dwell time of an error is exactly the window during which it keeps contaminating every subsequent agent. Provenance signals such as `source_type` / `validity_confirmed_at` exist, but agents broadly tend to treat any existing node as authoritative and ignore them.
 
 ## Typical scenario
 
@@ -10817,7 +9434,7 @@ An agent needs to infer a write convention (e.g. the direction of a certain edge
 ## Defensive principles
 
 1. **Defer to the system''s actual code/spec behavior**, not to a single existing data sample; when data conflicts with the spec, the spec wins.
-2. **Never generalize a convention from a single sample**; consult multiple records and check their `trust_score` / `source_type`.
+2. **Never generalize a convention from a single sample**; consult multiple records and check their `source_type` / `validity_confirmed_at`.
 3. **Dirty data is a risk window**: once a reversed, stale, or contradictory node/edge is detected, fix or archive it quickly to shorten the contamination window.
 4. Before any write, read that knowledge base''s write-convention playbook (if any).
 
@@ -10825,8 +9442,7 @@ An agent needs to infer a write convention (e.g. the direction of a certain edge
 
 Applies to all human-AI co-maintained knowledge graph systems that allow agent writes.',
    ARRAY['lesson-learned', 'governance', 'agent-safety', 'data-quality', 'trust', 'knowledge-graph']::text[],'public','memtrace-spec','2026-06-20T00:00:00+00:00','d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7','human',
-   0.9,0.9,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10835,13 +9451,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c8db759e_en','1.0','ws_spec0001_en','Edges to Archived Nodes Automatically Decay','factual','markdown','All edges pointing to an archived node automatically appear in a "decayed" state, but are not deleted from the database.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.557633+00:00','e2889812266b17efc364454a6ee3ea5a6881e8250b720564bfa2dc84bbaddf20','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10850,13 +9464,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c9bd6c49_en','1.0','ws_spec0001_en','`conflict_status` Column in `memory_nodes` Table','factual','markdown','The `memory_nodes` table includes a text column named `conflict_status`, which can have values of `NULL`, `''flagged''`, or `''resolved''`.',
    ARRAY['database_schema', 'conflict_management']::text[],'public','system','2026-04-24T11:31:27.706468+00:00','155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10865,13 +9477,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_c9dd39d4_en','1.0','ws_spec0001_en','Overview of Knowledge Base Protection Mechanisms','factual','markdown','This section defines protection mechanisms designed to prevent knowledge theft while preserving legitimate usability for authorized members and approved previews.',
    ARRAY['安全', '概覽', '介紹', '權限', '保護']::text[],'public','system','2026-04-24T11:31:27.730201+00:00','a78ac73dff4068fc8b90f4c1d73ea5fd9589364d6f39cd0d31951ca205b53a5a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10880,8 +9490,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_caa8e5ec_en','1.0','ws_spec0001_en','Write Governance: Fail-Open Deduplication Gate','factual','markdown','The deduplication gate uses a **fail-open** design: if the dedup service is unavailable or times out, the new node is still written — writes are never blocked by a dedup failure.
 
@@ -10889,8 +9498,7 @@ VALUES
 - Duplicate detection is based on semantic similarity (embedding distance < threshold), not exact matching.
 - Dedup gate failures are written to the audit log for later tracing.',
    ARRAY['write-governance', 'fail-open', 'deduplication', 'dedup', 'review_queue']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:43.331284+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10899,8 +9507,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cbd7f18f_en','1.0','ws_spec0001_en','Three-Tier Safety Review Trigger','factual','markdown','Writes trigger safety review through three tiers:
 
@@ -10908,8 +9515,7 @@ VALUES
 2. **Async Tier0 demotion**: When the battery detects a serious issue, the node is demoted to Tier0 (invisible but retained) and the admin is notified asynchronously.
 3. **Human review queue**: A contradiction or safety flag triggers the `review_queue`; a human must confirm before the node becomes visible again.',
    ARRAY['safety', 'review', 'three-tier', 'battery', 'Tier0']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:11.879898+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10918,13 +9524,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cbe1be4b_en','1.0','ws_spec0001_en','Workspace Type Assignment','factual','markdown','Workspace types are assigned during creation (Web UI step 4, CLI step 3).',
    ARRAY['workspace', 'creation', 'configuration']::text[],'public','system','2026-04-24T11:31:27.627383+00:00','a0a8bffabfa012bb38c759fc8c239a205e5a471557bd7e38294d264dd464e45b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10933,13 +9537,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cce15a1a_en','1.0','ws_spec0001_en','Node Revisions Table Unique Constraint','factual','markdown','The combination of `node_id` and `revision_no` must be unique in the `node_revisions` table, ensuring each revision of a node has a distinct identifier.',
    ARRAY['資料庫', '資料表', '節點修訂', '唯一約束']::text[],'public','system','2026-04-25T02:39:32.871852+00:00','1c84d32a9837c44a5f42f009e966b613ed097d1fb83d089d9741a87ae2b34222','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10948,13 +9550,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cd89f403_en','1.0','ws_spec0001_en','Ephemeral KB Edge Decay Schedule','procedural','markdown','The edge decay schedule for Ephemeral Knowledge Bases should be changed from daily to hourly triggering.',
    ARRAY['scheduler', 'ephemeral-kb', 'edge-decay']::text[],'public','system','2026-04-25T02:38:39.851283+00:00','0880355a86987c4a47300e767f68c6870b43bc47586c6c8c16f1825998a6e90b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10963,33 +9563,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_cd97df70_en','1.0','ws_spec0001_en','Feedback Signal Protection Mechanism','factual','markdown','User votes (up/down) and verifications are feedback signals; the design must prevent manipulation:
-
-1. A single user may cast only one vote per node.
-2. Verification requires sufficient `author_rep` to trigger.
-3. Feedback signals do not directly modify `trust.score`; they are queued asynchronously and applied only after battery validation.
-4. A high volume of rapid feedback (coordinated attack) raises a safety flag and suspends updates until a human review is completed.',
-   ARRAY['feedback', 'protection', 'write-governance', 'vote', 'verification']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:31.565366+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cdea5189_en','1.0','ws_spec0001_en','Archived Nodes Are Never Destroyed','factual','markdown','Archived nodes are retained indefinitely and are never permanently deleted.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.539979+00:00','50b0515bc00d8ed2ec480923fd0e3b1837b27543d57436eb4770e741c478f558','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10998,13 +9576,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ce00334f_en','1.0','ws_spec0001_en','MemTrace Platform Overview','factual','markdown','MemTrace is an open platform designed for building shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to allow any human or AI agent to reach any answer by following the shortest possible path through a graph of small, typed relationships — rather than reading through large documents.',
    ARRAY['memtrace', '概覽', '介紹', '平台']::text[],'public','system','2026-04-24T11:26:52.690912+00:00','7c0dc21b5b1a8849d7704332f76000351e9532b56aad2bbacdb5d7e28acbbb42','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11013,13 +9589,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ce794c4c_en','1.0','ws_spec0001_en','MemTrace Feature Plan - Task Breakdown Document','factual','markdown','This document outlines the development tasks for the MemTrace feature plan, categorized by functional groups (A-H) and marked with their respective layers (DB, API, UI, MCP, CLI, Core, Scheduler).',
    ARRAY[]::text[],'public','system','2026-04-25T02:38:58.002264+00:00','ceb8023eca96714907c41e68f043ba347de980648324aa76cae44df509ed922a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11028,8 +9602,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cf001_en','1.0','ws_spec0001_en','§S3 Contradicts Conflict Arbitration Flow','procedural','markdown','## Background
 
@@ -11061,15 +9634,14 @@ The reviewer picks one of four outcomes:
 | `merge` | merge into a new node (enters the propose_merge flow) |
 | `both_valid` | both are valid; remove the contradicts edge |
 
-The arbitration outcome writes back to the related nodes'' `dim_accuracy` and `status`, and leaves a resolution log.
+The arbitration outcome writes back to the related nodes'' `status`, and leaves a resolution log.
 
 ## Acceptance criterion
 
 Every `contradicts` edge should have a corresponding resolution log or pending review item.
 ',
    ARRAY['conflict', 'contradicts', 'arbitration', 'review-queue', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','5b6cd29ff35eb67e2cc0d6cc6984d5b9a190f644862ee08d30b6b93e8a8bd132','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11078,8 +9650,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cf633afb_en','1.0','ws_spec0001_en','Workspace Agent System Actor Design','factual','markdown','MemTrace defines two types of system actors:
 
@@ -11088,8 +9659,7 @@ VALUES
 
 Neither type contributes to human `author_rep` calculations. Telemetry records use `source_type="system"`.',
    ARRAY['system-actor', 'workspace-agent', 'identity', 'actor', 'telemetry']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','c5f3e4g6b7d8193a21cdef3456789012cdef3456789012cdef3456789012abcd','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11098,8 +9668,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cl001_en','1.0','ws_spec0001_en','§11.4 Dynamic Cluster System','factual','markdown','Each workspace owns a set of **node clusters** (the `node_clusters` table). A cluster is a named topic group (e.g. "API Design", "Security Rules") used for visual grouping and filtering in the graph view.
 
@@ -11117,8 +9686,7 @@ The pipeline resolves the proposed name to a cluster id via `get_or_create_clust
 The `node_clusters` table records all clusters in a workspace: names (zh/en), color, and other metadata. The `memory_nodes` table links to it via the `cluster_id` foreign key (nullable).
 ',
    ARRAY['cluster', 'ingestion', 'ai', 'graph-view', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','691804a8b3143ba27e4912cf1419e4e65dc921c373dc29bd5114a0c23a777062','ai',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11127,8 +9695,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_cl002_en','1.0','ws_spec0001_en','§11.4 Cluster Management: Manual Override, Unclustered Nodes, and Backfill','procedural','markdown','## Manual override (§11.4.2)
 
@@ -11159,8 +9726,7 @@ Nodes with `cluster_id = NULL` are considered unclustered. In the 2D graph view 
 Nodes created before the cluster system was introduced have `cluster_id = NULL`. They can be reassigned manually or handled by a future batch backfill job.
 ',
    ARRAY['cluster', 'api', 'graph-view', 'backfill']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','fb2b059b1b9635a97a91dc41d2855a56441c65b4ba31349eb0f7cb70babfcf65','ai',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11169,8 +9735,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d001_en','1.0','ws_spec0001_en','Memory Node: the atomic unit of knowledge','factual','markdown','A Memory Node is the atomic unit of knowledge in MemTrace. Each node captures **one** idea and contains:
 
@@ -11180,7 +9745,6 @@ VALUES
 - **Tags**: string array for classification and search
 - **Visibility**: `public` / `team` / `private`
 - **Provenance**: author, creation timestamp, SHA-256 signature, source_type
-- **Trust**: four-dimension trust score
 - **Traversal**: visit count and unique visitor count
 - **Status**: `active` / `archived` (archived nodes are hidden from default views, not deleted)
 
@@ -11195,8 +9759,7 @@ VALUES
 
 Node ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`.',
    ARRAY['data-model', 'schema', 'core', 'version', 'conflict']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11205,8 +9768,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d002_en','1.0','ws_spec0001_en','Edge: a typed, directed relationship','factual','markdown','An Edge connects two Memory Nodes with direction `from → to`. Each edge contains:
 
@@ -11218,8 +9780,7 @@ VALUES
 
 Edge ID format: `edge_<hex8>`. Duplicate edges (same from, to, relation) are rejected.',
    ARRAY['data-model', 'schema', 'graph', 'core']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11228,8 +9789,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d003_en','1.0','ws_spec0001_en','Content Type: the nature of knowledge in a node','factual','markdown','Every Memory Node must be tagged with a Content Type:
 
@@ -11245,8 +9805,7 @@ VALUES
 
 Content Type affects: search filtering, AI extraction classification, default decay half-life (ephemeral workspaces), and Export Scope matching (`procedural` → user-manual, `factual` → functional-spec, etc.).',
    ARRAY['data-model', 'schema', 'content-type', 'source-document']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11255,37 +9814,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_d004_en','1.0','ws_spec0001_en','Trust system: how trust is calculated','factual','markdown','Every Memory Node carries a composite trust score (0–1) derived from four dimensions:
-
-| Dimension | Description | Default at creation |
-|-----------|-------------|--------------------|
-| `accuracy` | Factual correctness | 0.5 |
-| `freshness` | Timeliness | 1.0 |
-| `utility` | Practical usefulness | 0.5 |
-| `author_rep` | Author reputation | 0.5 |
-
-> Current positioning: node Trust / verification scoring is deferred from the public surface (see decision mem_56118060). The dimensions above and `trust_score` are internal, retained fields — not surfaced in the UI, not to be interpreted as a guarantee of content correctness or authenticity, and not used to flag nodes or remove them from the public index. Content is still SHA-256 signed (`signature`) for tamper-evidence — this is provenance / integrity, separate from Trust scoring.',
-   ARRAY['data-model', 'trust', 'anti-forgery']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d005_en','1.0','ws_spec0001_en','Provenance: origin and traceability','factual','plain','The provenance object on each node records the knowledge''s origin: author, created_at, signature (SHA-256 content hash), source_type (human / ai_generated / ai_verified). updated_at is added on any edit. AI-extracted nodes additionally record source_document (the source file) and extraction_model (the AI model used). Nodes copied across Knowledge Bases record copied_from.node_id and copied_from.workspace_id. Provenance is always recorded but does not restrict access.',
    ARRAY['data-model', 'provenance', 'traceability']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,2,2)
+   2,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11294,13 +9827,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d006_en','1.0','ws_spec0001_en','Traversal Tracking: measuring real usage','factual','plain','Nodes and edges each track traversal data. Nodes record: traversal_count (total visits) and unique_traverser_count (distinct actors). Edges record: traversal_count, rating_avg (1–5 average, null if no ratings), and rating_count. Traversals are recorded via POST /nodes/{id}/traverse or POST /edges/{id}/traverse in the REST API, or via the MCP tool traverse_edge. These numbers reflect actual knowledge usage frequency, not just what was recorded.',
    ARRAY['data-model', 'traversal', 'usage-tracking']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11309,13 +9840,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d07c29a1_en','1.0','ws_spec0001_en','Update Timestamp Field (provenance.updated_at)','factual','markdown','The `provenance.updated_at` field is an optional string (date-time format) that is set on every edit after initial creation.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.886390+00:00','fde73fc348c926db7350610cbd46f6cc5b253b7227e3720fad21e1ac55261d00','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11324,13 +9853,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d0961cfa_en','1.0','ws_spec0001_en','Memory Node Editor Access Methods','procedural','markdown','The editor is accessible from the Graph View (via a toolbar button or double-clicking an empty canvas area) and from the node''s context menu.',
    ARRAY['editor', 'access', 'ui']::text[],'public','system','2026-04-24T11:25:39.331044+00:00','8a3d4055ab327d3e4acebfb2c8f2e9c165b22d5051ede17ec4d37ec45d66869a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11339,13 +9866,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d1d90285_en','1.0','ws_spec0001_en','API Key Scope: kb:propose','factual','markdown','An API Key with the `kb:propose` scope grants the capabilities of the contributor role, including all read permissions and the ability to submit proposals.',
    ARRAY['api-key', 'scope', 'contributor', 'proposal']::text[],'public','system','2026-04-24T11:25:40.620555+00:00','676665976061e64f48291d081a2edea8a4ae9b7eafef376b42fd6438a6a74965','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11354,8 +9879,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d26a1946_en','1.0','ws_spec0001_en','Phase 6.1 — Documents as First-Class Graph Citizens','factual','markdown','## Phase 6.1 — Documents as First-Class Graph Citizens
 
@@ -11378,8 +9902,7 @@ VALUES
 
 New data is written to both edges and the legacy junction table during transition. Reads prefer the edge path and fall back to the junction table, deduplicated by document id.',
    ARRAY['phase-6.1', 'architecture', 'documents', 'extracted_from', 'graph', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:12:42.989025+00:00','','human',
-   0.667,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11388,8 +9911,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d2955487_en','1.0','ws_spec0001_en','Phase 6.2 — Behavior, Governance & Visual (Track B, T10–T24)','factual','markdown','## Phase 6.2 Track B — Behavior, Governance & Visual
 
@@ -11414,8 +9936,7 @@ Proposal creation, listing, reading, and resolution are available through servic
 ### Visual notifications
 Pending-review indicators, proposal overlays, and toolbar counters expose maintenance work to users.',
    ARRAY['phase-6.2', 'audit', 'reviewer', 'ui', 'governance', 'milestone']::text[],'public','usr_6bc7b4c7','2026-05-29T00:12:42.989025+00:00','','human',
-   0.667,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11424,13 +9945,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d2b5ef2f_en','1.0','ws_spec0001_en','Resource URI Handling in MCP Server','factual','markdown','The MCP server handles requests for `memtrace://guide/node` and `memtrace://guide/edge` URIs based on the request parameters, returning corresponding Markdown content. For unknown resource URIs, the server throws an error.',
    ARRAY['mcp', 'server', 'resource', 'uri', 'api']::text[],'public','system','2026-04-25T02:39:28.168325+00:00','2a481a49932b3fe3aaa57af8df71c64f827b6103478398eaaae36179a315ab44','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11439,13 +9958,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d3564082_en','1.0','ws_spec0001_en','Handle 202 Response for createNode/updateNode','procedural','markdown','When the createNode or updateNode API returns a 202 status code, the review_id should be extracted from the response body and explicitly returned to the AI agent.',
    ARRAY['api', '錯誤處理', 'ai代理', '審核流程']::text[],'public','system','2026-04-25T02:39:59.693849+00:00','23ae917c2d984d6ff3437a3c309dd34ed183a39846dbcf3156193dc0e779c845','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11454,8 +9971,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d38edbc7_en','1.0','ws_spec0001_en','Workspace Settings: AI Management Tab (Review Settings and Smart Maintenance)','procedural','markdown','The "AI Management" tab on the workspace settings page consolidates the previously separate "Review Settings" and "Smart Maintenance" pages, centralizing all AI-related features.
 
@@ -11499,8 +10015,7 @@ Both are manually triggered (button-run), not scheduled.
 - When multiple reviewers are enabled, they are tried in creation order and the first success wins
 ',
    ARRAY['workspace-settings', 'ui', 'ai-management', 'maintenance', 'reviewer']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','8adcf188af6271a30edf160f02cf40df24d4826548ebe4fd0032848b12de483e','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11509,8 +10024,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d419e8e3_en','1.0','ws_spec0001_en','Private Workspace Design Boundaries','factual','markdown','Design boundaries for private workspaces (`visibility=private`) in MemTrace:
 
@@ -11519,8 +10033,7 @@ VALUES
 3. Private nodes may link to public nodes via edges, but back-references remain invisible externally.
 4. Telemetry for private workspaces is visible only to admins.',
    ARRAY['private', 'workspace', 'boundaries', 'design-decision', 'visibility']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','b0e8j9l1g2i3648f76hi8901234567hi8901234567hi8901234567abcdef12345','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11529,28 +10042,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_d4ea05e2_en','1.0','ws_spec0001_en','Memory Node Trust Score','factual','markdown','The `trust_score` column in the `memory_nodes` table is of type NUMERIC(4,3), representing a composite trust score between 0 and 1.',
-   ARRAY['database', 'schema', 'memory_nodes', 'column', 'score']::text[],'public','system','2026-04-24T11:25:39.130605+00:00','7c28f4b6744720099944e0b00fe9f6eacea46d6715cdde3f103aa4ba4cab8d00','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d679d993_en','1.0','ws_spec0001_en','MemTrace Core Philosophy: Knowledge and Curator Relationship','factual','markdown','MemTrace''s design philosophy goes beyond a mere permissions model, articulating the relationship between knowledge and its curator.',
    ARRAY['memtrace', 'philosophy', 'knowledge-management']::text[],'public','system','2026-04-24T11:27:02.088865+00:00','f8f87913529c03f880e7c1e82cea98b7b4b167dcf7d43215cacf3e98218bd995','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11559,13 +10055,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d692bb11_en','1.0','ws_spec0001_en','README/Usage Document Update: Multiple Workspaces, Known ID Scenario','procedural','markdown','The README and usage documentation have been updated to describe the multiple workspaces, known ID scenario: set `MEMTRACE_WS` to the most frequently used workspace, and when querying other workspaces, include the `workspace_id` parameter with each tool call.',
    ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-26T00:29:47.118808+00:00','9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11574,8 +10068,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_d9fc8038_en','1.0','ws_spec0001_en','Harness Proposal Batch Processing Design','factual','markdown','The harness layer handles proposal batch processing for multi-agent fan-out:
 
@@ -11584,8 +10077,7 @@ VALUES
 3. The conductor role is notification-only (notify); it neither schedules models nor merges proposals.
 4. The harness does not itself persist proposals; persistence is handled by the `review_queue`.',
    ARRAY['harness', 'proposals', 'batch', 'fan-out', 'conductor', 'multi-agent']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:52.142012+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11594,13 +10086,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_da5739b0_en','1.0','ws_spec0001_en','Import Preview Screen Overview','factual','markdown','The import preview screen displays a summary of the import job, including the total number of nodes and edges, and which nodes are clean or potentially duplicates.',
    ARRAY['import', 'ui', 'preview']::text[],'public','system','2026-04-24T11:25:40.950895+00:00','33e0e380ea727d436286ac1bf2851417357f1fbec9cdf77e3c99a89c6c790c2a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11609,13 +10099,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_dbaef1ba_en','1.0','ws_spec0001_en','Workspace Owner Role','factual','markdown','The workspace owner is always an admin and cannot be demoted from this role.',
    ARRAY['role', 'owner', 'admin', 'restriction']::text[],'public','system','2026-04-24T11:25:40.522712+00:00','5adde963a195e4b5f2c42f464fcdc25d634412c734ad62d4e46760cb4799b819','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11624,13 +10112,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_dc852972_en','1.0','ws_spec0001_en','MEMTRACE_TOKEN Security Reminder','factual','markdown','A security reminder text regarding `MEMTRACE_TOKEN` has been added to the server startup''s standard error log (stderr log).',
    ARRAY['環境變數', '安全性', '日誌']::text[],'public','system','2026-04-25T02:39:36.926692+00:00','656f7b6e924f07b2bef8f84a0a2a011de8f9270d6618c86707eb069cb8973af7','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11639,8 +10125,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_dd1d4589_en','1.0','ws_spec0001_en','Connector Third-Party Integration Product Stance','factual','markdown','MemTrace''s product stance on Connectors (third-party system integrations):
 
@@ -11650,8 +10135,7 @@ VALUES
 4. Third-party source nodes have `provenance.source_type` set to `"tool"`; `author` records the connector name.
 5. The Connectors UI tab is temporarily hidden; the architectural foundation is in place and ready to enable.',
    ARRAY['connector', 'third-party', 'integration', 'product-stance', 'ingest']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','f4i2n3p5k6m7082j10lm2345678901lm2345678901lm2345678901abcdef123456789','ai',
-   0.65,0.8,1.0,0.6,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11660,8 +10144,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_de31d9fc_en','1.0','ws_spec0001_en','Lesson: Self-propagation of dirty data in a knowledge base — agents replicate and amplify existing errors as authoritative convention','factual','markdown','## The lesson
 
@@ -11682,8 +10165,7 @@ An agent infers a write convention, such as edge direction, from the only existi
 
 Applies to human-AI maintained knowledge graph systems that allow agent writes.',
    ARRAY['lesson-learned', 'governance', 'agent-safety', 'data-quality', 'knowledge-graph']::text[],'public','usr_6bc7b4c7','2026-06-20T03:58:37.371202+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11692,13 +10174,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_df5063bd_en','1.0','ws_spec0001_en','List Archived Nodes API','procedural','markdown','Provide an API endpoint `GET /workspaces/{ws_id}/nodes?filter=archived` to list all archived nodes within a specified workspace.',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:49.910036+00:00','50c10babc72825ea1a4c613a30ae476d998c5a3f0fbe90f05d8277b528f729c9','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11707,13 +10187,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e0ebc6e5_en','1.0','ws_spec0001_en','README/Usage Document Update: Single Workspace Scenario','procedural','markdown','The README and usage documentation have been updated to describe the single workspace (simplest) scenario: only set the `MEMTRACE_WS` environment variable and omit the `workspace_id` parameter when calling tools.',
    ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-25T02:39:36.230691+00:00','e59e02c6a9011e9b691d3806389ed96d8988532eecc222d1c30c7876176156ef','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11722,13 +10200,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e10a0200_en','1.0','ws_spec0001_en','Display One-Time Copy Dialog for New Key','procedural','markdown','After creation, a one-time copy dialog should be displayed for the new key.',
    ARRAY['api-key', 'ui']::text[],'public','system','2026-04-25T02:38:53.632458+00:00','04c3b3db95c39e7be32de5edbd26fc9e83a18b2fc27939e5c70d2740b8e39975','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11737,13 +10213,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e3e6a8a4_en','1.0','ws_spec0001_en','UI Onboarding Flow Progress Bar','factual','markdown','A persistent progress bar, e.g., "Step X of Y", is shown at the top of each step. Required steps are marked, and skippable steps show a "Skip for now" link.',
    ARRAY['ui', 'onboarding', 'progress']::text[],'public','system','2026-04-24T11:31:27.668692+00:00','b765919fa3c8d7ca9d84e73220b483af69ddf3e5317b220e195ca32f868b427d','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11752,13 +10226,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e73ea399_en','1.0','ws_spec0001_en','EDGE_GUIDE Content Definition','factual','markdown','The `EDGE_GUIDE` constant defines relation type semantics, weight range, `half_life_days` explanation, and 409 conflict handling.',
    ARRAY['edge_guide', 'edge', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:29.242927+00:00','5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11767,13 +10239,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e778fedf_en','1.0','ws_spec0001_en','Memory Node Signature','factual','markdown','The `signature` column in the `memory_nodes` table is of type TEXT, storing the SHA-256 content hash of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'hash']::text[],'public','system','2026-04-24T11:25:39.089390+00:00','b3e2a69453c440c83d3d584bf7789a00fa68991922c6de7dd86d5e94dc6f159b','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11782,28 +10252,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_e7f9e165_en','1.0','ws_spec0001_en','Default Values on Node Creation','factual','markdown','Default values for new node creation include `content.format` as `"plain"`, `trust.score` as 0.5, `trust.dimensions` (accuracy 0.5, freshness 1.0, utility 0.5, author_rep 0.5), and `trust.votes` (up 0, down 0, verifications 0).',
-   ARRAY['設定', '預設值']::text[],'public','system','2026-04-24T11:25:39.907406+00:00','11dce764ed34376c489501afe7fa9330e9e93e1b549033f0c531a25cf39e346c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_e9875476_en','1.0','ws_spec0001_en','Input Mode Selection','procedural','markdown','Input modes are selectable via a tab toggle within the editor.',
    ARRAY['editor', 'input-mode', 'ui']::text[],'public','usr_6bc7b4c7','2026-04-24T11:25:39.374323+00:00','585df44f3ba32837cd36c7de38c486adf0a047f38a72f9bbf983f9615d86b47b','ai',
-   0.924,0.95,0.898,0.98,0.929,
-   0,0,0,10,3)
+   10,3)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11812,8 +10265,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_eafe5fce_en','1.0','ws_spec0001_en','Connector Third-Party Integration Product Stance','factual','markdown','MemTrace''s product stance on Connectors (third-party system integrations):
 
@@ -11823,8 +10275,7 @@ VALUES
 4. Third-party source nodes have `provenance.source_type` set to `"tool"`; `author` records the connector name.
 5. The Connectors UI tab is temporarily hidden; the architectural foundation is in place and ready to enable.',
    ARRAY['connector', 'third-party', 'integration', 'product-stance', 'ingest']::text[],'public','usr_6bc7b4c7','2026-06-25T21:57:57.877522+00:00','','human',
-   0.65,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11833,13 +10284,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ee62ef2c_en','1.0','ws_spec0001_en','API Endpoint for Stripped Graph Payload','factual','markdown','The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` serves the stripped graph payload.',
    ARRAY['api', '端點', '簡化結構']::text[],'public','system','2026-04-24T11:25:39.793666+00:00','692f0b08e25bd54aa1bb741d90fa13d17d3c521fb8eae5d5eea3f70315d0124c','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11848,13 +10297,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_eedc4eef_en','1.0','ws_spec0001_en','API Key Scope: kb:read','factual','markdown','An API key with the `kb:read` scope grants viewer role capabilities, allowing search, read, traverse, and rate operations.',
    ARRAY['api-key', 'scope', 'viewer', 'read-access']::text[],'public','system','2026-04-24T11:25:40.597989+00:00','1be172568b159d3b911a49177c590a9d5b74b6ec33a344f7abd355388b2c30c5','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11863,13 +10310,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ef3bebe9_en','1.0','ws_spec0001_en','JWT Token Payload Structure','factual','markdown','The JWT Token payload includes `sub` (user ID), `email`, `display_name`, `iat` (issued-at time), and `exp` (expiry time) fields.',
    ARRAY['jwt', 'token', '載荷', '對談管理']::text[],'public','system','2026-04-24T11:25:40.127115+00:00','28b7156405594bd26902d892ca1e916dbbde4c482b49dbb04839f3fec346da9a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11878,13 +10323,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ef8ec8ec_en','1.0','ws_spec0001_en','AI Chat Uses KB Association Boundaries','factual','markdown','The AI Chat functionality will depend on the boundary settings of knowledge base associations.',
    ARRAY['ai-chat', 'knowledge-base-association']::text[],'public','system','2026-04-25T02:39:58.716612+00:00','386ed5a376b7d7370a26182eaf9146e51d7f02dc1aec134bab2d9fb00a5f2986','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11893,8 +10336,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_exp001_en','1.0','ws_spec0001_en','Knowledge Base Explore Page (Hub) Spec','factual','markdown','## Goal
 
@@ -11952,8 +10394,7 @@ When logged in, with an `Authorization: Bearer ...` header the backend additiona
 ## Status: pending (to be implemented)
 ',
    ARRAY['feature', 'explore', 'hub', 'workspace', 'discovery', 'ux']::text[],'public','system','2026-06-14T00:00:00+00:00','683ac9641e6435751ee8616a9d0b4cb4ec00b387ae9d60263f16239a4dc12e5a','ai',
-   0.85,0.88,0.98,0.92,0.88,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11962,13 +10403,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f027cd84_en','1.0','ws_spec0001_en','MemTrace AI Features Overview','factual','markdown','MemTrace uses AI in three distinct contexts, all sharing the same provider abstraction and API key model.',
    ARRAY['ai', 'features', 'architecture']::text[],'public','system','2026-04-24T11:25:40.433573+00:00','613853d08868de023cab46df86662e05317b460277273a997266163eb98cd87a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -11977,8 +10416,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f0a4f717_en','1.0','ws_spec0001_en','背景作業可觀測性：scheduler_heartbeats + job_runs 兩層設計','factual','markdown','## 設計目標
 
@@ -12029,8 +10467,7 @@ VALUES
 - `migrations/110_job_observability.sql`
 - `tests/test_job_observability.py`',
    ARRAY['background-jobs', 'observability', 'scheduler', 'audit-reviewers', 'job-runs', 'spec', 'implemented']::text[],'private','usr_6bc7b4c7','2026-06-16T10:38:14.153514+00:00','','human',
-   0.65,0.5,1.0,0.5,0.71,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12039,13 +10476,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f2edb572_en','1.0','ws_spec0001_en','Edge Traversal Statistics Data Structure','factual','markdown','The `traversal` object in an edge response includes `count` (number of traversals), `rating_avg` (average rating), and `rating_count` (number of ratings) fields.',
    ARRAY['data-structure', 'traversal-stats', 'edge', 'rating']::text[],'public','system','2026-04-24T11:25:40.274389+00:00','44138550101d58d53cf07a6ec12d41ed6fae6e149da9cf27f11fffac79788237','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12054,13 +10489,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f70b4273_en','1.0','ws_spec0001_en','Determining Onboarding Progress','factual','markdown','The `steps_done` and `steps_skipped` fields together determine the current onboarding step and progress bar value.',
    ARRAY['onboarding', 'progress', 'ui']::text[],'public','system','2026-04-24T11:25:40.398911+00:00','16aaf873e830ab998ec1834add380b9d5bafa80ec0b980ad6bc58c2a60e90b4a','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12069,13 +10502,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f8057a39_en','1.0','ws_spec0001_en','Tool Description Update','procedural','markdown','The descriptions for tools like `search_nodes`, `get_node`, `traverse`, and `list_by_tag` have been updated to include a line explaining how to pass `workspace_id` to query a specific KB, or omit it to use the configured default (`MEMTRACE_WS`).',
    ARRAY['工具', '文件', '工作區']::text[],'public','system','2026-04-25T02:39:37.786358+00:00','619066f74e4abdca14e319bcd9cbfe613562619b098582a5070872003bddedae','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12084,13 +10515,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f83d6e1b_en','1.0','ws_spec0001_en','AI Agent Workflow: Create New Node','procedural','markdown','AI agents should call the `create_node` function to create new nodes, providing fields such as `title_zh`, `title_en`, `content_type`, `content_format`, and `body_zh`. Specifically, AI agents must set `source_type: "ai"`.',
    ARRAY['ai代理', '工作流程', '節點建立', 'api']::text[],'public','system','2026-04-25T02:39:25.137437+00:00','04fe85dcca072d61a5b4587e35961b2be16ec3bc52a01b288b2e17f13a480e33','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12099,13 +10528,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_f9a2bb47_en','1.0','ws_spec0001_en','Source Document Node Field Definition','factual','markdown','A source document node has the following fields: `content_type` as `source_document`, `title_zh`/`title_en` as original filename + ingestion timestamp, `body_zh`/`body_en` as full extracted text or transcript, `visibility` defaulting to `private`, and `source_type` as `human`.',
    ARRAY['後端資料', '來源', '文件']::text[],'public','system','2026-04-24T11:25:40.773860+00:00','7d2711cfebac275319bf5ebc62579cd1b3de62a9d03f2952bdd65e03bb984b84','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12114,13 +10541,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fb026368_en','1.0','ws_spec0001_en','Memory Node English Title','factual','markdown','The `title_en` column in the `memory_nodes` table is of type TEXT, storing the English title of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.909891+00:00','3a62af0adbac099be083237631539bac551d692c9362add2123ac306fa432351','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12129,13 +10554,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fb0354ee_en','1.0','ws_spec0001_en','Add MEMTRACE_TOKEN Environment Variable','factual','markdown','The `MEMTRACE_TOKEN` environment variable is added to support `list_workspaces` and future writing tools in accessing `/api/v1/workspaces`. This variable injects the API token into the `Authorization: Bearer` header of `apiFetch`.',
    ARRAY['環境變數', 'api', '認證', '安全性']::text[],'public','system','2026-04-25T02:39:33.890766+00:00','5a92752ad8e42bd741785135c860e72414dc35b7ea7f68525e8f904ee3b40f5f','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12144,13 +10567,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fcfc3360_en','1.0','ws_spec0001_en','AI Call Logging Requirement','factual','markdown','All AI calls, regardless of whether they use a workspace-level or account-level key, must be logged. The log serves as the authoritative record for billing, debugging, and policy enforcement.',
    ARRAY['ai', '說明', '記錄', '錯誤', '結構']::text[],'public','system','2026-04-24T11:25:40.870968+00:00','d602c01a63a9d7c9de1f73258fc8a94b375dadb29578da5d267ed59f356eb6fa','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12159,13 +10580,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_fee2f20e_en','1.0','ws_spec0001_en','AI Read Permission: Associated Workspaces','factual','markdown','AI may read from associated workspaces but is not permitted to propose writes to them.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.718460+00:00','bf0b60327f5653184e709699864ee935ead4af7a24ab35a084ed82d36c9699b5','ai',
-   0.715,0.8,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12174,13 +10593,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ff4e804e_en','1.0','ws_spec0001_en','Onboarding Wizard Auto-Display Condition','factual','markdown','Once `completed: true`, the onboarding wizard is never shown automatically again.',
    ARRAY['onboarding', 'ui', 'completion']::text[],'public','system','2026-04-24T11:25:40.415959+00:00','0c8adbf4e2f1b9f5bc07fac93f031d00d9a0cf53f41896d28bb69c72e0415ce9','ai',
-   0.593,0.8,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12189,8 +10606,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_g001_en','1.0','ws_spec0001_en','Decay: natural weight reduction on edges','factual','markdown','Edge weight decays over time according to (v1):
 
@@ -12213,8 +10629,7 @@ weight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)
 
 Trigger: daily by the `apply_edge_decay()` SQL function (mirrors `packages/core/src/decay.ts`).',
    ARRAY['graph-mechanics', 'decay', 'weight', 'faded', 'archive']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12223,8 +10638,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_g002_en','1.0','ws_spec0001_en','Co-Access Boost: strengthening edges through use','factual','markdown','When two connected nodes are accessed sequentially or simultaneously in the same context (Co-Access), the corresponding edge''s weight receives a boost based on relation type:
 
@@ -12237,8 +10651,7 @@ VALUES
 
 Also increments co_access_count, updates last_co_accessed, and caps weight at 1.0. Triggered by POST /edges/{id}/traverse or MCP tool traverse_edge.',
    ARRAY['graph-mechanics', 'co-access', 'boost', 'weight']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12247,8 +10660,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_g003_en','1.0','ws_spec0001_en','Edge relation types: four semantic directions','factual','markdown','| Relation | Semantics | When to use |
 |----------|-----------|-------------|
@@ -12259,8 +10671,7 @@ VALUES
 
 Choosing the correct relation type matters: it determines co-access boost strength and how AI agents interpret the relationship when traversing the graph.',
    ARRAY['graph-mechanics', 'relation-type', 'edge', 'schema']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12269,86 +10680,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_g004_en','1.0','ws_spec0001_en','Trust Score: four-dimension node credibility rating','factual','markdown','Each node carries a composite `trust_score` (0–1) computed from four weighted dimensions:
-
-| Dimension | Field | Weight | Meaning |
-|-----------|-------|--------|---------|
-| Accuracy | `dim_accuracy` | 40% | Whether the content is correct |
-| Freshness | `dim_freshness` | 25% | Whether the information is still current |
-| Utility | `dim_utility` | 25% | Whether the content is practically helpful |
-| Author Reputation | `dim_author_rep` | 10% | Historical reliability of the contributor |
-
-```
-trust_score = accuracy×0.4 + freshness×0.25 + utility×0.25 + author_rep×0.1
-```
-
-## Voting mechanism (vote_trust)
-
-Scores are submitted as **integers 1–5** (API accepts accuracy and utility). The backend averages all votes, divides by 5 to get a 0–1 float, then updates the node.
-
-**API**: `POST /workspaces/{ws_id}/nodes/{node_id}/vote-trust`
-```json
-{ "accuracy": 4, "utility": 5 }
-```
-
-**MCP Tool**: `vote_trust(node_id, accuracy, utility)`
-- AI agents should call this proactively after reading a node they find correct and useful
-- Each user has one vote per node (ON CONFLICT DO UPDATE)
-- Votes stored in the `node_trust_votes` table
-
-## confirm_node_validity
-
-`POST /workspaces/{ws_id}/nodes/{node_id}/confirm-validity` is a one-tap validity stamp: automatically raises `dim_accuracy` to 1.0, recomputes `trust_score`, and sets `validity_confirmed_at`. Equivalent to "I have manually verified this node is still accurate."
-
-## TypeScript implementation
-
-`packages/core/src/trust.ts` exposes `computeTrustScore()` and `updateTrustScore()`, matching the Python-side result to within 0.01.',
-   ARRAY['graph-mechanics', 'trust', 'vote', 'quality', 'mcp-tool', 'credibility']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_g005_en','1.0','ws_spec0001_en','MemTrace Trust Dimensions: Freshness and Author Reputation','factual','plain','MemTrace uses four dimensions to calculate the composite trust_score (0.0-1.0):
-1. Accuracy: Manual verification or voting.
-2. Utility: Frequency of use and positive feedback.
-3. Freshness: Time-based decay of reliability.
-4. Author Reputation: Historical quality of nodes created by the author.
-
-Freshness (dim_freshness):
-- Initial value is 1.0.
-- Decays over time if the node is not updated.
-- Reset to 1.0 when updated_at is modified or validity_confirmed_at is updated.
-- Formula: 1.0 * (0.5 ^ (days_since_update / 180)).
-
-Author Reputation (dim_author_rep):
-- Derived from the average trust_score of all nodes previously created by the same author.
-- Protects the system from low-quality AI or human mass-creation.
-- Authors with a high track record boost the initial trust of their new nodes.',
-   ARRAY['trust', 'spec']::text[],'public','system','2026-05-12T03:31:10.175315+00:00','818e5b9d24d7e3606e3568e8b1b435dc63f32bcdf7b9134d9b6006b2095fbc08','human',
-   0.625,0.5,0.962,0.5,0.92,
-   0,0,0,1,1)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g01_en','1.0','ws_spec0001_en','Standard Workflow for Agent Knowledge Base Exploration','procedural','markdown','## Standard Workflow for Agent Knowledge Base Exploration
 
@@ -12380,8 +10712,7 @@ After exploration, call `record_path(workspace_id, query_text, node_sequence, ou
 - `list_by_tag` is for list-style requests with known tags, not open-ended semantic exploration.
 - Declare `model_size` in `initialize` at session start so the server auto-adjusts response granularity.',
    ARRAY['agent-guide', 'exploration', 'search', 'inquiry-paths', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.95,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12390,8 +10721,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g02_en','1.0','ws_spec0001_en','Large vs Small Model Strategy for Using MemTrace','preference','markdown','## Large vs Small Model Strategy for Using MemTrace
 
@@ -12448,8 +10778,7 @@ Call `initialize` to declare your capabilities so the server can adapt:
 }
 ```',
    ARRAY['agent-guide', 'model-size', 'detail-level', 'token-budget', 'capability-handshake', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.95,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12458,8 +10787,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g03_en','1.0','ws_spec0001_en','Node Creation Decision Tree: When, What Type, and What Next','procedural','markdown','## Node Creation Decision Tree
 
@@ -12511,8 +10839,7 @@ After creating a gap, stop retrying the same topic — mark it and let humans or
 Created automatically by the ingest pipeline. **Agents should NOT create document nodes manually.**
 To add documentary evidence to an existing node, use `attach_evidence` or `attach_url`.',
    ARRAY['agent-guide', 'create-node', 'content-type', 'decision-tree', 'wait-for-embedding', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.95,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12521,8 +10848,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g04_en','1.0','ws_spec0001_en','Document ingestion: long documents and short text','procedural','markdown','## Document ingestion
 
@@ -12553,8 +10879,7 @@ The document node preserves the original material for reading, context, and re-e
 - Polling ingestion status too frequently
 - Running semantic search before embeddings are ready',
    ARRAY['agent-guide', 'ingest', 'document', 'polling', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.667,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12563,8 +10888,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g06_en','1.0','ws_spec0001_en','Inquiry Paths: Recording and Replaying Agent Exploration','procedural','markdown','## Inquiry Paths: Recording and Replaying Agent Exploration
 
@@ -12617,8 +10941,7 @@ If results are returned, follow the `node_sequence` from the best match rather t
 - Do not record paths involving personal privacy or sensitive operations.
 - `node_sequence` should only contain IDs of nodes actually accessed — not guesses or unvisited nodes.',
    ARRAY['agent-guide', 'inquiry-paths', 'record-path', 'search-with-history', 'collective-learning', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.95,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12627,8 +10950,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_guide_g07_en','1.0','ws_spec0001_en','Error Handling and Rate-Limit Resilience Patterns','factual','markdown','## Error Handling and Rate-Limit Resilience Patterns
 
@@ -12693,8 +11015,7 @@ else:
 | `"Node not found or no access"` | node_id doesn''t exist or cross-workspace | Confirm node belongs to current workspace |
 | `"daily quota exceeded"` | audit_proposal exceeded 20/day | Wait until next day, or ask admin to raise quota |',
    ARRAY['agent-guide', 'error-handling', 'rate-limit', 'retry', '202', '429', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
-   0.95,0.5,1.0,0.5,0.719,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12703,13 +11024,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i001_en','1.0','ws_spec0001_en','User authentication: email and password','procedural','plain','MemTrace uses Email + Password authentication. Security measures include: bcrypt hash (cost ≥ 12), password policy (8–128 chars, upper+lower+digit, HaveIBeenPwned check), verification email (24h expiry), and 5-failure lockout for 15 minutes. Upon login, a JWT session (7 days) is issued and passed via the Authorization: Bearer header. Logout is handled via an immediate blocklist. Third-party OAuth is currently not supported to simplify the authentication surface and reduce external dependencies.',
    ARRAY['auth', 'security', 'jwt', 'password-policy']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12718,8 +11037,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i002_en','1.0','ws_spec0001_en','REST API and external API keys','factual','markdown','External services and scripts authenticate with **API Keys** (format: `mt_live_<hex>`), not session JWTs. Keys may be scoped to a specific workspace or valid across all. Full key value shown only once at creation. Four scopes:
 
@@ -12732,8 +11050,7 @@ VALUES
 
 All API endpoints prefixed with `/api/v1`, using `Authorization: Bearer` for both keys and session tokens (server distinguishes by prefix).',
    ARRAY['api', 'api-key', 'access-control', 'integration']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6','human',
-   0.73,0.95,1.0,0.04,0.9,
-   0,0,0,4,2)
+   4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12742,8 +11059,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i003_en','1.0','ws_spec0001_en','MCP Server: AI agent integration','factual','markdown','MemTrace implements the **Model Context Protocol (MCP)**, allowing AI agents (e.g. Claude Code) to use MemTrace as a context provider without reading raw spec documents.
 
@@ -12774,8 +11090,7 @@ VALUES
 
 Agents should call traverse when following an edge, keeping frequently used paths alive against decay.',
    ARRAY['mcp', 'ai-agent', 'integration', 'api']::text[],'public','system','2026-04-11T00:00:00+00:00','c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,3,2)
+   3,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12784,13 +11099,12 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i004_en','1.0','ws_spec0001_en','Access control and permission roles: viewer / contributor / admin','factual','plain','MemTrace uses a git-inspired three-tier permission model that applies equally to human users and AI tools (including MCP).
 
 Roles:
-- viewer: read-only + Q&A chat + node rating (votes_up/down)
+- viewer: read-only + Q&A chat
 - contributor: all viewer capabilities + submit change proposals (→ review queue, requires admin approval)
 - admin: all contributor capabilities + direct write + approve/reject proposals + manage members + invite users + soft-delete/restore workspace
 
@@ -12810,8 +11124,7 @@ Default role on join:
 - Accept invite link → role embedded in the invite token by admin
 - Cross-workspace node copy → no membership granted',
    ARRAY['access-control', 'permissions', 'roles', 'viewer', 'contributor', 'admin', 'mcp', 'api-key']::text[],'public','system','2026-04-12T00:00:00+00:00','d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,5,2)
+   5,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12820,8 +11133,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i005_en','1.0','ws_spec0001_en','OpenAI-compatible API: workspace-as-model RAG chat','factual','markdown','MemTrace exposes **OpenAI-compatible endpoints** (prefix `/v1`) so existing OpenAI SDKs and tools can treat a workspace as a "model" and run hybrid-RAG chat over it. Authentication reuses the external API key (`Authorization: Bearer mt_...`, see mem_i002_en).
 
@@ -12844,8 +11156,7 @@ Pass `model` as `memtrace-<ws_id>`, or override via a system message containing 
 ## Scope boundary
 Only `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/v1/embeddings` endpoint.',
    ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','e5dc92aeb1637d84c446b8f4b0f7e39572e63be1f4e37692a36a98869b685afb','human',
-   0.8,0.9,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12854,8 +11165,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i006_en','1.0','ws_spec0001_en','Python SDK: the official memtrace client (MemTraceClient)','factual','markdown','`packages/sdk-python` ships the official Python client `MemTraceClient` for driving the MemTrace REST API (see mem_i002_en) programmatically, authenticating with an external API key.
 
@@ -12876,8 +11186,7 @@ Every synchronous method has an async counterpart (the `a` prefix, e.g. `alist_w
 
 **Not yet published to the package index (PyPI).** The code lives under `packages/` in this repository and is exercised by CI (`.github/workflows/packages.yml`), but that workflow deliberately does not publish. The imports shown above require obtaining the package from source; it cannot be fetched from the package index. Version `0.1.0`.',
    ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','ec6bfad8e71afae13022bb721bf1a4fbe05fa48ef41d81182bcfa98211c22f9e','human',
-   0.8,0.9,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12886,8 +11195,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_i007_en','1.0','ws_spec0001_en','Framework integrations: LangChain retriever and LlamaIndex vector store','factual','markdown','MemTrace ships two framework-integration packages that plug a knowledge base into an existing LLM pipeline in a few lines. Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath (see mem_i002_en).
 
@@ -12912,8 +11220,7 @@ vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", wor
 
 **Not yet published to the package index (PyPI).** The code lives under `packages/` in this repository and is exercised by CI (`.github/workflows/packages.yml`), but that workflow deliberately does not publish. The imports shown above require obtaining the package from source; it cannot be fetched from the package index. Version `0.1.0`.',
    ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','607e222a8d5dc6e00e18b2e87009ca846b225866e687b925a652bdc235d8d107','human',
-   0.8,0.9,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12922,8 +11229,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq001_en','1.0','ws_spec0001_en','Gap: Multi-planner planning discussion (fan-out + consensus arbitration)','inquiry','markdown','The loop''s planning stage currently has only a single planner. We want to support multiple planners producing proposals in parallel, then arbitrate whether consensus is reached.
 
@@ -12937,8 +11243,7 @@ VALUES
 **Existing groundwork:** the `converge_proposals` MCP tool is implemented (reuses the consult synthesizer, returning converge / escalate).
 ',
    ARRAY['inquiry', 'gap', 'multi-agent', 'planner', 'mcp-tool', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','17430ff0bd605b7dd645606a3afe35b03a396a189dcb97431463cbccebdbad4a','ai',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12947,8 +11252,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq002_en','1.0','ws_spec0001_en','Gap: claim registry -> Redis (multi-worker / restart survival)','inquiry','markdown','Currently the run-state for `claim_task` / `release_task` lives in an in-process `_TASK_CLAIMS` dict (TTL 30 minutes). It is lost on restart and not shared across workers.
 
@@ -12960,8 +11264,7 @@ VALUES
 4. **Is it necessary:** is the multi-worker scenario an actual need today or an anticipated one?
 ',
    ARRAY['inquiry', 'gap', 'claim-registry', 'redis', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','70157464ecdddbd21c328aa1f0a271687d39bd4fe32543857b3dbd26bc58e134','ai',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12970,8 +11273,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq003_en','1.0','ws_spec0001_en','Gap: Human-gate review quality — presentation of flag-only items','inquiry','markdown','Currently `submit_outcome(fail)` failure flags and per-feature integration checks enter the `review_queue` with empty `node_data={}`; the reviewer sees an empty card with no concrete context.
 
@@ -12985,8 +11287,7 @@ VALUES
 3. **What does the reviewer actually need?** Can they decide directly after seeing the failure reason, or do they need to jump into node editing to get context?
 ',
    ARRAY['inquiry', 'gap', 'review-queue', 'human-gate', 'ux', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','7e0e7783c43e46a5253ff343daea5ff25118bd2b2fa20984ec11a406fae558c7','ai',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -12995,8 +11296,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq004_en','1.0','ws_spec0001_en','Gap: Conductor — MemTrace actively triggering an external harness','inquiry','markdown','Currently an external harness must actively poll to learn about new tasks. We want MemTrace to actively notify the external harness to start the next loop when a pending inquiry / residue appears.
 
@@ -13009,8 +11309,7 @@ VALUES
 5. **Outcome accounting:** when multiple workers each submit_outcome, will path_reinforcement double-count?
 ',
    ARRAY['inquiry', 'gap', 'conductor', 'event', 'webhook', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','0b153b98673fa0a67e84736d923daba6d4ed6f90035b3e69a21c6f63bdd55e5d','ai',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13019,8 +11318,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_inq005_en','1.0','ws_spec0001_en','Gap: Multi-agent trust tiering and memory-poisoning defense','inquiry','markdown','The system currently uses a single trusted credential (homogeneous trusted agents, decision A3). As multiple planners are added, we need per-agent identity, trust tiering, and memory-poisoning defenses.
 
@@ -13033,8 +11331,7 @@ VALUES
 5. **Priority:** is the H1 (credential) -> H2 (tiering) -> H3 (isolation) development order reasonable?
 ',
    ARRAY['inquiry', 'gap', 'trust', 'multi-agent', 'security', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','f1cf72bf4461e3f9c0f66995c845d06f16e6d08949f54ea458a980b02fb7460e','ai',
-   0.7,0.8,1.0,0.8,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13043,13 +11340,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k001_en','1.0','ws_spec0001_en','Knowledge Base: the container workspace','factual','plain','A Knowledge Base (Workspace) is the container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Users can create multiple Knowledge Bases. A Knowledge Base has its own sharing level (public / restricted / private), independent from node-level visibility — effective access is the more restrictive of the two. A Knowledge Base may be started blank or bootstrapped from a document with AI extraction. ID format: ws_<hex8>.',
    ARRAY['knowledge-base', 'workspace', 'container']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,3,1)
+   3,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13058,8 +11353,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k002_en','1.0','ws_spec0001_en','Knowledge Base sharing levels: four visibility tiers','factual','markdown','| Tier | Identifier | Description |
 |------|------------|-------------|
@@ -13072,8 +11366,7 @@ VALUES
 
 Node-level visibility (`public` / `team` / `private`) is independent of KB-level visibility — effective access is the more restrictive of the two.',
    ARRAY['knowledge-base', 'sharing', 'visibility', 'access-control', 'four-tier']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13082,13 +11375,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k003_en','1.0','ws_spec0001_en','Cross-workspace node copy: portability','procedural','plain','Any node can be copied to another Knowledge Base, but its Edges are not copied. Copy behaviour: the target KB assigns a new id; created_at is reset to the copy time; provenance.copied_from records { node_id, workspace_id } for traceability; visibility defaults to private in the target KB; Trust scores are carried as a snapshot — subsequent changes in either KB do not affect the other; signature is recomputed in the target KB context. CLI: memtrace copy-node <node-id> --to <workspace-id>. API: POST /workspaces/{ws_id}/nodes (with copied_from parameter).',
    ARRAY['knowledge-base', 'portability', 'copy', 'provenance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13097,8 +11388,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_k004_en','1.0','ws_spec0001_en','Workspace lifecycle and soft-delete (30-day grace period)','procedural','plain','Workspaces move through three states: active (normal), pending_deletion (soft-deleted, grace period active), deleted (purged from DB).
 
@@ -13120,8 +11410,7 @@ Grace period by KB type:
 Schema change:
 ALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT ''active'' CHECK (status IN (''active'',''pending_deletion'',''deleted'')), ADD COLUMN deleted_at TIMESTAMPTZ;',
    ARRAY['workspace', 'lifecycle', 'soft-delete', 'grace-period', 'deletion', 'restore']::text[],'public','system','2026-04-12T00:00:00+00:00','e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,4,2)
+   4,2)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13130,8 +11419,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ns001_en','1.0','ws_spec0001_en','Node-splitting principles (read before writing)','factual','markdown','A node = one unit that can be independently retrieved, independently true, and independently updated.
 
@@ -13146,8 +11434,7 @@ Co-variance test (the only discriminator): will these two things always change t
 
 Valid relations only: depends_on / extends / related_to / contradicts / proceeds_to. Don''t invent new ones. See "Node-splitting example: how to split a decision network (plan)".',
    ARRAY['authoring', 'node-splitting', 'meta']::text[],'public','system','2026-05-31T12:40:44.790751+00:00','2c5410e8e0cb0d2ad5b33fe10cf0a806bb945c9cc797d57ffb4b023e43c4d769','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13156,8 +11443,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ns002_en','1.0','ws_spec0001_en','Node-splitting example: how to split a decision network (plan)','procedural','markdown','Using a "plan / decision" document (Phase 6.4) as an example of how to split a decision network.
 
@@ -13182,8 +11468,7 @@ Splitting rationale (co-variance test):
 
 Full teaching docs: docs/dev/node-splitting-example.md (decision networks) and troubleshooting-graph-authoring.md (action flows).',
    ARRAY['authoring', 'node-splitting', 'example', 'meta']::text[],'public','system','2026-05-31T12:40:44.790751+00:00','32f40e87cbd4a9e98a8551df9077b8398b24c3f25dbbc234d7ff701a9e999c0c','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13192,8 +11477,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_o001_en','1.0','ws_spec0001_en','First-run onboarding: web UI wizard','procedural','plain','Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Eight-step flow:
 
@@ -13208,8 +11492,7 @@ VALUES
 
 Progress tracked server-side via the `onboarding` object (`steps_done[]` + `steps_skipped[]`); resumes from the last incomplete step after interruption. Once `completed: true`, the wizard is never shown automatically again.',
    ARRAY['onboarding', 'ui', 'wizard', 'ux', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13218,8 +11501,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_o002_en','1.0','ws_spec0001_en','First-run onboarding: CLI memtrace init','procedural','plain','Running `memtrace init` launches an interactive terminal wizard with five steps:
 
@@ -13233,8 +11515,7 @@ Config written to `~/.memtrace/config.json` with `chmod 600` immediately.
 
 Re-running: prompts which setting to update — AI provider / switch default workspace / re-authenticate / exit. Existing values are not overwritten unless explicitly selected.',
    ARRAY['onboarding', 'cli', 'init', 'setup', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13243,13 +11524,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p001_en','1.0','ws_spec0001_en','Knowledge through connection, not accumulation','context','plain','The core premise of MemTrace: knowledge does not need to live in large, monolithic documents. Each node captures one idea. Value emerges from the network of relationships between nodes. A node alone is lightweight; connected to others, it becomes part of a knowledge base whose scale is determined by the density and quality of its relationships, not the size of any single entry.',
    ARRAY['philosophy', 'core', 'design-principle']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13258,13 +11537,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p002_en','1.0','ws_spec0001_en','Designed for knowledge inheritance','context','plain','MemTrace is designed for the reader who was not there when the knowledge was created. A new team member, a late collaborator, or an AI agent in an unfamiliar context — all can enter at any node and navigate by following edges, without needing the original author to guide them. Each node is self-contained enough to read in isolation, yet connected enough that following its edges leads naturally to everything related.',
    ARRAY['philosophy', 'core', 'design-principle', 'inheritance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3','human',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13273,13 +11550,11 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p003_en','1.0','ws_spec0001_en','Co-authorship between humans and AI','context','plain','In MemTrace, humans and AI write into the same graph. The graph''s structure — edge weights, traversal counts, path ratings — reflects which knowledge has actually proven useful, not just what was recorded. Decay keeps the graph honest: connections nobody follows fade; connections visited frequently, rated positively, or extended by other nodes strengthen and persist. The result is a knowledge base that self-organises around what actually matters.',
    ARRAY['philosophy', 'core', 'ai', 'co-authorship']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4','human',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13288,8 +11563,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p410a_en','1.0','ws_spec0001_en','Account-Level API Key: Design Decision (Phase 4.10)','preference','markdown','## Decision
 
@@ -13321,8 +11595,7 @@ Role hierarchy: viewer < contributor < admin (owner treated as admin)
 - idx_wsm_user index ensures performant role lookups
 - UI Settings > MCP / API Keys removes scope/workspace selectors',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
-   0.85,0.92,0.955,0.88,0.92,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13331,8 +11604,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p410m_en','1.0','ws_spec0001_en','Magic Link: Restricted to invite_only Mode (Phase 4.10)','factual','markdown','## Mechanism
 
@@ -13365,8 +11637,7 @@ and shows the magic link option only in invite_only mode.
 In invite_only mode, workspace invitation links still trigger Magic Link (magic_link_tokens includes invitation_id).
 In other modes, invitation links redirect to the standard register form.',
    ARRAY['auth', 'magic-link', 'registration', 'security']::text[],'public','system','2026-05-11T00:00:00+00:00','p410m_magic_link_invite_only_restriction','ai',
-   0.85,0.92,0.955,0.88,0.92,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13375,8 +11646,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_p410t_en','1.0','ws_spec0001_en','JWT Token Refresh Race Condition Fix (authChecking Pattern)','preference','markdown','## Problem
 
@@ -13402,8 +11672,7 @@ Added authChecking state to block all data loading until token validation comple
 
 Decodes JWT payload exp field with a 60-second buffer to avoid boundary race conditions.',
    ARRAY['auth', 'frontend', 'jwt', 'race-condition', 'ux']::text[],'public','system','2026-05-11T00:00:00+00:00','p410t_token_refresh_race_condition_fix','ai',
-   0.85,0.92,0.955,0.85,0.92,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13412,16 +11681,14 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_playbook_001_en','1.0','ws_spec0001_en','MemTrace Playbook: Principles of Knowledge Mapping','context','markdown','### Core Principles
 1. **Atomicity**: Each node should describe exactly one independent concept.
 2. **Bilingual Symmetry**: Provide both English and Chinese content to ensure cross-lingual discovery.
 3. **Relationship First**: A node without edges is isolated memory. Always consider how it relates to existing knowledge.',
    ARRAY['playbook', 'philosophy', 'core']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_001','ai',
-   0.5,0.5,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13430,16 +11697,14 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_playbook_002_en','1.0','ws_spec0001_en','Workflow: Human-in-the-Loop Review Cycle','procedural','markdown','### Collaboration Workflow
 1. **AI Proposal**: AI generates suggested nodes during chat or ingestion, which enter the review_queue.
 2. **Human Review**: Users periodically check the queue to refine, merge, or reject proposals.
 3. **Commit**: Approved knowledge becomes part of the permanent Evergreen graph.',
    ARRAY['workflow', 'review', 'collaboration']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_002','ai',
-   0.503,0.5,1.0,0.01,0.5,
-   0,0,0,1,1)
+   1,1)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13448,8 +11713,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_playbook_003_en','1.0','ws_spec0001_en','Best Practice: Distinguishing Node Types','factual','markdown','### Content Type Guide
 - **Factual**: Objective facts, technical specs, definitions.
@@ -13457,8 +11721,7 @@ VALUES
 - **Preference**: Team decisions, design preferences, rationale for choices.
 - **Context**: Project background, high-level philosophy, design intent.',
    ARRAY['best-practice', 'content-type', 'guide']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_003','ai',
-   0.5,0.5,1.0,0.5,0.5,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13467,8 +11730,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_rq001_en','1.0','ws_spec0001_en','§S2 Review Queue SLA and Steward Rotation','procedural','markdown','## Background
 
@@ -13491,9 +11753,7 @@ Runs automatically every Monday at 09:00:
 
 ## SLA penalty
 
-If not handled within 7 days of assignment:
-- node `dim_freshness x 0.8` (freshness downgrade)
-- the item enters the next assignment round
+If not handled within 7 days of assignment: the item enters the next assignment round
 
 ## Acceptance criterion
 
@@ -13508,8 +11768,7 @@ WHERE assigned_to IS NULL
 Target: weekly active reviewers >= 2
 ',
    ARRAY['review-queue', 'sla', 'steward', 'governance', 'cron', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ed451d811138ddfe82e570f6259f00866ef8ddd4602bb757dfbea2e3300d9f5b','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13518,8 +11777,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_syn001_en','1.0','ws_spec0001_en','§S4 summarize_cluster MCP Tool: AI Cluster Summary','factual','markdown','## Overview
 
@@ -13558,8 +11816,7 @@ VALUES
 - Token savings: a querier that hits the summary is done, without reading each member
 ',
    ARRAY['mcp-tool', 'synthesis', 'cluster', 'summarize', 'ai', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9663af7dbe98364b9ff89273a0875de54e7af5750479ad2e0eaf80a3d51b0fe7','ai',
-   0.93,0.93,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13568,8 +11825,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_syn002_en','1.0','ws_spec0001_en','§S4 complement_node_languages MCP Tool: Fill Bilingual Gaps','factual','markdown','## Overview
 
@@ -13615,8 +11871,7 @@ An English node id is `{zh_id}_en` (e.g. `mem_d001_en`).
 - After Phase 5, the en node gap (~30 nodes) can be batch-generated with this tool
 ',
    ARRAY['mcp-tool', 'synthesis', 'bilingual', 'language', 'complement', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9086481e81a6af53429683eb32fd350b5bc682caaffdd70e872aa7c3d7414280','ai',
-   0.93,0.93,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13625,8 +11880,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_syn003_en','1.0','ws_spec0001_en','§S4 suggest_edges MCP Tool: AI Suggests Missing Edges','factual','markdown','## Overview
 
@@ -13666,8 +11920,7 @@ VALUES
 4. After human confirmation, create the formal edge
 ',
    ARRAY['mcp-tool', 'synthesis', 'edges', 'suggest', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ceffafca0e247c2db843d43a54676b13d2dbb46afea8f43ebea5661203278bb5','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13676,8 +11929,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta001_en','1.0','ws_spec0001_en','§S1 Token Telemetry: retrieval_logs Table','factual','markdown','Every retrieval / chat call writes to the `retrieval_logs` table, the foundation for all token measurement.
 
@@ -13720,8 +11972,7 @@ Indexes: `(workspace_id, created_at DESC)`, `(workspace_id, mode, created_at DES
 - token-count error vs. real calls < 2%
 ',
    ARRAY['analytics', 'token', 'retrieval', 'telemetry', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','e605067f468c30cec9c8c119a0cfe72bba127df398cbf95a1f69834d94485136','ai',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13730,8 +11981,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta002_en','1.0','ws_spec0001_en','§S1 KB Health Snapshot: kb_health_daily Table','factual','markdown','`kb_health_daily` takes a daily snapshot of core KB metrics; it is the persistence source for the North Star measurements (M2–M4).
 
@@ -13774,8 +12024,7 @@ A daily 03:30 cron writes a snapshot for all workspaces.
 
 Note: the `token_savings_ratio` column remains in the schema (see the DDL above), but the token-reduction KPI derived from it was withdrawn on 2026-07-25. The published figure rested on a counterfactual baseline (assuming the alternative behaviour is loading the entire knowledge base) and improves automatically as the knowledge base grows, so it does not constitute a verifiable performance claim. The measurement method is being revised.',
    ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','a69e2b393f6f80f41c24fd2d0b64e718a1987a49506d6ce3594566d4484acdae','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13784,8 +12033,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta003_en','1.0','ws_spec0001_en','§S1 similar_to Automated Scan and Deduplication','procedural','markdown','## Goal
 
@@ -13827,8 +12075,7 @@ WHERE NOT EXISTS (
 ```
 ',
    ARRAY['dedup', 'similar_to', 'automation', 'cron', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','f3af78d19d917180f59bc0ae1a3d3f17d60809d0732a83f3b023741c3bcd5193','ai',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13837,8 +12084,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ta004_en','1.0','ws_spec0001_en','§S1 propose_merge MCP Tool: Node Granularity Optimization','factual','markdown','## Background
 
@@ -13868,8 +12114,7 @@ Run the same golden set after merging:
 - accuracy (LLM-judge rubric) does not drop
 ',
    ARRAY['mcp-tool', 'merge', 'granularity', 'token', 'review-queue', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','dee18981cec89090326dadb7251ca06c1fb182db659ab0855c32128cb167297d','ai',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13878,8 +12123,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_tg001_en','1.0','ws_spec0001_en','§S5 TraversalGuard: Graph Traversal Rate Limiting','factual','markdown','## Goal
 
@@ -13919,8 +12163,7 @@ Exceeding a limit returns `429 Too Many Requests`.
 - [[mem_inq002]] claim registry -> Redis (includes the rate-limiting discussion)
 ',
    ARRAY['security', 'rate-limit', 'traversal', 'guard', 'hardening', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','d0cc4221d4e57c1c91a8c1b3ae3d38a7fa311229be5e909290d8667d23722f01','ai',
-   0.95,0.95,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -13929,105 +12172,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_tr001_en','1.0','ws_spec0001_en','§S2 Default Trust Downgrade for AI Nodes','factual','markdown','## Problem
-
-If `source_type=ai` nodes simply keep the default high trust (dim_accuracy=0.95), it amounts to "whatever the AI wrote is correct", violating the intent of the trust mechanism.
-
-## Spec
-
-When a node is stored, if `source_type=''ai''` and `validity_confirmed_at IS NULL`, it **must** use the downgraded defaults:
-
-| Dimension | Default (human/spec) | Downgraded (AI unverified) |
-|------|---------------------|--------------------|
-| dim_accuracy | 0.95 | **0.50** |
-| dim_utility | 0.90 | **0.50** |
-| trust_score (computed) | ~0.924 | **<= 0.65** |
-
-## Upgrade conditions
-
-If any of the following holds, dim_accuracy may rise to >= 0.80:
-
-1. Accumulated >= 1 `vote_trust(accuracy >= 0.8)`
-2. `validity_confirmed_at IS NOT NULL` (confirmed by a human or high-trust AI)
-
-## Acceptance SQL
-
-```sql
--- unverified AI nodes'' average trust should be <= 0.65
-SELECT avg(trust_score)
-FROM memory_nodes
-WHERE source_type = ''ai''
-  AND validity_confirmed_at IS NULL
-  AND status = ''active'';
-```
-
-> Note: the live DB currently has an average trust of ~0.76 for unverified AI nodes (above threshold); this spec has not yet been fully applied.
-',
-   ARRAY['trust', 'ai', 'governance', 'source-type', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9d1e0e5b3d2442431913c1acf618106cb3cf25640a0fcaa9719472f41df3d1ce','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
-  ('mem_vt001_en','1.0','ws_spec0001_en','§S3 Vote Anti-Manipulation: UNIQUE Constraint and Time Decay','factual','markdown','## Background
-
-Without a "one user counts as one vote per node" constraint, a single user can inflate or deflate trust.
-
-## Database constraint
-
-The `node_trust_votes` table has:
-
-```sql
-UNIQUE (node_id, user_id)  -- one user can have only one vote record per node
-```
-
-A later vote **overwrites** the earlier one (ON CONFLICT UPDATE); votes do not accumulate.
-
-## Minimum voter rule
-
-A node needs >= 3 distinct voters in the same workspace before it counts toward trust (below the threshold it does not move trust_score).
-
-## Time decay
-
-Vote time decay: votes older than 30 days get weight x 0.5, to avoid early votes permanently locking trust.
-
-## Simulation acceptance
-
-- Manipulation test: a single user voting 100 times on the same node -> final trust_score change <= 0.05
-- Normal test: 3 distinct users each casting 1 vote -> trust takes full effect
-
-## Related table fields
-
-```sql
--- node_trust_votes
-id, workspace_id, node_id, user_id,
-accuracy (1–5), utility (1–5), created_at
-```
-',
-   ARRAY['trust', 'vote', 'anti-manipulation', 'governance', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9db76298f0b43a6eb538218dc8e740a6dd21da4c65fd04249f5eb65037b1db86','ai',
-   0.95,0.95,1.0,0.92,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w001_en','1.0','ws_spec0001_en','Project Package Structure','factual','markdown','MemTrace uses an npm workspaces monorepo. The root `package.json` manages six packages:
 
@@ -14042,8 +12187,7 @@ VALUES
 
 `core` is consumed by `cli`. `api` is independent of the TS workspace.',
    ARRAY['dev', 'architecture', 'monorepo']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -14052,8 +12196,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w002_en','1.0','ws_spec0001_en','Local Development Stack Setup','procedural','markdown','## Prerequisites
 - Node.js 20 LTS+
@@ -14085,8 +12228,7 @@ cd packages/ui && npm run dev
 
 API: http://localhost:8000 / UI: http://localhost:5173',
    ARRAY['dev', 'setup', 'database', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -14095,8 +12237,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w003_en','1.0','ws_spec0001_en','Spec KB Initialization','procedural','markdown','## How is the Spec KB created?
 The Spec Knowledge Base (`ws_spec0001`) is created by `packages/api/migrations/003_seed_spec_kb.sql` (generated by `scripts/seed_spec_kb.py`).
@@ -14119,8 +12260,7 @@ docker compose down -v && docker compose up -d   # rebuild an empty DB
 # then re-apply 003_seed_spec_kb.sql manually (see above)
 ```',
    ARRAY['dev', 'seed', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -14129,8 +12269,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_w004_en','1.0','ws_spec0001_en','Development Progress & Status','procedural','markdown','## Completed (Phase 1–4)
 
@@ -14155,8 +12294,7 @@ VALUES
 | P4-D | CLI ingest/copy-node/init, Core contentTypeHalfLife/SHA-256, Scheduler jobs | ✅ |
 | P4-G | Self-hosted Ollama provider (local/LAN/reverse proxy) | ✅ |',
    ARRAY['dev', 'workflow', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
-   0.8,0.8,1.0,0.8,0.8,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -14165,8 +12303,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ws001_en','1.0','ws_spec0001_en','§17 Concurrent Write Safety: Optimistic Locking and Write Queue','factual','markdown','When multiple users or AI agents submit writes to the same knowledge base simultaneously, the following failure modes must be prevented: a node modified by two parties at once producing a split state; concurrent document ingestion producing duplicate nodes or conflicting edges; AI restructuring proposing against a stale snapshot while a human edit is being saved.
 
@@ -14208,8 +12345,7 @@ SELECT pg_advisory_xact_lock(hashtext(ws_id));
 - The timeout is configurable via `WS_WRITE_LOCK_TIMEOUT_SECONDS` (default: 5 seconds)
 ',
    ARRAY['concurrency', 'write-serialization', 'optimistic-locking', 'advisory-lock', 'database', 'api']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cb2fd109595f2fcba8e3985b8843c898222e3d815079168ca2c375a0339a58ea','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -14218,8 +12354,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ws002_en','1.0','ws_spec0001_en','§17.4 Logical Conflict Detection','factual','markdown','After any AI-generated or AI-restructured node is submitted, the system runs an **asynchronous conflict check** to detect logical inconsistencies introduced by the AI.
 
@@ -14262,8 +12397,7 @@ AI Agents (MCP) are subject to the same write serialization and conflict detecti
 ```
 ',
    ARRAY['concurrency', 'conflict-detection', 'write-serialization', 'ai', 'database', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','64ea1c83980cc716fb87938c6bf06d868a46d8cdf82b5259e4253bab807c1323','ai',
-   0.95,0.95,1.0,0.95,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -14272,8 +12406,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO memory_nodes
   (id,schema_version,workspace_id,title,content_type,content_format,body,
    tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
+   traversal_count,unique_traverser_count)
 VALUES
   ('mem_ws003_en','1.0','ws_spec0001_en','§S3 Cross-Workspace Version Sync: sync_from_source','procedural','markdown','## Background
 
@@ -14312,8 +12445,7 @@ When the original node is updated, PostgreSQL `LISTEN/NOTIFY` pushes all copied 
 5. Confirm all copies receive the notification, latency <= 5 seconds
 ',
    ARRAY['cross-workspace', 'sync', 'mcp-tool', 'copied-node', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9371bf9ac6a69c74803ebf20ba282f5d3947113b1ad687d4e444fe4069449859','ai',
-   0.93,0.93,1.0,0.9,0.9,
-   0,0,0,0,0)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -14347,10 +12479,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_08493ecd','ws_spec0001','mem_da5739b0','mem_8145c1ad','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_08f77c5f','ws_spec0001','mem_e7f9e165','mem_54cc2c31','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14542,10 +12670,6 @@ VALUES ('edge_482615a6','ws_spec0001','mem_ac50a001','mem_i002','related_to',1.0
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_4ad63282','ws_spec0001','mem_1b09b6ed','mem_cbe1be4b','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_4bec9830','ws_spec0001','mem_1fc9c6b4','mem_d001','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -14631,10 +12755,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_61f8ef6d','ws_spec0001','mem_73ea8135','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_622e463e','ws_spec0001','mem_1b09b6ed','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14747,10 +12867,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_7f0fd875','ws_spec0001','mem_033baf41','mem_d001','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_8037ec69','ws_spec0001','mem_4f8e3f0b','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14910,19 +13026,7 @@ VALUES ('edge_a005_a001','ws_spec0001','mem_a005','mem_a001','depends_on',0.9,18
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_a005_g004','ws_spec0001','mem_a005','mem_g004','related_to',0.85,180.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_a1efea86','ws_spec0001','mem_7f8829ed','mem_cbe1be4b','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_a304fe3e','ws_spec0001','mem_25ad6564','mem_27e2935e','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_a32863a7','ws_spec0001','mem_4f8e3f0b','mem_cbe1be4b','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14967,10 +13071,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_b7a3d074','ws_spec0001','mem_53258df1','mem_9fbbb5eb','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_b970b4d2','ws_spec0001','mem_d4ea05e2','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -15030,10 +13130,6 @@ VALUES ('edge_d001_d003','ws_spec0001','mem_d001','mem_d003','extends',1.0,90.0,
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_d001_d004','ws_spec0001','mem_d001','mem_d004','extends',1.0,90.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_d001_d005','ws_spec0001','mem_d001','mem_d005','extends',1.0,90.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -15047,10 +13143,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_d002_g003','ws_spec0001','mem_d002','mem_g003','extends',1.0,90.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_d004_d001','ws_spec0001','mem_d004','mem_d001','depends_on',1.0,90.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -15111,10 +13203,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_d98782a6','ws_spec0001','mem_a590bb10','mem_8145c1ad','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_dcb45264','ws_spec0001','mem_7f8829ed','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -15259,18 +13347,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_g002_g003','ws_spec0001','mem_g002','mem_g003','depends_on',1.0,90.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_g004_a001','ws_spec0001','mem_g004','mem_a001','depends_on',0.9,180.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_g004_g001','ws_spec0001','mem_g004','mem_g001','extends',1.0,180.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_g004_g002','ws_spec0001','mem_g004','mem_g002','related_to',0.9,180.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -15458,18 +13534,6 @@ VALUES ('edge_96afdb7d','ws_spec0001','mem_p410a','mem_eedc4eef','related_to',0.
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_ef2a33ec','ws_spec0001','mem_g005','mem_g004','related_to',0.8,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_c4107292','ws_spec0001','mem_g005','mem_d004','related_to',0.78,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_7e4c4841','ws_spec0001','mem_g005','mem_4f8e3f0b','related_to',0.7,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_ns0001','ws_spec0001','mem_ns002','mem_ns001','extends',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -15594,35 +13658,11 @@ VALUES ('edge_ta004_a003','ws_spec0001','mem_ta004','mem_a003','related_to',1.0,
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_tr001_d004','ws_spec0001','mem_tr001','mem_d004','extends',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_tr001_a002','ws_spec0001','mem_tr001','mem_a002','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_rq001_a003','ws_spec0001','mem_rq001','mem_a003','extends',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_rq001_tr001','ws_spec0001','mem_rq001','mem_tr001','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_ag001_i003','ws_spec0001','mem_ag001','mem_i003','extends',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_ag001_d004','ws_spec0001','mem_ag001','mem_d004','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_vt001_g004','ws_spec0001','mem_vt001','mem_g004','extends',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_vt001_d004','ws_spec0001','mem_vt001','mem_d004','depends_on',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -15631,14 +13671,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_ws003_ws001','ws_spec0001','mem_ws003','mem_ws001','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_at001_g005','ws_spec0001','mem_at001','mem_g005','extends',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_at001_d004','ws_spec0001','mem_at001','mem_d004','depends_on',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -15753,10 +13785,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_08493ecd_en','ws_spec0001_en','mem_da5739b0_en','mem_8145c1ad_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_08f77c5f_en','ws_spec0001_en','mem_e7f9e165_en','mem_54cc2c31_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -15948,10 +13976,6 @@ VALUES ('edge_482615a6_en','ws_spec0001_en','mem_ac50a001_en','mem_i002_en','rel
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_4ad63282_en','ws_spec0001_en','mem_1b09b6ed_en','mem_cbe1be4b_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_4bec9830_en','ws_spec0001_en','mem_1fc9c6b4_en','mem_d001_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -16037,10 +14061,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_61f8ef6d_en','ws_spec0001_en','mem_73ea8135_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_622e463e_en','ws_spec0001_en','mem_1b09b6ed_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -16153,10 +14173,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_7f0fd875_en','ws_spec0001_en','mem_033baf41_en','mem_d001_en','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_8037ec69_en','ws_spec0001_en','mem_4f8e3f0b_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -16316,19 +14332,7 @@ VALUES ('edge_a005_a001_en','ws_spec0001_en','mem_a005_en','mem_a001_en','depend
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_a005_g004_en','ws_spec0001_en','mem_a005_en','mem_g004_en','related_to',0.85,180.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_a1efea86_en','ws_spec0001_en','mem_7f8829ed_en','mem_cbe1be4b_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_a304fe3e_en','ws_spec0001_en','mem_25ad6564_en','mem_27e2935e_en','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_a32863a7_en','ws_spec0001_en','mem_4f8e3f0b_en','mem_cbe1be4b_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -16373,10 +14377,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_b7a3d074_en','ws_spec0001_en','mem_53258df1_en','mem_9fbbb5eb_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_b970b4d2_en','ws_spec0001_en','mem_d4ea05e2_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -16436,10 +14436,6 @@ VALUES ('edge_d001_d003_en','ws_spec0001_en','mem_d001_en','mem_d003_en','extend
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_d001_d004_en','ws_spec0001_en','mem_d001_en','mem_d004_en','extends',1.0,90.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_d001_d005_en','ws_spec0001_en','mem_d001_en','mem_d005_en','extends',1.0,90.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -16453,10 +14449,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_d002_g003_en','ws_spec0001_en','mem_d002_en','mem_g003_en','extends',1.0,90.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_d004_d001_en','ws_spec0001_en','mem_d004_en','mem_d001_en','depends_on',1.0,90.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -16517,10 +14509,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_d98782a6_en','ws_spec0001_en','mem_a590bb10_en','mem_8145c1ad_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_dcb45264_en','ws_spec0001_en','mem_7f8829ed_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -16665,18 +14653,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_g002_g003_en','ws_spec0001_en','mem_g002_en','mem_g003_en','depends_on',1.0,90.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_g004_a001_en','ws_spec0001_en','mem_g004_en','mem_a001_en','depends_on',0.9,180.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_g004_g001_en','ws_spec0001_en','mem_g004_en','mem_g001_en','extends',1.0,180.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_g004_g002_en','ws_spec0001_en','mem_g004_en','mem_g002_en','related_to',0.9,180.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -16861,18 +14837,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_96afdb7d_en','ws_spec0001_en','mem_p410a_en','mem_eedc4eef_en','related_to',0.74,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_ef2a33ec_en','ws_spec0001_en','mem_g005_en','mem_g004_en','related_to',0.8,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_c4107292_en','ws_spec0001_en','mem_g005_en','mem_d004_en','related_to',0.78,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_7e4c4841_en','ws_spec0001_en','mem_g005_en','mem_4f8e3f0b_en','related_to',0.7,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)

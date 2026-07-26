@@ -10,16 +10,6 @@
     "spec_section": "§7.1"
   },
   {
-    "id": "Q02",
-    "category": "factual_lookup",
-    "difficulty": "easy",
-    "question_en": "What are the four trust score dimensions and what do they measure?",
-    "question_zh": "Trust Score 的四個維度是什麼？各自衡量什麼？",
-    "expected_nodes": ["mem_d004"],
-    "ground_truth": "accuracy, freshness, utility, author_rep",
-    "spec_section": "§5.1"
-  },
-  {
     "id": "Q03",
     "category": "factual_lookup",
     "difficulty": "easy",

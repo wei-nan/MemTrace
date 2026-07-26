@@ -179,7 +179,6 @@ export interface WorkspaceAnalytics {
   total_nodes: number;
   active_edges: number;
   orphan_node_count: number;
-  avg_trust_score: number;
   faded_edge_ratio: number;
   monthly_traversal_count: number;
   kb_type: string;

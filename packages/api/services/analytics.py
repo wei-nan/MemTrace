@@ -23,9 +23,6 @@ def get_workspace_analytics_in_db(cur, ws_id: str, user: Optional[dict]) -> dict
     )
     orphan_node_count = cur.fetchone()["count"]
 
-    cur.execute("SELECT AVG(trust_score) FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
-    avg_trust_score = cur.fetchone()["avg"] or 0.0
-
     # Faded edge ratio
     cur.execute(
         "SELECT COUNT(*) FILTER (WHERE status = 'faded') AS faded, COUNT(*) AS total FROM edges WHERE workspace_id = %s",
@@ -75,7 +72,6 @@ def get_workspace_analytics_in_db(cur, ws_id: str, user: Optional[dict]) -> dict
         "total_nodes": total_nodes,
         "active_edges": active_edges,
         "orphan_node_count": orphan_node_count,
-        "avg_trust_score": float(avg_trust_score),
         "faded_edge_ratio": round(faded_edge_ratio, 4),
         "monthly_traversal_count": monthly_traversal_count,
         "kb_type": "evergreen",
@@ -293,7 +289,6 @@ async def handle_search_miss(ws_id: str, query_text: str, user_id: str):
             "title": query_text[:60],
             "body": query_text,
             "content_type": "gap",
-            "trust_score": 0.3,
             "tags": ["auto:search-miss"]
         }
         propose_change(
@@ -347,7 +342,6 @@ def get_kb_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
         "retrieval_mrr": 0.0,
         "decay_runs_last_14d": 0,
         "duplicate_pairs_unlinked": 0,
-        "avg_trust_active": 0.0,
         "active_users_7d": 0,
         "review_queue_depth": review_depth,
         "ai_nodes_unverified_ratio": 0.0
@@ -385,13 +379,12 @@ def snapshot_kb_health(cur, ws_id: str):
     cur.execute("SELECT count(*) FROM decay_logs WHERE workspace_id IN ('all', %s) AND date > CURRENT_DATE - 14", (ws_id,))
     decay_runs = cur.fetchone()["count"]
     
-    # 4. Trust and AI Ratio
-    cur.execute("SELECT AVG(trust_score) as avg_t, COUNT(*) as total FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
-    node_stats = cur.fetchone()
-    avg_trust = float(node_stats["avg_t"] or 0.0)
-    total_nodes = node_stats["total"]
-    
-    cur.execute("SELECT count(*) FROM memory_nodes WHERE workspace_id = %s AND status = 'active' AND source_type = 'ai' AND trust_score < 0.7", (ws_id,))
+    # 4. AI Ratio — "unverified" means no human has confirmed validity
+    # (trust_score-based threshold removed; see ws_spec_plan/mem_c10f6685).
+    cur.execute("SELECT COUNT(*) as total FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
+    total_nodes = cur.fetchone()["total"]
+
+    cur.execute("SELECT count(*) FROM memory_nodes WHERE workspace_id = %s AND status = 'active' AND source_type = 'ai' AND validity_confirmed_at IS NULL", (ws_id,))
     unverified_ai = cur.fetchone()["count"]
     ai_ratio = float(unverified_ai) / total_nodes if total_nodes > 0 else 0.0
     
@@ -401,15 +394,14 @@ def snapshot_kb_health(cur, ws_id: str):
     
     # 6. Insert or Update
     cur.execute("""
-        INSERT INTO kb_health_daily 
-        (date, workspace_id, token_savings_ratio, decay_runs_last_14d, duplicate_pairs_unlinked, 
-         avg_trust_active, review_queue_depth, ai_nodes_unverified_ratio)
-        VALUES (CURRENT_DATE, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO kb_health_daily
+        (date, workspace_id, token_savings_ratio, decay_runs_last_14d, duplicate_pairs_unlinked,
+         review_queue_depth, ai_nodes_unverified_ratio)
+        VALUES (CURRENT_DATE, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (date, workspace_id) DO UPDATE SET
             token_savings_ratio = EXCLUDED.token_savings_ratio,
             decay_runs_last_14d = EXCLUDED.decay_runs_last_14d,
             duplicate_pairs_unlinked = EXCLUDED.duplicate_pairs_unlinked,
-            avg_trust_active = EXCLUDED.avg_trust_active,
             review_queue_depth = EXCLUDED.review_queue_depth,
             ai_nodes_unverified_ratio = EXCLUDED.ai_nodes_unverified_ratio
-    """, (ws_id, eff["full_context_reduction_ratio"], decay_runs, unlinked, avg_trust, review_depth, ai_ratio))
+    """, (ws_id, eff["full_context_reduction_ratio"], decay_runs, unlinked, review_depth, ai_ratio))

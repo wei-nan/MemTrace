@@ -35,7 +35,6 @@ class MemTraceRetriever(BaseRetriever):
             "title": node.title,
             "content_type": node.content_type,
             "tags": node.tags,
-            "trust_score": node.trust_score,
             "workspace_id": node.workspace_id,
             "author": node.author,
             "status": node.status

@@ -32,11 +32,6 @@ export interface Node {
   tags: string[];
   visibility: string;
   author: string;
-  trust_score: number;
-  dim_accuracy: number;
-  dim_freshness: number;
-  dim_utility: number;
-  dim_author_rep: number;
   traversal_count: number;
   unique_traverser_count: number;
   created_at: string;

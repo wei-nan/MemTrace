@@ -62,7 +62,6 @@ WORKSPACES = [
     (EN_WS_ID, EN_WS_NAME, "en", ZH_WS_ID),
 ]
 
-DEFAULT_TRUST = {"score": 0.8, "dimensions": {"accuracy": 0.8, "freshness": 1.0, "utility": 0.8, "author_rep": 0.8}, "votes": {"up": 0, "down": 0, "verifications": 0}}
 DEFAULT_TRAVERSAL = {"count": 0, "unique_traversers": 0}
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -118,26 +117,19 @@ def upsert_nodes(cur, nodes: list[dict], ws_id: str):
     for n in nodes:
         p = n["provenance"]
         c = n["content"]
-        t = n.get("trust") or DEFAULT_TRUST
         tr = n.get("traversal") or DEFAULT_TRAVERSAL
-        dim = t.get("dimensions", DEFAULT_TRUST["dimensions"])
-        votes = t.get("votes", DEFAULT_TRUST["votes"])
         cur.execute("""
             INSERT INTO memory_nodes (
                 id, schema_version, workspace_id,
                 title, content_type, content_format, body,
                 tags, visibility,
                 author, created_at, signature, source_type,
-                trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
-                votes_up, votes_down, verifications,
                 traversal_count, unique_traverser_count
             ) VALUES (
                 %s, %s, %s,
                 %s, %s, %s, %s,
                 %s, %s,
                 %s, %s, %s, %s,
-                %s, %s, %s, %s, %s,
-                %s, %s, %s,
                 %s, %s
             )
             ON CONFLICT (id) DO UPDATE SET
@@ -152,10 +144,6 @@ def upsert_nodes(cur, nodes: list[dict], ws_id: str):
             n.get("tags", []), n.get("visibility", "public"),
             p["author"], p.get("created_at", now_iso()),
             p.get("signature", ""), p.get("source_type", "human"),
-            t.get("score", 0.8),
-            dim.get("accuracy", 0.8), dim.get("freshness", 1.0),
-            dim.get("utility", 0.8), dim.get("author_rep", 0.8),
-            votes.get("up", 0), votes.get("down", 0), votes.get("verifications", 0),
             tr.get("count", 0), tr.get("unique_traversers", 0),
         ))
     print(f"  nodes:     {len(nodes)} upserted into {ws_id}")
@@ -214,25 +202,18 @@ def _arr(lst: list) -> str:
 def _node_sql(n: dict, ws_id: str) -> list[str]:
     p = n["provenance"]
     c = n["content"]
-    t = n.get("trust") or DEFAULT_TRUST
     tr = n.get("traversal") or DEFAULT_TRAVERSAL
-    dim = t.get("dimensions", DEFAULT_TRUST["dimensions"])
-    votes = t.get("votes", DEFAULT_TRUST["votes"])
     return [
         "INSERT INTO memory_nodes",
         "  (id,schema_version,workspace_id,title,content_type,content_format,body,",
         "   tags,visibility,author,created_at,signature,source_type,",
-        "   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,",
-        "   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)",
+        "   traversal_count,unique_traverser_count)",
         "VALUES",
         f"  ('{n['id']}','1.0','{ws_id}',"
         f"'{_esc(n['title'])}','{c['type']}','{c.get('format','plain')}','{_esc(c['body'])}',",
         f"   {_arr(n.get('tags',[]))},'{n.get('visibility','public')}',"
         f"'{_esc(p['author'])}','{p.get('created_at', now_iso())}','{_esc(p.get('signature',''))}','{p.get('source_type','human')}',",
-        f"   {t.get('score',0.8)},{dim.get('accuracy',0.8)},{dim.get('freshness',1.0)},"
-        f"{dim.get('utility',0.8)},{dim.get('author_rep',0.8)},",
-        f"   {votes.get('up',0)},{votes.get('down',0)},{votes.get('verifications',0)},"
-        f"{tr.get('count',0)},{tr.get('unique_traversers',0)})",
+        f"   {tr.get('count',0)},{tr.get('unique_traversers',0)})",
         "ON CONFLICT (id) DO UPDATE SET",
         "  title=EXCLUDED.title, body=EXCLUDED.body,",
         "  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,",
@@ -369,10 +350,11 @@ def run_check() -> int:
 # applied seed file is a no-op on an existing deployment. Live therefore drifts
 # silently. --check-live closes that gap.
 #
-# Only *declared* fields are compared. trust_score, the four dim_* columns,
-# traversal/vote counters, version and updated_at are computed or accumulated
-# live; the seed's values for them are initial values, not assertions. Diffing
-# them would report permanent, expected noise.
+# Only *declared* fields are compared. traversal counters, version and
+# updated_at are computed or accumulated live; the seed's values for them
+# are initial values, not assertions. Diffing them would report permanent,
+# expected noise. (trust_score and the four dim_* columns were removed
+# 2026-07-26 — see ws_spec_plan/mem_c10f6685 — and no longer exist at all.)
 
 DECLARED_FIELDS = ("title", "content_type", "content_format", "body", "visibility")
 
@@ -461,7 +443,7 @@ def run_check_live() -> int:
 
     print(">>  spec-sync --check-live (compares the database against seed JSON)\n")
     print("    declared fields only: " + ", ".join((*DECLARED_FIELDS, "tags")))
-    print("    ignored (computed live): trust_score, dim_*, traversal, votes, version\n")
+    print("    ignored (computed live): traversal, version\n")
 
     try:
         conn = psycopg2.connect(database_url, cursor_factory=psycopg2.extras.RealDictCursor)

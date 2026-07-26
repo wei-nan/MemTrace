@@ -63,7 +63,6 @@ CONTEXT:
             "content_type": "context",
             "source_type": "ai",
             "tags": ["summary", "hierarchical"],
-            "trust_score": 0.9
         }
         
         # Create the node (bypassing dedup for summary nodes as they are unique to the cluster)

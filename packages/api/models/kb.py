@@ -152,11 +152,6 @@ class NodeResponse(BaseModel):
     updated_at: Optional[datetime]
     signature: str
     source_type: str
-    trust_score: float
-    dim_accuracy: float
-    dim_freshness: float
-    dim_utility: float
-    dim_author_rep: float
     traversal_count: int
     unique_traverser_count: int
     status: str
@@ -282,7 +277,6 @@ class WorkspaceAnalyticsResponse(BaseModel):
     total_nodes: int
     active_edges: int
     orphan_node_count: int
-    avg_trust_score: float
     faded_edge_ratio: float
     monthly_traversal_count: int
     kb_type: str
@@ -295,11 +289,6 @@ class TokenEfficiencyResponse(BaseModel):
     estimated_full_doc_tokens: int
     full_context_reduction_ratio: float
     monthly_query_count: int
-
-class VoteTrustRequest(BaseModel):
-    accuracy: int
-    utility: int
-
 
 class WorkspaceCloneRequest(BaseModel):
     name: Optional[str] = None
@@ -350,7 +339,6 @@ class KBHealthResponse(BaseModel):
     retrieval_mrr: float
     decay_runs_last_14d: int
     duplicate_pairs_unlinked: int
-    avg_trust_active: float
     active_users_7d: int
     review_queue_depth: int
     ai_nodes_unverified_ratio: float

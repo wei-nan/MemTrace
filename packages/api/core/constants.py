@@ -99,6 +99,6 @@ MCP_INSTRUCTIONS = (
     "• Log open questions as inquiry nodes; close them with answered_by edges once answered.\n"
     "• Include tags and a brief provenance note so humans can verify your contributions.\n\n"
     "Safety boundaries: never create nodes with personally identifiable information, "
-    "credentials, or content that contradicts a node marked trust > 0.9 without flagging "
-    "the contradiction explicitly using a contradicts edge."
+    "credentials, or content that contradicts an existing node without flagging the "
+    "contradiction explicitly using a contradicts edge."
 )

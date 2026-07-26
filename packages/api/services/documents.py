@@ -277,13 +277,11 @@ def create_document_node_in_db(
         INSERT INTO memory_nodes (
             id, workspace_id, title, content_type, content_format, body,
             tags, visibility, author, signature, source_type,
-            status, trust_score, dim_author_rep, dim_freshness,
-            updated_at
+            status, updated_at
         ) VALUES (
             %s, %s, %s, 'document', 'plain', %s,
             '{}', 'private', %s, %s, 'document',
-            'active', 0.7, 0.7, 1.0,
-            now()
+            'active', now()
         )
         RETURNING id, workspace_id, title, content_type, body, author, status
         """,

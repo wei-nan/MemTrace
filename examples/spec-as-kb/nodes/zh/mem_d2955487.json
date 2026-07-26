@@ -23,20 +23,6 @@
     "signature": "",
     "source_type": "human"
   },
-  "trust": {
-    "score": 0.647,
-    "dimensions": {
-      "accuracy": 0.5,
-      "freshness": 1.0,
-      "utility": 0.5,
-      "author_rep": 0.71
-    },
-    "votes": {
-      "up": 0,
-      "down": 0,
-      "verifications": 0
-    }
-  },
   "traversal": {
     "count": 0,
     "unique_traversers": 0

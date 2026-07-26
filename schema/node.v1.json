@@ -92,36 +92,6 @@
       },
       "required": ["author", "created_at", "signature", "source_type"]
     },
-    "trust": {
-      "type": "object",
-      "properties": {
-        "score": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "dimensions": {
-          "type": "object",
-          "properties": {
-            "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
-            "freshness": { "type": "number", "minimum": 0, "maximum": 1 },
-            "utility": { "type": "number", "minimum": 0, "maximum": 1 },
-            "author_rep": { "type": "number", "minimum": 0, "maximum": 1 }
-          },
-          "required": ["accuracy", "freshness", "utility", "author_rep"]
-        },
-        "votes": {
-          "type": "object",
-          "properties": {
-            "up": { "type": "integer", "minimum": 0 },
-            "down": { "type": "integer", "minimum": 0 },
-            "verifications": { "type": "integer", "minimum": 0 }
-          },
-          "required": ["up", "down", "verifications"]
-        }
-      },
-      "required": ["score", "dimensions", "votes"]
-    },
     "traversal": {
       "type": "object",
       "description": "Tracks how many actors have visited this node and via which paths.",
@@ -148,7 +118,6 @@
     "tags",
     "visibility",
     "provenance",
-    "trust",
     "traversal"
   ],
   "additionalProperties": false,

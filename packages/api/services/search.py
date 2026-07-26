@@ -102,7 +102,7 @@ def bfs_neighborhood(
     node_query = f"""
         SELECT id, schema_version, workspace_id, title, content_type, content_format,
                body, tags, visibility, author, created_at, updated_at,
-               signature, source_type, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
+               signature, source_type,
                traversal_count, unique_traverser_count, status, archived_at,
                copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
                ask_count, miss_count

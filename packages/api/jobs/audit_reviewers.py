@@ -371,92 +371,6 @@ def reviewer_embedding_consistency(cur, workspace_id: str) -> int:
     return created
 
 
-# ─── T17: Trust Calibrator ────────────────────────────────────────────────────
-
-def reviewer_trust_calibrator(cur, workspace_id: str) -> int:
-    """
-    偵測「trust_score 高但近 90 天從未被路徑命中」的節點（可能過時高信任）。
-    也偵測「trust_score 低但近 30 天命中率高」（可能應提升）。
-    """
-    created = 0
-
-    # 高信任但冷門
-    cur.execute(
-        """
-        SELECT n.id, n.title, n.trust_score,
-               COUNT(ip.id) AS hit_count
-        FROM memory_nodes n
-        LEFT JOIN inquiry_paths ip ON n.id = ANY(ip.node_sequence)
-                                  AND ip.workspace_id = n.workspace_id
-                                  AND ip.started_at >= now() - INTERVAL '90 days'
-        WHERE n.workspace_id = %s
-          AND n.status = 'active'
-          AND n.trust_score >= 0.8
-        GROUP BY n.id, n.title, n.trust_score
-        HAVING COUNT(ip.id) = 0
-        LIMIT %s
-        """,
-        (workspace_id, DAILY_QUOTA_PER_REVIEWER // 2),
-    )
-    for r in cur.fetchall():
-        prop = create_proposal(
-            cur,
-            workspace_id=workspace_id,
-            reviewer="trust_calibrator",
-            category="trust_overrated",
-            target_ids=[r["id"]],
-            reasoning=(
-                f"節點「{r['title']}」trust_score={r['trust_score']:.2f}，"
-                "但近 90 天從未出現在任何成功路徑中，建議降低信任分數。"
-            ),
-            evidence={"trust_score": float(r["trust_score"]), "hit_count_90d": 0},
-            suggested_action={"action": "lower_trust", "node_id": r["id"], "suggested_score": 0.5},
-            severity="low",
-        )
-        if prop:
-            created += 1
-
-    # 低信任但熱門
-    cur.execute(
-        """
-        SELECT n.id, n.title, n.trust_score,
-               COUNT(ip.id) AS hit_count
-        FROM memory_nodes n
-        JOIN inquiry_paths ip ON n.id = ANY(ip.node_sequence)
-                              AND ip.workspace_id = n.workspace_id
-                              AND ip.outcome = 'success'
-                              AND ip.started_at >= now() - INTERVAL '30 days'
-        WHERE n.workspace_id = %s
-          AND n.status = 'active'
-          AND n.trust_score < 0.5
-        GROUP BY n.id, n.title, n.trust_score
-        HAVING COUNT(ip.id) >= 5
-        LIMIT %s
-        """,
-        (workspace_id, DAILY_QUOTA_PER_REVIEWER // 2),
-    )
-    for r in cur.fetchall():
-        prop = create_proposal(
-            cur,
-            workspace_id=workspace_id,
-            reviewer="trust_calibrator",
-            category="trust_underrated",
-            target_ids=[r["id"]],
-            reasoning=(
-                f"節點「{r['title']}」trust_score={r['trust_score']:.2f}，"
-                f"但近 30 天成功命中 {r['hit_count']} 次，建議提升信任分數。"
-            ),
-            evidence={"trust_score": float(r["trust_score"]), "hit_count_30d": int(r["hit_count"])},
-            suggested_action={"action": "raise_trust", "node_id": r["id"], "suggested_score": 0.75},
-            severity="mid",
-        )
-        if prop:
-            created += 1
-
-    logger.info("[trust_calibrator] workspace=%s created=%d proposals", workspace_id, created)
-    return created
-
-
 # ─── T18: Coverage Gap Detector ───────────────────────────────────────────────
 
 def reviewer_coverage_gap_detector(cur, workspace_id: str) -> int:
@@ -712,7 +626,6 @@ REVIEWERS = [
     reviewer_tag_normalizer,
     reviewer_edge_auditor,
     reviewer_embedding_consistency,
-    reviewer_trust_calibrator,
     reviewer_coverage_gap_detector,
     reviewer_source_decay_monitor,
     reviewer_integrity_auditor,

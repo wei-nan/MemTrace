@@ -22,11 +22,8 @@ export function cmdList(): Command {
       } else {
         console.log(chalk.cyan(`\n✦ Memory Nodes (${nodes.length})\n`));
         nodes.forEach(n => {
-          const trustColor = n.trust.score >= 0.7 ? chalk.green
-            : n.trust.score >= 0.4 ? chalk.yellow : chalk.red;
           console.log(
             `  ${chalk.bold(n.id)}  ${chalk.dim(n.content.type.padEnd(12))}` +
-            `  trust:${trustColor(n.trust.score.toFixed(2))}` +
             `  vis:${chalk.dim(n.visibility)}\n` +
             `    ${chalk.white(n.title.en)}\n` +
             (n.tags.length ? `    ${n.tags.map(t => chalk.dim(`#${t}`)).join(" ")}\n` : "")

@@ -22,20 +22,6 @@
     "signature": "92857f221640729e4aed86a22587b9cceb30a11eb100a6498d8ffcc15cb2ba88",
     "source_type": "ai"
   },
-  "trust": {
-    "score": 0.595,
-    "dimensions": {
-      "accuracy": 0.8,
-      "freshness": 1.0,
-      "utility": 0.02,
-      "author_rep": 0.5
-    },
-    "votes": {
-      "up": 0,
-      "down": 0,
-      "verifications": 0
-    }
-  },
   "traversal": {
     "count": 2,
     "unique_traversers": 2

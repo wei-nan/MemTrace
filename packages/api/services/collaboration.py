@@ -62,17 +62,10 @@ def process_review_sla_in_db(cur, ws_id: str):
     for row in overdue:
         rid = row["id"]
         node_id = row["target_node_id"]
-        
-        # Penalize the node (if it exists)
-        if node_id:
-            cur.execute(
-                "UPDATE memory_nodes SET dim_freshness = dim_freshness * 0.8 WHERE id = %s",
-                (node_id,)
-            )
-            
+
         # Reset assignment to trigger re-assignment in next run
         cur.execute(
             "UPDATE review_queue SET assigned_to = NULL, due_at = NULL WHERE id = %s",
             (rid,)
         )
-        logger.warning(f"SLA Breach for review {rid} (assigned to {row['assigned_to']}). Node {node_id} penalized.")
+        logger.warning(f"SLA Breach for review {rid} (assigned to {row['assigned_to']}). Node {node_id} reassigned.")

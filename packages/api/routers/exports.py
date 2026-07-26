@@ -314,7 +314,7 @@ def import_kb(
                                 """
                                 UPDATE memory_nodes
                                 SET title = %s, body = %s,
-                                    content_type = %s, tags = %s, trust_score = %s,
+                                    content_type = %s, tags = %s,
                                     updated_at = NOW()
                                 WHERE id = %s AND workspace_id = %s
                                 """,
@@ -323,7 +323,6 @@ def import_kb(
                                     node.get("body") or node.get("body_zh") or node.get("body_en") or "",
                                     node.get("content_type", "factual"),
                                     node.get("tags", []),
-                                    node.get("trust_score", 0.8),
                                     node_id, ws_id,
                                 ),
                             )
@@ -335,11 +334,10 @@ def import_kb(
                                 """
                                 INSERT INTO memory_nodes
                                   (id, workspace_id, title, body,
-                                   content_type, content_format, tags, trust_score,
-                                   dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
+                                   content_type, content_format, tags,
                                    status, source_type, visibility,
                                    copied_from_node, copied_from_ws)
-                                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'active','imported','private',%s,%s)
+                                VALUES (%s,%s,%s,%s,%s,%s,%s,'active','imported','private',%s,%s)
                                 ON CONFLICT (id) DO NOTHING
                                 """,
                                 (
@@ -349,11 +347,6 @@ def import_kb(
                                     node.get("content_type", "factual"),
                                     node.get("content_format", "markdown"),
                                     node.get("tags", []),
-                                    node.get("trust_score", 0.8),
-                                    node.get("dim_accuracy", 0.8),
-                                    node.get("dim_freshness", 1.0),
-                                    node.get("dim_utility", 0.0),
-                                    node.get("dim_author_rep", 0.5),
                                     node_id, node.get("workspace_id"),
                                 ),
                             )

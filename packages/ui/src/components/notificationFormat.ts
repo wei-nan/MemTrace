@@ -30,9 +30,6 @@ const CATEGORY_LABELS: Record<string, { zh: string; en: string }> = {
   resolution_drift: { zh: '結案狀態未同步', en: 'Resolution status drift' },
   // embedding_consistency
   embedding_drift: { zh: '向量可能已過期', en: 'Embedding may be stale' },
-  // trust_calibrator
-  trust_overrated: { zh: '信任分數偏高', en: 'Trust score overrated' },
-  trust_underrated: { zh: '信任分數偏低', en: 'Trust score underrated' },
   // coverage_gap_detector
   stale_gap: { zh: '長期未補的缺口', en: 'Stale knowledge gap' },
   // source_decay_monitor

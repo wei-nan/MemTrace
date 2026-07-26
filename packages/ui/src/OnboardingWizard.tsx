@@ -285,8 +285,8 @@ export default function OnboardingWizard({
         </div>
         <div style={{ background: "var(--bg-elevated)", padding: 16, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
           <div style={{ color: "var(--color-primary)", marginBottom: 8 }}><CheckCircle2 size={20} /></div>
-          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t('onboarding.concept_trust_title')}</div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t('onboarding.concept_trust_desc')}</div>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t('onboarding.concept_review_title')}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t('onboarding.concept_review_desc')}</div>
         </div>
       </div>
       <Button variant="primary" style={{ display: 'flex', width: 'fit-content', margin: '32px auto 0' }} onClick={() => next('welcome')} rightIcon={<ChevronRight size={16} />}>

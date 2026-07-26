@@ -138,28 +138,6 @@ def test_update_node_param_count_matches_placeholders(mock_prepare, mock_audit):
     assert sql.count("%s") == len(params)
 
 
-@patch("services.nodes.generate_id")
-@patch("services.nodes.prepare_node_data")
-def test_create_node_still_sets_initial_trust(mock_prepare, mock_gen_id):
-    """Freezing trust on update must not stop new nodes getting an initial score."""
-    mock_gen_id.return_value = "mem_new"
-    mock_prepare.return_value = {
-        "title": "test", "content_type": "factual",
-        "content_format": "plain", "body": "test",
-        "tags": [], "visibility": "public", "author": "admin", "signature": "sig",
-        "source_type": "human", "copied_from_node": None, "copied_from_ws": None,
-        "dim_author_rep": 0.8, "trust_score": 0.575,
-    }
-
-    cur = MagicMock()
-    cur.fetchone.return_value = {"id": "mem_new", "title": "test"}
-
-    create_node_in_db(cur, "ws_test", {"author": "admin"})
-    sql, params = cur.execute.call_args_list[0].args[0], cur.execute.call_args_list[0].args[1]
-    assert "trust_score" in sql
-    assert 0.575 in params
-
-
 def test_delete_node_in_db():
     cur = MagicMock()
     cur.fetchone.return_value = {"id": "mem_1"}

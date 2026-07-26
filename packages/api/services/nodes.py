@@ -7,7 +7,7 @@ backward-compat shims during migration.
 
 Key exports:
   - validate_node_payload(data)
-  - prepare_node_data(data, author, source_type, status)
+  - prepare_node_data(data, author, source_type)
   - create_node_in_db(cur, ws_id, node_data)
   - update_node_in_db(cur, ws_id, node_id, node_data, actor_id)
   - delete_node_in_db(cur, ws_id, node_id)
@@ -107,7 +107,7 @@ class AICapacityExceeded(HTTPException):
 NODE_PUBLIC_COLUMNS = """
     id, schema_version, workspace_id, title, content_type, content_format,
     body, tags, visibility, author, created_at, updated_at,
-    signature, source_type, trust_score, dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
+    signature, source_type,
     traversal_count, unique_traverser_count, status, archived_at,
     copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
     ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status
@@ -164,24 +164,10 @@ def validate_node_payload(data: dict) -> None:
         )
 
 
-def _initial_author_rep(source_type: str, status: str) -> float:
-    """Determine initial author reputation (P4.5-3D-1)."""
-    if source_type == "human":
-        return 0.8
-    if source_type == "document":
-        return 0.6
-    if source_type == "qa_conversation":
-        return 0.3 if status == "active" else 0.5
-    if source_type in ("mcp", "ai"):
-        return 0.5
-    return 0.5
-
-
 def prepare_node_data(
     data: dict,
     author: str,
     source_type: str = "human",
-    status: str = "active",
 ) -> dict:
     """
     Merge, validate, and compute derived fields for node creation/update.
@@ -205,20 +191,6 @@ def prepare_node_data(
     payload["author"] = author_id
 
     payload["source_type"] = data.get("source_type") or source_type
-    payload["dim_author_rep"] = data.get("dim_author_rep") or _initial_author_rep(payload["source_type"], status)
-
-    # Compute initial trust_score
-    if data.get("content_type") == "gap":
-        payload["trust_score"] = data.get("trust_score", 0.3)
-    elif payload["source_type"] in ("ai", "mcp"):
-        # P5-S2-T02: AI nodes default to 0.65 trust until verified
-        payload["trust_score"] = 0.65
-    else:
-        acc   = 0.5
-        fresh = 1.0
-        util  = 0.5
-        rep   = float(payload["dim_author_rep"])
-        payload["trust_score"] = (acc * 0.4) + (fresh * 0.25) + (util * 0.25) + (rep * 0.1)
 
     payload["signature"] = compute_signature(
         payload["title"],
@@ -248,7 +220,7 @@ def node_row_to_snapshot(row: Optional[dict]) -> Optional[dict]:
 def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
     """Insert a new memory_node and return the created row."""
     payload = prepare_node_data(
-        node_data, node_data["author"], node_data.get("source_type", "human"), node_data.get("status", "active")
+        node_data, node_data["author"], node_data.get("source_type", "human")
     )
     node_id = node_data.get("id") or generate_id("mem")
 
@@ -260,9 +232,9 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
         INSERT INTO memory_nodes (
             id, workspace_id, title, content_type, content_format, body,
             tags, visibility, author, signature, source_type, copied_from_node, copied_from_ws,
-            status, dim_author_rep, trust_score, dim_freshness, source_id,
+            status, source_id,
             source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status, updated_at
-        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,1.0,%s,%s,%s,%s,%s,now())
+        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,now())
         RETURNING {NODE_PUBLIC_COLUMNS}
         """,
         (
@@ -274,7 +246,7 @@ def create_node_in_db(cur, ws_id: str, node_data: dict) -> dict:
             payload["author"], payload["signature"], payload["source_type"],
             node_data.get("copied_from_node"), node_data.get("copied_from_ws"),
             node_data.get("status", "active"),
-            payload["dim_author_rep"], payload["trust_score"], node_data.get("source_id"),
+            node_data.get("source_id"),
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
             node_data.get("cluster_id"),
             payload.get("resolution_status") or 'open',
@@ -320,13 +292,6 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
     if expected_version is not None:
         version_cond = " AND version = %s"
 
-    # A content edit must not touch trust. prepare_node_data() computes an
-    # *initial* trust_score from hardcoded dims (acc=0.5, util=0.5); writing it
-    # here collapsed every edited node to ~0.66 regardless of its curated
-    # dim_accuracy/dim_utility, and dropped it below the trust_score >= 0.8 gate
-    # in jobs/audit_reviewers.py, silently exempting it from trust calibration.
-    # trust_score/dim_freshness are recomputed only where the actual dims are
-    # read: confirm_validity() and vote_trust_in_db(). See ws_spec_plan/mem_46b8046c.
     cur.execute(
         f"""
         UPDATE memory_nodes
@@ -428,37 +393,19 @@ def delete_node_in_db(
     return row
 
 def confirm_node_validity_in_db(cur, ws_id: str, node_id: str, user_email: str) -> None:
-    """Mark a node as confirmed by the user and boost its accuracy to 1.0."""
+    """Mark a node as confirmed valid by the user."""
     cur.execute(
         """
         UPDATE memory_nodes
         SET validity_confirmed_at = NOW(),
             validity_confirmed_by = %s
         WHERE id = %s AND workspace_id = %s
+        RETURNING id
         """,
         (user_email, node_id, ws_id)
     )
-    
-    cur.execute("SELECT dim_freshness, dim_utility, dim_author_rep FROM memory_nodes WHERE id = %s", (node_id,))
-    node = cur.fetchone()
-    if not node:
+    if not cur.fetchone():
         raise HTTPException(status_code=404, detail="Node not found")
-        
-    freshness = 1.0
-    utility = float(node["dim_utility"])
-    author_rep = float(node["dim_author_rep"])
-    
-    new_accuracy = 1.0
-    trust_score = (new_accuracy * 0.4) + (freshness * 0.25) + (utility * 0.25) + (author_rep * 0.1)
-    
-    cur.execute(
-        """
-        UPDATE memory_nodes
-        SET dim_accuracy = %s, dim_freshness = %s, trust_score = %s
-        WHERE id = %s
-        """,
-        (new_accuracy, freshness, trust_score, node_id)
-    )
 
 
 # ─── Revision Tracking ────────────────────────────────────────────────────────
@@ -574,7 +521,6 @@ def propose_change(
             "signature": prepared["signature"],
             "copied_from_node": payload.get("copied_from_node"),
             "copied_from_ws": payload.get("copied_from_ws"),
-            "trust_score": prepared.get("trust_score"),
         }
 
     diff_summary = build_node_diff(before_snapshot, after_snapshot, change_type)
@@ -744,8 +690,6 @@ def get_table_view_in_db(
         sort_col = "title"
     elif sort_by == "content_type":
         sort_col = "content_type"
-    elif sort_by == "trust_score":
-        sort_col = "trust_score"
     elif sort_by == "resolution_status":
         sort_col = "resolution_status"
     
@@ -780,7 +724,6 @@ def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
             COUNT(*) FILTER (WHERE status = 'active') AS total,
             COUNT(*) FILTER (WHERE status = 'active' AND (body IS NULL OR body = '')) AS empty_body,
             0 AS single_language_only,
-            COUNT(*) FILTER (WHERE status = 'active' AND trust_score < 0.3) AS low_trust,
             COUNT(*) FILTER (WHERE status = 'active' AND embedding IS NULL) AS no_embedding
         FROM memory_nodes
         WHERE workspace_id = %s
@@ -806,7 +749,6 @@ def get_nodes_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:
         "empty_body":          row["empty_body"],
         "single_language_only": row["single_language_only"],
         "no_edges":            orphan_row["count"],
-        "low_trust":           row["low_trust"],
         "no_embedding":        row["no_embedding"],
     }
 
@@ -1155,67 +1097,6 @@ def restore_node_revision_in_db(cur, ws_id: str, node_id: str, revision_no: int,
     node = update_node_in_db(cur, ws_id, node_id, payload, proposer_id)
     return node, None
 
-def vote_trust_in_db(cur, ws_id: str, node_id: str, body_dict: dict, user: dict) -> dict:
-    from services.workspaces import require_ws_access
-    # from routers.kb import _actor_has_traversed_node
-    from services.nodes import actor_has_traversed_node as _actor_has_traversed_node
-    from fastapi import HTTPException
-    require_ws_access(cur, ws_id, user)
-    if not _actor_has_traversed_node(cur, node_id, user["sub"]):
-         raise HTTPException(status_code=403, detail="Must traverse node before voting")
-         
-    cur.execute(
-        """
-        INSERT INTO node_trust_votes (id, node_id, user_id, workspace_id, accuracy, utility)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON CONFLICT (node_id, user_id)
-        DO UPDATE SET accuracy = EXCLUDED.accuracy, utility = EXCLUDED.utility
-        """,
-        (generate_id("vote"), node_id, user["sub"], ws_id, body_dict["accuracy"], body_dict["utility"])
-    )
-
-    # S3-T01: Weighted average with time decay (30-day half-life)
-    cur.execute(
-        """
-        WITH weighted_votes AS (
-            SELECT 
-                accuracy, 
-                utility,
-                POWER(0.5, EXTRACT(EPOCH FROM (now() - created_at)) / (86400.0 * 30.0)) as weight
-            FROM node_trust_votes
-            WHERE node_id = %s
-        )
-        SELECT 
-            CASE WHEN SUM(weight) > 0 THEN SUM(accuracy * weight) / SUM(weight) / 5.0 ELSE 0 END as avg_acc,
-            CASE WHEN SUM(weight) > 0 THEN SUM(utility * weight) / SUM(weight) / 5.0 ELSE 0 END as avg_util
-        FROM weighted_votes
-        """,
-        (node_id,)
-    )
-    stats = cur.fetchone()
-    avg_acc = float(stats["avg_acc"])
-    avg_util = float(stats["avg_util"])
-    
-    cur.execute("SELECT dim_freshness, dim_author_rep FROM memory_nodes WHERE id = %s", (node_id,))
-    node = cur.fetchone()
-    if not node:
-         raise HTTPException(status_code=404, detail="Node not found")
-         
-    freshness = 1.0
-    author_rep = float(node["dim_author_rep"])
-    
-    trust_score = (avg_acc * 0.4) + (avg_util * 0.25) + (freshness * 0.25) + (author_rep * 0.1)
-    
-    cur.execute(
-        """
-        UPDATE memory_nodes
-        SET dim_accuracy = %s, dim_utility = %s, dim_freshness = %s, trust_score = %s
-        WHERE id = %s
-        """,
-        (avg_acc, avg_util, freshness, trust_score, node_id)
-    )
-    return {"status": "ok", "trust_score": trust_score}
-
 def reembed_all_nodes_in_db(cur, ws_id: str, user: dict) -> int:
     from services.workspaces import require_ws_access
     ws = require_ws_access(cur, ws_id, user)
@@ -1257,10 +1138,6 @@ def trigger_link_detection_in_db(cur, ws_id: str, user: dict) -> list[str]:
     cur.execute("SELECT id FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))
     return [r["id"] for r in cur.fetchall()]
 
-def actor_has_traversed_node(cur, node_id: str, actor_id: str) -> bool:
-    cur.execute("SELECT 1 FROM traversal_log WHERE node_id = %s AND actor_id = %s", (node_id, actor_id))
-    return bool(cur.fetchone())
-
 CONNECT_SYSTEM = (
     "You suggest semantic edges in a knowledge graph. "
     "Given a list of ORPHAN nodes and ANCHOR nodes, your goal is to connect orphans to anchors or other orphans. "
@@ -1290,20 +1167,18 @@ def list_review_queue_in_db(cur, ws_id: str, limit: int, user: dict) -> dict:
 
     # 2. Fetch anomalous nodes from memory_nodes (quality issues)
     cur.execute(
-        """SELECT id, title, content_type, trust_score,
+        """SELECT id, title, content_type,
                   source_type, updated_at, validity_confirmed_at,
                   char_length(COALESCE(body, '')) AS body_len
            FROM memory_nodes
            WHERE workspace_id = %s AND status = 'active'
              AND (
-               -- Low trust
-               trust_score < 0.7
                -- AI-generated node with very short body AND low traversal (atomic facts are OK if well-used)
-               OR (source_type = 'ai' AND char_length(COALESCE(body, '')) < 80 AND traversal_count < 3)
+               (source_type = 'ai' AND char_length(COALESCE(body, '')) < 80 AND traversal_count < 3)
                -- Body contains unfilled placeholders
                OR body LIKE '%%??%%'
              )
-           ORDER BY trust_score ASC, updated_at DESC
+           ORDER BY updated_at DESC
            LIMIT %s""",
         (ws_id, limit),
     )
@@ -1653,15 +1528,11 @@ def resolve_conflict_in_db(cur, ws_id: str, review_id: str, resolution: Literal[
             "UPDATE memory_nodes SET status = 'archived', archived_at = NOW() WHERE id = %s AND workspace_id = %s",
             (node_b_id, ws_id)
         )
-        # Boost A's accuracy
-        cur.execute("UPDATE memory_nodes SET dim_accuracy = LEAST(1.0, dim_accuracy + 0.1) WHERE id = %s", (node_a_id,))
     elif resolution == "keep_b":
         cur.execute(
             "UPDATE memory_nodes SET status = 'archived', archived_at = NOW() WHERE id = %s AND workspace_id = %s",
             (node_a_id, ws_id)
         )
-        # Boost B's accuracy
-        cur.execute("UPDATE memory_nodes SET dim_accuracy = LEAST(1.0, dim_accuracy + 0.1) WHERE id = %s", (node_b_id,))
     elif resolution == "merge":
         if not merge_data:
             raise HTTPException(status_code=400, detail="merge_data is required for merge resolution.")

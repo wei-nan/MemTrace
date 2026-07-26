@@ -134,7 +134,6 @@ export default function GraphContainer({
              id: n.preview_id,
              title: '***',
              content_type: n.content_type,
-             trust_score: 0.5,
              tags: [],
           } as any)));
           setApiEdges(preview.edges.map((e: any) => ({

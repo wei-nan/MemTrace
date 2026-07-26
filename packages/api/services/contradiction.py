@@ -5,7 +5,9 @@ Generalizes the qa-archiver-only contradiction check (nodes.py) to every node
 write: when a new factual/preference node semantically conflicts with an existing
 active node, we mark THIS node 'conflicted', create a contradicts edge, and raise
 an audit proposal. All detected contradictions are flagged; conflicts against a
-high-trust (>0.9) node are escalated to high severity (MCP safety boundary).
+human-confirmed or heavily-traversed node are escalated to high severity — trust
+score was removed 2026-07-26 (see ws_spec_plan/mem_c10f6685) as an unusable,
+uncalibrated severity signal.
 
 Decision (2026-06-20): admit-but-conflicted (fail-open write, but the conflicting
 node cannot masquerade as truth until a human resolves it via resolve_conflict).
@@ -25,7 +27,8 @@ logger = logging.getLogger(__name__)
 # Candidates above this cosine similarity are sent to the LLM for a contradiction verdict.
 CONTRADICTION_SIM_THRESHOLD = 0.80
 CONTRADICTION_CANDIDATES = 5
-HIGH_TRUST = 0.9
+# A contradiction against a node this established is escalated to high severity.
+HIGH_SEVERITY_TRAVERSAL_COUNT = 10
 
 
 def _clean_json(raw: str) -> dict:
@@ -40,7 +43,7 @@ async def detect_and_flag_contradictions(cur, ws_id: str, node_id: str) -> dict:
     """
     cur.execute(
         """
-        SELECT id, title, body, content_type, embedding, status, trust_score
+        SELECT id, title, body, content_type, embedding, status
         FROM memory_nodes
         WHERE id = %s AND workspace_id = %s
         """,
@@ -62,7 +65,7 @@ async def detect_and_flag_contradictions(cur, ws_id: str, node_id: str) -> dict:
 
     cur.execute(
         """
-        SELECT id, title, body, trust_score,
+        SELECT id, title, body, traversal_count, validity_confirmed_at,
                (1 - (embedding <=> %s::vector)) AS similarity
         FROM memory_nodes
         WHERE workspace_id = %s
@@ -108,7 +111,7 @@ async def detect_and_flag_contradictions(cur, ws_id: str, node_id: str) -> dict:
         if not res.get("contradicts"):
             continue
 
-        target_trust = float(cand["trust_score"] or 0.0)
+        target_established = bool(cand["validity_confirmed_at"]) or cand["traversal_count"] >= HIGH_SEVERITY_TRAVERSAL_COUNT
         reason = res.get("reason")
 
         cur.execute(
@@ -132,12 +135,17 @@ async def detect_and_flag_contradictions(cur, ws_id: str, node_id: str) -> dict:
             category="contradiction",
             target_ids=[node_id, cand["id"]],
             reasoning=(
-                f"新節點與既有節點「{cand['title']}」(trust={target_trust:.2f}) 內容矛盾："
+                f"新節點與既有節點「{cand['title']}」內容矛盾："
                 f"{reason}。已標記新節點 conflicted 並建立 contradicts edge。"
             ),
-            evidence={"reason": reason, "target_trust": target_trust, "similarity": float(cand["similarity"])},
+            evidence={
+                "reason": reason,
+                "target_traversal_count": cand["traversal_count"],
+                "target_validity_confirmed": bool(cand["validity_confirmed_at"]),
+                "similarity": float(cand["similarity"]),
+            },
             suggested_action={"action": "resolve_conflict", "node_id": node_id, "contradicts_with": cand["id"]},
-            severity="high" if target_trust > HIGH_TRUST else "mid",
+            severity="high" if target_established else "mid",
         )
         flagged += 1
 

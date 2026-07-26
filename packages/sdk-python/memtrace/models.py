@@ -40,7 +40,6 @@ class Node(BaseModel):
     author: str
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    trust_score: float = 0.5
     traversal_count: int = 0
     unique_traverser_count: int = 0
     status: str = "active"

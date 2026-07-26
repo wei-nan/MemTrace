@@ -17,7 +17,6 @@ from jobs.audit_reviewers import (
     reviewer_deduper,
     reviewer_tag_normalizer,
     reviewer_edge_auditor,
-    reviewer_trust_calibrator,
     reviewer_coverage_gap_detector,
     reviewer_source_decay_monitor,
     reviewer_integrity_auditor,
@@ -241,14 +240,6 @@ class TestReviewersIntegration:
             assert isinstance(count, int)
             assert count >= 0
 
-    def test_reviewer_trust_calibrator_no_crash(self, db_transaction):
-        conn = db_transaction
-        ws_id = "ws_spec0001"
-        with conn.cursor() as cur:
-            count = reviewer_trust_calibrator(cur, ws_id)
-            assert isinstance(count, int)
-            assert count >= 0
-
     def test_reviewer_coverage_gap_detector_no_crash(self, db_transaction):
         conn = db_transaction
         ws_id = "ws_spec0001"
@@ -394,10 +385,10 @@ class TestReviewersIntegration:
         with conn.cursor() as cur:
             summary = run_all_reviewers_for_workspace(cur, ws_id)
         assert isinstance(summary, dict)
-        # 9 個 reviewers，每個都應有整數值（>=0 表示成功，-1 表示錯誤）
+        # 8 個 reviewers，每個都應有整數值（>=0 表示成功，-1 表示錯誤）
         expected_keys = {
             "deduper", "tag_normalizer", "edge_auditor",
-            "embedding_consistency", "trust_calibrator",
+            "embedding_consistency",
             "coverage_gap_detector", "source_decay_monitor",
             "integrity_auditor", "secret_scanner",
         }

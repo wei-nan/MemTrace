@@ -1883,10 +1883,6 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
                   <span className="tag" style={{ background: healthReport.empty_body > 0 ? "var(--color-error-subtle)" : "var(--color-success-subtle)", color: healthReport.empty_body > 0 ? "var(--color-error)" : "var(--color-success)" }}>{healthReport.empty_body}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
-                  <span>{t('ws_settings.low_trust')}</span>
-                  <span className="tag" style={{ background: healthReport.low_trust > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: healthReport.low_trust > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.low_trust}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8 }}>
                   <span>{t('ws_settings.orphan_nodes')}</span>
                   <span className="tag" style={{ background: healthReport.no_edges > 0 ? "var(--color-warning-subtle)" : "var(--color-success-subtle)", color: healthReport.no_edges > 0 ? "var(--color-warning)" : "var(--color-success)" }}>{healthReport.no_edges}</span>
                 </div>

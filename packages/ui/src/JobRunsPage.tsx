@@ -102,7 +102,7 @@ function RunRow({ run }: { run: JobRun }) {
 
 const KNOWN_JOBS = [
   'deduper', 'tag_normalizer', 'edge_auditor', 'embedding_consistency',
-  'trust_calibrator', 'coverage_gap_detector', 'source_decay_monitor',
+  'coverage_gap_detector', 'source_decay_monitor',
   'conductor_dispatch', 'edge_decay',
 ];
 

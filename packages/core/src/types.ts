@@ -35,25 +35,6 @@ export interface MemoryNodeProvenance {
   };
 }
 
-export interface TrustDimensions {
-  accuracy: number;    // 0–1
-  freshness: number;   // 0–1
-  utility: number;     // 0–1
-  author_rep: number;  // 0–1
-}
-
-export interface TrustVotes {
-  up: number;
-  down: number;
-  verifications: number;
-}
-
-export interface MemoryNodeTrust {
-  score: number;           // 0–1 composite
-  dimensions: TrustDimensions;
-  votes: TrustVotes;
-}
-
 export interface MemoryNodeTraversal {
   count: number;
   unique_traversers: number;
@@ -67,7 +48,6 @@ export interface MemoryNode {
   tags: string[];
   visibility: Visibility;
   provenance: MemoryNodeProvenance;
-  trust: MemoryNodeTrust;
   traversal: MemoryNodeTraversal;
 }
 
@@ -100,12 +80,6 @@ export interface Edge {
 
 // ─── Default factory helpers ─────────────────────────────────────────────────
 
-export const DEFAULT_TRUST: MemoryNodeTrust = {
-  score: 0.5,
-  dimensions: { accuracy: 0.5, freshness: 1.0, utility: 0.5, author_rep: 0.5 },
-  votes: { up: 0, down: 0, verifications: 0 },
-};
-
 export const DEFAULT_TRAVERSAL_NODE: MemoryNodeTraversal = {
   count: 0,
   unique_traversers: 0,
@@ -122,15 +96,3 @@ export const DEFAULT_DECAY: EdgeDecay = {
   min_weight: 0.1,
 };
 
-/**
- * Computes a composite trust score from its four dimensions.
- * Weights: accuracy=0.3, freshness=0.25, utility=0.25, author_rep=0.2
- */
-export function composeTrustScore(dims: TrustDimensions): number {
-  return (
-    dims.accuracy   * 0.30 +
-    dims.freshness  * 0.25 +
-    dims.utility    * 0.25 +
-    dims.author_rep * 0.20
-  );
-}

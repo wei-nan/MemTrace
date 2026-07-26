@@ -20,3 +20,5 @@
 120_user_voice_keys.sql
 121_symmetric_edge_unique_index.sql
 122_retire_workspace_agent_telemetry.sql
+123_remove_trust.sql
+124_remove_trust_followup.sql

@@ -5,7 +5,6 @@ import { saveNode } from "../store";
 import {
   generateId,
   computeSignature,
-  DEFAULT_TRUST,
   DEFAULT_TRAVERSAL_NODE,
   type MemoryNode,
   type ContentType,
@@ -111,7 +110,6 @@ export function cmdNew(): Command {
           signature,
           source_type: "human",
         },
-        trust: { ...DEFAULT_TRUST },
         traversal: { ...DEFAULT_TRAVERSAL_NODE },
       };
 

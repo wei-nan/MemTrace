@@ -12,9 +12,6 @@ export type {
   MemoryNodeBody,
   MemoryNodeContent,
   MemoryNodeProvenance,
-  TrustDimensions,
-  TrustVotes,
-  MemoryNodeTrust,
   MemoryNodeTraversal,
   MemoryNode,
   RelationType,
@@ -24,11 +21,9 @@ export type {
 } from "./types";
 
 export {
-  DEFAULT_TRUST,
   DEFAULT_TRAVERSAL_NODE,
   DEFAULT_TRAVERSAL_EDGE,
   DEFAULT_DECAY,
-  composeTrustScore,
 } from "./types";
 
 // From decay.ts — KbType is unique to decay; avoid re-exporting ContentType (comes from types)
@@ -46,8 +41,3 @@ export { validateNode, validateEdge, verifyNodeSignature } from "./schema";
 
 // From id.ts
 export * from "./id";
-
-// From trust.ts — TrustDimensions here has different shape (camelCase fields for CLI usage)
-// Exported with distinct names to avoid conflict with types.ts TrustDimensions
-export type { TrustDimensions as TrustDimensionsLocal } from "./trust";
-export { computeTrustScore, updateTrustScore } from "./trust";

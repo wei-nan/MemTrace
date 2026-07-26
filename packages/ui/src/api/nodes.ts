@@ -11,11 +11,6 @@ export interface Node {
   tags: string[];
   visibility: string;
   author: string;
-  trust_score: number;
-  dim_accuracy: number;
-  dim_freshness: number;
-  dim_utility: number;
-  dim_author_rep: number;
   traversal_count: number;
   unique_traverser_count: number;
   created_at: string;
@@ -149,6 +144,4 @@ export const nodes = {
     request<NodeHealthScore[]>("GET", `${BASE}/workspaces/${wsId}/nodes/health-scores`),
   suggestEdges: (wsId: string, nodeId: string) =>
     request<any[]>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/suggest-edges`),
-  voteTrust: (wsId: string, nodeId: string, data: { accuracy: number; utility: number }) =>
-    request<{ status: string; trust_score: number }>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/vote-trust`, data),
 };

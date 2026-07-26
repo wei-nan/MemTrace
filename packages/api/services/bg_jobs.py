@@ -77,7 +77,7 @@ def bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
                 SELECT id, content_type, (1 - (embedding <=> %s::vector)) AS sim
                 FROM memory_nodes
                 WHERE workspace_id = %s AND id != %s
-                  AND embedding IS NOT NULL AND status IN ('active', 'answered', 'answered-low-trust')
+                  AND embedding IS NOT NULL AND status IN ('active', 'answered')
                 ORDER BY sim DESC
                 LIMIT 5
                 """,
@@ -175,22 +175,20 @@ async def bg_clone_workspace(job_id: str, source_ws_id: str, target_ws_id: str, 
                     """
                     INSERT INTO memory_nodes (
                         id, workspace_id, title, content_type, content_format,
-                        body, tags, visibility, author, trust_score,
-                        dim_accuracy, dim_freshness, dim_utility, dim_author_rep,
+                        body, tags, visibility, author,
                         traversal_count, unique_traverser_count, created_at, updated_at,
                         signature, source_type, status, archived_at, embedding,
                         validity_confirmed_at, validity_confirmed_by
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s
                     )
                     """,
                     (
                         new_node_id, target_ws_id, node["title"],
                         node["content_type"], node["content_format"], node["body"],
                         node["tags"], node["visibility"], node["author"],
-                        node["trust_score"], node["dim_accuracy"], node["dim_freshness"],
-                        node["dim_utility"], node["dim_author_rep"], node["traversal_count"],
+                        node["traversal_count"],
                         node["unique_traverser_count"], node["created_at"], node["updated_at"],
                         node["signature"], node["source_type"], node["status"],
                         node["archived_at"], embedding, node["validity_confirmed_at"],

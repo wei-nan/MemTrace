@@ -67,20 +67,19 @@ def test_project_node():
         "content_type": "factual",
         "body": "This is a factual body text " * 10,  # 約 280 chars
         "tags": ["tag1", "tag2"],
-        "trust_score": 0.85
     }
-    
+
     top_edges = [{"relation": "depends_on", "target_id": "mem_2", "target_title": "Target", "weight": 0.8}]
-    
+
     # 測試 probe level
     probe = project_node(node, "probe", top_edges)
-    assert set(probe.keys()) == {"id", "title", "content_type", "tags", "trust_score", "summary_1line", "top_edges"}
+    assert set(probe.keys()) == {"id", "title", "content_type", "tags", "summary_1line", "top_edges"}
     assert probe["summary_1line"] == node["body"][:80]
     assert len(probe["top_edges"]) == 1
-    
+
     # 測試 brief level
     brief = project_node(node, "brief", top_edges)
-    assert set(brief.keys()) == {"id", "title", "content_type", "tags", "trust_score", "summary_1line", "top_edges", "body_excerpt_200", "why_matched"}
+    assert set(brief.keys()) == {"id", "title", "content_type", "tags", "summary_1line", "top_edges", "body_excerpt_200", "why_matched"}
     assert brief["body_excerpt_200"] == node["body"][:200]
     
     # 測試 full level
@@ -363,7 +362,6 @@ async def test_markdown_resources():
         "content_type": "factual",
         "body": "This is a detailed node body for resource rendering.",
         "tags": ["resource", "test"],
-        "trust_score": 0.99
     }
     
     edges_rows = [
@@ -388,5 +386,4 @@ async def test_markdown_resources():
             text = contents[0]["text"]
             assert "# Target Node Title" in text
             assert "類型**：factual" in text
-            assert "信任**：0.99" in text
             assert "依賴**：[Dependency Node](memtrace://node/mem_dep)" in text

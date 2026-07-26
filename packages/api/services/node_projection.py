@@ -12,7 +12,7 @@ from typing import Literal, Optional, List, Dict, Any
 # pass debug=True to project_node to get the raw row for ops troubleshooting.
 NODE_FULL_FIELDS = {
     "id", "title", "body", "content_type", "content_format", "tags", "visibility",
-    "trust_score", "status", "created_at", "updated_at", "author", "source_type",
+    "status", "created_at", "updated_at", "author", "source_type",
     "resolution_status",
 }
 
@@ -153,7 +153,6 @@ def project_node(
             "title": node.get("title"),
             "content_type": node.get("content_type"),
             "tags": node.get("tags") or [],
-            "trust_score": float(node["trust_score"]) if node.get("trust_score") is not None else None,
             "summary_1line": summary_1line,
             "top_edges": top_edges or []
         }

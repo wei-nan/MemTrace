@@ -84,7 +84,7 @@ This is not merely a permissions model. It is a statement about the **relationsh
 - Supports multi-lingual title/body (en/zh-TW).
 - Tags array.
 - **Node-level `visibility`** (per-node, distinct from KB-level visibility in §1.1 / §12): one of `public` / `team` / `private`. Controls whether other members of the same workspace can see this individual node. The four-tier sharing level (`public` / `conditional_public` / `restricted` / `private`) in §1.1 is set at the **Knowledge Base** level and is a separate axis.
-- Internal trust dimensions (accuracy, freshness, utility, author reputation) exist in the schema but are **deferred**: retained internally, not surfaced in the UI, and not a guarantee of content correctness (see §5).
+- Trust dimensions (accuracy, freshness, utility, author reputation) and the associated `trust_score` were removed from the schema on 2026-07-26 as an unusable, uncalibrated signal (see §5).
 
 ### 4.2 Edge v1
 - Validated via `schema/edge.v1.json`
@@ -99,7 +99,7 @@ This is not merely a permissions model. It is a statement about the **relationsh
 - Memories are digitally fingerprinted with SHA-256 hashes generated from the content (`signature`), providing tamper-evidence over a node's stored content.
 - Each node carries provenance: author, timestamps, and `source_type` (human / AI / system / tool). Uploaded documents and attachments are retained as reference sources.
 
-> **Trust scoring is deferred (current positioning).** MemTrace does not currently expose node Trust, verification, or evidence-chain scoring as a public capability. Vote-, verification-, and dimension-based trust computation is **not** part of the current product surface: the related backend fields (`trust_score`, `dim_accuracy`, `dim_freshness`, `dim_utility`, `dim_author_rep`, `votes_up`, `votes_down`, `verifications`) are **retained internally, are not surfaced in the UI, and must not be interpreted as a guarantee of content correctness or authenticity**. This capability is paused, not cancelled — it may be reintroduced only once a simple, reliable closed loop is in place (clear boundaries between reference, evidence, provenance, and verification, plus UI that never presents a numeric score as a truth guarantee). See the decision recorded in the spec-planning KB (`ws_spec_plan`).
+> **Trust scoring has been removed (2026-07-26 decision).** MemTrace does not compute, store, or expose node Trust, verification, or evidence-chain scoring. Vote-, verification-, and dimension-based trust computation is **not** part of the product: the backend fields that implemented it (`trust_score`, `dim_accuracy`, `dim_freshness`, `dim_utility`, `dim_author_rep`, `votes_up`, `votes_down`, `verifications`) have been dropped from the schema. This was a deliberate reversal, not a deferral — an uncalibrated numeric score cannot be interpreted as a guarantee of content correctness or authenticity, and treating it as one is worse than having no score at all. A future trust mechanism, if built, would be a new design, not a reactivation of these fields. See the decision recorded in the spec-planning KB (`ws_spec_plan`, node `mem_c10f6685`).
 
 ## 6. Operations
 
@@ -295,14 +295,6 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 | `created_at`   | TIMESTAMPTZ       |                                    |
 | `signature`    | TEXT              | SHA-256 content hash               |
 | `source_type`  | ENUM              | human / ai_generated / ai_verified |
-| `trust_score`  | NUMERIC(4,3)      | Composite 0–1 — internal, deferred; not surfaced (see §5) |
-| `dim_accuracy` | NUMERIC(4,3)      | Trust dimension                    |
-| `dim_freshness`| NUMERIC(4,3)      | Trust dimension                    |
-| `dim_utility`  | NUMERIC(4,3)      | Trust dimension                    |
-| `dim_author_rep` | NUMERIC(4,3)   | Trust dimension                    |
-| `votes_up`     | INTEGER           |                                    |
-| `votes_down`   | INTEGER           |                                    |
-| `verifications`| INTEGER           |                                    |
 | `traversal_count` | INTEGER        | Total times this node was traversed by any actor |
 | `unique_traverser_count` | INTEGER | Distinct users or service principals that have traversed this node |
 | `status`       | ENUM              | active / archived; archived nodes are hidden from default views |
@@ -452,7 +444,6 @@ The creation/edit form exposes the following fields:
 - `provenance.author` is auto-filled from the current session user.
 - `provenance.created_at` is auto-set on first save; `updated_at` is added on edit (see §10.1).
 - `provenance.signature` (SHA-256) is recomputed on every save.
-- `trust` fields are initialized to defaults on creation and not user-editable (internal, deferred — not surfaced; see §5).
 
 #### 9.3.4 Creating an Edge (Association) from the Editor
 After saving a node, the editor **immediately opens the Edge creation sub-panel** by default. A node without any edges is visually flagged in the Graph View with an indicator (e.g. a hollow ring instead of a filled node) to signal that it is not yet connected. Users can also initiate edge creation by dragging from one node's handle to another in the Graph View.
@@ -695,19 +686,9 @@ Each node committed from AI extraction carries:
 
 `source_document` and `extraction_model` are appended to the `provenance` object (see §10.2).
 
-#### 11.3.3 Trust-Field Defaults for AI-Extracted Nodes (internal)
+#### 11.3.3 Source-Type Transitions for AI-Extracted Nodes
 
-> These defaults populate the internal, deferred trust fields (see §5); they are not surfaced in the UI and are not a truth guarantee.
-
-| Dimension | Default |
-|-----------|---------|
-| `accuracy` | 0.5 (unverified; boosted when a human accepts without edits) |
-| `freshness` | 1.0 |
-| `utility` | 0.5 |
-| `author_rep` | 0.5 |
-| `source_type` | `ai_generated` → `ai_verified` after human acceptance |
-
-When a human edits a candidate before accepting, `source_type` is set to `human`.
+AI-extracted nodes are created with `source_type = ai_generated`, which transitions to `ai_verified` after human acceptance. When a human edits a candidate before accepting, `source_type` is set to `human` instead.
 
 ### 11.3.4 Extraction Prompt Design
 
@@ -770,7 +751,7 @@ Existing nodes created before the cluster system was introduced will have `clust
 
 ### 11.5 Copying a Node to Another Knowledge Base
 
-Any individual Memory Node can be copied to a different Knowledge Base. Edges are **not** copied — only the node's content and metadata are transferred. (Internal, deferred trust fields carry over as a snapshot; see §5 and §11.5.2.)
+Any individual Memory Node can be copied to a different Knowledge Base. Edges are **not** copied — only the node's content and metadata are transferred.
 
 #### 11.5.1 Behavior
 
@@ -780,10 +761,6 @@ Any individual Memory Node can be copied to a different Knowledge Base. Edges ar
 - A `provenance.copied_from` field records the original node's `id` and source workspace for traceability.
 - The original node and its Edges are unaffected.
 - The `signature` (SHA-256) is recomputed from the copied content in the target workspace context.
-
-#### 11.5.2 Trust Fields on Copy (internal)
-
-The internal, deferred trust fields (see §5) are carried over as a snapshot. They are not linked — activity in either workspace does not affect the other copy. These values are not surfaced in the UI.
 
 #### 11.5.3 Visibility on Copy
 
@@ -956,7 +933,7 @@ When the graph data endpoint is called by a non-member on a `conditional_public`
 ```
 
 - Real `memory_node.id` values are **replaced** with opaque sequential preview IDs (`node_preview_N`) that are not stable across requests.
-- `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, `trust_score`, and all provenance fields are **omitted entirely** from the response.
+- `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, and all provenance fields are **omitted entirely** from the response.
 - The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` serves this stripped payload. Attempting `GET /api/v1/workspaces/{ws_id}/nodes/{id}` as a non-member returns `HTTP 403`.
 - Preview payload is **not cacheable** by the client (response header: `Cache-Control: no-store`).
 
@@ -978,12 +955,7 @@ The following fields are appended to `node.v1.json` to support manual creation a
 **Default values on node creation:**
 ```json
 {
-  "content": { "format": "plain" },
-  "trust": {
-    "score": 0.5,
-    "dimensions": { "accuracy": 0.5, "freshness": 1.0, "utility": 0.5, "author_rep": 0.5 },
-    "votes": { "up": 0, "down": 0, "verifications": 0 }
-  }
+  "content": { "format": "plain" }
 }
 ```
 
@@ -2659,10 +2631,6 @@ file=<.memtrace archive>
 conflict_strategy=skip_duplicates | import_all   (default: skip_duplicates)
 ```
 
-#### 22.6.4 Trust Fields on Import (internal)
-
-Imported nodes carry their original internal trust fields as a snapshot (same as §11.4.2; deferred and not surfaced — see §5). Activity in the target workspace does not affect values in the source and vice versa.
-
 #### 22.6.5 Visibility on Import
 
 All imported nodes default to `private` visibility in the target workspace, regardless of their visibility in the source (same as §11.4.3). The admin may bulk-update visibility after import.
@@ -2819,7 +2787,7 @@ This section expands on §12.8 with detailed enforcement rules.
 | Node body (zh / en) | ✗ Omitted | ✓ Transmitted |
 | Tags | ✗ Omitted | ✓ Transmitted |
 | Real node `id` | ✗ Replaced with opaque preview ID | ✓ Transmitted |
-| `trust_score`, `author`, `signature` | ✗ Omitted | ✓ Transmitted |
+| `author`, `signature` | ✗ Omitted | ✓ Transmitted |
 | `source_paragraph_ref` | ✗ Omitted | ✓ Transmitted |
 | Embedding vector | ✗ Never transmitted to any client | ✗ Never transmitted |
 

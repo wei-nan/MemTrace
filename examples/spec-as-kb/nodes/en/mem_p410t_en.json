@@ -22,20 +22,6 @@
     "signature": "p410t_token_refresh_race_condition_fix",
     "source_type": "ai"
   },
-  "trust": {
-    "score": 0.85,
-    "dimensions": {
-      "accuracy": 0.92,
-      "freshness": 0.955,
-      "utility": 0.85,
-      "author_rep": 0.92
-    },
-    "votes": {
-      "up": 0,
-      "down": 0,
-      "verifications": 0
-    }
-  },
   "traversal": {
     "count": 0,
     "unique_traversers": 0

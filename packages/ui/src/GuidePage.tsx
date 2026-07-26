@@ -67,8 +67,8 @@ export default function GuidePage({ onOpenSpecKb }: GuidePageProps) {
       label: zh ? '怎麼做' : 'How',
       headline: zh ? '讓知識可被驗證、會演化' : 'Make knowledge verifiable & evolving',
       text: zh
-        ? '把知識拆成帶來源、帶信任度的節點與關聯，讓它能被驗證、演化、甚至淘汰；由人與 AI 共同維護，並用審核佇列為品質把關。'
-        : 'We structure knowledge into nodes and typed edges with provenance and trust — so it can be verified, evolve, or retire — co-maintained by humans and AI, gated by a review queue.',
+        ? '把知識拆成帶來源的節點與關聯，讓它能被驗證、演化、甚至淘汰；由人與 AI 共同維護，並用審核佇列為品質把關。'
+        : 'We structure knowledge into nodes and typed edges with provenance — so it can be verified, evolve, or retire — co-maintained by humans and AI, gated by a review queue.',
     },
     {
       ring: 'WHAT',
@@ -109,8 +109,8 @@ export default function GuidePage({ onOpenSpecKb }: GuidePageProps) {
       icon: AlertTriangle,
       title: zh ? '衝突會被偵測' : 'Conflicts get detected',
       see: zh
-        ? '當新知識和既有高信任節點矛盾時，系統不會默默覆蓋，而是標記 contradicts 邊，交給你裁決。'
-        : 'When new knowledge contradicts a high-trust node, nothing is silently overwritten — a contradicts edge is flagged for you to resolve.',
+        ? '當新知識和既有節點矛盾時，系統不會默默覆蓋，而是標記 contradicts 邊，交給你裁決。'
+        : 'When new knowledge contradicts an existing node, nothing is silently overwritten — a contradicts edge is flagged for you to resolve.',
       how: zh ? '機制：矛盾偵測 + contradicts 邊' : 'Mechanism: contradiction detection + contradicts edge',
     },
     {
@@ -184,8 +184,8 @@ export default function GuidePage({ onOpenSpecKb }: GuidePageProps) {
     {
       term: zh ? '審核佇列 (Review Queue)' : 'Review Queue',
       def: zh
-        ? '非信任來源（AI / MCP）的提案先進這裡，經人工 gate 才進入正式圖譜。'
-        : 'Proposals from untrusted sources (AI / MCP) wait here for a human gate before entering the graph.',
+        ? '非人工來源（AI / MCP）的提案先進這裡，經人工 gate 才進入正式圖譜。'
+        : 'Proposals from non-human sources (AI / MCP) wait here for a human gate before entering the graph.',
     },
     {
       term: 'resolution_status',

@@ -133,7 +133,6 @@ class MemTraceVectorStore(BasePydanticVectorStore):
                 "title": node.title,
                 "content_type": node.content_type,
                 "tags": node.tags,
-                "trust_score": node.trust_score,
                 "author": node.author,
                 "status": node.status
             }

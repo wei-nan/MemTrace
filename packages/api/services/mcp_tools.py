@@ -325,7 +325,6 @@ TOOLS = [
                 "tags": {"type": "array", "items": {"type": "string"}},
                 "visibility": {"type": "string", "enum": ["public", "team", "private"], "default": "private"},
                 "source_type": {"type": "string", "enum": ["human", "ai"], "default": "human"},
-                "trust_score": {"type": "number", "description": "0.0–1.0"},
             },
             "required": ["workspace_id", "title", "content_type"],
         },
@@ -344,7 +343,6 @@ TOOLS = [
                 "content_format": {"type": "string", "enum": ["plain", "markdown"]},
                 "tags": {"type": "array", "items": {"type": "string"}},
                 "visibility": {"type": "string", "enum": ["public", "team", "private"]},
-                "trust_score": {"type": "number"},
                 "resolution_status": {"type": "string", "enum": ["open", "resolved", "superseded"]},
             },
             "required": ["workspace_id", "node_id"],
@@ -478,7 +476,7 @@ TOOLS = [
     },
     {
         "name": "list_review_queue",
-        "description": "List nodes that need review (low trust score or flagged).",
+        "description": "List nodes that need review (quality-flagged or pending proposals).",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -1409,11 +1407,6 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 "content_format": "string — 'plain' or 'markdown'",
                 "tags":           "array of strings — keywords and categories",
                 "visibility":     "string — 'public', 'team', or 'private'",
-                "trust_score":    "float 0.0–1.0 — compatibility-only field; not used for ranking, admission, or planning priority",
-                "dim_accuracy":   "float 0.0–1.0 — compatibility-only accuracy dimension",
-                "dim_freshness":  "float 0.0–1.0 — compatibility-only freshness dimension",
-                "dim_utility":    "float 0.0–1.0 — compatibility-only utility dimension",
-                "dim_author_rep": "float 0.0–1.0 — compatibility-only author reputation dimension",
                 "source_type":    "string — 'human', 'ai', 'mcp', 'document', etc.",
                 "source_doc_node_id": "string — ID of the source document node (if extracted)",
                 "source_paragraph_ref": "string — reference to specific paragraph in source",
@@ -1865,7 +1858,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             # 1. Find pending inquiry nodes
             if tag:
                 cur.execute(
-                    """SELECT id, title, body, tags, trust_score
+                    """SELECT id, title, body, tags
                        FROM memory_nodes
                        WHERE workspace_id = %s AND content_type = 'inquiry'
                          AND status = 'active' AND %s = ANY(tags)
@@ -1883,7 +1876,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 )
             else:
                 cur.execute(
-                    """SELECT id, title, body, tags, trust_score
+                    """SELECT id, title, body, tags
                        FROM memory_nodes
                        WHERE workspace_id = %s AND content_type = 'inquiry'
                          AND status = 'active'
@@ -1916,7 +1909,6 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                         "title": row["title"],
                         "body": row["body"],
                         "tags": list(row["tags"] or []),
-                        "trust_score": float(row["trust_score"]),
                     },
                     "ancestors": [],
                     "playbooks": [],
@@ -2021,7 +2013,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
 
             if tag:
                 cur.execute(
-                    """SELECT id, title, body, tags, trust_score
+                    """SELECT id, title, body, tags
                        FROM memory_nodes
                        WHERE workspace_id = %s AND content_type = 'procedural'
                          AND status = 'active' AND %s = ANY(tags)
@@ -2032,7 +2024,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             else:
                 # Keyword search in search_vector
                 cur.execute(
-                    """SELECT id, title, body, tags, trust_score,
+                    """SELECT id, title, body, tags,
                               ts_rank(search_vector,
                                   to_tsquery('simple', regexp_replace(%s, '\W+', ' | ', 'g'))
                               ) AS rank
@@ -2047,7 +2039,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 if not rows:
                     # Fallback: return most recently updated procedural nodes
                     cur.execute(
-                        """SELECT id, title, body, tags, trust_score
+                        """SELECT id, title, body, tags
                            FROM memory_nodes
                            WHERE workspace_id = %s AND content_type = 'procedural'
                              AND status = 'active'
@@ -2062,7 +2054,6 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                     "title": r["title"],
                     "body": r["body"],
                     "tags": list(r["tags"] or []),
-                    "trust_score": float(r["trust_score"]),
                 }
                 for r in rows
             ]
@@ -2638,7 +2629,7 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks,
                      
                      markdown_content = f"""# {node['title']}
 
-**類型**：{node['content_type']} ｜ **信任**：{node['trust_score'] or 0.0} ｜ **標籤**：{tags_str}
+**類型**：{node['content_type']} ｜ **標籤**：{tags_str}
 
 {body_excerpt}
 

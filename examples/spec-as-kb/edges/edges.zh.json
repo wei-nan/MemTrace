@@ -133,25 +133,6 @@
     }
   },
   {
-    "id": "edge_08f77c5f",
-    "from": "mem_e7f9e165",
-    "to": "mem_54cc2c31",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_0a34c5a0",
     "from": "mem_af74b0f0",
     "to": "mem_82b732f5",
@@ -1045,25 +1026,6 @@
     }
   },
   {
-    "id": "edge_4ad63282",
-    "from": "mem_1b09b6ed",
-    "to": "mem_cbe1be4b",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_4bec9830",
     "from": "mem_1fc9c6b4",
     "to": "mem_d001",
@@ -1465,25 +1427,6 @@
   {
     "id": "edge_61f8ef6d",
     "from": "mem_73ea8135",
-    "to": "mem_ce00334f",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_622e463e",
-    "from": "mem_1b09b6ed",
     "to": "mem_ce00334f",
     "relation": "related_to",
     "weight": 1.0,
@@ -2021,25 +1964,6 @@
     "weight": 1.0,
     "co_access_count": 0,
     "last_co_accessed": "2026-04-25T14:06:20.606618+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_8037ec69",
-    "from": "mem_4f8e3f0b",
-    "to": "mem_ce00334f",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
     "decay": {
       "half_life_days": 30.0,
       "min_weight": 0.1,
@@ -2793,44 +2717,6 @@
     }
   },
   {
-    "id": "edge_a005_g004",
-    "from": "mem_a005",
-    "to": "mem_g004",
-    "relation": "related_to",
-    "weight": 0.85,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-29T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 180.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_a1efea86",
-    "from": "mem_7f8829ed",
-    "to": "mem_cbe1be4b",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_a304fe3e",
     "from": "mem_25ad6564",
     "to": "mem_27e2935e",
@@ -2838,25 +2724,6 @@
     "weight": 1.0,
     "co_access_count": 0,
     "last_co_accessed": "2026-04-25T14:05:07.111239+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_a32863a7",
-    "from": "mem_4f8e3f0b",
-    "to": "mem_cbe1be4b",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
     "decay": {
       "half_life_days": 30.0,
       "min_weight": 0.1,
@@ -3062,25 +2929,6 @@
     "id": "edge_b7a3d074",
     "from": "mem_53258df1",
     "to": "mem_9fbbb5eb",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_b970b4d2",
-    "from": "mem_d4ea05e2",
-    "to": "mem_ce00334f",
     "relation": "related_to",
     "weight": 1.0,
     "co_access_count": 0,
@@ -3363,25 +3211,6 @@
     }
   },
   {
-    "id": "edge_d001_d004",
-    "from": "mem_d001",
-    "to": "mem_d004",
-    "relation": "extends",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
-    "decay": {
-      "half_life_days": 90.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_d001_d005",
     "from": "mem_d001",
     "to": "mem_d005",
@@ -3443,25 +3272,6 @@
     "from": "mem_d002",
     "to": "mem_g003",
     "relation": "extends",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
-    "decay": {
-      "half_life_days": 90.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_d004_d001",
-    "from": "mem_d004",
-    "to": "mem_d001",
-    "relation": "depends_on",
     "weight": 1.0,
     "co_access_count": 0,
     "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
@@ -3746,25 +3556,6 @@
     "id": "edge_d98782a6",
     "from": "mem_a590bb10",
     "to": "mem_8145c1ad",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_dcb45264",
-    "from": "mem_7f8829ed",
-    "to": "mem_ce00334f",
     "relation": "related_to",
     "weight": 1.0,
     "co_access_count": 0,
@@ -4455,63 +4246,6 @@
     "last_co_accessed": "2026-04-12T00:00:21.378267+00:00",
     "decay": {
       "half_life_days": 90.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_g004_a001",
-    "from": "mem_g004",
-    "to": "mem_a001",
-    "relation": "depends_on",
-    "weight": 0.9,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-29T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 180.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_g004_g001",
-    "from": "mem_g004",
-    "to": "mem_g001",
-    "relation": "extends",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-29T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 180.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_g004_g002",
-    "from": "mem_g004",
-    "to": "mem_g002",
-    "relation": "related_to",
-    "weight": 0.9,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-29T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 180.0,
       "min_weight": 0.1,
       "pinned": false
     },
@@ -5396,63 +5130,6 @@
     }
   },
   {
-    "id": "edge_ef2a33ec",
-    "from": "mem_g005",
-    "to": "mem_g004",
-    "relation": "related_to",
-    "weight": 0.8,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-05-22T15:02:17.648365+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_c4107292",
-    "from": "mem_g005",
-    "to": "mem_d004",
-    "relation": "related_to",
-    "weight": 0.78,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-05-22T15:02:17.648365+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_7e4c4841",
-    "from": "mem_g005",
-    "to": "mem_4f8e3f0b",
-    "relation": "related_to",
-    "weight": 0.7,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-05-22T15:02:17.648365+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_ns0001",
     "from": "mem_ns002",
     "to": "mem_ns001",
@@ -6055,44 +5732,6 @@
       "rating_avg": null,
       "rating_count": 0
     },
-    "id": "edge_tr001_d004",
-    "from": "mem_tr001",
-    "to": "mem_d004",
-    "relation": "extends"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
-    "id": "edge_tr001_a002",
-    "from": "mem_tr001",
-    "to": "mem_a002",
-    "relation": "depends_on"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
     "id": "edge_rq001_a003",
     "from": "mem_rq001",
     "to": "mem_a003",
@@ -6112,86 +5751,10 @@
       "rating_avg": null,
       "rating_count": 0
     },
-    "id": "edge_rq001_tr001",
-    "from": "mem_rq001",
-    "to": "mem_tr001",
-    "relation": "related_to"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
     "id": "edge_ag001_i003",
     "from": "mem_ag001",
     "to": "mem_i003",
     "relation": "extends"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
-    "id": "edge_ag001_d004",
-    "from": "mem_ag001",
-    "to": "mem_d004",
-    "relation": "depends_on"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
-    "id": "edge_vt001_g004",
-    "from": "mem_vt001",
-    "to": "mem_g004",
-    "relation": "extends"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
-    "id": "edge_vt001_d004",
-    "from": "mem_vt001",
-    "to": "mem_d004",
-    "relation": "depends_on"
   },
   {
     "weight": 1.0,
@@ -6230,44 +5793,6 @@
     "from": "mem_ws003",
     "to": "mem_ws001",
     "relation": "related_to"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
-    "id": "edge_at001_g005",
-    "from": "mem_at001",
-    "to": "mem_g005",
-    "relation": "extends"
-  },
-  {
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-06-13T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    },
-    "id": "edge_at001_d004",
-    "from": "mem_at001",
-    "to": "mem_d004",
-    "relation": "depends_on"
   },
   {
     "weight": 1.0,
@@ -6505,8 +6030,16 @@
     "weight": 0.9,
     "co_access_count": 0,
     "last_co_accessed": "2026-06-19T02:03:08+00:00",
-    "decay": { "half_life_days": 365.0, "min_weight": 0.1, "pinned": false },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "decay": {
+      "half_life_days": 365.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
     "id": "edge_6c9ef069",
@@ -6516,8 +6049,16 @@
     "weight": 0.95,
     "co_access_count": 0,
     "last_co_accessed": "2026-06-19T02:03:09+00:00",
-    "decay": { "half_life_days": 365.0, "min_weight": 0.1, "pinned": false },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "decay": {
+      "half_life_days": 365.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
     "id": "edge_eb03789c",
@@ -6527,8 +6068,16 @@
     "weight": 0.9,
     "co_access_count": 0,
     "last_co_accessed": "2026-06-19T02:03:10+00:00",
-    "decay": { "half_life_days": 365.0, "min_weight": 0.1, "pinned": false },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "decay": {
+      "half_life_days": 365.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
     "id": "edge_34f39dc7",
@@ -6538,8 +6087,16 @@
     "weight": 0.85,
     "co_access_count": 0,
     "last_co_accessed": "2026-06-19T02:03:11+00:00",
-    "decay": { "half_life_days": 365.0, "min_weight": 0.1, "pinned": false },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "decay": {
+      "half_life_days": 365.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
     "id": "edge_9c384c71",
@@ -6549,8 +6106,16 @@
     "weight": 0.95,
     "co_access_count": 0,
     "last_co_accessed": "2026-06-19T02:03:11+00:00",
-    "decay": { "half_life_days": 365.0, "min_weight": 0.1, "pinned": false },
-    "traversal": { "count": 0, "rating_avg": null, "rating_count": 0 }
+    "decay": {
+      "half_life_days": 365.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   },
   {
     "id": "edge_i005i002",

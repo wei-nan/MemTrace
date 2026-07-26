@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNeighborhood } from './hooks/useNeighborhood';
-import { Network, ArrowRight, Brain, Link as LinkIcon, Compass, ChevronRight, Clock, Shield } from 'lucide-react';
+import { Network, ArrowRight, Brain, Link as LinkIcon, Compass, ChevronRight, Clock } from 'lucide-react';
 import { type Node as ApiNode } from './api';
 
 interface Props {
@@ -21,7 +21,7 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
   const { nodes, edges, loading, error } = useNeighborhood(wsId, rootNodeId || '');
 
   // P4.7-S2-8 & S5-1: Suggestions state
-  const [suggestions, setSuggestions] = useState<{ recent: ApiNode[]; highTrust: ApiNode[]; blindspots: ApiNode[] }>({ recent: [], highTrust: [], blindspots: [] });
+  const [suggestions, setSuggestions] = useState<{ recent: ApiNode[]; blindspots: ApiNode[] }>({ recent: [], blindspots: [] });
   const [highlightBlindspots, setHighlightBlindspots] = useState(false);
 
   useEffect(() => {
@@ -29,10 +29,9 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
       import('./api').then(({ nodes: nodesApi }) => {
         Promise.all([
           nodesApi.list(wsId, { limit: 6 }), // Recently updated
-          nodesApi.list(wsId, { limit: 6 }),
           nodesApi.list(wsId, { filter: 'never_traversed', limit: 6 }), // P4.7-S5-1: Blindspots
-        ]).then(([recent, highTrust, blindspots]) => {
-          setSuggestions({ recent, highTrust, blindspots });
+        ]).then(([recent, blindspots]) => {
+          setSuggestions({ recent, blindspots });
         });
       });
     }
@@ -104,30 +103,6 @@ export default function NeighborhoodView({ wsId, rootNodeId, onNodeClick, onExpl
                   >
                     <div style={{ fontWeight: 600, fontSize: 15 }}>{node.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{node.content_type}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <h2 style={{ fontSize: 16, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Shield size={16} /> {zh ? '高信任度' : 'Highest Trust'}
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {suggestions.highTrust.map(node => (
-                  <div 
-                    key={node.id} 
-                    className="suggestion-item"
-                    onClick={() => onExploreNode(node.id)}
-                    style={{ 
-                      padding: '16px 20px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', 
-                      borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s'
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>{node.title}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{node.content_type}</span>
-                    </div>
                   </div>
                 ))}
               </div>

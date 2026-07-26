@@ -49,9 +49,9 @@ export const NOTIF_GROUPS: NotifGroup[] = [
   },
   {
     key: 'trust',
-    label: { zh: '信任與向量', en: 'Trust & embeddings' },
-    description: { zh: '信任分數偏高／偏低、向量可能已過期', en: 'Trust score drift or stale embeddings' },
-    categories: ['trust_overrated', 'trust_underrated', 'embedding_drift'],
+    label: { zh: '向量', en: 'Embeddings' },
+    description: { zh: '向量可能已過期', en: 'Stale embeddings' },
+    categories: ['embedding_drift'],
   },
   {
     key: 'meta',

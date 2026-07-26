@@ -23,20 +23,6 @@
     "signature": "9663af7dbe98364b9ff89273a0875de54e7af5750479ad2e0eaf80a3d51b0fe7",
     "source_type": "ai"
   },
-  "trust": {
-    "score": 0.93,
-    "dimensions": {
-      "accuracy": 0.93,
-      "freshness": 1.0,
-      "utility": 0.92,
-      "author_rep": 0.9
-    },
-    "votes": {
-      "up": 0,
-      "down": 0,
-      "verifications": 0
-    }
-  },
   "traversal": {
     "count": 0,
     "unique_traversers": 0

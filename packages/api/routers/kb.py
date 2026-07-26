@@ -44,7 +44,6 @@ from models.kb import (
     AnalyticsTopNode,
     WorkspaceAnalyticsResponse,
     TokenEfficiencyResponse,
-    VoteTrustRequest,
     WorkspaceCloneRequest,
     WorkspaceCloneJobResponse,
     ForkWorkspaceRequest,
@@ -331,13 +330,6 @@ def purge_workspace(ws_id: str, user: dict = Depends(get_current_user)):
     from services.workspaces import purge_workspace_in_db
     with db_cursor(commit=True) as cur:
         return purge_workspace_in_db(cur, ws_id, user)
-
-
-@router.post("/workspaces/{ws_id}/nodes/{node_id}/vote-trust")
-def vote_trust(ws_id: str, node_id: str, body: VoteTrustRequest, user: dict = Depends(get_current_user)):
-    from services.nodes import vote_trust_in_db
-    with db_cursor(commit=True) as cur:
-        return vote_trust_in_db(cur, ws_id, node_id, body.model_dump(), user)
 
 
 @router.get("/workspaces/{ws_id}", response_model=WorkspaceResponse)

@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 def record_traversal(ws_id: str, node_id: str, user_id: str) -> None:
     """
     Background task: record a node traversal (access counts only).
-    Trust fields are compatibility-only and must not be raised by traversal frequency.
     P4.7-S1-2 & S3-4.
     """
     with db_cursor(commit=True) as cur:

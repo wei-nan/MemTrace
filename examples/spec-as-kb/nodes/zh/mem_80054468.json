@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "簡化圖譜載荷響應中完全省略的欄位包括 `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, `trust_score` 以及所有來源 (provenance) 欄位。"
+    "body": "簡化圖譜載荷響應中完全省略的欄位包括 `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature` 以及所有來源 (provenance) 欄位。"
   },
   "tags": [
     "資料載荷",
@@ -19,20 +19,6 @@
     "created_at": "2026-04-24T11:25:39.775592+00:00",
     "signature": "b6201a17eb809238e3e05fdce0623986c75613178b63db97cecd1176547cd3ec",
     "source_type": "ai"
-  },
-  "trust": {
-    "score": 0.715,
-    "dimensions": {
-      "accuracy": 0.8,
-      "freshness": 1.0,
-      "utility": 0.5,
-      "author_rep": 0.5
-    },
-    "votes": {
-      "up": 0,
-      "down": 0,
-      "verifications": 0
-    }
   },
   "traversal": {
     "count": 0,
