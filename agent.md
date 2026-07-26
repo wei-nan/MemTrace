@@ -203,8 +203,8 @@ Update all applicable surfaces:
   `examples/spec-as-kb/nodes/en/`;
 - seed edges under `examples/spec-as-kb/edges/`;
 - seed or migration helpers such as `scripts/seed_spec_kb.py` and
-  `docs/schema-history/` when the change affects bootstrap data or schema
-  history.
+  `packages/api/migrations/003_seed_spec_kb.sql` when the change affects
+  bootstrap data.
 
 Do not copy private planning text directly into public specs. Convert it into
 stable public product language, in Chinese and English, and preserve private

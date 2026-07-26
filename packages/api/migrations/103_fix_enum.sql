@@ -1,2 +1,0 @@
-ALTER TYPE ai_feature ADD VALUE IF NOT EXISTS 'search';
-ALTER TYPE ai_feature ADD VALUE IF NOT EXISTS 'chat';

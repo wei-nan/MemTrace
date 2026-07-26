@@ -13,7 +13,6 @@ on:
       - 'examples/spec-as-kb/**'
       - 'scripts/seed_spec_kb.py'
       - 'packages/api/migrations/003_seed_spec_kb.sql'
-      - 'docs/schema-history/003_seed_spec_kb.sql'
 
 jobs:
   spec-sync:

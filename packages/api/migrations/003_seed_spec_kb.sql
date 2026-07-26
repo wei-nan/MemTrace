@@ -3464,53 +3464,6 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_b7dd65b3','1.0','ws_spec0001','Decision: database migrations use double-write plus schema/sql baseline strategy','preference','markdown','## Context
-
-This updates `mem_inq006`, the existing technical-debt node about the split between `schema/sql/` and `packages/api/migrations/`.
-
-The current development slice uses a double-write plus baseline strategy. This avoids switching the runtime migrator directly to all of `schema/sql/`, which could replay old init, seed, or historical migrations because existing databases record applied migrations by runtime filename.
-
-## Adopted Double-Write
-
-| Runtime incremental | Canonical schema/sql | Purpose |
-|---|---|---|
-| `packages/api/migrations/110_job_observability.sql` | `schema/sql/114_job_observability.sql` | Scheduler heartbeats and job run history |
-| `packages/api/migrations/111_conductor_safety_queue.sql` | `schema/sql/115_conductor_safety_queue.sql` | Conductor hooks, deliveries, node metadata.scale, async safety queue |
-
-`packages/api/migrations/` is ignored by `.gitignore`, so runtime migrations must be force-added if they need to be committed. Canonical files use the next available `schema/sql/` sequence numbers, 114 and 115, to avoid conflicts with existing `110_chat_sessions.sql`, `111_bilingual_to_single.sql`, `112_invite_email_nullable.sql`, and `113_workspace_description.sql`.
-
-## Baseline Strategy
-
-Do not point `run_migrations()` at the full `schema/sql/` directory without a baseline.
-
-Preferred mid-term approach for the current one-machine deployment: pinned baseline. Add a setting such as `MIGRATION_SOURCE=schema_sql` and `MIGRATION_BASELINE=114`, then apply only canonical migrations at or after the baseline. Before cutover, inspect the live `schema_migrations` table and dry-run the list of files that would apply.
-
-## Implemented Files
-
-- `schema/sql/BASELINE.md`
-- `schema/sql/114_job_observability.sql`
-- `schema/sql/115_conductor_safety_queue.sql`
-
-## Follow-Up
-
-1. Decide whether to commit runtime migrations with `git add -f packages/api/migrations/110.../111...`.
-2. Keep future schema changes double-written until the migrator is safely switched.
-3. If changing `run_migrations()`, implement baseline and dry-run first. Do not scan all of `schema/sql/` directly.
-',
-   ARRAY['database', 'migrations', 'schema', 'baseline', 'tech-debt', 'decision']::text[],'public','usr_6bc7b4c7','2026-06-16T01:53:41.944468+00:00','','human',
-   0.655,0.5,1.0,0.5,0.71,
-   0,0,0,1,1)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
   ('mem_b848a97e','1.0','ws_spec0001','框架整合:LangChain Retriever 與 LlamaIndex Vector Store','factual','markdown','MemTrace 提供兩個框架整合套件,讓知識庫幾行就接進既有 LLM pipeline。兩者皆以 `base_url` + `api_key` + `workspace_id` 連線,底層走 REST API。
 
 ## LangChain(`packages/langchain-memtrace`)
@@ -5877,28 +5830,6 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_inq006','1.0','ws_spec0001','缺口（技術債）：schema/sql 與 migrations 的單一事實來源','inquiry','markdown','排查發現：執行期由 `core.database.run_migrations()` 套用 `packages/api/migrations/*.sql`（目前只有 054–056 三個檔）；`schema/sql/` 編號到 112，但兩者都找不到 `inquiry_paths` 等基礎表的建表 SQL。`test_inquiry_paths.py` 直接 assert 表存在（不自建），暗示有另一套 base schema 機制（疑似 shared-postgres 外部一次性載入），但本 repo 內未見來源。
-
-**待討論的設計問題：**
-
-1. **何者為準？** `schema/sql/` 是規格文件，還是實際執行的 migration？`migrations/` 是否只是增量補丁？
-2. **base schema 在哪裡？** shared-postgres 是 CI 環境的外部 fixture 嗎？還是有一個未被 commit 的初始化腳本？
-3. **修正方向：** 補齊 `migrations/` 以覆蓋完整建表歷史，還是改用 `schema/sql/` 作為唯一來源並更新部署流程？
-4. **緊迫性：** Phase 6 功能不受影響（全部複用既有表）。但下一批功能如果需要新 migration，此落差必須先釐清。',
-   ARRAY['inquiry', 'gap', 'tech-debt', 'schema', 'migrations', 'database']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq006a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
-   0.7,0.8,1.0,0.9,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
   ('mem_k001','1.0','ws_spec0001','Knowledge Base：知識庫（Workspace）','factual','plain','Knowledge Base（又稱 Workspace）是 Memory Node 與 Edge 的容器，對應一個獨立的知識領域或專案。每個使用者可建立多個知識庫。知識庫本身有共享層級（public / restricted / private），與節點的 visibility 各自獨立——有效存取權取兩者較嚴格的一方。知識庫可以從空白開始，也可以從一份文件啟動並由 AI 萃取節點。ID 格式：ws_<hex8>。',
    ARRAY['knowledge-base', 'workspace', 'container']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4','human',
    0.95,0.95,1.0,0.9,0.9,
@@ -6928,10 +6859,10 @@ cd packages/api && python -m venv venv
 source venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt && cd ../...
 
-# 4. 啟動資料庫（首次自動執行所有 schema/sql/*.sql）
+# 4. 啟動資料庫容器（僅建立空白 Postgres，schema 尚未套用）
 docker compose up -d
 
-# 5. 啟動 API
+# 5. 啟動 API（啟動時執行 run_migrations()，依 packages/api/migrations/MANIFEST.txt 順序套用所有 migration）
 cd packages/api && uvicorn main:app --reload --port 8000
 
 # 6. 啟動 UI（另一個終端機）
@@ -6954,20 +6885,24 @@ INSERT INTO memory_nodes
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
   ('mem_w003','1.0','ws_spec0001','Spec KB 初始化說明','procedural','markdown','## Spec KB 是如何建立的？
-規格知識庫（`ws_spec0001`）由 `schema/sql/099_seed_spec_kb.sql` 自動建立。
+規格知識庫（`ws_spec0001`）由 `packages/api/migrations/003_seed_spec_kb.sql`（由 `scripts/seed_spec_kb.py` 產生）建立。
 
-`docker compose up` 時，PostgreSQL init 機制依序執行 `schema/sql/` 下所有 `*.sql`，`099_seed_spec_kb.sql` 最後執行，建立工作區、寫入 30 個節點與對應邊。
+此檔案刻意**不**列在 `packages/api/migrations/MANIFEST.txt`——種子資料不是 schema migration，`run_migrations()` 不會自動套用它。需依 `docs/DEPLOYMENT.md` 手動執行一次：
+```bash
+docker exec -i memtrace-db psql -U memtrace -d memtrace \
+  < packages/api/migrations/003_seed_spec_kb.sql
+```
 
 ## 驗證
 ```bash
 docker exec -it memtrace-db psql -U memtrace -d memtrace \
   -c "SELECT COUNT(*) FROM memory_nodes WHERE workspace_id=''ws_spec0001'' AND status=''active'';"
-# 預期：30
 ```
 
 ## 重置 Spec KB
 ```bash
-docker compose down -v && docker compose up -d
+docker compose down -v && docker compose up -d   # 重建空白 DB
+# 接著重新手動套用 003_seed_spec_kb.sql（見上）
 ```',
    ARRAY['dev', 'seed', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0.8,0.8,1.0,0.8,0.8,
@@ -10625,53 +10560,6 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_b7dd65b3_en','1.0','ws_spec0001_en','Decision: database migrations use double-write plus schema/sql baseline strategy','preference','markdown','## Context
-
-This updates `mem_inq006`, the existing technical-debt node about the split between `schema/sql/` and `packages/api/migrations/`.
-
-The current development slice uses a double-write plus baseline strategy. This avoids switching the runtime migrator directly to all of `schema/sql/`, which could replay old init, seed, or historical migrations because existing databases record applied migrations by runtime filename.
-
-## Adopted Double-Write
-
-| Runtime incremental | Canonical schema/sql | Purpose |
-|---|---|---|
-| `packages/api/migrations/110_job_observability.sql` | `schema/sql/114_job_observability.sql` | Scheduler heartbeats and job run history |
-| `packages/api/migrations/111_conductor_safety_queue.sql` | `schema/sql/115_conductor_safety_queue.sql` | Conductor hooks, deliveries, node metadata.scale, async safety queue |
-
-`packages/api/migrations/` is ignored by `.gitignore`, so runtime migrations must be force-added if they need to be committed. Canonical files use the next available `schema/sql/` sequence numbers, 114 and 115, to avoid conflicts with existing `110_chat_sessions.sql`, `111_bilingual_to_single.sql`, `112_invite_email_nullable.sql`, and `113_workspace_description.sql`.
-
-## Baseline Strategy
-
-Do not point `run_migrations()` at the full `schema/sql/` directory without a baseline.
-
-Preferred mid-term approach for the current one-machine deployment: pinned baseline. Add a setting such as `MIGRATION_SOURCE=schema_sql` and `MIGRATION_BASELINE=114`, then apply only canonical migrations at or after the baseline. Before cutover, inspect the live `schema_migrations` table and dry-run the list of files that would apply.
-
-## Implemented Files
-
-- `schema/sql/BASELINE.md`
-- `schema/sql/114_job_observability.sql`
-- `schema/sql/115_conductor_safety_queue.sql`
-
-## Follow-Up
-
-1. Decide whether to commit runtime migrations with `git add -f packages/api/migrations/110.../111...`.
-2. Keep future schema changes double-written until the migrator is safely switched.
-3. If changing `run_migrations()`, implement baseline and dry-run first. Do not scan all of `schema/sql/` directly.
-',
-   ARRAY['database', 'migrations', 'schema', 'baseline', 'tech-debt', 'decision']::text[],'public','usr_6bc7b4c7','2026-06-16T01:53:41.944468+00:00','','human',
-   0.655,0.5,1.0,0.5,0.71,
-   0,0,0,1,1)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
   ('mem_b848a97e_en','1.0','ws_spec0001_en','Framework integrations: LangChain retriever and LlamaIndex vector store','factual','markdown','MemTrace ships two framework-integration packages that plug a knowledge base into an existing LLM pipeline in a few lines. Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath.
 
 ## LangChain (`packages/langchain-memtrace`)
@@ -13158,29 +13046,6 @@ INSERT INTO memory_nodes
    trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
-  ('mem_inq006_en','1.0','ws_spec0001_en','Gap (tech debt): single source of truth for schema/sql vs migrations','inquiry','markdown','Investigation found: at runtime `core.database.run_migrations()` applies `packages/api/migrations/*.sql` (currently only three files, 054–056); `schema/sql/` is numbered up to 112, yet neither contains the CREATE TABLE SQL for base tables like `inquiry_paths`. `test_inquiry_paths.py` asserts the table exists directly (without creating it), implying there is another base-schema mechanism (likely a one-time external load in shared-postgres), but its source is not present in this repo.
-
-**Open design questions:**
-
-1. **Which is authoritative?** Is `schema/sql/` a spec document, or the migrations actually executed? Is `migrations/` only incremental patches?
-2. **Where is the base schema?** Is shared-postgres an external CI fixture, or is there an uncommitted init script?
-3. **Fix direction:** complete `migrations/` to cover the full table-creation history, or switch to `schema/sql/` as the single source and update the deployment flow?
-4. **Urgency:** Phase 6 features are unaffected (all reuse existing tables). But if the next batch of features needs a new migration, this gap must be clarified first.
-',
-   ARRAY['inquiry', 'gap', 'tech-debt', 'schema', 'migrations', 'database']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','72e8b80651f25ae2c69763898229cf151278ecf59b60e64eb7761625078ebcc7','ai',
-   0.7,0.8,1.0,0.9,0.9,
-   0,0,0,0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   trust_score,dim_accuracy,dim_freshness,dim_utility,dim_author_rep,
-   votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
-VALUES
   ('mem_k001_en','1.0','ws_spec0001_en','Knowledge Base: the container workspace','factual','plain','A Knowledge Base (Workspace) is the container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Users can create multiple Knowledge Bases. A Knowledge Base has its own sharing level (public / restricted / private), independent from node-level visibility — effective access is the more restrictive of the two. A Knowledge Base may be started blank or bootstrapped from a document with AI extraction. ID format: ws_<hex8>.',
    ARRAY['knowledge-base', 'workspace', 'container']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4','human',
    0.95,0.95,1.0,0.9,0.9,
@@ -14208,10 +14073,10 @@ cd packages/api && python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt && cd ../...
 
-# 4. Start the database (auto-applies all schema/sql/*.sql on first run)
+# 4. Start the database container (empty Postgres only; schema not yet applied)
 docker compose up -d
 
-# 5. Start the API
+# 5. Start the API (runs run_migrations() on startup, applying packages/api/migrations/ per MANIFEST.txt)
 cd packages/api && uvicorn main:app --reload --port 8000
 
 # 6. Start the UI (separate terminal)
@@ -14234,20 +14099,24 @@ INSERT INTO memory_nodes
    votes_up,votes_down,verifications,traversal_count,unique_traverser_count)
 VALUES
   ('mem_w003_en','1.0','ws_spec0001_en','Spec KB Initialization','procedural','markdown','## How is the Spec KB created?
-The Spec Knowledge Base (`ws_spec0001`) is created automatically by `schema/sql/099_seed_spec_kb.sql`.
+The Spec Knowledge Base (`ws_spec0001`) is created by `packages/api/migrations/003_seed_spec_kb.sql` (generated by `scripts/seed_spec_kb.py`).
 
-When you run `docker compose up`, PostgreSQL''s init mechanism executes all `*.sql` files under `schema/sql/` in order. `099_seed_spec_kb.sql` runs last, creating the workspace and inserting 30 nodes and their edges.
+This file is intentionally **not** listed in `packages/api/migrations/MANIFEST.txt` — seed data is not a schema migration, so `run_migrations()` does not apply it automatically. Apply it manually once, per `docs/DEPLOYMENT.md`:
+```bash
+docker exec -i memtrace-db psql -U memtrace -d memtrace \
+  < packages/api/migrations/003_seed_spec_kb.sql
+```
 
 ## Verify
 ```bash
 docker exec -it memtrace-db psql -U memtrace -d memtrace \
   -c "SELECT COUNT(*) FROM memory_nodes WHERE workspace_id=''ws_spec0001'' AND status=''active'';"
-# Expected: 30
 ```
 
 ## Reset Spec KB
 ```bash
-docker compose down -v && docker compose up -d
+docker compose down -v && docker compose up -d   # rebuild an empty DB
+# then re-apply 003_seed_spec_kb.sql manually (see above)
 ```',
    ARRAY['dev', 'seed', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0.8,0.8,1.0,0.8,0.8,
@@ -15694,10 +15563,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_inq005_inq001','ws_spec0001','mem_inq005','mem_inq001','depends_on',0.7,365.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_inq006_ws001','ws_spec0001','mem_inq006','mem_ws001','related_to',0.7,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)

@@ -192,13 +192,12 @@ def upsert_edges(cur, edges: list[dict], ws_id: str):
 
 # ── SQL generation ──────────────────────────────────────────────────────────────
 
-# Generated seed SQL outputs. The generator writes identical SQL to every path
-# here so the migration and its schema-history mirror never hand-drift. The
-# first path is canonical (the migration that actually runs); the second is a
-# generated mirror. --check compares the regenerated SQL against exactly these.
+# Generated seed SQL output. This is the single canonical copy — the migration
+# that actually runs. --check compares the regenerated SQL against exactly this.
+# (The docs/schema-history/ dual-write mirror was retired 2026-07-26; see
+# ws_spec_plan/mem_d880867b.)
 SQL_OUTPUT_PATHS = [
     REPO_ROOT / "packages" / "api" / "migrations" / "003_seed_spec_kb.sql",  # canonical
-    REPO_ROOT / "docs" / "schema-history" / "003_seed_spec_kb.sql",          # generated mirror
 ]
 COMMITTED_SQL_PATHS = SQL_OUTPUT_PATHS
 
