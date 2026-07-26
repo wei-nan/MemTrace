@@ -15,8 +15,7 @@ def test_llama_index_vector_store_sync():
         body="Body of test.",
         tags=["test"],
         visibility="private",
-        author="admin",
-        trust_score=0.8
+        author="admin"
     )
 
     with patch("llama_index_memtrace.vector_store.MemTraceClient") as MockClient:
@@ -75,8 +74,7 @@ async def test_llama_index_vector_store_async():
         body="Body of async test.",
         tags=[],
         visibility="private",
-        author="admin",
-        trust_score=0.8
+        author="admin"
     )
 
     with patch("llama_index_memtrace.vector_store.MemTraceClient") as MockClient:

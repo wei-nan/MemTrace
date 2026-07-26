@@ -5996,13 +5996,13 @@ VALUES
 
 | 層 | 狀態 |
 |----|------|
-| core（型別/decay/簽章/trust 計算）| ✅ |
-| SQL schema（001_init + 28 migrations）| ✅ |
+| core（型別/decay/簽章）| ✅ |
+| SQL schema（1.0 baseline）| ✅ |
 | api/core（database/security/AI 抽象）| ✅ |
 | api/routers/auth（登入/JWT/密碼重設）| ✅ |
 | api/routers/kb（workspace/node/edge/roles）| ✅ |
 | api/routers/ingest（PDF/Markdown 攝入）| ✅ |
-| mcp server（stdio+SSE / read+write+vote_trust tools）| ✅ |
+| mcp server（stdio+SSE / read+write tools）| ✅ |
 | ui（Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics）| ✅ |
 
 ## Phase 4 完成項目
@@ -6011,7 +6011,6 @@ VALUES
 |------|------|------|
 | P4-A | 知識庫健康儀表板 + Token 效率報告 | ✅ |
 | P4-B | Spec-as-KB 升級為對外展示首頁 | ✅ |
-| P4-C | MCP vote_trust 工具 + Trust 4 維投票 API | ✅ |
 | P4-D | CLI ingest/copy-node/init、Core contentTypeHalfLife/SHA-256、Scheduler jobs | ✅ |
 | P4-G | 自管 Ollama Provider（本機/LAN/Reverse Proxy）| ✅ |',
    ARRAY['dev', 'workflow', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
@@ -12275,13 +12274,13 @@ VALUES
 
 | Layer | Status |
 |-------|--------|
-| core (types/decay/signature/trust computation) | ✅ |
-| SQL schema (001_init + 28 migrations) | ✅ |
+| core (types/decay/signature) | ✅ |
+| SQL schema (1.0 baseline) | ✅ |
 | api/core (database/security/AI abstraction) | ✅ |
 | api/routers/auth (login/JWT/password reset) | ✅ |
 | api/routers/kb (workspace/node/edge/roles) | ✅ |
 | api/routers/ingest (PDF/Markdown ingestion) | ✅ |
-| mcp server (stdio+SSE / read+write+vote_trust tools) | ✅ |
+| mcp server (stdio+SSE / read+write tools) | ✅ |
 | ui (Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics) | ✅ |
 
 ## Phase 4 Completed Tasks
@@ -12290,7 +12289,6 @@ VALUES
 |------|------|--------|
 | P4-A | KB health dashboard + token efficiency report | ✅ |
 | P4-B | Spec-as-KB upgraded to public demo homepage | ✅ |
-| P4-C | MCP vote_trust tool + 4-dimension trust vote API | ✅ |
 | P4-D | CLI ingest/copy-node/init, Core contentTypeHalfLife/SHA-256, Scheduler jobs | ✅ |
 | P4-G | Self-hosted Ollama provider (local/LAN/reverse proxy) | ✅ |',
    ARRAY['dev', 'workflow', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',

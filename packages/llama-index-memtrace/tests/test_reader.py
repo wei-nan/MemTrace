@@ -13,8 +13,7 @@ def test_memtrace_reader():
         body="Body of test node.",
         tags=["test"],
         visibility="private",
-        author="admin",
-        trust_score=0.8
+        author="admin"
     )
 
     with patch("llama_index_memtrace.reader.MemTraceClient") as MockClient:

@@ -3,7 +3,8 @@ tests/test_contradiction.py — admission-time contradiction detection.
 
 Verifies the generalized contradiction check (services/contradiction.py):
 on a detected contradiction the NEW node is marked 'conflicted', a contradicts
-edge is created, and an audit proposal is raised (high severity vs a >0.9 node).
+edge is created, and an audit proposal is raised (high severity when the
+contradicted node is established — human-confirmed or heavily traversed).
 """
 from __future__ import annotations
 
@@ -16,15 +17,19 @@ from services.contradiction import detect_and_flag_contradictions
 _VEC = "[" + ",".join(["0.02"] * 1536) + "]"
 
 
-def _seed_pair(cur, ws_id, target_trust=0.95):
-    """Insert a high-trust target node and a new node with identical embeddings."""
+def _seed_pair(cur, ws_id, target_traversals=15):
+    """Insert a target node and a new node with identical embeddings.
+
+    target_traversals drives the severity path: >= HIGH_SEVERITY_TRAVERSAL_COUNT
+    (10) makes the target 'established', so contradicting it is high severity.
+    """
     cur.execute(
         """
-        INSERT INTO memory_nodes (id, workspace_id, content_type, author, signature, title, body, trust_score, embedding)
+        INSERT INTO memory_nodes (id, workspace_id, content_type, author, signature, title, body, traversal_count, embedding)
         VALUES ('contra_target', %s, 'factual', 'usr_seed', 'sig_t', 'Target', 'The sky is blue.', %s, %s::vector)
-        ON CONFLICT (id) DO UPDATE SET embedding = EXCLUDED.embedding, trust_score = EXCLUDED.trust_score, status = 'active'
+        ON CONFLICT (id) DO UPDATE SET embedding = EXCLUDED.embedding, traversal_count = EXCLUDED.traversal_count, status = 'active'
         """,
-        (ws_id, target_trust, _VEC),
+        (ws_id, target_traversals, _VEC),
     )
     cur.execute(
         """
@@ -44,7 +49,7 @@ class TestContradictionDetection:
         conn = db_transaction
         ws_id = "ws_spec0001"
         with conn.cursor() as cur:
-            _seed_pair(cur, ws_id, target_trust=0.95)
+            _seed_pair(cur, ws_id)
 
             with patch("services.contradiction.resolve_provider", return_value=MagicMock()), \
                  patch("services.contradiction.chat_completion",
@@ -66,7 +71,7 @@ class TestContradictionDetection:
             )
             assert cur.fetchone() is not None
 
-            # high-severity proposal (target trust 0.95 > 0.9)
+            # high-severity proposal (target is established: 15 traversals)
             cur.execute(
                 "SELECT severity, category FROM audit_proposals WHERE workspace_id = %s AND reviewer = 'contradiction_detector' AND 'contra_new' = ANY(target_ids)",
                 (ws_id,),
@@ -81,7 +86,7 @@ class TestContradictionDetection:
         conn = db_transaction
         ws_id = "ws_spec0001"
         with conn.cursor() as cur:
-            _seed_pair(cur, ws_id, target_trust=0.5)
+            _seed_pair(cur, ws_id)
 
             with patch("services.contradiction.resolve_provider", return_value=MagicMock()), \
                  patch("services.contradiction.chat_completion",

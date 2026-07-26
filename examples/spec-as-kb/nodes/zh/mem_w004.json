@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "## 完成進度（Phase 1–4）\n\n| 層 | 狀態 |\n|----|------|\n| core（型別/decay/簽章/trust 計算）| ✅ |\n| SQL schema（001_init + 28 migrations）| ✅ |\n| api/core（database/security/AI 抽象）| ✅ |\n| api/routers/auth（登入/JWT/密碼重設）| ✅ |\n| api/routers/kb（workspace/node/edge/roles）| ✅ |\n| api/routers/ingest（PDF/Markdown 攝入）| ✅ |\n| mcp server（stdio+SSE / read+write+vote_trust tools）| ✅ |\n| ui（Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics）| ✅ |\n\n## Phase 4 完成項目\n\n| 任務 | 目標 | 狀態 |\n|------|------|------|\n| P4-A | 知識庫健康儀表板 + Token 效率報告 | ✅ |\n| P4-B | Spec-as-KB 升級為對外展示首頁 | ✅ |\n| P4-C | MCP vote_trust 工具 + Trust 4 維投票 API | ✅ |\n| P4-D | CLI ingest/copy-node/init、Core contentTypeHalfLife/SHA-256、Scheduler jobs | ✅ |\n| P4-G | 自管 Ollama Provider（本機/LAN/Reverse Proxy）| ✅ |"
+    "body": "## 完成進度（Phase 1–4）\n\n| 層 | 狀態 |\n|----|------|\n| core（型別/decay/簽章）| ✅ |\n| SQL schema（1.0 baseline）| ✅ |\n| api/core（database/security/AI 抽象）| ✅ |\n| api/routers/auth（登入/JWT/密碼重設）| ✅ |\n| api/routers/kb（workspace/node/edge/roles）| ✅ |\n| api/routers/ingest（PDF/Markdown 攝入）| ✅ |\n| mcp server（stdio+SSE / read+write tools）| ✅ |\n| ui（Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics）| ✅ |\n\n## Phase 4 完成項目\n\n| 任務 | 目標 | 狀態 |\n|------|------|------|\n| P4-A | 知識庫健康儀表板 + Token 效率報告 | ✅ |\n| P4-B | Spec-as-KB 升級為對外展示首頁 | ✅ |\n| P4-D | CLI ingest/copy-node/init、Core contentTypeHalfLife/SHA-256、Scheduler jobs | ✅ |\n| P4-G | 自管 Ollama Provider（本機/LAN/Reverse Proxy）| ✅ |"
   },
   "tags": [
     "dev",

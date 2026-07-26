@@ -385,12 +385,10 @@ class TestExtractedFromIntegration:
                     """
                     INSERT INTO memory_nodes (
                         id, workspace_id, title, content_type, content_format, body,
-                        tags, visibility, author, signature, source_type, status,
-                        trust_score, dim_author_rep, dim_freshness
+                        tags, visibility, author, signature, source_type, status
                     ) VALUES (
                         'mem_test_doc_node', 'ws_spec0001', 'test_doc.txt', 'document', 'plain', 'Doc body',
-                        '{}', 'private', 'system', 'sig1', 'document', 'active',
-                        1.0, 1.0, 1.0
+                        '{}', 'private', 'system', 'sig1', 'document', 'active'
                     ) ON CONFLICT DO NOTHING
                     """
                 )
@@ -398,12 +396,10 @@ class TestExtractedFromIntegration:
                     """
                     INSERT INTO memory_nodes (
                         id, workspace_id, title, content_type, content_format, body,
-                        tags, visibility, author, signature, source_type, status,
-                        trust_score, dim_author_rep, dim_freshness
+                        tags, visibility, author, signature, source_type, status
                     ) VALUES (
                         'mem_test_knowledge_node', 'ws_spec0001', 'Test Knowledge', 'factual', 'plain', 'Knowledge body',
-                        '{}', 'private', 'system', 'sig2', 'human', 'active',
-                        1.0, 1.0, 1.0
+                        '{}', 'private', 'system', 'sig2', 'human', 'active'
                     ) ON CONFLICT DO NOTHING
                     """
                 )
@@ -459,12 +455,10 @@ class TestExtractedFromIntegration:
                     """
                     INSERT INTO memory_nodes (
                         id, workspace_id, title, content_type, content_format, body,
-                        tags, visibility, author, signature, source_type, status,
-                        trust_score, dim_author_rep, dim_freshness
+                        tags, visibility, author, signature, source_type, status
                     ) VALUES (
                         'mem_doc_node_1', 'ws_spec0001', 'doc_test_1.txt', 'document', 'plain', 'Doc body',
-                        '{}', 'private', 'system', 'sig1', 'document', 'active',
-                        1.0, 1.0, 1.0
+                        '{}', 'private', 'system', 'sig1', 'document', 'active'
                     ) ON CONFLICT DO NOTHING
                     """
                 )
@@ -473,12 +467,10 @@ class TestExtractedFromIntegration:
                     """
                     INSERT INTO memory_nodes (
                         id, workspace_id, title, content_type, content_format, body,
-                        tags, visibility, author, signature, source_type, status,
-                        trust_score, dim_author_rep, dim_freshness
+                        tags, visibility, author, signature, source_type, status
                     ) VALUES (
                         'mem_know_node_1', 'ws_spec0001', 'Test Knowledge 1', 'factual', 'plain', 'Knowledge body',
-                        '{}', 'private', 'system', 'sig2', 'human', 'active',
-                        1.0, 1.0, 1.0
+                        '{}', 'private', 'system', 'sig2', 'human', 'active'
                     ) ON CONFLICT DO NOTHING
                     """
                 )

@@ -163,7 +163,6 @@ class TestInquiryPathsIntegration:
                 assert rows[0]["source_info"] == "search-miss"
                 node_data = rows[0]["node_data"]
                 assert node_data["content_type"] == "gap"
-                assert node_data["trust_score"] == 0.3
                 assert node_data["body"] == "missing feature request"
 
                 # 3. Running it again with same query should NOT create duplicate proposal
