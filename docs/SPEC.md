@@ -253,7 +253,10 @@ The server uses **PostgreSQL 17 + pgvector** as the primary data store. All mult
 #### Infrastructure
 - Container image: `pgvector/pgvector:pg17`
 - Managed via `docker-compose.yml` at the repository root
-- Schema auto-applied from `schema/sql/001_init.sql` on first `docker compose up`
+- Schema applied automatically on API server startup (`run_migrations()` in
+  `packages/api/core/database.py`), executing each file listed in
+  `packages/api/migrations/MANIFEST.txt` in order; applied filenames are
+  tracked in the `schema_migrations` table
 - Data persisted in Docker volume `memtrace_pgdata`
 
 #### Tables

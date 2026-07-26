@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "## 前置需求\n- Node.js 20 LTS+\n- Python **3.11+**\n- Docker Desktop（啟動 PostgreSQL 17 + pgvector）\n\n## 啟動開發環境\n```bash\n# 1. 複製環境設定\ncp .env.example .env  # 填入 POSTGRES_PASSWORD 與 SECRET_KEY\n\n# 2. 安裝 Node 相依\nnpm install\n\n# 3. 安裝 Python 相依\ncd packages/api && python -m venv venv\nsource venv/bin/activate  # macOS/Linux\npip install -r requirements.txt && cd ../...\n\n# 4. 啟動資料庫（首次自動執行所有 schema/sql/*.sql）\ndocker compose up -d\n\n# 5. 啟動 API\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 6. 啟動 UI（另一個終端機）\ncd packages/ui && npm run dev\n```\n\nAPI：http://localhost:8000 / UI：http://localhost:5173"
+    "body": "## 前置需求\n- Node.js 20 LTS+\n- Python **3.11+**\n- Docker Desktop（啟動 PostgreSQL 17 + pgvector）\n\n## 啟動開發環境\n```bash\n# 1. 複製環境設定\ncp .env.example .env  # 填入 POSTGRES_PASSWORD 與 SECRET_KEY\n\n# 2. 安裝 Node 相依\nnpm install\n\n# 3. 安裝 Python 相依\ncd packages/api && python -m venv venv\nsource venv/bin/activate  # macOS/Linux\npip install -r requirements.txt && cd ../...\n\n# 4. 啟動資料庫容器（僅建立空白 Postgres，schema 尚未套用）\ndocker compose up -d\n\n# 5. 啟動 API（啟動時執行 run_migrations()，依 packages/api/migrations/MANIFEST.txt 順序套用所有 migration）\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 6. 啟動 UI（另一個終端機）\ncd packages/ui && npm run dev\n```\n\nAPI：http://localhost:8000 / UI：http://localhost:5173"
   },
   "tags": [
     "dev",

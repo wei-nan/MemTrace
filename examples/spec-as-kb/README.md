@@ -37,7 +37,10 @@ edges/
 The split is reproducible: `scripts/split_spec_kb_bilingual.py` regenerates
 `nodes/zh`, `nodes/en`, and the two edge files from a flat bilingual source.
 `scripts/seed_spec_kb.py` loads both workspaces and regenerates
-`schema/sql/003_seed_spec_kb.sql` (used for Docker first-init).
+`packages/api/migrations/003_seed_spec_kb.sql`. This file is intentionally
+**not** listed in `packages/api/migrations/MANIFEST.txt` — seed data is not a
+schema migration, so `run_migrations()` does not apply it automatically. See
+`docs/DEPLOYMENT.md` for the manual apply command.
 
 ---
 

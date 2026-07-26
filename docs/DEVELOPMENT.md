@@ -91,24 +91,30 @@ docker compose up -d
 
 On first run, Docker will:
 1. Pull `pgvector/pgvector:pg17`.
-2. Create the database with the credentials from `.env`.
-3. Auto-execute every file under `schema/sql/` in numeric order — `001_init.sql` creates the core tables, `002_*.sql` through `023_*.sql` are sequential migrations, and `099_seed_spec_kb.sql` seeds the public spec-as-KB workspace.
+2. Create an empty database with the credentials from `.env`.
+
+Schema is **not** applied by the database container's init mechanism. The
+API container applies it on startup: `run_migrations()` (in
+`packages/api/core/database.py`) executes each file listed in
+`packages/api/migrations/MANIFEST.txt`, in order, starting from
+`000_baseline.sql`.
 
 **Migration convention:** new schema changes are added as a new numbered file,
 never by editing existing files. Every runtime migration must also be added to
 `packages/api/migrations/MANIFEST.txt`; only manifest entries are executed.
 This prevents historical or scratch SQL files from being applied accidentally.
 
+**Public Spec-as-KB seed data** (`003_seed_spec_kb.sql`) is deliberately
+*not* in the manifest — seed data isn't a schema migration, so it's applied
+manually. See `docs/DEPLOYMENT.md` for the command.
+
 ### 2.2 Manual Schema Initialization
 
-If the database was already created or you need to re-run the initialization:
+If the database was already created or you need to re-run migrations
+manually (outside of the API container's normal startup):
 
 ```bash
-# Using Docker
-docker exec -i memtrace-db psql -U memtrace -d memtrace < schema/sql/001_init.sql
-
-# Using local psql (if installed)
-psql -h localhost -U memtrace -d memtrace -f schema/sql/001_init.sql
+docker exec -i memtrace-api python -c "from core.database import run_migrations; run_migrations()"
 ```
 
 ### 2.3 SQLite Fallback (Alternative)
@@ -244,11 +250,14 @@ memtrace/
 │
 ├── schema/
 │   ├── node.v1.json         Memory Node JSON Schema (AJV-validated)
-│   ├── edge.v1.json         Edge JSON Schema
-│   └── sql/                 Sequential migrations applied on docker compose up
-│       ├── 001_init.sql         Core tables, enums, indexes, SQL functions
-│       ├── 002_*.sql … 023_*.sql Numbered migrations (add new ones; never edit old ones)
-│       └── 099_seed_spec_kb.sql  Public spec-as-KB seed (runs last)
+│   └── edge.v1.json         Edge JSON Schema
+│
+├── packages/api/migrations/  Runtime migrations, applied by run_migrations()
+│   ├── MANIFEST.txt         Only listed files are executed, in order
+│   ├── 000_baseline.sql     Full schema baseline (pg_dump)
+│   ├── NNN_*.sql            Numbered migrations (add new ones; never edit old ones)
+│   └── 003_seed_spec_kb.sql Public spec-as-KB seed — NOT in MANIFEST, applied
+│                             manually (see docs/DEPLOYMENT.md)
 │
 ├── packages/
 │   │
@@ -332,14 +341,16 @@ The system exposes tools via the Model Context Protocol (MCP).
 
 1. Edit `schema/node.v1.json` or `schema/edge.v1.json`.
 2. Update `packages/core/src/schema.ts` if you added required fields.
-3. Update `schema/sql/001_init.sql` for any new DB columns.
-4. Run `docker compose down -v && docker compose up -d` to apply the DDL change to a fresh DB.
+3. Add a new numbered file under `packages/api/migrations/` for the DB column
+   change and register it in `packages/api/migrations/MANIFEST.txt`.
+4. Run `docker compose down -v && docker compose up -d` to rebuild a fresh
+   DB, then restart the API container so `run_migrations()` applies it.
 5. Update `docs/SPEC.md` (§4 and §10) to document the change.
 
 ### Modifying the Decay Engine
 
 - Logic lives in `packages/core/src/decay.ts`.
-- The SQL mirror is `apply_edge_decay()` in `schema/sql/001_init.sql`.
+- The SQL mirror is `apply_edge_decay()` in `packages/api/migrations/000_baseline.sql`.
 - Both must stay in sync — update them together and note the change in `docs/SPEC.md` §7.
 
 ---

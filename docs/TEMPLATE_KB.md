@@ -21,7 +21,7 @@ It is easy to confuse three related-but-different artifacts. Keep them straight:
 | Artifact | What it is | Where it lives | Who reads it |
 |----------|-----------|----------------|--------------|
 | **`examples/spec-as-kb/`** (this template) | A static set of 30 JSON node files + 1 edges file | Repo only | Developers learning the schema |
-| **`ws_spec0001`** (live KB) | A running, public workspace seeded from this template, then grown over time with AI-extracted nodes | Database, applied via `schema/sql/099_seed_spec_kb.sql` | Any logged-in user — appears in their workspace list |
+| **`ws_spec0001`** (live KB) | A running, public workspace seeded from this template, then grown over time with AI-extracted nodes | Database, applied manually via `packages/api/migrations/003_seed_spec_kb.sql` (see `docs/DEPLOYMENT.md`) | Any logged-in user — appears in their workspace list |
 | **A new user's first KB** | An **empty** workspace created during onboarding | Per-user (no preload) | The user themselves |
 
 > A new user does **not** receive a copy of spec-as-KB on signup. They build their own KB from scratch (the onboarding wizard guides them through it). They will, however, see `ws_spec0001` in their workspace list because it is `visibility=public`. That public KB is the entry point we use to demonstrate MemTrace at conferences and onboarding sessions.
@@ -66,7 +66,7 @@ The template uses MemTrace's four canonical edge types (defined in `mem_g003` an
 
 1. **Schema Reference** — open any file under `nodes/*.json` for a real-world example of `schema/node.v1.json`. Open `edges/edges.json` for `schema/edge.v1.json`.
 2. **Logical Blueprint** — trace any node's edges to see how a feature requirement (e.g. AI extraction) connects back to its data-model foundations.
-3. **Seeding Template** — `schema/sql/099_seed_spec_kb.sql` was generated from this template (with later AI-extracted additions). To bootstrap a *fresh* spec-as-KB without the historical drift, re-import directly from these JSON files.
+3. **Seeding Template** — `packages/api/migrations/003_seed_spec_kb.sql` was generated from this template (with later AI-extracted additions). To bootstrap a *fresh* spec-as-KB without the historical drift, re-import directly from these JSON files.
 
 ---
 

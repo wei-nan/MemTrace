@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "## Prerequisites\n- Node.js 20 LTS+\n- Python **3.11+**\n- Docker Desktop (runs PostgreSQL 17 + pgvector)\n\n## Start the Dev Environment\n```bash\n# 1. Copy env config\ncp .env.example .env  # fill in POSTGRES_PASSWORD and SECRET_KEY\n\n# 2. Install Node dependencies\nnpm install\n\n# 3. Install Python dependencies\ncd packages/api && python -m venv venv\nsource venv/bin/activate\npip install -r requirements.txt && cd ../...\n\n# 4. Start the database (auto-applies all schema/sql/*.sql on first run)\ndocker compose up -d\n\n# 5. Start the API\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 6. Start the UI (separate terminal)\ncd packages/ui && npm run dev\n```\n\nAPI: http://localhost:8000 / UI: http://localhost:5173"
+    "body": "## Prerequisites\n- Node.js 20 LTS+\n- Python **3.11+**\n- Docker Desktop (runs PostgreSQL 17 + pgvector)\n\n## Start the Dev Environment\n```bash\n# 1. Copy env config\ncp .env.example .env  # fill in POSTGRES_PASSWORD and SECRET_KEY\n\n# 2. Install Node dependencies\nnpm install\n\n# 3. Install Python dependencies\ncd packages/api && python -m venv venv\nsource venv/bin/activate\npip install -r requirements.txt && cd ../...\n\n# 4. Start the database container (empty Postgres only; schema not yet applied)\ndocker compose up -d\n\n# 5. Start the API (runs run_migrations() on startup, applying packages/api/migrations/ per MANIFEST.txt)\ncd packages/api && uvicorn main:app --reload --port 8000\n\n# 6. Start the UI (separate terminal)\ncd packages/ui && npm run dev\n```\n\nAPI: http://localhost:8000 / UI: http://localhost:5173"
   },
   "tags": [
     "dev",

@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "## Spec KB 是如何建立的？\n規格知識庫（`ws_spec0001`）由 `schema/sql/099_seed_spec_kb.sql` 自動建立。\n\n`docker compose up` 時，PostgreSQL init 機制依序執行 `schema/sql/` 下所有 `*.sql`，`099_seed_spec_kb.sql` 最後執行，建立工作區、寫入 30 個節點與對應邊。\n\n## 驗證\n```bash\ndocker exec -it memtrace-db psql -U memtrace -d memtrace \\\n  -c \"SELECT COUNT(*) FROM memory_nodes WHERE workspace_id='ws_spec0001' AND status='active';\"\n# 預期：30\n```\n\n## 重置 Spec KB\n```bash\ndocker compose down -v && docker compose up -d\n```"
+    "body": "## Spec KB 是如何建立的？\n規格知識庫（`ws_spec0001`）由 `packages/api/migrations/003_seed_spec_kb.sql`（由 `scripts/seed_spec_kb.py` 產生）建立。\n\n此檔案刻意**不**列在 `packages/api/migrations/MANIFEST.txt`——種子資料不是 schema migration，`run_migrations()` 不會自動套用它。需依 `docs/DEPLOYMENT.md` 手動執行一次：\n```bash\ndocker exec -i memtrace-db psql -U memtrace -d memtrace \\\n  < packages/api/migrations/003_seed_spec_kb.sql\n```\n\n## 驗證\n```bash\ndocker exec -it memtrace-db psql -U memtrace -d memtrace \\\n  -c \"SELECT COUNT(*) FROM memory_nodes WHERE workspace_id='ws_spec0001' AND status='active';\"\n```\n\n## 重置 Spec KB\n```bash\ndocker compose down -v && docker compose up -d   # 重建空白 DB\n# 接著重新手動套用 003_seed_spec_kb.sql（見上）\n```"
   },
   "tags": [
     "dev",

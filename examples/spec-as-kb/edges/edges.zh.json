@@ -5909,25 +5909,6 @@
     }
   },
   {
-    "id": "edge_inq006_ws001",
-    "from": "mem_inq006",
-    "to": "mem_ws001",
-    "relation": "related_to",
-    "weight": 0.7,
-    "co_access_count": 0,
-    "last_co_accessed": null,
-    "decay": {
-      "half_life_days": 365.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "weight": 1.0,
     "co_access_count": 0,
     "last_co_accessed": "2026-06-13T00:00:00+00:00",
