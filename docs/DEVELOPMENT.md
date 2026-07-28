@@ -249,7 +249,7 @@ integration tests.
 ```
 memtrace/
 ├── docs/
-│   ├── SPEC.md              Full product specification (canonical)
+│   ├── SPEC.md              Frozen snapshot (2026-07-28); canonical spec is the KB
 │   ├── DEVELOPMENT.md       This file
 │   ├── DESIGN_SYSTEM.md     Color tokens, component rules, theme spec
 │   ├── TEMPLATE_KB.md       Reference for the spec-as-KB template
@@ -356,13 +356,17 @@ The system exposes tools via the Model Context Protocol (MCP).
    change and register it in `packages/api/migrations/MANIFEST.txt`.
 4. Run `docker compose down -v && docker compose up -d` to rebuild a fresh
    DB, then restart the API container so `run_migrations()` applies it.
-5. Update `docs/SPEC.md` (§4 and §10) to document the change.
+5. Document the change in the spec seed under `examples/spec-as-kb/nodes/zh/`
+   and `.../en/`, then run `python scripts/seed_spec_kb.py --write` to refresh
+   the generated SQL. The seed is canonical; `docs/SPEC.md` is a frozen
+   snapshot and must not be updated for this.
 
 ### Modifying the Decay Engine
 
 - Logic lives in `packages/core/src/decay.ts`.
 - The SQL mirror is `apply_edge_decay()` in `packages/api/migrations/000_baseline_v1.sql`.
-- Both must stay in sync — update them together and note the change in `docs/SPEC.md` §7.
+- Both must stay in sync — update them together and note the change in the
+  spec seed (`examples/spec-as-kb/`), not in `docs/SPEC.md` (frozen snapshot).
 
 ---
 

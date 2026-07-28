@@ -10,7 +10,9 @@ MemTrace is designed for **knowledge inheritance**: when someone new joins a pro
 
 It works equally well for human-to-human, human-to-AI, and AI-to-AI knowledge sharing. Every contributor writes into the same graph.
 
-→ Documentation Index: [docs/README.md](docs/README.md) · Full specification: [docs/SPEC.md](docs/SPEC.md) · Developer setup: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+→ Documentation Index: [docs/README.md](docs/README.md) · Canonical spec: the spec knowledge base, seeded from [examples/spec-as-kb/](examples/spec-as-kb/) · Developer setup: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+
+[docs/SPEC.md](docs/SPEC.md) is a frozen snapshot (2026-07-28) kept as the benchmark baseline — useful as a narrative overview, but the knowledge base is authoritative.
 
 ---
 
@@ -89,7 +91,7 @@ packages/
 memtrace/
 ├── docs/
 │   ├── README.md            Documentation directory index
-│   ├── SPEC.md              Full specification
+│   ├── SPEC.md              Frozen snapshot (2026-07-28); canonical spec is the KB
 │   └── DEVELOPMENT.md       Developer setup guide
 ├── schema/
 │   ├── node.v1.json         Memory Node JSON Schema

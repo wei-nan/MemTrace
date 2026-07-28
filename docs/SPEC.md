@@ -1,5 +1,34 @@
 # MemTrace Specification
 
+> ## ⚠️ Frozen snapshot — not the canonical specification
+>
+> **Frozen as of 2026-07-28.** This document is no longer updated when product
+> behavior changes, and it will drift from the running system over time.
+>
+> **The canonical specification is the public spec knowledge base** —
+> `ws_spec0001` (Chinese) and `ws_spec0001_en` (English) — generated from the
+> single source of truth in [`examples/spec-as-kb/`](../examples/spec-as-kb/).
+> That path is guarded by a blocking CI gate
+> ([`.github/workflows/spec-sync.yml`](../.github/workflows/spec-sync.yml));
+> this file never was. To learn how the system actually behaves, query the KB
+> or read the seed nodes — do not rely on this document.
+>
+> **Why it is kept rather than deleted.** It is the baseline fixture for the
+> KB-efficiency benchmark (`scripts/benchmark/run_benchmark.py`) and the
+> control group for [`VALIDATION.md`](VALIDATION.md): the measurement compares
+> the cost of reading this whole document against querying a few KB nodes.
+> Freezing it makes that denominator stable, and therefore the comparison more
+> honest.
+>
+> **If you need to change spec content**, change the seed JSON and the spec KB.
+> Edits here are limited to fixing this banner, correcting outright errors
+> (noted inline), and repairing links.
+>
+> There is a certain irony in a 3,000-line document whose own §1 states that the
+> goal is to reach answers "by following the shortest possible path through a
+> graph … rather than reading through large documents." This banner is that
+> sentence being taken seriously.
+
 ## 1. Introduction
 MemTrace is an open platform for building shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to allow any human or AI agent to reach any answer by following the shortest possible path through a graph of small, typed relationships — rather than reading through large documents. This specification outlines all core components, including Memory Schema, Edge Schema, provenance and content integrity, and the Decay engine.
 

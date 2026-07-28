@@ -16,8 +16,9 @@ the rest of this section.
 - [ ] G3 passed (verification covers the changed behavior)
 - [ ] Outcome written back to `ws_spec_plan` — node ID: `mem_______`
 - [ ] Public spec surfaces updated if public behavior changed
-      (`ws_spec0001` / `ws_spec0001_en` / `docs/SPEC.md` / `examples/spec-as-kb/`)
+      (`ws_spec0001` / `ws_spec0001_en` / `examples/spec-as-kb/`)
       — or "not applicable" with a reason
+      (`docs/SPEC.md` is a frozen snapshot as of 2026-07-28; do not update it)
 
 ## Gate Verdict
 

@@ -198,13 +198,20 @@ Update all applicable surfaces:
 
 - public Chinese spec KB: `ws_spec0001`;
 - public English spec KB: `ws_spec0001_en`;
-- repo public specification document: `docs/SPEC.md`;
 - bilingual seed nodes under `examples/spec-as-kb/nodes/zh/` and
   `examples/spec-as-kb/nodes/en/`;
 - seed edges under `examples/spec-as-kb/edges/`;
 - seed or migration helpers such as `scripts/seed_spec_kb.py` and
   `packages/api/migrations/003_seed_spec_kb.sql` when the change affects
   bootstrap data.
+
+`docs/SPEC.md` is deliberately **not** on that list. It was demoted to a frozen
+snapshot on 2026-07-28 and is no longer updated for behavior changes; the seed
+JSON and the spec KBs are canonical. Keeping it as one more surface to
+hand-maintain is precisely why it drifted — of the surfaces above, only the
+seed path has a blocking CI gate, and it was the only one that stayed correct.
+The file is retained as the benchmark baseline fixture. See `ws_spec_plan`
+`mem_30aedc3c` (decision) and `mem_661845d4` (plan).
 
 Do not copy private planning text directly into public specs. Convert it into
 stable public product language, in Chinese and English, and preserve private

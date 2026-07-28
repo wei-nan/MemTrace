@@ -19,8 +19,9 @@
 
 ### 核心規格與開發 (Core Specifications & Development)
 
-- **[SPEC.md](SPEC.md)** — **系統完整規格書 (Full Specification)**
+- **[SPEC.md](SPEC.md)** — **凍結快照 (Frozen Snapshot, 2026-07-28)**
   涵蓋數據模型（Node v1 / Edge v1）、衰減引擎（Decay Engine）、存取控制、外部 REST API、MCP 服務端整合、OpenAI API 相容端點與 CLI / SDK 規範。
+  ⚠️ **非權威來源**：本檔已停止隨產品行為更新，僅保留為 benchmark 基準線與敘事性概覽。權威規格為公開 spec 知識庫（`ws_spec0001` / `ws_spec0001_en`），其唯一事實來源為 [`examples/spec-as-kb/`](../examples/spec-as-kb/)，並由 CI 阻擋式閘門守護。
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** — **開發者指南 (Developer Setup Guide)**
   包含 Monorepo 環境建置（Node.js / Python / Docker）、資料庫初始化（PostgreSQL 17 + pgvector）、單元測試與端到端測試執行方法。
 
