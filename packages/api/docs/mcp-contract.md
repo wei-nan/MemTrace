@@ -126,6 +126,7 @@ Full-text + semantic search within a workspace. Supports Chinese/CJK.
 | `max_response_tokens` | integer | | Token budget cap |
 | `include_archived` | boolean | | Whether to include archived nodes (default: false) |
 | `include_answered_inquiries` | boolean | | Whether to include resolved inquiry nodes (default: false) |
+| `include_superseded` | boolean | | Whether to include superseded/withdrawn spec-validity nodes (default: false) |
 
 ---
 
@@ -183,6 +184,7 @@ Update an existing knowledge node.
 | `content_format` | string | | `"plain"` or `"markdown"` |
 | `tags` | string[] | | |
 | `visibility` | string | | |
+| `resolution_status` | string | | `"open"` · `"resolved"` · `"superseded"` |
 
 **Output**:
 
@@ -494,6 +496,7 @@ interface Node {
 | `queried_via_mcp` | 0.2 | Node was involved in an MCP query |
 | `extracted_from` | 0.6 | Knowledge node was extracted from a document node (Phase 6.1) |
 | `proceeds_to` | 0.9 | Conditional next step in a troubleshooting/workflow graph. Use `edge.metadata.condition` to specify when this path is taken (Phase 6.3) |
+| `superseded_by` | 1.0 | Source node is no longer valid; target is the node that replaces it. Mutually exclusive with `extends` on the same pair (spec validity, 2026-07-26) |
 
 ### Detail Levels
 
