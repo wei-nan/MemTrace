@@ -494,7 +494,7 @@ interface Node {
 | `answered_by` | 1.0 | Inquiry answered by target node |
 | `similar_to` | 0.4 | Similar topics or concepts |
 | `queried_via_mcp` | 0.2 | Node was involved in an MCP query |
-| `extracted_from` | 0.6 | Knowledge node was extracted from a document node (Phase 6.1) |
+| `extracted_from` | 1.0 | Knowledge node was extracted from a document node (Phase 6.1) |
 | `proceeds_to` | 0.9 | Conditional next step in a troubleshooting/workflow graph. Use `edge.metadata.condition` to specify when this path is taken (Phase 6.3) |
 | `superseded_by` | 1.0 | Source node is no longer valid; target is the node that replaces it. Mutually exclusive with `extends` on the same pair (spec validity, 2026-07-26) |
 

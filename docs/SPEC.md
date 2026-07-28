@@ -323,7 +323,7 @@ Clusters are per-workspace and created on demand by the AI extraction pipeline o
 | `id`              | TEXT PK       | e.g. `edge_xyz789`             |
 | `from_id`         | TEXT FK       | → `memory_nodes.id`            |
 | `to_id`           | TEXT FK       | → `memory_nodes.id`            |
-| `relation`        | ENUM          | depends_on / extends / related_to / contradicts / answered_by / similar_to / queried_via_mcp _(deprecated — no longer written; node-level MCP access is recorded in traversal_log by actor_id)_ |
+| `relation`        | ENUM          | depends_on / extends / related_to / contradicts / answered_by / similar_to / extracted_from / proceeds_to / superseded_by / queried_via_mcp _(deprecated — no longer written; node-level MCP access is recorded in traversal_log by actor_id)_ |
 | `weight`          | NUMERIC(6,5)  | 0–1, updated by decay          |
 | `status`          | ENUM          | active / faded / pinned; faded edges are hidden from default traversal |
 | `co_access_count` | INTEGER       |                                |
@@ -466,8 +466,8 @@ Edge creation fields:
     reverse direction — these carry no direction, so `a→b` and `b→a` may not coexist
     (also enforced structurally by a DB unique index);
   - a `related_to` on a pair already joined by a specific relation (`depends_on`,
-    `extends`, `answered_by`, `contradicts`, `proceeds_to`, `extracted_from`) —
-    prefer the specific edge.
+    `extends`, `answered_by`, `contradicts`, `proceeds_to`, `extracted_from`,
+    `superseded_by`) — prefer the specific edge.
 - On creation, `co_access_count` is set to `0` and `last_co_accessed` to the current timestamp.
 
 #### 9.3.5 Editing an Existing Node
