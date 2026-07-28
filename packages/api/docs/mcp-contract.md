@@ -158,7 +158,6 @@ Create a new knowledge node.
 | `tags` | string[] | | Tag array |
 | `visibility` | string | | `"public"` · `"team"` · `"private"` (default) |
 | `source_type` | string | | `"human"` (default) or `"ai"` |
-| `trust_score` | number | | 0.0–1.0 |
 
 **Output**:
 
@@ -184,7 +183,6 @@ Update an existing knowledge node.
 | `content_format` | string | | `"plain"` or `"markdown"` |
 | `tags` | string[] | | |
 | `visibility` | string | | |
-| `trust_score` | number | | |
 
 **Output**:
 
@@ -272,7 +270,7 @@ Return the MemTrace schema — content types, relations, field definitions.
 ---
 
 ### `list_review_queue`
-List nodes in the pending-review queue (low trust or flagged).
+List nodes in the pending-review queue (awaiting review or flagged).
 
 **Input**: `workspace_id` (required), `limit` (optional, default 20)
 
@@ -452,11 +450,6 @@ interface Node {
   tags: string[];
   visibility: "public" | "team" | "private";
   author: string;            // user_id
-  trust_score: number;       // 0.0–1.0 composite
-  dim_accuracy: number;      // 0.0–1.0 accuracy dimension
-  dim_freshness: number;     // 0.0–1.0 freshness dimension
-  dim_utility: number;       // 0.0–1.0 utility dimension
-  dim_author_rep: number;    // 0.0–1.0 author reputation dimension
   traversal_count: number;
   status: NodeStatus;
   source_type: "human" | "ai" | "document" | "mcp";
@@ -487,7 +480,6 @@ interface Node {
 | `gap` | Knowledge gap identified — inquiry node auto-created for a search miss |
 | `conflicted` | Contradiction detected with another node |
 | `answered` | Inquiry that has been resolved |
-| `answered-low-trust` | Resolved inquiry with trust score below threshold |
 
 ### Relations
 
