@@ -238,6 +238,14 @@ python ../../scripts/benchmark/run_benchmark.py --output ../../scripts/benchmark
 1. **涵蓋率為結構性指標，非語意正確性**：確認「節點被取到」，但不驗證 AI 是否得出正確答案
 2. **KB 內容準確性依賴人工維護**：涵蓋率高但若節點描述過時，答案仍可能錯誤
 3. **benchmark 不模擬真實 MCP 呼叫**：實際 AI agent 查詢策略可能不同
+4. **Token 計算校準對象為 OpenAI，非產品實際主要消費端**：`run_benchmark.py` 用
+   `tiktoken.encoding_for_model("gpt-4")`（`cl100k_base`）量測全部數字，分子分母
+   同一把尺、內部自洽，不是 2026-07-25 撤下的公開規格 82.1% 節省率那種「分子
+   分母用不同估算器」問題。但 MemTrace 的 MCP 消費端目前以 Claude Code / Claude
+   agent 為主，Anthropic 無公開分詞器，`cl100k_base` 對其 token 數僅為近似值。
+   本文件與 `results.json` 的所有倍數/節省率數字，應理解為「以 OpenAI 分詞器
+   校準的相對比較」，不是「Claude 實際 token 用量」。跨廠商校準方法待訂
+   （見 `ws_spec_plan` 對應議題）。
 
 ---
 
