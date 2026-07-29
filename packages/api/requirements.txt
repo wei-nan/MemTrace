@@ -129,6 +129,8 @@ pyyaml==6.0.3
     # via
     #   -r /app/requirements.in
     #   uvicorn
+regex==2026.7.19
+    # via tiktoken
 requests==2.33.1
     # via
     #   -r /app/requirements.in
@@ -144,6 +146,8 @@ six==1.17.0
 starlette==1.0.0
     # via fastapi
 tabulate==0.10.0
+    # via -r /app/requirements.in
+tiktoken==0.13.0
     # via -r /app/requirements.in
 typing-extensions==4.15.0
     # via
