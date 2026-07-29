@@ -88,7 +88,9 @@ async def record_path_in_db(
         try:
             resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
             vector, tokens = await embed(resolved, query_text)
-            record_usage(resolved, "record_path", tokens, ws_id)
+            # "record_path" is not a valid ai_feature enum value; this call embeds
+            # query_text, so it belongs under the existing "embedding" feature.
+            record_usage(resolved, "embedding", tokens, ws_id)
             query_emb = vector
         except Exception as exc:
             logger.error(f"Failed to generate embedding for record_path: {exc}")
@@ -143,7 +145,9 @@ async def search_with_history_in_db(
     try:
         resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
         vector, tokens = await embed(resolved, query_text)
-        record_usage(resolved, "search_with_history", tokens, ws_id)
+        # "search_with_history" is not a valid ai_feature enum value; this call
+        # embeds query_text, so it belongs under the existing "embedding" feature.
+        record_usage(resolved, "embedding", tokens, ws_id)
     except Exception as exc:
         logger.error(f"Embedding failed in search_with_history: {exc}")
         return []
