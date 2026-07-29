@@ -791,7 +791,12 @@ class GeminiProvider(AIProvider):
             if not resp.is_success:
                 raise AIProviderError(f"Gemini embed {resp.status_code}: {resp.text[:400]}")
             data = resp.json()
-            return data["embedding"]["values"], 0  # Gemini embedding usage unknown
+            # Gemini's embedContent response has no usageMetadata (unlike
+            # generateContent), so there is no real token count to read. Estimate
+            # from the input text instead of recording a false 0.
+            from core.token_estimator import TokenEstimator
+            estimated_tokens = TokenEstimator.estimate(text, provider="gemini", mode="lexical")
+            return data["embedding"]["values"], estimated_tokens
 
     async def extract_structured(self, resolved, system, user_message,
                                   max_tokens=4096, temperature=0.2):
