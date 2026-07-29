@@ -824,7 +824,7 @@ KB-type-aware metrics include isolated subgraphs and average edges per node for 
 
 Note: `full_context_reduction_ratio` is measured against a counterfactual baseline — it assumes the alternative behaviour is loading the entire knowledge base into context. That baseline grows with the knowledge base, so the ratio improves automatically and **must not be used as a performance guarantee or an external claim**. A prior published token-savings figure was withdrawn on 2026-07-25 for this reason. A vendor-comparable measurement method is being revised (tokenizers differ per vendor).
 
-Data is recorded in `mcp_query_logs` for read tools. These analytics describe structure and use; they do not establish content correctness.
+Data is recorded in `retrieval_logs`, covering both MCP-triggered search and web-UI chat retrieval (not MCP calls alone — see `mem_a005_en` for the full breakdown). These analytics describe structure and use; they do not establish content correctness.
 
 ## UI component
 
@@ -832,7 +832,7 @@ Data is recorded in `mcp_query_logs` for read tools. These analytics describe st
 
 ---
 
-This node is a condensed companion to `mem_a005_en`, which carries the full field-by-field reference. It is not currently managed by the `examples/spec-as-kb/` seed source of truth; consolidation is pending review.',
+This node is a condensed companion to `mem_a005_en`, which carries the full field-by-field reference. It is managed by the `examples/spec-as-kb/` seed source of truth.',
    ARRAY['analytics', 'dashboard', 'token-efficiency', 'kb-health', 'mcp-logs', 'ui', 'mcp-tool']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
    3,1)
 ON CONFLICT (id) DO UPDATE SET
@@ -2376,14 +2376,14 @@ VALUES
 
 | 欄位 | 說明 |
 |------|------|
-| `avg_tokens_per_query` | 本月 MCP 呼叫平均回傳 token 數 |
+| `avg_tokens_per_query` | 近 30 日平均每次查詢回傳的 token 數 |
 | `estimated_full_doc_tokens` | 全部 active 節點 body 串接後的估算 token 數（經 TokenEstimator 統一估算）|
 | `full_context_reduction_ratio` | `1 - avg_per_query / full_doc`，相對於「載入整個知識庫」的縮減比率 |
-| `monthly_query_count` | 本月 MCP 呼叫次數 |
+| `monthly_query_count` | 近 30 日查詢次數 |
 
 註：`full_context_reduction_ratio` 的分母為反事實假設——它假定替代行為是把整個知識庫載入脈絡。該分母隨知識庫成長而變大，因此比率會自動改善，**不應作為效能承諾或對外主張**。此欄位僅供單一工作區內的相對觀察。跨廠商可比的量測方法修訂中（分詞器因廠商而異）。
 
-資料來源：`mcp_query_logs` 表。每次 MCP read tool（search_nodes / traverse / get_node / list_by_tag）呼叫後非同步寫入一筆 log，記錄 `tool_name`、`result_node_count`、`estimated_tokens`、`provider`。
+資料來源：`retrieval_logs` 表。每次語意搜尋（`mode=''search''`）或聊天檢索（`mode=''chat''`）產生查詢時非同步寫入一筆 log，記錄 `tokens_query`、`tokens_context`、`hit_node_ids`、`similarities`——涵蓋透過 MCP 工具與網頁介面（Analytics／Chat）觸發的查詢，非僅限 MCP 呼叫。詳見 [[mem_ta001]]。（另有 `mcp_query_logs` 表記錄個別 MCP read tool 呼叫明細，供系統管理員專用的 `/admin/monitor/mcp-query-logs` 端點使用，與本指標為不同資料來源，勿混淆。）
 
 ## UI 元件
 
@@ -6974,7 +6974,7 @@ KB-type-aware metrics include isolated subgraphs and average edges per node for 
 
 Note: `full_context_reduction_ratio` is measured against a counterfactual baseline — it assumes the alternative behaviour is loading the entire knowledge base into context. That baseline grows with the knowledge base, so the ratio improves automatically and **must not be used as a performance guarantee or an external claim**. A prior published token-savings figure was withdrawn on 2026-07-25 for this reason. A vendor-comparable measurement method is being revised (tokenizers differ per vendor).
 
-Data is recorded in `mcp_query_logs` for read tools. These analytics describe structure and use; they do not establish content correctness.
+Data is recorded in `retrieval_logs`, covering both MCP-triggered search and web-UI chat retrieval (not MCP calls alone — see `mem_a005_en` for the full breakdown). These analytics describe structure and use; they do not establish content correctness.
 
 ## UI component
 
@@ -6982,7 +6982,7 @@ Data is recorded in `mcp_query_logs` for read tools. These analytics describe st
 
 ---
 
-This node is a condensed companion to `mem_a005_en`, which carries the full field-by-field reference. It is not currently managed by the `examples/spec-as-kb/` seed source of truth; consolidation is pending review.',
+This node is a condensed companion to `mem_a005_en`, which carries the full field-by-field reference. It is managed by the `examples/spec-as-kb/` seed source of truth.',
    ARRAY['analytics', 'dashboard', 'token-efficiency', 'kb-health', 'mcp-logs', 'ui', 'mcp-tool']::text[],'public','system','2026-04-29T00:00:00+00:00','','human',
    3,1)
 ON CONFLICT (id) DO UPDATE SET
@@ -8528,14 +8528,14 @@ VALUES
 
 | Field | Description |
 |-------|-------------|
-| `avg_tokens_per_query` | Average tokens returned per MCP call this month |
+| `avg_tokens_per_query` | Average tokens returned per query over the last 30 days |
 | `estimated_full_doc_tokens` | Estimated tokens for all active node bodies concatenated (measured via TokenEstimator) |
 | `full_context_reduction_ratio` | `1 - avg_per_query / full_doc`, the reduction relative to loading the entire knowledge base |
-| `monthly_query_count` | MCP call count this month |
+| `monthly_query_count` | Query count over the last 30 days |
 
 Note: the denominator of `full_context_reduction_ratio` is a counterfactual — it assumes the alternative behaviour is loading the entire knowledge base into context. That denominator grows with the knowledge base, so the ratio improves automatically and **must not be used as a performance guarantee or an external claim**. Treat the field as a relative observation within a single workspace. A vendor-comparable measurement method is being revised (tokenizers differ per vendor).
 
-Data source: `mcp_query_logs` table. Each MCP read tool call (search_nodes / traverse / get_node / list_by_tag) writes one log entry asynchronously, recording `tool_name`, `result_node_count`, `estimated_tokens`, and `provider`.
+Data source: `retrieval_logs` table. Each semantic search (`mode=''search''`) or chat retrieval (`mode=''chat''`) query writes one log entry asynchronously, recording `tokens_query`, `tokens_context`, `hit_node_ids`, and `similarities` — covering queries triggered via MCP tools and the web UI (Analytics/Chat), not MCP calls alone. See [[mem_ta001_en]]. (A separate `mcp_query_logs` table records per-MCP-read-tool-call detail, used by the system-admin-only `/admin/monitor/mcp-query-logs` endpoint — a distinct data source from this metric.)
 
 ## UI component
 
