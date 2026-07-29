@@ -17,8 +17,12 @@ _TIKTOKEN_ENCODER = None
 try:
     import tiktoken
     _TIKTOKEN_ENCODER = tiktoken.get_encoding("cl100k_base")
-except Exception:
+except Exception as e:
     _TIKTOKEN_ENCODER = None
+    logger.warning(
+        f"tiktoken unavailable ({e}); TokenEstimator will fall back to the "
+        "lexical heuristic for vendor-mode estimates."
+    )
 
 
 class TokenEstimator:
@@ -57,7 +61,9 @@ class TokenEstimator:
                 try:
                     return len(_TIKTOKEN_ENCODER.encode(text))
                 except Exception as e:
-                    logger.debug(f"tiktoken encoding failed: {e}")
+                    logger.warning(
+                        f"tiktoken encoding failed ({e}); falling back to lexical estimate."
+                    )
 
         # Fallback for Anthropic / Gemini / Cursor / Ollama or when tiktoken is unavailable
         return TokenEstimator.estimate_lexical(text)
