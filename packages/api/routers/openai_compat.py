@@ -328,6 +328,7 @@ async def chat_completions(
         completion_id = f"chatcmpl-{int(time.time() * 1000)}"
         created_time = int(time.time())
         total_tokens = 0
+        full_response_text = ""
         try:
             async for chunk, tokens in chat_stream(
                 resolved,
@@ -338,6 +339,7 @@ async def chat_completions(
                 if tokens > 0:
                     total_tokens = tokens
                 if chunk:
+                    full_response_text += chunk
                     chunk_payload = {
                         "id": completion_id,
                         "object": "chat.completion.chunk",
@@ -392,8 +394,14 @@ async def chat_completions(
             }
             yield f"data: {json.dumps(final_payload, ensure_ascii=False)}\n\n"
 
-            # Record usage in background
-            record_usage(resolved, "extraction", total_tokens or 100, workspace_id)
+            # Record usage in background. When the provider doesn't report real
+            # usage mid-stream, estimate from the actual response text instead
+            # of recording an arbitrary constant.
+            record_usage(
+                resolved, "extraction",
+                total_tokens or estimate_tokens(full_response_text),
+                workspace_id
+            )
 
         except Exception as e:
             error_payload = {
