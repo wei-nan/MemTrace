@@ -88,12 +88,18 @@ async def record_path_in_db(
         try:
             resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
             vector, tokens = await embed(resolved, query_text)
-            # "record_path" is not a valid ai_feature enum value; this call embeds
-            # query_text, so it belongs under the existing "embedding" feature.
-            record_usage(resolved, "embedding", tokens, ws_id)
-            query_emb = vector
         except Exception as exc:
             logger.error(f"Failed to generate embedding for record_path: {exc}")
+        else:
+            # Embedding succeeded (and was already billed by the provider) — keep
+            # the vector even if usage accounting below fails.
+            query_emb = vector
+            try:
+                # "record_path" is not a valid ai_feature enum value; this call
+                # embeds query_text, so it belongs under "embedding".
+                record_usage(resolved, "embedding", tokens, ws_id)
+            except Exception as exc:
+                logger.warning(f"Failed to record token usage for record_path embedding: {exc}")
 
     # Generate path ID
     path_id = generate_id("path")
@@ -145,12 +151,16 @@ async def search_with_history_in_db(
     try:
         resolved = resolve_provider(user_id, "embedding", preferred_provider=ws_prov, preferred_model=ws_model)
         vector, tokens = await embed(resolved, query_text)
-        # "search_with_history" is not a valid ai_feature enum value; this call
-        # embeds query_text, so it belongs under the existing "embedding" feature.
-        record_usage(resolved, "embedding", tokens, ws_id)
     except Exception as exc:
         logger.error(f"Embedding failed in search_with_history: {exc}")
         return []
+
+    try:
+        # "search_with_history" is not a valid ai_feature enum value; this call
+        # embeds query_text, so it belongs under "embedding".
+        record_usage(resolved, "embedding", tokens, ws_id)
+    except Exception as exc:
+        logger.warning(f"Failed to record token usage for search_with_history embedding: {exc}")
 
     # 2. Vector search on inquiry_paths
     # Note: query_emb <=> %s::vector is the cosine distance, so 1 - distance is similarity
