@@ -1,9 +1,11 @@
 name: Release Loop (G4 Spec-Sync)
 
-# DRAFT — not yet enabled. Do not merge this trigger as `pull_request` until
-# secrets and commit-back permissions have been reviewed (see checklist below
-# and ws_6aa957c3/mem_cc085a90). Currently wired to `workflow_dispatch` only
-# so it can be tested manually without firing on every matching PR.
+# DRAFT — not yet enabled. Do not switch the trigger to `pull_request` until
+# at least one manual workflow_dispatch run has been reviewed end-to-end (see
+# checklist below and ws_6aa957c3/mem_cc085a90). The agent logic itself now
+# has a real implementation (scripts/release_loop_agent.py), but it has never
+# been run against a live Gemini/MemTrace endpoint from this environment —
+# treat the first run as a test, not a production gate.
 #
 # Purpose: closes the gap that spec-sync.yml does not cover. spec-sync.yml
 # only checks that the seed JSON, generated SQL, and live public KB agree
@@ -15,28 +17,30 @@ name: Release Loop (G4 Spec-Sync)
 # CI regression check, there is no "let it through, fix later" option —
 # see the "Blocking semantics" section in mem_cc085a90.
 #
-# Provider decision (2026-07-30): Gemini, not Claude/Anthropic — this project
-# already ships a GeminiProvider (packages/api/core/ai.py) that calls
-# generativelanguage.googleapis.com directly, and GEMINI_API_KEY is already an
-# established secret name in .env.example. Reuse both, do not invent new ones.
-# Model id is a plain string param — pick a current Pro-tier model at run time
-# rather than hardcoding a version string (see "Dynamic-only policy" note,
-# ws_spec_plan/mem_6ee3ee82 — hardcoded model ids in this codebase are a known
-# drift risk). Flash-tier is not recommended here: this step does judgment
-# work (semantic correctness, zh<->en translation fidelity), not quick chat.
+# Provider (2026-07-30): Gemini, not Claude/Anthropic — this project already
+# ships a GeminiProvider (packages/api/core/ai.py) calling
+# generativelanguage.googleapis.com directly, and GEMINI_API_KEY is already
+# an established secret name in .env.example. Model id is not hardcoded as
+# "correct" — release_loop_agent.py verifies GEMINI_MODEL against the live
+# /v1beta/models list before use and fails loudly on a mismatch, per this
+# project's "no hardcoded model id" convention (ws_spec_plan/mem_6ee3ee82).
 #
-# Before switching the trigger to `pull_request`, this needs:
-#   1. Repo secret GEMINI_API_KEY (agent calls) — name matches .env.example.
-#   2. Repo secret MEMTRACE_API_KEY (writes gate_verdict evidence to
-#      ws_spec_plan) — name matches docs/SPEC.md:1265's documented env var.
-#   3. A commit-back strategy: GITHUB_TOKEN can push to same-repo PR branches,
-#      but not to branches from forks. Default assumption (2026-07-30, not yet
-#      explicitly confirmed): this repo's PRs are same-repo feature branches,
-#      not external forks, so plain GITHUB_TOKEN push-back is sufficient for
-#      v1 — fork handling (comment-only fallback) deferred until it's an
-#      actual case, not built preemptively.
-#   4. A cost/rerun policy: does every push to the PR re-trigger the agent,
-#      or only the first push / a manual re-run label? Not yet decided.
+# Required repo secrets (configured 2026-07-30):
+#   - GEMINI_API_KEY
+#   - MEMTRACE_API_KEY
+# Required repo variable (NOT a secret — it's a hostname, not sensitive;
+# still unset as of this commit, needs to be added under Settings > Secrets
+# and variables > Actions > Variables before the first run):
+#   - MEMTRACE_BASE_URL (e.g. https://api.memtrace.example.com)
+#
+# Commit-back assumption (2026-07-30, accepted, not re-litigated here): PRs
+# in this repo are same-repo feature branches, not external forks, so the
+# default GITHUB_TOKEN's push permission is sufficient. Forked-PR handling
+# (comment-only fallback, since GITHUB_TOKEN can't push to a fork) is
+# deliberately not built — add it if/when an actual forked PR shows up.
+#
+# Rerun policy on repeated pushes: not yet decided — this workflow currently
+# reruns in full on every workflow_dispatch invocation. No debouncing.
 
 on:
   workflow_dispatch:
@@ -59,59 +63,68 @@ on:
   #     - 'packages/api/routers/openai_compat.py'
   #     - 'packages/api/routers/exports.py'
 
+permissions:
+  contents: write       # commit-back to the PR branch (same-repo only, see above)
+  pull-requests: write  # comment on REJECT
+
 jobs:
   release-loop:
     runs-on: ubuntu-latest
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       MEMTRACE_API_KEY: ${{ secrets.MEMTRACE_API_KEY }}
-      # User preference (2026-07-30): a high-capability model, given as
-      # "gemini-3.6-flash". NOT verified against Google's live model list —
-      # this assistant's knowledge cutoff (Jan 2026) predates whatever model
-      # generation this is, so the exact API id/suffix (e.g. a
-      # "-preview-MMDD" tag, same pattern as this repo's own
-      # GeminiProvider.default_chat_model) could differ. The "invoke Gemini"
-      # step below MUST call GET /v1beta/models (same call already used by
-      # GeminiProvider.list_models() in core/ai.py) and match against this
-      # value before using it, per this project's own "no hardcoded model
-      # id" convention (ws_spec_plan/mem_6ee3ee82) — fail loudly if no match
-      # instead of silently falling back to a different model.
+      MEMTRACE_BASE_URL: ${{ vars.MEMTRACE_BASE_URL }}
       GEMINI_MODEL: gemini-3.6-flash
+      GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Resolve PR ref
+        id: pr
+        run: |
+          gh pr view "${{ github.event.inputs.pr_number }}" \
+            --repo "${{ github.repository }}" \
+            --json headRefName,baseRefName,isCrossRepository \
+            > pr.json
+          echo "head_ref=$(jq -r .headRefName pr.json)" >> "$GITHUB_OUTPUT"
+          echo "base_ref=$(jq -r .baseRefName pr.json)" >> "$GITHUB_OUTPUT"
+          cross_repo=$(jq -r .isCrossRepository pr.json)
+          if [ "$cross_repo" = "true" ]; then
+            echo "::error::PR #${{ github.event.inputs.pr_number }} is from a fork. Commit-back via GITHUB_TOKEN will not work (see commit-back assumption in the header comment). Aborting rather than silently failing partway through."
+            exit 1
+          fi
+
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.pr.outputs.head_ref }}
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Fast path — deterministic check first
-        id: fast_check
+      - name: Run Release Loop agent
+        id: agent
+        env:
+          RELEASE_LOOP_BASE_REF: origin/${{ steps.pr.outputs.base_ref }}
         run: |
-          python scripts/seed_spec_kb.py --check
-        continue-on-error: true
+          python3 scripts/release_loop_agent.py
 
-      # TODO: if fast_check passed, the seed was already hand-updated in this
-      # PR — the agent step below should run in *review* mode (semantic
-      # correctness + zh/en translation fidelity only) instead of *draft*
-      # mode (author the content from scratch). Not yet implemented.
-
-      # TODO: invoke Gemini (plain REST call to
-      # generativelanguage.googleapis.com, same pattern as GeminiProvider in
-      # packages/api/core/ai.py — no need for a full agentic CLI harness here,
-      # this can be a bounded script: one call to draft/review content, then
-      # hand off to the existing deterministic seed_spec_kb.py tooling) against
-      # the G4 checklist in ws_6aa957c3/mem_5d8c6ff8:
-      #   - draft or review examples/spec-as-kb/nodes/{zh,en}/*.json for the
-      #     changed public surface
-      #   - run `python scripts/seed_spec_kb.py --write` to regenerate SQL
-      #   - produce a gate_verdict (PASS/REJECT) and write it to ws_spec_plan
-      #   - on REJECT, comment on the PR with `missing`/`reasons` and fail
-      #     this job (blocks merge — no retroactive fix-up path for G4)
-      - name: Run spec-sync agent
+      - name: Commit drafted spec content back to the PR branch
+        if: always() && steps.agent.outcome != 'skipped'
         run: |
-          echo "release-loop: agent invocation not yet implemented — see TODOs above"
-          exit 1
+          if ! git diff --quiet -- examples/spec-as-kb/ packages/api/migrations/003_seed_spec_kb.sql; then
+            git config user.name "release-loop-agent"
+            git config user.email "release-loop-agent@users.noreply.github.com"
+            git add examples/spec-as-kb/ packages/api/migrations/003_seed_spec_kb.sql
+            git commit -m "chore(release-loop): draft spec content for public behavior change" \
+                        -m "Automated by release_loop_agent.py (G4). Verdict evidence written to ws_spec_plan. Review before this PR merges — this is drafted content, not a human-authored spec update."
+            git push origin "HEAD:${{ steps.pr.outputs.head_ref }}"
+          else
+            echo "no spec content changes to commit back"
+          fi
 
-      - name: Final deterministic re-check
+      - name: Comment on PR if REJECT
+        if: failure() && steps.agent.outcome == 'failure'
         run: |
-          python scripts/seed_spec_kb.py --check
+          gh pr comment "${{ github.event.inputs.pr_number }}" \
+            --repo "${{ github.repository }}" \
+            --body "**Release Loop (G4) REJECT** — see the Actions run log for the full gate_verdict (missing/reasons). This blocks merge; the verdict has also been written to \`ws_spec_plan\` for reference. No retroactive fix-up path for G4 — resolve on this branch and rerun."
