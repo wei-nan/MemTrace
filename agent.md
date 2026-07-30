@@ -47,16 +47,34 @@ writes, not repo files.
 Use the Agent Loop pipeline for meaningful project work:
 
 ```text
-Plan -> G1 -> Dev -> G2 -> Verify -> G3 -> Coverage -> Converge
+Plan -> G1 -> Dev -> G2 -> Converge
+                              |
+                              v (commit/push)
+                          CI/CD (clean-environment rerun, outside the loop)
 ```
 
-The gate rules live in the private Agent Loop KB and are summarized in
+As of 2026-07-29, `G2` and the former `G3` are merged into one gate, and
+`Verify`/`Coverage` are no longer separate stages — see KB node `mem_a39b9b57`
+(`ws_6aa957c3`), which supersedes the old `mem_7d7fbdd2` (G2) and `mem_50b2cd36`
+(G3). The gate rules live in the private Agent Loop KB and are summarized in
 `docs/agent-loop-gates.md`. The short rule is:
 
 - `G1` checks whether the plan is specific enough to implement.
-- `G2` checks whether the diff faithfully matches the plan and did not add
-  unrelated work.
-- `G3` checks whether verification meaningfully covers the changed behavior.
+- `Dev` implements the change **and runs the corresponding unit/e2e tests
+  itself** — test execution is deterministic work, not a separate handoff.
+- `G2` (merged) checks two things in one pass: whether the diff faithfully
+  matches the plan (no unrelated work), and whether the tests Dev ran actually
+  cover the change (not just happy-path, not weakened to force a green run).
+  It requires the actual test command + output as evidence, not a claim that
+  tests passed.
+- `CI/CD` is not a pipeline stage. It runs after commit/push, in a clean
+  environment, as a regression backstop for what local runs can't catch
+  (missing deps, uncommitted files, environment drift, flaky tests). This is
+  separate from `G4`/Release Loop (public spec sync) — see "Release Loop"
+  below; the two are not interchangeable and have different blocking rules. A
+  CI failure after Converge is treated as a retroactive REJECT on the
+  already-converged task (same `status:done` -> `status:gate-rejected` /
+  `reject_count` mechanics as any other REJECT).
 - Every gate needs a `gate_verdict` artifact.
 - Missing `gate_verdict` means the stage did not pass.
 - Only `PASS` may advance to the next stage.
@@ -81,7 +99,8 @@ KB semantics, or cross-agent workflow, the following are mandatory:
 3. **Completion happens only through `submit_outcome`.**
    - `success` / `partial` requires an `implementation_node_id`: the node
      recording what changed, the commands run, and verification evidence —
-     the `G2`/`G3` artifact. This evidence, together with the gate verdicts,
+     the merged `G2` artifact (test command + output required, not a pass
+     claim). This evidence, together with the gate verdicts,
      lives in the domain KB (`ws_spec_plan`), linked by edges to the plan and
      development nodes, not in the Agent Loop. `implementation_node_id` may
      therefore be a cross-workspace reference; `submit_outcome` keeps it in the
@@ -166,17 +185,19 @@ work. Write the question to `ws_spec_plan` instead of burying it in code.
 
 ## Verification And Acceptance
 
-Verification is not complete until it can answer both questions:
+The merged `G2` gate is not complete until it can answer all of these
+(scope-fidelity questions and coverage-adequacy questions are one audit now,
+not two handoffs):
 
 - Did the implementation satisfy every accepted requirement?
 - Did the implementation avoid changes outside the accepted scope?
-
-Coverage review is not complete until it can answer:
-
 - Which changed functions, APIs, branches, data paths, or user workflows were
-  tested?
+  tested — with actual command + output as evidence, not a pass claim?
 - Which changed points are still uncovered, and why?
 - Were any tests weakened, skipped, or broadened only to make the run pass?
+- Does test coverage go beyond the happy path for new branches/edge cases?
+  Passing CI or a high coverage percentage does not answer this — it measures
+  lines executed, not assertion strength; read the test diff itself.
 
 Development and acceptance outcomes must be written back to `ws_spec_plan`.
 Include concise evidence: diff summary, test commands, pass/fail status, known
@@ -188,11 +209,59 @@ edges to the plan and development nodes. The Agent Loop keeps only the task
 skeleton and `gate_state`; it references these domain nodes by id rather than
 copying their content. See KB node `mem_41fba6c5`.
 
+## Release Loop (2026-07-30)
+
+There are two parallel pipelines. Do not conflate them:
+
+```text
+Agent Loop (dev loop, runs on a feature branch):
+  Plan -> G1 -> Dev -> G2 (merged) -> Converge -> commit/push -> CI regression (non-blocking, see above)
+
+Release Loop (runs on PR -> main):
+  PR touches trigger paths below -> CI-bound agent -> G4 -> blocks merge
+```
+
+Dev loop no longer authors public spec content inline. It only needs a cheap
+check: does this diff touch a trigger path? If yes, the PR gets a
+`needs-release-loop` label (mechanical, CI-applied) and G4 runs at the
+PR-to-main boundary instead of inside Dev.
+
+**Trigger paths** (confirmed 2026-07-30, based on actual public-spec seed
+coverage, not guesswork — see `mem_cc085a90`):
+
+- `examples/spec-as-kb/**`, `packages/api/core/constants.py`,
+  `packages/api/migrations/**`, `packages/api/services/mcp_tools.py` (TOOLS
+  schema)
+- `packages/api/routers/kb.py`, `mcp.py`, `auth.py`, `registration.py`,
+  `api_keys.py`, `openai_compat.py`, `exports.py`
+
+Explicitly out of scope: `admin.py`, `conductor.py`, `connectors.py`,
+`voice.py`, `audit_proposals.py`, `job_observability.py`, `internal.py` (no
+public-spec coverage found), and `collaboration.py`/`review.py`/`documents.py`/
+`notifications.py` (evidence too thin — user call, not currently included).
+
+**Blocking semantics differ from the Agent Loop's CI backstop above.** The
+Agent Loop's post-Converge CI failure is a retroactive REJECT (task already
+marked done, gets reopened) — acceptable because regression tests are cheap to
+rerun. Release Loop's G4 is a pre-merge hard gate: a public spec is an external
+commitment, so a wrong one must never reach `main` in the first place. There is
+no "let it through, fix later" option here.
+
+**Existing `spec-sync.yml` does not cover this.** It only watches
+`examples/spec-as-kb/**` and the seed/SQL files — it keeps the seed internally
+consistent but never fires when a router file changes public behavior without
+touching the seed. Release Loop's `release-loop.yml` (new, not yet enabled —
+needs secrets/permissions review) is what closes that gap; the two workflows
+are complementary, not redundant. See `mem_cc085a90` for the CI-agent
+execution design and open engineering gaps (commit-back permissions on forked
+PRs, cost control on repeated pushes).
+
 ## Public Spec Synchronization
 
 When final development changes public product behavior, schema, API contracts,
 MCP contracts, workflow semantics, or user-visible guarantees, the work is not
-done until the public specification surfaces are updated.
+done until the public specification surfaces are updated — via the Release
+Loop above, not inline in the feature branch's Dev stage.
 
 Update all applicable surfaces:
 

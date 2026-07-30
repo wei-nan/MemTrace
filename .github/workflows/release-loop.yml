@@ -1,0 +1,117 @@
+name: Release Loop (G4 Spec-Sync)
+
+# DRAFT — not yet enabled. Do not merge this trigger as `pull_request` until
+# secrets and commit-back permissions have been reviewed (see checklist below
+# and ws_6aa957c3/mem_cc085a90). Currently wired to `workflow_dispatch` only
+# so it can be tested manually without firing on every matching PR.
+#
+# Purpose: closes the gap that spec-sync.yml does not cover. spec-sync.yml
+# only checks that the seed JSON, generated SQL, and live public KB agree
+# with *each other* — it never fires when a router file changes public
+# behavior without touching the seed at all. This workflow watches the
+# behavior-side paths and runs an agent to draft/review the corresponding
+# zh/en spec content, then re-runs the deterministic check as a final
+# guard. It is a pre-merge hard gate (G4): unlike the Agent Loop's regular
+# CI regression check, there is no "let it through, fix later" option —
+# see the "Blocking semantics" section in mem_cc085a90.
+#
+# Provider decision (2026-07-30): Gemini, not Claude/Anthropic — this project
+# already ships a GeminiProvider (packages/api/core/ai.py) that calls
+# generativelanguage.googleapis.com directly, and GEMINI_API_KEY is already an
+# established secret name in .env.example. Reuse both, do not invent new ones.
+# Model id is a plain string param — pick a current Pro-tier model at run time
+# rather than hardcoding a version string (see "Dynamic-only policy" note,
+# ws_spec_plan/mem_6ee3ee82 — hardcoded model ids in this codebase are a known
+# drift risk). Flash-tier is not recommended here: this step does judgment
+# work (semantic correctness, zh<->en translation fidelity), not quick chat.
+#
+# Before switching the trigger to `pull_request`, this needs:
+#   1. Repo secret GEMINI_API_KEY (agent calls) — name matches .env.example.
+#   2. Repo secret MEMTRACE_API_KEY (writes gate_verdict evidence to
+#      ws_spec_plan) — name matches docs/SPEC.md:1265's documented env var.
+#   3. A commit-back strategy: GITHUB_TOKEN can push to same-repo PR branches,
+#      but not to branches from forks. Default assumption (2026-07-30, not yet
+#      explicitly confirmed): this repo's PRs are same-repo feature branches,
+#      not external forks, so plain GITHUB_TOKEN push-back is sufficient for
+#      v1 — fork handling (comment-only fallback) deferred until it's an
+#      actual case, not built preemptively.
+#   4. A cost/rerun policy: does every push to the PR re-trigger the agent,
+#      or only the first push / a manual re-run label? Not yet decided.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to run the release loop against'
+        required: true
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'examples/spec-as-kb/**'
+  #     - 'packages/api/core/constants.py'
+  #     - 'packages/api/migrations/**'
+  #     - 'packages/api/services/mcp_tools.py'
+  #     - 'packages/api/routers/kb.py'
+  #     - 'packages/api/routers/mcp.py'
+  #     - 'packages/api/routers/auth.py'
+  #     - 'packages/api/routers/registration.py'
+  #     - 'packages/api/routers/api_keys.py'
+  #     - 'packages/api/routers/openai_compat.py'
+  #     - 'packages/api/routers/exports.py'
+
+jobs:
+  release-loop:
+    runs-on: ubuntu-latest
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      MEMTRACE_API_KEY: ${{ secrets.MEMTRACE_API_KEY }}
+      # User preference (2026-07-30): a high-capability model, given as
+      # "gemini-3.6-flash". NOT verified against Google's live model list —
+      # this assistant's knowledge cutoff (Jan 2026) predates whatever model
+      # generation this is, so the exact API id/suffix (e.g. a
+      # "-preview-MMDD" tag, same pattern as this repo's own
+      # GeminiProvider.default_chat_model) could differ. The "invoke Gemini"
+      # step below MUST call GET /v1beta/models (same call already used by
+      # GeminiProvider.list_models() in core/ai.py) and match against this
+      # value before using it, per this project's own "no hardcoded model
+      # id" convention (ws_spec_plan/mem_6ee3ee82) — fail loudly if no match
+      # instead of silently falling back to a different model.
+      GEMINI_MODEL: gemini-3.6-flash
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fast path — deterministic check first
+        id: fast_check
+        run: |
+          python scripts/seed_spec_kb.py --check
+        continue-on-error: true
+
+      # TODO: if fast_check passed, the seed was already hand-updated in this
+      # PR — the agent step below should run in *review* mode (semantic
+      # correctness + zh/en translation fidelity only) instead of *draft*
+      # mode (author the content from scratch). Not yet implemented.
+
+      # TODO: invoke Gemini (plain REST call to
+      # generativelanguage.googleapis.com, same pattern as GeminiProvider in
+      # packages/api/core/ai.py — no need for a full agentic CLI harness here,
+      # this can be a bounded script: one call to draft/review content, then
+      # hand off to the existing deterministic seed_spec_kb.py tooling) against
+      # the G4 checklist in ws_6aa957c3/mem_5d8c6ff8:
+      #   - draft or review examples/spec-as-kb/nodes/{zh,en}/*.json for the
+      #     changed public surface
+      #   - run `python scripts/seed_spec_kb.py --write` to regenerate SQL
+      #   - produce a gate_verdict (PASS/REJECT) and write it to ws_spec_plan
+      #   - on REJECT, comment on the PR with `missing`/`reasons` and fail
+      #     this job (blocks merge — no retroactive fix-up path for G4)
+      - name: Run spec-sync agent
+        run: |
+          echo "release-loop: agent invocation not yet implemented — see TODOs above"
+          exit 1
+
+      - name: Final deterministic re-check
+        run: |
+          python scripts/seed_spec_kb.py --check
