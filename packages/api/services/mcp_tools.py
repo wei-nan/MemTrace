@@ -183,6 +183,13 @@ MCP_TOOL_PROFILES = {
         "record_path",
         "converge_check",
         "converge_proposals",
+        # get_node/search_nodes are also in "core", but every Agent Loop task
+        # in practice needs to read the task body and search the KB (e.g. for
+        # G1 context, checking prior gate verdicts). A client that requests
+        # only the "agent_loop" profile to save schema tokens would otherwise
+        # be unable to do either. See ws_6aa957c3/mem_177635f3 (optimization log).
+        "get_node",
+        "search_nodes",
     },
     "ingest_docs": {
         "extract_from_text",
@@ -2316,18 +2323,31 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                     except Exception as e:
                         logger.warning(f"submit_outcome B2: failed to flag playbook {pb_id}: {e}")
 
-        # Record path for reinforcement (auto side, no human gate)
+        # Record path for reinforcement (auto side, no human gate). This is
+        # instrumentation for path-reinforcement learning, not the core job of
+        # submit_outcome (recording the outcome + linking evidence, both of
+        # which already committed above) — a failure here must degrade
+        # gracefully rather than make the whole call look like it failed.
+        # See ws_6aa957c3/mem_5cad006f: an embedding-dimension mismatch inside
+        # record_path_in_db used to raise here uncaught, so the caller got a
+        # generic MCP error for a call that had, in fact, already partially
+        # succeeded (status + edge already committed in the transaction above).
+        path_recorded = True
         import datetime as _dt
         from services.inquiry_paths import record_path_in_db
-        with db_cursor(commit=True) as cur:
-            await record_path_in_db(cur, ws_id, user["sub"], {
-                "query_text": message or task_id,
-                "node_sequence": node_seq,
-                "outcome": outcome if outcome != "partial" else "partial",
-                "started_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
-                "token_used": token_used,
-                "metadata": {"task_node_id": task_id, "implementation_node_id": impl_id},
-            })
+        try:
+            with db_cursor(commit=True) as cur:
+                await record_path_in_db(cur, ws_id, user["sub"], {
+                    "query_text": message or task_id,
+                    "node_sequence": node_seq,
+                    "outcome": outcome if outcome != "partial" else "partial",
+                    "started_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+                    "token_used": token_used,
+                    "metadata": {"task_node_id": task_id, "implementation_node_id": impl_id},
+                })
+        except Exception as e:
+            path_recorded = False
+            logger.warning(f"submit_outcome: record_path failed for task {task_id}, outcome already committed: {e}")
 
         log_mcp_interaction(background_tasks, ws_id, name,
                             node_id=task_id, query_text=f"outcome={outcome}")
@@ -2338,6 +2358,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             "message": message,
             "flagged_playbooks": flagged_playbooks,
             "feature_complete_triggered": feature_complete_triggered,
+            "path_recorded": path_recorded,
         }
 
     # ── emit_residue ──────────────────────────────────────────────────────────
