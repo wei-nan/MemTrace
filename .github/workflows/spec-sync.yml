@@ -6,6 +6,14 @@ name: Spec Sync Check
 # en node has no zh source. To refresh after editing seed JSON, run:
 #   python scripts/seed_spec_kb.py --write
 # (zh-without-en is reported as a warning and does not fail the job.)
+#
+# Also runs the doc<->code drift checker (scripts/check_doc_drift.py), which
+# guards the two lines this job's seed-sync check doesn't cover: docs/SPEC.md
+# and packages/api/docs/mcp-contract.md against their live code counterparts
+# (constants.py, mcp_tools.py). Uses a baseline ratchet (scripts/doc_drift_
+# baseline.json) for existing debt — see ws_spec_plan/mem_388cc8e4. Shares this
+# workflow rather than a separate one to avoid multiplying CI jobs for what is
+# still a small number of checks; split out if the checks grow.
 
 on:
   pull_request:
@@ -13,6 +21,12 @@ on:
       - 'examples/spec-as-kb/**'
       - 'scripts/seed_spec_kb.py'
       - 'packages/api/migrations/003_seed_spec_kb.sql'
+      - 'docs/SPEC.md'
+      - 'packages/api/core/constants.py'
+      - 'packages/api/docs/mcp-contract.md'
+      - 'packages/api/services/mcp_tools.py'
+      - 'scripts/check_doc_drift.py'
+      - 'scripts/doc_drift_baseline.json'
 
 jobs:
   spec-sync:
@@ -24,3 +38,5 @@ jobs:
           python-version: '3.11'
       - name: Spec-sync drift check
         run: python scripts/seed_spec_kb.py --check
+      - name: Doc-drift check (SPEC.md / mcp-contract.md vs live code)
+        run: python scripts/check_doc_drift.py --check

@@ -1,0 +1,33 @@
+{
+  "missing_tool_sections": [
+    "claim_task",
+    "consult",
+    "converge_check",
+    "converge_proposals",
+    "delete_edge",
+    "emit_residue",
+    "get_next_task",
+    "get_playbook",
+    "propose_decision",
+    "release_task",
+    "submit_outcome"
+  ],
+  "param_drift": {
+    "create_edge": [
+      "half_life_days",
+      "metadata"
+    ],
+    "get_node": [
+      "debug"
+    ],
+    "list_nodes": [
+      "include_answered_inquiries"
+    ],
+    "search_nodes": [
+      "debug"
+    ],
+    "traverse": [
+      "tool_output"
+    ]
+  }
+}
