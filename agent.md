@@ -1,322 +1,75 @@
 # MemTrace Agent Operating Guide
 
 This file applies to every AI agent working in this repository, including
-Codex, Claude, Gemini, and future model runners. Treat it as the local project
-entry point for agent behavior.
+Codex, Claude, Gemini, and future model runners. It is a thin pointer, not a
+copy of the process it points to — see "Why this file is short" at the end.
 
 ## Authority Order
 
 1. Follow the active system, developer, and user instructions first.
-2. Follow this `agent.md` for repository-specific operating rules.
-3. Use the private Agent Loop KB as the source of truth for workflow mechanics.
-4. Use MemTrace 規格規劃 (`ws_spec_plan`) as the source of truth for product,
-   architecture, and planning conclusions.
-5. Use repo files, tests, and public spec artifacts as implementation evidence.
+2. Follow this `agent.md` for where the real rules live.
+3. Query the private Agent Loop KB (`ws_6aa957c3`, workspace name "Agent
+   Loop") for the current workflow, gate, handoff, and task-state rules.
+   `docs/agent-loop-gates.md` is a repo-side index of the canonical KB node
+   IDs for each gate — use it to find the right node, then query that node
+   live, since the KB can change without this file or that index changing.
+4. Query MemTrace 規格規劃 (`ws_spec_plan`) for product, architecture, and
+   planning conclusions.
+5. Use repo files, tests, and public spec artifacts as implementation
+   evidence.
 
-When these surfaces conflict, do not silently choose one. Record the conflict,
-ask for human direction if the conflict changes product behavior, and write the
+When these surfaces conflict, do not silently pick one. Record the conflict,
+ask for human direction if it changes product behavior, and write the
 unresolved item back to `ws_spec_plan`.
 
-## Required Knowledge Sources
+## Before non-trivial planning, coding, or review work
 
-Before non-trivial planning, coding, or review work:
+- Read this file and `docs/agent-loop-gates.md`.
+- Query `ws_6aa957c3` for the workflow/gate/handoff rules that apply, and
+  `ws_spec_plan` for product/spec context. Don't rely on a prior session's
+  memory of what the gates require — the KB is the source of truth and it
+  changes (gates have been merged and added before without this file
+  changing).
+- Inspect the current repository state before trusting older memory or
+  prior conclusions; repo state wins over stale KB or chat recollection.
 
-- Read this file.
-- Read `docs/agent-loop-gates.md`.
-- Query the private Agent Loop workspace (`ws_6aa957c3`, "Agent Loop") for the
-  current workflow, gate, handoff, and task-state rules.
-- Query `ws_spec_plan` for product/spec context related to the requested work.
-- Inspect the current repository state before trusting older memory or prior
-  conclusions.
+For read-only answers and trivial non-behavioral fixes, use judgment and keep
+this lightweight. For changes to product behavior, schema, public API,
+migrations, KB semantics, or cross-agent workflow, follow the KB's process in
+full — including its task-claim/submit_outcome mechanics, not a paraphrase of
+them.
 
-If MemTrace tools are unavailable, record that as a blocker or limitation in the
-handoff. Do not claim that KB read/write-back happened unless it actually did.
+## MCP setup
 
 MCP access is configured per machine, not committed to git: copy
 `.mcp.json.example` to `.mcp.json` and fill in the real MemTrace URL and API
-key. A fresh checkout without this step has no KB access — treat that as the
-blocker case above.
+key.
 
-Knowledge written back to any KB follows the KB's own 全域行為約束 node
+## If MemTrace MCP is unavailable or erroring
+
+Tell the user directly: you cannot reach MemTrace, so you cannot follow the
+Agent Loop KB's process right now. Do not fabricate KB content, claim a gate
+passed, or claim a task is done without an actual KB write succeeding. Ask
+the user how they want to proceed (skip the loop for this change, wait until
+MCP is configured/fixed, or file the problem as a KB node yourself once
+reachable). This is ordinary AI-human interaction, not a special procedure —
+no separate blocker-node choreography needs to live in this file; once you're
+back in the KB, its own `全域行為約束` node already covers what to record.
+
+## Why this file is short
+
+Workflow stages, gates, the task state machine, checkpoints, the
+done-definition, Release Loop, and public-spec-sync rules live in the KB
+(`ws_6aa957c3`) and its repo-side index (`docs/agent-loop-gates.md`) — not
+here. A full copy used to live in this file, and it caused real drift: the
+KB has merged and added gates since (G2+G3 merged 2026-07-29, Release Loop
+added 2026-07-30) without this file being updated to match, so agents reading
+only this file were working from a stale process. The KB's own behavioral
+rules already say private entry files must not copy the gate rules, only
+point to them — this file previously violated that. Query the KB live
+instead of trusting this file's memory of it.
+
+Knowledge written back to any KB follows that KB's own 全域行為約束 node
 (Traditional Chinese for node content, PII rules, source_type marking). This
 file and other repo docs may be in English; the KB constraint governs KB
 writes, not repo files.
-
-## Agent Loop Workflow
-
-Use the Agent Loop pipeline for meaningful project work:
-
-```text
-Plan -> G1 -> Dev -> G2 -> Converge
-                              |
-                              v (commit/push)
-                          CI/CD (clean-environment rerun, outside the loop)
-```
-
-As of 2026-07-29, `G2` and the former `G3` are merged into one gate, and
-`Verify`/`Coverage` are no longer separate stages — see KB node `mem_a39b9b57`
-(`ws_6aa957c3`), which supersedes the old `mem_7d7fbdd2` (G2) and `mem_50b2cd36`
-(G3). The gate rules live in the private Agent Loop KB and are summarized in
-`docs/agent-loop-gates.md`. The short rule is:
-
-- `G1` checks whether the plan is specific enough to implement.
-- `Dev` implements the change **and runs the corresponding unit/e2e tests
-  itself** — test execution is deterministic work, not a separate handoff.
-- `G2` (merged) checks two things in one pass: whether the diff faithfully
-  matches the plan (no unrelated work), and whether the tests Dev ran actually
-  cover the change (not just happy-path, not weakened to force a green run).
-  It requires the actual test command + output as evidence, not a claim that
-  tests passed.
-- `CI/CD` is not a pipeline stage. It runs after commit/push, in a clean
-  environment, as a regression backstop for what local runs can't catch
-  (missing deps, uncommitted files, environment drift, flaky tests). This is
-  separate from `G4`/Release Loop (public spec sync) — see "Release Loop"
-  below; the two are not interchangeable and have different blocking rules. A
-  CI failure after Converge is treated as a retroactive REJECT on the
-  already-converged task (same `status:done` -> `status:gate-rejected` /
-  `reject_count` mechanics as any other REJECT).
-- Every gate needs a `gate_verdict` artifact.
-- Missing `gate_verdict` means the stage did not pass.
-- Only `PASS` may advance to the next stage.
-
-For small read-only answers, use judgment and keep the process lightweight. For
-changes to product behavior, schema, public API, public docs, migrations, KB
-semantics, or cross-agent workflow, run the full loop.
-
-## Task State Machine (Hard Rules)
-
-The Agent Loop is enforced through the MemTrace task tools, not by narrative
-discipline. For any work that changes code, schema, migrations, public docs,
-KB semantics, or cross-agent workflow, the following are mandatory:
-
-1. **A task node must exist before development starts.** The accepted plan is
-   recorded as an inquiry node in the Agent Loop KB (`ws_6aa957c3`). If no
-   task node exists, create one first — that node is the `G1` artifact. Use
-   `get_next_task` to pick up pending work together with its context bundle.
-2. **Claim before touching code.** Call `claim_task` on the inquiry node. If
-   it returns `claimed=false`, another agent owns it — do not work on it.
-   Claims expire after 30 minutes; re-claim during long-running tasks.
-3. **Completion happens only through `submit_outcome`.**
-   - `success` / `partial` requires an `implementation_node_id`: the node
-     recording what changed, the commands run, and verification evidence —
-     the merged `G2` artifact (test command + output required, not a pass
-     claim). This evidence, together with the gate verdicts,
-     lives in the domain KB (`ws_spec_plan`), linked by edges to the plan and
-     development nodes, not in the Agent Loop. `implementation_node_id` may
-     therefore be a cross-workspace reference; `submit_outcome` keeps it in the
-     task metadata (the `answered_by` edge only forms when both nodes share a
-     workspace). Agent Loop retains only the task skeleton and `gate_state`
-     control flags. See KB node `mem_41fba6c5` (verification/gate-verdict
-     placement).
-   - `failed` must still be submitted — it flags the visited playbooks for
-     human review instead of hiding the failure.
-   - Include `node_sequence` (the nodes consulted) so path reinforcement
-     works.
-4. **No `submit_outcome`, no done.** A task described as finished in chat or
-   in a commit message but lacking a submitted outcome is, by definition, not
-   done.
-5. **Blocked means release.** When a checkpoint fires or context is missing,
-   call `release_task`, write the blocker as an inquiry or decision-draft
-   node, and stop.
-6. **Gate verdicts are KB artifacts.** A `gate_verdict` exists only if it is
-   recorded in the KB (as a node or inside the implementation node). Verbal
-   PASS statements in a chat session do not count.
-
-Lightweight path: read-only questions and trivial non-behavioral fixes may
-skip the state machine, but any diff that touches product behavior obligates
-it — when in doubt, claim.
-
-## Planning Rules
-
-Before editing code or specs, produce or retrieve a plan that names:
-
-- affected files, modules, workspaces, or KB nodes;
-- acceptance criteria with observable behavior;
-- scope boundaries, especially what is intentionally not included;
-- dependencies, credentials, data, or external services needed;
-- open questions and whether they block work.
-
-When planning produces many issues or a complex, divergent plan, run the
-Plan-stage triage step before `G1`: decompose into independent issues,
-strengthen under-specified ones, and classify each by priority tier
-(security > correctness > functionality > optimization). Security jumps to the
-front; functionality issues pause for a human decision only when a trade-off is
-involved. The full rule lives in the Agent Loop KB node `mem_0953dbd0`.
-
-If the problem is still a discussion or research topic, keep it in planning.
-Do not open or execute a development task until the scope has passed `G1`.
-
-All meaningful discussion and planning outcomes must be written back to
-`ws_spec_plan` as one of:
-
-- a settled decision;
-- an inquiry;
-- an implementation gap;
-- a development handoff;
-- an acceptance or verification result.
-
-Keep Agent Loop and `ws_spec_plan` separate: Agent Loop stores process mechanics,
-handoff state, gates, and workflow trials; `ws_spec_plan` stores product and
-architecture decisions.
-
-## Development Rules
-
-During implementation:
-
-- Keep changes scoped to the accepted plan.
-- Do not mix unrelated refactors, formatting, dependency churn, or cleanup into
-  a feature/fix unless the plan explicitly includes them.
-- Prefer existing project patterns over new abstractions.
-- Update tests with the same risk level as the change.
-- Preserve user or collaborator changes already present in the worktree.
-- Record important implementation evidence for `G2`: files changed, commands
-  run, tests added, and behavior observed.
-
-When linking KB nodes with `create_edge`, pick the most specific relation that
-fits before falling back to the generic `related_to`: use `answered_by` (an
-inquiry resolved by an answer), `depends_on` (needs the other to be valid),
-`extends` (refines/builds on, directional), or `contradicts`. Do not add a
-`related_to` to a pair that already carries one of these — the write path
-rejects it. `related_to` / `similar_to` are direction-less: never create both
-`a→b` and `b→a`.
-
-If you discover new product questions during development, pause or split the
-work. Write the question to `ws_spec_plan` instead of burying it in code.
-
-## Verification And Acceptance
-
-The merged `G2` gate is not complete until it can answer all of these
-(scope-fidelity questions and coverage-adequacy questions are one audit now,
-not two handoffs):
-
-- Did the implementation satisfy every accepted requirement?
-- Did the implementation avoid changes outside the accepted scope?
-- Which changed functions, APIs, branches, data paths, or user workflows were
-  tested — with actual command + output as evidence, not a pass claim?
-- Which changed points are still uncovered, and why?
-- Were any tests weakened, skipped, or broadened only to make the run pass?
-- Does test coverage go beyond the happy path for new branches/edge cases?
-  Passing CI or a high coverage percentage does not answer this — it measures
-  lines executed, not assertion strength; read the test diff itself.
-
-Development and acceptance outcomes must be written back to `ws_spec_plan`.
-Include concise evidence: diff summary, test commands, pass/fail status, known
-gaps, and the final acceptance decision.
-
-The verification/acceptance node — and the full gate verdicts, including
-`REJECT` records (tag them `gate-reject`) — live in `ws_spec_plan`, linked by
-edges to the plan and development nodes. The Agent Loop keeps only the task
-skeleton and `gate_state`; it references these domain nodes by id rather than
-copying their content. See KB node `mem_41fba6c5`.
-
-## Release Loop (2026-07-30)
-
-There are two parallel pipelines. Do not conflate them:
-
-```text
-Agent Loop (dev loop, runs on a feature branch):
-  Plan -> G1 -> Dev -> G2 (merged) -> Converge -> commit/push -> CI regression (non-blocking, see above)
-
-Release Loop (runs on PR -> main):
-  PR touches trigger paths below -> CI-bound agent -> G4 -> blocks merge
-```
-
-Dev loop no longer authors public spec content inline. It only needs a cheap
-check: does this diff touch a trigger path? If yes, the PR gets a
-`needs-release-loop` label (mechanical, CI-applied) and G4 runs at the
-PR-to-main boundary instead of inside Dev.
-
-**Trigger paths** (confirmed 2026-07-30, based on actual public-spec seed
-coverage, not guesswork — see `mem_cc085a90`):
-
-- `examples/spec-as-kb/**`, `packages/api/core/constants.py`,
-  `packages/api/migrations/**`, `packages/api/services/mcp_tools.py` (TOOLS
-  schema)
-- `packages/api/routers/kb.py`, `mcp.py`, `auth.py`, `registration.py`,
-  `api_keys.py`, `openai_compat.py`, `exports.py`
-
-Explicitly out of scope: `admin.py`, `conductor.py`, `connectors.py`,
-`voice.py`, `audit_proposals.py`, `job_observability.py`, `internal.py` (no
-public-spec coverage found), and `collaboration.py`/`review.py`/`documents.py`/
-`notifications.py` (evidence too thin — user call, not currently included).
-
-**Blocking semantics differ from the Agent Loop's CI backstop above.** The
-Agent Loop's post-Converge CI failure is a retroactive REJECT (task already
-marked done, gets reopened) — acceptable because regression tests are cheap to
-rerun. Release Loop's G4 is a pre-merge hard gate: a public spec is an external
-commitment, so a wrong one must never reach `main` in the first place. There is
-no "let it through, fix later" option here.
-
-**Existing `spec-sync.yml` does not cover this.** It only watches
-`examples/spec-as-kb/**` and the seed/SQL files — it keeps the seed internally
-consistent but never fires when a router file changes public behavior without
-touching the seed. Release Loop's `release-loop.yml` (new, not yet enabled —
-needs secrets/permissions review) is what closes that gap; the two workflows
-are complementary, not redundant. See `mem_cc085a90` for the CI-agent
-execution design and open engineering gaps (commit-back permissions on forked
-PRs, cost control on repeated pushes).
-
-## Public Spec Synchronization
-
-When final development changes public product behavior, schema, API contracts,
-MCP contracts, workflow semantics, or user-visible guarantees, the work is not
-done until the public specification surfaces are updated — via the Release
-Loop above, not inline in the feature branch's Dev stage.
-
-Update all applicable surfaces:
-
-- public Chinese spec KB: `ws_spec0001`;
-- public English spec KB: `ws_spec0001_en`;
-- bilingual seed nodes under `examples/spec-as-kb/nodes/zh/` and
-  `examples/spec-as-kb/nodes/en/`;
-- seed edges under `examples/spec-as-kb/edges/`;
-- seed or migration helpers such as `scripts/seed_spec_kb.py` and
-  `packages/api/migrations/003_seed_spec_kb.sql` when the change affects
-  bootstrap data.
-
-`docs/SPEC.md` is deliberately **not** on that list. It was demoted to a frozen
-snapshot on 2026-07-28 and is no longer updated for behavior changes; the seed
-JSON and the spec KBs are canonical. Keeping it as one more surface to
-hand-maintain is precisely why it drifted — of the surfaces above, only the
-seed path has a blocking CI gate, and it was the only one that stayed correct.
-The file is retained as the benchmark baseline fixture. See `ws_spec_plan`
-`mem_30aedc3c` (decision) and `mem_661845d4` (plan).
-
-Do not copy private planning text directly into public specs. Convert it into
-stable public product language, in Chinese and English, and preserve private
-discussion details in `ws_spec_plan`.
-
-## Checkpoints: When To Stop And Ask
-
-Stop and ask the user before proceeding when any of these applies:
-
-- an irreversible or outward-facing action (pushing to a shared branch,
-  deleting data, releasing/deploying, calling external services) that has not
-  been explicitly authorized for this specific instance;
-- a trade-off only the user can make: product direction, spending money,
-  expanding or cutting scope;
-- the same gate has been rejected twice;
-- a new conclusion contradicts an existing high-confidence KB node (an
-  explicit `contradicts` edge, or a node with `resolution_status: resolved`)
-  without resolving or flagging the conflict;
-- context is insufficient to start and cannot be filled from the KB or the
-  repo.
-
-In an interactive session, ask directly and wait for the answer. In
-unattended/harness mode, write an inquiry or decision-draft node, mark the
-task `status:blocked`, and stop — do not guess and continue.
-
-## Done Definition
-
-A task can be called done only when:
-
-- the task's `submit_outcome` has been recorded (`success`, `partial`, or
-  `failed`) per the Task State Machine above;
-- the relevant Agent Loop gates have passed or a justified lightweight path was
-  used;
-- implementation and verification evidence are available;
-- discussion, planning, development, and acceptance outcomes have been written
-  back to `ws_spec_plan` when meaningful;
-- public spec and seed artifacts have been updated when public behavior changed;
-- remaining gaps are explicitly recorded instead of hidden.
-
