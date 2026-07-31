@@ -737,9 +737,11 @@ TOOLS = [
     {
         "name": "get_next_task",
         "description": (
-            "Pick the next pending inquiry node and return a token-limited context bundle "
+            "Pick the next pending task node and return a token-limited context bundle "
             "containing: the task, its ancestor intent (via depends_on), any related spec "
-            "nodes, and the relevant development playbook. "
+            "nodes, and the relevant development playbook. Matches inquiry nodes, and "
+            "procedural nodes tagged 'task' (the Task Node Schema's own example uses "
+            "content_type='procedural'). "
             "Use this to start a small-task development loop."
         ),
         "inputSchema": {
@@ -1866,11 +1868,19 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             require_ws_access(cur, ws_id, user, write=False)
 
             # 1. Find pending inquiry nodes
+            # Task Node Schema's own example uses content_type='procedural' with
+            # a 'task' tag, but this query originally only matched 'inquiry' —
+            # any task node written per that example was invisible here. Match
+            # both: inquiry nodes (as before), or procedural nodes explicitly
+            # tagged 'task' (excludes procedural playbooks/gate docs/charters,
+            # which never carry that tag). See ws_6aa957c3/mem_79163f6a.
             if tag:
                 cur.execute(
                     """SELECT id, title, body, tags
                        FROM memory_nodes
-                       WHERE workspace_id = %s AND content_type = 'inquiry'
+                       WHERE workspace_id = %s
+                         AND (content_type = 'inquiry'
+                              OR (content_type = 'procedural' AND 'task' = ANY(tags)))
                          AND status = 'active' AND %s = ANY(tags)
                          AND COALESCE(resolution_status, 'open') <> 'resolved'
                          AND NOT EXISTS (
@@ -1888,7 +1898,9 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 cur.execute(
                     """SELECT id, title, body, tags
                        FROM memory_nodes
-                       WHERE workspace_id = %s AND content_type = 'inquiry'
+                       WHERE workspace_id = %s
+                         AND (content_type = 'inquiry'
+                              OR (content_type = 'procedural' AND 'task' = ANY(tags)))
                          AND status = 'active'
                          AND COALESCE(resolution_status, 'open') <> 'resolved'
                          AND NOT EXISTS (

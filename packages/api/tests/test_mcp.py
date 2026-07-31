@@ -319,6 +319,59 @@ async def test_get_next_task_excludes_answered_and_resolved_inquiries():
     assert "answered_edges.relation = 'answered_by'" in task_query
 
 
+@pytest.mark.asyncio
+async def test_get_next_task_query_also_matches_procedural_tagged_task():
+    """ws_6aa957c3/mem_79163f6a: Task Node Schema's own example uses
+    content_type='procedural', but the query used to only match 'inquiry',
+    making any task node written per that example invisible to get_next_task.
+    The query must now match procedural nodes tagged 'task' too, without
+    dropping the original inquiry-only match."""
+    user = {"sub": "user_1"}
+    cur = MagicMock()
+    cur.fetchall.return_value = []
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):
+        with patch("services.mcp_tools.require_ws_access"):
+            await execute_tool(
+                "get_next_task",
+                {"workspace_id": "ws_1"},
+                user,
+                MagicMock(),
+            )
+
+    task_query = cur.execute.call_args_list[0].args[0]
+    assert "content_type = 'inquiry'" in task_query
+    assert "content_type = 'procedural' AND 'task' = ANY(tags)" in task_query
+
+
+@pytest.mark.asyncio
+async def test_get_next_task_with_tag_filter_also_matches_procedural_tagged_task():
+    """Same broadened matching must apply on the `tag`-filtered branch, not
+    just the default no-tag branch — these are two separate SQL strings."""
+    user = {"sub": "user_1"}
+    cur = MagicMock()
+    cur.fetchall.return_value = []
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):
+        with patch("services.mcp_tools.require_ws_access"):
+            await execute_tool(
+                "get_next_task",
+                {"workspace_id": "ws_1", "tag": "doc-drift"},
+                user,
+                MagicMock(),
+            )
+
+    task_query = cur.execute.call_args_list[0].args[0]
+    assert "content_type = 'inquiry'" in task_query
+    assert "content_type = 'procedural' AND 'task' = ANY(tags)" in task_query
+
+
 # ─── log_mcp_interaction: node-level access → traversal_log (keep-alive) ───────
 # ws_spec_plan/mem_ea840fad: retirement of the (Workspace Agent) node + telemetry
 # edges. Only explicit-access tools (get_node/traverse/update_node) with a real
