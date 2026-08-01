@@ -115,22 +115,29 @@ def _apply_review_item(cur, item: dict):
     return node, None
 
 
-def _annotate_stale_edge(cur, item: dict) -> dict:
-    """For create_edge items, check if either endpoint node was deleted/archived since proposal time."""
+def _fetch_active_node_ids(cur, ws_id: str, node_ids: set) -> set:
+    """Batch-resolve which of the given node ids are active/answered in one query."""
+    if not node_ids:
+        return set()
+    cur.execute(
+        "SELECT id FROM memory_nodes WHERE workspace_id = %s AND id = ANY(%s) AND status IN ('active', 'answered')",
+        (ws_id, list(node_ids)),
+    )
+    return {row["id"] for row in cur.fetchall()}
+
+
+def _annotate_stale_edge(item: dict, active_node_ids: set) -> dict:
+    """For create_edge items, check if either endpoint node was deleted/archived since proposal time.
+
+    active_node_ids must be pre-fetched (batched across the whole review-queue page)
+    rather than queried per item — see mem_0b494395 for the N+1 this replaced.
+    """
     if item.get("change_type") != "create_edge":
         return item
     node_data = item.get("node_data") or {}
     from_id = node_data.get("from_id")
     to_id = node_data.get("to_id")
-    missing = []
-    for nid in filter(None, [from_id, to_id]):
-        cur.execute(
-            "SELECT status FROM memory_nodes WHERE id = %s AND workspace_id = %s",
-            (nid, item["workspace_id"]),
-        )
-        row = cur.fetchone()
-        if not row or row["status"] not in ("active", "answered"):
-            missing.append(nid)
+    missing = [nid for nid in filter(None, [from_id, to_id]) if nid not in active_node_ids]
     if missing:
         item = dict(item)
         item["can_review"] = False
@@ -155,10 +162,16 @@ def list_review_queue(ws_id: str, status: str = "pending", user: dict = Depends(
             (ws_id, status),
         )
         rows = cur.fetchall()
+        edge_node_ids = set()
+        for row in rows:
+            if row["change_type"] == "create_edge":
+                node_data = row.get("node_data") or {}
+                edge_node_ids.update(filter(None, [node_data.get("from_id"), node_data.get("to_id")]))
+        active_node_ids = _fetch_active_node_ids(cur, ws_id, edge_node_ids)
         result = []
         for row in rows:
             item = _strip_review_for_role(row, role)
-            item = _annotate_stale_edge(cur, item)
+            item = _annotate_stale_edge(item, active_node_ids)
             result.append(item)
         return result
 
