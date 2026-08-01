@@ -11,7 +11,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from core.backup import get_backup_config
 from core.config import settings
-from core.database import run_migrations, assert_schema_version, db_cursor, is_postgres
+from core.database import run_migrations, assert_schema_version, db_cursor, is_postgres, init_pool, close_pool
 from core.csrf import CsrfMiddleware
 from core.ratelimit import RateLimitMiddleware
 from core.audit import AuditLogMiddleware, audit_writer_loop
@@ -50,6 +50,7 @@ scheduler.register_system_jobs()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_pool()
     try:
         run_migrations()
         from services.safety_provisioning import bootstrap_safety_from_env
@@ -80,6 +81,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await scheduler.stop_all()
+        close_pool()
 
 app = FastAPI(title="MemTrace API", version="1.0.0", lifespan=lifespan)
 

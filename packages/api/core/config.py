@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ["http://localhost:5173"]  # CORS allowed origins
     proxy_trusted_hosts: list[str] = ["localhost", "127.0.0.1"]  # PROXY_TRUSTED_HOSTS
 
+    # ── DB connection pool (PostgreSQL only; ignored for SQLite) ─────────────────
+    db_pool_min: int = 2
+    db_pool_max: int = 20
+
     class Config:
         env_file = "../../.env"
         extra = "ignore"

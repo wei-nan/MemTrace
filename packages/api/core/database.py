@@ -4,6 +4,7 @@ import pathlib
 import sqlite3
 import psycopg2
 import psycopg2.extras
+import psycopg2.pool
 from contextlib import contextmanager
 from .config import settings
 
@@ -22,6 +23,39 @@ def _checksum(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+# Every db_cursor() call used to open a brand-new psycopg2 connection (fresh
+# TCP + TLS + Postgres auth handshake) and close it immediately after. Under a
+# normal page load's burst of concurrent requests this handshake cost was
+# paid on nearly every request, dominating latency regardless of the query
+# itself. A pool amortizes that cost across requests instead.
+_pool: "psycopg2.pool.ThreadedConnectionPool | None" = None
+
+
+def init_pool() -> None:
+    """Create the Postgres connection pool. Call once at app startup.
+
+    No-op for SQLite and safe to call more than once. get_conn() also calls
+    this lazily so standalone scripts/tests that never run the app's
+    lifespan still get a pool instead of raising.
+    """
+    global _pool
+    if not settings.database_url.startswith("postgresql") or _pool is not None:
+        return
+    _pool = psycopg2.pool.ThreadedConnectionPool(
+        settings.db_pool_min,
+        settings.db_pool_max,
+        settings.database_url,
+        cursor_factory=psycopg2.extras.RealDictCursor,
+    )
+
+
+def close_pool() -> None:
+    global _pool
+    if _pool is not None:
+        _pool.closeall()
+        _pool = None
+
+
 def get_conn():
     db_url = settings.database_url
     if db_url.startswith("sqlite"):
@@ -30,11 +64,9 @@ def get_conn():
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row  # Similar to RealDictCursor
         return conn
-    
-    conn = psycopg2.connect(
-        db_url,
-        cursor_factory=psycopg2.extras.RealDictCursor,
-    )
+
+    init_pool()
+    conn = _pool.getconn()
     conn.set_client_encoding('UTF8')
     return conn
 
@@ -42,17 +74,31 @@ def get_conn():
 @contextmanager
 def db_cursor(commit: bool = False):
     conn = get_conn()
+    pooled = _pool is not None and not db_url_is_sqlite()
     try:
         # SQLite uses a different cursor object, but API is similar
         cur = conn.cursor()
         yield cur
         if commit:
             conn.commit()
+        elif pooled:
+            # A pooled connection must not go back with an open transaction —
+            # even a read-only SELECT starts one under psycopg2's default
+            # autocommit=False, and it would hold snapshot/locks for whoever
+            # borrows this connection next.
+            conn.rollback()
     except Exception:
         conn.rollback()
         raise
     finally:
-        conn.close()
+        if pooled:
+            _pool.putconn(conn)
+        else:
+            conn.close()
+
+
+def db_url_is_sqlite() -> bool:
+    return settings.database_url.startswith("sqlite")
 
 
 from core.config import settings
