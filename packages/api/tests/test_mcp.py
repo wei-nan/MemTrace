@@ -288,11 +288,92 @@ async def test_dispatch_tools_call():
 async def test_execute_tool_access_denied():
     user = {"sub": "user_1"}
     args = {"workspace_id": "ws_forbidden", "node_id": "mem_1"}
-    
+
     with patch("services.workspaces.require_ws_access", side_effect=HTTPException(status_code=403, detail="Forbidden")):
         with patch("services.mcp_tools.db_cursor"):
             with pytest.raises(HTTPException):
                 await execute_tool("get_node", args, user, MagicMock())
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_reject_proposal_rejects_pending_item_in_workspace():
+    """對存在於該 workspace 的 pending review item 呼叫 reject_proposal：status 變為 rejected。"""
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "review_id": "rev_1"}
+
+    cur = MagicMock()
+    # First SELECT confirms the row exists and belongs to ws_1
+    cur.fetchone.return_value = {"id": "rev_1", "status": "pending"}
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor), \
+         patch("services.mcp_tools.require_ws_access", return_value={"owner_id": "user_1"}):
+        res = await execute_tool("reject_proposal", args, user, MagicMock())
+
+    assert res == {"review_id": "rev_1", "status": "rejected"}
+
+    # The SELECT must scope by both id and workspace_id (cross-workspace safety)
+    select_call = cur.execute.call_args_list[0]
+    assert "WHERE id = %s AND workspace_id = %s" in select_call.args[0]
+    assert select_call.args[1] == ("rev_1", "ws_1")
+
+    # The UPDATE must set status='rejected' and also scope by workspace_id
+    update_call = cur.execute.call_args_list[1]
+    assert "SET status = 'rejected'" in update_call.args[0]
+    assert "WHERE id = %s AND workspace_id = %s" in update_call.args[0]
+    assert update_call.args[1] == (user["sub"], "rev_1", "ws_1")
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_reject_proposal_cross_workspace_fails_cleanly():
+    """review_id 不屬於該 workspace_id：回傳 404，且不得執行任何 UPDATE（不得跨庫誤改)。"""
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_other", "review_id": "rev_1"}
+
+    cur = MagicMock()
+    # Row lookup scoped to ws_other finds nothing, because rev_1 actually
+    # belongs to a different workspace.
+    cur.fetchone.return_value = None
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor), \
+         patch("services.mcp_tools.require_ws_access", return_value={"owner_id": "user_1"}):
+        with pytest.raises(HTTPException) as exc_info:
+            await execute_tool("reject_proposal", args, user, MagicMock())
+
+    assert exc_info.value.status_code == 404
+    # Only the SELECT ran — no UPDATE was issued against the row.
+    assert cur.execute.call_count == 1
+    select_call = cur.execute.call_args_list[0]
+    assert select_call.args[1] == ("rev_1", "ws_other")
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_reject_proposal_already_processed_fails_without_update():
+    """Item already accepted/rejected (not 'pending'): reject_proposal must 400,
+    not silently flip a resolved item back to 'rejected' (mirrors reject_review_item
+    in routers/review.py, which guards status != 'pending')."""
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "review_id": "rev_1"}
+
+    cur = MagicMock()
+    cur.fetchone.return_value = {"id": "rev_1", "status": "accepted"}
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor), \
+         patch("services.mcp_tools.require_ws_access", return_value={"owner_id": "user_1"}):
+        with pytest.raises(HTTPException) as exc_info:
+            await execute_tool("reject_proposal", args, user, MagicMock())
+
+    assert exc_info.value.status_code == 400
+    # Only the SELECT ran — the already-resolved row must not be overwritten.
+    assert cur.execute.call_count == 1
 
 
 @pytest.mark.asyncio

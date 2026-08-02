@@ -281,6 +281,21 @@ List nodes in the pending-review queue (awaiting review or flagged).
 
 ---
 
+### `reject_proposal`
+Reject a pending review-queue item (e.g. an invalid proposal such as a `create_edge` attempt with a missing target node). Sets `status` to `rejected` and `reviewer_type` to `agent`; does not delete the row. Mirrors the REST `POST /review-queue/{id}/reject` endpoint's semantics, but scopes the lookup to the given `workspace_id` so a `review_id` from another workspace fails with 404 instead of being modified.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | ✅ | |
+| `review_id` | string | ✅ | ID of the review_queue item to reject |
+
+**Output**: `{ "review_id": "...", "status": "rejected" }`
+
+**Errors**: `404` if `review_id` does not exist in `workspace_id`. `400` if the item is not currently `pending` (already `accepted`/`rejected`).
+
+---
+
 ### `extract_from_text`
 Extract knowledge nodes from a text snippet (≤ 8,000 chars) using AI.
 
