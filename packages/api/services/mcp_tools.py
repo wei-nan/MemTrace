@@ -213,6 +213,7 @@ MCP_TOOL_PROFILES = {
     },
     "review_admin": {
         "list_review_queue",
+        "reject_proposal",
         "resolve_conflict",
         "verify_audit",
         "transfer_authorship",
@@ -493,6 +494,18 @@ TOOLS = [
                 "limit": {"type": "integer", "description": "Max results (default 20)"},
             },
             "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "reject_proposal",
+        "description": "Reject a pending review-queue item (e.g. an invalid proposal such as a create_edge attempt with a missing target node). Sets status to 'rejected'; does not delete the row.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "review_id": {"type": "string", "description": "ID of the review_queue item to reject"},
+            },
+            "required": ["workspace_id", "review_id"],
         },
     },
     {
@@ -1458,6 +1471,29 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         limit = min(int(args.get("limit", 20)), 100)
         with db_cursor() as cur:
             return list_review_queue_in_db(cur, ws_id, limit, user)
+
+    # ── reject_proposal ───────────────────────────────────────────────────────
+    if name == "reject_proposal":
+        ws_id = args["workspace_id"]
+        review_id = args["review_id"]
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+            cur.execute(
+                "SELECT id, status FROM review_queue WHERE id = %s AND workspace_id = %s",
+                (review_id, ws_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail=f"Review item not found: {review_id}")
+            if row["status"] != "pending":
+                raise HTTPException(status_code=400, detail=f"Item is already {row['status']}")
+            cur.execute(
+                """UPDATE review_queue
+                   SET status = 'rejected', reviewer_type = 'agent', reviewer_id = %s, reviewed_at = now()
+                   WHERE id = %s AND workspace_id = %s""",
+                (user.get("sub"), review_id, ws_id),
+            )
+            return {"review_id": review_id, "status": "rejected"}
 
     # ── extract_from_text ─────────────────────────────────────────────────────
     if name == "extract_from_text":
