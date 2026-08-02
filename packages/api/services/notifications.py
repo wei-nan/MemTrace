@@ -143,11 +143,15 @@ def get_workspace_admins(ws_id: str) -> list[str]:
         owner = cur.fetchone()
         
         # Admin members email
+        # NOTE: member_role enum only has 'viewer' / 'editor' (no 'admin' value —
+        # see migrations/000_baseline_v1.sql). This system's "admin" concept for
+        # notification purposes = owner + editor (same convention already used in
+        # collaboration.py::assign_stewards_in_db).
         cur.execute(
             """
             SELECT u.email FROM users u
             JOIN workspace_members wm ON wm.user_id = u.id
-            WHERE wm.workspace_id = %s AND wm.role = 'admin'
+            WHERE wm.workspace_id = %s AND wm.role = 'editor'
             """,
             (ws_id,)
         )

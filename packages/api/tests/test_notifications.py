@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 import pytest
 
-from services.notifications import deliver_webhook, send_consult_notification
+from services.notifications import deliver_webhook, send_consult_notification, get_workspace_admins
 
 
 # ─── deliver_webhook ──────────────────────────────────────────────────────────
@@ -84,6 +84,48 @@ async def test_webhook_no_secret_omits_signature():
         ok = await deliver_webhook("https://hook.example/x", None, {"a": 1})
     assert ok is True
     assert "X-MemTrace-Signature" not in captured["headers"]
+
+
+# ─── get_workspace_admins (owner + editor, member_role enum has no 'admin') ───
+
+def test_get_workspace_admins_returns_owner_and_editor_not_viewer():
+    """workspace = owner + 1 editor + 1 viewer -> recipients = {owner, editor} only,
+    and no exception is raised (regression test for querying the non-existent
+    'admin' value against the member_role enum, which only has viewer/editor)."""
+    cur = MagicMock()
+    cur.fetchone.return_value = {"email": "owner@example.com"}
+    cur.fetchall.return_value = [{"email": "editor@example.com"}]
+
+    @contextmanager
+    def fake_db_cursor(*a, **k):
+        yield cur
+
+    with patch("services.notifications.db_cursor", new=fake_db_cursor):
+        emails = get_workspace_admins("ws_1")
+
+    assert set(emails) == {"owner@example.com", "editor@example.com"}
+    assert "viewer@example.com" not in emails
+
+    # Assert the second query (member role lookup) filters on 'editor', not the
+    # non-existent 'admin' enum value.
+    second_call_sql = cur.execute.call_args_list[1].args[0]
+    assert "role = 'editor'" in second_call_sql
+    assert "'admin'" not in second_call_sql
+
+
+def test_get_workspace_admins_no_editors_returns_owner_only():
+    cur = MagicMock()
+    cur.fetchone.return_value = {"email": "owner@example.com"}
+    cur.fetchall.return_value = []
+
+    @contextmanager
+    def fake_db_cursor(*a, **k):
+        yield cur
+
+    with patch("services.notifications.db_cursor", new=fake_db_cursor):
+        emails = get_workspace_admins("ws_1")
+
+    assert emails == ["owner@example.com"]
 
 
 # ─── send_consult_notification (decoupling + dispatch) ────────────────────────
