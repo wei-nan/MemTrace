@@ -131,11 +131,14 @@ Full-text + semantic search within a workspace. Supports Chinese/CJK.
 ---
 
 ### `search_cross_workspace`
-Semantic search across ALL accessible workspaces simultaneously.
+Semantic search across an anchor workspace and its **associated** workspaces (`workspace_associations`, one hop, per SPEC §18.3). Workspaces the anchor has no association with are not searched, even if the caller can otherwise access them.
+
+> ⚠️ **Breaking change (2026-08-02)**: `workspace_id` is now a required input. Previously this tool searched every workspace the caller could access, ignoring `workspace_associations` — this violated SPEC §18.3 ("AI agents may only query workspaces directly associated with the target workspace"). Callers must now specify the anchor workspace explicitly.
 
 **Input**:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `workspace_id` | string | ✅ | Anchor workspace ID. Search scope is this workspace plus any workspace it has a `workspace_associations` row targeting (one hop, non-transitive). |
 | `query` | string | ✅ | Search query |
 | `limit` | integer | | Max results per workspace (default: 5) |
 | `include_archived` | boolean | | Whether to include archived nodes (default: false) |

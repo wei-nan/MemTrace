@@ -256,13 +256,22 @@ def _cross_ws_row(node_id="mem_secret", vis="private", body="TOP SECRET"):
     return row
 
 
+def _assoc_cursor(assoc_rows=None, embed_row=None):
+    """Mock cursor where the first execute() is the workspace_associations
+    lookup (fetchall) and subsequent execute()s are the per-workspace
+    embedding_model/provider lookup (fetchone)."""
+    cur = MagicMock()
+    cur.fetchall.return_value = assoc_rows or []
+    cur.fetchone.return_value = embed_row or {"embedding_provider": "openai", "embedding_model": "m"}
+    return cur
+
+
 @pytest.mark.asyncio
 async def test_l10_cross_workspace_search_strips_body_for_viewer():
     """viewer 透過 search_cross_workspace 取得的 private 節點 body 必須被遮蔽。"""
     from services.mcp_tools import execute_tool
 
-    cur = MagicMock()
-    cur.fetchone.return_value = {"embedding_provider": "openai", "embedding_model": "m"}
+    cur = _assoc_cursor()
     ws = {"id": "ws_target", "name": "Target", "my_role": "viewer"}
     private_row = _cross_ws_row(vis="private", body="TOP SECRET")
 
@@ -270,7 +279,7 @@ async def test_l10_cross_workspace_search_strips_body_for_viewer():
          patch("services.mcp_tools.list_workspaces_in_db", return_value=[ws]), \
          patch("services.mcp_tools.perform_semantic_search", new=AsyncMock(return_value=[private_row])):
         res = await execute_tool(
-            "search_cross_workspace", {"query": "q"}, {"sub": "usr_viewer"}, MagicMock()
+            "search_cross_workspace", {"workspace_id": "ws_target", "query": "q"}, {"sub": "usr_viewer"}, MagicMock()
         )
 
     assert res["results"][0]["body"] is None
@@ -282,8 +291,7 @@ async def test_l11_cross_workspace_search_editor_sees_body():
     """editor 透過 search_cross_workspace 仍可見 private 節點 body(對照組,不應過度遮蔽)。"""
     from services.mcp_tools import execute_tool
 
-    cur = MagicMock()
-    cur.fetchone.return_value = {"embedding_provider": "openai", "embedding_model": "m"}
+    cur = _assoc_cursor()
     ws = {"id": "ws_target", "name": "Target", "my_role": "editor"}
     private_row = _cross_ws_row(vis="private", body="TOP SECRET")
 
@@ -291,7 +299,7 @@ async def test_l11_cross_workspace_search_editor_sees_body():
          patch("services.mcp_tools.list_workspaces_in_db", return_value=[ws]), \
          patch("services.mcp_tools.perform_semantic_search", new=AsyncMock(return_value=[private_row])):
         res = await execute_tool(
-            "search_cross_workspace", {"query": "q"}, {"sub": "usr_editor"}, MagicMock()
+            "search_cross_workspace", {"workspace_id": "ws_target", "query": "q"}, {"sub": "usr_editor"}, MagicMock()
         )
 
     assert res["results"][0]["body"] == "TOP SECRET"
@@ -302,8 +310,7 @@ async def test_l12_cross_workspace_search_never_leaks_embedding_vectors():
     """無論角色為何,search_cross_workspace 都不得回傳 embedding/secondary_embedding 向量。"""
     from services.mcp_tools import execute_tool
 
-    cur = MagicMock()
-    cur.fetchone.return_value = {"embedding_provider": "openai", "embedding_model": "m"}
+    cur = _assoc_cursor()
     ws = {"id": "ws_target", "name": "Target", "my_role": "editor"}
     row = _cross_ws_row(vis="public", body="public info")
 
@@ -311,10 +318,64 @@ async def test_l12_cross_workspace_search_never_leaks_embedding_vectors():
          patch("services.mcp_tools.list_workspaces_in_db", return_value=[ws]), \
          patch("services.mcp_tools.perform_semantic_search", new=AsyncMock(return_value=[row])):
         res = await execute_tool(
-            "search_cross_workspace", {"query": "q"}, {"sub": "usr_editor"}, MagicMock()
+            "search_cross_workspace", {"workspace_id": "ws_target", "query": "q"}, {"sub": "usr_editor"}, MagicMock()
         )
 
     result = res["results"][0]
     assert "embedding" not in result
     assert "secondary_embedding" not in result
     assert result["body"] == "public info"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 修復 5(本次任務):search_cross_workspace 未遵守 workspace_associations 邊界
+# (ws_spec_plan/mem_cb57e282, ws_6aa957c3/mem_b9a0e176)——比照 chat 面板(ai.py:673-676),
+# 改成只搜「以 workspace_id 為錨點 + 其 workspace_associations 一跳關聯」的知識庫，
+# 不再是「呼叫者權限所及的所有知識庫」。
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@pytest.mark.asyncio
+async def test_l13_cross_workspace_search_excludes_unassociated_workspace():
+    """驗收條件:A→B 已建立 association,C 未與任一方關聯,使用者同時是 A/B/C 成員。
+    以 A 為起點呼叫 search_cross_workspace,結果不應包含 C 的節點。"""
+    from services.mcp_tools import execute_tool
+
+    # 使用者對 A/B/C 都有權限(member),但 A 只關聯 B,不關聯 C。
+    cur = _assoc_cursor(assoc_rows=[{"target_ws_id": "ws_b"}])
+    ws_a = {"id": "ws_a", "name": "A", "my_role": "editor"}
+    ws_b = {"id": "ws_b", "name": "B", "my_role": "editor"}
+    ws_c = {"id": "ws_c", "name": "C", "my_role": "editor"}
+
+    row_a = _cross_ws_row(node_id="mem_a", vis="public", body="from A")
+    row_b = _cross_ws_row(node_id="mem_b", vis="public", body="from B")
+    row_c = _cross_ws_row(node_id="mem_c", vis="public", body="from C")
+
+    async def fake_search(cur, ws_id, *a, **kw):
+        return {"ws_a": [row_a], "ws_b": [row_b], "ws_c": [row_c]}.get(ws_id, [])
+
+    with patch("services.mcp_tools.db_cursor", return_value=_cm(cur)), \
+         patch("services.mcp_tools.list_workspaces_in_db", return_value=[ws_a, ws_b, ws_c]), \
+         patch("services.mcp_tools.perform_semantic_search", new=AsyncMock(side_effect=fake_search)):
+        res = await execute_tool(
+            "search_cross_workspace", {"workspace_id": "ws_a", "query": "q"}, {"sub": "usr_member"}, MagicMock()
+        )
+
+    node_ids = {r["id"] for r in res["results"]}
+    assert node_ids == {"mem_a", "mem_b"}
+    assert "mem_c" not in node_ids
+
+    # workspace_associations 查詢必須以 A 為 source_ws_id 起點
+    assoc_call = cur.execute.call_args_list[0]
+    assert "workspace_associations" in assoc_call[0][0]
+    assert assoc_call[0][1] == ("ws_a",)
+
+
+@pytest.mark.asyncio
+async def test_l14_cross_workspace_search_requires_workspace_id():
+    """workspace_id 現為必要參數;缺少時必須失敗,不得靜默退回搜尋全部可存取的庫。"""
+    from services.mcp_tools import execute_tool
+
+    with pytest.raises(KeyError):
+        await execute_tool(
+            "search_cross_workspace", {"query": "q"}, {"sub": "usr_member"}, MagicMock()
+        )

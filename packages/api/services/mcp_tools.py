@@ -307,16 +307,17 @@ TOOLS = [
     },
     {
         "name": "search_cross_workspace",
-        "description": "Search nodes across ALL accessible workspaces using semantic search.",
+        "description": "Search nodes across a workspace and its associated workspaces (workspace_associations, one hop, per SPEC §18.3) using semantic search. Does not search workspaces the anchor workspace has no association with, even if the caller can otherwise access them.",
         "inputSchema": {
             "type": "object",
             "properties": {
+                "workspace_id": {"type": "string", "description": "Anchor workspace ID. Search scope is this workspace plus any workspace it has a workspace_associations row targeting (one hop, non-transitive)."},
                 "query": {"type": "string", "description": "Search query"},
                 "limit": {"type": "integer", "description": "Max results per workspace (default 5)"},
                 "include_archived": {"type": "boolean", "description": "Whether to include archived nodes", "default": False},
                 "include_answered_inquiries": {"type": "boolean", "description": "Whether to include inquiry nodes already resolved by answered_by edges", "default": False},
             },
-            "required": ["query"],
+            "required": ["workspace_id", "query"],
         },
     },
     {
@@ -1211,16 +1212,30 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
 
     # ── search_cross_workspace ────────────────────────────────────────────────
     if name == "search_cross_workspace":
+        anchor_ws_id = args["workspace_id"]
         query_text = args["query"]
         limit_per = min(int(args.get("limit", 5)), 10)
         include_archived = args.get("include_archived", False)
         include_answered_inquiries = bool(args.get("include_answered_inquiries", False))
-        
+
         results = []
         warnings = []
         with db_cursor() as cur:
-            workspaces = list_workspaces_in_db(cur, search=None, user=user)
-            
+            # SPEC §18.3 rule 1: an AI agent may only query workspaces directly
+            # associated with the anchor workspace (one hop, no transitive lookup).
+            # Same pattern as routers/ai.py:673-676 and openai_compat.py:191.
+            cur.execute(
+                "SELECT target_ws_id FROM workspace_associations WHERE source_ws_id = %s",
+                (anchor_ws_id,),
+            )
+            allowed_ws_ids = {anchor_ws_id} | {r["target_ws_id"] for r in cur.fetchall()}
+
+            # Still resolve via list_workspaces_in_db so we only ever search
+            # workspaces the caller actually has access to (SPEC §18.3 rule 2) —
+            # an association does not itself grant access.
+            all_accessible = list_workspaces_in_db(cur, search=None, user=user)
+            workspaces = [ws for ws in all_accessible if ws["id"] in allowed_ws_ids]
+
             # Group by (prov, model) to minimize embedding calls and detect dim issues early
             model_groups = {}
             for ws in workspaces:
