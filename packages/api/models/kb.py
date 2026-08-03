@@ -61,6 +61,8 @@ class WorkspaceResponse(BaseModel):
     updated_at: datetime
     settings: dict = {}
     my_role: Optional[str] = None  # effective role of the requesting user: 'admin'|'editor'|'viewer'|None
+    pinned: bool = False           # whether the requesting user has pinned this workspace
+    pinned_at: Optional[datetime] = None
 
 
 class WorkspaceAssociationResponse(BaseModel):

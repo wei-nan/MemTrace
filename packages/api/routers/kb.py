@@ -237,6 +237,20 @@ def explore_workspaces(
         return explore_workspaces_in_db(cur, user, q, lang, sort)
 
 
+@router.post("/workspaces/{ws_id}/pin", status_code=204)
+def pin_workspace(ws_id: str, user: dict = Depends(get_current_user)):
+    from services.workspaces import pin_workspace_in_db
+    with db_cursor(commit=True) as cur:
+        pin_workspace_in_db(cur, ws_id, user)
+
+
+@router.delete("/workspaces/{ws_id}/pin", status_code=204)
+def unpin_workspace(ws_id: str, user: dict = Depends(get_current_user)):
+    from services.workspaces import unpin_workspace_in_db
+    with db_cursor(commit=True) as cur:
+        unpin_workspace_in_db(cur, ws_id, user)
+
+
 
 
 @router.post("/workspaces", response_model=WorkspaceResponse, status_code=201)

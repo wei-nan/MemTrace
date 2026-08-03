@@ -13,6 +13,9 @@
 
 .modal-panel {
   max-width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: 14px;
@@ -23,6 +26,7 @@
 }
 
 .modal-header {
+  flex-shrink: 0;
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
@@ -40,9 +44,12 @@
 
 .modal-body {
   padding: 24px;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .modal-footer {
+  flex-shrink: 0;
   padding: 16px 24px;
   border-top: 1px solid var(--border-subtle);
   display: flex;

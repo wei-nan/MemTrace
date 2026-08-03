@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Globe, Lock, BookOpen, ArrowRight } from 'lucide-react';
+import { Search, Globe, Lock, BookOpen, ArrowRight, Pin } from 'lucide-react';
 import { workspaces as wsApi, type ExploreWorkspace, type Workspace } from './api';
 import { useTranslation } from 'react-i18next';
 
@@ -44,6 +44,19 @@ export default function ExplorePage({ authenticated, onSelectWs, onSignIn }: Pro
 
   const myKBs = filtered.filter(w => w.my_role !== null);
   const publicKBs = filtered.filter(w => w.my_role === null);
+  const pinnedKBs = filtered.filter(w => w.pinned)
+    .sort((a, b) => new Date(b.pinned_at || 0).getTime() - new Date(a.pinned_at || 0).getTime());
+
+  const handleTogglePin = async (item: ExploreWorkspace) => {
+    if (!authenticated) return;
+    const nextPinned = !item.pinned;
+    setItems(prev => prev.map(w => w.id === item.id ? { ...w, pinned: nextPinned, pinned_at: nextPinned ? new Date().toISOString() : null } : w));
+    try {
+      await (nextPinned ? wsApi.pin(item.id) : wsApi.unpin(item.id));
+    } catch {
+      setItems(prev => prev.map(w => w.id === item.id ? { ...w, pinned: item.pinned, pinned_at: item.pinned_at } : w));
+    }
+  };
 
   const visIcon = (v: string) =>
     v === 'public' || v === 'conditional_public'
@@ -132,11 +145,20 @@ export default function ExplorePage({ authenticated, onSelectWs, onSignIn }: Pro
         </div>
       ) : (
         <>
+          {/* Pinned KBs (full list, not capped — the Sidebar menu is where pins get capped to 5) */}
+          {authenticated && pinnedKBs.length > 0 && (
+            <Section title={zh ? '釘選' : 'Pinned'} count={pinnedKBs.length}>
+              {pinnedKBs.map(item => (
+                <KBCard key={item.id} item={item} visIcon={visIcon} langLabel={langLabel} zh={zh} onSelect={handleSelect} onTogglePin={handleTogglePin} authenticated={authenticated} />
+              ))}
+            </Section>
+          )}
+
           {/* My KBs */}
           {authenticated && myKBs.length > 0 && (
-            <Section title={zh ? '我的知識庫' : 'My Knowledge Bases'} count={myKBs.length}>
+            <Section title={zh ? '我的知識庫' : 'My Knowledge Bases'} count={myKBs.length} style={{ marginTop: authenticated && pinnedKBs.length > 0 ? 40 : 0 }}>
               {myKBs.map(item => (
-                <KBCard key={item.id} item={item} visIcon={visIcon} langLabel={langLabel} zh={zh} onSelect={handleSelect} />
+                <KBCard key={item.id} item={item} visIcon={visIcon} langLabel={langLabel} zh={zh} onSelect={handleSelect} onTogglePin={handleTogglePin} authenticated={authenticated} />
               ))}
             </Section>
           )}
@@ -145,7 +167,7 @@ export default function ExplorePage({ authenticated, onSelectWs, onSignIn }: Pro
           <Section
             title={zh ? '公開知識庫' : 'Public Knowledge Bases'}
             count={publicKBs.length}
-            style={{ marginTop: authenticated && myKBs.length > 0 ? 40 : 0 }}
+            style={{ marginTop: authenticated && (myKBs.length > 0 || pinnedKBs.length > 0) ? 40 : 0 }}
           >
             {publicKBs.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', fontSize: 14, padding: '20px 0' }}>
@@ -153,7 +175,7 @@ export default function ExplorePage({ authenticated, onSelectWs, onSignIn }: Pro
               </div>
             ) : (
               publicKBs.map(item => (
-                <KBCard key={item.id} item={item} visIcon={visIcon} langLabel={langLabel} zh={zh} onSelect={handleSelect} />
+                <KBCard key={item.id} item={item} visIcon={visIcon} langLabel={langLabel} zh={zh} onSelect={handleSelect} onTogglePin={handleTogglePin} authenticated={authenticated} />
               ))
             )}
           </Section>
@@ -177,12 +199,14 @@ function Section({ title, count, children, style }: { title: string; count: numb
   );
 }
 
-function KBCard({ item, visIcon, langLabel, zh, onSelect }: {
+function KBCard({ item, visIcon, langLabel, zh, onSelect, onTogglePin, authenticated }: {
   item: ExploreWorkspace;
   visIcon: (v: string) => React.ReactNode;
   langLabel: (l: string) => string;
   zh: boolean;
   onSelect: (item: ExploreWorkspace) => void;
+  onTogglePin: (item: ExploreWorkspace) => void;
+  authenticated: boolean;
 }) {
   return (
     <div
@@ -197,6 +221,18 @@ function KBCard({ item, visIcon, langLabel, zh, onSelect }: {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
         <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{item.name}</span>
+        {authenticated && (
+          <button
+            onClick={e => { e.stopPropagation(); onTogglePin(item); }}
+            title={item.pinned ? (zh ? '取消釘選' : 'Unpin') : (zh ? '釘選' : 'Pin')}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 2, lineHeight: 0,
+              color: item.pinned ? 'var(--color-primary)' : 'var(--text-muted)', flexShrink: 0,
+            }}
+          >
+            <Pin size={15} fill={item.pinned ? 'currentColor' : 'none'} />
+          </button>
+        )}
         <ArrowRight size={16} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
       </div>
 

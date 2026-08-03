@@ -2,10 +2,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Network, PlusCircle, Globe, ChevronDown, ChevronLeft, ChevronRight,
-  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain, ScrollText, Activity, UserCog
+  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain, ScrollText, Activity, UserCog, Pin, Compass
 } from 'lucide-react';
 import { type Workspace, type WorkspaceCloneJob, workspaces } from '../api';
 import { Button } from './ui';
+
+const WS_MENU_SECTION_LIMIT = 5;
 
 interface SidebarProps {
   collapsed: boolean;
@@ -25,6 +27,7 @@ interface SidebarProps {
   onDismissCloneJob: () => void;
   onShowCreateWs: () => void;
   onShowForkWs: (ws: Workspace) => void;
+  onTogglePin: (ws: Workspace) => void;
   canWrite: boolean;
 }
 
@@ -46,10 +49,69 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDismissCloneJob,
   onShowCreateWs,
   onShowForkWs,
+  onTogglePin,
   canWrite,
 }) => {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
+
+  const isPublicVis = (ws: Workspace) => ws.visibility === 'public' || ws.visibility === 'conditional_public';
+  const byCreatedDesc = (a: Workspace, b: Workspace) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+
+  const pinnedWs = wsList.filter(ws => ws.pinned)
+    .sort((a, b) => new Date(b.pinned_at || 0).getTime() - new Date(a.pinned_at || 0).getTime())
+    .slice(0, WS_MENU_SECTION_LIMIT);
+  const pinnedIds = new Set(pinnedWs.map(ws => ws.id));
+  const privateWs = wsList.filter(ws => !isPublicVis(ws) && !pinnedIds.has(ws.id)).sort(byCreatedDesc).slice(0, WS_MENU_SECTION_LIMIT);
+  const publicWs = wsList.filter(ws => isPublicVis(ws) && !pinnedIds.has(ws.id)).sort(byCreatedDesc).slice(0, WS_MENU_SECTION_LIMIT);
+
+  const wsMenuItem = (ws: Workspace, opts: { showGlobe?: boolean } = {}) => (
+    <div
+      key={ws.id}
+      onClick={() => { onSelectWs(ws); onSetWsMenuOpen(false); }}
+      style={{
+        padding: '9px 14px', cursor: 'pointer', fontSize: 13,
+        background: selectedWs?.id === ws.id ? 'var(--color-primary-subtle)' : 'transparent',
+        color: selectedWs?.id === ws.id ? 'var(--color-primary)' : 'var(--text-primary)',
+        transition: 'all 0.15s',
+        display: 'flex', alignItems: 'center', gap: 6,
+      }}
+    >
+      {opts.showGlobe && <Globe size={11} style={{ opacity: 0.5, flexShrink: 0 }} />}
+      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {ws.name}
+      </span>
+      {ws.kb_type !== 'evergreen' && (
+        <span style={{ fontSize: 10, opacity: 0.6 }}>{ws.kb_type}</span>
+      )}
+      <button
+        onClick={e => { e.stopPropagation(); onTogglePin(ws); }}
+        title={ws.pinned ? (zh ? '取消釘選' : 'Unpin') : (zh ? '釘選' : 'Pin')}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 2, lineHeight: 0,
+          color: ws.pinned ? 'var(--color-primary)' : 'var(--text-muted)', flexShrink: 0,
+        }}
+      >
+        <Pin size={12} fill={ws.pinned ? 'currentColor' : 'none'} />
+      </button>
+      {opts.showGlobe && user && ws.owner_id !== user.id && (
+        <Button
+          variant="secondary"
+          size="sm"
+          title={zh ? 'Fork 此知識庫' : 'Fork this KB'}
+          onClick={e => {
+            e.stopPropagation();
+            onSetWsMenuOpen(false);
+            onShowForkWs(ws);
+          }}
+          style={{ padding: '2px 6px', fontSize: 10, height: 20 }}
+          leftIcon={<GitFork size={10} />}
+        >
+          Fork
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -108,69 +170,52 @@ const Sidebar: React.FC<SidebarProps> = ({
               background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
               borderRadius: 8, overflow: 'hidden', boxShadow: 'var(--shadow-lg)',
             }}>
-              {/* My workspaces */}
-              {wsList.filter(ws => ws.visibility !== 'public' && ws.visibility !== 'conditional_public').map(ws => (
-                <div
-                  key={ws.id}
-                  onClick={() => { onSelectWs(ws); onSetWsMenuOpen(false); }}
-                  style={{
-                    padding: '9px 14px', cursor: 'pointer', fontSize: 13,
-                    background: selectedWs?.id === ws.id ? 'var(--color-primary-subtle)' : 'transparent',
-                    color: selectedWs?.id === ws.id ? 'var(--color-primary)' : 'var(--text-primary)',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  {ws.name}
-                  {ws.kb_type !== 'evergreen' && (
-                    <span style={{ fontSize: 10, opacity: 0.6, marginLeft: 6 }}>{ws.kb_type}</span>
-                  )}
-                </div>
-              ))}
-              {/* Public / example workspaces */}
-              {wsList.some(ws => ws.visibility === 'public' || ws.visibility === 'conditional_public') && (
-                <>
-                  <div style={{ padding: '6px 14px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', textTransform: 'uppercase' }}>
-                    {zh ? '公開知識庫' : 'Public'}
-                  </div>
-                  {wsList.filter(ws => ws.visibility === 'public' || ws.visibility === 'conditional_public').map(ws => (
-                    <div
-                      key={ws.id}
-                      style={{
-                        padding: '7px 14px', cursor: 'pointer', fontSize: 13,
-                        background: selectedWs?.id === ws.id ? 'var(--color-primary-subtle)' : 'transparent',
-                        color: selectedWs?.id === ws.id ? 'var(--color-primary)' : 'var(--text-primary)',
-                        transition: 'all 0.15s',
-                        display: 'flex', alignItems: 'center', gap: 6,
-                      }}
-                      onClick={() => { onSelectWs(ws); onSetWsMenuOpen(false); }}
-                    >
-                      <Globe size={11} style={{ opacity: 0.5, flexShrink: 0 }} />
-                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {ws.name}
-                      </span>
-                      {ws.kb_type !== 'evergreen' && (
-                        <span style={{ fontSize: 10, opacity: 0.6 }}>{ws.kb_type}</span>
-                      )}
-                      {user && ws.owner_id !== user.id && (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          title={zh ? 'Fork 此知識庫' : 'Fork this KB'}
-                          onClick={e => {
-                            e.stopPropagation();
-                            onSetWsMenuOpen(false);
-                            onShowForkWs(ws);
-                          }}
-                          style={{ padding: '2px 6px', fontSize: 10, height: 20 }}
-                          leftIcon={<GitFork size={10} />}
-                        >
-                          Fork
-                        </Button>
-                      )}
+              <div style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+                {/* Pinned workspaces */}
+                {pinnedWs.length > 0 && (
+                  <>
+                    <div style={{ padding: '6px 14px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      {zh ? '釘選' : 'Pinned'}
                     </div>
-                  ))}
-                </>
-              )}
+                    {pinnedWs.map(ws => wsMenuItem(ws, { showGlobe: isPublicVis(ws) }))}
+                  </>
+                )}
+
+                {/* My (private) workspaces */}
+                {privateWs.length > 0 && (
+                  <>
+                    <div style={{ padding: '6px 14px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', borderTop: pinnedWs.length > 0 ? '1px solid var(--border-subtle)' : undefined, textTransform: 'uppercase' }}>
+                      {zh ? '私人' : 'Private'}
+                    </div>
+                    {privateWs.map(ws => wsMenuItem(ws))}
+                  </>
+                )}
+
+                {/* Public / example workspaces */}
+                {publicWs.length > 0 && (
+                  <>
+                    <div style={{ padding: '6px 14px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', textTransform: 'uppercase' }}>
+                      {zh ? '公開知識庫' : 'Public'}
+                    </div>
+                    {publicWs.map(ws => wsMenuItem(ws, { showGlobe: true }))}
+                  </>
+                )}
+              </div>
+
+              {/* Link to full list */}
+              <div
+                onClick={() => { onSetWsMenuOpen(false); onSetView('explore'); }}
+                style={{
+                  padding: '8px 14px', cursor: 'pointer', fontSize: 12,
+                  borderTop: '1px solid var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                }}
+              >
+                <Compass size={12} />
+                {zh ? '在探索知識庫查看全部…' : 'View all in Explore…'}
+              </div>
+
               {/* New workspace button */}
               <div
                 onClick={() => { onSetWsMenuOpen(false); onShowCreateWs(); }}

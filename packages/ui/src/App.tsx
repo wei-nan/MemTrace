@@ -172,6 +172,16 @@ export default function App() {
     return () => window.removeEventListener('workspace-deleted', onDeleted);
   }, [selectedWs]);
 
+  const handleTogglePin = async (ws: Workspace) => {
+    const nextPinned = !ws.pinned;
+    setWsList(prev => prev.map(w => w.id === ws.id ? { ...w, pinned: nextPinned, pinned_at: nextPinned ? new Date().toISOString() : null } : w));
+    try {
+      await (nextPinned ? workspaces.pin(ws.id) : workspaces.unpin(ws.id));
+    } catch {
+      setWsList(prev => prev.map(w => w.id === ws.id ? { ...w, pinned: ws.pinned, pinned_at: ws.pinned_at } : w));
+    }
+  };
+
   useEffect(() => {
     if (!authenticated) return;
     workspaces.list().then(list => {
@@ -422,6 +432,7 @@ export default function App() {
           }}
           onShowCreateWs={() => setShowCreateWs(true)}
           onShowForkWs={setShowForkWs}
+          onTogglePin={handleTogglePin}
           canWrite={canWrite}
         />
       )}

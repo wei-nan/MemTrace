@@ -14,3 +14,4 @@
 001_spec_validity.sql
 002_widen_inquiry_paths_embedding.sql
 004_task_claims_table.sql
+005_workspace_pins.sql

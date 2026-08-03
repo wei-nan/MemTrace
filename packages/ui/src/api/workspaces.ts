@@ -13,6 +13,8 @@ export interface ExploreWorkspace {
   node_count: number;
   created_at: string;
   my_role: "admin" | "editor" | "viewer" | null;
+  pinned: boolean;
+  pinned_at: string | null;
 }
 
 export interface Workspace {
@@ -27,6 +29,8 @@ export interface Workspace {
   created_at: string;
   updated_at: string;
   my_role: "admin" | "editor" | "viewer" | null;
+  pinned: boolean;
+  pinned_at: string | null;
   embedding_provider: string;
   embedding_model: string;
   embedding_dim: number;
@@ -236,6 +240,8 @@ export const workspaces = {
   }) =>
     request<Workspace>("POST", `${BASE}/workspaces`, data),
   get: (id: string) => request<Workspace>("GET", `${BASE}/workspaces/${id}`),
+  pin: (wsId: string) => request<void>("POST", `${BASE}/workspaces/${wsId}/pin`),
+  unpin: (wsId: string) => request<void>("DELETE", `${BASE}/workspaces/${wsId}/pin`),
   members: (wsId: string) => request<Member[]>("GET", `${BASE}/workspaces/${wsId}/members`),
   userCandidates: (wsId: string, q: string) =>
     request<UserCandidate[]>("GET", `${BASE}/workspaces/${wsId}/user-candidates?q=${encodeURIComponent(q)}`),

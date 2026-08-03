@@ -131,11 +131,11 @@ def list_workspaces_in_db(cur, search: Optional[str], user: Optional[dict]) -> l
             "(w.owner_id = %s OR w.id IN (SELECT workspace_id FROM workspace_members WHERE user_id = %s) OR w.visibility = 'public')"
         ]
         params = [uid, uid]
-        query_params = [uid, uid] + params
+        query_params = [uid, uid, uid] + params
     else:
         filters = ["w.visibility = 'public'"]
         params = []
-        query_params = [None, None]
+        query_params = [None, None, None]
 
     if user and user.get("api_key_id") and user.get("workspace_id"):
         filters.append("w.id = %s")
@@ -152,15 +152,38 @@ def list_workspaces_in_db(cur, search: Optional[str], user: Optional[dict]) -> l
                (SELECT count(*) FROM memory_nodes WHERE workspace_id = w.id AND status='active') AS node_count,
                CASE WHEN w.owner_id = %s THEN 'admin'
                     ELSE wm.role::text
-               END AS my_role
+               END AS my_role,
+               (wp.user_id IS NOT NULL) AS pinned,
+               wp.pinned_at AS pinned_at
         FROM workspaces w
         LEFT JOIN workspace_members wm ON wm.workspace_id = w.id AND wm.user_id = %s
+        LEFT JOIN workspace_pins wp ON wp.workspace_id = w.id AND wp.user_id = %s
         WHERE {' AND '.join(filters)}
         ORDER BY w.updated_at DESC
         """,
         query_params,
     )
     return cur.fetchall()
+
+
+def pin_workspace_in_db(cur, ws_id: str, user: dict) -> None:
+    """Pin a workspace for the current user. Requires at least read access."""
+    require_ws_access(cur, ws_id, user, write=False)
+    cur.execute(
+        """
+        INSERT INTO workspace_pins (user_id, workspace_id)
+        VALUES (%s, %s)
+        ON CONFLICT (user_id, workspace_id) DO NOTHING
+        """,
+        (user["sub"], ws_id),
+    )
+
+
+def unpin_workspace_in_db(cur, ws_id: str, user: dict) -> None:
+    cur.execute(
+        "DELETE FROM workspace_pins WHERE user_id = %s AND workspace_id = %s",
+        (user["sub"], ws_id),
+    )
 
 def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
     from core.ai import resolve_provider, get_embedding_dim, AIProviderUnavailable
@@ -305,15 +328,18 @@ def explore_workspaces_in_db(cur, user: Optional[dict], q: Optional[str], lang: 
                (SELECT count(*) FROM memory_nodes mn WHERE mn.workspace_id = w.id AND mn.status = 'active') AS node_count,
                CASE WHEN w.owner_id = %s THEN 'admin'
                     ELSE wm.role::text
-               END AS my_role
+               END AS my_role,
+               (wp.user_id IS NOT NULL) AS pinned,
+               wp.pinned_at AS pinned_at
         FROM workspaces w
         LEFT JOIN users u ON u.id = w.owner_id
         LEFT JOIN workspace_members wm ON wm.workspace_id = w.id AND wm.user_id = %s
+        LEFT JOIN workspace_pins wp ON wp.workspace_id = w.id AND wp.user_id = %s
         WHERE w.deleted_at IS NULL AND w.status = 'active' AND {where}
         ORDER BY {order}
         LIMIT 200
         """,
-        [uid, uid] + params,
+        [uid, uid, uid] + params,
     )
     return cur.fetchall()
 
