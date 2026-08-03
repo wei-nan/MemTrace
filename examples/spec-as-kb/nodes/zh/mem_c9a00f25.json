@@ -1,0 +1,29 @@
+{
+  "id": "mem_c9a00f25",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "決議：claim registry 採用 DB-backed task_claims 表，非 Redis 亦非 memory_nodes",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## 決議\n\n`claim_task` / `release_task` 的 run-state 原本存於行程內的 `_TASK_CLAIMS` dict，重啟即失、多 worker 不共享。本節點記錄對 mem_inq002 四個開放設計問題的最終決議：改用 Postgres 的獨立資料表 `task_claims`（非 Redis、非 `memory_nodes` 欄位）承載 claim 狀態。\n\n## 設計\n\n新增 `task_claims` 表，`PRIMARY KEY (workspace_id, task_node_id)`，以單一 `INSERT ... ON CONFLICT ... WHERE ... RETURNING` 敘述完成原子 claim：\n\n- 若目標尚未被 claim，或已逾時（預設 30 分鐘），或呼叫者就是原本的持有者，`RETURNING` 會回傳一列，代表呼叫者現在持有 claim。\n- 若目標正被別的 agent 有效持有中，`RETURNING` 不回傳任何列，claim 失敗。\n\n單一敘述完成「檢查是否可搶」與「寫入持有者」兩步，避免多 process 之間的 check-then-set 競態——這正是舊版行程內字典無法跨 process 共享而導致重複 claim 的根因。\n\n## 回應 mem_inq002 的四個開放問題\n\n1. **Redis 部署前提**：不需要。採用既有 Postgres，不新增基礎設施依賴。\n2. **DB 寫入 vs. Redis（A7 疑慮）**：採第三案——獨立的 `task_claims` 執行期狀態表，不寫入 `memory_nodes`。run-state 因此仍未進入知識圖譜，同時免除 Redis 依賴。\n3. **TTL 策略**：沿用原有 30 分鐘，本次決議未重新評估此數值是否合理。\n4. **多 worker 是否為實際需求**：未確認。但本決議解決的是「若存在多 process / 多 worker，claim 是否會壞掉」，而非「目前是否已部署多 worker」——單一 process 下行為與舊版完全等價，無論目前部署形態為何，此修復本身不帶來風險。\n\n## 狀態\n\n此決議關閉 mem_inq002 所描述的缺口。mem_inq002 保留作為歷史設計討論紀錄，不被覆寫。"
+  },
+  "tags": [
+    "decision",
+    "claim-registry",
+    "task-claims",
+    "infra",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-08-03T00:00:00+00:00",
+    "signature": "959a2e2a8e336a815cc229285e514865dc95850e5100ee45f1f3acaf1cf52496",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

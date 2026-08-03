@@ -3,7 +3,6 @@ import datetime
 import logging
 import re
 import json
-import time as _time
 from fastapi import BackgroundTasks, HTTPException
 from core.database import db_cursor
 from core.security import generate_id, compute_signature
@@ -35,18 +34,69 @@ from services.mcp_dispatch import UNHANDLED, dispatch_core_method
 logger = logging.getLogger(__name__)
 
 # ── D3: Task claim registry (run-state, not knowledge graph — A7) ─────────────
-# Per-process in-memory store. Fine for single-process; swap to Redis for multi.
-_TASK_CLAIMS: dict[str, dict] = {}   # "<ws_id>:<task_id>" → {"agent_sub": str, "at": float}
-_CLAIM_TTL = 1800                    # 30-minute auto-release
+# DB-backed lease in the `task_claims` table (migration 004), shared across
+# all API processes/workers. Replaces the old per-process in-memory dict,
+# which let two processes each believe they held the same claim. See
+# ws_6aa957c3/mem_f819c71c and the public gap it closes, ws_spec0001/mem_inq002.
+_CLAIM_TTL = 1800  # 30-minute auto-release
 
-def _claim_key(ws_id: str, task_id: str) -> str:
-    return f"{ws_id}:{task_id}"
 
-def _gc_claims():
-    now = _time.monotonic()
-    for k in list(_TASK_CLAIMS):
-        if now - _TASK_CLAIMS[k]["at"] > _CLAIM_TTL:
-            _TASK_CLAIMS.pop(k, None)
+def _claim_task_in_db(cur, ws_id: str, task_id: str, agent_sub: str) -> bool:
+    """Atomically claim a task. True if the caller now holds the claim (fresh
+    claim, expired takeover, or re-claim by the same agent); False if someone
+    else holds a live claim. One statement — no check-then-set race across
+    processes."""
+    cur.execute(
+        """
+        INSERT INTO task_claims (workspace_id, task_node_id, agent_sub, claimed_at)
+        VALUES (%s, %s, %s, now())
+        ON CONFLICT (workspace_id, task_node_id) DO UPDATE
+            SET agent_sub = excluded.agent_sub, claimed_at = excluded.claimed_at
+            WHERE task_claims.agent_sub = excluded.agent_sub
+               OR task_claims.claimed_at < now() - make_interval(secs => %s)
+        RETURNING agent_sub
+        """,
+        (ws_id, task_id, agent_sub, _CLAIM_TTL),
+    )
+    return cur.fetchone() is not None
+
+
+def _release_task_in_db(cur, ws_id: str, task_id: str, agent_sub: str) -> tuple[bool, bool]:
+    """Delete the caller's claim. Returns (deleted, held_by_someone_else)."""
+    cur.execute(
+        "DELETE FROM task_claims WHERE workspace_id = %s AND task_node_id = %s "
+        "AND agent_sub = %s RETURNING 1",
+        (ws_id, task_id, agent_sub),
+    )
+    if cur.fetchone():
+        return True, False
+    cur.execute(
+        "SELECT 1 FROM task_claims WHERE workspace_id = %s AND task_node_id = %s",
+        (ws_id, task_id),
+    )
+    return False, cur.fetchone() is not None
+
+
+def _has_live_claim(cur, ws_id: str, task_id: str, agent_sub: str) -> bool:
+    """True if agent_sub currently holds a non-expired claim on task_id."""
+    cur.execute(
+        """SELECT 1 FROM task_claims
+           WHERE workspace_id = %s AND task_node_id = %s AND agent_sub = %s
+             AND claimed_at > now() - make_interval(secs => %s)""",
+        (ws_id, task_id, agent_sub, _CLAIM_TTL),
+    )
+    return cur.fetchone() is not None
+
+
+def _claimed_task_ids(cur, ws_id: str) -> set:
+    """Task IDs with a currently-live claim (any agent) — feeds get_next_task's
+    exclusive-mode filter."""
+    cur.execute(
+        """SELECT task_node_id FROM task_claims
+           WHERE workspace_id = %s AND claimed_at > now() - make_interval(secs => %s)""",
+        (ws_id, _CLAIM_TTL),
+    )
+    return {r["task_node_id"] for r in cur.fetchall()}
 
 # ─── Schema Metadata (P4.11-I-106) ───────────────────────────────────────────
 
@@ -1915,7 +1965,8 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         if max_tok is not None:
             max_tok = int(max_tok)
 
-        with db_cursor() as cur:
+        # commit=True: exclusive mode writes claims via this same cursor below.
+        with db_cursor(commit=True) as cur:
             require_ws_access(cur, ws_id, user, write=False)
 
             # 1. Find pending inquiry nodes
@@ -1969,8 +2020,8 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
 
             # D3: exclusive mode — filter out claimed tasks, auto-claim returned ones
             if exclusive:
-                _gc_claims()
-                inquiry_rows = [r for r in inquiry_rows if _claim_key(ws_id, r["id"]) not in _TASK_CLAIMS]
+                claimed_ids = _claimed_task_ids(cur, ws_id)
+                inquiry_rows = [r for r in inquiry_rows if r["id"] not in claimed_ids]
                 inquiry_rows = inquiry_rows[:limit]
 
             tasks = []
@@ -2058,12 +2109,14 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 tasks.append(bundle)
 
             if exclusive:
-                now_mono = _time.monotonic()
-                for t in tasks:
-                    _TASK_CLAIMS[_claim_key(ws_id, t["task"]["id"])] = {
-                        "agent_sub": user.get("sub"),
-                        "at": now_mono,
-                    }
+                # Atomic per-row claim: a task can lose the race to a
+                # concurrent get_next_task/claim_task between the filter
+                # above and this claim, so drop any task that fails to
+                # claim instead of silently overwriting someone else's
+                # fresh claim (the old in-memory version could not detect
+                # this — a single-process dict write never "failed").
+                agent_sub = user.get("sub")
+                tasks = [t for t in tasks if _claim_task_in_db(cur, ws_id, t["task"]["id"], agent_sub)]
 
             log_mcp_interaction(background_tasks, ws_id, name,
                                 query_text=f"get_next_task tag={tag}", result_count=len(tasks))
@@ -2247,10 +2300,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 raise HTTPException(status_code=403, detail="Contributor or above required to submit outcome")
 
             # Claim verification: caller must hold the claim
-            _gc_claims()
-            key = _claim_key(ws_id, task_id)
-            entry = _TASK_CLAIMS.get(key)
-            if not entry or entry["agent_sub"] != user.get("sub"):
+            if not _has_live_claim(cur, ws_id, task_id, user.get("sub")):
                 raise HTTPException(status_code=403, detail="Must claim the task before submitting outcome (call claim_task first)")
 
             # Validate inquiry node exists
@@ -2577,10 +2627,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id   = args["workspace_id"]
         task_id = args["task_node_id"]
 
-        _gc_claims()
-        key = _claim_key(ws_id, task_id)
-
-        with db_cursor() as cur:
+        with db_cursor(commit=True) as cur:
             require_ws_access(cur, ws_id, user, write=False)
             cur.execute(
                 "SELECT id FROM memory_nodes WHERE id = %s AND workspace_id = %s AND status = 'active'",
@@ -2589,30 +2636,23 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             if not cur.fetchone():
                 raise HTTPException(status_code=404, detail=f"Task {task_id} not found or not active")
 
-        existing = _TASK_CLAIMS.get(key)
-        if existing and _time.monotonic() - existing["at"] < _CLAIM_TTL:
-            if existing["agent_sub"] != user.get("sub"):
+            if not _claim_task_in_db(cur, ws_id, task_id, user.get("sub")):
                 return {"claimed": False, "reason": "already_claimed", "task_node_id": task_id}
-
-        _TASK_CLAIMS[key] = {"agent_sub": user.get("sub"), "at": _time.monotonic()}
-        return {"claimed": True, "task_node_id": task_id}
+            return {"claimed": True, "task_node_id": task_id}
 
     # ── release_task ──────────────────────────────────────────────────────────
     if name == "release_task":
         ws_id   = args["workspace_id"]
         task_id = args["task_node_id"]
 
-        key   = _claim_key(ws_id, task_id)
-        entry = _TASK_CLAIMS.get(key)
+        with db_cursor(commit=True) as cur:
+            deleted, held_by_other = _release_task_in_db(cur, ws_id, task_id, user.get("sub"))
 
-        if not entry:
-            return {"released": True, "task_node_id": task_id, "note": "task was not claimed"}
-
-        if entry["agent_sub"] != user.get("sub"):
+        if deleted:
+            return {"released": True, "task_node_id": task_id}
+        if held_by_other:
             return {"released": False, "reason": "not_your_claim", "task_node_id": task_id}
-
-        _TASK_CLAIMS.pop(key, None)
-        return {"released": True, "task_node_id": task_id}
+        return {"released": True, "task_node_id": task_id, "note": "task was not claimed"}
 
     raise ValueError(f"Unknown tool: {name}")
 

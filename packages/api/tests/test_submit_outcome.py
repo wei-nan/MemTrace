@@ -13,11 +13,10 @@ any kind prior to this file.
 """
 from __future__ import annotations
 
-import time
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 
-from services.mcp_tools import execute_tool, _TASK_CLAIMS, _claim_key
+from services.mcp_tools import execute_tool
 
 WS_ID = "ws_test"
 TASK_ID = "mem_task1"
@@ -25,16 +24,15 @@ IMPL_ID = "mem_impl1"
 
 
 def _mock_db_cursor(fetchone_side_effect):
+    """fetchone_side_effect's first item is always the claim check
+    (`_has_live_claim`'s SELECT) — callers that need a live claim must pass
+    a truthy row (e.g. {"1": 1}) as the first element."""
     cur = MagicMock()
     cur.fetchone.side_effect = fetchone_side_effect
     mock_db_cursor = MagicMock()
     mock_db_cursor.__enter__.return_value = cur
     mock_db_cursor.__exit__.return_value = False
     return mock_db_cursor, cur
-
-
-def _claim(role_user_sub="u1"):
-    _TASK_CLAIMS[_claim_key(WS_ID, TASK_ID)] = {"agent_sub": role_user_sub, "at": time.monotonic()}
 
 
 def _base_args(outcome="success"):
@@ -48,24 +46,17 @@ def _base_args(outcome="success"):
     }
 
 
-@pytest.fixture(autouse=True)
-def _clean_claims():
-    _TASK_CLAIMS.clear()
-    yield
-    _TASK_CLAIMS.clear()
-
-
 @pytest.mark.asyncio
 async def test_submit_outcome_record_path_failure_does_not_raise():
     """The core regression test: record_path_in_db raising must not propagate
     out of submit_outcome, and the response must say so via path_recorded."""
-    _claim()
     user = {"sub": "u1"}
 
-    # Two sequential cur.fetchone() calls inside the main transaction:
-    # 1) the task-existence check, 2) the C3 depends_on-parent lookup (None = skip).
+    # Three sequential cur.fetchone() calls inside the main transaction:
+    # 1) the claim check (_has_live_claim — truthy = caller holds the claim),
+    # 2) the task-existence check, 3) the C3 depends_on-parent lookup (None = skip).
     task_row = {"id": TASK_ID, "status": "active"}
-    mock_db_cursor, cur = _mock_db_cursor([task_row, None])
+    mock_db_cursor, cur = _mock_db_cursor([{"1": 1}, task_row, None])
 
     with patch("services.mcp_tools.require_ws_access", return_value={"my_role": "editor"}), \
          patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor), \
@@ -86,11 +77,10 @@ async def test_submit_outcome_record_path_failure_does_not_raise():
 
 @pytest.mark.asyncio
 async def test_submit_outcome_record_path_success_reports_true():
-    _claim()
     user = {"sub": "u1"}
 
     task_row = {"id": TASK_ID, "status": "active"}
-    mock_db_cursor, cur = _mock_db_cursor([task_row, None])
+    mock_db_cursor, cur = _mock_db_cursor([{"1": 1}, task_row, None])
 
     with patch("services.mcp_tools.require_ws_access", return_value={"my_role": "editor"}), \
          patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor), \
@@ -107,9 +97,10 @@ async def test_submit_outcome_record_path_success_reports_true():
 
 @pytest.mark.asyncio
 async def test_submit_outcome_requires_claim():
-    # No claim registered for this task -> must fail before touching record_path at all.
+    # Claim check (_has_live_claim) returns no row -> must fail before touching
+    # record_path at all.
     user = {"sub": "u1"}
-    mock_db_cursor, cur = _mock_db_cursor([])
+    mock_db_cursor, cur = _mock_db_cursor([None])
 
     with patch("services.mcp_tools.require_ws_access", return_value={"my_role": "editor"}), \
          patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):

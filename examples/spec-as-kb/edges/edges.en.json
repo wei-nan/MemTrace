@@ -5223,5 +5223,24 @@
       "rating_avg": null,
       "rating_count": 0
     }
+  },
+  {
+    "id": "edge_f875e07e",
+    "from": "mem_c9a00f25_en",
+    "to": "mem_inq002_en",
+    "relation": "extends",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-08-03T14:50:35.209053+00:00",
+    "decay": {
+      "half_life_days": 30.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   }
 ]

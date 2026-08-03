@@ -3301,6 +3301,41 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_c9a00f25','1.0','ws_spec0001','決議：claim registry 採用 DB-backed task_claims 表，非 Redis 亦非 memory_nodes','factual','markdown','## 決議
+
+`claim_task` / `release_task` 的 run-state 原本存於行程內的 `_TASK_CLAIMS` dict，重啟即失、多 worker 不共享。本節點記錄對 mem_inq002 四個開放設計問題的最終決議：改用 Postgres 的獨立資料表 `task_claims`（非 Redis、非 `memory_nodes` 欄位）承載 claim 狀態。
+
+## 設計
+
+新增 `task_claims` 表，`PRIMARY KEY (workspace_id, task_node_id)`，以單一 `INSERT ... ON CONFLICT ... WHERE ... RETURNING` 敘述完成原子 claim：
+
+- 若目標尚未被 claim，或已逾時（預設 30 分鐘），或呼叫者就是原本的持有者，`RETURNING` 會回傳一列，代表呼叫者現在持有 claim。
+- 若目標正被別的 agent 有效持有中，`RETURNING` 不回傳任何列，claim 失敗。
+
+單一敘述完成「檢查是否可搶」與「寫入持有者」兩步，避免多 process 之間的 check-then-set 競態——這正是舊版行程內字典無法跨 process 共享而導致重複 claim 的根因。
+
+## 回應 mem_inq002 的四個開放問題
+
+1. **Redis 部署前提**：不需要。採用既有 Postgres，不新增基礎設施依賴。
+2. **DB 寫入 vs. Redis（A7 疑慮）**：採第三案——獨立的 `task_claims` 執行期狀態表，不寫入 `memory_nodes`。run-state 因此仍未進入知識圖譜，同時免除 Redis 依賴。
+3. **TTL 策略**：沿用原有 30 分鐘，本次決議未重新評估此數值是否合理。
+4. **多 worker 是否為實際需求**：未確認。但本決議解決的是「若存在多 process / 多 worker，claim 是否會壞掉」，而非「目前是否已部署多 worker」——單一 process 下行為與舊版完全等價，無論目前部署形態為何，此修復本身不帶來風險。
+
+## 狀態
+
+此決議關閉 mem_inq002 所描述的缺口。mem_inq002 保留作為歷史設計討論紀錄，不被覆寫。',
+   ARRAY['decision', 'claim-registry', 'task-claims', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-08-03T00:00:00+00:00','959a2e2a8e336a815cc229285e514865dc95850e5100ee45f1f3acaf1cf52496','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_c9bd6c49','1.0','ws_spec0001','memory_nodes 表中的 `conflict_status` 欄位','factual','markdown','`memory_nodes` 表包含一個名為 `conflict_status` 的文本欄位，其值可以為 `NULL`, `''flagged''`, 或 `''resolved''`。',
    ARRAY['database_schema', 'conflict_management']::text[],'public','system','2026-04-24T11:31:27.706468+00:00','155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d','ai',
    1,1)
@@ -9465,6 +9500,41 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_c9a00f25_en','1.0','ws_spec0001_en','Decision: claim registry adopts a DB-backed task_claims table, not Redis, not memory_nodes','factual','markdown','## Decision
+
+`claim_task` / `release_task` run-state used to live in an in-process `_TASK_CLAIMS` dict — lost on restart, not shared across workers. This node records the final decision on the four open design questions raised in mem_inq002: replace it with a dedicated Postgres table, `task_claims` (neither Redis nor a `memory_nodes` column).
+
+## Design
+
+A new `task_claims` table with `PRIMARY KEY (workspace_id, task_node_id)` performs an atomic claim via a single `INSERT ... ON CONFLICT ... WHERE ... RETURNING` statement:
+
+- If the target is unclaimed, expired (default 30 minutes), or the caller already held it, `RETURNING` returns a row — the caller now holds the claim.
+- If the target is validly held by another agent, `RETURNING` returns no row — the claim fails.
+
+One statement does both "check whether it can be claimed" and "write the new holder," closing the check-then-set race across processes — the exact root cause that let the old in-process dict produce duplicate claims once more than one process served the same workspace.
+
+## Answers to mem_inq002''s four open questions
+
+1. **Redis as a prerequisite:** not required. Uses the existing Postgres, no new infrastructure dependency.
+2. **DB write vs. Redis (the A7 concern):** a third option — a dedicated `task_claims` run-state table, not a write into `memory_nodes`. Run-state still never enters the knowledge graph, while the Redis dependency is also avoided.
+3. **TTL policy:** unchanged at 30 minutes; this decision did not re-evaluate whether that value is still appropriate.
+4. **Is multi-worker an actual need:** not confirmed. This decision addresses whether claim would break *if* multiple processes/workers exist, not whether multi-worker is deployed today — single-process behavior is unchanged, so the fix carries no risk regardless of current deployment shape.
+
+## Status
+
+This decision closes the gap described in mem_inq002. mem_inq002 remains as a historical record of the design discussion and is not overwritten.',
+   ARRAY['decision', 'claim-registry', 'task-claims', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-08-03T00:00:00+00:00','9c1280f6a74f296d73c82213ed1783b6e25daf1d0bb318549288e03c6c8bedfd','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_c9bd6c49_en','1.0','ws_spec0001_en','`conflict_status` Column in `memory_nodes` Table','factual','markdown','The `memory_nodes` table includes a text column named `conflict_status`, which can have values of `NULL`, `''flagged''`, or `''resolved''`.',
    ARRAY['database_schema', 'conflict_management']::text[],'public','system','2026-04-24T11:31:27.706468+00:00','155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d','ai',
    1,1)
@@ -13755,6 +13825,10 @@ INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,
 VALUES ('edge_i007i006','ws_spec0001','mem_i007','mem_i006','related_to',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_5805b466','ws_spec0001','mem_c9a00f25','mem_inq002','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
 
 -- ── en edges ────────────────────────────────────────────
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14855,4 +14929,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_i007i006_en','ws_spec0001_en','mem_i007_en','mem_i006_en','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_f875e07e','ws_spec0001_en','mem_c9a00f25_en','mem_inq002_en','extends',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;

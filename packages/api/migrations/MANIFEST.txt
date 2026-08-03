@@ -13,3 +13,4 @@
 000_baseline_v1.sql
 001_spec_validity.sql
 002_widen_inquiry_paths_embedding.sql
+004_task_claims_table.sql

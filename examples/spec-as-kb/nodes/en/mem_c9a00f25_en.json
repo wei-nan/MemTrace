@@ -1,0 +1,29 @@
+{
+  "id": "mem_c9a00f25_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Decision: claim registry adopts a DB-backed task_claims table, not Redis, not memory_nodes",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "## Decision\n\n`claim_task` / `release_task` run-state used to live in an in-process `_TASK_CLAIMS` dict — lost on restart, not shared across workers. This node records the final decision on the four open design questions raised in mem_inq002: replace it with a dedicated Postgres table, `task_claims` (neither Redis nor a `memory_nodes` column).\n\n## Design\n\nA new `task_claims` table with `PRIMARY KEY (workspace_id, task_node_id)` performs an atomic claim via a single `INSERT ... ON CONFLICT ... WHERE ... RETURNING` statement:\n\n- If the target is unclaimed, expired (default 30 minutes), or the caller already held it, `RETURNING` returns a row — the caller now holds the claim.\n- If the target is validly held by another agent, `RETURNING` returns no row — the claim fails.\n\nOne statement does both \"check whether it can be claimed\" and \"write the new holder,\" closing the check-then-set race across processes — the exact root cause that let the old in-process dict produce duplicate claims once more than one process served the same workspace.\n\n## Answers to mem_inq002's four open questions\n\n1. **Redis as a prerequisite:** not required. Uses the existing Postgres, no new infrastructure dependency.\n2. **DB write vs. Redis (the A7 concern):** a third option — a dedicated `task_claims` run-state table, not a write into `memory_nodes`. Run-state still never enters the knowledge graph, while the Redis dependency is also avoided.\n3. **TTL policy:** unchanged at 30 minutes; this decision did not re-evaluate whether that value is still appropriate.\n4. **Is multi-worker an actual need:** not confirmed. This decision addresses whether claim would break *if* multiple processes/workers exist, not whether multi-worker is deployed today — single-process behavior is unchanged, so the fix carries no risk regardless of current deployment shape.\n\n## Status\n\nThis decision closes the gap described in mem_inq002. mem_inq002 remains as a historical record of the design discussion and is not overwritten."
+  },
+  "tags": [
+    "decision",
+    "claim-registry",
+    "task-claims",
+    "infra",
+    "agent-loop"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "memtrace-spec",
+    "created_at": "2026-08-03T00:00:00+00:00",
+    "signature": "9c1280f6a74f296d73c82213ed1783b6e25daf1d0bb318549288e03c6c8bedfd",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
