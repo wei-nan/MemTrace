@@ -493,6 +493,97 @@ def test_log_mcp_interaction_create_is_not_keep_alive():
     assert record_traversal not in funcs
 
 
+# ─── run_id/task_id/stage correlation (ws_spec_plan/mem_22e5d5cf) ──────────────
+# Closes mem_ddd0e284 gap #4: mcp_query_logs previously had no way to correlate
+# rows to a run/task/stage. Caller-supplied only — MemTrace never generates
+# these itself (see mem_f2e46f6a boundary: passive ingest, not an executor).
+
+from services.mcp_tools import _run_context
+
+
+def test_log_mcp_interaction_passes_run_correlation_from_contextvar():
+    token = _run_context.set({"run_id": "run_abc", "task_id": "mem_task1", "stage": "dev"})
+    try:
+        bt = BackgroundTasks()
+        log_mcp_interaction(bt, "ws_1", "get_node", query_text="q", result_count=1, tokens=42)
+    finally:
+        _run_context.reset(token)
+
+    log_call = next(args for func, args in _scheduled(bt) if func is log_mcp_query_internal)
+    assert log_call == ("ws_1", "get_node", "q", 1, 42, "run_abc", "mem_task1", "dev")
+
+
+def test_log_mcp_interaction_defaults_correlation_to_none_when_unset():
+    """Existing callers that never populate _run_context are unaffected — all
+    three correlation fields stay None, identical to pre-migration behavior."""
+    token = _run_context.set({})
+    try:
+        bt = BackgroundTasks()
+        log_mcp_interaction(bt, "ws_1", "get_node", query_text="q", result_count=1, tokens=42)
+    finally:
+        _run_context.reset(token)
+
+    log_call = next(args for func, args in _scheduled(bt) if func is log_mcp_query_internal)
+    assert log_call == ("ws_1", "get_node", "q", 1, 42, None, None, None)
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_get_node_sets_run_context_from_args():
+    """execute_tool must read run_id/task_id/stage out of the tool call's own
+    args and make them available to log_mcp_interaction via _run_context —
+    no per-call-site plumbing required for the other ~30 tools."""
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "node_id": "mem_1", "run_id": "run_xyz", "task_id": "mem_taskA", "stage": "g2"}
+    cur = MagicMock()
+    cur.fetchone.return_value = {"id": "mem_1", "title_en": "Node 1", "visibility": "public"}
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+    workspace_row = {"id": "ws_1", "visibility": "public", "owner_id": "user_1", "kb_type": "evergreen"}
+
+    real_bt = BackgroundTasks()
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):
+        with patch("services.workspaces.require_ws_access", return_value=workspace_row):
+            with patch("services.workspaces.get_effective_role", return_value="admin"):
+                await execute_tool("get_node", args, user, real_bt)
+
+    log_call = next(t.args for t in real_bt.tasks if t.func is log_mcp_query_internal)
+    assert log_call[5:8] == ("run_xyz", "mem_taskA", "g2")
+    # tokens (index 4) must be a real computed estimate, not the old hardcoded 0
+    assert log_call[4] > 0
+
+
+# ─── get_next_task: real budget-aware trimming, not just a truncated flag ─────
+# Closes mem_ddd0e284 gap #5. See ws_spec_plan/mem_22e5d5cf.
+
+@pytest.mark.asyncio
+async def test_get_next_task_actually_shrinks_body_when_over_budget():
+    user = {"sub": "user_1"}
+    long_body = "x" * 5000
+    task_row = {"id": "mem_task1", "title": "T1", "body": long_body, "tags": []}
+
+    cur = MagicMock()
+    # 1) main task query, 2) ancestors query, 3) related_ids_via_edge query
+    cur.fetchall.side_effect = [[task_row], [], []]
+
+    mock_db_cursor = MagicMock()
+    mock_db_cursor.__enter__.return_value = cur
+
+    with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):
+        with patch("services.mcp_tools.require_ws_access"):
+            result = await execute_tool(
+                "get_next_task",
+                {"workspace_id": "ws_1", "max_response_tokens": 10},
+                user,
+                MagicMock(),
+            )
+
+    assert result["truncated"] is True
+    assert result["total"] == 1  # task entry itself is never dropped
+    assert len(result["tasks"][0]["task"]["body"]) <= 200
+    assert result["original_size"] > 10
+
+
 def test_log_mcp_interaction_requires_actor_id():
     bt = BackgroundTasks()
     # keep-alive tool but no actor_id → skip traversal write gracefully

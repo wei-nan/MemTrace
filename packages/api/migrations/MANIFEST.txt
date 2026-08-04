@@ -15,3 +15,4 @@
 002_widen_inquiry_paths_embedding.sql
 004_task_claims_table.sql
 005_workspace_pins.sql
+006_mcp_query_logs_correlation.sql

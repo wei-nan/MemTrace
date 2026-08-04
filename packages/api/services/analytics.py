@@ -304,14 +304,22 @@ async def handle_search_miss(ws_id: str, query_text: str, user_id: str):
             confidence_score=0.3
         )
 
-def log_mcp_query_internal(ws_id: str, tool: str, query: str, result_count: int, tokens: int = 0):
-    """Log MCP query for observability."""
+def log_mcp_query_internal(
+    ws_id: str, tool: str, query: str, result_count: int, tokens: int = 0,
+    run_id: Optional[str] = None, task_id: Optional[str] = None, stage: Optional[str] = None,
+):
+    """Log MCP query for observability.
+
+    run_id/task_id/stage are optional caller-supplied correlation ids (see
+    ws_spec_plan/mem_22e5d5cf) — MemTrace never generates them itself, only
+    stores what an external harness passes on the tool call.
+    """
     from core.database import db_cursor
     with db_cursor(commit=True) as cur:
         cur.execute("""
-            INSERT INTO mcp_query_logs (workspace_id, tool_name, query_text, result_node_count, estimated_tokens)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (ws_id, tool, query, result_count, tokens))
+            INSERT INTO mcp_query_logs (workspace_id, tool_name, query_text, result_node_count, estimated_tokens, run_id, task_id, stage)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (ws_id, tool, query, result_count, tokens, run_id, task_id, stage))
 
 
 def get_kb_health_in_db(cur, ws_id: str, user: Optional[dict]) -> dict:

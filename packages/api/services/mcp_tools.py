@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional, List, Union
+import contextvars
 import datetime
 import logging
 import re
@@ -178,6 +179,14 @@ def serialize(obj: Any) -> Any:
 # subject to archiving. See ws_spec_plan/mem_ea840fad.
 KEEP_ALIVE_TOOLS = frozenset({"get_node", "traverse", "update_node"})
 
+# Optional caller-supplied run/task/stage correlation ids (ws_spec_plan/mem_22e5d5cf,
+# closing ws_8c553f98/mem_ddd0e284 gap #4). Set once per execute_tool() call from
+# args, read by log_mcp_interaction() below — a contextvar avoids threading three
+# new parameters through every one of execute_tool()'s ~30 individual
+# log_mcp_interaction(...) call sites. Safe under asyncio: each request task gets
+# its own context, so concurrent requests never see each other's values.
+_run_context: "contextvars.ContextVar[dict]" = contextvars.ContextVar("_run_context", default={})
+
 
 def log_mcp_interaction(
     background_tasks: BackgroundTasks,
@@ -199,7 +208,11 @@ def log_mcp_interaction(
     actor identity. See ws_spec_plan/mem_ea840fad.
     """
     # 1. Log query for analytics
-    background_tasks.add_task(log_mcp_query_internal, ws_id, tool_name, query_text, result_count, tokens)
+    run_ctx = _run_context.get()
+    background_tasks.add_task(
+        log_mcp_query_internal, ws_id, tool_name, query_text, result_count, tokens,
+        run_ctx.get("run_id"), run_ctx.get("task_id"), run_ctx.get("stage"),
+    )
 
     # 2. Record node-level access for explicit-access tools only
     if node_id and actor_id and tool_name in KEEP_ALIVE_TOOLS:
@@ -1185,6 +1198,15 @@ def optimize_traverse_response(cur, ws_id: str, traverse_result: dict, initial_l
     return projected_result
 
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
+    # Optional correlation ids for this call, if the caller (an external
+    # harness) supplied them — see _run_context above. Absent by default;
+    # every existing caller that never passes these is unaffected.
+    _run_context.set({
+        "run_id": args.get("run_id"),
+        "task_id": args.get("task_id"),
+        "stage": args.get("stage"),
+    })
+
     # ── list_workspaces ───────────────────────────────────────────────────────
     if name == "list_workspaces":
         with db_cursor() as cur:
@@ -1238,8 +1260,13 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         with db_cursor() as cur:
             node = get_node_in_db(cur, ws_id, node_id, user)
             if node:
-                log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"])
-                return optimize_node_response(cur, ws_id, node, detail_level, max_tokens, debug=debug)
+                result = optimize_node_response(cur, ws_id, node, detail_level, max_tokens, debug=debug)
+                # Logged after optimize, not before: response size (and thus a
+                # meaningful estimated_tokens) is only known once truncation has
+                # run. See ws_spec_plan/mem_22e5d5cf.
+                _, actual_tokens = serialize_and_estimate_tokens(result)
+                log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"], tokens=actual_tokens)
+                return result
             return node
 
     # ── search_nodes ──────────────────────────────────────────────────────────
@@ -1269,8 +1296,9 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             if not results and query:
                 background_tasks.add_task(handle_search_miss, ws_id, query, user["sub"])
             elif results:
-                log_mcp_interaction(background_tasks, ws_id, name, query_text=query, result_count=len(results))
                 results = optimize_nodes_list_response(cur, ws_id, results, detail_level, max_tokens, debug=debug)
+                _, actual_tokens = serialize_and_estimate_tokens(results)
+                log_mcp_interaction(background_tasks, ws_id, name, query_text=query, result_count=len(results), tokens=actual_tokens)
             return results
 
     # ── search_cross_workspace ────────────────────────────────────────────────
@@ -2118,13 +2146,31 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 agent_sub = user.get("sub")
                 tasks = [t for t in tasks if _claim_task_in_db(cur, ws_id, t["task"]["id"], agent_sub)]
 
-            log_mcp_interaction(background_tasks, ws_id, name,
-                                query_text=f"get_next_task tag={tag}", result_count=len(tasks))
             result = {"tasks": tasks, "total": len(tasks)}
             if max_tok:
                 _, tc = serialize_and_estimate_tokens(result)
                 if tc > max_tok:
+                    # Progressive degradation, cheapest signal first — mirrors
+                    # optimize_node_response's level-based approach. Never
+                    # drops a task entry itself: that would silently change
+                    # `total` and could hide pending work from the caller.
+                    # See ws_spec_plan/mem_22e5d5cf (closes mem_ddd0e284 #5).
+                    original_size = tc
+                    for b in tasks:
+                        b["playbooks"] = []
+                    _, tc = serialize_and_estimate_tokens(result)
+                    if tc > max_tok:
+                        for b in tasks:
+                            b["ancestors"] = []
+                        _, tc = serialize_and_estimate_tokens(result)
+                    if tc > max_tok:
+                        for b in tasks:
+                            b["task"]["body"] = b["task"]["body"][:200]
+                        _, tc = serialize_and_estimate_tokens(result)
                     result["truncated"] = True
+                    result["original_size"] = original_size
+            log_mcp_interaction(background_tasks, ws_id, name,
+                                query_text=f"get_next_task tag={tag}", result_count=len(tasks), tokens=tc if max_tok else 0)
             return result
 
     # ── get_playbook ──────────────────────────────────────────────────────────
