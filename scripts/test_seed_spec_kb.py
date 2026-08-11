@@ -20,8 +20,8 @@ from seed_spec_kb import _field_mismatches, _preview, _seed_declared, _live_decl
 
 
 def test_node_sql_never_writes_computed_fields_on_conflict():
-    """Regression guard: _node_sql() generates the committed migration SQL
-    (packages/api/migrations/003_seed_spec_kb.sql), applied manually per
+    """Regression guard: _node_sql() generates the committed seed SQL
+    (packages/api/seeds/spec_kb.sql), applied manually per
     docs/DEPLOYMENT.md — it is not in MANIFEST.txt and run_migrations() does
     not execute it. This is a separate code path from upsert_nodes().
     trust_score/dim_* are computed live; a seed upsert must never overwrite

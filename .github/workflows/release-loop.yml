@@ -111,10 +111,10 @@ jobs:
       - name: Commit drafted spec content back to the PR branch
         if: always() && steps.agent.outcome != 'skipped'
         run: |
-          if ! git diff --quiet -- examples/spec-as-kb/ packages/api/migrations/003_seed_spec_kb.sql; then
+          if ! git diff --quiet -- examples/spec-as-kb/ packages/api/seeds/spec_kb.sql; then
             git config user.name "release-loop-agent"
             git config user.email "release-loop-agent@users.noreply.github.com"
-            git add examples/spec-as-kb/ packages/api/migrations/003_seed_spec_kb.sql
+            git add examples/spec-as-kb/ packages/api/seeds/spec_kb.sql
             git commit -m "chore(release-loop): draft spec content for public behavior change" \
                         -m "Automated by release_loop_agent.py (G4). Verdict evidence written to ws_spec_plan. Review before this PR merges — this is drafted content, not a human-authored spec update."
             git push origin "HEAD:${{ steps.pr.outputs.head_ref }}"

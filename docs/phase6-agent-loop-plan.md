@@ -30,7 +30,7 @@
 | `review_queue` + AI reviewer fallback chain | **內容寫入的人 gate**（決定、結論的事實面） |
 | `path_reinforcement_job` + `decay_job` + `inquiry_paths` | **兩速的自動側**：使用成功強化、未用衰減 |
 | `ai_reviewers.auto_accept_threshold` / `auto_reject_threshold` | **決策分級**的承重機制（低風險自動放行） |
-| `examples/spec-as-kb` + `003_seed_spec_kb.sql` | **期望狀態**來源：`缺口 = spec − 實作` 的被減數 |
+| `examples/spec-as-kb` + `packages/api/seeds/spec_kb.sql` | **期望狀態**來源：`缺口 = spec − 實作` 的被減數 |
 | audit reviewers（`deduper` 等，每日） | residue 去重 / 圖的內向維護 loop |
 | `packages/api/docs/mcp-contract.md` | 外部 agent 的接入面 |
 | `ai_credit_ledger` + `AI_FREE_TOKEN_LIMIT` + 每 reviewer 日配額 | agent 預算 / 熔斷 |

@@ -20,7 +20,7 @@ on:
     paths:
       - 'examples/spec-as-kb/**'
       - 'scripts/seed_spec_kb.py'
-      - 'packages/api/migrations/003_seed_spec_kb.sql'
+      - 'packages/api/seeds/spec_kb.sql'
       - 'docs/SPEC.md'
       - 'packages/api/core/constants.py'
       - 'packages/api/docs/mcp-contract.md'

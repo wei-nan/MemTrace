@@ -164,7 +164,7 @@ strength):
 A conditional gate that fires only when a change touches public product
 behavior, schema, API/MCP contracts, or public spec content; otherwise its
 verdict is automatically `N/A PASS`. The seed JSON under `examples/spec-as-kb/`
-is the single source of truth — `packages/api/migrations/003_seed_spec_kb.sql`
+is the single source of truth — `packages/api/seeds/spec_kb.sql`
 (the sole canonical output; not in MANIFEST.txt, applied manually per
 docs/DEPLOYMENT.md) and the live public KB are generated from it. G4 requires:
 

@@ -115,7 +115,7 @@ API startup, `assert_schema_version()` compares the live value against
 `REQUIRED_SCHEMA_VERSION` and refuses to start on mismatch — a stale or
 ahead-of-code database is a real bug, not something to run through anyway.
 
-**Public Spec-as-KB seed data** (`003_seed_spec_kb.sql`) is deliberately
+**Public Spec-as-KB seed data** (`packages/api/seeds/spec_kb.sql`) is deliberately
 *not* in the manifest — seed data isn't a schema migration, so it's applied
 manually. See `docs/DEPLOYMENT.md` for the command.
 
@@ -266,9 +266,11 @@ memtrace/
 ├── packages/api/migrations/  Runtime migrations, applied by run_migrations()
 │   ├── MANIFEST.txt         Only listed files are executed, in order
 │   ├── 000_baseline_v1.sql     Full schema baseline (pg_dump)
-│   ├── NNN_*.sql            Numbered migrations (add new ones; never edit old ones)
-│   └── 003_seed_spec_kb.sql Public spec-as-KB seed — NOT in MANIFEST, applied
-│                             manually (see docs/DEPLOYMENT.md)
+│   └── NNN_*.sql            Numbered migrations (add new ones; never edit old ones)
+│
+├── packages/api/seeds/
+│   └── spec_kb.sql          Public spec-as-KB seed — not a migration, NOT in
+│                             MANIFEST, applied manually (see docs/DEPLOYMENT.md)
 │
 ├── packages/
 │   │

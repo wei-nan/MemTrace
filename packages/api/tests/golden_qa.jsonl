@@ -21,7 +21,7 @@
 {"question": "What is the difference between 'public' and 'private' workspaces?", "expected_node_ids": ["mem_25ad6564", "mem_6089d7d9"], "expected_facts": ["Private is hidden from search/lists", "Public is visible"], "difficulty": "medium", "cross_node": true}
 {"question": "Can I invite someone to a private workspace?", "expected_node_ids": ["mem_8145c1ad"], "expected_facts": ["No", "Restricted to owner"], "difficulty": "medium"}
 {"question": "What are the prerequisites for the local development stack?", "expected_node_ids": ["mem_w002"], "expected_facts": ["Node.js 20+", "Python 3.11+", "Docker Desktop"], "difficulty": "medium"}
-{"question": "How is the Spec KB initialized?", "expected_node_ids": ["mem_w003"], "expected_facts": ["099_seed_spec_kb.sql", "30 nodes and edges"], "difficulty": "medium"}
+{"question": "How is the Spec KB initialized?", "expected_node_ids": ["mem_w003"], "expected_facts": ["packages/api/seeds/spec_kb.sql", "30 nodes and edges"], "difficulty": "medium"}
 {"question": "Which endpoint records a node visit?", "expected_node_ids": ["mem_54473627"], "expected_facts": ["POST /nodes/{node_id}/traverse"], "difficulty": "easy"}
 {"question": "What should an AI agent do when a 202 status is returned?", "expected_node_ids": ["mem_d3564082"], "expected_facts": ["Extract review_id", "Return to user/agent"], "difficulty": "hard"}
 {"question": "Expanded Q1: How does Relation Type 1 affect Co-Access Boost?", "expected_node_ids": ["mem_g002", "mem_g003"], "expected_facts": ["Boost amount varies by relation type"], "difficulty": "medium", "cross_node": true}
