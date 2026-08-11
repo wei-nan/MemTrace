@@ -705,7 +705,10 @@ async def chat_with_kb_stream(
             print(f"[chat-stream] Starting AI stream with provider {resolved.provider.name}...")
 
             async for kind, text, tokens in _stream_with_spoken_summary(
-                chat_stream(resolved, messages), body.want_spoken_summary
+                # 4096 (chat_stream's default) leaves little headroom once a long
+                # answer is followed by a chart block, causing the chart to be cut
+                # off mid-generation (mem_63d88e42). 8192 gives that room.
+                chat_stream(resolved, messages, max_tokens=8192), body.want_spoken_summary
             ):
                 if kind == "summary":
                     yield json.dumps({"type": "spoken_summary", "delta": text}) + "\n"

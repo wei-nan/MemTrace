@@ -71,3 +71,6 @@ prune_mcp.py
 
 docker-compose.sim.yml
 .codex/config.toml
+
+# Local agent-harness scope file, not project config
+harness-scope.md

@@ -1550,6 +1550,25 @@ Suggest that they: (1) add more nodes covering the topic, or (2) run \
 "Re-embed All" in workspace settings so that existing nodes are fully indexed \
 for semantic search. Do NOT fabricate answers from memory when context is empty.
 
+CHARTS:
+When a chart would make your answer clearer (e.g. the user asks to visualize, \
+compare, or see a trend in numeric data), you MAY render one by emitting a \
+fenced code block with the language tag "html-chart" containing a complete, \
+self-contained HTML document (inline <style>/<script> only, no external \
+resources — network access is blocked when it renders). Use <canvas> or plain \
+DOM/SVG elements to draw the chart; do not rely on any external chart library. \
+Emit this block only once it is fully formed — never leave it truncated. Do \
+not use this for anything other than a real, user-relevant chart. Example:
+
+```html-chart
+<canvas id="c" width="400" height="200"></canvas>
+<script>
+  const ctx = document.getElementById('c').getContext('2d');
+  ctx.fillStyle = '#4f46e5';
+  ctx.fillRect(20, 20, 60, 150);
+</script>
+```
+
 PROPOSALS:
 If you identify inaccuracies, redundancies, missing nodes, or missing \
 connections in the provided nodes, you SHOULD suggest changes.

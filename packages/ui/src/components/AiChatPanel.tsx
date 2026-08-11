@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap, Mic, MicOff, Volume2 } from 'lucide-react';
+import { Send, Square, Sparkles, User, Brain, ExternalLink, PlusCircle, Settings2, AlertCircle, Check, X, RotateCcw, MessageSquare, Trash2, Pencil, ChevronUp, ChevronDown, Lock, GitPullRequest, Zap, Mic, MicOff, Volume2, Maximize2 } from 'lucide-react';
 import { ai, voice, review, VoiceStreamSession, type ChatResponse, type ProposedChange, type ModelInfo, type CreditStatus, type ChatSession } from '../api';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card } from './ui';
 import { useModal } from './ModalContext';
+import ChartFrame from './ChartFrame';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -834,7 +835,11 @@ export default function AiChatPanel({ wsId, zh, onClose, fullPage }: { wsId: str
                 <div style={{ padding: '10px 14px', borderRadius: 12, fontSize: 13, lineHeight: 1.5, background: m.role === 'user' ? 'var(--color-primary)' : 'var(--bg-base)', color: m.role === 'user' ? 'white' : 'var(--text-primary)', border: m.role === 'assistant' ? '1px solid var(--border-default)' : 'none', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                   {m.role === 'assistant' && m.content === '' && loading && msgIdx === messages.length - 1
                     ? <TypingDots />
-                    : <div className={m.role === 'assistant' ? 'markdown-body' : undefined}><ReactMarkdown>{m.content}</ReactMarkdown></div>}
+                    : <div className={m.role === 'assistant' ? 'markdown-body' : undefined}>
+                        <ReactMarkdown components={m.role === 'assistant' ? chartMarkdownComponents(m.content, loading && msgIdx === messages.length - 1, zh) : undefined}>
+                          {m.content}
+                        </ReactMarkdown>
+                      </div>}
                   {m.spokenSummary && (
                     <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--color-primary-subtle)', border: '1px solid var(--color-primary)', fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, color: 'var(--color-primary)', marginBottom: 4 }}>
@@ -1061,6 +1066,82 @@ function ProposalCard({ proposal, zh, status, onAccept, onReject }: { proposal: 
       )}
     </Card>
   );
+}
+
+/**
+ * Whether the *last* ```html-chart fence in the raw markdown was actually
+ * closed with a matching ``` line. An open stream and a provider-truncated
+ * response (hit its output-length limit mid-block) look identical to
+ * react-markdown — both just end without a closing fence — so this is the
+ * only reliable way to tell "still generating" apart from "cut off".
+ */
+function isHtmlChartFenceClosed(content: string): boolean {
+  const openMarker = '```html-chart';
+  const idx = content.lastIndexOf(openMarker);
+  if (idx === -1) return true;
+  const rest = content.slice(idx + openMarker.length);
+  return /(^|\n)```[ \t]*(\n|$)/.test(rest);
+}
+
+/**
+ * Custom ReactMarkdown renderers so a ```html-chart fenced block renders as a
+ * sandboxed, executing chart (see ChartFrame) instead of plain code text.
+ * Rendered only once its fence is confirmed closed (see isHtmlChartFenceClosed) —
+ * otherwise shown as "generating" while the message is still streaming, or as
+ * a truncation warning if the stream already ended without closing it.
+ */
+function chartMarkdownComponents(content: string, stillStreamingMessage: boolean, zh: boolean) {
+  const closed = isHtmlChartFenceClosed(content);
+  return {
+    pre(props: any) {
+      const childClassName = props.children?.props?.className || '';
+      if (/language-html-chart/.test(childClassName)) return <>{props.children}</>;
+      return <pre {...props} />;
+    },
+    code(props: any) {
+      const { className, children, ...rest } = props;
+      if (/language-html-chart/.test(className || '')) {
+        if (closed) {
+          return <ChartFrame html={String(children).replace(/\n$/, '')} />;
+        }
+        if (stillStreamingMessage) {
+          return (
+            <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-base)', border: '1px dashed var(--border-default)', fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              {zh ? '產生圖表中…' : 'Generating chart…'}
+            </div>
+          );
+        }
+        return (
+          <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--color-warning-subtle, #fef3c7)', border: '1px solid var(--color-warning, #f59e0b)', fontSize: 12, color: 'var(--color-warning, #92400e)' }}>
+            {zh ? '⚠️ 圖表回覆被截斷，未完整產生，無法顯示。' : '⚠️ The chart response was cut off before completing and cannot be shown.'}
+          </div>
+        );
+      }
+      return <code className={className} {...rest}>{children}</code>;
+    },
+    img(props: any) {
+      const { src, alt } = props;
+      return (
+        <span style={{ position: 'relative', display: 'inline-block', maxWidth: '100%', marginTop: 6 }}>
+          <img src={src} alt={alt} style={{ maxWidth: '100%', borderRadius: 8, display: 'block' }} />
+          <button
+            onClick={() => window.open(src, '_blank', 'noopener,noreferrer')}
+            title={zh ? '開新分頁看原圖' : 'Open in new tab'}
+            style={{
+              position: 'absolute', top: 6, right: 6,
+              width: 24, height: 24, borderRadius: 6,
+              border: '1px solid var(--border-default)',
+              background: 'var(--bg-surface)', color: 'var(--text-secondary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', opacity: 0.85,
+            }}
+          >
+            <Maximize2 size={12} />
+          </button>
+        </span>
+      );
+    },
+  };
 }
 
 function TypingDots() {
