@@ -13,7 +13,9 @@ def test_bfs_neighborhood_basic():
     ws_id = "ws_test"
     node_id = "mem_root"
     
-    # Mock edges fetch (1st fetchall) and then nodes fetch (2nd fetchall)
+    # Mock edges fetch (1st fetchall), archived-node pruning check (2nd,
+    # since include_archived defaults to False and the frontier is
+    # non-empty), then the final nodes fetch (3rd).
     cur.fetchall.side_effect = [
         [
             {
@@ -25,6 +27,7 @@ def test_bfs_neighborhood_basic():
                 "direction": "outbound"
             }
         ],
+        [],  # no archived nodes among the candidates
         [
             {
                 "id": "mem_root",

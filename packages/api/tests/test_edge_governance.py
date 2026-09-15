@@ -6,7 +6,10 @@ from __future__ import annotations
 
 import pytest
 from fastapi import HTTPException
-from services.edges import create_edge_in_db, delete_edge_in_db
+from services.edges import (
+    create_edge_in_db, delete_edge_in_db, trash_edge_in_db,
+    restore_trashed_edge_in_db, list_trashed_edges_in_db,
+)
 from services.nodes import create_node_in_db
 
 
@@ -170,4 +173,37 @@ class TestDeleteEdge:
         with conn.cursor() as cur:
             with pytest.raises(HTTPException) as exc:
                 delete_edge_in_db(cur, ws_id, "edge_does_not_exist")
+            assert exc.value.status_code == 404
+
+
+@pytest.mark.integration
+class TestTrashEdge:
+    """ws_spec_plan/mem_bc15e46d: trashed edges are hidden, not gone, until the
+    30-day purge job runs delete_edge_in_db on them."""
+
+    def test_trash_then_restore_roundtrip(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            a = _mk_node(cur, ws_id, "factual", "a")
+            b = _mk_node(cur, ws_id, "factual", "b")
+            edge = create_edge_in_db(cur, ws_id, {"from_id": a, "to_id": b, "relation": "related_to"})
+
+            trash_edge_in_db(cur, ws_id, edge["id"], trashed_by="tester", reason_category="duplicate")
+            cur.execute("SELECT status FROM edges WHERE id = %s", (edge["id"],))
+            assert cur.fetchone()["status"] == "trashed"
+
+            trashed = list_trashed_edges_in_db(cur, ws_id, {"sub": "tester"})
+            assert edge["id"] in {e["id"] for e in trashed}
+
+            restore_trashed_edge_in_db(cur, ws_id, edge["id"], {"sub": "tester"})
+            cur.execute("SELECT status FROM edges WHERE id = %s", (edge["id"],))
+            assert cur.fetchone()["status"] == "active"
+
+    def test_trash_edge_not_found(self, db_transaction):
+        conn = db_transaction
+        ws_id = "ws_spec0001"
+        with conn.cursor() as cur:
+            with pytest.raises(HTTPException) as exc:
+                trash_edge_in_db(cur, ws_id, "edge_does_not_exist", trashed_by="tester")
             assert exc.value.status_code == 404

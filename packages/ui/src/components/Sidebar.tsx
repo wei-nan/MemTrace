@@ -133,17 +133,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           {!collapsed && <div className="brand-text">MemTrace</div>}
         </div>
-        {!collapsed && (
-          <span style={{
-            fontSize: 10, fontWeight: 600, letterSpacing: '0.05em',
-            color: 'var(--text-muted)',
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap',
-          }}>
-            v2.0
-          </span>
-        )}
       </div>
 
       {/* Workspace selector */}

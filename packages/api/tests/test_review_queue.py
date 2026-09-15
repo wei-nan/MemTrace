@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from core.database import db_cursor
-from routers.review import _annotate_stale_edge, _fetch_active_node_ids, list_review_queue
+from routers.review import _annotate_stale_edge, _apply_review_item, _fetch_active_node_ids, list_review_queue
 
 
 def _pending_row(id_, change_type, node_data, workspace_id="ws_x"):
@@ -119,3 +119,18 @@ class TestReviewQueueStaleEdgeAgainstRealDb:
                 assert stale_item["proposer_meta"]["stale_edge"] is True
                 assert stale_item["proposer_meta"]["missing_nodes"] == ["node_deleted_c"]
                 assert stale_item["can_review"] is False
+
+
+def test_approved_delete_proposal_trashes_not_hard_deletes():
+    """ws_spec_plan/mem_bc15e46d: approving an editor's delete proposal moves
+    the node to trash (30-day reversible window), not an immediate hard delete."""
+    item = _pending_row("rv_1", "delete", None)
+    item["target_node_id"] = "mem_1"
+    cur = MagicMock()
+
+    with patch("routers.review._trash_node_in_db", return_value={"id": "mem_1"}) as mock_trash:
+        node, deleted = _apply_review_item(cur, item, approved_by="admin_1")
+
+    assert node is None
+    assert deleted == {"id": "mem_1"}
+    mock_trash.assert_called_once_with(cur, "ws_x", "mem_1", trashed_by="admin_1")

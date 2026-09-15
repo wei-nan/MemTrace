@@ -36,22 +36,22 @@ Each request body must be a JSON-RPC 2.0 envelope:
 
 ## Tool Profiles
 
-To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 44 tools, clients can request a specific functional subset.
+To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 48 tools, clients can request a specific functional subset.
 
 ### Available Profiles
 
-- **`core`**: Basic CRUD operations for workspaces, nodes, and edges.
+- **`core`**: Basic CRUD operations for workspaces, nodes, and edges, including delete/restore/list-trash (`delete_node`, `restore_node`, `delete_edge`, `restore_edge`, `list_trash`) — see `ws_spec_plan/mem_bc15e46d` for why these sit in `core` rather than `review_admin`: a confirmed delete only trashes (reversible for 30 days, tombstoned on purge), so it no longer needs the extra opt-in that made sense when it was an immediate, irreversible hard delete.
 - **`agent_loop`**: Agent Loop task management (tasks, playbooks, decisions, outcomes).
 - **`ingest_docs`**: Document, URL, and evidence imports.
 - **`advanced_graph`**: Advanced search and analysis (cross-workspace, similar edges).
-- **`review_admin`**: Governance, conflict resolution, audit trails, and deletion.
+- **`review_admin`**: Governance, conflict resolution, and audit trails (`list_review_queue`, `reject_proposal`, `resolve_conflict`, `verify_audit`, `transfer_authorship`).
 - **`full`**: Exposes all tools.
 
 Profiles can be combined using `+` or `,` (e.g., `core+agent_loop`).
 
 ### Selection & Default
 
-- **Default**: `core+agent_loop` (exposes 22 tools)
+- **Default**: `core+agent_loop` (exposes 26 tools)
 - **How to configure**:
   - **Environment Variable**: Set `MEMTRACE_MCP_TOOL_PROFILE=full` on the server.
   - **HTTP Header**: Send `X-MemTrace-Tool-Profile: full` in client requests.
@@ -199,9 +199,59 @@ The active success response intentionally does not echo `body` or internal bookk
 ---
 
 ### `delete_node`
-Soft-archive a knowledge node (reversible).
+Move a node to trash. Not an immediate hard delete: the node is hidden from `search_nodes`/`list_nodes`/`traverse` but stays recoverable via `restore_node` for 30 days, after which a daily job auto-purges it (hard-delete with a tombstone, `ws_spec_plan/mem_347895c4`).
+
+> ⚠️ **Breaking change (2026-09-11, `ws_spec_plan/mem_bc15e46d`)**: previously this tool called the immediate hard-delete path (despite the description then claiming "soft-archive") with no confirmation step and no recovery window, and required the `review_admin` tool profile. It now trashes instead (same call shape, different — safer, reversible — effect) and moved into the default `core` profile, since it's no longer an irreversible action requiring the extra opt-in. Use the new `restore_node` tool to undo within the 30-day window, or `list_trash` to see what's pending purge.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | ✅ | |
+| `node_id` | string | ✅ | |
+| `reason_category` | string | | One of `hallucination` \| `wrong_direction` \| `duplicate` \| `pii` \| `orphaned` \| `other` (default: `other`). Recorded on the eventual tombstone. |
+| `reason_note` | string | | Free-text reason. |
+
+---
+
+### `restore_node`
+Restore a node out of trash back to `active`, if it is still within its 30-day trash window.
 
 **Input**: `workspace_id` (required), `node_id` (required)
+
+**Output**: `{ "restored": true, "node_id": "..." }`
+
+---
+
+### `delete_edge`
+Move an edge to trash (e.g. wrong-direction or duplicate edges), same reversible semantics as `delete_node`.
+
+> ⚠️ **Breaking change (2026-09-11, `ws_spec_plan/mem_bc15e46d`)**: previously this tool hard-deleted the edge immediately and irreversibly, with no confirmation step — and it has always been reachable from the default `core` tool profile, so any caller could permanently remove an edge in one call. It now trashes instead; restore with `restore_edge` within 30 days, or view pending purges with `list_trash`. It stays in `core` (rather than moving to the more restricted `review_admin`, where its sibling `delete_node` lived until this same change) because the underlying action is no longer irreversible — see the `core` profile description above.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | ✅ | |
+| `edge_id` | string | ✅ | |
+| `reason_category` | string | | Same enum as `delete_node`'s `reason_category` (default: `other`). |
+| `reason_note` | string | | Free-text reason. |
+
+---
+
+### `restore_edge`
+Restore an edge out of trash back to `active`, if it is still within its 30-day trash window.
+
+**Input**: `workspace_id` (required), `edge_id` (required)
+
+**Output**: `{ "restored": true, "edge_id": "..." }`
+
+---
+
+### `list_trash`
+List trashed nodes and edges in a workspace, pending permanent purge after 30 days.
+
+**Input**: `workspace_id` (required)
+
+**Output**: `{ "nodes": [...], "edges": [...] }` — each entry includes `trashed_at`, `trashed_by`, `trash_reason_category`, `trash_reason_note`.
 
 ---
 

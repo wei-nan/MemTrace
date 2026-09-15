@@ -16,3 +16,4 @@
 004_task_claims_table.sql
 005_workspace_pins.sql
 006_mcp_query_logs_correlation.sql
+007_node_edge_trash.sql

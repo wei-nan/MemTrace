@@ -9,14 +9,19 @@ from core.database import db_cursor
 from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T
 from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
-from services.edges import record_traversal, create_edge_in_db, delete_edge_in_db
+from services.edges import (
+    record_traversal, create_edge_in_db, trash_edge_in_db,
+    restore_trashed_edge_in_db, list_trashed_edges_in_db,
+)
 from services.search import bfs_neighborhood, search_nodes_in_db, perform_semantic_search
 from services.analytics import handle_search_miss, log_mcp_query_internal
 from services.nodes import (
-    list_nodes_in_db, 
-    get_node_in_db, 
+    list_nodes_in_db,
+    get_node_in_db,
     update_node_in_db,
-    delete_node_in_db, 
+    trash_node_in_db,
+    restore_trashed_node_in_db,
+    list_trashed_nodes_in_db,
     create_node_full_with_dedup,
     confirm_node_validity_in_db,
     list_review_queue_in_db,
@@ -229,11 +234,21 @@ MCP_TOOL_PROFILES = {
         "create_node",
         "update_node",
         "create_edge",
-        "delete_edge",
         "traverse",
         "get_schema",
         "wait_for_embedding",
         "get_embedding_status",
+        # Trash (ws_spec_plan/mem_bc15e46d): kept together in one scope,
+        # unlike the other review_admin tools below — a confirmed delete now
+        # only trashes (reversible for 30 days, tombstoned on purge), so it no
+        # longer needs the extra opt-in that made sense when this was an
+        # immediate, irreversible hard delete. Restore/list stay alongside it
+        # so a default session that can trash something can also undo it.
+        "delete_node",
+        "restore_node",
+        "delete_edge",
+        "restore_edge",
+        "list_trash",
     },
     "agent_loop": {
         "get_next_task",
@@ -280,7 +295,6 @@ MCP_TOOL_PROFILES = {
         "resolve_conflict",
         "verify_audit",
         "transfer_authorship",
-        "delete_node",
     },
     "deprecated": {
         "complement_node_languages",
@@ -423,7 +437,28 @@ TOOLS = [
     },
     {
         "name": "delete_node",
-        "description": "Archive (soft-delete) a knowledge node.",
+        "description": (
+            "Move a node to trash. Not an immediate hard delete: the node is "
+            "hidden from search/traverse/list but stays recoverable for 30 days "
+            "via restore_node; after that it is auto-purged with a tombstone."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_id": {"type": "string"},
+                "reason_category": {
+                    "type": "string",
+                    "enum": ["hallucination", "wrong_direction", "duplicate", "pii", "orphaned", "other"],
+                },
+                "reason_note": {"type": "string"},
+            },
+            "required": ["workspace_id", "node_id"],
+        },
+    },
+    {
+        "name": "restore_node",
+        "description": "Restore a node out of trash back to active, if it is still within its 30-day trash window.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -431,6 +466,29 @@ TOOLS = [
                 "node_id": {"type": "string"},
             },
             "required": ["workspace_id", "node_id"],
+        },
+    },
+    {
+        "name": "restore_edge",
+        "description": "Restore an edge out of trash back to active, if it is still within its 30-day trash window.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "edge_id": {"type": "string"},
+            },
+            "required": ["workspace_id", "edge_id"],
+        },
+    },
+    {
+        "name": "list_trash",
+        "description": "List trashed nodes and edges in a workspace (pending permanent purge after 30 days).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+            },
+            "required": ["workspace_id"],
         },
     },
     {
@@ -483,12 +541,21 @@ TOOLS = [
     },
     {
         "name": "delete_edge",
-        "description": "Delete an edge by its id. Use to clean up wrong-direction or duplicate edges (edges have no soft-delete).",
+        "description": (
+            "Move an edge to trash (e.g. wrong-direction or duplicate edges). Not "
+            "an immediate hard delete: recoverable for 30 days, then auto-purged "
+            "with a tombstone."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "workspace_id": {"type": "string"},
-                "edge_id": {"type": "string", "description": "ID of the edge to delete"},
+                "edge_id": {"type": "string", "description": "ID of the edge to trash"},
+                "reason_category": {
+                    "type": "string",
+                    "enum": ["hallucination", "wrong_direction", "duplicate", "pii", "orphaned", "other"],
+                },
+                "reason_note": {"type": "string"},
             },
             "required": ["workspace_id", "edge_id"],
         },
@@ -507,6 +574,7 @@ TOOLS = [
                 "max_response_tokens": {"type": "integer", "description": "Max response tokens (optional)"},
                 "tool_output": {"type": "string", "description": "The output of the last tool execution to evaluate conditions (optional)"},
                 "include_faded": {"type": "boolean", "description": "Include faded (decayed) edges in addition to active ones (default false)"},
+                "include_archived": {"type": "boolean", "description": "Include archived nodes in the traversal (default false) — archived nodes are pruned from BFS results and don't propagate the frontier further, same as faded edges"},
             },
             "required": ["workspace_id", "node_id"],
         },
@@ -1421,9 +1489,39 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id   = args["workspace_id"]
         node_id = args["node_id"]
         with db_cursor(commit=True) as cur:
-            res = delete_node_in_db(cur, ws_id, node_id)
-            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id)
+            res = trash_node_in_db(
+                cur, ws_id, node_id, trashed_by=user["sub"],
+                reason_category=args.get("reason_category", "other"),
+                reason_note=args.get("reason_note", ""),
+            )
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"])
             return res
+
+    # ── restore_node ──────────────────────────────────────────────────────────
+    if name == "restore_node":
+        ws_id   = args["workspace_id"]
+        node_id = args["node_id"]
+        with db_cursor(commit=True) as cur:
+            restore_trashed_node_in_db(cur, ws_id, node_id, user)
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"])
+            return {"restored": True, "node_id": node_id}
+
+    # ── restore_edge ──────────────────────────────────────────────────────────
+    if name == "restore_edge":
+        ws_id   = args["workspace_id"]
+        edge_id = args["edge_id"]
+        with db_cursor(commit=True) as cur:
+            restore_trashed_edge_in_db(cur, ws_id, edge_id, user)
+            log_mcp_interaction(background_tasks, ws_id, name, actor_id=user["sub"])
+            return {"restored": True, "edge_id": edge_id}
+
+    # ── list_trash ────────────────────────────────────────────────────────────
+    if name == "list_trash":
+        ws_id = args["workspace_id"]
+        with db_cursor() as cur:
+            nodes = list_trashed_nodes_in_db(cur, ws_id, user)
+            edges = list_trashed_edges_in_db(cur, ws_id, user)
+            return {"nodes": nodes, "edges": edges}
 
     # ── create_edge ───────────────────────────────────────────────────────────
     if name == "create_edge":
@@ -1447,7 +1545,11 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         with db_cursor(commit=True) as cur:
             require_ws_access(cur, ws_id, user, write=True, required_role="admin")
-            return delete_edge_in_db(cur, ws_id, args["edge_id"], deleted_by=user.get("sub", "system"))
+            return trash_edge_in_db(
+                cur, ws_id, args["edge_id"], trashed_by=user.get("sub", "system"),
+                reason_category=args.get("reason_category", "other"),
+                reason_note=args.get("reason_note", ""),
+            )
 
     # ── traverse ──────────────────────────────────────────────────────────────
     if name == "traverse":
@@ -1458,6 +1560,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         max_tokens = args.get("max_response_tokens")
         tool_output = args.get("tool_output")
         include_faded = bool(args.get("include_faded", False))
+        include_archived = bool(args.get("include_archived", False))
         if max_tokens is not None:
             max_tokens = int(max_tokens)
         with db_cursor() as cur:
@@ -1472,6 +1575,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 viewer_role=viewer_role,
                 tool_output=tool_output,
                 include_faded=include_faded,
+                include_archived=include_archived,
             )
             log_mcp_interaction(background_tasks, ws_id, name, node_id=root_id, actor_id=user["sub"])
             return optimize_traverse_response(cur, ws_id, result, detail_level, max_tokens)

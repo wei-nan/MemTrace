@@ -32,6 +32,7 @@ def bfs_neighborhood(
     viewer_role: Optional[str] = "viewer",
     tool_output: Optional[str] = None,
     include_faded: bool = False,
+    include_archived: bool = False,
 ) -> dict:
     """
     Traverse edges up to `depth` from `root_id`.
@@ -81,7 +82,26 @@ def bfs_neighborhood(
                 next_frontier.add(e["from_id"])
             if e["to_id"] not in visited_nodes:
                 next_frontier.add(e["to_id"])
-        
+
+        # Archived nodes are hidden from traversal by default, same idea as
+        # include_faded for edges: they still exist and stay reachable directly
+        # (get_node) or via include_archived=True, but shouldn't get pulled into
+        # every BFS context bundle and keep costing tokens. Root stays visible
+        # even if archived since it was explicitly requested.
+        #
+        # Trashed nodes (ws_spec_plan/mem_bc15e46d) are always pruned here,
+        # unconditionally — there is no include_trashed opt-in for traverse;
+        # a node pending its 30-day purge should only surface via the
+        # dedicated trash list, not leak back in through a neighbor's edges.
+        if next_frontier:
+            excluded_statuses = ["trashed"] if include_archived else ["trashed", "archived"]
+            cur.execute(
+                "SELECT id FROM memory_nodes WHERE workspace_id = %s AND id = ANY(%s) AND status = ANY(%s)",
+                (ws_id, list(next_frontier), excluded_statuses),
+            )
+            excluded_ids = {r["id"] for r in cur.fetchall()}
+            next_frontier -= excluded_ids
+
         visited_nodes.update(next_frontier)
         current_frontier = next_frontier
 
@@ -93,6 +113,14 @@ def bfs_neighborhood(
     if len(visited_nodes) > 100:
         truncated = True
         visited_nodes = set(list(visited_nodes)[:100])
+
+    # Drop edges whose endpoint fell out of the final node set (archived-pruned
+    # above, or cut by the 100-node truncation) so the response never points at
+    # a node it doesn't include.
+    unique_edges = [
+        e for e in unique_edges
+        if e["from_id"] in visited_nodes and e["to_id"] in visited_nodes
+    ]
 
     if not visited_nodes:
         return {"nodes": [], "edges": [], "truncated": False, "total_nodes": 0}

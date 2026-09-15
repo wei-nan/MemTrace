@@ -600,8 +600,27 @@ def delete_node(ws_id: str, node_id: str, background_tasks: BackgroundTasks, use
             from core.ai_review import run_ai_review_for_item
             background_tasks.add_task(run_ai_review_for_item, review_id)
             return JSONResponse(status_code=202, content={"review_id": review_id, "detail": "Your deletion request has been submitted for review"})
-            
-        return {"status": "archived", "node_id": node["id"]}
+
+        return {"status": "trashed", "node_id": node["id"]}
+
+
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/restore-from-trash")
+def restore_node_from_trash(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+    from services.nodes import restore_trashed_node_in_db
+    with db_cursor(commit=True) as cur:
+        restore_trashed_node_in_db(cur, ws_id, node_id, user)
+        return {"status": "active", "node_id": node_id}
+
+
+@router.get("/workspaces/{ws_id}/trash")
+def get_trash(ws_id: str, user: dict = Depends(get_current_user)):
+    from services.nodes import list_trashed_nodes_in_db
+    from services.edges import list_trashed_edges_in_db
+    with db_cursor() as cur:
+        return {
+            "nodes": list_trashed_nodes_in_db(cur, ws_id, user),
+            "edges": list_trashed_edges_in_db(cur, ws_id, user),
+        }
 
 
 @router.get("/workspaces/{ws_id}/nodes/{node_id}/revisions", response_model=list[NodeRevisionMetaResponse])
@@ -684,6 +703,23 @@ def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_u
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         return _create_edge_in_db(cur, ws_id, body.model_dump())
+
+
+@router.delete("/workspaces/{ws_id}/edges/{edge_id}")
+def delete_edge(ws_id: str, edge_id: str, user: dict = Depends(get_current_user)):
+    from services.edges import trash_edge_in_db
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        trash_edge_in_db(cur, ws_id, edge_id, trashed_by=user["sub"])
+        return {"status": "trashed", "edge_id": edge_id}
+
+
+@router.post("/workspaces/{ws_id}/edges/{edge_id}/restore-from-trash")
+def restore_edge_from_trash(ws_id: str, edge_id: str, user: dict = Depends(get_current_user)):
+    from services.edges import restore_trashed_edge_in_db
+    with db_cursor(commit=True) as cur:
+        restore_trashed_edge_in_db(cur, ws_id, edge_id, user)
+        return {"status": "active", "edge_id": edge_id}
 
 
 @router.post("/nodes/{node_id}/traverse", status_code=204)

@@ -19,6 +19,7 @@ import logging
 import re
 
 from core.ai import resolve_provider, chat_completion, AIProviderUnavailable
+from core.config import settings
 from core.security import generate_id
 from services.audit_proposals import create_proposal
 
@@ -56,6 +57,8 @@ async def detect_and_flag_contradictions(cur, ws_id: str, node_id: str) -> dict:
         return {"status": "skipped", "reason": "not_checkable_type"}
     if not node["embedding"]:
         return {"status": "skipped", "reason": "no_embedding"}
+    if settings.disable_ai_contradiction_check:
+        return {"status": "skipped", "reason": "ai_disabled"}
 
     try:
         resolved = resolve_provider(user_id="system:safety", feature="chat")

@@ -506,6 +506,11 @@ export default function App() {
                 setGraphVersion(v => v + 1);
               }}
               onClose={() => { setEditingNode(undefined); setSourceNodeId(undefined); }}
+              onDeleted={() => {
+                setEditingNode(undefined);
+                setSourceNodeId(undefined);
+                setGraphVersion(v => v + 1);
+              }}
               onSelectNode={n => {
                 setSourceNodeId(editingNode?.id ?? undefined);
                 setEditingNode(n);

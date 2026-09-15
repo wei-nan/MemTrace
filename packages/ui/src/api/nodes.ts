@@ -64,6 +64,32 @@ export interface NodeHealthScore {
   reason: string;
 }
 
+export interface TrashedNode {
+  id: string;
+  title: string;
+  content_type: string;
+  trashed_at: string;
+  trashed_by: string;
+  trash_reason_category: string;
+  trash_reason_note: string;
+}
+
+export interface TrashedEdge {
+  id: string;
+  from_id: string;
+  to_id: string;
+  relation: string;
+  trashed_at: string;
+  trashed_by: string;
+  trash_reason_category: string;
+  trash_reason_note: string;
+}
+
+export interface TrashResponse {
+  nodes: TrashedNode[];
+  edges: TrashedEdge[];
+}
+
 export interface NeighborhoodResponse {
   root_id: string;
   depth: number;
@@ -144,4 +170,12 @@ export const nodes = {
     request<NodeHealthScore[]>("GET", `${BASE}/workspaces/${wsId}/nodes/health-scores`),
   suggestEdges: (wsId: string, nodeId: string) =>
     request<any[]>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/suggest-edges`),
+  restoreFromTrash: (wsId: string, nodeId: string) =>
+    request<ApiMessage>("POST", `${BASE}/workspaces/${wsId}/nodes/${nodeId}/restore-from-trash`),
+};
+
+export const trash = {
+  list: (wsId: string) => request<TrashResponse>("GET", `${BASE}/workspaces/${wsId}/trash`),
+  restoreEdge: (wsId: string, edgeId: string) =>
+    request<ApiMessage>("POST", `${BASE}/workspaces/${wsId}/edges/${edgeId}/restore-from-trash`),
 };

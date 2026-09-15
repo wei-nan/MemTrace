@@ -429,7 +429,23 @@ def delete_node_in_db(
     Hard delete is for genuinely mis-created nodes (never-true noise); knowledge
     that was once true should be archived, not deleted (Decay, mem_3bbdf4dc). The
     removal is recorded as a tombstone so it stays auditable (mem_347895c4)."""
-    from services.tombstones import record_node_tombstone
+    from services.tombstones import record_node_tombstone, record_edge_tombstone
+
+    # ws_spec_plan/mem_f986e465: edges.*_id_fkey are ON DELETE CASCADE, so the
+    # DELETE below would silently drop connected edges with no tombstone. Record
+    # tombstones for them first — the CASCADE then just removes rows we've
+    # already accounted for.
+    cur.execute(
+        "SELECT id, from_id, to_id, relation FROM edges WHERE workspace_id = %s AND (from_id = %s OR to_id = %s)",
+        (ws_id, node_id, node_id),
+    )
+    for edge_row in cur.fetchall():
+        record_edge_tombstone(
+            cur, ws_id, dict(edge_row),
+            deleted_by=deleted_by, reason_category=reason_category,
+            reason_note=reason_note or "cascade-deleted with node",
+            source_context={"cascade_from_node": node_id},
+        )
 
     cur.execute(
         f"DELETE FROM memory_nodes WHERE id = %s AND workspace_id = %s RETURNING {NODE_PUBLIC_COLUMNS}",
@@ -906,6 +922,72 @@ def restore_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
     if not cur.fetchone():
         raise HTTPException(status_code=404, detail="Node not found or not archived")
 
+
+# ─── Trash (time-boxed soft-delete, ws_spec_plan/mem_bc15e46d) ────────────────
+#
+# Sits between archive (indefinite fade, mem_3bbdf4dc) and tombstone-delete
+# (immediate, irreversible, mem_347895c4). A confirmed delete moves a node here
+# instead of hard-deleting it immediately; jobs/cleanup.py purges anything past
+# the 30-day window via delete_node_in_db, so the eventual terminal state is
+# unchanged — this only adds a reversible buffer before it.
+
+def trash_node_in_db(
+    cur,
+    ws_id: str,
+    node_id: str,
+    trashed_by: str,
+    reason_category: str = "other",
+    reason_note: str = "",
+) -> dict:
+    cur.execute(
+        """
+        UPDATE memory_nodes
+        SET status = 'trashed', trashed_at = NOW(), trashed_by = %s,
+            trash_reason_category = %s, trash_reason_note = %s
+        WHERE id = %s AND workspace_id = %s AND status != 'trashed'
+        RETURNING id
+        """,
+        (trashed_by, reason_category, reason_note, node_id, ws_id),
+    )
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Node not found")
+    return dict(row)
+
+
+def restore_trashed_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> None:
+    from services.workspaces import require_ws_access
+    require_ws_access(cur, ws_id, user, write=True, required_role="editor")
+    cur.execute(
+        """
+        UPDATE memory_nodes
+        SET status = 'active', trashed_at = NULL, trashed_by = NULL,
+            trash_reason_category = NULL, trash_reason_note = NULL
+        WHERE id = %s AND workspace_id = %s AND status = 'trashed'
+        RETURNING id
+        """,
+        (node_id, ws_id),
+    )
+    if not cur.fetchone():
+        raise HTTPException(status_code=404, detail="Node not found or not in trash")
+
+
+def list_trashed_nodes_in_db(cur, ws_id: str, user: Optional[dict]) -> list:
+    from services.workspaces import require_ws_access
+    require_ws_access(cur, ws_id, user)
+    cur.execute(
+        """
+        SELECT id, title, content_type, trashed_at, trashed_by,
+               trash_reason_category, trash_reason_note
+        FROM memory_nodes
+        WHERE workspace_id = %s AND status = 'trashed'
+        ORDER BY trashed_at DESC
+        """,
+        (ws_id,),
+    )
+    return cur.fetchall()
+
+
 def get_health_scores_in_db(cur, ws_id: str, user: Optional[dict]) -> list:
     from services.workspaces import require_ws_access
     ws = require_ws_access(cur, ws_id, user)
@@ -1052,11 +1134,11 @@ def update_node_full_in_db(cur, ws_id: str, node_id: str, payload: dict, user: d
 
 def delete_node_full_in_db(cur, ws_id: str, node_id: str, user: dict) -> tuple[dict, str]:
     from services.workspaces import require_ws_access, get_effective_role
-    from services.nodes import propose_change, delete_node_in_db
+    from services.nodes import propose_change
     ws = require_ws_access(cur, ws_id, user, write=True, required_role="editor")
     role = get_effective_role(cur, ws_id, ws["owner_id"], user["sub"])
     proposer_id = user["sub"]
-    
+
     if role == "editor":
         review_id = propose_change(
             cur, ws_id, "delete", node_id, None,
@@ -1064,8 +1146,10 @@ def delete_node_full_in_db(cur, ws_id: str, node_id: str, user: dict) -> tuple[d
             source_info=f"Proposed deletion by {proposer_id}",
         )
         return None, review_id
-        
-    node = delete_node_in_db(cur, ws_id, node_id, deleted_by=proposer_id)
+
+    # ws_spec_plan/mem_bc15e46d: a confirmed delete moves the node to trash
+    # (30-day reversible window) rather than hard-deleting it immediately.
+    node = trash_node_in_db(cur, ws_id, node_id, trashed_by=proposer_id)
     return node, None
 
 def list_node_revisions_in_db(cur, ws_id: str, node_id: str, user: Optional[dict]) -> list[dict]:

@@ -13,6 +13,7 @@ interface Props {
   node?: Node | null;
   onSaved: (node: Node) => void;
   onClose: () => void;
+  onDeleted?: () => void;
   onSelectNode?: (node: Node) => void;
   sourceNodeId?: string;
 }
@@ -87,7 +88,7 @@ function buildDiff(before: Partial<NodeCreatePayload> | null, after: NodeCreateP
   return { change_type: changeType, changed_fields: changedFields, field_count: changedFields.length, fields };
 }
 
-export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode, sourceNodeId }: Props) {
+export default function NodeEditor({ wsId, node, onSaved, onClose, onDeleted, onSelectNode, sourceNodeId }: Props) {
   const { confirm, toast } = useModal();
   const { t } = useTranslation();
   const isCreate = node === null;
@@ -294,7 +295,11 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
     try {
       await nodesApi.delete(wsId, node.id);
       toast({ message: t("node.delete_submitted"), variant: "success" });
-      onClose();
+      // Trashing a node changes what the graph should show — refresh it, not
+      // just close the panel (onSaved does this for archive/restore, but a
+      // deleted node has nothing left to show in the editor, so we close AND
+      // signal the graph to reload via the dedicated onDeleted callback).
+      (onDeleted ?? onClose)();
     } catch (e) {
       toast({ message: e instanceof Error ? e.message : String(e), variant: "error" });
     }
@@ -801,6 +806,14 @@ export default function NodeEditor({ wsId, node, onSaved, onClose, onSelectNode,
                   title={isArchived ? t('node.restore_title') : t('node.archive_title')}
                   style={{ color: isArchived ? 'var(--color-primary)' : 'var(--text-muted)' }}
                   leftIcon={isArchived ? <RotateCcw size={16} /> : <Archive size={16} />}
+                />
+              )}
+              {!isViewerLocked && node && (
+                <Button
+                  variant="danger"
+                  onClick={handleDelete}
+                  title={t('node.delete_title')}
+                  leftIcon={<Trash2 size={16} />}
                 />
               )}
               {!isViewerLocked && node && (

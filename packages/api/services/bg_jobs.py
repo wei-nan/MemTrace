@@ -83,7 +83,10 @@ def bg_suggest_edges(ws_id: str, node_id: str, user_id: str):
                 """,
                 (row["embedding"], ws_id, node_id),
             )
-            candidates = [r for r in cur.fetchall() if r["sim"] > 0.70]
+            # 0.70 let template-similar-but-topically-unrelated nodes through (e.g.
+            # boilerplate "G1 PASS: X 實作規劃" titles cluster by phrasing, not
+            # content); raised to 0.90 (ws_spec_plan/mem_... 2026-09-05).
+            candidates = [r for r in cur.fetchall() if r["sim"] > 0.90]
 
         if not candidates:
             return
@@ -368,7 +371,9 @@ def run_connect_orphans(ws_id: str, batch_size: int = 50):
     for orphan in orphans:
         with db_cursor(commit=True) as cur:
             # Find closest 3 active nodes (not itself) that are NOT orphans
-            # Sim threshold 0.70 to avoid garbage links
+            # Sim threshold 0.90 (raised from 0.70 — template-similar-but-unrelated
+            # nodes were passing at 0.70; see mem_347895c4-adjacent gap in
+            # ws_spec_plan, 2026-09-05) to avoid garbage links
             cur.execute(
                 """
                 SELECT id, (1 - (embedding <=> %s::vector)) AS sim
@@ -384,7 +389,7 @@ def run_connect_orphans(ws_id: str, batch_size: int = 50):
                 """,
                 (orphan["embedding"], ws_id, orphan["id"])
             )
-            candidates = [c for c in cur.fetchall() if c["sim"] > 0.70]
+            candidates = [c for c in cur.fetchall() if c["sim"] > 0.90]
 
             for c in candidates:
                 # Propose or create edge directly. We'll create directly with 'related_to'.

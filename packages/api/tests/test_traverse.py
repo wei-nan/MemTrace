@@ -21,10 +21,16 @@ from services.search import bfs_neighborhood
 
 # ─── bfs_neighborhood unit tests ──────────────────────────────────────────────
 
-def _make_cur(edges, nodes):
-    """Return a mock cursor whose fetchall() returns edges then nodes."""
+def _make_cur(edges, nodes, archived_ids=None):
+    """Return a mock cursor whose fetchall() returns edges, then archived-node
+    ids (the include_archived=False pruning query, skipped when edges is
+    empty since there's no next_frontier to check), then nodes."""
     cur = MagicMock()
-    cur.fetchall.side_effect = [edges, nodes]
+    calls = [edges]
+    if edges:
+        calls.append(archived_ids or [])
+    calls.append(nodes)
+    cur.fetchall.side_effect = calls
     return cur
 
 
@@ -92,6 +98,42 @@ def test_bfs_defaults_to_active_edges():
     first_sql = cur.execute.call_args_list[0].args[0]
     assert "status = 'active'" in first_sql
     assert "faded" not in first_sql
+
+
+def test_bfs_prunes_trashed_neighbours_even_with_include_archived():
+    """ws_spec_plan/mem_bc15e46d: a trashed node must not leak back into a
+    neighbour's traversal result — there is no include_trashed opt-in, unlike
+    include_archived. The neighbour-status query returns mem_child as trashed,
+    so it (and its edge) should be pruned even when include_archived=True."""
+    cur = _make_cur(
+        edges=[{
+            "id": "edge_1",
+            "from_id": "mem_root",
+            "to_id": "mem_child",
+            "relation": "extends",
+            "weight": 0.9,
+        }],
+        nodes=[{"id": "mem_root", "title_en": "Root", "title_zh": "", "content_type": "factual", "tags": [], "visibility": "public"}],
+        archived_ids=[{"id": "mem_child"}],
+    )
+    result = bfs_neighborhood(cur, "ws_test", "mem_root", depth=1, include_archived=True)
+    assert all(n["id"] != "mem_child" for n in result["nodes"])
+    assert all(e["id"] != "edge_1" for e in result["edges"])
+
+    # confirm the pruning query asked for 'trashed' even with include_archived=True
+    prune_call = cur.execute.call_args_list[1]
+    assert prune_call.args[1][2] == ["trashed"]
+
+
+def test_bfs_prunes_both_trashed_and_archived_by_default():
+    cur = _make_cur(
+        edges=[{"id": "edge_1", "from_id": "mem_root", "to_id": "mem_child", "relation": "extends", "weight": 0.9}],
+        nodes=[{"id": "mem_root", "title_en": "Root", "title_zh": "", "content_type": "factual", "tags": [], "visibility": "public"}],
+        archived_ids=[],
+    )
+    bfs_neighborhood(cur, "ws_test", "mem_root", depth=1)
+    prune_call = cur.execute.call_args_list[1]
+    assert prune_call.args[1][2] == ["trashed", "archived"]
 
 
 def test_bfs_can_include_faded_edges():

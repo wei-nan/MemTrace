@@ -22,7 +22,7 @@ from models.review import (
 )
 from services.nodes import (
     create_node_in_db as _create_node_in_db,
-    delete_node_in_db as _delete_node_in_db,
+    trash_node_in_db as _trash_node_in_db,
     node_row_to_snapshot as _node_row_to_snapshot,
     update_node_in_db as _update_node_in_db,
     write_node_revision as _write_node_revision,
@@ -66,7 +66,7 @@ def _strip_review_for_role(item: dict, role: Optional[str]) -> dict:
     return item
 
 
-def _apply_review_item(cur, item: dict):
+def _apply_review_item(cur, item: dict, approved_by: str = "system"):
     ws_id = item["workspace_id"]
     change_type = item["change_type"]
     node_data = item["node_data"] or {}
@@ -83,7 +83,9 @@ def _apply_review_item(cur, item: dict):
         target_node_id = item["target_node_id"]
         if not target_node_id:
             raise HTTPException(status_code=400, detail="Delete review missing target node")
-        deleted = _delete_node_in_db(cur, ws_id, target_node_id)
+        # ws_spec_plan/mem_bc15e46d: an approved delete proposal moves the node
+        # to trash (30-day reversible window), not an immediate hard delete.
+        deleted = _trash_node_in_db(cur, ws_id, target_node_id, trashed_by=approved_by)
         return None, deleted
     elif change_type == "create_edge":
         from services.edges import create_edge_in_db
@@ -261,7 +263,7 @@ def accept_review_item(id: str, background_tasks: BackgroundTasks, user: dict = 
         if item["status"] != "pending":
             raise HTTPException(status_code=400, detail=f"Item is already {item['status']}")
         _require_ws_access(cur, item["workspace_id"], user, write=True, required_role="admin")
-        node, deleted = _apply_review_item(cur, item)
+        node, deleted = _apply_review_item(cur, item, approved_by=user["sub"])
         if node:
             _write_node_revision(
                 cur,

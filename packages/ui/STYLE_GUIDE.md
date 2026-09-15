@@ -100,7 +100,7 @@ Always use `<Card variant="surface|elevated|glass|outline" padding="sm|md|lg">`.
 Never apply `borderRadius` inline on a `<Card>` — it is already set in `Card.css` to 10px.
 
 ### `Button` component
-Always use the `<Button>` component. Avoid raw `<button className="btn-primary">` unless in CSS-class-driven patterns from `index.css`.
+Always use the `<Button>` component. Do not add raw `<button className="btn-primary">` elements — `index.css` no longer defines those classes (they collided with `Button.css` and caused invisible hover text in light mode).
 
 ### `Input` component
 Use `<Input>` or `<input className="mt-input">`. Do not override `borderRadius` or `fontSize` on inputs.
