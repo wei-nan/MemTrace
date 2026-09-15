@@ -21,8 +21,16 @@ export interface FeedbackItem {
   created_at: string;
 }
 
+export interface AdminFeedbackItem extends FeedbackItem {
+  body: string;
+  author_id: string;
+  author_name: string | null;
+  author_email: string | null;
+}
+
 export const feedback = {
   submit: (data: FeedbackCreatePayload) =>
     request<FeedbackCreateResponse>('POST', `${BASE}/feedback`, data),
   mine: () => request<FeedbackItem[]>('GET', `${BASE}/feedback/mine`),
+  all: () => request<AdminFeedbackItem[]>('GET', `${BASE}/feedback/all`),
 };

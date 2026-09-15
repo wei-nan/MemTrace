@@ -16,7 +16,7 @@ const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
 const FeedbackPanel = lazy(() => import('./components/FeedbackPanel'));
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[]; is_platform_admin?: boolean };
-type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications' | 'usage' | 'job_runs' | 'system_ai' | 'system_monitor' | 'system_users';
+type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications' | 'usage' | 'job_runs' | 'system_ai' | 'system_monitor' | 'system_users' | 'system_feedback';
 
 export default function App() {
   const { i18n } = useTranslation();

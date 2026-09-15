@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from services.feedback import (
     FEEDBACK_WORKSPACE_ID,
     create_feedback_node,
+    list_all_feedback,
     list_my_feedback,
     feedback_type_from_tags,
 )
@@ -148,3 +149,66 @@ def test_feedback_type_from_tags():
     assert feedback_type_from_tags(["feedback", "bug-report"]) == "bug-report"
     assert feedback_type_from_tags(["feedback", "feature-request"]) == "feature-request"
     assert feedback_type_from_tags(["feedback"]) == "unknown"
+
+
+# ─── admin listing: sees everyone's feedback, non-admin is rejected ───────────
+
+@pytest.fixture
+def admin_user():
+    return {"sub": "user_admin", "email": "admin@example.com"}
+
+
+def test_list_all_feedback_query_is_not_author_scoped():
+    cur = MagicMock()
+    cur.fetchall.return_value = [
+        {"id": "mem_fb1", "tags": ["feedback", "bug-report"], "title": "t1", "body": "b1",
+         "resolution_status": "open", "created_at": "2026-09-01T00:00:00Z",
+         "author_id": "user_123", "author_name": "Alice", "author_email": "alice@example.com"},
+        {"id": "mem_fb2", "tags": ["feedback", "feature-request"], "title": "t2", "body": "b2",
+         "resolution_status": "open", "created_at": "2026-09-02T00:00:00Z",
+         "author_id": "user_456", "author_name": "Bob", "author_email": "bob@example.com"},
+    ]
+    rows = list_all_feedback(cur)
+    assert len(rows) == 2
+
+    sql, params = cur.execute.call_args.args
+    assert "author" not in sql.split("WHERE")[1].split("AND")[0]  # no author filter in WHERE
+    assert params == (FEEDBACK_WORKSPACE_ID,)
+
+
+def test_get_all_feedback_requires_system_admin(client):
+    response = client.get("/api/v1/feedback/all")
+    assert response.status_code in (401, 403)
+
+
+def test_get_all_feedback_rejects_non_admin(client, override_auth):
+    # override_auth logs in as a plain user (mock_user), not an admin — require_system_admin
+    # must reject them even though they're authenticated.
+    with patch("core.deps._admin_email_set", return_value=set()), \
+         patch("core.deps.db_cursor") as mock_deps_db:
+        mock_cur = mock_deps_db.return_value.__enter__.return_value
+        mock_cur.fetchone.return_value = {"is_platform_admin": False}
+        response = client.get("/api/v1/feedback/all")
+    assert response.status_code == 403
+
+
+def test_get_all_feedback_returns_rows_from_other_users(client, mock_db, admin_user):
+    from core.deps import require_system_admin
+    client.app.dependency_overrides[require_system_admin] = lambda: admin_user
+
+    mock_cur = mock_db.return_value.__enter__.return_value
+    mock_cur.fetchall.return_value = [
+        {"id": "mem_fb1", "tags": ["feedback", "bug-report"], "title": "t1", "body": "b1",
+         "resolution_status": "open", "created_at": "2026-09-01T00:00:00Z",
+         "author_id": "user_123", "author_name": "Alice", "author_email": "alice@example.com"},
+        {"id": "mem_fb2", "tags": ["feedback", "feature-request"], "title": "t2", "body": "b2",
+         "resolution_status": "open", "created_at": "2026-09-02T00:00:00Z",
+         "author_id": "user_456", "author_name": "Bob", "author_email": "bob@example.com"},
+    ]
+
+    response = client.get("/api/v1/feedback/all")
+    client.app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    data = response.json()
+    assert {row["author_id"] for row in data} == {"user_123", "user_456"}
