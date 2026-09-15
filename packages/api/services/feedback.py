@@ -86,6 +86,23 @@ def list_my_feedback(cur, user_id: str) -> list[dict]:
     return cur.fetchall()
 
 
+def list_all_feedback(cur) -> list[dict]:
+    """管理員用：回傳 ws_feedback 底下所有回饋節點，含提交者資訊。"""
+    cur.execute(
+        """
+        SELECT n.id, n.tags, n.title, n.body, n.resolution_status, n.created_at,
+               n.author AS author_id, u.display_name AS author_name, u.email AS author_email
+        FROM memory_nodes n
+        LEFT JOIN users u ON u.id = n.author
+        WHERE n.workspace_id = %s AND n.status = 'active'
+          AND 'feedback' = ANY(n.tags)
+        ORDER BY n.created_at DESC
+        """,
+        (FEEDBACK_WORKSPACE_ID,),
+    )
+    return cur.fetchall()
+
+
 def feedback_type_from_tags(tags: list[str]) -> str:
     for t in FEEDBACK_TYPES:
         if t in (tags or []):

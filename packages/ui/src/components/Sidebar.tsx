@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Network, PlusCircle, Globe, ChevronDown, ChevronLeft, ChevronRight,
-  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain, ScrollText, Activity, UserCog, Pin, Compass
+  GitFork, RefreshCw, AlertTriangle, XCircle, BarChart3, Inbox, Users, FileUp, FileText, ShieldCheck, Brain, ScrollText, Activity, UserCog, Pin, Compass, MessageSquareHeart
 } from 'lucide-react';
 import { type Workspace, type WorkspaceCloneJob, workspaces } from '../api';
 import { Button } from './ui';
@@ -425,6 +425,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <UserCog size={18} />
               {!collapsed && <span className="nav-text">{t('sidebar.system_users') || (user?.language === 'zh-TW' ? '系統使用者' : 'System Users')}</span>}
+            </div>
+            <div
+              className={`nav-item ${currentView === 'system_feedback' ? 'active' : ''}`}
+              title={collapsed ? (t('sidebar.system_feedback') || (user?.language === 'zh-TW' ? '意見回饋' : 'Feedback')) : undefined}
+              onClick={() => onSetView('system_feedback')}
+            >
+              <MessageSquareHeart size={18} />
+              {!collapsed && <span className="nav-text">{t('sidebar.system_feedback') || (user?.language === 'zh-TW' ? '意見回饋' : 'Feedback')}</span>}
             </div>
           </>
         )}

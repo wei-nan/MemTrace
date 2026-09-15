@@ -20,6 +20,7 @@ const resources = {
         system_ai: '系統 AI 設定',
         system_monitor: '系統監控',
         system_users: '系統使用者',
+        system_feedback: '意見回饋',
         admin_section: '管理員設定',
         ws_members_readonly: '工作區成員'
       },
@@ -533,6 +534,16 @@ const resources = {
         role_updated: '使用者權限已更新',
         previous: '上一頁',
         next: '下一頁'
+      },
+      system_feedback: {
+        title: '意見回饋',
+        subtitle: '所有使用者提交的問題回報與功能建議',
+        refresh: '重新整理',
+        col_content: '內容',
+        col_type: '類型',
+        col_submitter: '提交者',
+        col_submitted_at: '提交時間',
+        no_items: '目前還沒有回饋'
       }
     }
   },
@@ -553,6 +564,7 @@ const resources = {
         system_ai: 'System AI',
         system_monitor: 'System Monitor',
         system_users: 'System Users',
+        system_feedback: 'Feedback',
         admin_section: 'Admin',
         ws_members_readonly: 'Members'
       },
@@ -1065,6 +1077,16 @@ const resources = {
         role_updated: 'User role updated',
         previous: 'Previous',
         next: 'Next'
+      },
+      system_feedback: {
+        title: 'Feedback',
+        subtitle: 'Bug reports and feature requests submitted by all users',
+        refresh: 'Refresh',
+        col_content: 'Content',
+        col_type: 'Type',
+        col_submitter: 'Submitter',
+        col_submitted_at: 'Submitted at',
+        no_items: 'No feedback yet'
       }
     }
   }
