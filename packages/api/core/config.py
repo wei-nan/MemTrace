@@ -64,6 +64,18 @@ class Settings(BaseSettings):
     db_pool_min: int = 2
     db_pool_max: int = 20
 
+    # ── Background/admission-time LLM checks ──────────────────────────────────
+    # Each defaults to False (existing behavior). Set to true to skip the LLM
+    # call for that check; rule-based checks (regex safety patterns) still run.
+    disable_ai_safety_check: bool = False        # classify_safety() LLM fallback
+    disable_ai_contradiction_check: bool = False  # detect_and_flag_contradictions()
+    disable_ai_complexity_check: bool = False     # bg_check_complexity() split suggestions
+
+    # Rule-based (regex) safety checks: secret/credential scan + dangerous/risky
+    # command deny-lists, used by classify_safety() and the daily safety_sweep
+    # job. Default False (existing behavior, no LLM involved either way).
+    disable_rule_based_safety_check: bool = False
+
     class Config:
         env_file = "../../.env"
         extra = "ignore"

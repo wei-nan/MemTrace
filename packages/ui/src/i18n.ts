@@ -301,7 +301,12 @@ const resources = {
         bulkArchive: '批次歸檔',
         archiveSuccess: '已歸檔節點',
         noData: '目前沒有符合條件的節點。',
-        loading: '載入中...'
+        loading: '載入中...',
+        trashedAt: '刪除時間',
+        daysLeft: '剩餘天數',
+        days: '天',
+        restore: '復原',
+        restoreSuccess: '已復原節點'
       },
       onboarding: {
         welcome_title: '歡迎來到 MemTrace',
@@ -425,7 +430,7 @@ const resources = {
         archive_btn: '歸檔',
         restore_btn: '還原',
         delete_title: '刪除記憶',
-        delete_confirm: '刪除「{{title}}」？編輯者將提交審核請求而非立即刪除。',
+        delete_confirm: '刪除「{{title}}」？將移入虛刪除清單，30 天內可復原，之後才會永久移除。編輯者將提交審核請求而非立即刪除。',
         delete_btn: '刪除',
         apply_changes: '套用變更',
         create_memory: '建立記憶',
@@ -829,7 +834,12 @@ const resources = {
         bulkArchive: 'Bulk Archive',
         archiveSuccess: 'Archived node(s)',
         noData: 'No nodes match the criteria.',
-        loading: 'Loading...'
+        loading: 'Loading...',
+        trashedAt: 'Trashed At',
+        daysLeft: 'Days Left',
+        days: 'days',
+        restore: 'Restore',
+        restoreSuccess: 'Node restored'
       },
       onboarding: {
         welcome_title: 'Welcome to MemTrace',
@@ -954,7 +964,7 @@ const resources = {
         archive_btn: 'Archive',
         restore_btn: 'Restore',
         delete_title: 'Delete Memory',
-        delete_confirm: 'Delete "{{title}}"? Editors will submit a review request instead of deleting immediately.',
+        delete_confirm: 'Delete "{{title}}"? It will move to trash and stay recoverable for 30 days before being permanently removed. Editors will submit a review request instead of deleting immediately.',
         delete_btn: 'Delete',
         apply_changes: 'Apply Changes',
         create_memory: 'Create Memory',

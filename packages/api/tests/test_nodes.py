@@ -8,7 +8,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from services.nodes import (
     validate_node_payload, prepare_node_data, create_node_in_db,
     update_node_in_db, delete_node_in_db, node_row_to_snapshot,
-    publish_new_version,
+    publish_new_version, trash_node_in_db, restore_trashed_node_in_db,
+    list_trashed_nodes_in_db,
 )
 from fastapi import HTTPException
 
@@ -105,6 +106,7 @@ def test_update_node_param_count_matches_placeholders(mock_prepare, mock_audit):
 
 def test_delete_node_in_db():
     cur = MagicMock()
+    cur.fetchall.return_value = []  # no connected edges to tombstone
     cur.fetchone.return_value = {"id": "mem_1"}
 
     res = delete_node_in_db(cur, "ws_test", "mem_1")
@@ -113,6 +115,66 @@ def test_delete_node_in_db():
     cur.fetchone.return_value = None
     with pytest.raises(HTTPException):
         delete_node_in_db(cur, "ws_test", "mem_missing")
+
+
+# ─── Trash (ws_spec_plan/mem_bc15e46d) ─────────────────────────────────────────
+
+def test_delete_node_in_db_tombstones_cascade_edges():
+    """ws_spec_plan/mem_f986e465: edges connected to a hard-deleted node must be
+    tombstoned before the DB's ON DELETE CASCADE removes them, or the removal
+    leaves no audit trail."""
+    cur = MagicMock()
+    cur.fetchall.return_value = [
+        {"id": "edge_1", "from_id": "mem_1", "to_id": "mem_2", "relation": "related_to"},
+        {"id": "edge_2", "from_id": "mem_3", "to_id": "mem_1", "relation": "depends_on"},
+    ]
+    cur.fetchone.return_value = {"id": "mem_1"}
+
+    with patch("services.tombstones.record_edge_tombstone") as mock_edge_tomb, \
+         patch("services.tombstones.record_node_tombstone") as mock_node_tomb:
+        delete_node_in_db(cur, "ws_test", "mem_1", deleted_by="user_1", reason_category="duplicate")
+
+    assert mock_edge_tomb.call_count == 2
+    tombstoned_edge_ids = {call.args[2]["id"] for call in mock_edge_tomb.call_args_list}
+    assert tombstoned_edge_ids == {"edge_1", "edge_2"}
+    mock_node_tomb.assert_called_once()
+
+
+def test_trash_node_in_db():
+    cur = MagicMock()
+    cur.fetchone.return_value = {"id": "mem_1"}
+
+    res = trash_node_in_db(cur, "ws_test", "mem_1", trashed_by="user_1", reason_category="other")
+    assert res["id"] == "mem_1"
+    sql = cur.execute.call_args.args[0]
+    assert "status = 'trashed'" in sql
+
+    cur.fetchone.return_value = None
+    with pytest.raises(HTTPException):
+        trash_node_in_db(cur, "ws_test", "mem_missing", trashed_by="user_1")
+
+
+@patch("services.workspaces.require_ws_access")
+def test_restore_trashed_node_in_db(mock_access):
+    cur = MagicMock()
+    cur.fetchone.return_value = {"id": "mem_1"}
+    restore_trashed_node_in_db(cur, "ws_test", "mem_1", {"sub": "user_1"})
+    sql = cur.execute.call_args.args[0]
+    assert "status = 'active'" in sql
+
+    cur.fetchone.return_value = None
+    with pytest.raises(HTTPException):
+        restore_trashed_node_in_db(cur, "ws_test", "mem_missing", {"sub": "user_1"})
+
+
+@patch("services.workspaces.require_ws_access")
+def test_list_trashed_nodes_in_db(mock_access):
+    cur = MagicMock()
+    cur.fetchall.return_value = [{"id": "mem_1", "title": "t"}]
+    res = list_trashed_nodes_in_db(cur, "ws_test", {"sub": "user_1"})
+    assert res == [{"id": "mem_1", "title": "t"}]
+    sql = cur.execute.call_args.args[0]
+    assert "status = 'trashed'" in sql
 
 
 # ─── Spec validity: publish_new_version (ws_spec_plan/mem_310a1c2d) ───────────

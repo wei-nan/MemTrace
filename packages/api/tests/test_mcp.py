@@ -590,3 +590,80 @@ def test_log_mcp_interaction_requires_actor_id():
     log_mcp_interaction(bt, "ws_1", "get_node", node_id="mem_1")
     funcs = [func for func, _ in _scheduled(bt)]
     assert record_traversal not in funcs
+
+
+# ─── Trash (ws_spec_plan/mem_bc15e46d, ws_spec_plan/mem_442c0203) ─────────────
+# delete_node/delete_edge move to trash rather than hard-deleting immediately.
+
+@pytest.mark.asyncio
+async def test_execute_tool_delete_node_trashes_not_hard_deletes():
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "node_id": "mem_1", "reason_category": "duplicate"}
+
+    with patch("services.mcp_tools.trash_node_in_db", return_value={"id": "mem_1"}) as mock_trash:
+        with patch("services.mcp_tools.db_cursor"):
+            res = await execute_tool("delete_node", args, user, MagicMock())
+
+    assert res == {"id": "mem_1"}
+    mock_trash.assert_called_once()
+    assert mock_trash.call_args.kwargs["trashed_by"] == "user_1"
+    assert mock_trash.call_args.kwargs["reason_category"] == "duplicate"
+
+
+def test_delete_node_tool_description_does_not_claim_archive():
+    tool = next(t for t in TOOLS if t["name"] == "delete_node")
+    assert "archive" not in tool["description"].lower()
+    assert "trash" in tool["description"].lower()
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_restore_node():
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "node_id": "mem_1"}
+
+    with patch("services.mcp_tools.restore_trashed_node_in_db") as mock_restore:
+        with patch("services.mcp_tools.db_cursor"):
+            res = await execute_tool("restore_node", args, user, MagicMock())
+
+    assert res == {"restored": True, "node_id": "mem_1"}
+    mock_restore.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_restore_edge():
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "edge_id": "edge_1"}
+
+    with patch("services.mcp_tools.restore_trashed_edge_in_db") as mock_restore:
+        with patch("services.mcp_tools.db_cursor"):
+            res = await execute_tool("restore_edge", args, user, MagicMock())
+
+    assert res == {"restored": True, "edge_id": "edge_1"}
+    mock_restore.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_list_trash():
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1"}
+
+    with patch("services.mcp_tools.list_trashed_nodes_in_db", return_value=[{"id": "mem_1"}]):
+        with patch("services.mcp_tools.list_trashed_edges_in_db", return_value=[{"id": "edge_1"}]):
+            with patch("services.mcp_tools.db_cursor"):
+                res = await execute_tool("list_trash", args, user, MagicMock())
+
+    assert res == {"nodes": [{"id": "mem_1"}], "edges": [{"id": "edge_1"}]}
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_delete_edge_trashes_not_hard_deletes():
+    user = {"sub": "user_1"}
+    args = {"workspace_id": "ws_1", "edge_id": "edge_1"}
+
+    with patch("services.mcp_tools.trash_edge_in_db", return_value={"id": "edge_1"}) as mock_trash:
+        with patch("services.mcp_tools.require_ws_access"):
+            with patch("services.mcp_tools.db_cursor"):
+                res = await execute_tool("delete_edge", args, user, MagicMock())
+
+    assert res == {"id": "edge_1"}
+    mock_trash.assert_called_once()

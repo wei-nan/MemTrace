@@ -3,6 +3,7 @@ import logging
 from typing import Dict
 
 from core.ai import chat_completion, resolve_provider, RESTRUCTURE_SYSTEM, strip_fences
+from core.config import settings
 from core.database import db_cursor
 
 logger = logging.getLogger(__name__)
@@ -17,8 +18,8 @@ async def estimate_complexity(node_data: Dict, ws_id: str, user_id: str, thresho
     """
     body = node_data.get("body") or ""
     total_chars = len(body)
-    
-    if total_chars < threshold:
+
+    if total_chars < threshold or settings.disable_ai_complexity_check:
         return {"is_complex": False, "char_count": total_chars}
     
     # Resolve provider for the specific workspace

@@ -118,6 +118,9 @@ async def cleanup_job():
                   )
             """)
 
+            # Trash purge (ws_spec_plan/mem_bc15e46d): see _purge_expired_trash.
+            _purge_expired_trash(cur)
+
             # P2-3: Auto-revoke API keys inactive for 90 days.
             cur.execute("""
                 UPDATE api_keys
@@ -161,6 +164,54 @@ async def cleanup_job():
             cur.execute("SELECT purge_old_refresh_tokens()")
     except Exception:
         pass
+
+
+def _purge_expired_trash(cur) -> None:
+    """Anything past the 30-day reversible trash window (ws_spec_plan/mem_bc15e46d)
+    is permanently removed via the existing tombstone-delete path
+    (delete_node_in_db/delete_edge_in_db), so the audit trail is unchanged —
+    this only decides *when* that path finally runs. Nodes first: deleting a
+    trashed node also tombstones+cascades any edges still attached to it
+    (mem_f986e465 fix), so independently-trashed edges are processed second to
+    avoid double-handling rows a node purge already removed."""
+    from services.nodes import delete_node_in_db
+    from services.edges import delete_edge_in_db
+
+    cur.execute(
+        """
+        SELECT id, workspace_id, trashed_by, trash_reason_category, trash_reason_note
+        FROM memory_nodes
+        WHERE status = 'trashed' AND trashed_at < now() - interval '30 days'
+        """
+    )
+    for row in cur.fetchall():
+        try:
+            delete_node_in_db(
+                cur, row["workspace_id"], row["id"],
+                deleted_by=row["trashed_by"] or "system",
+                reason_category=row["trash_reason_category"] or "other",
+                reason_note=row["trash_reason_note"] or "",
+            )
+        except Exception as exc:
+            logger.warning("Trash purge failed for node %s: %s", row["id"], exc)
+
+    cur.execute(
+        """
+        SELECT id, workspace_id, trashed_by, trash_reason_category, trash_reason_note
+        FROM edges
+        WHERE status = 'trashed' AND trashed_at < now() - interval '30 days'
+        """
+    )
+    for row in cur.fetchall():
+        try:
+            delete_edge_in_db(
+                cur, row["workspace_id"], row["id"],
+                deleted_by=row["trashed_by"] or "system",
+                reason_category=row["trash_reason_category"] or "other",
+                reason_note=row["trash_reason_note"] or "",
+            )
+        except Exception as exc:
+            logger.warning("Trash purge failed for edge %s: %s", row["id"], exc)
 
 
 async def deletion_notification_job():

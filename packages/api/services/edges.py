@@ -216,6 +216,67 @@ def delete_edge_in_db(
     cur.execute("DELETE FROM edges WHERE id = %s AND workspace_id = %s", (edge_id, ws_id))
     return {"deleted": True, "edge_id": edge_id}
 
+
+# ─── Trash (time-boxed soft-delete, ws_spec_plan/mem_bc15e46d) ────────────────
+# Edge counterpart of services.nodes.trash_node_in_db — see that function's
+# docstring for the archive/trash/tombstone-delete rationale.
+
+def trash_edge_in_db(
+    cur,
+    ws_id: str,
+    edge_id: str,
+    trashed_by: str,
+    reason_category: str = "other",
+    reason_note: str = "",
+) -> dict:
+    cur.execute(
+        """
+        UPDATE edges
+        SET status = 'trashed', trashed_at = NOW(), trashed_by = %s,
+            trash_reason_category = %s, trash_reason_note = %s
+        WHERE id = %s AND workspace_id = %s AND status != 'trashed'
+        RETURNING id
+        """,
+        (trashed_by, reason_category, reason_note, edge_id, ws_id),
+    )
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Edge not found")
+    return dict(row)
+
+
+def restore_trashed_edge_in_db(cur, ws_id: str, edge_id: str, user: dict) -> None:
+    from services.workspaces import require_ws_access
+    require_ws_access(cur, ws_id, user, write=True, required_role="editor")
+    cur.execute(
+        """
+        UPDATE edges
+        SET status = 'active', trashed_at = NULL, trashed_by = NULL,
+            trash_reason_category = NULL, trash_reason_note = NULL
+        WHERE id = %s AND workspace_id = %s AND status = 'trashed'
+        RETURNING id
+        """,
+        (edge_id, ws_id),
+    )
+    if not cur.fetchone():
+        raise HTTPException(status_code=404, detail="Edge not found or not in trash")
+
+
+def list_trashed_edges_in_db(cur, ws_id: str, user: Optional[dict]) -> list:
+    from services.workspaces import require_ws_access
+    require_ws_access(cur, ws_id, user)
+    cur.execute(
+        """
+        SELECT id, from_id, to_id, relation, trashed_at, trashed_by,
+               trash_reason_category, trash_reason_note
+        FROM edges
+        WHERE workspace_id = %s AND status = 'trashed'
+        ORDER BY trashed_at DESC
+        """,
+        (ws_id,),
+    )
+    return cur.fetchall()
+
 # ─── Backward-compat aliases ──────────────────────────────────────────────────
 
 _record_traversal = record_traversal

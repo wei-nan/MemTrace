@@ -4,6 +4,7 @@ import logging
 import time
 from typing import Literal, Dict, Any, Optional
 
+from core.config import settings
 from core.database import db_cursor
 from core.ai import resolve_provider, chat_completion, record_usage, AIProviderUnavailable
 from services.job_observability import _duration_ms, finish_job_run, start_job_run
@@ -113,23 +114,27 @@ async def classify_safety(proposal: dict, ws_id: str) -> Literal['safe', 'risky'
 
     combined_text = f"{title}\n{body}"
 
-    # 0. Secret / credential leak scan (cheap, deterministic, must-review).
-    if scan_secrets(combined_text):
-        logger.warning("Safety: secret/credential pattern detected in proposal")
-        return "dangerous"
+    if not settings.disable_rule_based_safety_check:
+        # 0. Secret / credential leak scan (cheap, deterministic, must-review).
+        if scan_secrets(combined_text):
+            logger.warning("Safety: secret/credential pattern detected in proposal")
+            return "dangerous"
 
-    # 1. Rule-based checks (Dangerous & Risky deny-lists)
-    rule_result = classify_safety_rules(combined_text)
-    if rule_result == "dangerous":
-        return "dangerous"
-    if rule_result == "risky":
-        return "risky"
-        
-    # If the proposal is not procedural (e.g. factual, preference), and has no commands, it is likely safe.
-    if content_type != "procedural" and not any(cmd in combined_text for cmd in ["$", "sudo", "bin", "sh", "run"]):
+        # 1. Rule-based checks (Dangerous & Risky deny-lists)
+        rule_result = classify_safety_rules(combined_text)
+        if rule_result == "dangerous":
+            return "dangerous"
+        if rule_result == "risky":
+            return "risky"
+
+        # If the proposal is not procedural (e.g. factual, preference), and has no commands, it is likely safe.
+        if content_type != "procedural" and not any(cmd in combined_text for cmd in ["$", "sudo", "bin", "sh", "run"]):
+            return "safe"
+
+    # 2. LLM-assisted Safety Check (skippable — rule-based checks above still ran)
+    if settings.disable_ai_safety_check:
         return "safe"
-        
-    # 2. LLM-assisted Safety Check
+
     try:
         resolved = resolve_provider(user_id="system:safety", feature="chat")
     except (AIProviderUnavailable, Exception) as e:
@@ -204,6 +209,8 @@ def run_historical_safety_sweep(cur, limit: int = 100) -> Dict[str, Any]:
         nodes = cur.fetchall()
 
         for node in nodes:
+            if settings.disable_rule_based_safety_check:
+                continue
             combined = f"{node['title']}\n{node['body']}"
             classification = classify_safety_rules(combined)
 
