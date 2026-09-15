@@ -11,6 +11,7 @@ import { documents } from './documents';
 import { notifications } from './notifications';
 import { connectors } from './connectors';
 import { voice } from './voice';
+import { feedback } from './feedback';
 import { request } from './client';
 import type { PersonalApiKey, PersonalApiKeyCreateResponse } from './workspaces';
 
@@ -29,6 +30,7 @@ export * from './notifications';
 export * from './connectors';
 export * from './voice';
 export * from './voiceStream';
+export * from './feedback';
 
 export const users = {
   apiKeys: {
@@ -57,4 +59,5 @@ export const api = {
   notifications,
   connectors,
   voice,
+  feedback,
 };

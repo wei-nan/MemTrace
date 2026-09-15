@@ -27,6 +27,22 @@ const resources = {
         settings: '個人設定',
         logout: '登出系統'
       },
+      feedback: {
+        fab_label: '意見回饋',
+        menu_item: '意見回饋',
+        panel_title: '意見回饋',
+        type_bug: '問題回報',
+        type_feature: '功能建議',
+        title_label: '標題',
+        title_ph: '簡短描述你遇到的問題或想法...',
+        body_label: '詳細說明',
+        body_ph: '請盡量描述重現步驟、預期結果，或功能的使用情境...',
+        submit: '送出',
+        submitting: '送出中...',
+        success: '感謝回饋，我們已經收到了！',
+        error: '送出失敗，請稍後再試。',
+        title_required: '請填寫標題'
+      },
       header: {
         title: '捕捉知識',
         subtitle: '在您的本地圖譜中建立一個新的記憶節點。'
@@ -538,6 +554,22 @@ const resources = {
       nav: {
         settings: 'Settings',
         logout: 'Log Out'
+      },
+      feedback: {
+        fab_label: 'Feedback',
+        menu_item: 'Feedback',
+        panel_title: 'Feedback',
+        type_bug: 'Bug Report',
+        type_feature: 'Feature Request',
+        title_label: 'Title',
+        title_ph: 'A short summary of the issue or idea...',
+        body_label: 'Details',
+        body_ph: 'Steps to reproduce, expected result, or how you\'d use this feature...',
+        submit: 'Submit',
+        submitting: 'Submitting...',
+        success: 'Thanks for the feedback — we got it!',
+        error: 'Failed to submit. Please try again.',
+        title_required: 'Title is required'
       },
       header: {
         title: 'Capture Knowledge',
