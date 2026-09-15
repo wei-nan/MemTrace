@@ -33,6 +33,7 @@ async def test_classify_safety_flags_secret_as_dangerous():
 
 
 @pytest.mark.asyncio
+@patch("services.safety_review.settings.disable_ai_safety_check", False)
 @patch("services.safety_review.resolve_provider")
 async def test_classify_safety_undetermined_when_provider_down(mock_resolve):
     """When the safety LLM is unavailable, classify_safety must NOT silently return 'safe'."""
@@ -78,6 +79,7 @@ async def test_classify_safety_llm_safe(mock_chat, mock_resolve):
     assert res == "safe"
 
 @pytest.mark.asyncio
+@patch("services.safety_review.settings.disable_ai_safety_check", False)
 @patch("services.safety_review.resolve_provider")
 @patch("services.safety_review.chat_completion")
 async def test_classify_safety_llm_dangerous(mock_chat, mock_resolve):
@@ -101,6 +103,7 @@ async def test_classify_safety_rules_override():
 
 
 @pytest.mark.asyncio
+@patch("services.safety_review.settings.disable_ai_safety_check", False)
 @patch("services.safety_review.resolve_provider")
 async def test_classify_safety_provider_unavailable_returns_undetermined(mock_resolve):
     # Contract change: when the safety LLM is unavailable the check must NOT silently
