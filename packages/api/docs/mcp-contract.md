@@ -305,6 +305,7 @@ Traverse the graph from a node, following edges up to a depth.
 | `detail_level` | string | | |
 | `max_response_tokens` | integer | | |
 | `include_faded` | boolean | | Whether to include faded edges (default: false) |
+| `include_archived` | boolean | | Include archived nodes in the traversal (default: false) — archived nodes are pruned from BFS results and don't propagate the frontier further, same as faded edges |
 
 **Output**: `{ "nodes": [...], "edges": [...], "total_nodes": N }`
 

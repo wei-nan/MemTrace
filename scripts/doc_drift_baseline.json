@@ -4,7 +4,6 @@
     "consult",
     "converge_check",
     "converge_proposals",
-    "delete_edge",
     "emit_residue",
     "get_next_task",
     "get_playbook",
