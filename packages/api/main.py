@@ -22,6 +22,7 @@ from core import scheduler
 from routers.admin        import router as admin_router
 from routers.auth         import router as auth_router
 from routers.kb           import router as kb_router
+from routers.feedback     import router as feedback_router
 from routers.ai           import router as ai_router
 from routers.collaboration import router as collaboration_router
 from routers.review       import router as review_router
@@ -95,6 +96,7 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.proxy_trusted_
 app.include_router(admin_router)
 app.include_router(auth_router)
 app.include_router(kb_router)
+app.include_router(feedback_router)
 app.include_router(ai_router)
 app.include_router(collaboration_router)
 app.include_router(review_router)

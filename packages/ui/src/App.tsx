@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Brain, RefreshCw } from 'lucide-react';
+import { Brain, RefreshCw, MessageSquareHeart } from 'lucide-react';
 import './index.css';
 import { auth, workspaces, nodes, refreshAccessToken, isTokenStale, type Workspace, type Node as ApiNode, type Onboarding, type WorkspaceCloneJob } from './api';
 import Sidebar from './components/Sidebar';
@@ -13,6 +13,7 @@ const CreateWorkspaceModal = lazy(() => import('./components/CreateWorkspaceModa
 const ForkWorkspaceModal = lazy(() => import('./components/ForkWorkspaceModal'));
 const NodeEditor = lazy(() => import('./NodeEditor'));
 const AiChatPanel = lazy(() => import('./components/AiChatPanel'));
+const FeedbackPanel = lazy(() => import('./components/FeedbackPanel'));
 
 type User = { id: string; display_name: string; email: string; email_verified: boolean; auth_providers: string[]; is_platform_admin?: boolean };
 type View = 'graph' | 'analytics' | 'node_health' | 'settings' | 'review' | 'ws_settings' | 'ingest' | 'documents' | 'ai_chat' | 'explore' | 'guide' | 'notifications' | 'usage' | 'job_runs' | 'system_ai' | 'system_monitor' | 'system_users';
@@ -70,6 +71,7 @@ export default function App() {
   const [sourceNodeId, setSourceNodeId] = useState<string | undefined>(undefined);
   const [graphVersion, setGraphVersion] = useState(0);
   const [showChat, setShowChat] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [chatPanelWidth, setChatPanelWidth] = useState(() => {
     const saved = localStorage.getItem('chatPanelWidth');
     return saved ? Math.min(900, Math.max(320, parseInt(saved, 10))) : 450;
@@ -451,6 +453,7 @@ export default function App() {
               onLogout={handleLogout}
               onNavigateNotification={navigateToNotification}
               onViewAllNotifications={() => setCurrentView('notifications')}
+              onOpenFeedback={() => setShowFeedback(true)}
             />
           )}
 
@@ -525,6 +528,23 @@ export default function App() {
           <Brain size={24} />
         </button>
       )}
+
+      {authenticated && (
+        <button
+          onClick={() => setShowFeedback(true)}
+          className="feedback-fab"
+          aria-label={i18n.t('feedback.fab_label')}
+          title={i18n.t('feedback.fab_label')}
+        >
+          <MessageSquareHeart size={22} />
+        </button>
+      )}
+
+      <Suspense fallback={null}>
+        {showFeedback && (
+          <FeedbackPanel isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
+        )}
+      </Suspense>
 
       <aside className={`side-panel side-panel-wide ${(!showChat || currentView !== 'graph') ? 'hidden' : ''}`} style={{ zIndex: 90, ...(showChat && currentView === 'graph' ? { width: chatPanelWidth } : {}) }}>
         <div className="chat-resize-handle" onMouseDown={handleChatResizeMouseDown} />

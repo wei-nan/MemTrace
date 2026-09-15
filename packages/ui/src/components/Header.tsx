@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, LogOut, BookOpen, BarChart2 } from 'lucide-react';
+import { Settings, LogOut, BookOpen, BarChart2, MessageSquareHeart } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 interface HeaderProps {
@@ -14,6 +14,7 @@ interface HeaderProps {
   onLogout: () => void;
   onNavigateNotification?: (n: any) => void;
   onViewAllNotifications?: () => void;
+  onOpenFeedback?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -27,6 +28,7 @@ const Header: React.FC<HeaderProps> = ({
   onLogout,
   onNavigateNotification,
   onViewAllNotifications,
+  onOpenFeedback,
 }) => {
   const { t, i18n } = useTranslation();
   const zh = i18n.language === 'zh-TW';
@@ -136,6 +138,19 @@ const Header: React.FC<HeaderProps> = ({
                   <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{zh ? '使用量統計' : 'Usage'}</span>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+                {onOpenFeedback && (
+                  <>
+                    <div
+                      className="nav-item"
+                      onClick={() => { onOpenFeedback(); onSetUserMenuOpen(false); }}
+                      style={{ borderRadius: 0, padding: '12px 16px', margin: 0, border: 'none' }}
+                    >
+                      <MessageSquareHeart size={16} />
+                      <span className="nav-text" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{t('feedback.menu_item')}</span>
+                    </div>
+                    <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+                  </>
+                )}
                 <div
                   className="nav-item"
                   onClick={() => { onSetView('settings'); onSetUserMenuOpen(false); }}
