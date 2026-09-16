@@ -36,7 +36,7 @@ Each request body must be a JSON-RPC 2.0 envelope:
 
 ## Tool Profiles
 
-To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 49 tools, clients can request a specific functional subset.
+To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 50 tools, clients can request a specific functional subset.
 
 ### Available Profiles
 
@@ -51,7 +51,7 @@ Profiles can be combined using `+` or `,` (e.g., `core+agent_loop`).
 
 ### Selection & Default
 
-- **Default**: `core+agent_loop` (exposes 27 tools)
+- **Default**: `core+agent_loop` (exposes 28 tools)
 - **How to configure**:
   - **Environment Variable**: Set `MEMTRACE_MCP_TOOL_PROFILE=full` on the server.
   - **HTTP Header**: Send `X-MemTrace-Tool-Profile: full` in client requests.
@@ -216,6 +216,15 @@ Move a node to trash. Not an immediate hard delete: the node is hidden from `sea
 
 ### `restore_node`
 Restore a node out of trash back to `active`, if it is still within its 30-day trash window.
+
+**Input**: `workspace_id` (required), `node_id` (required)
+
+**Output**: `{ "restored": true, "node_id": "..." }`
+
+---
+
+### `restore_archived_node`
+Bring a node back to `active` from `archived` (the automatic decay state — no traversal in a while), not from trash. No time window; just undoes `apply_node_archiving()`'s status flip. Use `restore_node` instead for a node that was explicitly trashed.
 
 **Input**: `workspace_id` (required), `node_id` (required)
 
