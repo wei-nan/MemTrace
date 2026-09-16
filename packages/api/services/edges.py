@@ -196,21 +196,34 @@ def update_edge_in_db(cur, ws_id: str, edge_id: str, body_dict: dict) -> dict:
     exempting a structurally important relationship from apply_edge_decay()
     without having to delete and recreate it (which would reset traversal
     history and co_access_count).
+
+    Also allowed on a 'faded' edge (not just 'active'): pinned=true both
+    revives it (status -> 'active') and protects it from re-fading in the
+    same call — reviving a faded edge without pinning it would just let the
+    next decay run fade it right back out, which defeats the purpose of an
+    explicit "this bridge matters" decision.
     """
-    cur.execute("SELECT id FROM edges WHERE id = %s AND workspace_id = %s AND status = 'active'", (edge_id, ws_id))
-    if not cur.fetchone():
-        raise HTTPException(status_code=404, detail="Edge not found")
+    cur.execute(
+        "SELECT id, status FROM edges WHERE id = %s AND workspace_id = %s AND status IN ('active', 'faded')",
+        (edge_id, ws_id),
+    )
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Edge not found (or trashed)")
 
     if "pinned" not in body_dict or body_dict["pinned"] is None:
         raise HTTPException(status_code=400, detail="Nothing to update: only 'pinned' is currently supported")
 
+    pinned = bool(body_dict["pinned"])
+    new_status = "active" if pinned else row["status"]
+
     cur.execute(
         """
-        UPDATE edges SET pinned = %s
+        UPDATE edges SET pinned = %s, status = %s
         WHERE id = %s AND workspace_id = %s
         RETURNING *, CASE WHEN rating_count > 0 THEN ROUND(rating_sum / rating_count, 2) ELSE NULL END AS rating_avg
         """,
-        (bool(body_dict["pinned"]), edge_id, ws_id),
+        (pinned, new_status, edge_id, ws_id),
     )
     return cur.fetchone()
 

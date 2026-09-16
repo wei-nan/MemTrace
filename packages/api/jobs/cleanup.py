@@ -75,23 +75,13 @@ async def cleanup_job():
                 (retention,)
             )
 
-            # P4-D9: Apply Node Archiving — evergreen KBs
-            cur.execute("""
-                UPDATE memory_nodes
-                SET status = 'archived', archived_at = now()
-                FROM workspaces
-                WHERE memory_nodes.workspace_id = workspaces.id
-                  AND workspaces.kb_type = 'evergreen'
-                  AND memory_nodes.status = 'active'
-                  AND memory_nodes.pinned = FALSE
-                  AND memory_nodes.node_class = 'knowledge'
-                  AND memory_nodes.created_at < now() - interval '90 days'
-                  AND NOT EXISTS (
-                      SELECT 1 FROM traversal_log
-                      WHERE traversal_log.node_id = memory_nodes.id
-                        AND traversal_log.traversed_at > now() - interval '90 days'
-                  )
-            """)
+            # Evergreen KBs are never auto-archived (ws_spec_plan, 2026-09-16):
+            # traversal_count/traversal_log only credit explicit get_node/traverse
+            # access, not the search hits that are the normal way reference
+            # content in a spec/evergreen KB actually gets used — a time-gated
+            # "never traversed" rule was silently archiving valid, in-use
+            # content. See migrations/009_evergreen_no_decay.sql for the
+            # matching change to apply_node_archiving()/apply_edge_decay().
 
             # Ephemeral: Archive if all edges faded OR 60 days without traversal
             cur.execute("""
