@@ -583,19 +583,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_32bc6360','1.0','ws_spec0001','排程呼叫 `apply_node_archiving()`','procedural','markdown','排程器應補上對 `apply_node_archiving()` 函式的每日 UTC 02:00 呼叫，該函式已存在但目前未被觸發。',
-   ARRAY['scheduler', 'node-archiving']::text[],'public','system','2026-04-25T02:38:35.076074+00:00','014a6e02054ebb86a8d31ec981406f8fa1b145a2fe86d02590c5310b59f8a95d','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_35036bb8','1.0','ws_spec0001','Agent 操作介面規範：僅使用 MCP，不直接呼叫 REST API','procedural','markdown','## 規範
 
 AI agent、coding agent、外部 harness 與自動化流程操作 MemTrace 時，必須使用 MemTrace 提供的 MCP tools。公開知識庫不提供 curl、REST endpoint、Bearer Token、HTTP method 或 request body 作為操作教學。
@@ -6025,19 +6012,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_32bc6360_en','1.0','ws_spec0001_en','Scheduled Call to `apply_node_archiving()`','procedural','markdown','The scheduler should add a daily UTC 02:00 call to the `apply_node_archiving()` function, which already exists but is currently not triggered.',
-   ARRAY['scheduler', 'node-archiving']::text[],'public','system','2026-04-25T02:38:35.076074+00:00','014a6e02054ebb86a8d31ec981406f8fa1b145a2fe86d02590c5310b59f8a95d','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_35036bb8_en','1.0','ws_spec0001_en','Agent Operating Interface Specification: Use MCP Only, Do Not Call REST API Directly','procedural','markdown','## Specification
 
 When AI agents, coding agents, external harnesses, and automated workflows operate on MemTrace, they must use the MCP tools provided by MemTrace. The public knowledge base does not provide curl, REST endpoints, Bearer Tokens, HTTP methods, or request bodies as operational tutorials.
@@ -11103,10 +11077,6 @@ VALUES ('edge_3c022e1a','ws_spec0001','mem_993fc9e6','mem_cbe1be4b','related_to'
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_43d683a5','ws_spec0001','mem_32bc6360','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_44e9771f','ws_spec0001','mem_99877db7','mem_10a89b1f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -11308,10 +11278,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_7948703c','ws_spec0001','mem_c9dd39d4','mem_k001','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_7a8dc9e0','ws_spec0001','mem_32bc6360','mem_d001','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12825,10 +12791,6 @@ VALUES ('edge_3c022e1a_en','ws_spec0001_en','mem_993fc9e6_en','mem_cbe1be4b_en',
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_43d683a5_en','ws_spec0001_en','mem_32bc6360_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_44e9771f_en','ws_spec0001_en','mem_99877db7_en','mem_10a89b1f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -13030,10 +12992,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_7948703c_en','ws_spec0001_en','mem_c9dd39d4_en','mem_k001_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_7a8dc9e0_en','ws_spec0001_en','mem_32bc6360_en','mem_d001_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
