@@ -1,0 +1,29 @@
+{
+  "id": "mem_e7607e5d_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "MCP Server Current State: Single Instance, MEMTRACE_TOKEN, Multi-Workspace, HTTP+SSE",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The MemTrace MCP server currently serves all workspaces from a single instance, no longer the earlier \"one instance per knowledge base\" design:\n\n- **Configuration**: `.mcp.json` uses the single-instance form, with `env` carrying `MEMTRACE_API`, `MEMTRACE_TOKEN`, `MEMTRACE_LANG`. `MEMTRACE_WS` can still be set, but is now only \"the default workspace used when `workspace_id` is omitted,\" not the only accessible workspace.\n- **Multi-workspace access**: with `MEMTRACE_TOKEN` set, `list_workspaces()` returns all workspaces accessible to that token; without it, the server stays anonymous and can only access public workspaces (`list_workspaces` returns public KBs or an empty list). Tool calls can target a specific workspace via the `workspace_id` parameter (e.g. `search_nodes(query=..., workspace_id=\"ws_xxx\")`).\n- **Transport**: besides stdio, `memtrace serve --mcp` also supports HTTP + SSE transport.\n- **Write tools are live**: AI agents can already call `create_node`/`update_node`/`create_edge` directly via MCP to write to the knowledge base — this is not a planned, unimplemented feature.\n\nSupersedes the older state described in `mem_i003_en` (single-workspace, stdio-only, write tools \"planned but not yet implemented\"). `mem_i003_en` was created 2026-04-11; this node consolidates the acceptance-scenario node cluster from 2026-04-24–26 (`mem_87639252`, `mem_960858c8`, `mem_964c73a3`, `mem_76d6491f`, `mem_b3ee2495`, `mem_7484cfc2`, `mem_71aebf92`, `mem_526945e4_en`)."
+  },
+  "tags": [
+    "mcp",
+    "current-state-update",
+    "multi-workspace",
+    "http-sse",
+    "write-tools"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-09-16T13:13:07.939987+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
