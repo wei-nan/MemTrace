@@ -83,6 +83,7 @@ async def cleanup_job():
                 WHERE memory_nodes.workspace_id = workspaces.id
                   AND workspaces.kb_type = 'evergreen'
                   AND memory_nodes.status = 'active'
+                  AND memory_nodes.pinned = FALSE
                   AND memory_nodes.node_class = 'knowledge'
                   AND memory_nodes.created_at < now() - interval '90 days'
                   AND NOT EXISTS (
@@ -100,6 +101,7 @@ async def cleanup_job():
                 WHERE memory_nodes.workspace_id = workspaces.id
                   AND workspaces.kb_type = 'ephemeral'
                   AND memory_nodes.status = 'active'
+                  AND memory_nodes.pinned = FALSE
                   AND memory_nodes.node_class = 'knowledge'
                   AND (
                       (

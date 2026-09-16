@@ -19,7 +19,7 @@ def test_resolve_profile_tools_default():
         names = {t["name"] for t in tools}
         expected = MCP_TOOL_PROFILES["core"].union(MCP_TOOL_PROFILES["agent_loop"])
         assert names == expected
-        assert len(tools) == 26
+        assert len(tools) == 27
 
 
 def test_resolve_profile_tools_env():

@@ -17,3 +17,4 @@
 005_workspace_pins.sql
 006_mcp_query_logs_correlation.sql
 007_node_edge_trash.sql
+008_node_pinned.sql

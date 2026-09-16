@@ -36,7 +36,7 @@ Each request body must be a JSON-RPC 2.0 envelope:
 
 ## Tool Profiles
 
-To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 48 tools, clients can request a specific functional subset.
+To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 49 tools, clients can request a specific functional subset.
 
 ### Available Profiles
 
@@ -51,7 +51,7 @@ Profiles can be combined using `+` or `,` (e.g., `core+agent_loop`).
 
 ### Selection & Default
 
-- **Default**: `core+agent_loop` (exposes 26 tools)
+- **Default**: `core+agent_loop` (exposes 27 tools)
 - **How to configure**:
   - **Environment Variable**: Set `MEMTRACE_MCP_TOOL_PROFILE=full` on the server.
   - **HTTP Header**: Send `X-MemTrace-Tool-Profile: full` in client requests.
@@ -188,6 +188,7 @@ Update an existing knowledge node.
 | `tags` | string[] | | |
 | `visibility` | string | | |
 | `resolution_status` | string | | `"open"` · `"resolved"` · `"superseded"` |
+| `pinned` | boolean | | Exempt this node from automatic decay-based archiving (`apply_node_archiving`). Use for structurally important hub/overview nodes — see `ws_spec_plan` for why this exists: an overview node with dozens of historical edges had every neighbor archived out from under it, fragmenting the graph, because nothing could protect it. |
 
 **Output**:
 
@@ -289,6 +290,21 @@ Create a directed semantic edge between two nodes.
 | `to_id` | string | ✅ | Target node ID |
 | `relation` | string | ✅ | See [Relations](#relations) |
 | `weight` | number | | Edge weight 0.0–1.0 |
+| `half_life_days` | integer | | Days before this edge decays (default: auto from content_type) |
+| `pinned` | boolean | | Exempt this edge from automatic decay/fading (`apply_edge_decay`). Default `false`. |
+| `metadata` | object | | Arbitrary metadata (e.g. troubleshooting-graph conditions) |
+
+---
+
+### `update_edge`
+Update an existing edge. Currently only `pinned` is supported — use it to exempt an already-created edge from automatic decay/fading without deleting and recreating it (which would reset traversal history and `co_access_count`).
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | ✅ | |
+| `edge_id` | string | ✅ | |
+| `pinned` | boolean | ✅ | |
 
 ---
 

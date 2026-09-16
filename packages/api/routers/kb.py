@@ -27,6 +27,7 @@ from core.security import compute_signature, generate_id
 from core.ai import resolve_provider, embed, record_usage, AIProviderUnavailable
 from models.kb import (
     EdgeCreate,
+    EdgeUpdate,
     EdgeResponse,
     GraphPreviewResponse,
     NodeCreate,
@@ -703,6 +704,14 @@ def create_edge(ws_id: str, body: EdgeCreate, user: dict = Depends(get_current_u
     with db_cursor(commit=True) as cur:
         _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         return _create_edge_in_db(cur, ws_id, body.model_dump())
+
+
+@router.patch("/workspaces/{ws_id}/edges/{edge_id}", response_model=EdgeResponse)
+def update_edge(ws_id: str, edge_id: str, body: EdgeUpdate, user: dict = Depends(get_current_user)):
+    from services.edges import update_edge_in_db
+    with db_cursor(commit=True) as cur:
+        _require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+        return update_edge_in_db(cur, ws_id, edge_id, body.model_dump())
 
 
 @router.delete("/workspaces/{ws_id}/edges/{edge_id}")

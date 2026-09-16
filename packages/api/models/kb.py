@@ -124,6 +124,7 @@ class NodeUpdate(BaseModel):
     suggested_edges: list[SuggestedEdge] = []
     expected_updated_at: Optional[str] = None # P5-S2-T04: ETag/Concurrency control
     resolution_status: Optional[str] = None
+    pinned: Optional[bool] = None
 
 
     @model_validator(mode="before")
@@ -166,6 +167,7 @@ class NodeResponse(BaseModel):
     ask_count: int = 0
     miss_count: int = 0
     resolution_status: str = "open"
+    pinned: bool = False
     metadata: dict = {}
 
 
@@ -194,6 +196,10 @@ class EdgeCreate(BaseModel):
     half_life_days: int = 30
     pinned: bool = False
     metadata: Optional[dict] = {}    # Phase 6.3: condition metadata for troubleshooting graph edges
+
+
+class EdgeUpdate(BaseModel):
+    pinned: bool
 
 
 class EdgeResponse(BaseModel):
