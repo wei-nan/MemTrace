@@ -4515,18 +4515,18 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_o002','1.0','ws_spec0001','初次使用引導：CLI memtrace init','procedural','plain','執行 `memtrace init` 啟動終端機互動式精靈，五步：
+  ('mem_o002','1.0','ws_spec0001','初次使用引導：CLI memtrace init','procedural','plain','執行 `memtrace init` 啟動終端機互動式流程：
 
-① 認證：登入既有帳號 / 建立新帳號
-② 建立第一個知識庫：英文名稱 + 可見性（private / restricted / public，預設 private）
-③ 選擇 KB 類型：evergreen（長效型，預設）或 ephemeral（短效型）— **建立後不可變更**
-④ AI Provider 設定（可 Enter 跳過）：選擇 openai / anthropic 並輸入 API Key（自動測試連線）
-⑤ 匯入文件（可 Enter 跳過）：輸入檔案路徑或 URL
+先自動做版本檢查：呼叫 API 取得伺服器版本，與 CLI 預期版本不符時詢問是否要跑 migration；API 連不上就跳過這步。
 
-設定寫入 `~/.memtrace/config.json`，立即 `chmod 600`。
+Step 1 — 認證：選擇「手動輸入 API token」或「跳過（離線模式）」。
 
-重複執行：詢問要更新 AI provider / 切換預設工作區 / 重新認證 / 退出，不自動覆寫現有設定。',
-   ARRAY['onboarding', 'cli', 'init', 'setup', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
+Step 2 — AI Provider（可 Enter 跳過）：選擇 openai / anthropic / gemini / ollama（選 ollama 會另外問 Base URL 與驗證模式）。輸入 API Key 後會呼叫伺服器驗證並列出可用模型數量；驗證失敗時可選擇仍儲存在本機。
+
+設定寫入 `~/.memtrace/config.json`，並立即 `chmod 600`。
+
+重複執行 `memtrace init`：偵測到既有設定時，改為詢問「更新 AI provider 設定 / 重新認證 / 退出」，不會自動覆寫現有設定。',
+   ARRAY['onboarding', 'cli', 'init', 'setup']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9962,18 +9962,18 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_o002_en','1.0','ws_spec0001_en','First-Time Onboarding: CLI memtrace init','procedural','plain','Running `memtrace init` launches a 5-step interactive terminal wizard:
+  ('mem_o002_en','1.0','ws_spec0001_en','First-Time Onboarding: CLI memtrace init','procedural','plain','Running `memtrace init` starts an interactive terminal flow:
 
-① Authentication: Log into an existing account / Create a new account
-② Create First Knowledge Base: English name + visibility (private / restricted / public, default private)
-③ Select KB Type: evergreen (long-lived, default) or ephemeral (short-lived) — **immutable once created**
-④ AI Provider Configuration (press Enter to skip): Select openai / anthropic and input API Key (automatically tests connection)
-⑤ Import Document (press Enter to skip): Enter file path or URL
+It first runs an automatic version check: calls the API for the server version and, if it doesn''t match what the CLI expects, asks whether to run migrations; this step is skipped if the API is unreachable.
+
+Step 1 — Authentication: choose "enter an API token manually" or "skip (work offline)".
+
+Step 2 — AI Provider (optional, press Enter to skip): choose openai / anthropic / gemini / ollama (choosing ollama also asks for a Base URL and auth mode). After entering an API key, it calls the server to verify the key and lists how many models are available; if verification fails, you can still choose to save it locally.
 
 Configuration is written to `~/.memtrace/config.json` and immediately secured with `chmod 600`.
 
-Subsequent executions: Prompts whether to update AI provider / switch default workspace / re-authenticate / exit, without automatically overwriting existing configurations.',
-   ARRAY['onboarding', 'cli', 'init', 'setup', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
+Running `memtrace init` again: if an existing config is detected, it instead asks whether to "update AI provider settings / re-authenticate / exit", without automatically overwriting the existing configuration.',
+   ARRAY['onboarding', 'cli', 'init', 'setup']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
