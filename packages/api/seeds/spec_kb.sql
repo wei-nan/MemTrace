@@ -772,6 +772,54 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_4741542a','1.0','ws_spec0001','保護骨幹節點與關聯不被自動歸檔/淡化：node/edge 的 pinned 機制','procedural','markdown','## 問題背景
+
+MemTrace 的自動衰減機制會依「建立時間」與「走訪次數」把長期沒人用的節點與邊分別轉為 `archived`／`faded`，讓知識庫保持精簡、聚焦在還有人在用的內容（見「Decay 產品立場」）。但這個機制原本只在邊(edge)上有 `pinned` 例外，節點(node)完全沒有——結果是：一個原本連接大量其他節點的「骨幹／總覽」節點，就算它自己還在被走訪，只要它周圍的鄰居一個個因為衰減被歸檔，它自己也會慢慢變成事實上的孤島，連帶讓整張圖被拆成一堆互不相連的小群集。
+
+## 機制
+
+node 與 edge 都支援 `pinned`（布林值，預設 `false`）：
+
+- **node.pinned = true**：`apply_node_archiving()` 排除這個節點，不會因為建立時間久、走訪次數低而被自動轉成 `archived`。
+- **edge.pinned = true**：`apply_edge_decay()` 排除這條邊，權重不會隨時間衰減、也不會被轉成 `faded`。
+
+兩者是分開的旗標，各自只保護自己：pin 住一個節點不會連帶保護它的邊，反之亦然——如果目標是保住一整塊子圖的可達性，通常兩者都要設。
+
+## 怎麼設定
+
+透過 MCP：
+
+```json
+{"name": "update_node", "arguments": {"workspace_id": "ws_abc", "node_id": "mem_xxx", "pinned": true}}
+{"name": "update_edge", "arguments": {"workspace_id": "ws_abc", "edge_id": "edge_xxx", "pinned": true}}
+```
+
+`update_edge` 是既有邊唯一能修改的入口（`pinned` 之外目前不支援其他欄位）——邊建立後若要改權重或關聯類型，仍然只能刪除重建；但要 pin 一條已存在的邊，不需要刪除重建（那樣會重置走訪紀錄與 `co_access_count`）。
+
+## 怎麼決定該 pin 什麼——不要主觀猜
+
+亂 pin 會讓衰減機制失去意義（知識庫會越堆越肥、找不到重點）。建議用兩個客觀指標交叉判斷，而不是逐一節點主觀認定：
+
+1. **結構度數（degree）**：查詢每個節點歷史累計的邊數（`SELECT count(*) FROM edges WHERE from_id = node_id OR to_id = node_id`），由高到低排序。真正的骨幹節點通常會在排行榜上跟其他節點有明顯斷層（例如前兩名是 35、23，第三名以後全部 ≤ 6）——這個斷層本身就是客觀切分點。
+2. **內容性質**：`overview`／`core-purpose`／`positioning`／`agent-guide` 這類「總覽、入口」性質的內容，設計上就該長期存在，跟 `inquiry`（討論）、`gap`（待補）這種預期會被解決、淡化掉的類型不同，可以用 tag 白名單輔助篩選。
+
+兩個指標同時成立的節點，才是真正值得 pin 的候選；篩出來的清單通常很短（一個中等規模的知識庫可能只有個位數到十幾個），最後再由人過一遍確認。
+
+## 案例
+
+一個知識庫的「平台概覽」節點，歷史累計 35 條邊、走訪 17 次，結構度數遠高於第二名（23）與其餘所有節點（≤ 6）——是典型的骨幹節點。但因為當時沒有 node 層級的保護機制，它周圍所有鄰居陸續被衰減成 `archived`，圖譜視覺化上看起來像是一堆孤立的小點，實際上多數節點都還有邊，只是邊的另一端被隱藏了。這正是本機制要解決的問題。',
+   ARRAY['decay', 'pinned', 'agent-guide', 'graph-health', 'kb-maintenance', 'operations']::text[],'public','usr_6bc7b4c7','2026-09-16T00:00:00+00:00','','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_47aff2c9','1.0','ws_spec0001','多 Planner 語意邊界','factual','markdown','多 planner 架構的語意邊界規則：
 
 - 每個 planner 只負責自己的子任務語意範圍，不跨越到其他 planner 的領域。
@@ -2664,41 +2712,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_c8db759e','1.0','ws_spec0001','連向封存節點的邊會自動衰減','factual','markdown','所有連向已封存節點的邊，其外觀會自動變為「衰減」狀態，但不會從資料庫中刪除。',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.557633+00:00','e2889812266b17efc364454a6ee3ea5a6881e8250b720564bfa2dc84bbaddf20','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_c9a00f25','1.0','ws_spec0001','決議：claim registry 採用 DB-backed task_claims 表，非 Redis 亦非 memory_nodes','factual','markdown','## 決議
-
-`claim_task` / `release_task` 的 run-state 原本存於行程內的 `_TASK_CLAIMS` dict，重啟即失、多 worker 不共享。本節點記錄對 mem_inq002 四個開放設計問題的最終決議：改用 Postgres 的獨立資料表 `task_claims`（非 Redis、非 `memory_nodes` 欄位）承載 claim 狀態。
-
-## 設計
-
-新增 `task_claims` 表，`PRIMARY KEY (workspace_id, task_node_id)`，以單一 `INSERT ... ON CONFLICT ... WHERE ... RETURNING` 敘述完成原子 claim：
-
-- 若目標尚未被 claim，或已逾時（預設 30 分鐘），或呼叫者就是原本的持有者，`RETURNING` 會回傳一列，代表呼叫者現在持有 claim。
-- 若目標正被別的 agent 有效持有中，`RETURNING` 不回傳任何列，claim 失敗。
-
-單一敘述完成「檢查是否可搶」與「寫入持有者」兩步，避免多 process 之間的 check-then-set 競態——這正是舊版行程內字典無法跨 process 共享而導致重複 claim 的根因。
-
-## 回應 mem_inq002 的四個開放問題
-
-1. **Redis 部署前提**：不需要。採用既有 Postgres，不新增基礎設施依賴。
-2. **DB 寫入 vs. Redis（A7 疑慮）**：採第三案——獨立的 `task_claims` 執行期狀態表，不寫入 `memory_nodes`。run-state 因此仍未進入知識圖譜，同時免除 Redis 依賴。
-3. **TTL 策略**：沿用原有 30 分鐘，本次決議未重新評估此數值是否合理。
-4. **多 worker 是否為實際需求**：未確認。但本決議解決的是「若存在多 process / 多 worker，claim 是否會壞掉」，而非「目前是否已部署多 worker」——單一 process 下行為與舊版完全等價，無論目前部署形態為何，此修復本身不帶來風險。
-
-## 狀態
-
-此決議關閉 mem_inq002 所描述的缺口。mem_inq002 保留作為歷史設計討論紀錄，不被覆寫。',
-   ARRAY['decision', 'claim-registry', 'task-claims', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-08-03T00:00:00+00:00','959a2e2a8e336a815cc229285e514865dc95850e5100ee45f1f3acaf1cf52496','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -4640,54 +4653,6 @@ VALUES
 
 解碼 JWT payload 的 `exp` 欄位，提前 60 秒視為過期，避免邊界競態。',
    ARRAY['auth', 'frontend', 'jwt', 'race-condition', 'ux']::text[],'public','system','2026-05-11T00:00:00+00:00','p410t_token_refresh_race_condition_fix','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_pin001','1.0','ws_spec0001','保護骨幹節點與關聯不被自動歸檔/淡化：node/edge 的 pinned 機制','procedural','markdown','## 問題背景
-
-MemTrace 的自動衰減機制會依「建立時間」與「走訪次數」把長期沒人用的節點與邊分別轉為 `archived`／`faded`，讓知識庫保持精簡、聚焦在還有人在用的內容（見「Decay 產品立場」）。但這個機制原本只在邊(edge)上有 `pinned` 例外，節點(node)完全沒有——結果是：一個原本連接大量其他節點的「骨幹／總覽」節點，就算它自己還在被走訪，只要它周圍的鄰居一個個因為衰減被歸檔，它自己也會慢慢變成事實上的孤島，連帶讓整張圖被拆成一堆互不相連的小群集。
-
-## 機制
-
-node 與 edge 都支援 `pinned`（布林值，預設 `false`）：
-
-- **node.pinned = true**：`apply_node_archiving()` 排除這個節點，不會因為建立時間久、走訪次數低而被自動轉成 `archived`。
-- **edge.pinned = true**：`apply_edge_decay()` 排除這條邊，權重不會隨時間衰減、也不會被轉成 `faded`。
-
-兩者是分開的旗標，各自只保護自己：pin 住一個節點不會連帶保護它的邊，反之亦然——如果目標是保住一整塊子圖的可達性，通常兩者都要設。
-
-## 怎麼設定
-
-透過 MCP：
-
-```json
-{"name": "update_node", "arguments": {"workspace_id": "ws_abc", "node_id": "mem_xxx", "pinned": true}}
-{"name": "update_edge", "arguments": {"workspace_id": "ws_abc", "edge_id": "edge_xxx", "pinned": true}}
-```
-
-`update_edge` 是既有邊唯一能修改的入口（`pinned` 之外目前不支援其他欄位）——邊建立後若要改權重或關聯類型，仍然只能刪除重建；但要 pin 一條已存在的邊，不需要刪除重建（那樣會重置走訪紀錄與 `co_access_count`）。
-
-## 怎麼決定該 pin 什麼——不要主觀猜
-
-亂 pin 會讓衰減機制失去意義（知識庫會越堆越肥、找不到重點）。建議用兩個客觀指標交叉判斷，而不是逐一節點主觀認定：
-
-1. **結構度數（degree）**：查詢每個節點歷史累計的邊數（`SELECT count(*) FROM edges WHERE from_id = node_id OR to_id = node_id`），由高到低排序。真正的骨幹節點通常會在排行榜上跟其他節點有明顯斷層（例如前兩名是 35、23，第三名以後全部 ≤ 6）——這個斷層本身就是客觀切分點。
-2. **內容性質**：`overview`／`core-purpose`／`positioning`／`agent-guide` 這類「總覽、入口」性質的內容，設計上就該長期存在，跟 `inquiry`（討論）、`gap`（待補）這種預期會被解決、淡化掉的類型不同，可以用 tag 白名單輔助篩選。
-
-兩個指標同時成立的節點，才是真正值得 pin 的候選；篩出來的清單通常很短（一個中等規模的知識庫可能只有個位數到十幾個），最後再由人過一遍確認。
-
-## 案例
-
-一個知識庫的「平台概覽」節點，歷史累計 35 條邊、走訪 17 次，結構度數遠高於第二名（23）與其餘所有節點（≤ 6）——是典型的骨幹節點。但因為當時沒有 node 層級的保護機制，它周圍所有鄰居陸續被衰減成 `archived`，圖譜視覺化上看起來像是一堆孤立的小點，實際上多數節點都還有邊，只是邊的另一端被隱藏了。這正是本機制要解決的問題。',
-   ARRAY['decay', 'pinned', 'agent-guide', 'graph-health', 'kb-maintenance', 'operations']::text[],'public','usr_6bc7b4c7','2026-09-16T00:00:00+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8113,41 +8078,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_c8db759e_en','1.0','ws_spec0001_en','Edges to Archived Nodes Automatically Decay','factual','markdown','All edges pointing to an archived node automatically appear in a "decayed" state, but are not deleted from the database.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.557633+00:00','e2889812266b17efc364454a6ee3ea5a6881e8250b720564bfa2dc84bbaddf20','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_c9a00f25_en','1.0','ws_spec0001_en','Decision: claim registry adopts a DB-backed task_claims table, not Redis, not memory_nodes','factual','markdown','## Decision
-
-`claim_task` / `release_task` run-state used to live in an in-process `_TASK_CLAIMS` dict — lost on restart, not shared across workers. This node records the final decision on the four open design questions raised in mem_inq002: replace it with a dedicated Postgres table, `task_claims` (neither Redis nor a `memory_nodes` column).
-
-## Design
-
-A new `task_claims` table with `PRIMARY KEY (workspace_id, task_node_id)` performs an atomic claim via a single `INSERT ... ON CONFLICT ... WHERE ... RETURNING` statement:
-
-- If the target is unclaimed, expired (default 30 minutes), or the caller already held it, `RETURNING` returns a row — the caller now holds the claim.
-- If the target is validly held by another agent, `RETURNING` returns no row — the claim fails.
-
-One statement does both "check whether it can be claimed" and "write the new holder," closing the check-then-set race across processes — the exact root cause that let the old in-process dict produce duplicate claims once more than one process served the same workspace.
-
-## Answers to mem_inq002''s four open questions
-
-1. **Redis as a prerequisite:** not required. Uses the existing Postgres, no new infrastructure dependency.
-2. **DB write vs. Redis (the A7 concern):** a third option — a dedicated `task_claims` run-state table, not a write into `memory_nodes`. Run-state still never enters the knowledge graph, while the Redis dependency is also avoided.
-3. **TTL policy:** unchanged at 30 minutes; this decision did not re-evaluate whether that value is still appropriate.
-4. **Is multi-worker an actual need:** not confirmed. This decision addresses whether claim would break *if* multiple processes/workers exist, not whether multi-worker is deployed today — single-process behavior is unchanged, so the fix carries no risk regardless of current deployment shape.
-
-## Status
-
-This decision closes the gap described in mem_inq002. mem_inq002 remains as a historical record of the design discussion and is not overwritten.',
-   ARRAY['decision', 'claim-registry', 'task-claims', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-08-03T00:00:00+00:00','9c1280f6a74f296d73c82213ed1783b6e25daf1d0bb318549288e03c6c8bedfd','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -12283,10 +12213,6 @@ VALUES ('edge_i007i006','ws_spec0001','mem_i007','mem_i006','related_to',1.0,365
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_5805b466','ws_spec0001','mem_c9a00f25','mem_inq002','extends',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_20ec5826','ws_spec0001','mem_2563d8c1','mem_47aff2c9','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -12419,15 +12345,263 @@ VALUES ('edge_7e0089d0','ws_spec0001','mem_guide_g06','mem_guide_g07','related_t
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_4a69f035','ws_spec0001','mem_pin001','mem_19f73d5a','extends',1.0,365.0,0.1,false,0,0)
+VALUES ('edge_4a69f035','ws_spec0001','mem_4741542a','mem_19f73d5a','extends',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_8ed2cfb9','ws_spec0001','mem_pin001','mem_ce00334f','related_to',1.0,365.0,0.1,false,0,0)
+VALUES ('edge_8ed2cfb9','ws_spec0001','mem_4741542a','mem_ce00334f','related_to',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_91bf6886','ws_spec0001','mem_pin001','mem_guide_g03','related_to',1.0,365.0,0.1,false,0,0)
+VALUES ('edge_91bf6886','ws_spec0001','mem_4741542a','mem_guide_g03','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_811abda7','ws_spec0001','mem_013d11be','mem_5a3bd1b0','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_8868f18b','ws_spec0001','mem_0752c920','mem_c3e5a685','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_70d164ff','ws_spec0001','mem_156804b8','mem_9d2bb35f','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_db533cbf','ws_spec0001','mem_1fc8782f','mem_7f9fadcd','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_99f06a52','ws_spec0001','mem_1fc8782f','mem_fb026368','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2ecde3e9','ws_spec0001','mem_21638c34','mem_41c6465d','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_6c99d3f2','ws_spec0001','mem_22c9d8d6','mem_g001','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_01b38b42','ws_spec0001','mem_25ad6564','mem_6089d7d9','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_0a05e1f5','ws_spec0001','mem_263e8dd9','mem_8dc3944b','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b80182e3','ws_spec0001','mem_2698efe6','mem_41c6465d','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_539fad34','ws_spec0001','mem_3b303d15','mem_76037494','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_bd0305b6','ws_spec0001','mem_41c6465d','mem_i002','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7372cfd2','ws_spec0001','mem_42669ba9','mem_21638c34','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7217ec21','ws_spec0001','mem_4379cf51','mem_67362874','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_84b4f489','ws_spec0001','mem_47aff2c9','mem_3c9c261b','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_383861f2','ws_spec0001','mem_4b0125e0','mem_08f1c514','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7a49563f','ws_spec0001','mem_4b0125e0','mem_565d7142','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b0236801','ws_spec0001','mem_4b0125e0','mem_97757fb8','related_to',1.0,365.0,0.1,true,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2dabdc1d','ws_spec0001','mem_526945e4','mem_82683707','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_dec491df','ws_spec0001','mem_52ac8940','mem_5a3bd1b0','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1255f39e','ws_spec0001','mem_54473627','mem_41c6465d','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_8aecb05e','ws_spec0001','mem_5a3bd1b0','mem_76037494','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_dfccfece','ws_spec0001','mem_67362874','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7265ad5a','ws_spec0001','mem_7484cfc2','mem_d692bb11','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_210d4f0e','ws_spec0001','mem_7f9fadcd','mem_861a5678','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1040b0bf','ws_spec0001','mem_80054468','mem_ee62ef2c','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_6efd1e19','ws_spec0001','mem_82683707','mem_i003','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1ef7d38a','ws_spec0001','mem_861a5678','mem_fb026368','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1593121f','ws_spec0001','mem_8a8214f3','mem_67362874','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_c7c39781','ws_spec0001','mem_8ac95ea6','mem_35036bb8','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_61616e84','ws_spec0001','mem_8ac95ea6','mem_a003','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4473d370','ws_spec0001','mem_8ac95ea6','mem_c571ecc8','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2ed731df','ws_spec0001','mem_8dc3944b','mem_0d6a7214','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e27024ec','ws_spec0001','mem_97757fb8','mem_67362874','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_3f328f38','ws_spec0001','mem_9d2bb35f','mem_i002','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_f3c354b8','ws_spec0001','mem_a71dcf58','mem_4741542a','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fe8d7607','ws_spec0001','mem_ah001','mem_tg001','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ec8435ce','ws_spec0001','mem_c24bbdad','mem_f83d6e1b','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_eb969b3c','ws_spec0001','mem_cbe1be4b','mem_o001','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4affb5ea','ws_spec0001','mem_cce15a1a','mem_4379cf51','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_bf9db7a1','ws_spec0001','mem_cf001','mem_rq001','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_a50ac35a','ws_spec0001','mem_d07c29a1','mem_67362874','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fb279531','ws_spec0001','mem_d1d90285','mem_9d2bb35f','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_bba91477','ws_spec0001','mem_d3564082','mem_76037494','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_45b2c91e','ws_spec0001','mem_df5063bd','mem_a71dcf58','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_76e6ea0b','ws_spec0001','mem_e10a0200','mem_1185cce5','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e40599af','ws_spec0001','mem_ee62ef2c','mem_a005','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_07131597','ws_spec0001','mem_eedc4eef','mem_9d2bb35f','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_0d61dc80','ws_spec0001','mem_guide_g01','mem_guide_g06','depends_on',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_d55a40b4','ws_spec0001','mem_guide_g01','mem_playbook_001','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_726fe85f','ws_spec0001','mem_guide_g02','mem_i003','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2aa0120d','ws_spec0001','mem_guide_g03','mem_playbook_003','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2dc4f0f5','ws_spec0001','mem_guide_g07','mem_guide_g01','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_11108fc4','ws_spec0001','mem_guide_g07','mem_guide_g04','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_9b364886','ws_spec0001','mem_i002','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b870c50d','ws_spec0001','mem_ns001','mem_guide_g03','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_45094063','ws_spec0001','mem_rq001','mem_8ac95ea6','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_f6f6c292','ws_spec0001','mem_syn001','mem_syn002','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_c506ef8a','ws_spec0001','mem_syn002','mem_syn003','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_36858278','ws_spec0001','mem_syn003','mem_i003','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fc8be58a','ws_spec0001','mem_ta004','mem_rq001','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_c1abd913','ws_spec0001','mem_tg001','mem_c9dd39d4','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -13530,8 +13704,4 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_i007i006_en','ws_spec0001_en','mem_i007_en','mem_i006_en','related_to',1.0,365.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_f875e07e','ws_spec0001_en','mem_c9a00f25_en','mem_inq002_en','extends',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;

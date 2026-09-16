@@ -1,5 +1,5 @@
 {
-  "id": "mem_pin001",
+  "id": "mem_4741542a",
   "schema_version": "1.0",
   "language": "zh-TW",
   "title": "保護骨幹節點與關聯不被自動歸檔/淡化：node/edge 的 pinned 機制",
