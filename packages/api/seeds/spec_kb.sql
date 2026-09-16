@@ -1380,6 +1380,25 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_7bfbaecf','1.0','ws_spec0001','AI 衝突偵測的實際機制：status=''conflicted'' 與 edge metadata（非 conflict_status）','factual','markdown','AI 衝突偵測（`services/contradiction.py`）偵測到矛盾時，實際寫入的不是 `conflict_status`／`conflict_detail`——這兩個欄位目前沒有任何程式碼讀寫。真正的機制是：
+
+- 把新節點的 `memory_nodes.status` 改成 `conflicted`（`node_status` enum 的其中一個值：admit-but-conflicted，節點留在圖裡，但在被仲裁前不能被當作定論）
+- 建立一條 `contradicts` edge，矛盾原因記在該 edge 的 `metadata.reason`（自由文字，不是固定值域）
+- 呼叫 `create_proposal` 發一筆 `category=''contradiction''` 的 audit proposal；`severity` 依對方節點是否 `validity_confirmed_at` 或走訪次數 ≥ 10 決定 high／mid（trust score 已於 2026-07-26 移除，不再作為嚴重度依據）
+
+人工手動建立 `contradicts` edge 時也會觸發同一套進審流程（`propose_change(..., "conflict", ...)`，見 `services/edges.py`）。仲裁結果 `keep_a`／`keep_b`／`merge`／`both_valid` 見「§S3 Contradicts 衝突仲裁流程」。',
+   ARRAY['conflict', 'database_schema', 'ai', 'governance']::text[],'public','usr_6bc7b4c7','2026-09-16T14:38:18.102636+00:00','58040deab231ad02625fc7c383b291361501244a5555df8c78e7950e794fd6cc','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_7dfe253a','1.0','ws_spec0001','MCP 身份驗證','factual','markdown','驗證是透過傳遞 API 金鑰完成的，該金鑰作為 `MEMTRACE_API_KEY` 環境變量（stdio 模式）或 `Authorization` 標頭（HTTP 模式）傳遞。',
    ARRAY['mcp', 'authentication', 'api-key', 'environment-variable', 'http-header']::text[],'public','system','2026-04-24T11:25:40.347126+00:00','40ba3456cf0cbbf4aa1cf85bbac939f6d6e95a7488dd0d987161188f20053de6','ai',
    0,0)
@@ -2733,7 +2752,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c9bd6c49','1.0','ws_spec0001','memory_nodes 表中的 `conflict_status` 欄位','factual','markdown','`memory_nodes` 表包含一個名為 `conflict_status` 的文本欄位，其值可以為 `NULL`, `''flagged''`, 或 `''resolved''`。',
+  ('mem_c9bd6c49','1.0','ws_spec0001','memory_nodes 表中的 `conflict_status` 欄位','factual','markdown','`memory_nodes` 表包含一個名為 `conflict_status` 的文本欄位，其值可以為 `NULL`, `''flagged''`, 或 `''resolved''`（DB CHECK constraint 定義）。目前程式碼庫（`packages/api/`）沒有任何地方讀寫這個欄位——AI 衝突偵測實際改寫的是 `memory_nodes.status = ''conflicted''`，見「AI 衝突偵測的實際機制：status=''conflicted'' 與 edge metadata（非 conflict_status）」。',
    ARRAY['database_schema', 'conflict_management']::text[],'public','system','2026-04-24T11:31:27.706468+00:00','155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d','ai',
    1,1)
 ON CONFLICT (id) DO UPDATE SET
@@ -2847,14 +2866,7 @@ VALUES
 
 ## 邏輯衝突偵測（AI 層）
 
-`conflict_status` 與 `conflict_detail` 欄位記錄於 `memory_nodes`：
-
-| conflict_status 值 | 說明 |
-|-------------------|------|
-| `contradicts_existing` | 與現有節點語意矛盾 |
-| `duplicate_content` | 內容重複 |
-| `circular_dependency` | 形成循環依賴 |
-| `orphaned_reference` | 引用了不存在的節點 |
+AI 衝突偵測的實際寫入機制見「AI 衝突偵測的實際機制：status=''conflicted'' 與 edge metadata（非 conflict_status）」——`conflict_status`／`conflict_detail` 兩個欄位目前沒有任何程式碼讀寫。
 
 ## 仲裁結果
 
@@ -2980,8 +2992,8 @@ VALUES
 
 **並行寫入相關欄位**（§17）：
 - `version` — 樂觀鎖整數，每次 UPDATE 自動 +1；PATCH 必須帶 `X-Node-Version` header
-- `conflict_status` — `flagged` / `resolved`，由衝突檢測寫入
-- `conflict_detail` — JSONB，記錄衝突類型與相關節點
+- `conflict_status` — `flagged` / `resolved`，schema 上定義如此，但目前沒有程式碼讀寫這個欄位；AI 衝突偵測實際上改寫的是 `status = ''conflicted''`（見「AI 衝突偵測的實際機制」）
+- `conflict_detail` — JSONB，schema 上定義為記錄衝突類型與相關節點，同樣目前沒有程式碼讀寫
 
 **來源文件追溯欄位**（§20）：
 - `source_doc_node_id` — 指向 `source_document` 類型節點，用於追溯萃取來源
@@ -6811,6 +6823,25 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_7bfbaecf_en','1.0','ws_spec0001_en','The Actual AI Conflict-Detection Mechanism: status=''conflicted'' and edge metadata (not conflict_status)','factual','markdown','When AI conflict detection (`services/contradiction.py`) finds a contradiction, it does not actually write to `conflict_status` / `conflict_detail` — no code anywhere currently reads or writes either column. The real mechanism is:
+
+- The new node''s `memory_nodes.status` is changed to `conflicted` (one of the `node_status` enum values: admit-but-conflicted — the node stays in the graph, but can''t be treated as truth until arbitrated)
+- A `contradicts` edge is created, with the contradiction reason recorded in that edge''s `metadata.reason` (free text, not a fixed value set)
+- `create_proposal` is called to file an audit proposal with `category=''contradiction''`; `severity` is high/mid depending on whether the target node has `validity_confirmed_at` set or traversal count ≥ 10 (trust score was removed 2026-07-26 and is no longer used as a severity signal)
+
+Manually creating a `contradicts` edge triggers the same review-intake flow (`propose_change(..., "conflict", ...)`, see `services/edges.py`). Arbitration outcomes `keep_a` / `keep_b` / `merge` / `both_valid` are covered in "§S3 Contradicts Conflict Arbitration Flow".',
+   ARRAY['conflict', 'database_schema', 'ai', 'governance']::text[],'public','usr_6bc7b4c7','2026-09-16T14:38:50.706878+00:00','fdbeed97b7702661be669cb47876eed3b5b2b509186bc2523bdf9011459d091d','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_7dfe253a_en','1.0','ws_spec0001_en','MCP Authentication','factual','markdown','Authentication is via an API key passed as the `MEMTRACE_API_KEY` environment variable (stdio mode) or `Authorization` header (HTTP mode).',
    ARRAY['mcp', 'authentication', 'api-key', 'environment-variable', 'http-header']::text[],'public','system','2026-04-24T11:25:40.347126+00:00','40ba3456cf0cbbf4aa1cf85bbac939f6d6e95a7488dd0d987161188f20053de6','ai',
    0,0)
@@ -8167,7 +8198,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c9bd6c49_en','1.0','ws_spec0001_en','`conflict_status` Column in the memory_nodes Table','factual','markdown','The `memory_nodes` table contains a text column named `conflict_status`, whose value can be `NULL`, `''flagged''`, or `''resolved''`.',
+  ('mem_c9bd6c49_en','1.0','ws_spec0001_en','`conflict_status` Column in the memory_nodes Table','factual','markdown','The `memory_nodes` table contains a text column named `conflict_status`, whose value can be `NULL`, `''flagged''`, or `''resolved''` (per the DB CHECK constraint). No code in the current codebase (`packages/api/`) reads or writes this column — AI conflict detection actually changes `memory_nodes.status = ''conflicted''` instead. See "The Actual AI Conflict-Detection Mechanism: status=''conflicted'' and edge metadata (not conflict_status)".',
    ARRAY['database_schema', 'conflict_management']::text[],'public','system','2026-04-24T11:31:27.706468+00:00','155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8277,35 +8308,28 @@ A `contradicts` edge is merely a marker without enforcing an arbitration workflo
 
 ## Automatic Review Intake Flow
 
-When a `contradicts` edge is created, the system automatically pushes the related nodes into the `review_queue` with `change_type=''conflict''`.
+When a `contradicts` edge is created, the system automatically pushes the related nodes into `review_queue` with `change_type=''conflict''`.
 
 ## Logical Conflict Detection (AI Layer)
 
-The `conflict_status` and `conflict_detail` columns are recorded in `memory_nodes`:
-
-| conflict_status Value | Description |
-|-------------------|------|
-| `contradicts_existing` | Semantically contradicts an existing node |
-| `duplicate_content` | Duplicate content |
-| `circular_dependency` | Forms a circular dependency |
-| `orphaned_reference` | References a non-existent node |
+See "The Actual AI Conflict-Detection Mechanism: status=''conflicted'' and edge metadata (not conflict_status)" for what actually gets written — the `conflict_status` / `conflict_detail` columns are currently not read or written by any code.
 
 ## Arbitration Outcomes
 
-The reviewer selects one of the following four outcomes:
+The reviewer chooses one of four outcomes:
 
 | Outcome | Action |
-|------|------|
+|---------|--------|
 | `keep_a` | Keep node A, archive node B |
 | `keep_b` | Keep node B, archive node A |
-| `merge` | Merge into a new node (enters propose_merge flow) |
-| `both_valid` | Both are valid, remove the contradicts edge |
+| `merge` | Merge into a new node (enters the propose_merge flow) |
+| `both_valid` | Both are valid; remove the contradicts edge |
 
-The arbitration outcome writes back the `status` of related nodes and leaves a resolution log.
+The arbitration outcome writes back to the related nodes'' `status`, and leaves a resolution log.
 
 ## Acceptance Criteria
 
-Every `contradicts` edge must have a corresponding resolution log or pending review item.',
+Every `contradicts` edge should have a corresponding resolution log or pending review item.',
    ARRAY['conflict', 'contradicts', 'arbitration', 'review-queue', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cf001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8406,22 +8430,22 @@ VALUES
 - **Bilingual Title and Body** (zh-TW + en), maintained independently
 - **Content Type**: `factual` / `procedural` / `preference` / `context` / `source_document`
 - **Format**: `plain` or `markdown`
-- **Tags**: String array for classification and search
+- **Tags**: an array of strings, used for classification and search
 - **Visibility**: `public` / `team` / `private`
-- **Provenance**: Author, creation timestamp, SHA-256 signature, source_type
-- **Traversal**: Traversal count and unique visitor count
-- **Status**: `active` / `archived` (archived content is hidden from default views, not deleted)
+- **Provenance**: author, creation time, SHA-256 signature, source_type
+- **Traversal**: traversal count and unique visitor count
+- **Status**: `active` / `archived` (archived is hidden from the default view, not deleted)
 
-**Concurrent write fields** (§17):
-- `version` — Optimistic lock integer, automatically incremented by +1 on each UPDATE; PATCH must supply the `X-Node-Version` header
-- `conflict_status` — `flagged` / `resolved`, written by conflict detection
-- `conflict_detail` — JSONB, recording conflict type and related nodes
+**Concurrent-write related fields** (§17):
+- `version` — optimistic-lock integer, auto-incremented on every UPDATE; PATCH must carry an `X-Node-Version` header
+- `conflict_status` — `flagged` / `resolved` per the schema, but no code currently reads or writes this column; AI conflict detection actually changes `status = ''conflicted''` instead (see "The Actual AI Conflict-Detection Mechanism")
+- `conflict_detail` — JSONB, defined in the schema to record conflict type and related nodes, also currently unread/unwritten by any code
 
-**Source document provenance fields** (§20):
-- `source_doc_node_id` — Points to a `source_document` type node for tracing extraction provenance
-- `source_paragraph_ref` — String marking paragraph location within the original document (e.g. `page:3, para:2` or `00:14:32-00:15:01`)
+**Source-document traceability fields** (§20):
+- `source_doc_node_id` — points to a `source_document`-type node, used to trace back to the extraction source
+- `source_paragraph_ref` — a string marking the paragraph location in the original document (e.g. `page:3, para:2` or `00:14:32-00:15:01`)
 
-Node ID format: `mem_<hex8>`, for example `mem_a1b2c3d4`.',
+Node ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`.',
    ARRAY['data-model', 'schema', 'core', 'version', 'conflict']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -12596,6 +12620,18 @@ INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,
 VALUES ('edge_9a9edf53','ws_spec0001','mem_playbook_003','mem_6ce92259','superseded_by',1.0,365.0,0.05,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_0a2c6beb','ws_spec0001','mem_7bfbaecf','mem_cf001','extends',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_33120a80','ws_spec0001','mem_7bfbaecf','mem_c9bd6c49','extends',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_447b3cfb','ws_spec0001','mem_7bfbaecf','mem_d001','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
 
 -- ── en edges ────────────────────────────────────────────
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14308,4 +14344,16 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_c765757e','ws_spec0001_en','mem_playbook_003_en','mem_6ce92259_en','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_5c678357','ws_spec0001_en','mem_7bfbaecf_en','mem_cf001_en','extends',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_9cfe5bea','ws_spec0001_en','mem_7bfbaecf_en','mem_c9bd6c49_en','extends',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e8e9bfa3','ws_spec0001_en','mem_7bfbaecf_en','mem_d001_en','related_to',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
