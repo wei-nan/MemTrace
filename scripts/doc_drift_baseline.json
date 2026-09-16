@@ -12,10 +12,6 @@
     "submit_outcome"
   ],
   "param_drift": {
-    "create_edge": [
-      "half_life_days",
-      "metadata"
-    ],
     "get_node": [
       "debug"
     ],

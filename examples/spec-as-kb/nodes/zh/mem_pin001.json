@@ -1,0 +1,30 @@
+{
+  "id": "mem_pin001",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "保護骨幹節點與關聯不被自動歸檔/淡化：node/edge 的 pinned 機制",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## 問題背景\n\nMemTrace 的自動衰減機制會依「建立時間」與「走訪次數」把長期沒人用的節點與邊分別轉為 `archived`／`faded`，讓知識庫保持精簡、聚焦在還有人在用的內容（見「Decay 產品立場」）。但這個機制原本只在邊(edge)上有 `pinned` 例外，節點(node)完全沒有——結果是：一個原本連接大量其他節點的「骨幹／總覽」節點，就算它自己還在被走訪，只要它周圍的鄰居一個個因為衰減被歸檔，它自己也會慢慢變成事實上的孤島，連帶讓整張圖被拆成一堆互不相連的小群集。\n\n## 機制\n\nnode 與 edge 都支援 `pinned`（布林值，預設 `false`）：\n\n- **node.pinned = true**：`apply_node_archiving()` 排除這個節點，不會因為建立時間久、走訪次數低而被自動轉成 `archived`。\n- **edge.pinned = true**：`apply_edge_decay()` 排除這條邊，權重不會隨時間衰減、也不會被轉成 `faded`。\n\n兩者是分開的旗標，各自只保護自己：pin 住一個節點不會連帶保護它的邊，反之亦然——如果目標是保住一整塊子圖的可達性，通常兩者都要設。\n\n## 怎麼設定\n\n透過 MCP：\n\n```json\n{\"name\": \"update_node\", \"arguments\": {\"workspace_id\": \"ws_abc\", \"node_id\": \"mem_xxx\", \"pinned\": true}}\n{\"name\": \"update_edge\", \"arguments\": {\"workspace_id\": \"ws_abc\", \"edge_id\": \"edge_xxx\", \"pinned\": true}}\n```\n\n`update_edge` 是既有邊唯一能修改的入口（`pinned` 之外目前不支援其他欄位）——邊建立後若要改權重或關聯類型，仍然只能刪除重建；但要 pin 一條已存在的邊，不需要刪除重建（那樣會重置走訪紀錄與 `co_access_count`）。\n\n## 怎麼決定該 pin 什麼——不要主觀猜\n\n亂 pin 會讓衰減機制失去意義（知識庫會越堆越肥、找不到重點）。建議用兩個客觀指標交叉判斷，而不是逐一節點主觀認定：\n\n1. **結構度數（degree）**：查詢每個節點歷史累計的邊數（`SELECT count(*) FROM edges WHERE from_id = node_id OR to_id = node_id`），由高到低排序。真正的骨幹節點通常會在排行榜上跟其他節點有明顯斷層（例如前兩名是 35、23，第三名以後全部 ≤ 6）——這個斷層本身就是客觀切分點。\n2. **內容性質**：`overview`／`core-purpose`／`positioning`／`agent-guide` 這類「總覽、入口」性質的內容，設計上就該長期存在，跟 `inquiry`（討論）、`gap`（待補）這種預期會被解決、淡化掉的類型不同，可以用 tag 白名單輔助篩選。\n\n兩個指標同時成立的節點，才是真正值得 pin 的候選；篩出來的清單通常很短（一個中等規模的知識庫可能只有個位數到十幾個），最後再由人過一遍確認。\n\n## 案例\n\n一個知識庫的「平台概覽」節點，歷史累計 35 條邊、走訪 17 次，結構度數遠高於第二名（23）與其餘所有節點（≤ 6）——是典型的骨幹節點。但因為當時沒有 node 層級的保護機制，它周圍所有鄰居陸續被衰減成 `archived`，圖譜視覺化上看起來像是一堆孤立的小點，實際上多數節點都還有邊，只是邊的另一端被隱藏了。這正是本機制要解決的問題。"
+  },
+  "tags": [
+    "decay",
+    "pinned",
+    "agent-guide",
+    "graph-health",
+    "kb-maintenance",
+    "operations"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-09-16T00:00:00+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

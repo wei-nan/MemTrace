@@ -4651,6 +4651,54 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_pin001','1.0','ws_spec0001','保護骨幹節點與關聯不被自動歸檔/淡化：node/edge 的 pinned 機制','procedural','markdown','## 問題背景
+
+MemTrace 的自動衰減機制會依「建立時間」與「走訪次數」把長期沒人用的節點與邊分別轉為 `archived`／`faded`，讓知識庫保持精簡、聚焦在還有人在用的內容（見「Decay 產品立場」）。但這個機制原本只在邊(edge)上有 `pinned` 例外，節點(node)完全沒有——結果是：一個原本連接大量其他節點的「骨幹／總覽」節點，就算它自己還在被走訪，只要它周圍的鄰居一個個因為衰減被歸檔，它自己也會慢慢變成事實上的孤島，連帶讓整張圖被拆成一堆互不相連的小群集。
+
+## 機制
+
+node 與 edge 都支援 `pinned`（布林值，預設 `false`）：
+
+- **node.pinned = true**：`apply_node_archiving()` 排除這個節點，不會因為建立時間久、走訪次數低而被自動轉成 `archived`。
+- **edge.pinned = true**：`apply_edge_decay()` 排除這條邊，權重不會隨時間衰減、也不會被轉成 `faded`。
+
+兩者是分開的旗標，各自只保護自己：pin 住一個節點不會連帶保護它的邊，反之亦然——如果目標是保住一整塊子圖的可達性，通常兩者都要設。
+
+## 怎麼設定
+
+透過 MCP：
+
+```json
+{"name": "update_node", "arguments": {"workspace_id": "ws_abc", "node_id": "mem_xxx", "pinned": true}}
+{"name": "update_edge", "arguments": {"workspace_id": "ws_abc", "edge_id": "edge_xxx", "pinned": true}}
+```
+
+`update_edge` 是既有邊唯一能修改的入口（`pinned` 之外目前不支援其他欄位）——邊建立後若要改權重或關聯類型，仍然只能刪除重建；但要 pin 一條已存在的邊，不需要刪除重建（那樣會重置走訪紀錄與 `co_access_count`）。
+
+## 怎麼決定該 pin 什麼——不要主觀猜
+
+亂 pin 會讓衰減機制失去意義（知識庫會越堆越肥、找不到重點）。建議用兩個客觀指標交叉判斷，而不是逐一節點主觀認定：
+
+1. **結構度數（degree）**：查詢每個節點歷史累計的邊數（`SELECT count(*) FROM edges WHERE from_id = node_id OR to_id = node_id`），由高到低排序。真正的骨幹節點通常會在排行榜上跟其他節點有明顯斷層（例如前兩名是 35、23，第三名以後全部 ≤ 6）——這個斷層本身就是客觀切分點。
+2. **內容性質**：`overview`／`core-purpose`／`positioning`／`agent-guide` 這類「總覽、入口」性質的內容，設計上就該長期存在，跟 `inquiry`（討論）、`gap`（待補）這種預期會被解決、淡化掉的類型不同，可以用 tag 白名單輔助篩選。
+
+兩個指標同時成立的節點，才是真正值得 pin 的候選；篩出來的清單通常很短（一個中等規模的知識庫可能只有個位數到十幾個），最後再由人過一遍確認。
+
+## 案例
+
+一個知識庫的「平台概覽」節點，歷史累計 35 條邊、走訪 17 次，結構度數遠高於第二名（23）與其餘所有節點（≤ 6）——是典型的骨幹節點。但因為當時沒有 node 層級的保護機制，它周圍所有鄰居陸續被衰減成 `archived`，圖譜視覺化上看起來像是一堆孤立的小點，實際上多數節點都還有邊，只是邊的另一端被隱藏了。這正是本機制要解決的問題。',
+   ARRAY['decay', 'pinned', 'agent-guide', 'graph-health', 'kb-maintenance', 'operations']::text[],'public','usr_6bc7b4c7','2026-09-16T00:00:00+00:00','','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_playbook_001','1.0','ws_spec0001','MemTrace Playbook：知識圖譜原則','context','markdown','### 核心原則
 1. **原子性**：每個節點應精確描述一個獨立的概念。
 2. **雙語對稱**：提供英文和中文內容，以確保跨語言發現。
@@ -12368,6 +12416,18 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_7e0089d0','ws_spec0001','mem_guide_g06','mem_guide_g07','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4a69f035','ws_spec0001','mem_pin001','mem_19f73d5a','extends',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_8ed2cfb9','ws_spec0001','mem_pin001','mem_ce00334f','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_91bf6886','ws_spec0001','mem_pin001','mem_guide_g03','related_to',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 

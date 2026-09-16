@@ -10,7 +10,7 @@ from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T
 from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
 from services.edges import (
-    record_traversal, create_edge_in_db, trash_edge_in_db,
+    record_traversal, create_edge_in_db, update_edge_in_db, trash_edge_in_db,
     restore_trashed_edge_in_db, list_trashed_edges_in_db,
 )
 from services.search import bfs_neighborhood, search_nodes_in_db, perform_semantic_search
@@ -234,6 +234,7 @@ MCP_TOOL_PROFILES = {
         "create_node",
         "update_node",
         "create_edge",
+        "update_edge",
         "traverse",
         "get_schema",
         "wait_for_embedding",
@@ -431,6 +432,7 @@ TOOLS = [
                 "tags": {"type": "array", "items": {"type": "string"}},
                 "visibility": {"type": "string", "enum": ["public", "team", "private"]},
                 "resolution_status": {"type": "string", "enum": ["open", "resolved", "superseded"]},
+                "pinned": {"type": "boolean", "description": "Exempt this node from automatic decay-based archiving (apply_node_archiving). Use for structurally important hub/overview nodes."},
             },
             "required": ["workspace_id", "node_id"],
         },
@@ -527,6 +529,7 @@ TOOLS = [
                 "relation": {"type": "string", "enum": sorted(list(VALID_RELATIONS))},
                 "weight": {"type": "number", "description": "Edge weight 0.0–1.0"},
                 "half_life_days": {"type": "integer", "description": "Days before this edge decays (default: auto from content_type). Use 365 for troubleshooting steps."},
+                "pinned": {"type": "boolean", "description": "Exempt this edge from automatic decay/fading (apply_edge_decay). Default false."},
                 "metadata": {
                     "type": "object",
                     "description": "Arbitrary metadata. For troubleshooting edges: {\"condition\": \"timeout\", \"condition_type\": \"tool_output_match\"}",
@@ -537,6 +540,19 @@ TOOLS = [
                 },
             },
             "required": ["workspace_id", "from_id", "to_id", "relation"],
+        },
+    },
+    {
+        "name": "update_edge",
+        "description": "Update an existing edge. Currently only `pinned` is supported — use it to exempt an already-created edge from automatic decay/fading without deleting and recreating it.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "edge_id": {"type": "string"},
+                "pinned": {"type": "boolean", "description": "Exempt this edge from automatic decay/fading (apply_edge_decay)."},
+            },
+            "required": ["workspace_id", "edge_id", "pinned"],
         },
     },
     {
@@ -1537,6 +1553,20 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
                 "weight": edge.get("weight"),
                 "status": edge.get("status"),
                 "half_life_days": edge.get("half_life_days"),
+                "updated_at": edge.get("updated_at"),
+            }
+
+    if name == "update_edge":
+        ws_id = args["workspace_id"]
+        with db_cursor(commit=True) as cur:
+            require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+            edge = update_edge_in_db(cur, ws_id, args["edge_id"], args)
+            return {
+                "id": edge.get("id"),
+                "from_id": edge.get("from_id"),
+                "to_id": edge.get("to_id"),
+                "relation": edge.get("relation"),
+                "pinned": edge.get("pinned"),
                 "updated_at": edge.get("updated_at"),
             }
 

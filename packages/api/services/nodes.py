@@ -111,13 +111,14 @@ NODE_PUBLIC_COLUMNS = """
     traversal_count, unique_traverser_count, status, archived_at,
     copied_from_node, copied_from_ws, validity_confirmed_at, validity_confirmed_by,
     ask_count, miss_count, source_id, source_doc_node_id, source_paragraph_ref, cluster_id, resolution_status,
-    metadata
+    pinned, metadata
 """
 
 NODE_EDITABLE_FIELDS = [
     "title", "content_type", "content_format",
     "body", "tags", "visibility",
-    "source_doc_node_id", "source_paragraph_ref", "cluster_id", "resolution_status"
+    "source_doc_node_id", "source_paragraph_ref", "cluster_id", "resolution_status",
+    "pinned"
 ]
 
 
@@ -352,6 +353,7 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
             source_id = %s, source_doc_node_id = %s, source_paragraph_ref = %s,
             cluster_id = COALESCE(%s, cluster_id),
             resolution_status = %s,
+            pinned = %s,
             version = version + 1
         WHERE id = %s AND workspace_id = %s {version_cond}
         RETURNING {NODE_PUBLIC_COLUMNS}
@@ -365,6 +367,7 @@ def update_node_in_db(cur, ws_id: str, node_id: str, node_data: dict, actor_id: 
             payload.get("source_doc_node_id"), payload.get("source_paragraph_ref"),
             payload.get("cluster_id"),
             payload.get("resolution_status") or existing.get("resolution_status", "open"),
+            payload.get("pinned") if payload.get("pinned") is not None else existing.get("pinned", False),
             node_id, ws_id,
             *( [expected_version] if expected_version is not None else [] )
         ),

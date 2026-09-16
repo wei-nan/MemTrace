@@ -104,6 +104,52 @@ def test_update_node_param_count_matches_placeholders(mock_prepare, mock_audit):
     assert sql.count("%s") == len(params)
 
 
+@patch("services.nodes.log_audit_event")
+@patch("services.nodes.prepare_node_data")
+def test_update_node_in_db_sets_pinned(mock_prepare, mock_audit):
+    """pinned must reach the UPDATE statement and be settable independent of other fields."""
+    mock_prepare.return_value = {
+        "title": "t", "content_type": "factual",
+        "content_format": "plain", "body": "t",
+        "tags": [], "visibility": "public", "signature": "sig",
+        "pinned": True,
+    }
+
+    cur = MagicMock()
+    cur.fetchone.side_effect = [
+        {"id": "mem_1", "title": "t", "source_type": "human", "updated_at": None, "pinned": False},
+        {"id": "mem_1", "title": "t", "pinned": True},
+    ]
+
+    update_node_in_db(cur, "ws_test", "mem_1", {"pinned": True}, "admin")
+    sql, params = _update_call(cur)
+    assert "pinned = %s" in sql
+    assert True in params
+
+
+@patch("services.nodes.log_audit_event")
+@patch("services.nodes.prepare_node_data")
+def test_update_node_in_db_preserves_pinned_when_not_sent(mock_prepare, mock_audit):
+    """Omitting `pinned` from the request must not silently unpin an already-pinned node."""
+    mock_prepare.return_value = {
+        "title": "renamed", "content_type": "factual",
+        "content_format": "plain", "body": "t",
+        "tags": [], "visibility": "public", "signature": "sig",
+        "pinned": None,  # not part of this update's field set
+    }
+
+    cur = MagicMock()
+    cur.fetchone.side_effect = [
+        {"id": "mem_1", "title": "t", "source_type": "human", "updated_at": None, "pinned": True},
+        {"id": "mem_1", "title": "renamed", "pinned": True},
+    ]
+
+    update_node_in_db(cur, "ws_test", "mem_1", {"title": "renamed"}, "admin")
+    sql, params = _update_call(cur)
+    idx = sql.split("pinned = %s")[0].count("%s")
+    assert params[idx] is True
+
+
 def test_delete_node_in_db():
     cur = MagicMock()
     cur.fetchall.return_value = []  # no connected edges to tombstone
