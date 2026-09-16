@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "An API Key with the `kb:propose` scope grants the capabilities of the contributor role, including all read permissions and the ability to submit proposals."
+    "body": "An API Key with the kb:propose scope grants Contributor role capabilities, including all read permissions as well as the ability to submit proposals."
   },
   "tags": [
     "api-key",

@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "After creation, a one-time copy dialog should be displayed for the new key."
+    "body": "After a key is created, a one-time copy dialog should be displayed."
   },
   "tags": [
     "api-key",

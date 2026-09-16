@@ -9,10 +9,10 @@
     "body": "If `MEMTRACE_TOKEN` is not provided, the system will maintain anonymous behavior, allowing access only to public workspaces. `list_workspaces` will return public repositories or an empty list."
   },
   "tags": [
-    "環境變數",
+    "environment-variable",
     "API",
-    "認證",
-    "匿名存取"
+    "authentication",
+    "anonymous-access"
   ],
   "visibility": "public",
   "provenance": {

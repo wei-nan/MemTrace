@@ -2,11 +2,11 @@
   "id": "mem_o001_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "First-run onboarding: web UI wizard",
+  "title": "First-Time Onboarding: Web UI Wizard",
   "content": {
     "type": "procedural",
     "format": "plain",
-    "body": "Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Eight-step flow:\n\n① Create account (Email + Password)\n② Verify email\n③ Name first Knowledge Base (bilingual name + visibility, default private)\n④ Choose Knowledge Base Type: Evergreen (default) or Ephemeral — **immutable after creation**\n⑤ Choose starting point: blank or upload document (.md/.txt/.pdf/.docx)\n⑥ AI provider setup (shown only on document path, skippable)\n⑦ Review extracted candidate nodes (at least one must be accepted to advance)\n⑧ Done (three shortcuts: add first node, invite someone, connect AI tool)\n\nProgress tracked server-side via the `onboarding` object (`steps_done[]` + `steps_skipped[]`); resumes from the last incomplete step after interruption. Once `completed: true`, the wizard is never shown automatically again."
+    "body": "After a user registers and logs in for the first time, they are guided through a mandatory eight-step onboarding wizard (cannot be bypassed, but can be paused and resumed at any time):\n\n① Create Account (Email + Password)\n② Verify Email\n③ Name First Knowledge Base (Bilingual name + visibility, default private)\n④ Choose Knowledge Base Type: Evergreen (long-lived, default) or Ephemeral (short-lived) — **immutable once created**\n⑤ Choose Starting Point: Blank or Upload Document (.md/.txt/.pdf/.docx)\n⑥ AI Provider Configuration (shown only for document pathway; skippable)\n⑦ Review Extracted Candidate Nodes (must accept at least one to continue)\n⑧ Complete (displays three shortcuts: Add Node Manually, Invite Members, Connect AI Tools)\n\nProgress is tracked on the server via an `onboarding` object (`steps_done[]` + `steps_skipped[]`), allowing resumption from the last incomplete step if interrupted. Once `completed: true`, it is never displayed automatically again."
   },
   "tags": [
     "onboarding",

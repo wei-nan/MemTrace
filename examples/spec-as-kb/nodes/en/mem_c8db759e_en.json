@@ -2,11 +2,11 @@
   "id": "mem_c8db759e_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Edges to Archived Nodes Automatically Decay",
+  "title": "Edges Connected to Archived Nodes Automatically Decay",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "All edges pointing to an archived node automatically appear in a \"decayed\" state, but are not deleted from the database."
+    "body": "All edges connected to archived nodes automatically assume a \"faded\" appearance, but are not deleted from the database."
   },
   "tags": [],
   "visibility": "public",

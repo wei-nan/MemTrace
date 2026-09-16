@@ -2,11 +2,11 @@
   "id": "mem_i005_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "OpenAI-compatible API: workspace-as-model RAG chat",
+  "title": "OpenAI-Compatible API Endpoint: RAG Chat with Workspace as Model",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace exposes **OpenAI-compatible endpoints** (prefix `/v1`) so existing OpenAI SDKs and tools can treat a workspace as a \"model\" and run hybrid-RAG chat over it. Authentication reuses the external API key (`Authorization: Bearer mt_...`, see mem_i002_en).\n\n## Endpoints\n\n| Method | Path | Description |\n|--------|------|-------------|\n| `GET` | `/v1/models` | List the caller's accessible workspaces, mapped as `memtrace-<ws_id>` models |\n| `GET` | `/v1/models/{id}` | Get metadata for a single workspace-as-model |\n| `POST` | `/v1/chat/completions` | Hybrid-RAG chat over the chosen workspace; responds in OpenAI `chat.completion` shape |\n\n## Workspace selection\nPass `model` as `memtrace-<ws_id>`, or override via a system message containing `workspace_id: ws_xxx`. Retrieval spans the workspace and its associated workspaces (workspace_associations).\n\n## Behaviour\n- Answers are generated with the caller's own AI provider (BYO key); retrieval uses hybrid (keyword + semantic) search.\n- The reply body appends a `**Sources:**` citation list; non-streaming responses also carry an `x_source_nodes` field (raw matched nodes).\n- `stream: true` yields an SSE stream (`text/event-stream`): content deltas, then the sources block, then a final chunk carrying `x_source_nodes`, then `[DONE]`.\n\n## Scope boundary\nOnly `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/v1/embeddings` endpoint."
+    "body": "MemTrace provides **OpenAI-compatible endpoints** (prefix `/v1`), allowing existing OpenAI SDKs or tools to directly treat a workspace as a \"model\" for hybrid retrieval-augmented generation (hybrid RAG). Authentication follows external API Keys (`Authorization: Bearer mt_...`, see mem_i002).\n\n## Endpoints\n\n| Method | Path | Description |\n|------|------|------|\n| `GET` | `/v1/models` | Lists workspaces accessible to the caller, mapped as `memtrace-<ws_id>` models |\n| `GET` | `/v1/models/{id}` | Retrieves metadata for a single workspace model |\n| `POST` | `/v1/chat/completions` | Performs hybrid RAG chat with the specified workspace, responding in OpenAI `chat.completion` format |\n\n## Workspace Selection\nSpecify `memtrace-<ws_id>` in `model`; or override inside system message with `workspace_id: ws_xxx`. Retrieval scope includes the workspace and its associated workspaces (workspace_associations).\n\n## Behavior\n- Generates responses using the caller's self-managed AI Provider (BYO key); retrieval utilizes hybrid search (keyword + semantic).\n- Response body appends a `**Sources:**` citation list; non-streaming responses additionally include an `x_source_nodes` field (raw data of matched nodes).\n- Supports SSE streaming with `stream: true` (`text/event-stream`): after streaming content, sends sources, followed by the final chunk containing `x_source_nodes`, and ends with `[DONE]`.\n\n## Scope Boundaries\nCurrently only `/v1/models` and `/v1/chat/completions` are implemented; `/v1/embeddings` is **not** provided."
   },
   "tags": [
     "api",
@@ -19,7 +19,7 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-07-25T00:00:00+00:00",
-    "signature": "e5dc92aeb1637d84c446b8f4b0f7e39572e63be1f4e37692a36a98869b685afb",
+    "signature": "26319322db8dec2367656d189d0b57ae905e41a79dafb2eee155df672c129097",
     "source_type": "human"
   },
   "traversal": {

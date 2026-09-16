@@ -2,11 +2,11 @@
   "id": "mem_c3e5a685_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Contributor Role Capabilities Detail",
+  "title": "Contributor Role Capability Details",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Contributors have all viewer capabilities and can submit proposals for new nodes, edits to existing nodes, or new/deleted edges. These proposals enter a review queue with `status = pending_admin_review` until an admin approves. A contributor may not approve their own proposals."
+    "body": "Contributors possess all Viewer capabilities and can submit proposals for new nodes, edits to existing nodes, or creating/deleting edges. These proposals enter the review queue with status `pending_admin_review` until approved by an admin. Contributors may not approve their own proposals."
   },
   "tags": [
     "role",

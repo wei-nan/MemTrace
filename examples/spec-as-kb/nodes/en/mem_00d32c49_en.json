@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "A core principle of knowledge graph design that advocates for smaller nodes, more edges, and shorter traversal paths to improve information retrieval efficiency and reduce cognitive load."
+    "body": "A core principle of knowledge graph design, advocating the use of smaller nodes, more edges, and shorter traversal paths to improve information retrieval efficiency and reduce cognitive load."
   },
   "tags": [
     "knowledge-graph",

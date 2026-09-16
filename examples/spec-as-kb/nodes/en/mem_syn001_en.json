@@ -2,11 +2,11 @@
   "id": "mem_syn001_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "§S4 summarize_cluster MCP Tool: AI Cluster Summary",
+  "title": "§S4 summarize_cluster MCP Tool: Cluster AI Summarization",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "## Overview\n\n`summarize_cluster` lets an AI agent automatically generate a summary node for a given cluster, so a querier can grasp the gist of the whole cluster from a single node and avoid the token cost of traversing node by node.\n\n## MCP tool definition\n\n```json\n{\n  \"name\": \"summarize_cluster\",\n  \"description\": \"Generate a summary node for a given cluster and send it for review\",\n  \"parameters\": {\n    \"cluster_id\": \"the cluster's id\",\n    \"workspace_id\": \"workspace id\"\n  }\n}\n```\n\n## Implementation locations\n\n- `services/synthesis.py::generate_cluster_summary`\n- `routers/kb.py::maintenance_summarize_cluster` (route: `POST /workspaces/{ws_id}/maintenance/summarize-cluster`)\n- `services/mcp_tools.py` (MCP exposure)\n\n## Flow\n\n1. Fetch all active nodes in the cluster\n2. Call the AI to generate the summary body\n3. Create a new node with `source_type='ai'`, `content_type='context'`\n4. Send it into `review_queue` for human confirmation\n5. Once confirmed, the node is attached to the cluster and `extends` edges are created to member nodes\n\n## Use cases\n\n- When a cluster has > 10 member nodes, the summary node can act as an \"entry point\"\n- Token savings: a querier that hits the summary is done, without reading each member\n"
+    "body": "## Feature Description\n\n`summarize_cluster` allows an AI agent to automatically generate a summary node for a specified cluster, enabling queriers to grasp the essence of the entire cluster via a single node and reducing the token consumption of node-by-node traversal.\n\n## MCP Tool Definition\n\n```json\n{\n  \"name\": \"summarize_cluster\",\n  \"description\": \"Generate a summary node for the specified cluster and submit for review\",\n  \"parameters\": {\n    \"cluster_id\": \"Cluster ID\",\n    \"workspace_id\": \"Workspace ID\"\n  }\n}\n```\n\n## Implementation Locations\n\n- `services/synthesis.py::generate_cluster_summary`\n- `routers/kb.py::maintenance_summarize_cluster` (route: `POST /workspaces/{ws_id}/maintenance/summarize-cluster`)\n- `services/mcp_tools.py` (MCP exposure)\n\n## Workflow\n\n1. Retrieve all active nodes in the cluster\n2. Call AI to generate summary body\n3. Create a new node with `source_type='ai'`, `content_type='context'`\n4. Submit to `review_queue` awaiting human confirmation\n5. Once confirmed, attach node under the cluster and build `extends` edges to member nodes\n\n## Use Cases\n\n- When a cluster has > 10 member nodes, the summary node can serve as an \"entry point\"\n- Token savings: queriers hit the summary directly without needing to read each member individually"
   },
   "tags": [
     "mcp-tool",
@@ -20,8 +20,9 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-06-13T00:00:00+00:00",
-    "signature": "9663af7dbe98364b9ff89273a0875de54e7af5750479ad2e0eaf80a3d51b0fe7",
-    "source_type": "ai"
+    "signature": "syn001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
   },
   "traversal": {
     "count": 0,

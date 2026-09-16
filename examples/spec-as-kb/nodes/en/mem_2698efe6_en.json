@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The request body includes an `actor_id` (e.g., `usr_abc123` or `apikey_abc123`) and an optional `note` field."
+    "body": "The request body contains an `actor_id` (e.g., `usr_abc123` or `apikey_abc123`) and an optional `note` field."
   },
   "tags": [
     "api",

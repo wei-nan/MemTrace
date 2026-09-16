@@ -2,16 +2,16 @@
   "id": "mem_e0ebc6e5_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "README/Usage Document Update: Single Workspace Scenario",
+  "title": "README / Documentation Update: Single-KB Use Case",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "The README and usage documentation have been updated to describe the single workspace (simplest) scenario: only set the `MEMTRACE_WS` environment variable and omit the `workspace_id` parameter when calling tools."
+    "body": "The README and documentation have been updated to explain the single-KB (simplest) use case: simply set the `MEMTRACE_WS` environment variable, and omit passing the `workspace_id` parameter when calling tools."
   },
   "tags": [
-    "文件",
-    "使用情境",
-    "工作區"
+    "document",
+    "use-case",
+    "workspace"
   ],
   "visibility": "public",
   "provenance": {

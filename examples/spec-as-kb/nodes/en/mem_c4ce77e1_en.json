@@ -2,16 +2,16 @@
   "id": "mem_c4ce77e1_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Archived Nodes Visible in Dedicated \"Archive\" View",
+  "title": "Archived Nodes Are Visible in Dedicated \"Archive\" View",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Archived nodes are accessible and displayed within a dedicated \"Archive\" view, which can be reached from the workspace sidebar."
+    "body": "Archived nodes can be accessed and displayed in a dedicated \"Archive\" view, which is accessible from the workspace sidebar."
   },
   "tags": [
-    "視圖",
-    "封存",
-    "隱藏"
+    "view",
+    "archiving",
+    "hidden"
   ],
   "visibility": "public",
   "provenance": {

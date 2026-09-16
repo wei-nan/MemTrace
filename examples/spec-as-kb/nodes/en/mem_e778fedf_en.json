@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `signature` column in the `memory_nodes` table is of type TEXT, storing the SHA-256 content hash of the memory node."
+    "body": "The `signature` column in the `memory_nodes` table is of type TEXT, storing the SHA-256 hash of the memory node content."
   },
   "tags": [
     "database",

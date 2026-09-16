@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace ships with a self-healing local backup system to prevent data loss in self-hosted environments. It runs database backups periodically and manages disk space by rotating out old backups.\n\n## Backup execution (§30.1)\n\n- **Frequency:** a background task runs hourly to check the backup schedule\n- **Interval:** the actual backup runs at the configured interval (default: 24 hours)\n- **Format:** the PostgreSQL backup is `gzip`-compressed (format: `.sql.gz`)\n- **Naming:** `memtrace_backup_YYYYMMDD_HHMMSS.sql.gz`\n\n## Rotation policy (§30.2)\n\nTo prevent disk exhaustion, the system maintains a rolling window of backups:\n\n- **Retention count:** the number of most-recent backup files to keep (default: 7)\n- **Cleanup:** after each successful backup, the system scans the backup directory and deletes the oldest files beyond the retention count\n\n## Configuration (§30.3, admin only)\n\nBackup settings are managed centrally from the platform-admin dashboard:\n\n- **Backup path:** absolute path where backups are stored on the server\n- **Enable/disable:** toggle automatic backups\n- **Interval (hours):** how often backups run\n- **Retention count:** how many backups to keep\n\n## Status and monitoring (§30.4)\n\nThe system records the result of every backup attempt in the `system_settings` table (key: `backup_config`):\n\n- `last_backup_at`: ISO timestamp of the last attempt\n- `last_backup_status`: `success` or `failed`\n- `last_backup_file`: path of the last successful backup\n- `error_msg`: detailed error when the last attempt failed\n"
+    "body": "MemTrace includes a self-healing local backup system to prevent data loss in self-hosted environments. It performs regular database dumps and manages disk space by rotating old backups.\n\n## Backup Execution (§30.1)\n\n- **Frequency:** The system runs a background task every hour to check the backup schedule\n- **Interval:** The actual backup runs based on the configured interval (default: 24 hours)\n- **Format:** PostgreSQL backups are compressed using `gzip` (format: `.sql.gz`)\n- **Naming:** `memtrace_backup_YYYYMMDD_HHMMSS.sql.gz`\n\n## Rotation Policy (§30.2)\n\nTo prevent disk exhaustion, the system maintains a rolling window of backups:\n\n- **Keep Count:** The number of recent backup files to retain (default: 7)\n- **Cleanup:** On every successful backup, the system scans the backup directory and deletes the oldest files exceeding the keep count\n\n## Configuration (§30.3, Admin Only)\n\nBackup settings are managed globally via the system admin dashboard:\n\n- **Backup Path:** Absolute path on the server where backups are stored\n- **Enable/Disable:** Toggle automated backups\n- **Interval (Hours):** Backup execution frequency\n- **Retention Count:** How many backups to keep\n\n## Status and Monitoring (§30.4)\n\nThe system logs the result of each backup attempt in the `system_settings` table (key: `backup_config`):\n\n- `last_backup_at`: ISO timestamp of the last attempt\n- `last_backup_status`: `success` or `failed`\n- `last_backup_file`: Path to the last successful backup\n- `error_msg`: Detailed error if the last attempt failed"
   },
   "tags": [
     "backup",
@@ -19,8 +19,9 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-06-13T00:00:00+00:00",
-    "signature": "d5d288f735043052deb54210bee9cb4d3495c894e509d8e8e222575c0d395f1c",
-    "source_type": "ai"
+    "signature": "bk001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
   },
   "traversal": {
     "count": 0,

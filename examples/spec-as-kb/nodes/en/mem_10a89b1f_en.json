@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Invited users are added to the workspace with the role specified in the invite token."
+    "body": "Invited users are added to the workspace with the role specified in the invitation token."
   },
   "tags": [
     "roles",

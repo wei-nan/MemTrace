@@ -6,13 +6,13 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "When an AI agent creates a knowledge node, the `source_type` field must be explicitly set to `\"ai\"`. This results in the `source_type` field in the database being 'ai' and the `proposer_type` field in the review queue also being 'ai'."
+    "body": "When an AI agent creates a knowledge node, the `source_type` field must be explicitly set to `\"ai\"`. This results in the `source_type` column in the database being 'ai', and the `proposer_type` column in the review queue also being 'ai'."
   },
   "tags": [
-    "ai代理",
-    "節點建立",
+    "ai-agent",
+    "node-creation",
     "api",
-    "規範"
+    "specification"
   ],
   "visibility": "public",
   "provenance": {
@@ -22,7 +22,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

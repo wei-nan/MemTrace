@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "In `markdown` mode, input is rendered as HTML in read view, while raw Markdown is stored."
+    "body": "Under `markdown` mode, input content is rendered as HTML in the reading view, while the raw Markdown content is stored."
   },
   "tags": [
     "input-mode",

@@ -9,9 +9,9 @@
     "body": "The `MEMTRACE_WS` environment variable is configured as the default workspace. This default value will be used when tool calls do not provide a `workspace_id` parameter."
   },
   "tags": [
-    "環境變數",
-    "工作區",
-    "預設值"
+    "environment-variable",
+    "workspace",
+    "default-value"
   ],
   "visibility": "public",
   "provenance": {

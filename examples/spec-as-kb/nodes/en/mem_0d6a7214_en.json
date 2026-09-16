@@ -2,11 +2,11 @@
   "id": "mem_0d6a7214_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Workspace Access Granting",
+  "title": "Workspace Access Authorization",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Access to a workspace is granted only via explicit admin invitation."
+    "body": "Access permissions to a workspace are granted solely via explicit invitation from an administrator."
   },
   "tags": [
     "access-control",

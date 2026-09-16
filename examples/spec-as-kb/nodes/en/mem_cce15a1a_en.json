@@ -2,17 +2,17 @@
   "id": "mem_cce15a1a_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Node Revisions Table Unique Constraint",
+  "title": "Unique Constraint on Node Revisions Table",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The combination of `node_id` and `revision_no` must be unique in the `node_revisions` table, ensuring each revision of a node has a distinct identifier."
+    "body": "In the `node_revisions` table, the combination of `node_id` and `revision_no` must be unique, ensuring that every revision of each node has a unique identifier."
   },
   "tags": [
-    "資料庫",
-    "資料表",
-    "節點修訂",
-    "唯一約束"
+    "database",
+    "table",
+    "node-revision",
+    "unique-constraint"
   ],
   "visibility": "public",
   "provenance": {

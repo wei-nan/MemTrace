@@ -2,11 +2,11 @@
   "id": "mem_i002_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "REST API and external API keys",
+  "title": "REST API and External API Keys",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "External services and scripts authenticate with **API Keys** (format: `mt_live_<hex>`), not session JWTs. Keys may be scoped to a specific workspace or valid across all. Full key value shown only once at creation. Four scopes:\n\n| Scope | Grants |\n|-------|--------|\n| `kb:read` | Read KBs, nodes, edges |\n| `kb:write` | Create and edit nodes, edges |\n| `node:traverse` | Record traversal events |\n| `node:rate` | Submit path ratings (1–5) |\n\nAll API endpoints prefixed with `/api/v1`, using `Authorization: Bearer` for both keys and session tokens (server distinguishes by prefix)."
+    "body": "External services and scripts authenticate via **API Keys** (format: `mt_live_<hex>`), rather than session JWTs. Keys can be scoped to a specific workspace or cross-workspace; once created, the full key is displayed only once. Four scopes:\n\n| Scope | Permission |\n|-------|------|\n| `kb:read` | Read KB, nodes, edges |\n| `kb:write` | Create and edit nodes, edges |\n| `node:traverse` | Record traversal events |\n| `node:rate` | Submit path ratings (1–5) |\n\nAll API endpoints are prefixed with `/api/v1`, using `Authorization: Bearer` to pass the key or token (the server distinguishes between them by prefix)."
   },
   "tags": [
     "api",
@@ -22,7 +22,7 @@
     "source_type": "human"
   },
   "traversal": {
-    "count": 4,
-    "unique_traversers": 2
+    "count": 0,
+    "unique_traversers": 0
   }
 }

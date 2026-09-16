@@ -2,11 +2,11 @@
   "id": "mem_d003_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Content Type: the nature of knowledge in a node",
+  "title": "Content Type: The Epistemic Nature of Nodes",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Every Memory Node must be tagged with a Content Type:\n\n| Type | Description | Example |\n|------|-------------|---------|\n| `factual` | Declarative facts | \"pgvector supports cosine similarity\" |\n| `procedural` | Step-by-step process | \"How to set up a Docker Compose dev environment\" |\n| `preference` | Preferences or decisions | \"We chose bcrypt over argon2\" |\n| `context` | Background context | \"Why this project uses bilingual design\" |\n| `source_document` | Original document retained at ingestion (§20) | A meeting transcript, a full PDF |\n\n**`source_document` characteristics**: Created automatically by the `ingest` flow; body holds the full text or transcript. **Excluded by default** from Graph View / search / Q&A context. Extracted nodes link back to the original passage via `source_doc_node_id` + `source_paragraph_ref`.\n\nContent Type affects: search filtering, AI extraction classification, default decay half-life (ephemeral workspaces), and Export Scope matching (`procedural` → user-manual, `factual` → functional-spec, etc.)."
+    "body": "Each Memory Node must be tagged with one Content Type:\n\n| Type | Description | Example |\n|------|------|------|\n| `factual` | Declarative facts | \"pgvector supports cosine similarity\" |\n| `procedural` | Step-by-step procedures | \"How to configure Docker Compose development environment\" |\n| `preference` | Preferences or decisions | \"We choose bcrypt over argon2\" |\n| `context` | Background context | \"Reasons why this project adopts bilingual design\" |\n| `source_document` | Original document preserved during ingestion (§20) | A meeting recording transcript, full text of a PDF |\n\n**`source_document` characteristics**: Automatically created by the `ingest` pipeline; body contains the full document text or transcript, and is **excluded** by default from Graph View / search / Q&A context. Extracted nodes link back to original paragraphs via `source_doc_node_id` + `source_paragraph_ref`.\n\nContent Type influences: search filtering, AI extraction categorization, default decay half-life (ephemeral workspaces), and Export Scope mapping (`procedural` → user-manual, `factual` → functional-spec, etc.)."
   },
   "tags": [
     "data-model",

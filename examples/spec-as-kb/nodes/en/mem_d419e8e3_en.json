@@ -6,14 +6,14 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Design boundaries for private workspaces (`visibility=private`) in MemTrace:\n\n1. Private nodes are excluded from the global search index.\n2. Cross-workspace queries (`search_cross_workspace`) do not include private workspace content unless the requester is a member of that workspace.\n3. Private nodes may link to public nodes via edges, but back-references remain invisible externally.\n4. Telemetry for private workspaces is visible only to admins."
+    "body": "Design boundaries for MemTrace private workspaces (`visibility=private`):\n\n1. Private nodes do not enter the global search index.\n2. Cross-workspace queries (`search_cross_workspace`) do not include private workspace content, unless the searcher is a member of that workspace.\n3. Private nodes can link to public nodes via edges, but incoming back-references are not visible externally.\n4. Telemetry for private workspaces is only visible to admins."
   },
   "tags": [
     "private",
+    "private",
     "workspace",
-    "boundaries",
-    "design-decision",
-    "visibility"
+    "boundary",
+    "design-decision"
   ],
   "visibility": "public",
   "provenance": {

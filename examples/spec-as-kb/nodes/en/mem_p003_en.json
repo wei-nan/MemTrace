@@ -2,11 +2,11 @@
   "id": "mem_p003_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Co-authorship between humans and AI",
+  "title": "Collaborative Knowledge Graph for Humans and AI",
   "content": {
     "type": "context",
     "format": "plain",
-    "body": "In MemTrace, humans and AI write into the same graph. The graph's structure — edge weights, traversal counts, path ratings — reflects which knowledge has actually proven useful, not just what was recorded. Decay keeps the graph honest: connections nobody follows fade; connections visited frequently, rated positively, or extended by other nodes strengthen and persist. The result is a knowledge base that self-organises around what actually matters."
+    "body": "In MemTrace, humans and AI write to the same graph. The graph structure—Edge weights, traversal counts, ratings—reflects what knowledge is actually proven useful, rather than merely recorded. Decay ensures graph honesty: untraversed links naturally fade, while frequently used links are reinforced and persist. Ultimately, this forms a self-organizing knowledge base centered around \"knowledge that truly matters\"."
   },
   "tags": [
     "philosophy",

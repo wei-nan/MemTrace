@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The workspace owner is always an admin and cannot be demoted from this role."
+    "body": "Workspace owners are always Admins and cannot be demoted from this role."
   },
   "tags": [
     "role",

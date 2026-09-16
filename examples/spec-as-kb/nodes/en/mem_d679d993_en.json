@@ -2,11 +2,11 @@
   "id": "mem_d679d993_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "MemTrace Core Philosophy: Knowledge and Curator Relationship",
+  "title": "MemTrace Core Philosophy: The Relationship Between Knowledge and Its Curator",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace's design philosophy goes beyond a mere permissions model, articulating the relationship between knowledge and its curator."
+    "body": "The design philosophy of MemTrace transcends a simple permission model, articulating the relationship between knowledge and its curator."
   },
   "tags": [
     "memtrace",

@@ -2,11 +2,11 @@
   "id": "mem_g002_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Co-Access Boost: strengthening edges through use",
+  "title": "Co-Access Boost: Co-Access Reinforcement",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "When two connected nodes are accessed sequentially or simultaneously in the same context (Co-Access), the corresponding edge's weight receives a boost based on relation type:\n\n| Relation | Boost |\n|----------|-------|\n| `depends_on` | +0.30 |\n| `extends` | +0.20 |\n| `related_to` | +0.15 |\n| `contradicts` | +0.10 |\n\nAlso increments co_access_count, updates last_co_accessed, and caps weight at 1.0. Triggered by POST /edges/{id}/traverse or MCP tool traverse_edge."
+    "body": "When two connected nodes are accessed sequentially or simultaneously within the same context (Co-Access), the weight of the corresponding edge receives a boost, with the boost amount varying by relation type:\n\n| Relation | Boost |\n|----------|-------|\n| `depends_on` | +0.30 |\n| `extends` | +0.20 |\n| `related_to` | +0.15 |\n| `contradicts` | +0.10 |\n\nSimultaneously triggers: co_access_count +1, last_co_accessed updated, weight capped at 1.0. Both the API route POST /edges/{id}/traverse and the MCP tool traverse_edge trigger the co-access boost."
   },
   "tags": [
     "graph-mechanics",

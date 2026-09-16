@@ -6,10 +6,10 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace's product stance on decay: decay is a natural reflection of knowledge freshness, not a punishment. Unreferenced knowledge loses weight over time but is never automatically deleted. The `pinned` flag freezes the weight of a node or edge to prevent decay. Decay parameters (`half_life_days`, `min_weight`) are configurable at the workspace level; no forced deletion occurs."
+    "body": "MemTrace's product stance on decay: Decay is a natural reflection of knowledge freshness, not a punishment. Unreferenced knowledge decreases in weight over time, but is not deleted automatically. The `pinned` flag can freeze the weight of a node or edge, preventing decay. Decay parameters (`half_life_days`, `min_weight`) can be configured at the workspace level, without forcing node deletion."
   },
   "tags": [
-    "衰減",
+    "decay",
     "decay",
     "pinned",
     "product-stance"

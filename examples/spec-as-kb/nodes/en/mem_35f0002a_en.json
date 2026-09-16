@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Viewers can search, list, and get nodes, track traversals, and use conversational Q&A. They cannot create, modify, or delete any nodes, edges, or workspace settings, nor can they propose changes."
+    "body": "Viewers can search, list, and fetch nodes, track traversals, and use conversational Q&A. They cannot create, modify, or delete any nodes, edges, or workspace settings, nor can they propose changes."
   },
   "tags": [
     "role",

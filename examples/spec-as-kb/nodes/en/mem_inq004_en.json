@@ -2,11 +2,11 @@
   "id": "mem_inq004_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Gap: Conductor — MemTrace actively triggering an external harness",
+  "title": "Gap: Conductor — MemTrace Actively Triggering External Harnesses",
   "content": {
     "type": "inquiry",
     "format": "markdown",
-    "body": "Currently an external harness must actively poll to learn about new tasks. We want MemTrace to actively notify the external harness to start the next loop when a pending inquiry / residue appears.\n\n**Open design questions:**\n\n1. **Trigger mechanism:** Webhook (HTTP push) vs. message queue (Redis pub/sub, AMQP). Deployment complexity vs. reliability.\n2. **MemTrace's role boundary:** decision A1 clearly states \"MemTrace is not the loop runtime\". Is a Conductor a reasonable extension on the \"memory side\", or does it overstep?\n3. **Event granularity:** trigger on every pending inquiry, or batch (notify only after N or more)? Avoid over-triggering.\n4. **Harness integration surface:** where does the harness configure its webhook endpoint? Workspace setting or global setting?\n5. **Outcome accounting:** when multiple workers each submit_outcome, will path_reinforcement double-count?\n"
+    "body": "Currently, external harnesses must actively poll to detect new tasks. It is desired that when a pending inquiry / residue appears, MemTrace can proactively notify the external harness to start the next iteration.\n\n**Design Questions to Discuss:**\n\n1. **Trigger Mechanism:** Webhook (HTTP push) vs. Message Queue (Redis pub/sub, AMQP). Deployment complexity vs. reliability.\n2. **MemTrace Role Boundary:** Decision A1 explicitly states that \"MemTrace is not a loop runtime\". Does Conductor constitute a reasonable extension of the \"memory side\", or has it already crossed the boundary?\n3. **Event Granularity:** Should every pending inquiry trigger a notification, or should they be batched (notify only when there are N or more)? This avoids excessive triggers.\n4. **Harness Integration Surface:** Where should the harness configure the webhook endpoint? Is it a workspace-level or global-level configuration?\n5. **Outcome Accounting Backflow:** When multiple workers independently execute submit_outcome, will path_reinforcement be double-counted?"
   },
   "tags": [
     "inquiry",
@@ -20,8 +20,8 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-06-13T00:00:00+00:00",
-    "signature": "0b153b98673fa0a67e84736d923daba6d4ed6f90035b3e69a21c6f63bdd55e5d",
-    "source_type": "ai"
+    "signature": "inq004a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
   },
   "traversal": {
     "count": 0,

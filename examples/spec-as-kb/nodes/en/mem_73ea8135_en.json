@@ -9,11 +9,11 @@
     "body": "The stripped graph payload includes `preview_mode: true` and stripped `nodes` and `edges` arrays. Nodes only contain `id` and `position`, while edges contain `from`, `to`, and `relation`."
   },
   "tags": [
-    "API優化",
-    "簡化結構",
-    "api優化",
-    "結構",
-    "載荷"
+    "api-optimization",
+    "simplified-structure",
+    "api-optimization",
+    "structure",
+    "payload"
   ],
   "visibility": "public",
   "provenance": {

@@ -2,11 +2,11 @@
   "id": "mem_k004_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Workspace lifecycle and soft-delete (30-day grace period)",
+  "title": "Workspace Lifecycle and Soft Deletion (30-Day Grace Period)",
   "content": {
     "type": "procedural",
     "format": "plain",
-    "body": "Workspaces move through three states: active (normal), pending_deletion (soft-deleted, grace period active), deleted (purged from DB).\n\nSoft-delete trigger: admin calls DELETE /workspaces/{ws_id}\n- Sets status = pending_deletion, deleted_at = NOW()\n- Non-admin members immediately lose access\n- Admin/owner retains read-only access (for data export)\n- Email notifications: day 0 (deletion initiated), day 25 (5-day warning), day 30 (final purge)\n\nRestoration: any admin calls POST /workspaces/{ws_id}/restore within the grace period\n- status returns to active, deleted_at is cleared, all member access is restored\n\nAutomatic purge: daily background job deletes workspaces where status = 'pending_deletion' AND deleted_at < NOW() - INTERVAL '30 days'. This is a hard CASCADE DELETE — all nodes, edges, members, invites, and chat sessions are deleted. Cannot be undone.\n\nGrace period by KB type:\n- evergreen: 30 days\n- ephemeral: 7 days\n\nSchema change:\nALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','pending_deletion','deleted')), ADD COLUMN deleted_at TIMESTAMPTZ;"
+    "body": "A workspace has three states: `active` (normal), `pending_deletion` (soft-deleted), and `deleted` (purged).\n\nSoft deletion trigger: an admin calls `DELETE /workspaces/{ws_id}`\n- Sets `status = pending_deletion`, `deleted_at = NOW()`\n- Non-admin members immediately lose access\n- Admin/owner retains read-only access (can export data)\n- Notification emails: Day 0 (deletion initiated), Day 25 (5-day warning), Day 30 (final purge)\n\nRestoration: within the grace period, an admin calls `POST /workspaces/{ws_id}/restore`\n- `status` returns to `active`, `deleted_at` is cleared, and access is restored for all members\n\nAutomated purge: a daily background scheduler purges workspaces where `status = 'pending_deletion' AND deleted_at < NOW() - INTERVAL '30 days'` (CASCADE DELETE: nodes, edges, members, invitations, and conversation logs are all deleted and cannot be recovered).\n\nGrace period differences by KB type:\n- `evergreen`: 30 days\n- `ephemeral`: 7 days\n\nSchema addition:\nALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','pending_deletion','deleted')), ADD COLUMN deleted_at TIMESTAMPTZ;"
   },
   "tags": [
     "workspace",
@@ -24,7 +24,7 @@
     "source_type": "human"
   },
   "traversal": {
-    "count": 4,
-    "unique_traversers": 2
+    "count": 0,
+    "unique_traversers": 0
   }
 }

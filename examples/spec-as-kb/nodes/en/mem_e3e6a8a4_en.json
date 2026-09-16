@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "A persistent progress bar, e.g., \"Step X of Y\", is shown at the top of each step. Required steps are marked, and skippable steps show a \"Skip for now\" link."
+    "body": "A persistent progress bar is displayed at the top of each step, such as \"Step X / Y\". Required steps are marked, while skippable steps display a \"Skip for now\" link."
   },
   "tags": [
     "ui",

@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "This document outlines the development tasks for the MemTrace feature plan, categorized by functional groups (A-H) and marked with their respective layers (DB, API, UI, MCP, CLI, Core, Scheduler)."
+    "body": "This document outlines the development tasks for the MemTrace feature plan, categorized by feature groups (A-H), and notes the tier to which each task belongs (DB, API, UI, MCP, CLI, Core, Scheduler)."
   },
   "tags": [],
   "visibility": "public",

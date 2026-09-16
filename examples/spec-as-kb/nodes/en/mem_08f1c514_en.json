@@ -2,11 +2,11 @@
   "id": "mem_08f1c514_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Source Document Node Default Exclusions",
+  "title": "Default Exclusions for Source Document Nodes",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "By default, source document nodes are excluded from the graph view (unless \"Show source documents\" is enabled), from keyword and semantic search results, from Q&A and AI conversation context retrieval, and from MCP `search_nodes` results."
+    "body": "Source document nodes are excluded by default from graph views (unless \"Show Source Documents\" is enabled), keyword and semantic search results, Q&A and AI conversation context retrieval, and MCP search_nodes results."
   },
   "tags": [],
   "visibility": "public",

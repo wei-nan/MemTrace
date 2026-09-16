@@ -2,16 +2,16 @@
   "id": "mem_ee62ef2c_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "API Endpoint for Stripped Graph Payload",
+  "title": "API Endpoint for Simplified Graph Payloads",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` serves the stripped graph payload."
+    "body": "The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` is used to provide simplified graph payloads."
   },
   "tags": [
     "api",
-    "端點",
-    "簡化結構"
+    "endpoint",
+    "simplified-structure"
   ],
   "visibility": "public",
   "provenance": {

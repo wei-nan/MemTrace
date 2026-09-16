@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "An API key with the `kb:read` scope grants viewer role capabilities, allowing search, read, traverse, and rate operations."
+    "body": "An API key with the `kb:read` scope grants viewer role capabilities, allowing search, read, traverse, and rating operations."
   },
   "tags": [
     "api-key",

@@ -2,11 +2,11 @@
   "id": "mem_27e2935e_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Workspace Roles & Permissions",
+  "title": "Workspace Roles and Permissions",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Access to knowledge within a workspace is strictly role-based, especially for `conditional_public` and `restricted` workspaces."
+    "body": "Knowledge access within a workspace is strictly role-based, particularly for \"conditional public\" (`conditional_public`) and \"restricted\" (`restricted`) workspaces."
   },
   "tags": [
     "access-control",

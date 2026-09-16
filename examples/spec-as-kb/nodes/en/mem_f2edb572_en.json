@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `traversal` object in an edge response includes `count` (number of traversals), `rating_avg` (average rating), and `rating_count` (number of ratings) fields."
+    "body": "The `traversal` object in the edge response contains the fields `count` (traversal count), `rating_avg` (average rating), and `rating_count` (rating count)."
   },
   "tags": [
     "data-structure",

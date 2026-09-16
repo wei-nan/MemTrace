@@ -9,10 +9,10 @@
     "body": "The updated `.mcp.json` example structure includes an `mcpServers` object, where the `memtrace` service defines `command`, `args`, and `env` variables such as `MEMTRACE_API`, `MEMTRACE_WS`, `MEMTRACE_LANG`, and `MEMTRACE_TOKEN`."
   },
   "tags": [
-    "設定檔",
+    "configuration",
     "MCP",
-    "範例",
-    "環境變數"
+    "example",
+    "environment-variable"
   ],
   "visibility": "public",
   "provenance": {

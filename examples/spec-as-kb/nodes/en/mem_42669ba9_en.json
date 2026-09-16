@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The request body includes a `rating` field (an integer between 1 and 5) and an optional `note` field. Only one rating per actor per edge is enforced, with subsequent submissions overwriting previous ratings."
+    "body": "The request body contains a `rating` field (integer between 1 and 5) and an optional `note` field. Each actor can only submit a rating once per edge; subsequent submissions overwrite previous ratings."
   },
   "tags": [
     "api",

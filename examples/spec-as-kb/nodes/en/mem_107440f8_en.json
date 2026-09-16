@@ -2,16 +2,16 @@
   "id": "mem_107440f8_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Node IDs in Stripped Graph Payload",
+  "title": "Node IDs in Stripped Graph Payloads",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Real `memory_node.id` values in the stripped graph payload are replaced with opaque sequential preview IDs (`node_preview_N`) that are not stable across requests."
+    "body": "Real `memory_node.id` values in stripped graph payloads are replaced with opaque sequential preview IDs (`node_preview_N`), which are unstable across different requests."
   },
   "tags": [
-    "節點ID",
-    "簡化結構",
-    "資料載荷"
+    "node-id",
+    "simplified-structure",
+    "payload"
   ],
   "visibility": "public",
   "provenance": {

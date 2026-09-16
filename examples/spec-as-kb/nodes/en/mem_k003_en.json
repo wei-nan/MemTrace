@@ -2,11 +2,11 @@
   "id": "mem_k003_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Cross-workspace node copy: portability",
+  "title": "Cross-Workspace Node Copying: Portability",
   "content": {
     "type": "procedural",
     "format": "plain",
-    "body": "Any node can be copied to another Knowledge Base, but its Edges are not copied. Copy behaviour: the target KB assigns a new id; created_at is reset to the copy time; provenance.copied_from records { node_id, workspace_id } for traceability; visibility defaults to private in the target KB; Trust scores are carried as a snapshot — subsequent changes in either KB do not affect the other; signature is recomputed in the target KB context. CLI: memtrace copy-node <node-id> --to <workspace-id>. API: POST /workspaces/{ws_id}/nodes (with copied_from parameter)."
+    "body": "Any node can be copied to another knowledge base, but Edges are not copied along with it. Copying behavior: a new `id` is assigned in the target knowledge base; `created_at` is reset to the copy timestamp; `provenance.copied_from` records `{ node_id, workspace_id }` for provenance tracking; `visibility` defaults to `private` in the target workspace; the trust score is carried over as a snapshot, with subsequent changes on either side having no effect on the other; `signature` is recomputed in the target workspace environment. CLI command: `memtrace copy-node <node-id> --to <workspace-id>`. API: `POST /workspaces/{ws_id}/nodes` (with the `copied_from` parameter)."
   },
   "tags": [
     "knowledge-base",
@@ -22,7 +22,7 @@
     "source_type": "human"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

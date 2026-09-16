@@ -6,13 +6,13 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace is an open platform designed for building shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to allow any human or AI agent to reach any answer by following the shortest possible path through a graph of small, typed relationships — rather than reading through large documents."
+    "body": "MemTrace is an open platform designed to construct shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to enable any human or AI agent to find answers via the shortest path in small, fractal relationship graphs, rather than reading voluminous documentation."
   },
   "tags": [
     "memtrace",
-    "概覽",
-    "介紹",
-    "平台"
+    "overview",
+    "introduction",
+    "platform"
   ],
   "visibility": "public",
   "provenance": {
@@ -22,7 +22,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

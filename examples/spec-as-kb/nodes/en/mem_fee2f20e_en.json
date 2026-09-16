@@ -2,11 +2,11 @@
   "id": "mem_fee2f20e_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "AI Read Permission: Associated Workspaces",
+  "title": "AI Read Permissions: Associated Workspaces",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "AI may read from associated workspaces but is not permitted to propose writes to them."
+    "body": "AI can read content from associated workspaces, but is not permitted to propose write operations to them."
   },
   "tags": [],
   "visibility": "public",

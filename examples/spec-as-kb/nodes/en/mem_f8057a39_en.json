@@ -6,12 +6,12 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "The descriptions for tools like `search_nodes`, `get_node`, `traverse`, and `list_by_tag` have been updated to include a line explaining how to pass `workspace_id` to query a specific KB, or omit it to use the configured default (`MEMTRACE_WS`)."
+    "body": "The descriptions of tools including `search_nodes`, `get_node`, `traverse`, and `list_by_tag` have been updated to add a line explaining how to use the `workspace_id` parameter to query a specific knowledge base, or omit it to use the default `MEMTRACE_WS`."
   },
   "tags": [
-    "工具",
-    "文件",
-    "工作區"
+    "tool",
+    "document",
+    "workspace"
   ],
   "visibility": "public",
   "provenance": {

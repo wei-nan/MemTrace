@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The API endpoint for issuing workspace invitations is `POST /workspaces/{ws_id}/invites`."
+    "body": "The API endpoint to issue workspace invitations is `POST /workspaces/{ws_id}/invites`."
   },
   "tags": [
     "api",

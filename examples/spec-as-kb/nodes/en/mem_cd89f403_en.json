@@ -2,11 +2,11 @@
   "id": "mem_cd89f403_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Ephemeral KB Edge Decay Schedule",
+  "title": "Edge Decay Schedule for Ephemeral Knowledge Bases",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "The edge decay schedule for Ephemeral Knowledge Bases should be changed from daily to hourly triggering."
+    "body": "The edge decay schedule for ephemeral knowledge bases should be changed from daily triggers to hourly (every 1 hour) triggers."
   },
   "tags": [
     "scheduler",

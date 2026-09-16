@@ -5427,7 +5427,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_00d32c49_en','1.0','ws_spec0001_en','Node Minimization Principle','factual','markdown','A core principle of knowledge graph design that advocates for smaller nodes, more edges, and shorter traversal paths to improve information retrieval efficiency and reduce cognitive load.',
+  ('mem_00d32c49_en','1.0','ws_spec0001_en','Node Minimization Principle','factual','markdown','A core principle of knowledge graph design, advocating the use of smaller nodes, more edges, and shorter traversal paths to improve information retrieval efficiency and reduce cognitive load.',
    ARRAY['knowledge-graph', 'design-principle', 'ai-restructuring']::text[],'public','system','2026-04-24T11:31:27.681728+00:00','9371b1b41df3cfd13fc796a731df2f30c24170405d5e9772324e1620188ba65f','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5440,7 +5440,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_013d11be_en','1.0','ws_spec0001_en','Markdown Input Mode','factual','markdown','In `markdown` mode, input is rendered as HTML in read view, while raw Markdown is stored.',
+  ('mem_013d11be_en','1.0','ws_spec0001_en','Markdown Input Mode','factual','markdown','Under `markdown` mode, input content is rendered as HTML in the reading view, while the raw Markdown content is stored.',
    ARRAY['input-mode', 'markdown']::text[],'public','system','2026-04-24T11:25:39.414292+00:00','3f5ab1967571ab79453c47895d21ed5af47489952515e7f2b69c52dd17c70c39','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5453,7 +5453,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_033baf41_en','1.0','ws_spec0001_en','NODE_GUIDE Content Definition','factual','markdown','The `NODE_GUIDE` constant defines node field specifications, `content_type` explanation, `visibility` explanation, best practices for creation, and common errors.',
+  ('mem_033baf41_en','1.0','ws_spec0001_en','NODE_GUIDE Content Definition','factual','markdown','The `NODE_GUIDE` constant defines node field specifications, `content_type` descriptions, `visibility` descriptions, creation best practices, and common mistakes.',
    ARRAY['node_guide', 'node', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:28.703205+00:00','e455fd7e83ae5aa06dfc303f056131a6fba3450abac4370621b5128c99d786f6','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5466,8 +5466,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_05ce17d1_en','1.0','ws_spec0001_en','AI Usage Log Table Indexes','factual','markdown','Three indexes are created on the `ai_usage_log` table: `idx_ai_usage_user` (on `user_id`, `called_at` DESC), `idx_ai_usage_feature` (on `feature`, `called_at` DESC), and `idx_ai_usage_provider` (on `provider`, `called_at` DESC).',
-   ARRAY['ai', '說明']::text[],'public','system','2026-04-24T11:25:40.908853+00:00','7a1280b6e7a2bff93fc5743846592250a33fd7b5f18dc420af70ec1fee8983b6','ai',
+  ('mem_05ce17d1_en','1.0','ws_spec0001_en','AI Usage Log Table Indexes','factual','markdown','Three indexes are created on the `ai_usage_log` table: `idx_ai_usage_user` (based on `user_id`, descending `called_at`), `idx_ai_usage_feature` (based on `feature`, descending `called_at`), and `idx_ai_usage_provider` (based on `provider`, descending `called_at`).',
+   ARRAY['ai', 'description']::text[],'public','system','2026-04-24T11:25:40.908853+00:00','7a1280b6e7a2bff93fc5743846592250a33fd7b5f18dc420af70ec1fee8983b6','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5479,39 +5479,39 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_064d70b7_en','1.0','ws_spec0001_en','Phase 4 P4-G: Self-hosted Ollama Provider Planning Decisions','preference','markdown','**Decision date:** 2026-04-27
-**Status:** Recorded in `docs/dev/phase4-plan.md`, awaiting implementation scheduling.
-**Why:** Complements P4-F (managed AI credits) to form a three-tier business model (free managed / paid managed / fully self-hosted), and aligns with MemTrace''s "knowledge sovereignty" philosophy by keeping tokens inside the user''s environment.
+  ('mem_064d70b7_en','1.0','ws_spec0001_en','Phase 4 P4-G: Self-Hosted Ollama Provider Planning Decision','preference','markdown','**Decision Date:** 2026-04-27
+**Status:** Documented in `docs/dev/phase4-plan.md`, pending implementation scheduling
+**Rationale:** Complements P4-F "Managed AI Quota", forming a three-tier business model of "Free Managed / Paid Managed / Fully Self-Hosted"; concurrently aligns with MemTrace''s "Knowledge Sovereignty" philosophy by keeping tokens within the user''s environment.
 
-## Six finalized design decisions
+## Six Finalized Design Decisions
 
-| # | Decision | Choice |
-|---|---------|--------|
-| 1 | API style | OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/embeddings`) — maximizes reuse of existing `OpenAIProvider` |
-| 2 | Connection scope | per-user: same layer as `user_ai_keys`; each member of a shared workspace connects to their own Ollama |
-| 3 | Auth mode | both none and Bearer: localhost without auth, reverse-proxied with token |
-| 4 | Model discovery | auto-list via Ollama `/api/tags` + manual fallback |
-| 5 | Embedding dimension | follow existing rule: workspace `embedding_dim` is locked at creation; UI shows the dim hint when user picks an Ollama embedding model |
-| 6 | Network reachability | documented (local host network / LAN / reverse proxy), not hard-coded in source |
+| # | Decision Point | Adopted Solution |
+|---|----------------|------------------|
+| 1 | API Style | OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/embeddings`), maximizing reuse of existing `OpenAIProvider` |
+| 2 | Connection Scope | per-user: at the same level as `user_ai_keys`; when multiple users share a workspace, each connects independently |
+| 3 | Authentication Mode | Dual support for None / Bearer: no authentication for personal local setups, token added behind reverse proxy |
+| 4 | Model Discovery | Automatic listing (calling Ollama `/api/tags`) + manual fallback |
+| 5 | Embedding Dimensions | Follows existing rules: `embedding_dim` locked when workspace is created; UI displays dimension hints when user selects an Ollama embedding model |
+| 6 | Network Reachability | Documents three scenarios (local host network / LAN / reverse proxy), without hardcoding in codebase |
 
-## Key tasks (excerpt)
+## Key Tasks (Excerpt)
 
-- **DB**: migration `024_ollama_provider.sql` adds `base_url`, `auth_mode`, `auth_token` to `user_ai_keys`
-- **API/Core**: `OllamaProvider` extends `OpenAIProvider`; two new endpoints (`test-connection`, `models`)
-- **UI**: fourth card in Settings → AI Provider; new color token `--ai-ollama: #6B7280` (dark) / `#374151` (light)
-- **Docs**: new `docs/dev/ollama-deployment.md`; SPEC.md §16 provider table gains a row
+- **DB**: Migration `024_ollama_provider.sql`, adding three columns to `user_ai_keys`: `base_url` / `auth_mode` / `auth_token`
+- **API/Core**: `OllamaProvider` inherits from `OpenAIProvider`, adding two endpoints: `test-connection` and `models`
+- **UI**: Settings → AI Provider fourth card; new color swatches `--ai-ollama: #6B7280` (dark) / `#374151` (light)
+- **Docs**: Create `docs/dev/ollama-deployment.md`; add a new row to the table in SPEC.md §16
 
-## Schedule & dependencies
+## Scheduling and Dependencies
 
-- Runs in parallel with P4-D (CLI residuals); does not block the demo
-- Only prerequisite: the existing `AIProvider` Protocol (already in place)
-- Shared with P4-A: the `mcp_query_logs.provider` column should be added when A lands so G can use it without further DB changes
+- Runs in parallel with P4-D (CLI residue), without blocking demo milestones
+- Sole prerequisite: existing `AIProvider` Protocol (already in place)
+- Shares the `mcp_query_logs.provider` column with P4-A (to be added alongside P4-A implementation)
 
-## Main risk
+## Major Risks
 
-Small local models (< 8B, sub-Q5 quantization) hallucinate the extraction JSON schema, raising Review Queue rejection rates. Mitigations: UI hint to use ≥ 8B / Q5+, Review Queue surfaces the source provider/model, and longer-term `mcp_query_logs` lets the Analytics page show a cloud-vs-local extraction success-rate comparison.',
+Local small models (< 8B, below Q5 quantization) exhibit relatively high JSON formatting hallucination rates, which could increase the Review Queue rejection rate; mitigation strategies include UI prompts, displaying source model in the Review Queue, and subsequently using `mcp_query_logs` to accumulate quality signals for cloud vs. local comparison reports.',
    ARRAY['phase-4', 'ollama', 'ai-provider', 'knowledge-sovereignty', 'planning', 'roadmap', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-04-27T13:20:55.037625+00:00','9a07537effbb587826c7d8e3b6a303f1dd6274459d91c1d45db99427c5bc5fd3','ai',
-   12,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5522,7 +5522,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_07334d61_en','1.0','ws_spec0001_en','Memory Export/Import Scope','factual','markdown','Node-level and full-Knowledge Base export/import are supported.',
+  ('mem_07334d61_en','1.0','ws_spec0001_en','Memory Export/Import Scope','factual','markdown','Supports export/import at both node-level and full knowledge base-level.',
    ARRAY['export', 'import', 'scope']::text[],'public','system','2026-04-24T11:25:39.270852+00:00','c097f8f7975d3ca47dd120efbcc14faf227f40b75fb9f2ad81971d7bc57ae2ed','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5535,7 +5535,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_0752c920_en','1.0','ws_spec0001_en','Contributor Role Capability: Proposing Changes','factual','markdown','Contributors can propose changes to nodes or edges. These proposals enter a review queue and require admin approval to be applied.',
+  ('mem_0752c920_en','1.0','ws_spec0001_en','Contributor Role Capabilities: Propose Changes','factual','markdown','Contributors can propose changes to nodes or edges. These proposals enter the review queue and require administrator approval before being applied.',
    ARRAY['role', 'contributor', 'proposal', 'review-queue']::text[],'public','system','2026-04-24T11:25:40.486330+00:00','c9e0f98fe56cae12c67d59594eb46922bacdf9e4aa36e3df1f975b9552b4828e','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5548,47 +5548,47 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_079a7573_en','1.0','ws_spec0001_en','System Monitoring Page: Scheduler Heartbeats, Job Runs, MCP Logs, AI Usage','factual','markdown','Platform admins can open the "System Monitoring" page from the left navigation to observe the overall health of the platform.
+  ('mem_079a7573_en','1.0','ws_spec0001_en','System Monitoring Page: Schedulers, Job Runs, MCP Logs, AI Usage','factual','markdown','Platform administrators (platform admin) can access the "System Monitoring" page from the left navigation to observe the overall platform health.
 
 ## Four Tabs
 
 ### 1. Scheduler Heartbeats
 
-Shows the current status of all known scheduled jobs, including:
+Displays the current status of all known scheduled jobs, including:
 
 | Field | Description |
-|------|------|
-| Category | KB / AI / System, shown with a colored badge |
-| Interval | Schedule period (10s / 30s / 1m / 1h / 24h / —) |
-| Status | Result of the most recent run |
-| Last success | Timestamp of the last success |
-| Runs / failures | Cumulative counts |
-| Tracked | Jobs with `observable=false` (safety_sweep, audit_reviewers) are marked "not tracked" |
+|-------|-------------|
+| Category | KB (Knowledge Base) / AI / System, indicated by color badges |
+| Interval | Scheduling interval (10s / 30s / 1m / 1h / 24h / — |
+| Status | Most recent execution result |
+| Last Success | Timestamp of the last success |
+| Run Count / Failure Count | Cumulative statistics |
+| Tracking | Jobs with `observable=false` (safety_sweep, audit_reviewers) marked as "Not Tracked" |
 
-Jobs that have never run are shown at 60% opacity (grey).
+Jobs that have never executed are displayed at 60% opacity (grayed out).
 
 ### 2. Job Runs
 
-Per-run execution records for every job, with filters (job name, status).
+Execution records for all jobs run by run, including filters (job name, status).
 
-New "AI mechanism" column:
-- `safety_review_queue`: shows the provider and model used at run time
-- `audit_reviewers`: marked "vector similarity"
-- `safety_sweep`: marked "rule-based"
-- other jobs: shows "—"
+Added "AI Mechanism" column:
+- `safety_review_queue`: Displays the provider and model used during execution
+- `audit_reviewers`: Marked as "Vector Similarity"
+- `safety_sweep`: Marked as "Rule-based"
+- Remaining jobs: Displays "—"
 
 ### 3. MCP Query Logs
 
-Records every query issued through MCP tools, including workspace, tool name, query text, token usage, and timestamp.
+Logs all queries called via MCP tools, including workspace, tool name, query text, token usage, and timestamps.
 
-### 4. AI Token Usage
+### 4. AI Usage
 
-Aggregates token consumption by workspace × month to aid cost tracking.
+Aggregates token consumption by workspace × month to assist with cost tracking.
 
-## Known scheduled jobs
+## List of Known Scheduled Jobs
 
-| Job name | Category | Interval |
-|----------|------|------|
+| Job Name | Category | Interval |
+|----------|----------|----------|
 | process_node_events | KB | 10s |
 | audit_writer | System | 5s |
 | safety_review_queue | AI | 30s |
@@ -5602,9 +5602,8 @@ Aggregates token consumption by workspace × month to aid cost tracking.
 | path_reinforcement | KB | 24h |
 | audit_reviewers | AI | 24h |
 | safety_sweep | AI | 24h |
-| conductor_dispatch | System | — |
-',
-   ARRAY['system-monitor', 'admin', 'scheduler', 'job-runs', 'observability']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','091497e10db54939439d91fcc3c4d295a89ebb0a526b1bba5c04effd8a849616','ai',
+| conductor_dispatch | System | — |',
+   ARRAY['system-monitor', 'admin', 'scheduler', 'job-runs', 'observability']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','4a0c5f89ec74ed26c4903ed8abb17feb058c58bf1f89e23c6b16c6789fe4898f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5616,7 +5615,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_08f1c514_en','1.0','ws_spec0001_en','Source Document Node Default Exclusions','factual','markdown','By default, source document nodes are excluded from the graph view (unless "Show source documents" is enabled), from keyword and semantic search results, from Q&A and AI conversation context retrieval, and from MCP `search_nodes` results.',
+  ('mem_08f1c514_en','1.0','ws_spec0001_en','Default Exclusions for Source Document Nodes','factual','markdown','Source document nodes are excluded by default from graph views (unless "Show Source Documents" is enabled), keyword and semantic search results, Q&A and AI conversation context retrieval, and MCP search_nodes results.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.831618+00:00','8c1c5ae6bf2674b4f5bd74831f3b1e8b63148c33abfec5059782b406519f5e93','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5629,9 +5628,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_097ff069_en','1.0','ws_spec0001_en','AI Provider Abstraction and API Key Model','factual','markdown','MemTrace''s AI features share a common provider abstraction and API key model, where users supply their own keys.',
+  ('mem_097ff069_en','1.0','ws_spec0001_en','AI Provider Abstraction and API Key Model','factual','markdown','MemTrace''s AI features share a common provider abstraction and API key model; users must provide their own keys.',
    ARRAY['ai', 'api', 'security', 'configuration']::text[],'public','system','2026-04-24T11:25:40.454141+00:00','3670462d56d5294b06b1cdd0f98f5e5570062473d91f2c8839b81a34659a4a11','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5642,7 +5641,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_0d6a7214_en','1.0','ws_spec0001_en','Workspace Access Granting','factual','markdown','Access to a workspace is granted only via explicit admin invitation.',
+  ('mem_0d6a7214_en','1.0','ws_spec0001_en','Workspace Access Authorization','factual','markdown','Access permissions to a workspace are granted solely via explicit invitation from an administrator.',
    ARRAY['access-control', 'admin', 'invitation']::text[],'public','system','2026-04-24T11:25:39.592594+00:00','7565ff5c348962f12749977db91aa8c4ec162aaa28a3d45be254023066708312','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5655,8 +5654,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_107440f8_en','1.0','ws_spec0001_en','Node IDs in Stripped Graph Payload','factual','markdown','Real `memory_node.id` values in the stripped graph payload are replaced with opaque sequential preview IDs (`node_preview_N`) that are not stable across requests.',
-   ARRAY['節點ID', '簡化結構', '資料載荷']::text[],'public','system','2026-04-24T11:25:39.758281+00:00','1deb02df329cb170fcdc2a70609066f0765abe86315b577b6bdf3c214b6cb7e7','ai',
+  ('mem_107440f8_en','1.0','ws_spec0001_en','Node IDs in Stripped Graph Payloads','factual','markdown','Real `memory_node.id` values in stripped graph payloads are replaced with opaque sequential preview IDs (`node_preview_N`), which are unstable across different requests.',
+   ARRAY['node-id', 'simplified-structure', 'payload']::text[],'public','system','2026-04-24T11:25:39.758281+00:00','1deb02df329cb170fcdc2a70609066f0765abe86315b577b6bdf3c214b6cb7e7','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5668,7 +5667,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_10a89b1f_en','1.0','ws_spec0001_en','Invited User Role Assignment','factual','markdown','Invited users are added to the workspace with the role specified in the invite token.',
+  ('mem_10a89b1f_en','1.0','ws_spec0001_en','Invited User Role Assignment','factual','markdown','Invited users are added to the workspace with the role specified in the invitation token.',
    ARRAY['roles', 'invitation', 'access-control']::text[],'public','system','2026-04-24T11:25:39.631905+00:00','7cf62b3b242f03e9b7889e041598b464fd164b5d7d1f01cba4a9eda874bbb8ed','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5681,7 +5680,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_1185cce5_en','1.0','ws_spec0001_en','Create API Key','procedural','markdown','Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new API key. The request must include an Authorization Bearer Token, Content-Type as `application/json`, and JSON data containing the key name and scopes (e.g., `kb:read`, `kb:write`).',
+  ('mem_1185cce5_en','1.0','ws_spec0001_en','Creating an API Key','procedural','markdown','Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new API key. The request must include an authorization Bearer Token, Content-Type of `application/json`, and JSON data containing the key name and scopes (e.g., `kb:read`, `kb:write`).',
    ARRAY[]::text[],'public','system','2026-04-25T02:39:30.610529+00:00','64f3676e69b048faf93b180a7bd9c33f59d965f34af7acd616c3933fa4b44cd7','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5694,7 +5693,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_156804b8_en','1.0','ws_spec0001_en','API Key Scope: kb:write','factual','markdown','An API key with the `kb:write` scope grants admin role capabilities, providing full write access.',
+  ('mem_156804b8_en','1.0','ws_spec0001_en','API Key Permission Scope: kb:write','factual','markdown','API keys with the `kb:write` permission scope grant administrator role capabilities, providing full write permissions.',
    ARRAY['api-key', 'scope', 'admin', 'write-access']::text[],'public','system','2026-04-24T11:25:40.640994+00:00','956a647920f96b7a1b1d0aff71ff87d58dc65179427575b5a85f87acd1dacaa3','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5707,12 +5706,12 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_17e5a3aa_en','1.0','ws_spec0001_en','Multi-Planner Escalate to Review Queue Presentation','factual','markdown','Presentation design for escalations to `review_queue` in multi-planner architecture:
+  ('mem_17e5a3aa_en','1.0','ws_spec0001_en','Multi-planner Escalation to Review Queue Presentation','factual','markdown','Multi-planner architecture escalation to `review_queue` presentation design:
 
-1. Proposals from different planners display their originating planner source in the review queue.
-2. When multiple planners submit conflicting proposals for the same node, they are displayed side-by-side in the UI for human arbitration.
-3. Escalation triggers a notification to workspace admins.
-4. The review queue does not merge proposals from different planners even when semantically similar — full provenance is preserved.',
+1. Proposals from different planners display their respective planner sources in the review queue.
+2. When multiple planners submit conflicting proposals for the same node, they are displayed side-by-side in the UI for human adjudication.
+3. Escalation actions trigger notifications to workspace administrators.
+4. The review queue presentation does not merge proposals from different planners even if semantically similar, preserving complete provenance.',
    ARRAY['multi-planner', 'review_queue', 'escalate', 'presentation', 'notification']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','i7l5q6s8n9p0315m43op5678901234op5678901234op5678901234abcdef123456789012','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5725,7 +5724,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_184116bb_en','1.0','ws_spec0001_en','Onboarding Object Structure','factual','markdown','The onboarding state is represented by an `onboarding` object, including `completed`, `steps_done`, `steps_skipped`, and `first_kb_id` fields.',
+  ('mem_184116bb_en','1.0','ws_spec0001_en','Onboarding Flow Object Structure','factual','markdown','The onboarding flow state is represented by an `onboarding` object, including fields such as `completed`, `steps_done`, `steps_skipped`, and `first_kb_id`.',
    ARRAY['onboarding', 'data-model', 'json']::text[],'public','system','2026-04-24T11:25:40.381562+00:00','5651cf39b30ea36b6a4a87ddb2eef33aa78408a213d5570ebbd306c438554bb1','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5738,8 +5737,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_19f73d5a_en','1.0','ws_spec0001_en','Decay Product Stance','factual','markdown','MemTrace''s product stance on decay: decay is a natural reflection of knowledge freshness, not a punishment. Unreferenced knowledge loses weight over time but is never automatically deleted. The `pinned` flag freezes the weight of a node or edge to prevent decay. Decay parameters (`half_life_days`, `min_weight`) are configurable at the workspace level; no forced deletion occurs.',
-   ARRAY['衰減', 'decay', 'pinned', 'product-stance']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','a3f1d2e4b5c6071809abcdef1234567890abcdef1234567890abcdef12345678','ai',
+  ('mem_19f73d5a_en','1.0','ws_spec0001_en','Decay Product Stance','factual','markdown','MemTrace''s product stance on decay: Decay is a natural reflection of knowledge freshness, not a punishment. Unreferenced knowledge decreases in weight over time, but is not deleted automatically. The `pinned` flag can freeze the weight of a node or edge, preventing decay. Decay parameters (`half_life_days`, `min_weight`) can be configured at the workspace level, without forcing node deletion.',
+   ARRAY['decay', 'decay', 'pinned', 'product-stance']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','a3f1d2e4b5c6071809abcdef1234567890abcdef1234567890abcdef12345678','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5751,9 +5750,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_1b0a6c77_en','1.0','ws_spec0001_en','API Key/Session Suspension Threshold','factual','markdown','An API key or session is suspended if the traversal rate exceeds 2000 requests within a 10-minute period.',
+  ('mem_1b0a6c77_en','1.0','ws_spec0001_en','API Key / Conversation Suspension Threshold','factual','markdown','If the traversal rate exceeds 2000 requests within 10 minutes, the API key or conversation will be suspended.',
    ARRAY['api-key', 'session', 'security', 'rate-limiting', 'threshold']::text[],'public','system','2026-04-24T11:31:27.743224+00:00','b44ed89375ac73f6c55e71e4e97b9521aa00be67b37609a04552c515ac852362','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5764,9 +5763,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_1b50a9b1_en','1.0','ws_spec0001_en','Memory Node Editor Fields','factual','markdown','The creation/edit form exposes several fields for user input.',
+  ('mem_1b50a9b1_en','1.0','ws_spec0001_en','Memory Node Editor Fields','factual','markdown','The creation/edit form provides multiple fields for user input.',
    ARRAY['editor', 'fields', 'memory-node']::text[],'public','system','2026-04-24T11:25:39.497376+00:00','b20effdba67a36c189fcc02d6a494aa870056bd4e8a4f6b878040a55275100d1','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5777,7 +5776,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_1fc8782f_en','1.0','ws_spec0001_en','Memory Node English Body','factual','markdown','The `body_en` column in the `memory_nodes` table is of type TEXT, storing the English body of the memory node.',
+  ('mem_1fc8782f_en','1.0','ws_spec0001_en','Memory Node English Body','factual','markdown','The `body_en` column in the `memory_nodes` table is of type TEXT and stores the English body of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'i18n']::text[],'public','system','2026-04-24T11:25:38.987893+00:00','38def61e607255d825e41054e1ef73f9bbe01b69d8df3be4d7d18a59eb8e41ac','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5790,8 +5789,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_1fc9c6b4_en','1.0','ws_spec0001_en','AI Agent Workflow: Search Existing Nodes','procedural','markdown','Before creating a new node, an AI agent should first call `search_nodes("authentication mechanism")` or similar functions to check if related nodes already exist in the knowledge base, preventing duplication.',
-   ARRAY['ai代理', '工作流程', '節點建立', '搜尋']::text[],'public','system','2026-04-25T02:40:02.057085+00:00','ce76ce6a71d629231411b6006cde3379e98c2074b2cf40c3fc050542c9a16cfb','ai',
+  ('mem_1fc9c6b4_en','1.0','ws_spec0001_en','AI Agent Workflow: Search Existing Nodes','procedural','markdown','Before creating a new node, an AI agent should first invoke functions like `search_nodes("Authentication Mechanism")` to confirm whether relevant nodes already exist in the knowledge base, avoiding duplicates.',
+   ARRAY['ai-agent', 'workflow', 'node-creation', 'search']::text[],'public','system','2026-04-25T02:40:02.057085+00:00','ce76ce6a71d629231411b6006cde3379e98c2074b2cf40c3fc050542c9a16cfb','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5803,7 +5802,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_21638c34_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/rate Endpoint','procedural','markdown','This endpoint is used to submit an explicit rating (1-5) for a path.',
+  ('mem_21638c34_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/rate Endpoint','procedural','markdown','This endpoint is used to submit explicit ratings (1-5) for paths.',
    ARRAY['api', 'rest', 'rating', 'edge']::text[],'public','system','2026-04-24T11:25:40.201027+00:00','cb4131be818878d469bd1c212bcc26506d6ca08b7a42d30d9a8991f3ffa33f05','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5817,8 +5816,8 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_22c9d8d6_en','1.0','ws_spec0001_en','Natural Decay Mechanism','factual','markdown','The system automatically manages the decay of knowledge unless a node or edge is manually pinned.',
-   ARRAY['衰減', '權重', 'decay']::text[],'public','system','2026-04-24T11:31:27.612477+00:00','81794826c7a783c9fbfa0d8eaa2e8526a26dc20b3f852f4a42811973c0866b02','ai',
-   1,1)
+   ARRAY['decay', 'weight', 'decay']::text[],'public','system','2026-04-24T11:31:27.612477+00:00','81794826c7a783c9fbfa0d8eaa2e8526a26dc20b3f852f4a42811973c0866b02','ai',
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -5829,13 +5828,13 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_2563d8c1_en','1.0','ws_spec0001_en','Multi-Planner claim_task Interaction Boundaries','factual','markdown','Rules governing `claim_task` interactions in multi-planner environments:
+  ('mem_2563d8c1_en','1.0','ws_spec0001_en','Multi-planner claim_task Interaction Boundary','factual','markdown','Interaction boundary rules for `claim_task` in a multi-planner environment:
 
-1. A single task may only be claimed by one planner at a time — first come, first served (optimistic lock).
-2. A planner that fails to claim should yield, not retry and compete.
-3. The `claim_task` timeout is set by the harness; it auto-releases on expiry.
-4. Planners must not claim a task already held by another planner; ownership transfers must be coordinated through the harness.
-5. Multiple planners competing for the same task is treated as a task-dispatch design error requiring a revised strategy.',
+1. A task can only be claimed by one planner, first come first served (optimistic locking).
+2. When a planner fails to claim a task, it should back off and not retry preemptively.
+3. The timeout for `claim_task` is configured by the harness and automatically released upon timeout.
+4. Planners must not claim tasks already held by other planners; handoffs must be coordinated via the harness.
+5. Multiple planners contending for the same task is considered a task dispatch design flaw and requires strategy adjustment.',
    ARRAY['multi-planner', 'claim_task', 'task', 'interaction', 'optimistic-lock']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','h6k4p5r7m8o9204l32no4567890123no4567890123no4567890123abcdef12345678901','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5848,7 +5847,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_25ad6564_en','1.0','ws_spec0001_en','Private Workspace Visibility','factual','markdown','A `private` workspace is completely hidden from all other users.',
+  ('mem_25ad6564_en','1.0','ws_spec0001_en','Personal Workspace Visibility','factual','markdown','"Private" workspaces are completely hidden from all other users.',
    ARRAY['workspace-type', 'visibility', 'private']::text[],'public','system','2026-04-24T11:25:39.649243+00:00','d9e0ea13c43e0e843f62e0fde909343ab684ea90f2dd3e4d953aaf5dbb099de5','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5861,7 +5860,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_25b80084_en','1.0','ws_spec0001_en','Non-Member Access to Conditional-Public Workspaces','factual','markdown','When a non-member user accesses a `conditional_public` workspace, the server returns a stripped graph payload.',
+  ('mem_25b80084_en','1.0','ws_spec0001_en','Non-member Access to Conditional Public Workspaces','factual','markdown','When a non-member user accesses a `conditional_public` workspace, the server returns a stripped graph payload.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.722141+00:00','1ad8d1c6a71fd754a34836bb2dcb3ae02a1792f1819065808a800393d273da28','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5874,7 +5873,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_263e8dd9_en','1.0','ws_spec0001_en','Invitation API Endpoint','factual','markdown','The API endpoint for issuing workspace invitations is `POST /workspaces/{ws_id}/invites`.',
+  ('mem_263e8dd9_en','1.0','ws_spec0001_en','Invitation API Endpoint','factual','markdown','The API endpoint to issue workspace invitations is `POST /workspaces/{ws_id}/invites`.',
    ARRAY['api', 'invitation', 'admin']::text[],'public','system','2026-04-24T11:25:39.611211+00:00','6fc2382e4ea2d6fb918a89b618c797778a7778327c86d6939a3571ef142d5cfc','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5887,7 +5886,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_2698efe6_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/traverse Request Body','factual','markdown','The request body includes an `actor_id` (e.g., `usr_abc123` or `apikey_abc123`) and an optional `note` field.',
+  ('mem_2698efe6_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/traverse Request Body','factual','markdown','The request body contains an `actor_id` (e.g., `usr_abc123` or `apikey_abc123`) and an optional `note` field.',
    ARRAY['api', 'request-body', 'traversal']::text[],'public','system','2026-04-24T11:25:40.220298+00:00','8da827ee692a2b067d6b98da026c3001d951a76bece032cb35ba88cef2a09dda','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5900,12 +5899,12 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_26ff6cfe_en','1.0','ws_spec0001_en','Harness Proposal Batch Processing Design','factual','markdown','The harness layer handles proposal batch processing for multi-agent fan-out:
+  ('mem_26ff6cfe_en','1.0','ws_spec0001_en','Harness Proposals Batch Processing Design','factual','markdown','The harness layer is responsible for proposal batch processing in multi-agent fan-out:
 
-1. The harness collects proposals from each planner; no single conductor merges them.
+1. The harness collects proposals from each planner, rather than relying on a single conductor for consolidation.
 2. Proposals within the same batch are automatically grouped by semantic similarity to reduce redundant reviews.
-3. The conductor role is notification-only (notify); it neither schedules models nor merges proposals.
-4. The harness does not itself persist proposals; persistence is handled by the `review_queue`.',
+3. The conductor role only notifies without scheduling models or merging proposals.
+4. The harness itself does not persist proposals; persistence is handled by `review_queue`.',
    ARRAY['harness', 'proposals', 'batch', 'fan-out', 'conductor', 'multi-agent']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','e3h1m2o4j5l6971i09kl1234567890kl1234567890kl1234567890abcdef12345678','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5918,7 +5917,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_27e2935e_en','1.0','ws_spec0001_en','Workspace Roles & Permissions','factual','markdown','Access to knowledge within a workspace is strictly role-based, especially for `conditional_public` and `restricted` workspaces.',
+  ('mem_27e2935e_en','1.0','ws_spec0001_en','Workspace Roles and Permissions','factual','markdown','Knowledge access within a workspace is strictly role-based, particularly for "conditional public" (`conditional_public`) and "restricted" (`restricted`) workspaces.',
    ARRAY['access-control', 'roles', 'permissions']::text[],'public','system','2026-04-24T11:25:39.701124+00:00','d1a47e7c44150c33817a30ae6a42bfaf25f2225950b5aff7824c979513ec19be','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5931,8 +5930,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_2c0de61a_en','1.0','ws_spec0001_en','Acceptance Scenario: No workspace_id Provided','procedural','markdown','One acceptance scenario: when calling a tool without providing `workspace_id`, the system should use the default value from `MEMTRACE_WS`, and its behavior should be identical to the current version.',
-   ARRAY['驗收測試', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.160150+00:00','89d20e0e7af63433f78a354afc2310c674a8000d91be7a2f7763c8b069a72691','ai',
+  ('mem_2c0de61a_en','1.0','ws_spec0001_en','Acceptance Scenario: Omitting workspace_id','procedural','markdown','One of the acceptance scenarios: When tool invocation omits `workspace_id`, the system should use the default value from `MEMTRACE_WS`, and the behavior should remain identical to the existing version.',
+   ARRAY['acceptance-test', 'workspace', 'default-value']::text[],'public','system','2026-04-26T00:29:47.160150+00:00','89d20e0e7af63433f78a354afc2310c674a8000d91be7a2f7763c8b069a72691','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5944,7 +5943,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_2c1bd9d5_en','1.0','ws_spec0001_en','Chat API: Send Message (POST /chat)','procedural','markdown','Sends a message to a specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation.',
+  ('mem_2c1bd9d5_en','1.0','ws_spec0001_en','Chat API: Send Message (POST /chat)','procedural','markdown','Sends a message to the specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation.',
    ARRAY['api', 'chat', 'message', 'conversation', 'post']::text[],'public','system','2026-04-24T11:31:27.693915+00:00','6b15654db2b55b29e7943d96ebfe8bd110b52e5febab150f4e704a1b2117ab6b','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5957,8 +5956,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_2e101ff1_en','1.0','ws_spec0001_en','AI Usage Log Table Schema','factual','markdown','A new `ai_usage_log` table is created with fields such as `id`, `user_id`, `key_source`, `provider`, `model`, `feature`, `workspace_id`, `node_id`, `tokens_input`, `tokens_output`, `tokens_total`, `latency_ms`, `success`, `error_code`, and `called_at`.',
-   ARRAY['ai', '說明']::text[],'public','system','2026-04-24T11:25:40.887123+00:00','aca74ab39cb65f069516c41944edd02ff6232f8dea53e0413c1c026bad64746c','ai',
+  ('mem_2e101ff1_en','1.0','ws_spec0001_en','AI Usage Log Table Schema','factual','markdown','Creates a new `ai_usage_log` table containing fields including `id`, `user_id`, `key_source`, `provider`, `model`, `feature`, `workspace_id`, `node_id`, `tokens_input`, `tokens_output`, `tokens_total`, `latency_ms`, `success`, `error_code`, and `called_at`.',
+   ARRAY['ai', 'description']::text[],'public','system','2026-04-24T11:25:40.887123+00:00','aca74ab39cb65f069516c41944edd02ff6232f8dea53e0413c1c026bad64746c','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5970,7 +5969,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_31b38aa1_en','1.0','ws_spec0001_en','Guide Content Source Sharing','factual','markdown','The content for `NODE_GUIDE` and `EDGE_GUIDE` shares the same source as the `get_schema` tool, derived from a split `SCHEMA_GUIDE` constant.',
+  ('mem_31b38aa1_en','1.0','ws_spec0001_en','Shared Guide Content Source','factual','markdown','The contents of `NODE_GUIDE` and `EDGE_GUIDE` share the same source with the `get_schema` tool, split from the `SCHEMA_GUIDE` constant.',
    ARRAY['schema_guide', 'node_guide', 'edge_guide', 'get_schema', 'source']::text[],'public','system','2026-04-25T02:39:31.349734+00:00','6dd2202e0239d34dcbc455ca48e987489b046a8e53676f2c290064bc4f23d649','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5983,7 +5982,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_32bc6360_en','1.0','ws_spec0001_en','Schedule Call for `apply_node_archiving()`','procedural','markdown','The scheduler should add a daily UTC 02:00 call to the `apply_node_archiving()` function, which exists but is currently not triggered.',
+  ('mem_32bc6360_en','1.0','ws_spec0001_en','Scheduled Call to `apply_node_archiving()`','procedural','markdown','The scheduler should add a daily UTC 02:00 call to the `apply_node_archiving()` function, which already exists but is currently not triggered.',
    ARRAY['scheduler', 'node-archiving']::text[],'public','system','2026-04-25T02:38:35.076074+00:00','014a6e02054ebb86a8d31ec981406f8fa1b145a2fe86d02590c5310b59f8a95d','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5996,25 +5995,25 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_35036bb8_en','1.0','ws_spec0001_en','Agent 操作介面規範：僅使用 MCP，不直接呼叫 REST API','procedural','markdown','## 規範
+  ('mem_35036bb8_en','1.0','ws_spec0001_en','Agent Operating Interface Specification: Use MCP Only, Do Not Call REST API Directly','procedural','markdown','## Specification
 
-AI agent、coding agent、外部 harness 與自動化流程操作 MemTrace 時，必須使用 MemTrace 提供的 MCP tools。公開知識庫不提供 curl、REST endpoint、Bearer Token、HTTP method 或 request body 作為操作教學。
+When AI agents, coding agents, external harnesses, and automated workflows operate on MemTrace, they must use the MCP tools provided by MemTrace. The public knowledge base does not provide curl, REST endpoints, Bearer Tokens, HTTP methods, or request bodies as operational tutorials.
 
-## 操作原則
+## Operating Principles
 
-1. 先用 `list_workspaces` 確認可存取工作區。
-2. 讀取使用 `search_nodes`、`get_node`、`traverse`、`list_by_tag` 等 MCP tools。
-3. 寫入使用 `create_node`、`update_node`、`create_edge`、`emit_residue`、`submit_outcome` 等 MCP tools。
-4. 長文件使用 `ingest_document`，短文本使用 `extract_from_text`；狀態以對應 MCP status tool 查詢。
-5. 工具參數與合法 enum 以 `get_schema` 及 MCP tool schema 為準。
-6. MCP tool 不存在時，不得改用直接 REST API 繞過；應建立 inquiry／gap，要求補齊 MCP 能力或由人工透過 UI 處理。
+1. First use `list_workspaces` to confirm accessible workspaces.
+2. For reading, use MCP tools such as `search_nodes`, `get_node`, `traverse`, `list_by_tag`, etc.
+3. For writing, use MCP tools such as `create_node`, `update_node`, `create_edge`, `emit_residue`, `submit_outcome`, etc.
+4. For long documents use `ingest_document`, for short text use `extract_from_text`; query statuses using corresponding MCP status tools.
+5. Tool parameters and valid enums are governed by `get_schema` and MCP tool schemas.
+6. When an MCP tool does not exist, do not bypass it by using direct REST APIs; an inquiry/gap should be created to request adding the MCP capability or handled manually via the UI.
 
-## 安全邊界
+## Security Boundaries
 
-- 不在記憶節點保存 API token、Bearer Token、curl 指令或可直接重播的 HTTP 請求。
-- 不自行推導未公開的 endpoint。
-- MCP 回傳權限不足、驗證失敗、限流或暫時錯誤時，依 tool result 處理，不依賴 HTTP status code。
-- 所有寫入仍遵守 workspace 權限、safety review 與適用的審核機制。當責歸屬見「寫入當責模型」（mem_8ac95ea6）：經認證使用者指揮 agent 的寫入，以該使用者為 author 並由其當責，屬正規路徑而非繞過審核的捷徑。',
+- Do not store API tokens, Bearer Tokens, curl commands, or directly replayable HTTP requests in memory nodes.
+- Do not infer unpublished endpoints on your own.
+- When MCP returns insufficient permissions, validation failures, rate limits, or temporary errors, handle them according to tool results without relying on HTTP status codes.
+- All writes still adhere to workspace permissions, safety reviews, and applicable review mechanisms. For accountability attribution, see "Write Accountability Model" (mem_8ac95ea6): writes directed by authenticated users through agents take that user as author and hold them accountable, constituting a regular path rather than a shortcut bypassing review.',
    ARRAY['agent-guide', 'mcp-only', 'governance', 'security', 'tool-usage', 'public-policy']::text[],'public','usr_6bc7b4c7','2026-06-21T15:44:37.421027+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6027,7 +6026,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_35f0002a_en','1.0','ws_spec0001_en','Viewer Role Capabilities','factual','markdown','Viewers can search, list, and get nodes, track traversals, and use conversational Q&A. They cannot create, modify, or delete any nodes, edges, or workspace settings, nor can they propose changes.',
+  ('mem_35f0002a_en','1.0','ws_spec0001_en','Viewer Role Capabilities','factual','markdown','Viewers can search, list, and fetch nodes, track traversals, and use conversational Q&A. They cannot create, modify, or delete any nodes, edges, or workspace settings, nor can they propose changes.',
    ARRAY['role', 'viewer', 'capabilities', 'restrictions']::text[],'public','system','2026-04-24T11:25:40.544502+00:00','05de91add0c34978b1ec1aceb37bff828648288caadf274fa3b0143c5f95a75a','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6040,8 +6039,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_3b303d15_en','1.0','ws_spec0001_en','Handle 422 Validation Errors for createNode/updateNode','procedural','markdown','When the createNode or updateNode API returns a 422 validation error, the ''detail'' array from the response should be extracted into readable prompt messages.',
-   ARRAY['api', '錯誤處理', '驗證']::text[],'public','system','2026-04-25T02:40:01.366196+00:00','409f48944a83ee3860534aa1c918f07f3d9c337c4c946bf715b933bd5360ea67','ai',
+  ('mem_3b303d15_en','1.0','ws_spec0001_en','Handling 422 Validation Errors from createNode/updateNode','procedural','markdown','When createNode or updateNode APIs return 422 validation errors, the detail array in the response should be extracted into readable notification messages.',
+   ARRAY['api', 'error-handling', 'verification']::text[],'public','system','2026-04-25T02:40:01.366196+00:00','409f48944a83ee3860534aa1c918f07f3d9c337c4c946bf715b933bd5360ea67','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6053,35 +6052,35 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_3c9c261b_en','1.0','ws_spec0001_en','Conductor:設計結論與角色邊界','factual','markdown','# Conductor:設計結論與角色邊界
+  ('mem_3c9c261b_en','1.0','ws_spec0001_en','Conductor: Design Conclusions and Role Boundaries','factual','markdown','# Conductor: Design Conclusions and Role Boundaries
 
-回應公開缺口 mem_inq004。Conductor 的設計問題已收斂並實作。
+Responding to public inquiry mem_inq004. Conductor design issues have converged and been implemented.
 
-## 角色邊界（回答「是否越界」）
+## Role Boundaries (Answering "Is it overstepping?")
 
-- MemTrace 是記憶層,**不是 loop runtime**（A1 原則）。
-- Conductor 只做「主動通知」:偵測 `scale=major` 的 pending inquiry,通知已訂閱的外部 harness 啟動處理迴圈。
-- MemTrace **不自己調用大模型、不做 fan-out**;實際推理由 harness 負責。
-- **結論:Conductor 屬於記憶側的合理延伸（通知層）,未越界成為執行引擎。**
+- MemTrace is a memory layer, **not a loop runtime** (A1 principle).
+- Conductor only performs "proactive notification": detects pending inquiries with `scale=major` and notifies subscribed external harnesses to initiate processing loops.
+- MemTrace **does not invoke LLMs on its own and does not perform fan-out**; actual reasoning is handled by the harness.
+- **Conclusion: Conductor is a reasonable extension of the memory side (notification layer) and has not overstepped into an execution engine.**
 
-## 觸發機制
+## Trigger Mechanism
 
-- 採 webhook（HTTP push）opt-in,而非內建訊息佇列。
-- harness 在工作區設定訂閱 conductor hook,可用 `event_filter` 按 scale / content_type / tags 篩選。
-- 安全:HTTP-only webhook 僅限 localhost/loopback,其餘須 HTTPS（防 SSRF）。
+- Uses webhook (HTTP push) opt-in, rather than built-in message queues.
+- Harness subscribes to conductor hooks in workspace settings, using `event_filter` to filter by scale / content_type / tags.
+- Security: HTTP-only webhooks are restricted to localhost/loopback; others must use HTTPS (preventing SSRF).
 
-## 事件粒度
+## Event Granularity
 
-- 由 inquiry 的 `metadata.scale` 控制:`minor`（預設）不觸發、`major` 才通知。
-- `minor → major` 需由人或人授權的 agent 升級;agent emit 的 residue 一律從 minor 起。
+- Controlled by the inquiry''s `metadata.scale`: `minor` (default) does not trigger, only `major` notifies.
+- `minor → major` requires escalation by a human or human-authorized agent; residues emitted by agents always start from minor.
 
-## 冪等
+## Idempotency
 
-- 同一 `(hook_id, event_id)` 只投遞一次。
+- The same `(hook_id, event_id)` is delivered only once.
 
-## 狀態
+## Status
 
-已實作（`services/conductor.py`、`routers/conductor.py`）。延伸主題:自我審議迴圈（pending inquiry → conductor → fan-out → converge → 分層回寫）與回寫規則。',
+Implemented (`services/conductor.py`, `routers/conductor.py`). Extended topics: self-deliberation loop (pending inquiry → conductor → fan-out → converge → layered write-back) and write-back rules.',
    ARRAY['conductor', 'webhook', 'scale', 'inquiry', 'agent-loop', 'design-conclusion', 'public']::text[],'public','usr_6bc7b4c7','2026-06-23T02:51:51.700125+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6094,9 +6093,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_41c6465d_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/traverse Endpoint Implementation','procedural','markdown','This endpoint records a traversal of an edge, which triggers the co-access boost and increments the traversal count of the nodes on both ends of the edge.',
+  ('mem_41c6465d_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/traverse Endpoint Implementation','procedural','markdown','This endpoint is used to record edge traversals, which triggers co-access boosts and increments traversal counts of nodes on both ends.',
    ARRAY['api', 'rest', 'traversal', 'edge', 'co-access-boost']::text[],'public','system','2026-04-24T11:25:40.181154+00:00','92857f221640729e4aed86a22587b9cceb30a11eb100a6498d8ffcc15cb2ba88','ai',
-   2,2)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6107,7 +6106,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_42669ba9_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/rate Request Body','factual','markdown','The request body includes a `rating` field (an integer between 1 and 5) and an optional `note` field. Only one rating per actor per edge is enforced, with subsequent submissions overwriting previous ratings.',
+  ('mem_42669ba9_en','1.0','ws_spec0001_en','POST /edges/{edge_id}/rate Request Body','factual','markdown','The request body contains a `rating` field (integer between 1 and 5) and an optional `note` field. Each actor can only submit a rating once per edge; subsequent submissions overwrite previous ratings.',
    ARRAY['api', 'request-body', 'rating', 'constraints']::text[],'public','system','2026-04-24T11:25:40.239378+00:00','a5a308930ff1aefa0598e53a5f2529fd427006c614b29d6f873d4ac68e4b6ed4','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6120,7 +6119,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_4379cf51_en','1.0','ws_spec0001_en','Content Format Field','factual','markdown','The selected input mode is persisted on the node as the `content.format` field (see §4.1 schema extension).',
+  ('mem_4379cf51_en','1.0','ws_spec0001_en','Content Format Field','factual','markdown','The selected input mode is persisted in nodes as the content.format field (see §4.1 schema extension).',
    ARRAY['memory-node', 'schema', 'content-format']::text[],'public','system','2026-04-24T11:25:39.438284+00:00','c8318b292f3ffcbd257b802a6890d12035f468d5483c527af32c73489ff3955d','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6133,7 +6132,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_45350e40_en','1.0','ws_spec0001_en','AI Call Execution Location','factual','markdown','AI calls are made from the client or server using the user''s supplied key.',
+  ('mem_45350e40_en','1.0','ws_spec0001_en','AI Call Execution Location','factual','markdown','AI calls are issued by the client or server using user-provided keys.',
    ARRAY['ai', 'client-side', 'server-side', 'api']::text[],'public','system','2026-04-24T11:25:40.470219+00:00','a3a3895d6cb9185703b032de058c6dd65efd9cc05ede25cb259018cb9089e18c','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6146,7 +6145,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_45b2269d_en','1.0','ws_spec0001_en','Memory Node Author','factual','markdown','The `author` column in the `memory_nodes` table is of type TEXT, storing the author of the memory node.',
+  ('mem_45b2269d_en','1.0','ws_spec0001_en','Memory Node Author','factual','markdown','The `author` column in the `memory_nodes` table is of type TEXT and stores the author of the memory node.',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:39.051144+00:00','a6702d11b7568adb799d43ae69e7fccd6ac9372871cf1d585ea67034809ab809','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6172,12 +6171,60 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_4741542a_en','1.0','ws_spec0001_en','Protecting Backbone Nodes and Relations from Automatic Archiving/Fading: node/edge pinned Mechanism','procedural','markdown','## Problem Background
+
+MemTrace''s automatic decay mechanism converts long-unused nodes and edges into `archived` / `faded` based on creation time and traversal count, keeping the knowledge base lean and focused on actively used content (see "Decay Product Stance"). However, this mechanism originally only had a `pinned` exception on edges, with none for nodes. As a result, a "backbone/overview" node that originally connected to a large number of other nodes—even if it is still being traversed itself—would gradually become a de facto island as its surrounding neighbors are archived one by one due to decay. Consequently, the entire graph becomes fragmented into disjoint clusters.
+
+## Mechanism
+
+Both nodes and edges support `pinned` (boolean, defaults to `false`):
+
+- **node.pinned = true**: `apply_node_archiving()` excludes this node; it will not be automatically transitioned to `archived` due to old creation time or low traversal count.
+- **edge.pinned = true**: `apply_edge_decay()` excludes this edge; its weight will not decay over time, nor will it be transitioned to `faded`.
+
+These are separate flags that each only protect themselves: pinning a node does not automatically protect its edges, and vice versa. If the goal is to preserve reachability for an entire subgraph, both usually need to be configured.
+
+## How to Configure
+
+Via MCP:
+
+```json
+{"name": "update_node", "arguments": {"workspace_id": "ws_abc", "node_id": "mem_xxx", "pinned": true}}
+{"name": "update_edge", "arguments": {"workspace_id": "ws_abc", "edge_id": "edge_xxx", "pinned": true}}
+```
+
+`update_edge` is the only entry point for modifying an existing edge (currently no fields other than `pinned` are supported). Once an edge is created, modifying weight or relation type still requires deletion and recreation; however, pinning an existing edge does not require deletion and recreation (which would reset traversal records and `co_access_count`).
+
+## How to Decide What to Pin—Avoid Subjective Guesswork
+
+Arbitrary pinning defeats the purpose of the decay mechanism (the knowledge base will bloat and lose focus). It is recommended to use two cross-referenced objective metrics rather than subjectively evaluating node by node:
+
+1. **Structural Degree**: Query the historical cumulative edge count for each node (`SELECT count(*) FROM edges WHERE from_id = node_id OR to_id = node_id`) and sort descending. True backbone nodes usually exhibit an obvious drop-off compared to other nodes in the rankings (for example, the top two are 35 and 23, while all nodes from third place onward are ≤ 6)—this drop-off itself serves as an objective cutoff point.
+2. **Content Nature**: Content with an "overview / entry point" nature such as `overview` / `core-purpose` / `positioning` / `agent-guide` is designed to exist long-term, unlike types such as `inquiry` (discussions) or `gap` (pending additions) which are expected to be resolved and faded away. A tag whitelist can be used to assist filtering.
+
+Nodes that satisfy both criteria are candidates truly worthy of pinning; the resulting filtered list is usually very short (a medium-sized knowledge base might only have single digits to a dozen or so), followed by human review for final confirmation.
+
+## Case Study
+
+In one knowledge base, a "Platform Overview" node accumulated 35 edges and 17 traversals historically, with a structural degree far exceeding the second place (23) and all remaining nodes (≤ 6)—a typical backbone node. However, because there was no node-level protection mechanism at the time, all of its surrounding neighbors were consecutively decayed into `archived`. Graph visualization made it appear as a cluster of isolated dots; in reality, most nodes still had edges, but the opposite ends of the edges were hidden. This is precisely the problem this mechanism addresses.',
+   ARRAY['decay', 'pinned', 'agent-guide', 'graph-health', 'kb-maintenance', 'operations']::text[],'public','usr_6bc7b4c7','2026-09-16T00:00:00+00:00','','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_47aff2c9_en','1.0','ws_spec0001_en','Multi-Planner Semantic Boundaries','factual','markdown','Semantic boundary rules for multi-planner architecture:
 
 - Each planner is responsible only for the semantic scope of its own subtask and must not encroach on another planner''s domain.
 - Collaboration between planners goes through the harness proposal mechanism, not direct communication.
 - Boundary conflicts (two planners proposing contradictory decisions) are detected by the harness and routed into the contradiction resolution flow; planners may not resolve cross-boundary conflicts themselves.',
-   ARRAY['multi-planner', 'semantics', 'boundaries', 'design-decision', 'harness']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','g5j3o4q6l7n8193k21mn3456789012mn3456789012mn3456789012abcdef1234567890','ai',
+   ARRAY['multi-planner', 'semantics', 'boundary', 'design-decision', 'harness']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','g5j3o4q6l7n8193k21mn3456789012mn3456789012mn3456789012abcdef1234567890','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6213,7 +6260,7 @@ VALUES
 
 The two are independent; a `status=active` node can simultaneously be `resolution_status=superseded`.
 ',
-   ARRAY['memory-node', 'resolution-status', 'state-machine', 'lifecycle']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','84368cf57f0e0b4b4465851dbcfaa4e5ec5a056d8c7389e713b2163141b770e2','ai',
+   ARRAY['memory-node', 'resolution-status', 'state-machine', 'lifecycle']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','004a12e1c529f26716c3cfad043f971bb7aa91d2c719cb1a051c69bf708ba770','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6239,8 +6286,8 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_4b0125e0_en','1.0','ws_spec0001_en','Source Document Retention Policy for Ingested Nodes','factual','markdown','When a document is ingested, its original source document is retained as a special node to ensure the traceability of extractions, providing a direct link from any extracted node back to its source paragraph without polluting the main knowledge graph.',
-   ARRAY['存取', '來源', '文件']::text[],'public','system','2026-04-24T11:25:40.736854+00:00','944b98fa9abb8ad8331129296039305a02c7b9291c5257066ca17a2918a88b3a','ai',
-   1,1)
+   ARRAY['access', 'source', 'document']::text[],'public','system','2026-04-24T11:25:40.736854+00:00','944b98fa9abb8ad8331129296039305a02c7b9291c5257066ca17a2918a88b3a','ai',
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6322,7 +6369,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_53258df1_en','1.0','ws_spec0001_en','JWT Token Lifetime','factual','markdown','The JWT Token lifetime is 7 days. Clients should refresh the token before expiry using the `/auth/refresh` endpoint.',
-   ARRAY['jwt', 'token', '生命週期', '重新整理']::text[],'public','system','2026-04-24T11:25:40.146846+00:00','8399bf427db47ef13542102eafca9d11e86950d69a8ad492ce82ba7fd62fe25e','ai',
+   ARRAY['jwt', 'token', 'lifecycle', 'refresh']::text[],'public','system','2026-04-24T11:25:40.146846+00:00','8399bf427db47ef13542102eafca9d11e86950d69a8ad492ce82ba7fd62fe25e','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6366,7 +6413,7 @@ A daily scan over all active nodes using the pure-rule `classify_safety_rules()`
 | Heartbeat visible | ✓ | ✗ |
 | Token cost | yes | no |
 ',
-   ARRAY['safety', 'background-job', 'scheduler', 'ai', 'rule-based']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','54370fef22a2cb52afc57918283af020592ce5753333d49f6a8b80ea2419997e','ai',
+   ARRAY['safety', 'background-job', 'scheduler', 'ai', 'rule-based']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','24554e25cc48541d90c9a4c9bd73834c60abb4f94b522b6c33e97c88cb5899f0','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6405,7 +6452,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_565d7142_en','1.0','ws_spec0001_en','New Source Document Reference Fields on Memory Nodes','factual','markdown','To link extracted nodes to their source paragraphs, the `memory_nodes` table adds the `source_doc_node_id` field (referencing the source document node ID) and the `source_paragraph_ref` field (a paragraph-level reference).',
-   ARRAY['來源', '文件']::text[],'public','system','2026-04-24T11:25:40.793451+00:00','4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071','ai',
+   ARRAY['source', 'document']::text[],'public','system','2026-04-24T11:25:40.793451+00:00','4e72999ffec0aa27b1841c5dbbc5838c1ee5228b0c418ba246b5513acf930071','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6497,7 +6544,7 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_6089d7d9_en','1.0','ws_spec0001_en','Private Workspace Search/Listing Invisibility','factual','markdown','A `private` workspace does not appear in any listing or search result.',
    ARRAY['workspace-type', 'private', 'visibility']::text[],'public','system','2026-04-24T11:25:39.682293+00:00','f17d1b398b13665411a5e123be8e90e901051f72a5292d56240efdf3c25e755c','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6509,7 +6556,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_62d07b1d_en','1.0','ws_spec0001_en','AI Agent Workflow: Confirm Node Creation Status','procedural','markdown','After an AI agent calls `create_node`, if the API returns a 201 status code, it should call `traverse(node.id)` to confirm edge creation. If a 202 status code with a `review_id` is returned, it should call `list_review_queue()` to check the review queue status.',
-   ARRAY['ai代理', '工作流程', '節點建立', 'api', '審核流程']::text[],'public','system','2026-04-25T02:39:26.187830+00:00','900865976521e0a50bd83f5ae1e63ce3cad6a2db9ff6e46516532a3dde144e24','ai',
+   ARRAY['ai-agent', 'workflow', 'node-creation', 'api', 'review-process']::text[],'public','system','2026-04-25T02:39:26.187830+00:00','900865976521e0a50bd83f5ae1e63ce3cad6a2db9ff6e46516532a3dde144e24','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6523,7 +6570,7 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_6709672b_en','1.0','ws_spec0001_en','B Association Management UI','procedural','markdown','The goal of this feature is to provide a complete UI for cross-knowledge base association settings, complementing existing API functionality.',
    ARRAY['ui', 'knowledge-base', 'association']::text[],'public','system','2026-04-25T02:39:05.267545+00:00','23d35304327fc4430ebc791c6c9b00a2c222a6c3516e33b32fb27dcf9990b9e9','ai',
-   10,3)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6540,7 +6587,7 @@ VALUES
 - `evidence` is an attachment (`attach_evidence`), kept separate from `provenance` so it can be added after the fact.
 - The `signature` is computed by the system on write; clients may not override it.
 - `author` records the actual operator''s identity (user ID or system actor ID), complementing `source_type` rather than duplicating it.',
-   ARRAY['provenance', 'evidence', 'write-semantics', 'signature']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','f8c6h7j9e0g1426d54fg6789012345fg6789012345fg6789012345abcdef123','ai',
+   ARRAY['provenance', 'evidence', 'write', 'semantics', 'signature']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','f8c6h7j9e0g1426d54fg6789012345fg6789012345fg6789012345abcdef123','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6604,7 +6651,7 @@ VALUES
 1. **Immediate scan (battery)**: On every `create_node`/`update_node`, synchronously runs secret_scanner, PII detection, and contradiction detection.
 2. **Async Tier0 demotion**: When the battery detects a serious issue, the node is demoted to Tier0 (invisible but retained) and the admin is notified asynchronously.
 3. **Human review queue**: A contradiction or safety flag triggers the `review_queue`; a human must confirm before the node becomes visible again.',
-   ARRAY['safety', 'review', 'three-tier', 'battery', 'Tier0']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','d6a4f5h7c8e9204b32def4567890123def4567890123def4567890123abcde1','ai',
+   ARRAY['security', 'safety', 'review', 'three-tier-trigger', 'battery', 'Tier0']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','d6a4f5h7c8e9204b32def4567890123def4567890123def4567890123abcde1','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6617,7 +6664,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_71aebf92_en','1.0','ws_spec0001_en','Acceptance Scenario: Querying Nodes in a Specific Workspace','procedural','markdown','One acceptance scenario: calling `search_nodes(query="authentication", workspace_id="ws_project_abc")` should successfully query nodes in the `ws_project_abc` workspace.',
-   ARRAY['驗收測試', '工作區', '查詢']::text[],'public','system','2026-04-25T02:39:48.355492+00:00','8afa92eb018c4301321a6ed7b199a7ec28ba488e9f2e899f75ef028ff4ea9e09','ai',
+   ARRAY['acceptance-test', 'workspace', 'query']::text[],'public','system','2026-04-25T02:39:48.355492+00:00','8afa92eb018c4301321a6ed7b199a7ec28ba488e9f2e899f75ef028ff4ea9e09','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6643,7 +6690,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_73ea8135_en','1.0','ws_spec0001_en','Stripped Graph Payload Structure','factual','markdown','The stripped graph payload includes `preview_mode: true` and stripped `nodes` and `edges` arrays. Nodes only contain `id` and `position`, while edges contain `from`, `to`, and `relation`.',
-   ARRAY['API優化', '簡化結構', 'api優化', '結構', '載荷']::text[],'public','system','2026-04-24T11:25:39.742298+00:00','cda26ec974454fdbdab284c8fb6a214080176621f450398f2a91a6605e980ddf','ai',
+   ARRAY['api-optimization', 'simplified-structure', 'api-optimization', 'structure', 'payload']::text[],'public','system','2026-04-24T11:25:39.742298+00:00','cda26ec974454fdbdab284c8fb6a214080176621f450398f2a91a6605e980ddf','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6656,7 +6703,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_7484cfc2_en','1.0','ws_spec0001_en','README/Usage Document Update: Multiple Workspaces, Unknown ID Scenario','procedural','markdown','The README and usage documentation have been updated to describe the multiple workspaces, unknown ID scenario: set `MEMTRACE_TOKEN`, then first call `list_workspaces` to retrieve the list of workspaces before deciding which one to operate on.',
-   ARRAY['文件', '使用情境', '工作區', 'API']::text[],'public','system','2026-04-26T00:29:47.140277+00:00','6983266fb92ae46b22414142a0280713c5effeace03270342f52ae2abd1ed078','ai',
+   ARRAY['document', 'use-case', 'workspace', 'API']::text[],'public','system','2026-04-26T00:29:47.140277+00:00','6983266fb92ae46b22414142a0280713c5effeace03270342f52ae2abd1ed078','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6699,7 +6746,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_76d6491f_en','1.0','ws_spec0001_en','.mcp.json Configuration Update to Single Instance','procedural','markdown','The `.mcp.json` configuration file has been updated to a single-instance approach, removing the dependency on one instance per knowledge base and integrating token settings. This simplifies configuration and makes it easier to manage.',
-   ARRAY['設定檔', 'mcp', '架構', '配置']::text[],'public','system','2026-04-25T02:39:38.497095+00:00','61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c','ai',
+   ARRAY['configuration', 'mcp', 'architecture', 'configuration']::text[],'public','system','2026-04-25T02:39:38.497095+00:00','61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6790,7 +6837,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_80054468_en','1.0','ws_spec0001_en','Omitted Fields in Stripped Graph Payload','factual','markdown','Fields entirely omitted from the stripped graph payload response include `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, and all provenance fields.',
-   ARRAY['資料載荷', 'API優化', '簡化結構']::text[],'public','system','2026-04-24T11:25:39.775592+00:00','b6201a17eb809238e3e05fdce0623986c75613178b63db97cecd1176547cd3ec','ai',
+   ARRAY['payload', 'api-optimization', 'simplified-structure']::text[],'public','system','2026-04-24T11:25:39.775592+00:00','b6201a17eb809238e3e05fdce0623986c75613178b63db97cecd1176547cd3ec','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6804,7 +6851,7 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_8145c1ad_en','1.0','ws_spec0001_en','Private Workspace Invitation Restriction','factual','markdown','Invitations cannot be issued for `private` workspaces, and no non-owner user may be added.',
    ARRAY['workspace-type', 'private', 'invitation', 'restriction']::text[],'public','system','2026-04-24T11:25:39.666242+00:00','435ab2d509c4abf3d81388b7bcca68ec976f2116156fc76bc3ee0e5a9a6baf63','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6829,7 +6876,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_82b732f5_en','1.0','ws_spec0001_en','Content Format Field (`content.format`)','factual','markdown','The `content.format` field is a required string, accepting values `"plain"` or `"markdown"`, and defaults to `"plain"`.',
-   ARRAY['schema', '格式', '內容']::text[],'public','system','2026-04-24T11:25:39.870431+00:00','c804559e5fa18383474f35358a7146e7a9493a0cbf66038ca86a8e45800a35c4','ai',
+   ARRAY['schema', 'format', 'content']::text[],'public','system','2026-04-24T11:25:39.870431+00:00','c804559e5fa18383474f35358a7146e7a9493a0cbf66038ca86a8e45800a35c4','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6842,7 +6889,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_8575b4a1_en','1.0','ws_spec0001_en','Archived Nodes Hidden in Default View and Search','factual','markdown','Archived nodes are not shown in the default graph view and are excluded from search results.',
-   ARRAY['視圖', '隱藏', '封存']::text[],'public','system','2026-04-24T11:25:39.518038+00:00','0d0565328c95ff76b4d7bddc886b99868a2cef6b224c8263f7cfb5763f7e465f','ai',
+   ARRAY['view', 'hidden', 'archiving']::text[],'public','system','2026-04-24T11:25:39.518038+00:00','0d0565328c95ff76b4d7bddc886b99868a2cef6b224c8263f7cfb5763f7e465f','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6868,8 +6915,8 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_87639252_en','1.0','ws_spec0001_en','Acceptance Scenario: List All Accessible Workspaces','procedural','markdown','One acceptance scenario: after setting `MEMTRACE_TOKEN`, calling `list_workspaces()` should return a list of all workspaces accessible by that token.',
-   ARRAY['驗收測試', '工作區', 'API', '認證']::text[],'public','system','2026-04-26T00:29:47.179895+00:00','f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962','ai',
-   1,1)
+   ARRAY['acceptance-test', 'workspace', 'API', 'authentication']::text[],'public','system','2026-04-26T00:29:47.179895+00:00','f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962','ai',
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -6893,38 +6940,38 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_8ac95ea6_en','1.0','ws_spec0001_en','寫入當責模型:每筆寫入都有可究責的人(三條路徑)','procedural','markdown','# 寫入當責模型
+  ('mem_8ac95ea6_en','1.0','ws_spec0001_en','Write Accountability Model: Every Write Has an Accountable Person (Three Paths)','procedural','markdown','# Write Accountability Model
 
-MemTrace 的核心治理保證:**每一筆進入知識庫的寫入,都有一個可究責的人**。差別只在當責者是誰,取決於寫入路徑。
+MemTrace''s core governance guarantee: **Every write entering the knowledge base has an accountable person**. The only difference is who the accountable party is, depending on the write path.
 
-## 三條寫入路徑與當責歸屬
+## Three Write Paths and Accountability Attribution
 
-### 1. 人 ↔ AI 對話、AI 代為寫入（human-accountable, model-assisted）
+### 1. Human ↔ AI Conversation, AI Writes on Behalf (human-accountable, model-assisted)
 
-經認證的使用者在對話中指揮 agent,透過 MCP `create_node` / `update_node` 寫入。
+An authenticated user directs the agent during conversation, writing via MCP `create_node` / `update_node`.
 
-- 節點 `author` 記錄為該使用者;該使用者即當責人。
-- 持有 write scope 時直接 active。這是正規路徑,**不是繞過審核的捷徑**。
+- The node''s `author` is recorded as that user; that user is the accountable person.
+- When holding write scope, it becomes active directly. This is a standard path, **not a shortcut to bypass review**.
 
-### 2. 文件攝入 → AI 萃取候選
+### 2. Document Ingestion → AI Extraction Candidates
 
-`ingest_document` 後由 AI 萃取的候選節點,沒有逐一指定的人類作者。
+Candidate nodes extracted by AI after `ingest_document` do not have an individually assigned human author.
 
-- 必須通過 review queue 人工審核（Accept / Edit then Accept / Reject）才入庫。
-- 當責人 = 審核者。詳見 mem_a003。
+- They must pass human review via the review queue (Accept / Edit then Accept / Reject) before entering the knowledge base.
+- Accountable person = reviewer. See mem_a003 for details.
 
-### 3. AI 審核員自動裁決（opt-in）
+### 3. AI Reviewer Automated Adjudication (opt-in)
 
-工作區 owner 可建立 AI 審核員,讓 LLM 對 review queue 提案自動 accept/reject（confidence ≥ 門檻）。詳見 mem_c571ecc8。
+Workspace owners can create AI reviewers to allow an LLM to automatically accept/reject review queue proposals (confidence ≥ threshold). See mem_c571ecc8 for details.
 
-- 只有 owner 能建立/啟用 AI 審核員;**啟用即視為 owner 預先授權並為其自動裁決當責**。
-- 自動裁決記為 `reviewer_type=''ai''`,可沿 `reviewer_id → ai_reviewers → workspace owner` 追溯到當責人。
+- Only owners can create/enable AI reviewers; **enabling is deemed pre-authorization by the owner, who takes accountability for its automated adjudications**.
+- Automated adjudication is recorded as `reviewer_type=''ai''`, traceable back to the accountable person via `reviewer_id → ai_reviewers → workspace owner`.
 
-## 不變式
+## Invariants
 
-- 沒有任何路徑會產生「無人當責」的寫入。
-- AI 在路徑 1 是代筆、在路徑 3 是受 owner 授權執行;**AI 本身不是最終當責主體**。
-- 安全 / admission 審查（safety review、dedup、PII/secret）對所有路徑一律適用,與當責歸屬獨立。',
+- No path produces a write with "no one accountable".
+- AI acts as a ghostwriter in Path 1 and executes under owner authorization in Path 3; **the AI itself is not the final accountable entity**.
+- Safety / admission reviews (safety review, dedup, PII/secret) apply uniformly across all paths, independent of accountability attribution.',
    ARRAY['governance', 'write-accountability', 'human-accountable', 'review-queue', 'ai-reviewer', 'public-policy']::text[],'public','usr_6bc7b4c7','2026-06-23T02:51:40.032826+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6951,7 +6998,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_8dc3944b_en','1.0','ws_spec0001_en','Revoke Workspace Invitation API','procedural','markdown','Provides the `DELETE /workspaces/{ws_id}/invites/{token}` endpoint to revoke a sent workspace invitation.',
-   ARRAY['api', '邀請管理']::text[],'public','system','2026-04-25T02:39:01.850026+00:00','93a44d63a64aa6011cdb805134454d4bf38d2959fdfc83f09af4b64fd2048c5d','ai',
+   ARRAY['api', 'invitation-management']::text[],'public','system','2026-04-25T02:39:01.850026+00:00','93a44d63a64aa6011cdb805134454d4bf38d2959fdfc83f09af4b64fd2048c5d','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6997,7 +7044,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_960858c8_en','1.0','ws_spec0001_en','.mcp.json Configuration Example','factual','markdown','The updated `.mcp.json` example structure includes an `mcpServers` object, where the `memtrace` service defines `command`, `args`, and `env` variables such as `MEMTRACE_API`, `MEMTRACE_WS`, `MEMTRACE_LANG`, and `MEMTRACE_TOKEN`.',
-   ARRAY['設定檔', 'MCP', '範例', '環境變數']::text[],'public','system','2026-04-26T00:29:47.081337+00:00','cb8a163dc1c365306103f3ad0ff2315f25bf59e91ccf68703c3ca99fda285996','ai',
+   ARRAY['configuration', 'MCP', 'example', 'environment-variable']::text[],'public','system','2026-04-26T00:29:47.081337+00:00','cb8a163dc1c365306103f3ad0ff2315f25bf59e91ccf68703c3ca99fda285996','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7010,7 +7057,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_964c73a3_en','1.0','ws_spec0001_en','MEMTRACE_TOKEN Anonymous Behavior','factual','markdown','If `MEMTRACE_TOKEN` is not provided, the system will maintain anonymous behavior, allowing access only to public workspaces. `list_workspaces` will return public repositories or an empty list.',
-   ARRAY['環境變數', 'API', '認證', '匿名存取']::text[],'public','system','2026-04-26T00:29:47.061108+00:00','12b69126a9d518c5b28e719a150430576fa04e99ea78b9b1c86d9a7769fee9eb','ai',
+   ARRAY['environment-variable', 'API', 'authentication', 'anonymous-access']::text[],'public','system','2026-04-26T00:29:47.061108+00:00','12b69126a9d518c5b28e719a150430576fa04e99ea78b9b1c86d9a7769fee9eb','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7119,7 +7166,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_9fbbb5eb_en','1.0','ws_spec0001_en','Additional Fields for Manual Editing in Memory Node v1','factual','markdown','To support manual creation and editing, `content.format` and `provenance.updated_at` fields are appended to `node.v1.json`.',
-   ARRAY['schema', '編輯', '欄位']::text[],'public','system','2026-04-24T11:25:39.850666+00:00','452abb112c53437818f068b051dae5b3ed9838e84f1596251e5802d0afdf7c11','ai',
+   ARRAY['schema', 'edit', 'field']::text[],'public','system','2026-04-24T11:25:39.850666+00:00','452abb112c53437818f068b051dae5b3ed9838e84f1596251e5802d0afdf7c11','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7185,7 +7232,7 @@ VALUES
 
 All results enter the **Review Queue** — never auto-committed. Extracted node source_type defaults to `ai_generated`; accepted without edits → `ai_verified`; accepted after edits → `human`. Each node records source_document and extraction_model.',
    ARRAY['ai', 'ingestion', 'extraction', 'document']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8','human',
-   2,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7230,7 +7277,7 @@ Schema: chat_sessions (id, workspace_id, user_id, created_at, updated_at) and ch
 
 Note: Q&A requires authentication even on public workspaces. Unauthenticated users cannot use this feature.',
    ARRAY['ai', 'chat', 'q&a', 'conversational', 'session', 'read-only']::text[],'public','system','2026-04-12T00:00:00+00:00','f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4b5c6d7e8f3a4','human',
-   3,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7322,7 +7369,7 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_a590bb10_en','1.0','ws_spec0001_en','Default Role for Workspace Creator','factual','markdown','When a user creates a workspace, they are automatically assigned the admin (owner) role.',
    ARRAY['role', 'default', 'workspace-creation', 'admin', 'owner']::text[],'public','system','2026-04-24T11:25:40.680957+00:00','39f9a4ffb3fb89db47b80bab32db52d8c4accf6828180b79d56d1eef56cff254','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7373,7 +7420,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_aab6d931_en','1.0','ws_spec0001_en','Caching Policy for Stripped Graph Payload','factual','markdown','The preview payload is not cacheable by the client, indicated by the response header `Cache-Control: no-store`.',
-   ARRAY['快取', 'API優化', '性能']::text[],'public','system','2026-04-24T11:25:39.829461+00:00','6e6398e27fe86238ff08625e26c0b131b6cabffda49bd17964086ec5d8f0d341','ai',
+   ARRAY['cache', 'api-optimization', 'performance']::text[],'public','system','2026-04-24T11:25:39.829461+00:00','6e6398e27fe86238ff08625e26c0b131b6cabffda49bd17964086ec5d8f0d341','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7386,7 +7433,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_ac50a001_en','1.0','ws_spec0001_en','Session Management: JWTs','factual','markdown','Sessions are represented as signed JWTs (JSON Web Tokens) using the HS256 algorithm, with the secret stored in the environment.',
-   ARRAY['對談管理', 'jwt', 'hs256', '安全']::text[],'public','system','2026-04-24T11:25:40.107288+00:00','cd442ccb55c20dab87ed4f4c0ff1e966f5a7ba54018623f6ec3172ab3c6d9d5e','ai',
+   ARRAY['conversation-management', 'jwt', 'hs256', 'security']::text[],'public','system','2026-04-24T11:25:40.107288+00:00','cd442ccb55c20dab87ed4f4c0ff1e966f5a7ba54018623f6ec3172ab3c6d9d5e','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7413,9 +7460,8 @@ VALUES
 | **Knowledge base query** | Ask about KB content; the AI retrieves and cites relevant nodes (same pipeline as §13A) |
 | **Content clarification** | Ask the AI to explain, expand, or simplify a specific node, grounded in its body and depth-1 graph neighborhood |
 | **In-conversation edit proposal** | The user says "update this node to X" — the AI generates a diff proposal shown as an inline card that the user can accept, edit, or reject |
-| **Cross-KB query** | If linked workspaces (§18) are configured and the user has access, the AI can reference those nodes (marking their source) |
-',
-   ARRAY['ai', 'chat', 'conversation-panel', 'ui', 'edit-proposal']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','50d803c2b340881558e93942d732566ad387dc10c3b169adab355f9731ea2182','ai',
+| **Cross-KB query** | If linked workspaces (§18) are configured and the user has access, the AI can reference those nodes (marking their source) |',
+   ARRAY['ai', 'chat', 'conversation-panel', 'ui', 'edit-proposal']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','acp001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7480,9 +7526,8 @@ A follow-up request carries `{ "action": "accept" | "reject", "proposal_id": "pr
 
 ## Cross-KB boundary (§19.6)
 
-When `allow_edits: true`, the AI may only propose edits to nodes **within the current workspace**. It can read from linked workspaces but cannot propose writes to them.
-',
-   ARRAY['ai', 'chat', 'conversation-panel', 'edit-proposal', 'api', 'cross-kb', 'review-queue']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9507f0e87255434618769e7e624cf9b494905efcaeb55bca42b5cc66268b1ec1','ai',
+When `allow_edits: true`, the AI may only propose edits to nodes **within the current workspace**. It can read from linked workspaces but cannot propose writes to them.',
+   ARRAY['ai', 'chat', 'conversation-panel', 'edit-proposal', 'api', 'cross-kb', 'review-queue']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','acp002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7549,9 +7594,8 @@ CREATE TABLE inquiry_paths (
 -- should = 0
 SELECT count(*) FROM memory_nodes
 WHERE source_type = ''mcp'' AND author = ''system'';
-```
-',
-   ARRAY['mcp', 'agent', 'identity', 'governance', 'inquiry-paths', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','8c1738adce215bb1b636145844913cc97c3801116b9297f1732e956686f043ef','ai',
+```',
+   ARRAY['mcp', 'agent', 'identity', 'governance', 'inquiry-paths', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ag001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7603,9 +7647,8 @@ Implemented in `services/audit.py`, exposed in `mcp_tools.py`.
 
 ## Acceptance criterion
 
-Tamper test: manually alter one audit_trail record -> `verify_audit_chain` returns `broken` and points to the break, with 100% detection rate.
-',
-   ARRAY['audit', 'hash-chain', 'integrity', 'mcp-tool', 'security', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9c16a2b46c049a4ac23d2c07b101755799addcfc328db6e9863e9fc0fa9318e5','ai',
+Tamper test: manually alter one audit_trail record -> `verify_audit_chain` returns `broken` and points to the break, with 100% detection rate.',
+   ARRAY['audit', 'hash-chain', 'integrity', 'mcp-tool', 'security', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ah001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7651,9 +7694,8 @@ GET /api/v1/workspaces/{ws_id}/ingest/{job_id}
 Response: { job_id, status, progress, chunks_total, chunks_done, error? }
 ```
 
-Ingestion runs asynchronously in the background. Callers poll for progress and, on completion, get the review-queue status of the extracted nodes.
-',
-   ARRAY['ingestion', 'api', 'programmatic', 'ci-cd', 'async', 'document']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','e08e42fa89d285f0eb87e98488720f841b2fc00580f45eac156100c08fcbc422','ai',
+Ingestion runs asynchronously in the background. Callers poll for progress and, on completion, get the review-queue status of the extracted nodes.',
+   ARRAY['ingestion', 'api', 'programmatic', 'ci-cd', 'async', 'document']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','apidi001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7697,9 +7739,8 @@ CREATE TABLE author_tombstones (
 
 ## Acceptance criteria
 
-- 0% lock on nodes after departure: other users can edit normally
-',
-   ARRAY['author', 'tombstone', 'governance', 'mcp-tool', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','c9ed7bdc4f4c66b372e61f47613d158a2b72c981e3ae2b0aa386c9dc5c801929','ai',
+- 0% lock on nodes after departure: other users can edit normally',
+   ARRAY['author', 'tombstone', 'governance', 'mcp-tool', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','at001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7757,9 +7798,8 @@ Example summary response:
 
 ## Retention (§21.5)
 
-Logs are retained for **12 months** and then archived. Logs are never deleted before their retention period expires.
-',
-   ARRAY['ai', 'usage-logging', 'billing', 'api', 'retention', 'monitoring']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','7c8d8308e9f69d99da01887e910c33ac08196e639796fd41b0e2ef05e04c2323','ai',
+Logs are retained for **12 months** and then archived. Logs are never deleted before their retention period expires.',
+   ARRAY['ai', 'usage-logging', 'billing', 'api', 'retention', 'monitoring']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','aul001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7771,27 +7811,27 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_b0b85a7c_en','1.0','ws_spec0001_en','Conductor：webhook push opt-in 與 inquiry scale 開關','factual','markdown','## 功能定位
+  ('mem_b0b85a7c_en','1.0','ws_spec0001_en','Conductor: Webhook Push Opt-In and Inquiry Scale Switch','factual','markdown','## Functional Positioning
 
-Conductor 是 MemTrace 的主動通知層：當 workspace 中出現 `scale=major` 的 pending inquiry 節點時，通知已訂閱的外部 harness 啟動處理迴圈。
+Conductor is MemTrace''s proactive notification layer: when a pending inquiry node with `scale=major` appears in a workspace, it notifies subscribed external harnesses to start their processing loop.
 
-**邊界**：MemTrace 不自己調用大模型，不做 fan-out。實際推理由 harness 負責。
+**Boundary**: MemTrace does not invoke LLMs itself and does not perform fan-out. Actual reasoning is handled by the harness.
 
-## inquiry scale 開關
+## inquiry scale Switch
 
-`metadata.scale` 欄位：
-- `minor`（預設）：不觸發 conductor，純人工審議。
-- `major`：conductor 偵測後發 webhook。
+`metadata.scale` field:
+- `minor` (default): does not trigger conductor, purely manual review.
+- `major`: conductor detects it and sends a webhook.
 
-升級 minor → major 需由人或人授權的 agent 操作；agent emit 的 residue 一律從 minor 開始。
+Upgrading minor → major must be operated by a human or a human-authorized agent; residues emitted by agents always start as minor.
 
-## Webhook 訂閱（opt-in）
+## Webhook Subscription (opt-in)
 
-- Harness 在 workspace 設定中新增 `conductor_hook_subscriptions`（POST /workspaces/{ws_id}/conductor/hooks）。
-- 可設 `event_filter`：按 scale / content_type / tags 篩選要接收的事件。
-- HTTP-only webhook 僅允許 localhost/loopback；其他 host 必須 HTTPS（防 SSRF）。
+- The harness adds `conductor_hook_subscriptions` in the workspace settings (POST /workspaces/{ws_id}/conductor/hooks).
+- Configurable `event_filter`: filters events to receive by scale / content_type / tags.
+- HTTP-only webhooks are allowed only for localhost/loopback; other hosts must use HTTPS (SSRF protection).
 
-## 事件格式
+## Event Format
 
 ```json
 {
@@ -7808,13 +7848,13 @@ Conductor 是 MemTrace 的主動通知層：當 workspace 中出現 `scale=major
 }
 ```
 
-## 冪等保證
+## Idempotency Guarantee
 
-同一 `(hook_id, event_id)` 組合只 deliver 一次（`ON CONFLICT DO NOTHING`）。
+The same `(hook_id, event_id)` combination is delivered only once (`ON CONFLICT DO NOTHING`).
 
-## 相關實作
+## Related Implementation
 
-- `services/conductor.py` — 核心邏輯
+- `services/conductor.py` — core logic
 - `routers/conductor.py` — REST API
 - `migrations/111_conductor_safety_queue.sql` — schema
 - `tests/test_conductor_safety_queue.py`',
@@ -7831,7 +7871,7 @@ INSERT INTO memory_nodes
    traversal_count,unique_traverser_count)
 VALUES
   ('mem_b3ee2495_en','1.0','ws_spec0001_en','MEMTRACE_WS as Default Workspace','factual','markdown','The `MEMTRACE_WS` environment variable is configured as the default workspace. This default value will be used when tool calls do not provide a `workspace_id` parameter.',
-   ARRAY['環境變數', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.097515+00:00','fc08a173c8a31db9d4fbf0232313d32789b8d3c9b4b025c8947b7c51a658ee1b','ai',
+   ARRAY['environment-variable', 'workspace', 'default-value']::text[],'public','system','2026-04-26T00:29:47.097515+00:00','fc08a173c8a31db9d4fbf0232313d32789b8d3c9b4b025c8947b7c51a658ee1b','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7843,7 +7883,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_b41097bf_en','1.0','ws_spec0001_en','Memory Node Copying Functionality','factual','markdown','Any individual Memory Node can be copied to a different Knowledge Base.',
+  ('mem_b41097bf_en','1.0','ws_spec0001_en','Memory Node Copy Functionality','factual','markdown','Any individual Memory Node can be copied to a different Knowledge Base.',
    ARRAY['memory-node', 'knowledge-base', 'copy']::text[],'public','system','2026-04-24T11:31:27.655142+00:00','cea540a33f70ed93236f0dbdc41def46a9b3201f9f8378d4a7f27aa582019b77','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -7856,7 +7896,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_bb9aff63_en','1.0','ws_spec0001_en','Admin Role Overview','factual','markdown','Admins are repository owners or maintainers. They possess all contributor capabilities, direct write access, the ability to approve or reject proposals, manage members, and soft-delete and restore workspaces.',
+  ('mem_bb9aff63_en','1.0','ws_spec0001_en','Admin Role Overview','factual','markdown','Admins are Knowledge Base owners or maintainers. They hold all Contributor abilities, direct-write permissions, the ability to approve or reject proposals, manage members, and soft-delete and restore workspaces.',
    ARRAY['role', 'admin', 'capabilities']::text[],'public','system','2026-04-24T11:25:40.503845+00:00','e887ffec2fead0932c9e9c9281169b35a204c219a609098713d149f87b622012','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -7882,7 +7922,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_bd6996dd_en','1.0','ws_spec0001_en','Memory Node Content Input Modes','factual','markdown','Each Memory Node body (`content.body`) supports two input modes.',
+  ('mem_bd6996dd_en','1.0','ws_spec0001_en','Memory Node Content Input Modes','factual','markdown','The body of each Memory Node (`content.body`) supports two input modes.',
    ARRAY['memory-node', 'content', 'input']::text[],'public','system','2026-04-24T11:25:39.354196+00:00','0d9fdbf1ccbc62f8451c6a16bd834ea4e2ef14bebea32091c6e3fb59657e02f4','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -7908,41 +7948,40 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_bk001_en','1.0','ws_spec0001_en','§30 Scheduled Local Backups','factual','markdown','MemTrace ships with a self-healing local backup system to prevent data loss in self-hosted environments. It runs database backups periodically and manages disk space by rotating out old backups.
+  ('mem_bk001_en','1.0','ws_spec0001_en','§30 Scheduled Local Backups','factual','markdown','MemTrace includes a self-healing local backup system to prevent data loss in self-hosted environments. It performs regular database dumps and manages disk space by rotating old backups.
 
-## Backup execution (§30.1)
+## Backup Execution (§30.1)
 
-- **Frequency:** a background task runs hourly to check the backup schedule
-- **Interval:** the actual backup runs at the configured interval (default: 24 hours)
-- **Format:** the PostgreSQL backup is `gzip`-compressed (format: `.sql.gz`)
+- **Frequency:** The system runs a background task every hour to check the backup schedule
+- **Interval:** The actual backup runs based on the configured interval (default: 24 hours)
+- **Format:** PostgreSQL backups are compressed using `gzip` (format: `.sql.gz`)
 - **Naming:** `memtrace_backup_YYYYMMDD_HHMMSS.sql.gz`
 
-## Rotation policy (§30.2)
+## Rotation Policy (§30.2)
 
 To prevent disk exhaustion, the system maintains a rolling window of backups:
 
-- **Retention count:** the number of most-recent backup files to keep (default: 7)
-- **Cleanup:** after each successful backup, the system scans the backup directory and deletes the oldest files beyond the retention count
+- **Keep Count:** The number of recent backup files to retain (default: 7)
+- **Cleanup:** On every successful backup, the system scans the backup directory and deletes the oldest files exceeding the keep count
 
-## Configuration (§30.3, admin only)
+## Configuration (§30.3, Admin Only)
 
-Backup settings are managed centrally from the platform-admin dashboard:
+Backup settings are managed globally via the system admin dashboard:
 
-- **Backup path:** absolute path where backups are stored on the server
-- **Enable/disable:** toggle automatic backups
-- **Interval (hours):** how often backups run
-- **Retention count:** how many backups to keep
+- **Backup Path:** Absolute path on the server where backups are stored
+- **Enable/Disable:** Toggle automated backups
+- **Interval (Hours):** Backup execution frequency
+- **Retention Count:** How many backups to keep
 
-## Status and monitoring (§30.4)
+## Status and Monitoring (§30.4)
 
-The system records the result of every backup attempt in the `system_settings` table (key: `backup_config`):
+The system logs the result of each backup attempt in the `system_settings` table (key: `backup_config`):
 
 - `last_backup_at`: ISO timestamp of the last attempt
 - `last_backup_status`: `success` or `failed`
-- `last_backup_file`: path of the last successful backup
-- `error_msg`: detailed error when the last attempt failed
-',
-   ARRAY['backup', 'operations', 'admin', 'reliability', 'self-hosted']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','d5d288f735043052deb54210bee9cb4d3495c894e509d8e8e222575c0d395f1c','ai',
+- `last_backup_file`: Path to the last successful backup
+- `error_msg`: Detailed error if the last attempt failed',
+   ARRAY['backup', 'operations', 'admin', 'reliability', 'self-hosted']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','bk001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7954,9 +7993,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c24bbdad_en','1.0','ws_spec0001_en','AI Agents Must Specify source_type as "ai" When Creating Nodes','factual','markdown','When an AI agent creates a knowledge node, the `source_type` field must be explicitly set to `"ai"`. This results in the `source_type` field in the database being ''ai'' and the `proposer_type` field in the review queue also being ''ai''.',
-   ARRAY['ai代理', '節點建立', 'api', '規範']::text[],'public','system','2026-04-25T02:39:26.969779+00:00','59ac0bfa279bf73aaa1a12d438248fbd2ddec10e108d722f3e09e55b42d105dd','ai',
-   1,1)
+  ('mem_c24bbdad_en','1.0','ws_spec0001_en','AI Agents Must Specify source_type as "ai" When Creating Nodes','factual','markdown','When an AI agent creates a knowledge node, the `source_type` field must be explicitly set to `"ai"`. This results in the `source_type` column in the database being ''ai'', and the `proposer_type` column in the review queue also being ''ai''.',
+   ARRAY['ai-agent', 'node-creation', 'api', 'specification']::text[],'public','system','2026-04-25T02:39:26.969779+00:00','59ac0bfa279bf73aaa1a12d438248fbd2ddec10e108d722f3e09e55b42d105dd','ai',
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -7967,7 +8006,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c3e5a685_en','1.0','ws_spec0001_en','Contributor Role Capabilities Detail','factual','markdown','Contributors have all viewer capabilities and can submit proposals for new nodes, edits to existing nodes, or new/deleted edges. These proposals enter a review queue with `status = pending_admin_review` until an admin approves. A contributor may not approve their own proposals.',
+  ('mem_c3e5a685_en','1.0','ws_spec0001_en','Contributor Role Capability Details','factual','markdown','Contributors possess all Viewer capabilities and can submit proposals for new nodes, edits to existing nodes, or creating/deleting edges. These proposals enter the review queue with status `pending_admin_review` until approved by an admin. Contributors may not approve their own proposals.',
    ARRAY['role', 'contributor', 'capabilities', 'proposal', 'review-queue']::text[],'public','system','2026-04-24T11:25:40.561589+00:00','e9503d1f90e13846bc35650c0f983527ccabd9b7209e4b6faab958cab6bd02f8','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -7980,8 +8019,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c4ce77e1_en','1.0','ws_spec0001_en','Archived Nodes Visible in Dedicated "Archive" View','factual','markdown','Archived nodes are accessible and displayed within a dedicated "Archive" view, which can be reached from the workspace sidebar.',
-   ARRAY['視圖', '封存', '隱藏']::text[],'public','system','2026-04-24T11:25:39.575050+00:00','bf861774dffed73c434ea5c3c5a0d846a0ac249c2558d9ad2e8b12173dcaa5e2','ai',
+  ('mem_c4ce77e1_en','1.0','ws_spec0001_en','Archived Nodes Are Visible in Dedicated "Archive" View','factual','markdown','Archived nodes can be accessed and displayed in a dedicated "Archive" view, which is accessible from the workspace sidebar.',
+   ARRAY['view', 'archiving', 'hidden']::text[],'public','system','2026-04-24T11:25:39.575050+00:00','bf861774dffed73c434ea5c3c5a0d846a0ac249c2558d9ad2e8b12173dcaa5e2','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7993,21 +8032,21 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c571ecc8_en','1.0','ws_spec0001_en','AI Reviewers: Automated Review Bot Configuration','factual','markdown','A workspace admin can create one or more AI reviewers (ai_reviewers) on the "AI Management" settings page, letting a specific LLM model automatically give review opinions on proposals that enter the review_queue.
+  ('mem_c571ecc8_en','1.0','ws_spec0001_en','AI Reviewer: Automated Review Bot Configuration','factual','markdown','Workspace admins can create one or more AI Reviewers (ai_reviewers) on the "AI Management" settings page, allowing specific LLM models to automatically provide review opinions on proposals entering the review_queue.
 
-## Quick create
+## Quick Create
 
-Just pick a Provider and Model and click "Create". If the name is left blank it is auto-generated (e.g. `openai / gpt-4o-mini`).
+Simply select Provider and Model, and click "Create". If the name is left blank, it will be automatically generated (e.g. `openai / gpt-4o-mini`).
 
-## Advanced settings (collapsible)
+## Advanced Settings (Collapsible)
 
-| Field | Description | Default |
+| Field | Description | Default Value |
 |------|------|--------|
-| Name | identifying label; auto-named if blank | `{provider} / {model}` |
-| System Prompt | the review instruction given to the LLM | see default prompt below |
-| Auto-accept threshold | auto-merge when confidence >= this value and decision=accept | 0.95 |
-| Auto-reject threshold | auto-reject when confidence <= this value and decision=reject | 0.10 |
-| Enabled | whether this reviewer participates | true |
+| Name | Identifying label; automatically named if left blank | `{provider} / {model}` |
+| System Prompt | Review instructions provided to the LLM | See default prompt below |
+| Auto-Accept Threshold | Automatically merged when confidence ≥ this value and decision=accept | 0.95 |
+| Auto-Reject Threshold | Automatically rejected when confidence ≤ this value and decision=reject | 0.10 |
+| Enabled | Whether this reviewer participates in reviews | true |
 
 ## Default System Prompt
 
@@ -8025,16 +8064,15 @@ Prefer reject for hallucinations, contradictions, empty edits, or destructive ch
 Use comment when uncertain.
 ```
 
-## Review behavior
+## Review Behavior
 
 - After each review_queue record is created, `run_ai_review_for_item` is triggered in the background
-- Enabled reviewers are tried in order (the first success wins)
-- After the LLM returns JSON, the outcome is decided by decision x confidence:
-  - auto-accept / auto-reject -> status is updated directly and the result is recorded in the ai_review field
-  - comment only -> the AI opinion is noted, but the item still awaits human review
-- Supports four providers: OpenAI, Anthropic, Gemini, Ollama
-',
-   ARRAY['ai-reviewer', 'review-queue', 'workspace-settings', 'automation']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','9e763580aa8ac838983d1d008fa91961000d54d2be889798380312a5dba0394c','ai',
+- Attempts enabled reviewers sequentially (taking the first successful one)
+- After the LLM returns JSON, determines action based on decision × confidence:
+  - Auto-Accept / Auto-Reject → status is updated directly, and the ai_review field records the result
+  - comment only → tags AI opinion, still awaiting human review
+- Supports four providers: OpenAI, Anthropic, Gemini, and Ollama',
+   ARRAY['ai-reviewer', 'review-queue', 'workspace-settings', 'automation']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','b9b5d4d75c79e8f6f2e3f86e7fa48cb6c4d5c99dbc5d85e21663c354bef3eb35','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8046,24 +8084,24 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c789e5cb_en','1.0','ws_spec0001_en','Lesson: Self-propagation of dirty data in a knowledge base — agents replicate and amplify existing errors as authoritative convention','factual','markdown','## The lesson (universal)
+  ('mem_c789e5cb_en','1.0','ws_spec0001_en','Lesson: Self-Propagation of Dirty Data in Knowledge Bases — Agents Replicate and Amplify Existing Errors as Authoritative Conventions','factual','markdown','## Lesson (Universal)
 
-In a human-AI co-maintained knowledge graph, any single erroneous node or mis-directed edge can be picked up by later agents as "established convention / authoritative fact", and thereby **copied, amplified, and even frozen into written guidance**. The dwell time of an error is exactly the window during which it keeps contaminating every subsequent agent. Provenance signals such as `source_type` / `validity_confirmed_at` exist, but agents broadly tend to treat any existing node as authoritative and ignore them.
+In a human-AI co-maintained knowledge graph, any erroneous node or edge with reversed direction can be generalized by subsequent agents reading it as an "established convention / authoritative fact." As a result, errors are **replicated, amplified, and even solidified into write guidelines**. The duration an error remains is the window during which it continuously pollutes every subsequent agent. Although provenance clues such as `source_type` / `validity_confirmed_at` exist, agents generally tend to treat any existing node as authoritative and overlook these clues.
 
-## Typical scenario
+## Typical Scenario
 
-An agent needs to infer a write convention (e.g. the direction of a certain edge). The KB happens to contain only one relevant existing record, and that record is itself reversed/dirty. The agent generalizes the convention from this **single sample**, follows it, and may even write it into a shared playbook for others to obey. Only after comparing against the system''s actual code behavior does it discover the official schema was correct all along and that record was dirty — one dirty record nearly froze into KB-wide guidance.
+An agent attempts to deduce a certain writing convention (such as the direction of a certain edge), and the KB happens to contain only a single relevant existing record, whose direction was actually reversed. Relying solely on this **single sample**, the agent determines the convention, follows it, and even writes it into the shared playbook requiring successors to follow it. Only when comparing against the system''s actual code behavior is it discovered that the official schema was correct all along, and that existing record was dirty data—a single dirty record almost solidified into a repository-wide guideline.
 
-## Defensive principles
+## Defensive Principles
 
-1. **Defer to the system''s actual code/spec behavior**, not to a single existing data sample; when data conflicts with the spec, the spec wins.
-2. **Never generalize a convention from a single sample**; consult multiple records and check their `source_type` / `validity_confirmed_at`.
-3. **Dirty data is a risk window**: once a reversed, stale, or contradictory node/edge is detected, fix or archive it quickly to shorten the contamination window.
-4. Before any write, read that knowledge base''s write-convention playbook (if any).
+1. **Rely on the actual behavior of system code / specifications**, not on a single existing data sample; when data conflicts with specifications, specifications take precedence.
+2. **Never generalize conventions from a single sample**; consult multiple records at a minimum, and inspect their `source_type` / `validity_confirmed_at`.
+3. **Dirty data is a risk window**: Once an inverted, outdated, or contradictory node / edge is detected, it should be corrected or archived as soon as possible to shorten the pollution window.
+4. Before performing any write, read the knowledge base''s write convention playbook (if available).
 
-## Scope
+## Scope of Application
 
-Applies to all human-AI co-maintained knowledge graph systems that allow agent writes.',
+Applies to all knowledge graph systems co-maintained by humans and AI that permit agent writes.',
    ARRAY['lesson-learned', 'governance', 'agent-safety', 'data-quality', 'trust', 'knowledge-graph']::text[],'public','memtrace-spec','2026-06-20T00:00:00+00:00','d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8076,7 +8114,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c8db759e_en','1.0','ws_spec0001_en','Edges to Archived Nodes Automatically Decay','factual','markdown','All edges pointing to an archived node automatically appear in a "decayed" state, but are not deleted from the database.',
+  ('mem_c8db759e_en','1.0','ws_spec0001_en','Edges Connected to Archived Nodes Automatically Decay','factual','markdown','All edges connected to archived nodes automatically assume a "faded" appearance, but are not deleted from the database.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.557633+00:00','e2889812266b17efc364454a6ee3ea5a6881e8250b720564bfa2dc84bbaddf20','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8089,21 +8127,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_c9bd6c49_en','1.0','ws_spec0001_en','`conflict_status` Column in `memory_nodes` Table','factual','markdown','The `memory_nodes` table includes a text column named `conflict_status`, which can have values of `NULL`, `''flagged''`, or `''resolved''`.',
+  ('mem_c9bd6c49_en','1.0','ws_spec0001_en','`conflict_status` Column in the memory_nodes Table','factual','markdown','The `memory_nodes` table contains a text column named `conflict_status`, whose value can be `NULL`, `''flagged''`, or `''resolved''`.',
    ARRAY['database_schema', 'conflict_management']::text[],'public','system','2026-04-24T11:31:27.706468+00:00','155f94b0cc3c745f38e13c0f4213965a92517eca84f2b2f56cb27d1c3765b21d','ai',
-   1,1)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_c9dd39d4_en','1.0','ws_spec0001_en','Overview of Knowledge Base Protection Mechanisms','factual','markdown','This section defines protection mechanisms designed to prevent knowledge theft while preserving legitimate usability for authorized members and approved previews.',
-   ARRAY['安全', '概覽', '介紹', '權限', '保護']::text[],'public','system','2026-04-24T11:31:27.730201+00:00','a78ac73dff4068fc8b90f4c1d73ea5fd9589364d6f39cd0d31951ca205b53a5a','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8115,7 +8140,20 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cbe1be4b_en','1.0','ws_spec0001_en','Workspace Type Assignment','factual','markdown','Workspace types are assigned during creation (Web UI step 4, CLI step 3).',
+  ('mem_c9dd39d4_en','1.0','ws_spec0001_en','Knowledge Base Protection Mechanisms Overview','factual','markdown','This section defines protection mechanisms designed to prevent knowledge theft while preserving legitimate usability for authorized members and approved previews.',
+   ARRAY['security', 'overview', 'introduction', 'permission', 'protection']::text[],'public','system','2026-04-24T11:31:27.730201+00:00','a78ac73dff4068fc8b90f4c1d73ea5fd9589364d6f39cd0d31951ca205b53a5a','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
+  ('mem_cbe1be4b_en','1.0','ws_spec0001_en','Workspace Type Assignment','factual','markdown','The workspace type is assigned during the creation process (Step 4 in Web UI or Step 3 in CLI).',
    ARRAY['workspace', 'creation', 'configuration']::text[],'public','system','2026-04-24T11:31:27.627383+00:00','a0a8bffabfa012bb38c759fc8c239a205e5a471557bd7e38294d264dd464e45b','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8128,8 +8166,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cce15a1a_en','1.0','ws_spec0001_en','Node Revisions Table Unique Constraint','factual','markdown','The combination of `node_id` and `revision_no` must be unique in the `node_revisions` table, ensuring each revision of a node has a distinct identifier.',
-   ARRAY['資料庫', '資料表', '節點修訂', '唯一約束']::text[],'public','system','2026-04-25T02:39:32.871852+00:00','1c84d32a9837c44a5f42f009e966b613ed097d1fb83d089d9741a87ae2b34222','ai',
+  ('mem_cce15a1a_en','1.0','ws_spec0001_en','Unique Constraint on Node Revisions Table','factual','markdown','In the `node_revisions` table, the combination of `node_id` and `revision_no` must be unique, ensuring that every revision of each node has a unique identifier.',
+   ARRAY['database', 'table', 'node-revision', 'unique-constraint']::text[],'public','system','2026-04-25T02:39:32.871852+00:00','1c84d32a9837c44a5f42f009e966b613ed097d1fb83d089d9741a87ae2b34222','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8141,7 +8179,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cd89f403_en','1.0','ws_spec0001_en','Ephemeral KB Edge Decay Schedule','procedural','markdown','The edge decay schedule for Ephemeral Knowledge Bases should be changed from daily to hourly triggering.',
+  ('mem_cd89f403_en','1.0','ws_spec0001_en','Edge Decay Schedule for Ephemeral Knowledge Bases','procedural','markdown','The edge decay schedule for ephemeral knowledge bases should be changed from daily triggers to hourly (every 1 hour) triggers.',
    ARRAY['scheduler', 'ephemeral-kb', 'edge-decay']::text[],'public','system','2026-04-25T02:38:39.851283+00:00','0880355a86987c4a47300e767f68c6870b43bc47586c6c8c16f1825998a6e90b','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8154,7 +8192,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cdea5189_en','1.0','ws_spec0001_en','Archived Nodes Are Never Destroyed','factual','markdown','Archived nodes are retained indefinitely and are never permanently deleted.',
+  ('mem_cdea5189_en','1.0','ws_spec0001_en','Principle of Never Destroying Archived Nodes','factual','markdown','Archived nodes are retained indefinitely and are never permanently deleted.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.539979+00:00','50b0515bc00d8ed2ec480923fd0e3b1837b27543d57436eb4770e741c478f558','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8167,9 +8205,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ce00334f_en','1.0','ws_spec0001_en','MemTrace Platform Overview','factual','markdown','MemTrace is an open platform designed for building shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to allow any human or AI agent to reach any answer by following the shortest possible path through a graph of small, typed relationships — rather than reading through large documents.',
-   ARRAY['memtrace', '概覽', '介紹', '平台']::text[],'public','system','2026-04-24T11:26:52.690912+00:00','7c0dc21b5b1a8849d7704332f76000351e9532b56aad2bbacdb5d7e28acbbb42','ai',
-   1,1)
+  ('mem_ce00334f_en','1.0','ws_spec0001_en','MemTrace Platform Overview','factual','markdown','MemTrace is an open platform designed to construct shared knowledge through minimal, well-connected Memory Nodes. Its core design goal is to enable any human or AI agent to find answers via the shortest path in small, fractal relationship graphs, rather than reading voluminous documentation.',
+   ARRAY['memtrace', 'overview', 'introduction', 'platform']::text[],'public','system','2026-04-24T11:26:52.690912+00:00','7c0dc21b5b1a8849d7704332f76000351e9532b56aad2bbacdb5d7e28acbbb42','ai',
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8180,7 +8218,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ce794c4c_en','1.0','ws_spec0001_en','MemTrace Feature Plan - Task Breakdown Document','factual','markdown','This document outlines the development tasks for the MemTrace feature plan, categorized by functional groups (A-H) and marked with their respective layers (DB, API, UI, MCP, CLI, Core, Scheduler).',
+  ('mem_ce794c4c_en','1.0','ws_spec0001_en','MemTrace Feature Plan - Task Breakdown Document','factual','markdown','This document outlines the development tasks for the MemTrace feature plan, categorized by feature groups (A-H), and notes the tier to which each task belongs (DB, API, UI, MCP, CLI, Core, Scheduler).',
    ARRAY[]::text[],'public','system','2026-04-25T02:38:58.002264+00:00','ceb8023eca96714907c41e68f043ba347de980648324aa76cae44df509ed922a','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8193,43 +8231,42 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cf001_en','1.0','ws_spec0001_en','§S3 Contradicts Conflict Arbitration Flow','procedural','markdown','## Background
+  ('mem_cf001_en','1.0','ws_spec0001_en','§S3 Contradicts Conflict Arbitration Flow','procedural','markdown','## Problem Background
 
-A `contradicts` edge is only a marker; it does not force an arbitration flow, so conflicts can stay unresolved indefinitely.
+A `contradicts` edge is merely a marker without enforcing an arbitration workflow, allowing conflicts to remain unresolved indefinitely.
 
-## Auto-enqueue flow
+## Automatic Review Intake Flow
 
-When a `contradicts` edge is created, the system automatically pushes the related nodes into `review_queue` with `change_type=''conflict''`.
+When a `contradicts` edge is created, the system automatically pushes the related nodes into the `review_queue` with `change_type=''conflict''`.
 
-## Logical conflict detection (AI layer)
+## Logical Conflict Detection (AI Layer)
 
-`conflict_status` and `conflict_detail` fields are recorded on `memory_nodes`:
+The `conflict_status` and `conflict_detail` columns are recorded in `memory_nodes`:
 
-| conflict_status value | Description |
+| conflict_status Value | Description |
 |-------------------|------|
-| `contradicts_existing` | semantically contradicts an existing node |
-| `duplicate_content` | duplicate content |
-| `circular_dependency` | forms a circular dependency |
-| `orphaned_reference` | references a node that does not exist |
+| `contradicts_existing` | Semantically contradicts an existing node |
+| `duplicate_content` | Duplicate content |
+| `circular_dependency` | Forms a circular dependency |
+| `orphaned_reference` | References a non-existent node |
 
-## Arbitration outcomes
+## Arbitration Outcomes
 
-The reviewer picks one of four outcomes:
+The reviewer selects one of the following four outcomes:
 
 | Outcome | Action |
 |------|------|
-| `keep_a` | keep node A, archive node B |
-| `keep_b` | keep node B, archive node A |
-| `merge` | merge into a new node (enters the propose_merge flow) |
-| `both_valid` | both are valid; remove the contradicts edge |
+| `keep_a` | Keep node A, archive node B |
+| `keep_b` | Keep node B, archive node A |
+| `merge` | Merge into a new node (enters propose_merge flow) |
+| `both_valid` | Both are valid, remove the contradicts edge |
 
-The arbitration outcome writes back to the related nodes'' `status`, and leaves a resolution log.
+The arbitration outcome writes back the `status` of related nodes and leaves a resolution log.
 
-## Acceptance criterion
+## Acceptance Criteria
 
-Every `contradicts` edge should have a corresponding resolution log or pending review item.
-',
-   ARRAY['conflict', 'contradicts', 'arbitration', 'review-queue', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','5b6cd29ff35eb67e2cc0d6cc6984d5b9a190f644862ee08d30b6b93e8a8bd132','ai',
+Every `contradicts` edge must have a corresponding resolution log or pending review item.',
+   ARRAY['conflict', 'contradicts', 'arbitration', 'review-queue', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cf001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8241,13 +8278,13 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cf633afb_en','1.0','ws_spec0001_en','Workspace Agent System Actor Design','factual','markdown','MemTrace defines two types of system actors:
+  ('mem_cf633afb_en','1.0','ws_spec0001_en','Workspace Agent System Actor Design','factual','markdown','MemTrace defines two classes of system actors:
 
-1. **Global system actor**: Represents the platform itself; belongs to no workspace; used for cross-workspace infrastructure operations (e.g., global decay scheduler).
-2. **Workspace-scoped system actor**: Bound to a specific workspace; represents that workspace''s automated operations (e.g., ingestion pipeline, local decay scheduling).
+1. **global system actor**: Represents the platform itself, does not belong to any workspace, and is used for cross-workspace infrastructure operations (such as the global decay scheduler).
+2. **workspace-scoped system actor**: Bound to a specific workspace, representing automated operations for that workspace (such as ingestion pipelines and local decay schedules).
 
-Neither type contributes to human `author_rep` calculations. Telemetry records use `source_type="system"`.',
-   ARRAY['system-actor', 'workspace-agent', 'identity', 'actor', 'telemetry']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','c5f3e4g6b7d8193a21cdef3456789012cdef3456789012cdef3456789012abcd','ai',
+Neither is counted toward human `author_rep` calculations, and telemetry records use `source_type="system"`.',
+   ARRAY['system-actor', 'workspace-agent', 'actor', 'identity', 'telemetry']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','c5f3e4g6b7d8193a21cdef3456789012cdef3456789012cdef3456789012abcd','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8259,22 +8296,21 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cl001_en','1.0','ws_spec0001_en','§11.4 Dynamic Cluster System','factual','markdown','Each workspace owns a set of **node clusters** (the `node_clusters` table). A cluster is a named topic group (e.g. "API Design", "Security Rules") used for visual grouping and filtering in the graph view.
+  ('mem_cl001_en','1.0','ws_spec0001_en','§11.4 Dynamic Cluster System','factual','markdown','Each workspace has a set of **node clusters** (`node_clusters` table). A cluster is a named topic group (e.g. "API Design", "Security Rules") that organizes nodes for visual grouping and filtering in the graph view.
 
-## AI auto-assignment (§11.4.1)
+## AI Assignment (§11.4.1)
 
-During document ingestion, the extraction prompt is seeded with the workspace''s existing cluster names and instructs the model to:
+During document ingestion, the extraction prompt includes the workspace''s existing cluster names, instructing the model to:
 
-1. When returning a node, attach `cluster_name_zh` and `cluster_name_en` pointing to the **best-matching existing cluster**.
-2. Only when a node clearly belongs to no existing cluster, **propose a new cluster name** (short, 1–3 words).
+1. Attach `cluster_name_zh` and `cluster_name_en` when returning nodes, pointing to the **best-matching existing cluster**.
+2. **Propose a new cluster name** (short, 1–3 words) only when the node clearly does not fit any existing cluster.
 
-The pipeline resolves the proposed name to a cluster id via `get_or_create_cluster` (case-insensitive match on `name_en`). The resolved `cluster_id` is written onto the node before it enters the review queue.
+The pipeline resolves the proposed name to a cluster id via `get_or_create_cluster` (case-insensitive match on `name_en`). The resolved `cluster_id` is written to the node before it enters the review queue.
 
-## Table structure
+## Table Structure
 
-The `node_clusters` table records all clusters in a workspace: names (zh/en), color, and other metadata. The `memory_nodes` table links to it via the `cluster_id` foreign key (nullable).
-',
-   ARRAY['cluster', 'ingestion', 'ai', 'graph-view', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','691804a8b3143ba27e4912cf1419e4e65dc921c373dc29bd5114a0c23a777062','ai',
+The `node_clusters` table records all clusters in the workspace: names (zh/en), colors, and other metadata. The `memory_nodes` table references this table via a `cluster_id` foreign key (nullable).',
+   ARRAY['cluster', 'ingestion', 'ai', 'graph-view', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cl001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8286,16 +8322,16 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_cl002_en','1.0','ws_spec0001_en','§11.4 Cluster Management: Manual Override, Unclustered Nodes, and Backfill','procedural','markdown','## Manual override (§11.4.2)
+  ('mem_cl002_en','1.0','ws_spec0001_en','§11.4 Cluster Management: Human Override, Unclustered Nodes, and Backfill','procedural','markdown','## Human Override (§11.4.2)
 
-Users and editors can reassign a node to a different cluster (or remove the assignment) at any time via:
+Users and editors can reassign any node to a different cluster (or remove its cluster assignment) at any time via:
 
 ```
 PATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}/cluster
 { "cluster_id": "cl_xxx" | null }
 ```
 
-Cluster metadata (name, color) is managed via:
+Cluster metadata (name, color) is managed via the following endpoints:
 
 ```
 GET    /api/v1/workspaces/{ws_id}/clusters
@@ -8304,17 +8340,16 @@ PATCH  /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
 DELETE /api/v1/workspaces/{ws_id}/clusters/{cluster_id}
 ```
 
-When a cluster is deleted, the `cluster_id` of all its nodes is set to `NULL`; the nodes themselves are not deleted.
+Deleting a cluster sets `cluster_id = NULL` on all its nodes; nodes themselves are not deleted.
 
-## Unclustered nodes (§11.4.3)
+## Unclustered Nodes (§11.4.3)
 
-Nodes with `cluster_id = NULL` are considered unclustered. In the 2D graph view they render in a separate area after all cluster groups. The cluster filter bar only shows assigned clusters; with no filter selected, all nodes are shown.
+Nodes with `cluster_id = NULL` are considered unclustered. In the 2D graph view, these nodes are rendered in a separate area after all cluster groups. The cluster filter bar shows only assigned clusters; selecting no filter displays all nodes.
 
 ## Backfill (§11.4.4)
 
-Nodes created before the cluster system was introduced have `cluster_id = NULL`. They can be reassigned manually or handled by a future batch backfill job.
-',
-   ARRAY['cluster', 'api', 'graph-view', 'backfill']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','fb2b059b1b9635a97a91dc41d2855a56441c65b4ba31349eb0f7cb70babfcf65','ai',
+Existing nodes created before the cluster system was introduced will have `cluster_id = NULL`. They can be reassigned manually or processed via a future batch backfill job.',
+   ARRAY['cluster', 'api', 'graph-view', 'backfill']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cl002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8326,27 +8361,27 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d001_en','1.0','ws_spec0001_en','Memory Node: the atomic unit of knowledge','factual','markdown','A Memory Node is the atomic unit of knowledge in MemTrace. Each node captures **one** idea and contains:
+  ('mem_d001_en','1.0','ws_spec0001_en','Memory Node: The Atom of Knowledge','factual','markdown','The Memory Node is the atomic unit of knowledge in MemTrace. Each node captures **a single** idea and contains:
 
-- **Bilingual title + body** (zh-TW + en), independently authored
+- **Bilingual Title and Body** (zh-TW + en), maintained independently
 - **Content Type**: `factual` / `procedural` / `preference` / `context` / `source_document`
 - **Format**: `plain` or `markdown`
-- **Tags**: string array for classification and search
+- **Tags**: String array for classification and search
 - **Visibility**: `public` / `team` / `private`
-- **Provenance**: author, creation timestamp, SHA-256 signature, source_type
-- **Traversal**: visit count and unique visitor count
-- **Status**: `active` / `archived` (archived nodes are hidden from default views, not deleted)
+- **Provenance**: Author, creation timestamp, SHA-256 signature, source_type
+- **Traversal**: Traversal count and unique visitor count
+- **Status**: `active` / `archived` (archived content is hidden from default views, not deleted)
 
-**Concurrency fields** (§17):
-- `version` — optimistic-lock integer, auto-incremented on every UPDATE; PATCH must include `X-Node-Version` header
-- `conflict_status` — `flagged` / `resolved`, set by the conflict detection job
-- `conflict_detail` — JSONB, records conflict type and related node
+**Concurrent write fields** (§17):
+- `version` — Optimistic lock integer, automatically incremented by +1 on each UPDATE; PATCH must supply the `X-Node-Version` header
+- `conflict_status` — `flagged` / `resolved`, written by conflict detection
+- `conflict_detail` — JSONB, recording conflict type and related nodes
 
-**Source-document traceability fields** (§20):
-- `source_doc_node_id` — references a `source_document`-type node for extraction traceability
-- `source_paragraph_ref` — string marking the original location (e.g. `page:3, para:2` or `00:14:32-00:15:01`)
+**Source document provenance fields** (§20):
+- `source_doc_node_id` — Points to a `source_document` type node for tracing extraction provenance
+- `source_paragraph_ref` — String marking paragraph location within the original document (e.g. `page:3, para:2` or `00:14:32-00:15:01`)
 
-Node ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`.',
+Node ID format: `mem_<hex8>`, for example `mem_a1b2c3d4`.',
    ARRAY['data-model', 'schema', 'core', 'version', 'conflict']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8359,17 +8394,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d002_en','1.0','ws_spec0001_en','Edge: a typed, directed relationship','factual','markdown','An Edge connects two Memory Nodes with direction `from → to`. Each edge contains:
+  ('mem_d002_en','1.0','ws_spec0001_en','Edge: Directed, Typed Relationships','factual','markdown','An Edge connects two Memory Nodes with direction `from → to`. Each Edge contains:
 
 - **Relation type**: depends_on / extends / related_to / contradicts
-- **Weight**: 0–1, reflecting relationship strength; dynamically updated by decay and co-access boost
-- **Co-access count**: how many times accessed together
+- **Weight**: 0–1, reflecting relationship strength; dynamically updated by decay and co-access boosts
+- **Co-access count**: Number of times co-accessed together
 - **Decay parameters**: half_life_days (default 30), min_weight (default 0.1)
-- **Traversal**: visit count, average rating (1–5), rating count
+- **Traversal**: Traversal count, rating_avg (1–5 average rating, null when unrated), rating_count
 
-Edge ID format: `edge_<hex8>`. Duplicate edges (same from, to, relation) are rejected.',
+Edge ID format: `edge_<hex8>`. Edges between the same pair of nodes with the same relation type are deduplicated.',
    ARRAY['data-model', 'schema', 'graph', 'core']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6','human',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8380,19 +8415,19 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d003_en','1.0','ws_spec0001_en','Content Type: the nature of knowledge in a node','factual','markdown','Every Memory Node must be tagged with a Content Type:
+  ('mem_d003_en','1.0','ws_spec0001_en','Content Type: The Epistemic Nature of Nodes','factual','markdown','Each Memory Node must be tagged with one Content Type:
 
 | Type | Description | Example |
-|------|-------------|---------|
+|------|------|------|
 | `factual` | Declarative facts | "pgvector supports cosine similarity" |
-| `procedural` | Step-by-step process | "How to set up a Docker Compose dev environment" |
-| `preference` | Preferences or decisions | "We chose bcrypt over argon2" |
-| `context` | Background context | "Why this project uses bilingual design" |
-| `source_document` | Original document retained at ingestion (§20) | A meeting transcript, a full PDF |
+| `procedural` | Step-by-step procedures | "How to configure Docker Compose development environment" |
+| `preference` | Preferences or decisions | "We choose bcrypt over argon2" |
+| `context` | Background context | "Reasons why this project adopts bilingual design" |
+| `source_document` | Original document preserved during ingestion (§20) | A meeting recording transcript, full text of a PDF |
 
-**`source_document` characteristics**: Created automatically by the `ingest` flow; body holds the full text or transcript. **Excluded by default** from Graph View / search / Q&A context. Extracted nodes link back to the original passage via `source_doc_node_id` + `source_paragraph_ref`.
+**`source_document` characteristics**: Automatically created by the `ingest` pipeline; body contains the full document text or transcript, and is **excluded** by default from Graph View / search / Q&A context. Extracted nodes link back to original paragraphs via `source_doc_node_id` + `source_paragraph_ref`.
 
-Content Type affects: search filtering, AI extraction classification, default decay half-life (ephemeral workspaces), and Export Scope matching (`procedural` → user-manual, `factual` → functional-spec, etc.).',
+Content Type influences: search filtering, AI extraction categorization, default decay half-life (ephemeral workspaces), and Export Scope mapping (`procedural` → user-manual, `factual` → functional-spec, etc.).',
    ARRAY['data-model', 'schema', 'content-type', 'source-document']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8405,9 +8440,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d005_en','1.0','ws_spec0001_en','Provenance: origin and traceability','factual','plain','The provenance object on each node records the knowledge''s origin: author, created_at, signature (SHA-256 content hash), source_type (human / ai_generated / ai_verified). updated_at is added on any edit. AI-extracted nodes additionally record source_document (the source file) and extraction_model (the AI model used). Nodes copied across Knowledge Bases record copied_from.node_id and copied_from.workspace_id. Provenance is always recorded but does not restrict access.',
+  ('mem_d005_en','1.0','ws_spec0001_en','Provenance: Source and Traceability','factual','plain','The provenance object on each node records knowledge origin information: author, created_at (creation timestamp), signature (SHA-256 content hash), source_type (human / ai_generated / ai_verified). After edits, updated_at is added. AI-extracted nodes additionally record source_document and extraction_model (AI model used). Nodes copied to other knowledge bases record copied_from.node_id and copied_from.workspace_id. Provenance is always recorded, but does not impose access restrictions.',
    ARRAY['data-model', 'provenance', 'traceability']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4','human',
-   2,2)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -8418,7 +8453,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d006_en','1.0','ws_spec0001_en','Traversal Tracking: measuring real usage','factual','plain','Nodes and edges each track traversal data. Nodes record: traversal_count (total visits) and unique_traverser_count (distinct actors). Edges record: traversal_count, rating_avg (1–5 average, null if no ratings), and rating_count. Traversals are recorded via POST /nodes/{id}/traverse or POST /edges/{id}/traverse in the REST API, or via the MCP tool traverse_edge. These numbers reflect actual knowledge usage frequency, not just what was recorded.',
+  ('mem_d006_en','1.0','ws_spec0001_en','Traversal Tracking: Usage Counters','factual','plain','Nodes and edges independently track traversal statistics. Nodes record: traversal_count (total traversals), unique_traverser_count (number of unique visitors). Edges record: traversal_count, rating_avg (1–5 average rating, null when unrated), rating_count. Traversals are recorded via API calls POST /nodes/{id}/traverse or POST /edges/{id}/traverse. The MCP tool traverse_edge also increments counts. These figures reflect the actual frequency of knowledge usage, rather than merely recorded facts.',
    ARRAY['data-model', 'traversal', 'usage-tracking']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8431,7 +8466,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d07c29a1_en','1.0','ws_spec0001_en','Update Timestamp Field (provenance.updated_at)','factual','markdown','The `provenance.updated_at` field is an optional string (date-time format) that is set on every edit after initial creation.',
+  ('mem_d07c29a1_en','1.0','ws_spec0001_en','Updated Timestamp Field (provenance.updated_at)','factual','markdown','The `provenance.updated_at` field is an optional string (in date-time format) that is set on every edit subsequent to initial creation.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:39.886390+00:00','fde73fc348c926db7350610cbd46f6cc5b253b7227e3720fad21e1ac55261d00','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8457,7 +8492,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d1d90285_en','1.0','ws_spec0001_en','API Key Scope: kb:propose','factual','markdown','An API Key with the `kb:propose` scope grants the capabilities of the contributor role, including all read permissions and the ability to submit proposals.',
+  ('mem_d1d90285_en','1.0','ws_spec0001_en','API Key Scope: kb:propose','factual','markdown','An API Key with the kb:propose scope grants Contributor role capabilities, including all read permissions as well as the ability to submit proposals.',
    ARRAY['api-key', 'scope', 'contributor', 'proposal']::text[],'public','system','2026-04-24T11:25:40.620555+00:00','676665976061e64f48291d081a2edea8a4ae9b7eafef376b42fd6438a6a74965','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8470,7 +8505,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d2b5ef2f_en','1.0','ws_spec0001_en','Resource URI Handling in MCP Server','factual','markdown','The MCP server handles requests for `memtrace://guide/node` and `memtrace://guide/edge` URIs based on the request parameters, returning corresponding Markdown content. For unknown resource URIs, the server throws an error.',
+  ('mem_d2b5ef2f_en','1.0','ws_spec0001_en','Resource URI Handling in MCP Server','factual','markdown','The MCP server handles requests for `memtrace://guide/node` and `memtrace://guide/edge` based on the URI in request parameters, returning the corresponding Markdown content. For unknown resource URIs, the server throws an error.',
    ARRAY['mcp', 'server', 'resource', 'uri', 'api']::text[],'public','system','2026-04-25T02:39:28.168325+00:00','2a481a49932b3fe3aaa57af8df71c64f827b6103478398eaaae36179a315ab44','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8483,8 +8518,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d3564082_en','1.0','ws_spec0001_en','Handle 202 Response for createNode/updateNode','procedural','markdown','When the createNode or updateNode API returns a 202 status code, the review_id should be extracted from the response body and explicitly returned to the AI agent.',
-   ARRAY['api', '錯誤處理', 'ai代理', '審核流程']::text[],'public','system','2026-04-25T02:39:59.693849+00:00','23ae917c2d984d6ff3437a3c309dd34ed183a39846dbcf3156193dc0e779c845','ai',
+  ('mem_d3564082_en','1.0','ws_spec0001_en','Handling 202 Responses for createNode/updateNode','procedural','markdown','When the createNode or updateNode API returns a 202 status code, review_id should be extracted from the response body and explicitly returned to the AI agent.',
+   ARRAY['api', 'error-handling', 'ai-agent', 'review-process']::text[],'public','system','2026-04-25T02:39:59.693849+00:00','23ae917c2d984d6ff3437a3c309dd34ed183a39846dbcf3156193dc0e779c845','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8496,48 +8531,47 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d38edbc7_en','1.0','ws_spec0001_en','Workspace Settings: AI Management Tab (Review Settings and Smart Maintenance)','procedural','markdown','The "AI Management" tab on the workspace settings page consolidates the previously separate "Review Settings" and "Smart Maintenance" pages, centralizing all AI-related features.
+  ('mem_d38edbc7_en','1.0','ws_spec0001_en','Workspace Settings: AI Management Tab (Review Settings & Smart Maintenance)','procedural','markdown','The "AI Management" tab in Workspace Settings consolidates the previously separated "Review Settings" and "Smart Maintenance" pages into a centralized management interface for all AI-related functionality.
 
-## Three functional blocks
+## Three Functional Sections
 
-### 1. Consult AI settings
+### 1. Consult AI Settings
 
 | Setting | Description |
 |--------|------|
-| Consult Provider | the model used for diagnosis and merge suggestions (blank uses the system default) |
-| Auto-merge trust level | `ask` (manual confirmation) or `full_trust` (auto-merge; dangerous operations are still intercepted) |
+| Consult Provider | Specifies the model used for diagnostics and merge suggestions (defaults to system default if empty) |
+| Auto-Merge Trust Level | `ask` (manual confirmation) or `full_trust` (auto-merge, dangerous operations are still intercepted) |
 
-A confirmation dialog warns of the risk before switching to `full_trust`.
+A confirmation dialog warning of risks is displayed before switching to `full_trust`.
 
 ### 2. AI Reviewers
 
-Quick create: pick **Provider -> Model -> Create**; the name is auto-generated.
+Quick creation: Select **Provider → Model → Create**, and the name is automatically generated.
 
-Expand "Advanced settings" to modify:
-- Name (custom identifying label)
-- System Prompt (defaults to the standard review prompt)
-- Auto-accept threshold (default 0.95)
-- Auto-reject threshold (default 0.10)
-- Enabled / disabled toggle
+Expand "Advanced Settings" to configure:
+- Name (custom identification label)
+- System Prompt (defaults to standard review prompt)
+- Auto-Accept Threshold (default 0.95)
+- Auto-Reject Threshold (default 0.10)
+- Enable / Disable toggle
 
-Created reviewers are shown as a card list and can be individually enabled / disabled / deleted.
+Configured reviewers are displayed as a card list and can be individually enabled, disabled, or deleted.
 
 ### 3. Smart Maintenance
 
 | Feature | Description |
 |------|------|
-| Smart hierarchy synthesis | scans orphan nodes and auto-generates summary nodes to optimize graph structure |
-| Potential-link prediction | predicts inter-node links by semantic similarity and suggests them into the review queue |
+| Smart Hierarchy Synthesis | Scans orphaned nodes and automatically generates summary nodes to optimize graph structure |
+| Potential Relation Prediction | Predicts relationships between nodes based on semantic similarity, submitting suggestions to the review queue |
 
-Both are manually triggered (button-run), not scheduled.
+Both features are triggered manually (via button execution) rather than scheduled automated runs.
 
-## Design principles
+## Design Principles
 
-- Only the workspace owner can modify AI Management settings
-- A reviewer takes effect immediately after creation; disabling does not delete its history
-- When multiple reviewers are enabled, they are tried in creation order and the first success wins
-',
-   ARRAY['workspace-settings', 'ui', 'ai-management', 'maintenance', 'reviewer']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','8adcf188af6271a30edf160f02cf40df24d4826548ebe4fd0032848b12de483e','ai',
+- Only workspace owners can modify AI management settings
+- Reviewers take effect immediately upon creation; disabling does not delete historical records
+- When multiple reviewers are enabled, they are attempted in order of creation, taking the result of the first successful one',
+   ARRAY['workspace-settings', 'ui', 'ai-management', 'maintenance', 'reviewer']::text[],'public','memtrace-spec','2026-06-19T00:00:00+00:00','b29d7fb38c4eb0bdd508282a860f32251ace8676ad9e18d187bb0b33132d60e0','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8549,13 +8583,13 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d419e8e3_en','1.0','ws_spec0001_en','Private Workspace Design Boundaries','factual','markdown','Design boundaries for private workspaces (`visibility=private`) in MemTrace:
+  ('mem_d419e8e3_en','1.0','ws_spec0001_en','Private Workspace Design Boundaries','factual','markdown','Design boundaries for MemTrace private workspaces (`visibility=private`):
 
-1. Private nodes are excluded from the global search index.
-2. Cross-workspace queries (`search_cross_workspace`) do not include private workspace content unless the requester is a member of that workspace.
-3. Private nodes may link to public nodes via edges, but back-references remain invisible externally.
-4. Telemetry for private workspaces is visible only to admins.',
-   ARRAY['private', 'workspace', 'boundaries', 'design-decision', 'visibility']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','b0e8j9l1g2i3648f76hi8901234567hi8901234567hi8901234567abcdef12345','ai',
+1. Private nodes do not enter the global search index.
+2. Cross-workspace queries (`search_cross_workspace`) do not include private workspace content, unless the searcher is a member of that workspace.
+3. Private nodes can link to public nodes via edges, but incoming back-references are not visible externally.
+4. Telemetry for private workspaces is only visible to admins.',
+   ARRAY['private', 'private', 'workspace', 'boundary', 'design-decision']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','b0e8j9l1g2i3648f76hi8901234567hi8901234567hi8901234567abcdef12345','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8567,7 +8601,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d679d993_en','1.0','ws_spec0001_en','MemTrace Core Philosophy: Knowledge and Curator Relationship','factual','markdown','MemTrace''s design philosophy goes beyond a mere permissions model, articulating the relationship between knowledge and its curator.',
+  ('mem_d679d993_en','1.0','ws_spec0001_en','MemTrace Core Philosophy: The Relationship Between Knowledge and Its Curator','factual','markdown','The design philosophy of MemTrace transcends a simple permission model, articulating the relationship between knowledge and its curator.',
    ARRAY['memtrace', 'philosophy', 'knowledge-management']::text[],'public','system','2026-04-24T11:27:02.088865+00:00','f8f87913529c03f880e7c1e82cea98b7b4b167dcf7d43215cacf3e98218bd995','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8580,8 +8614,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d692bb11_en','1.0','ws_spec0001_en','README/Usage Document Update: Multiple Workspaces, Known ID Scenario','procedural','markdown','The README and usage documentation have been updated to describe the multiple workspaces, known ID scenario: set `MEMTRACE_WS` to the most frequently used workspace, and when querying other workspaces, include the `workspace_id` parameter with each tool call.',
-   ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-26T00:29:47.118808+00:00','9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051','ai',
+  ('mem_d692bb11_en','1.0','ws_spec0001_en','README / Documentation Update: Multi-KB, Known ID Use Case','procedural','markdown','The README and documentation have been updated to explain the multi-KB, known ID use case: set `MEMTRACE_WS` to the most frequently used workspace, and pass the `workspace_id` parameter with every tool call when querying other workspaces.',
+   ARRAY['document', 'use-case', 'workspace']::text[],'public','system','2026-04-26T00:29:47.118808+00:00','9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8593,7 +8627,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_da5739b0_en','1.0','ws_spec0001_en','Import Preview Screen Overview','factual','markdown','The import preview screen displays a summary of the import job, including the total number of nodes and edges, and which nodes are clean or potentially duplicates.',
+  ('mem_da5739b0_en','1.0','ws_spec0001_en','Import Preview Screen Overview','factual','markdown','The import preview screen displays a summary of the import operation, including the total counts of nodes and edges, as well as which nodes are clean or potentially duplicate.',
    ARRAY['import', 'ui', 'preview']::text[],'public','system','2026-04-24T11:25:40.950895+00:00','33e0e380ea727d436286ac1bf2851417357f1fbec9cdf77e3c99a89c6c790c2a','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8606,7 +8640,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_dbaef1ba_en','1.0','ws_spec0001_en','Workspace Owner Role','factual','markdown','The workspace owner is always an admin and cannot be demoted from this role.',
+  ('mem_dbaef1ba_en','1.0','ws_spec0001_en','Workspace Owner Role','factual','markdown','Workspace owners are always Admins and cannot be demoted from this role.',
    ARRAY['role', 'owner', 'admin', 'restriction']::text[],'public','system','2026-04-24T11:25:40.522712+00:00','5adde963a195e4b5f2c42f464fcdc25d634412c734ad62d4e46760cb4799b819','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8619,8 +8653,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_dc852972_en','1.0','ws_spec0001_en','MEMTRACE_TOKEN Security Reminder','factual','markdown','A security reminder text regarding `MEMTRACE_TOKEN` has been added to the server startup''s standard error log (stderr log).',
-   ARRAY['環境變數', '安全性', '日誌']::text[],'public','system','2026-04-25T02:39:36.926692+00:00','656f7b6e924f07b2bef8f84a0a2a011de8f9270d6618c86707eb069cb8973af7','ai',
+  ('mem_dc852972_en','1.0','ws_spec0001_en','MEMTRACE_TOKEN Security Notice','factual','markdown','A security notice regarding `MEMTRACE_TOKEN` has been added to the standard error log (stderr log) during server startup.',
+   ARRAY['environment-variable', 'security', 'logging']::text[],'public','system','2026-04-25T02:39:36.926692+00:00','656f7b6e924f07b2bef8f84a0a2a011de8f9270d6618c86707eb069cb8973af7','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8632,13 +8666,13 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_dd1d4589_en','1.0','ws_spec0001_en','Connector Third-Party Integration Product Stance','factual','markdown','MemTrace''s product stance on Connectors (third-party system integrations):
+  ('mem_dd1d4589_en','1.0','ws_spec0001_en','Connector Third-Party Integration Product Stance','factual','markdown','MemTrace product stance on Connectors (third-party system integrations):
 
-1. Connectors are an optional feature, not a dependency on the core path.
-2. Third-party data enters via `ingest_document` and is subject to the same governance process as manually created nodes.
-3. Connectors do not bypass the safety review battery.
-4. Third-party source nodes have `provenance.source_type` set to `"tool"`; `author` records the connector name.
-5. The Connectors UI tab is temporarily hidden; the architectural foundation is in place and ready to enable.',
+1. Connectors are optional features, not core path dependencies.
+2. Third-party data enters via `ingest_document`, subject to the same governance workflow as manually created nodes.
+3. Connectors do not bypass security review batteries.
+4. Third-party sources have `provenance.source_type` marked as "tool", with `author` recording the connector name.
+5. The UI Connectors tab is temporarily hidden, with functional architecture in place awaiting activation.',
    ARRAY['connector', 'third-party', 'integration', 'product-stance', 'ingest']::text[],'public','system','2026-06-25T00:00:00.000000+00:00','f4i2n3p5k6m7082j10lm2345678901lm2345678901lm2345678901abcdef123456789','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8651,7 +8685,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_df5063bd_en','1.0','ws_spec0001_en','List Archived Nodes API','procedural','markdown','Provide an API endpoint `GET /workspaces/{ws_id}/nodes?filter=archived` to list all archived nodes within a specified workspace.',
+  ('mem_df5063bd_en','1.0','ws_spec0001_en','List Archived Nodes API','procedural','markdown','Provides an API endpoint `GET /workspaces/{ws_id}/nodes?filter=archived` to list all archived nodes in the specified workspace.',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:49.910036+00:00','50c10babc72825ea1a4c613a30ae476d998c5a3f0fbe90f05d8277b528f729c9','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8664,8 +8698,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_e0ebc6e5_en','1.0','ws_spec0001_en','README/Usage Document Update: Single Workspace Scenario','procedural','markdown','The README and usage documentation have been updated to describe the single workspace (simplest) scenario: only set the `MEMTRACE_WS` environment variable and omit the `workspace_id` parameter when calling tools.',
-   ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-25T02:39:36.230691+00:00','e59e02c6a9011e9b691d3806389ed96d8988532eecc222d1c30c7876176156ef','ai',
+  ('mem_e0ebc6e5_en','1.0','ws_spec0001_en','README / Documentation Update: Single-KB Use Case','procedural','markdown','The README and documentation have been updated to explain the single-KB (simplest) use case: simply set the `MEMTRACE_WS` environment variable, and omit passing the `workspace_id` parameter when calling tools.',
+   ARRAY['document', 'use-case', 'workspace']::text[],'public','system','2026-04-25T02:39:36.230691+00:00','e59e02c6a9011e9b691d3806389ed96d8988532eecc222d1c30c7876176156ef','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8677,7 +8711,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_e10a0200_en','1.0','ws_spec0001_en','Display One-Time Copy Dialog for New Key','procedural','markdown','After creation, a one-time copy dialog should be displayed for the new key.',
+  ('mem_e10a0200_en','1.0','ws_spec0001_en','Display One-Time Copy Dialog for New Key','procedural','markdown','After a key is created, a one-time copy dialog should be displayed.',
    ARRAY['api-key', 'ui']::text[],'public','system','2026-04-25T02:38:53.632458+00:00','04c3b3db95c39e7be32de5edbd26fc9e83a18b2fc27939e5c70d2740b8e39975','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8690,7 +8724,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_e3e6a8a4_en','1.0','ws_spec0001_en','UI Onboarding Flow Progress Bar','factual','markdown','A persistent progress bar, e.g., "Step X of Y", is shown at the top of each step. Required steps are marked, and skippable steps show a "Skip for now" link.',
+  ('mem_e3e6a8a4_en','1.0','ws_spec0001_en','UI Onboarding Flow Progress Bar','factual','markdown','A persistent progress bar is displayed at the top of each step, such as "Step X / Y". Required steps are marked, while skippable steps display a "Skip for now" link.',
    ARRAY['ui', 'onboarding', 'progress']::text[],'public','system','2026-04-24T11:31:27.668692+00:00','b765919fa3c8d7ca9d84e73220b483af69ddf3e5317b220e195ca32f868b427d','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8703,7 +8737,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_e73ea399_en','1.0','ws_spec0001_en','EDGE_GUIDE Content Definition','factual','markdown','The `EDGE_GUIDE` constant defines relation type semantics, weight range, `half_life_days` explanation, and 409 conflict handling.',
+  ('mem_e73ea399_en','1.0','ws_spec0001_en','EDGE_GUIDE Content Definition','factual','markdown','The `EDGE_GUIDE` constant defines relation type semantics, weight ranges, `half_life_days` descriptions, and 409 conflict handling methods.',
    ARRAY['edge_guide', 'edge', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:29.242927+00:00','5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8716,7 +8750,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_e778fedf_en','1.0','ws_spec0001_en','Memory Node Signature','factual','markdown','The `signature` column in the `memory_nodes` table is of type TEXT, storing the SHA-256 content hash of the memory node.',
+  ('mem_e778fedf_en','1.0','ws_spec0001_en','Memory Node Signature','factual','markdown','The `signature` column in the `memory_nodes` table is of type TEXT, storing the SHA-256 hash of the memory node content.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'hash']::text[],'public','system','2026-04-24T11:25:39.089390+00:00','b3e2a69453c440c83d3d584bf7789a00fa68991922c6de7dd86d5e94dc6f159b','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8729,21 +8763,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_e9875476_en','1.0','ws_spec0001_en','Input Mode Selection','procedural','markdown','Input modes are selectable via a tab toggle within the editor.',
+  ('mem_e9875476_en','1.0','ws_spec0001_en','Input Mode Selection','procedural','markdown','Input modes can be selected via tab switching inside the editor.',
    ARRAY['editor', 'input-mode', 'ui']::text[],'public','usr_6bc7b4c7','2026-04-24T11:25:39.374323+00:00','585df44f3ba32837cd36c7de38c486adf0a047f38a72f9bbf983f9615d86b47b','ai',
-   10,3)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_ee62ef2c_en','1.0','ws_spec0001_en','API Endpoint for Stripped Graph Payload','factual','markdown','The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` serves the stripped graph payload.',
-   ARRAY['api', '端點', '簡化結構']::text[],'public','system','2026-04-24T11:25:39.793666+00:00','692f0b08e25bd54aa1bb741d90fa13d17d3c521fb8eae5d5eea3f70315d0124c','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8755,7 +8776,20 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_eedc4eef_en','1.0','ws_spec0001_en','API Key Scope: kb:read','factual','markdown','An API key with the `kb:read` scope grants viewer role capabilities, allowing search, read, traverse, and rate operations.',
+  ('mem_ee62ef2c_en','1.0','ws_spec0001_en','API Endpoint for Simplified Graph Payloads','factual','markdown','The endpoint `GET /api/v1/workspaces/{ws_id}/graph?preview=true` is used to provide simplified graph payloads.',
+   ARRAY['api', 'endpoint', 'simplified-structure']::text[],'public','system','2026-04-24T11:25:39.793666+00:00','692f0b08e25bd54aa1bb741d90fa13d17d3c521fb8eae5d5eea3f70315d0124c','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
+  ('mem_eedc4eef_en','1.0','ws_spec0001_en','API Key Scope: kb:read','factual','markdown','An API key with the `kb:read` scope grants viewer role capabilities, allowing search, read, traverse, and rating operations.',
    ARRAY['api-key', 'scope', 'viewer', 'read-access']::text[],'public','system','2026-04-24T11:25:40.597989+00:00','1be172568b159d3b911a49177c590a9d5b74b6ec33a344f7abd355388b2c30c5','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8768,8 +8802,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ef3bebe9_en','1.0','ws_spec0001_en','JWT Token Payload Structure','factual','markdown','The JWT Token payload includes `sub` (user ID), `email`, `display_name`, `iat` (issued-at time), and `exp` (expiry time) fields.',
-   ARRAY['jwt', 'token', '載荷', '對談管理']::text[],'public','system','2026-04-24T11:25:40.127115+00:00','28b7156405594bd26902d892ca1e916dbbde4c482b49dbb04839f3fec346da9a','ai',
+  ('mem_ef3bebe9_en','1.0','ws_spec0001_en','JWT Token Payload Structure','factual','markdown','The JWT token payload includes fields such as `sub` (user ID), `email`, `display_name`, `iat` (issued-at time), and `exp` (expiration time).',
+   ARRAY['jwt', 'token', 'payload', 'conversation-management']::text[],'public','system','2026-04-24T11:25:40.127115+00:00','28b7156405594bd26902d892ca1e916dbbde4c482b49dbb04839f3fec346da9a','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8781,7 +8815,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ef8ec8ec_en','1.0','ws_spec0001_en','AI Chat Uses KB Association Boundaries','factual','markdown','The AI Chat functionality will depend on the boundary settings of knowledge base associations.',
+  ('mem_ef8ec8ec_en','1.0','ws_spec0001_en','AI Chat Knowledge Base Association Boundaries','factual','markdown','The AI Chat feature relies on boundary settings for knowledge base associations.',
    ARRAY['ai-chat', 'knowledge-base-association']::text[],'public','system','2026-04-25T02:39:58.716612+00:00','386ed5a376b7d7370a26182eaf9146e51d7f02dc1aec134bab2d9fb00a5f2986','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8794,62 +8828,62 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_exp001_en','1.0','ws_spec0001_en','Knowledge Base Explore Page (Hub) Spec','factual','markdown','## Goal
+  ('mem_exp001_en','1.0','ws_spec0001_en','Knowledge Base Exploration Page (Hub) Specification','factual','markdown','## Goals
 
-Provide a unified entry point for browsing and searching knowledge bases, solving the problem of finding a target KB once the number of workspaces grows. It has two levels: public KB discovery, and quick switching among personal KBs.
+Provide a unified entry point for browsing and searching knowledge bases, solving the problem of difficulty finding target KBs as the workspace count grows. Divided into two tiers: public KB discovery and personal KB quick switching.
 
-## Navigation logic (Option B)
+## Navigation Logic (Option B)
 
-- When `selectedWs === null` (no workspace selected), the central main content area shows the explore page as the default home
-- Clicking the MemTrace logo -> clears selectedWs, returning to the explore page
-- localStorage remembers the last-used workspace ID and jumps back to it automatically after login
-- The explore page also serves as the landing page for anonymous visitors (when allow_anonymous is on)
+- When `selectedWs === null` (no workspace selected), the central main content area displays the exploration page as the default homepage.
+- Clicking the MemTrace logo → clears selectedWs, returning to the exploration page.
+- localStorage remembers the last used workspace ID and automatically redirects back after login.
+- The exploration page also serves as the landing page for anonymous visitors (when allow_anonymous is enabled).
 
-## Access
+## Access Permissions
 
-| User state | Content shown |
+| User State | Displayed Content |
 |---|---|
-| Not logged in (anonymous) | only public / conditional_public KBs |
-| Logged in | My KBs (private) + public KBs, shown in separate sections |
+| Not logged in (Anonymous) | Only displays public / conditional_public KBs |
+| Logged in | Displays My KBs (private) + Public KBs in distinct sections |
 
-## Backend endpoint: GET /workspaces/explore
+## Backend Endpoint: GET /workspaces/explore
 
 No auth required (public endpoint). Query params:
-- `q`: fuzzy name search
+- `q`: Fuzzy search on name
 - `lang`: `zh-TW` | `en` filter
 - `sort`: `newest` (created_at desc) | `nodes` (node count desc)
 
-Returned fields: `id`, `name`, `description`, `language`, `visibility`, `node_count`, `owner_display_name`, `created_at`
+Return fields: `id`, `name`, `description`, `language`, `visibility`, `node_count`, `owner_display_name`, `created_at`
 
-When logged in, with an `Authorization: Bearer ...` header the backend additionally merges in that user''s private KBs.
+When logged in, appending the header `Authorization: Bearer ...` causes the backend to additionally merge and return the user''s private KBs.
 
-## workspaces table new field
+## New Fields in workspaces Table
 
-`description text` (nullable) — a KB summary shown on explore-page cards. The WorkspaceSettings page adds a description field for the owner to edit.
+`description text` (nullable) — Knowledge base description, displayed on exploration page cards.
+WorkspaceSettings page adds a description field for the owner to edit.
 
 ## Frontend ExplorePage.tsx
 
-**KB card shows:**
-- Name (large heading)
-- Description (truncated to 2 lines)
+**KB Card Display:**
+- Name (large title)
+- Description (truncated to at most 2 lines)
 - Language tag (Traditional Chinese / English)
-- Node-count badge
+- Node count badge
 - Visibility badge (Public / Private)
-- Creator''s display name
-- Clicking switches to the workspace directly
+- Creator display name
+- Click directly switches workspace
 
-**Search and filter bar:**
-- Live name search (frontend filter, no debounced API call)
+**Search & Filter Bar:**
+- Real-time name search (frontend filter, no debounced API call needed)
 - Language toggle
-- Sort menu (newest / node count)
+- Sort dropdown (Newest / Node Count)
 
 **Sections:**
-1. My Knowledge Bases (shown only when logged in)
+1. My Knowledge Bases (only displayed when logged in)
 2. Public Knowledge Bases
 
-## Status: pending (to be implemented)
-',
-   ARRAY['feature', 'explore', 'hub', 'workspace', 'discovery', 'ux']::text[],'public','system','2026-06-14T00:00:00+00:00','683ac9641e6435751ee8616a9d0b4cb4ec00b387ae9d60263f16239a4dc12e5a','ai',
+## Status: pending (to be implemented)',
+   ARRAY['feature', 'explore', 'hub', 'workspace', 'discovery', 'ux']::text[],'public','system','2026-06-14T00:00:00+00:00','exp001_explore_hub_spec','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8861,7 +8895,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f027cd84_en','1.0','ws_spec0001_en','MemTrace AI Features Overview','factual','markdown','MemTrace uses AI in three distinct contexts, all sharing the same provider abstraction and API key model.',
+  ('mem_f027cd84_en','1.0','ws_spec0001_en','MemTrace AI Feature Overview','factual','markdown','MemTrace uses AI across three distinct contexts, all of which share the same provider abstraction and API key model.',
    ARRAY['ai', 'features', 'architecture']::text[],'public','system','2026-04-24T11:25:40.433573+00:00','613853d08868de023cab46df86662e05317b460277273a997266163eb98cd87a','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8874,49 +8908,49 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f0a4f717_en','1.0','ws_spec0001_en','背景作業可觀測性：scheduler_heartbeats + job_runs 兩層設計','factual','markdown','## 設計目標
+  ('mem_f0a4f717_en','1.0','ws_spec0001_en','Background Job Observability: scheduler_heartbeats + job_runs Two-Tier Design','factual','markdown','## Design Goals
 
-讓所有背景作業（11 個排程 loop + 7 大審查員）留下持久紀錄，可追查「跑了沒、跑出幾筆、哪個 reviewer 出錯」。
+Ensure all background jobs (11 scheduled loops + 7 major reviewers) leave persistent records to track "whether it ran, how many records were generated, and which reviewer encountered errors".
 
-## 兩層結構
+## Two-Tier Structure
 
-### 第一層：scheduler_heartbeats（高頻 job，upsert）
+### Tier 1: scheduler_heartbeats (High-frequency jobs, upsert)
 
-每個 job 一列，每次跑更新：
+One row per job, updated on each run:
 
-| 欄位 | 說明 |
+| Field | Description |
 |---|---|
-| `job_name` | 唯一識別（PK） |
+| `job_name` | Unique identifier (PK) |
 | `status` | running / success / failed |
-| `last_run_at` / `last_success_at` / `last_failure_at` | 時間戳 |
-| `duration_ms` | 最後一次執行時長 |
-| `run_count` / `failure_count` | 累計計數 |
-| `last_error` | 最後一次錯誤訊息 |
+| `last_run_at` / `last_success_at` / `last_failure_at` | Timestamps |
+| `duration_ms` | Execution duration of the last run |
+| `run_count` / `failure_count` | Cumulative counts |
+| `last_error` | Most recent error message |
 
-### 第二層：job_runs（有意義 job，append）
+### Tier 2: job_runs (Meaningful jobs, append)
 
-每次執行 append 一列，不覆蓋：
+Appends one row per execution, without overwriting:
 
-| 欄位 | 說明 |
+| Field | Description |
 |---|---|
 | `id` | `jobrun_xxx` |
-| `job_name` | 作業名稱 |
-| `workspace_id` | 可選，per-workspace 作業使用 |
+| `job_name` | Job name |
+| `workspace_id` | Optional, used by per-workspace jobs |
 | `trigger` | scheduler / node_event / manual |
 | `status` | running / success / failed / skipped |
-| `scanned/processed/created/failed_count` | 數量統計 |
-| `summary` | JSON，存 reviewer 提案數等細節 |
-| `error` | 錯誤訊息 |
+| `scanned/processed/created/failed_count` | Quantitative statistics |
+| `summary` | JSON, storing details such as reviewer proposal counts |
+| `error` | Error message |
 
-## 自動儀器化
+## Automatic Instrumentation
 
-`scheduler.register_loop(name, fn, interval, observable=True)` 自動記 heartbeat。需要更細紀錄的 job（如 audit_reviewers）標 `observable=False` 並自己呼叫 `start_job_run / finish_job_run`。
+`scheduler.register_loop(name, fn, interval, observable=True)` automatically records heartbeats. Jobs requiring finer-grained tracking (e.g., audit_reviewers) are marked with `observable=False` and invoke `start_job_run / finish_job_run` manually.
 
-## 7 大審查員整合
+## 7 Major Reviewers Integration
 
-`audit_reviewers_job` 為每個 workspace 建一筆 job_run，`summary.reviewers` 記錄各 reviewer 提案數與失敗數，不再靜默吞掉錯誤。
+`audit_reviewers_job` creates a job_run for each workspace, with `summary.reviewers` recording each reviewer''s proposal and failure counts, eliminating silent error swallowing.
 
-## 相關實作
+## Related Implementations
 
 - `services/job_observability.py`
 - `routers/job_observability.py`
@@ -8934,7 +8968,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f2edb572_en','1.0','ws_spec0001_en','Edge Traversal Statistics Data Structure','factual','markdown','The `traversal` object in an edge response includes `count` (number of traversals), `rating_avg` (average rating), and `rating_count` (number of ratings) fields.',
+  ('mem_f2edb572_en','1.0','ws_spec0001_en','Edge Traversal Statistics Data Structure','factual','markdown','The `traversal` object in the edge response contains the fields `count` (traversal count), `rating_avg` (average rating), and `rating_count` (rating count).',
    ARRAY['data-structure', 'traversal-stats', 'edge', 'rating']::text[],'public','system','2026-04-24T11:25:40.274389+00:00','44138550101d58d53cf07a6ec12d41ed6fae6e149da9cf27f11fffac79788237','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8947,7 +8981,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f70b4273_en','1.0','ws_spec0001_en','Determining Onboarding Progress','factual','markdown','The `steps_done` and `steps_skipped` fields together determine the current onboarding step and progress bar value.',
+  ('mem_f70b4273_en','1.0','ws_spec0001_en','Determining Onboarding Flow Progress','factual','markdown','The two fields `steps_done` and `steps_skipped` jointly determine the current onboarding step and progress bar value.',
    ARRAY['onboarding', 'progress', 'ui']::text[],'public','system','2026-04-24T11:25:40.398911+00:00','16aaf873e830ab998ec1834add380b9d5bafa80ec0b980ad6bc58c2a60e90b4a','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8960,8 +8994,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f8057a39_en','1.0','ws_spec0001_en','Tool Description Update','procedural','markdown','The descriptions for tools like `search_nodes`, `get_node`, `traverse`, and `list_by_tag` have been updated to include a line explaining how to pass `workspace_id` to query a specific KB, or omit it to use the configured default (`MEMTRACE_WS`).',
-   ARRAY['工具', '文件', '工作區']::text[],'public','system','2026-04-25T02:39:37.786358+00:00','619066f74e4abdca14e319bcd9cbfe613562619b098582a5070872003bddedae','ai',
+  ('mem_f8057a39_en','1.0','ws_spec0001_en','Tool Description Update','procedural','markdown','The descriptions of tools including `search_nodes`, `get_node`, `traverse`, and `list_by_tag` have been updated to add a line explaining how to use the `workspace_id` parameter to query a specific knowledge base, or omit it to use the default `MEMTRACE_WS`.',
+   ARRAY['tool', 'document', 'workspace']::text[],'public','system','2026-04-25T02:39:37.786358+00:00','619066f74e4abdca14e319bcd9cbfe613562619b098582a5070872003bddedae','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8973,8 +9007,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f83d6e1b_en','1.0','ws_spec0001_en','AI Agent Workflow: Create New Node','procedural','markdown','AI agents should call the `create_node` function to create new nodes, providing fields such as `title_zh`, `title_en`, `content_type`, `content_format`, and `body_zh`. Specifically, AI agents must set `source_type: "ai"`.',
-   ARRAY['ai代理', '工作流程', '節點建立', 'api']::text[],'public','system','2026-04-25T02:39:25.137437+00:00','04fe85dcca072d61a5b4587e35961b2be16ec3bc52a01b288b2e17f13a480e33','ai',
+  ('mem_f83d6e1b_en','1.0','ws_spec0001_en','AI Agent Workflow: Creating New Nodes','procedural','markdown','AI agents should call the `create_node` function to create new nodes, providing fields such as `title_zh`, `title_en`, `content_type`, `content_format`, and `body_zh`. In particular, AI agents must set `source_type: "ai"`.',
+   ARRAY['ai-agent', 'workflow', 'node-creation', 'api']::text[],'public','system','2026-04-25T02:39:25.137437+00:00','04fe85dcca072d61a5b4587e35961b2be16ec3bc52a01b288b2e17f13a480e33','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8986,8 +9020,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f9a2bb47_en','1.0','ws_spec0001_en','Source Document Node Field Definition','factual','markdown','A source document node has the following fields: `content_type` as `source_document`, `title_zh`/`title_en` as original filename + ingestion timestamp, `body_zh`/`body_en` as full extracted text or transcript, `visibility` defaulting to `private`, and `source_type` as `human`.',
-   ARRAY['後端資料', '來源', '文件']::text[],'public','system','2026-04-24T11:25:40.773860+00:00','7d2711cfebac275319bf5ebc62579cd1b3de62a9d03f2952bdd65e03bb984b84','ai',
+  ('mem_f9a2bb47_en','1.0','ws_spec0001_en','Source Document Node Field Definitions','factual','markdown','Source document nodes contain the following fields: `content_type` is `source_document`, `title_zh`/`title_en` is the original filename + import timestamp, `body_zh`/`body_en` is the complete extracted text or transcript, `visibility` defaults to `private`, and `source_type` is `human`.',
+   ARRAY['backend-data', 'source', 'document']::text[],'public','system','2026-04-24T11:25:40.773860+00:00','7d2711cfebac275319bf5ebc62579cd1b3de62a9d03f2952bdd65e03bb984b84','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9012,8 +9046,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_fb0354ee_en','1.0','ws_spec0001_en','Add MEMTRACE_TOKEN Environment Variable','factual','markdown','The `MEMTRACE_TOKEN` environment variable is added to support `list_workspaces` and future writing tools in accessing `/api/v1/workspaces`. This variable injects the API token into the `Authorization: Bearer` header of `apiFetch`.',
-   ARRAY['環境變數', 'api', '認證', '安全性']::text[],'public','system','2026-04-25T02:39:33.890766+00:00','5a92752ad8e42bd741785135c860e72414dc35b7ea7f68525e8f904ee3b40f5f','ai',
+  ('mem_fb0354ee_en','1.0','ws_spec0001_en','Adding MEMTRACE_TOKEN Environment Variable','factual','markdown','To support `list_workspaces` and future write tool access to `/api/v1/workspaces`, the `MEMTRACE_TOKEN` environment variable was added. This variable injects the API token into the `Authorization: Bearer` header of `apiFetch`.',
+   ARRAY['environment-variable', 'api', 'authentication', 'security']::text[],'public','system','2026-04-25T02:39:33.890766+00:00','5a92752ad8e42bd741785135c860e72414dc35b7ea7f68525e8f904ee3b40f5f','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9025,8 +9059,8 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_fcfc3360_en','1.0','ws_spec0001_en','AI Call Logging Requirement','factual','markdown','All AI calls, regardless of whether they use a workspace-level or account-level key, must be logged. The log serves as the authoritative record for billing, debugging, and policy enforcement.',
-   ARRAY['ai', '說明', '記錄', '錯誤', '結構']::text[],'public','system','2026-04-24T11:25:40.870968+00:00','d602c01a63a9d7c9de1f73258fc8a94b375dadb29578da5d267ed59f356eb6fa','ai',
+  ('mem_fcfc3360_en','1.0','ws_spec0001_en','AI Call Logging Requirements','factual','markdown','All AI calls, whether using workspace-level or account-level keys, must be logged. Logs serve as the authoritative record for billing, debugging, and policy enforcement.',
+   ARRAY['ai', 'description', 'logging', 'error', 'structure']::text[],'public','system','2026-04-24T11:25:40.870968+00:00','d602c01a63a9d7c9de1f73258fc8a94b375dadb29578da5d267ed59f356eb6fa','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9038,7 +9072,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_fee2f20e_en','1.0','ws_spec0001_en','AI Read Permission: Associated Workspaces','factual','markdown','AI may read from associated workspaces but is not permitted to propose writes to them.',
+  ('mem_fee2f20e_en','1.0','ws_spec0001_en','AI Read Permissions: Associated Workspaces','factual','markdown','AI can read content from associated workspaces, but is not permitted to propose write operations to them.',
    ARRAY[]::text[],'public','system','2026-04-24T11:25:40.718460+00:00','bf0b60327f5653184e709699864ee935ead4af7a24ab35a084ed82d36c9699b5','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9051,9 +9085,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ff4e804e_en','1.0','ws_spec0001_en','Onboarding Wizard Auto-Display Condition','factual','markdown','Once `completed: true`, the onboarding wizard is never shown automatically again.',
+  ('mem_ff4e804e_en','1.0','ws_spec0001_en','Onboarding Wizard Automatic Display Condition','factual','markdown','Once `completed: true`, the onboarding wizard will no longer display automatically.',
    ARRAY['onboarding', 'ui', 'completion']::text[],'public','system','2026-04-24T11:25:40.415959+00:00','0c8adbf4e2f1b9f5bc07fac93f031d00d9a0cf53f41896d28bb69c72e0415ce9','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9064,26 +9098,26 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_g001_en','1.0','ws_spec0001_en','Decay: natural weight reduction on edges','factual','markdown','Edge weight decays over time according to (v1):
+  ('mem_g001_en','1.0','ws_spec0001_en','Decay: Natural Decay of Edge Weights','factual','markdown','Edge weights decay over time according to the following formula (v1):
 
 ```
 weight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)
 ```
 
-**Core principle**: **Decay shapes attention, not existence.** Nothing is deleted by decay alone.
+**Core Principle**: **Decay shapes attention, not existence**. Nothing is deleted due to decay.
 
-**Edge state transition**: When `weight < min_weight` (default 0.1), the edge transitions to `faded`:
-- Hidden from default Graph View and traversal results
-- Still stored in the database (`status = ''faded''`); restorable by the original author or admin
-- Queryable via API with `include_faded=true`
+**Edge State Transitions**: When `weight < min_weight` (default 0.1), the edge enters the `faded` state:
+- Hidden from the default Graph View and traversal results
+- Still exists in the database (`status = ''faded''`), and can be restored by the original author or admin
+- Still queryable when appending `include_faded=true` to the API
 
-**Node level**:
-- `evergreen` workspace: nodes are archived based on traversal count within an observation window (§7.3), not time-based
-- `ephemeral` workspace: when all connected edges are faded, the node is auto-archived
+**Node Tier**:
+- `evergreen` workspaces: Nodes themselves are archived based on "traversal counts within the observation window" (§7.3), independent of temporal decay
+- `ephemeral` workspaces: When all connected edges are faded, nodes are automatically archived
 
-**Pinned exemption**: Nodes and edges with `pinned: true` are fully exempt from both time-decay and traversal-count archiving.
+**Pinned Exception**: Nodes and edges with `pinned: true` are fully exempt from decay and count-based archiving.
 
-Trigger: daily by the `apply_edge_decay()` SQL function (mirrors `packages/core/src/decay.ts`).',
+Decay Trigger: Executed daily by the `apply_edge_decay()` SQL function (mirroring `packages/core/src/decay.ts`).',
    ARRAY['graph-mechanics', 'decay', 'weight', 'faded', 'archive']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9096,7 +9130,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_g002_en','1.0','ws_spec0001_en','Co-Access Boost: strengthening edges through use','factual','markdown','When two connected nodes are accessed sequentially or simultaneously in the same context (Co-Access), the corresponding edge''s weight receives a boost based on relation type:
+  ('mem_g002_en','1.0','ws_spec0001_en','Co-Access Boost: Co-Access Reinforcement','factual','markdown','When two connected nodes are accessed sequentially or simultaneously within the same context (Co-Access), the weight of the corresponding edge receives a boost, with the boost amount varying by relation type:
 
 | Relation | Boost |
 |----------|-------|
@@ -9105,7 +9139,7 @@ VALUES
 | `related_to` | +0.15 |
 | `contradicts` | +0.10 |
 
-Also increments co_access_count, updates last_co_accessed, and caps weight at 1.0. Triggered by POST /edges/{id}/traverse or MCP tool traverse_edge.',
+Simultaneously triggers: co_access_count +1, last_co_accessed updated, weight capped at 1.0. Both the API route POST /edges/{id}/traverse and the MCP tool traverse_edge trigger the co-access boost.',
    ARRAY['graph-mechanics', 'co-access', 'boost', 'weight']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9118,14 +9152,14 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_g003_en','1.0','ws_spec0001_en','Edge relation types: four semantic directions','factual','markdown','| Relation | Semantics | When to use |
-|----------|-----------|-------------|
-| `depends_on` | Source requires target to be valid | A''s process presupposes B''s concept |
-| `extends` | Source extends or supplements target | A is an advanced version of B |
-| `related_to` | Related without clear dependency direction | A and B belong to the same topic |
-| `contradicts` | Source conflicts with target | A''s conclusion conflicts with B |
+  ('mem_g003_en','1.0','ws_spec0001_en','Edge Relation Types: Four Semantic Directions','factual','markdown','| Relation | Semantics | When to Use |
+|----------|------|----------|
+| `depends_on` | Source node depends on target node to hold true | Concept B is a procedural prerequisite for A |
+| `extends` | Source node extends or supplements target node | A is an advanced version of B |
+| `related_to` | Related but without explicit dependency direction | Both A and B belong to the same topic |
+| `contradicts` | Source node content contradicts target node | Conclusion in A conflicts with B |
 
-Choosing the correct relation type matters: it determines co-access boost strength and how AI agents interpret the relationship when traversing the graph.',
+Choosing the correct relation type is crucial, as it dictates the strength of the co-access boost and how AI agents interpret relationships when traversing the graph.',
    ARRAY['graph-mechanics', 'relation-type', 'edge', 'schema']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2b3c4d5e6f7a2','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9138,36 +9172,16 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_guide_g01_en','1.0','ws_spec0001_en','Standard Workflow for Agent Knowledge Base Exploration','procedural','markdown','## Standard Workflow for Agent Knowledge Base Exploration
+  ('mem_guide_g01_en','1.0','ws_spec0001_en','Standard MCP Workflow for Agent Knowledge Base Exploration','procedural','markdown','When an agent needs to retrieve information from a knowledge base, use MCP tools in order:
 
-Every time an agent needs to retrieve information from the knowledge base, follow these four steps:
+1. list_workspaces: Confirm target workspace and permissions.
+2. search_with_history: Prioritize replaying similar successful exploration paths.
+3. search_nodes(detail_level="probe"): Retrieve candidate nodes; when there are no results, create a gap instead of fabricating answers.
+4. get_node / traverse(detail_level="brief"): Read key content and graph relations; upgrade to full only when necessary.
+5. record_path: Record the actual visited node_sequence along with the outcome: success, partial, failed, or gap.
 
-### Step 1: Replay Historical Paths (Priority)
-Call `search_with_history(workspace_id, query_text)`.
-- If a similar path with score ≥ 0.85 is found, replay the `node_sequence` directly and skip to Step 4.
-- Avoids re-exploring known territory; saves tokens.
-
-### Step 2: Semantic Search
-Call `search_nodes(workspace_id, query, detail_level="probe")`.
-- Start with `probe` to get a lightweight node list (id/title/tags only) and confirm direction.
-- If recall is low, decompose the query or try synonyms.
-- **Zero results**: create a `gap` content_type node to record the knowledge gap; never fabricate an answer.
-
-### Step 3: Graph Traversal for Depth
-Call `traverse(workspace_id, node_id, depth=2, detail_level="brief")` on key nodes.
-- depth=1 for immediate neighbours, depth=2 for second-order associations.
-- Only upgrade to `detail_level="full"` when you need the complete body text.
-
-### Step 4: Record the Path
-After exploration, call `record_path(workspace_id, query_text, node_sequence, outcome)`.
-- Set `outcome` to `"success"` / `"partial"` / `"failed"` / `"gap"`.
-- This recording becomes a historical path for the next agent — enabling collective learning.
-
-### Notes
-- Never re-issue the exact same query in the same session — check `search_with_history` first.
-- `list_by_tag` is for list-style requests with known tags, not open-ended semantic exploration.
-- Declare `model_size` in `initialize` at session start so the server auto-adjusts response granularity.',
-   ARRAY['agent-guide', 'exploration', 'search', 'inquiry-paths', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
+list_by_tag is suitable for listing requirements when tags are already known. All operations must follow the MCP tool schema; do not invoke REST APIs directly.',
+   ARRAY['agent-guide', 'mcp', 'mcp-only', 'exploration', 'inquiry-paths']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9179,61 +9193,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_guide_g02_en','1.0','ws_spec0001_en','Large vs Small Model Strategy for Using MemTrace','preference','markdown','## Large vs Small Model Strategy for Using MemTrace
+  ('mem_guide_g02_en','1.0','ws_spec0001_en','MCP Token Budget and Layered Reading Guide','procedural','markdown','All reads must use MCP tools and control detail_level and max_response_tokens based on task requirements.
 
-### Capability Handshake (at the start of every session)
+Recommended workflow:
+- Preliminary exploration: search_nodes(detail_level="probe") to first obtain candidate nodes and minimal summaries.
+- Confirm relevance: get_node(detail_level="brief") or traverse(detail_level="brief").
+- When complete evidence is required: use detail_level="full" only on a few critical nodes.
+- If an MCP response indicates truncated, narrow the query scope or increase the token budget for that MCP tool call to avoid loading the entire knowledge base at once.
+- Smaller models should adopt progressive reading (probe → brief → full); larger models should also narrow the candidate set first.
 
-Call `initialize` to declare your capabilities so the server can adapt:
-
-```json
-// Large model (Claude Opus / GPT-4o etc.)
-{
-  "model_size": "large",
-  "context_limit": 128000,
-  "prefer_format": "markdown"
-}
-
-// Small model (Claude Haiku / GPT-4o-mini etc.)
-{
-  "model_size": "small",
-  "context_limit": 8192,
-  "prefer_format": "json"
-}
-```
-
-### detail_level Selection
-
-| Scenario | Recommended detail_level | Notes |
-|----------|--------------------------|-------|
-| Confirm node existence | `probe` | Only id/title/tags — most token-efficient |
-| Understand overview and connections | `brief` | Adds top_edges; suitable for most cases |
-| Need full body text | `full` | Only when quoting original content |
-
-### Small Model Guidelines
-- Always start with `probe`; upgrade only if needed.
-- Keep node body to **≤ 300 characters** when creating — no long-form extraction.
-- Avoid `ingest_document` (long-form ingestion); use `attach_evidence` for snippet attribution instead.
-- Check every response for `"truncated": true` — if present, the token budget was exceeded.
-
-### Large Model Guidelines
-- Use `full` to retrieve complete nodes for cross-node reasoning.
-- Use `ingest_document` for long documents and poll `get_ingestion_status`.
-- Pass `max_response_tokens` explicitly to prevent over-truncation.
-- After complex knowledge extraction, call `record_path` to record the successful path for small models to replay.
-
-### Token Budget Example
-```json
-{
-  "name": "search_nodes",
-  "arguments": {
-    "workspace_id": "ws_xxx",
-    "query": "Python async patterns",
-    "detail_level": "brief",
-    "max_response_tokens": 2000
-  }
-}
-```',
-   ARRAY['agent-guide', 'model-size', 'detail-level', 'token-budget', 'capability-handshake', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
+Agents must pass parameters and interpret results strictly according to the MCP tool schema, without using REST endpoints, HTTP payloads, or curl examples.',
+   ARRAY['agent-guide', 'mcp', 'mcp-only', 'token-budget', 'retrieval']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9245,55 +9215,55 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_guide_g03_en','1.0','ws_spec0001_en','Node Creation Decision Tree: When, What Type, and What Next','procedural','markdown','## Node Creation Decision Tree
+  ('mem_guide_g03_en','1.0','ws_spec0001_en','Node Creation Decision Tree: When to Create, What Type to Choose, and What to Do After Creation','procedural','markdown','## Node Creation Decision Tree
 
-### Before Creating: Deduplicate First
-Always run `search_nodes(query=title)` to confirm no similar node exists.
-Similarity ≥ 0.92 → do not create; use `update_node` to augment the existing node instead.
+### Before Creation: Deduplicate First
+Always run `search_nodes(query=title)` first to confirm there are no similar nodes.
+Similarity ≥ 0.92 → Do not create; instead use `update_node` to supplement information.
 
-### content_type Selection
+### Choosing content_type
 
 ```
-What am I recording?
+What do I want to record?
 │
-├─ Concrete fact, definition, data → factual
-├─ Steps, SOP, how-to guide → procedural
-├─ Preference, style, design choice → preference
-├─ Background context, prerequisite info → context
-├─ Question, open problem → inquiry
-├─ Uploaded file or URL → document  ← auto-created by ingest pipeline; do NOT create manually
-├─ Knowledge gap on search miss → gap  ← create when search returns nothing
-└─ Can''t categorise → factual (default)
+├─ Concrete facts, definitions, data → factual
+├─ Steps, SOPs, operational guides → procedural
+├─ Preferences, styles, design choices → preference
+├─ Background context, prerequisite explanations → context
+├─ Questions, unsolved puzzles → inquiry
+├─ Uploaded documents/URLs → document  ← Automatically created by ingest pipeline; should not be created manually
+├─ Search misses / knowledge gaps → gap  ← Created when search returns no results
+└─ Unclassifiable → factual (default)
 ```
 
-### After Creating: Do You Need to Wait for Embedding?
+### After Creation: Do You Need to Wait for Embedding?
 
-| Next action | Need wait_for_embedding? |
-|------------|--------------------------|
-| Immediately do semantic search | ✅ Call wait_for_embedding |
-| Create an extracted_from edge | ❌ Not needed (edges don''t depend on embeddings) |
-| No immediate search after creation | ❌ Not needed (background task handles it) |
+| Subsequent Action | Need wait_for_embedding? |
+|---------|--------------------------|
+| Immediate semantic search | ✅ Requires calling wait_for_embedding |
+| Creating extracted_from edge | ❌ Not required (edges do not depend on embeddings) |
+| No immediate search after creation | ❌ Not required (completed automatically by background tasks) |
 
 ```python
 node = create_node(workspace_id, title, content_type, body)
-# If semantic search follows immediately:
+# If semantic search is performed immediately next:
 wait_for_embedding(workspace_id, node_id, timeout_seconds=30)
 ```
 
-### gap Node Convention
+### Gap Node Creation Guidelines
 ```json
 {
-  "title": "Python 3.12 new typing features",
+  "title": "New typing features in Python 3.12",
   "content_type": "gap",
-  "body": "Search returned no results. Recording this knowledge gap for future fill-in.",
+  "body": "Search miss. Record this knowledge gap for future supplementation.",
   "tags": ["gap", "python", "typing"]
 }
 ```
-After creating a gap, stop retrying the same topic — mark it and let humans or future agents fill it.
+After creating a gap, do not continue attempting to search for the same topic—marking it is sufficient, allowing humans or subsequent agents to fill it.
 
-### document Nodes
-Created automatically by the ingest pipeline. **Agents should NOT create document nodes manually.**
-To add documentary evidence to an existing node, use `attach_evidence` or `attach_url`.',
+### Document Nodes
+Automatically created by the ingest pipeline; **agents should not manually create document nodes**.
+To supplement existing nodes with document evidence, use `attach_evidence` or `attach_url`.',
    ARRAY['agent-guide', 'create-node', 'content-type', 'decision-tree', 'wait-for-embedding', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9306,34 +9276,34 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_guide_g04_en','1.0','ws_spec0001_en','Document ingestion: long documents and short text','procedural','markdown','## Document ingestion
+  ('mem_guide_g04_en','1.0','ws_spec0001_en','Document Ingestion Pipeline: Long Documents and Short Texts','procedural','markdown','## Document Ingestion Pipeline
 
-| Path | Tool | Use case | Returns |
-|------|------|----------|---------|
-| Full document extraction | `ingest_document` | Complete documents over 2,000 characters | job_id; polling required |
-| Short text extraction | `extract_from_text` | Snippets up to 8,000 characters | Immediate node list |
+| Path | Tool | Applicable Scenario | Return Value |
+|------|------|---------|------|
+| Long document full-text extraction | `ingest_document` | Complete documents (articles, specs, reports) > 2,000 words | job_id, requires polling |
+| Short text direct extraction | `extract_from_text` | Snippets or pasted text ≤ 8,000 words | Returns node list immediately |
 
-### Full document ingestion
+### Long Document Ingestion
 
-Submit `ingest_document`, then poll with `get_ingestion_status`. On completion, the system creates a document node and `extracted_from` relationships.
+After submitting `ingest_document`, poll using `get_ingestion_status`; upon completion, the system creates document nodes and `extracted_from` relations.
 
-### Short text extraction
+### Short Text Extraction
 
-`extract_from_text` returns extracted nodes immediately and routes them through the workspace''s review workflow.
+`extract_from_text` immediately returns extracted nodes and enters subsequent review workflows based on workspace settings.
 
-### Resulting graph structure
+### Post-Ingestion Graph Structure
 
 ```text
 [knowledge_node] --extracted_from--> [document_node]
 ```
 
-The document node preserves the original material for reading, context, and re-extraction.
+The document node preserves original document content for future reading, context understanding, and re-extraction.
 
-### Common mistakes
+### Common Pitfalls
 
-- Using `extract_from_text` for text over 8,000 characters
-- Polling ingestion status too frequently
-- Running semantic search before embeddings are ready',
+- Using `extract_from_text` on documents exceeding 8,000 words
+- Overly frequent polling of ingestion status
+- Performing semantic searches immediately before embedding finishes',
    ARRAY['agent-guide', 'ingest', 'document', 'polling', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9346,56 +9316,58 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_guide_g06_en','1.0','ws_spec0001_en','Inquiry Paths: Recording and Replaying Agent Exploration','procedural','markdown','## Inquiry Paths: Recording and Replaying Agent Exploration
+  ('mem_guide_g06_en','1.0','ws_spec0001_en','Inquiry Paths: Recording and Replaying Agent Exploration Paths','procedural','markdown','## Inquiry Paths: Recording and Replaying Agent Exploration Paths
 
-The inquiry_paths mechanism (Phase 6.2) allows agent exploration experience to be reused by future agents, forming collective learning.
+The inquiry_paths mechanism introduced in Phase 6.2 enables agent exploration experience to be reused by subsequent agents, forming collective learning.
 
-### When to Record a Path
-Record after every meaningful knowledge exploration, regardless of success or failure:
+### When to Record Paths?
+
+Record after completing each meaningful knowledge exploration, regardless of success or failure:
 
 ```python
 record_path(
-    workspace_id  = "ws_xxx",
-    query_text    = "How to handle Python async exceptions",
-    node_sequence = ["mem_aaa", "mem_bbb", "mem_ccc"],  # actual nodes visited
-    outcome       = "success",   # "success" | "partial" | "failed" | "gap"
-    started_at    = "2026-05-29T10:00:00Z",
-    token_used    = 1200,        # optional, for efficiency analytics
-    rating        = 5,           # optional, 1–5 self-assessed quality
+    workspace_id = "ws_xxx",
+    query_text   = "How to handle Python async exceptions",   # Original query intent
+    node_sequence = ["mem_aaa", "mem_bbb", "mem_ccc"],  # Actually traversed nodes
+    outcome      = "success",   # "success" | "partial" | "failed" | "gap"
+    started_at   = "2026-05-29T10:00:00Z",
+    token_used   = 1200,        # Optional, for efficiency analysis
+    rating       = 5,           # Optional, 1-5, exploration quality self-assessment
 )
 ```
 
-### outcome Guide
+### Outcome Selection Guidelines
 
-| outcome | When to use |
-|---------|-------------|
-| `success` | Query fully answered |
-| `partial` | Partial information found; gaps remain |
+| outcome | When to Use |
+|---------|---------|
+| `success` | Query was fully resolved and answered |
+| `partial` | Partial information found, but gaps remain |
 | `failed` | No useful information found |
-| `gap` | Confirmed the knowledge base has nothing on this topic (gap node created) |
+| `gap` | Confirmed knowledge base lacks this information (gap node created) |
 
-### When to Replay Historical Paths
-Query **before** starting any new exploration:
+### When to Replay Historical Paths?
+
+Query **before starting** each new exploration:
 
 ```python
 history = search_with_history(
-    workspace_id         = "ws_xxx",
-    query_text           = "How to handle Python async exceptions",
+    workspace_id        = "ws_xxx",
+    query_text          = "How to handle Python async exceptions",
     similarity_threshold = 0.85,
-    limit                = 3
+    limit               = 3
 )
 ```
 
-If results are returned, follow the `node_sequence` from the best match rather than searching from scratch.
+If returned results are not empty, prioritize replaying according to `node_sequence` rather than initiating a new search.
 
 ### Path Quality Accumulation
-- **Successful paths** have their associated edge weights boosted daily by `path_reinforcement_job`.
-- **Failed paths** with no activity for 30 days are soft-deleted automatically.
-- This means frequently-walked, successful knowledge paths naturally surface in semantic search.
+- **Successful paths** strengthen corresponding edge weights daily via `path_reinforcement_job`.
+- **Failed paths** are automatically soft-deleted after 30 days of inactivity.
+- This allows knowledge paths that are "frequently traversed and successful" to surface naturally during semantic search.
 
 ### Notes
-- Do not record paths involving personal privacy or sensitive operations.
-- `node_sequence` should only contain IDs of nodes actually accessed — not guesses or unvisited nodes.',
+- Do not record paths exploring personal privacy or sensitive operations.
+- `node_sequence` must only record node IDs actually inspected; do not include guessed or unaccessed nodes.',
    ARRAY['agent-guide', 'inquiry-paths', 'record-path', 'search-with-history', 'collective-learning', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9408,69 +9380,18 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_guide_g07_en','1.0','ws_spec0001_en','Error Handling and Rate-Limit Resilience Patterns','factual','markdown','## Error Handling and Rate-Limit Resilience Patterns
+  ('mem_guide_g07_en','1.0','ws_spec0001_en','MCP Error Handling and Retry Guide','procedural','markdown','Agents should handle errors based on structured errors returned by MCP tools, rather than relying on HTTP status codes.
 
-### HTTP Status Code Reference
+Handling Principles:
+- validation: Fix tool parameters before calling again; do not retry blindly.
+- permission / access denied: Stop writing; verify workspace, visibility, and role permissions.
+- conflict / duplicate: Re-read current nodes or edges before deciding to update, merge, or abandon.
+- rate limit / temporary unavailable: Apply exponential backoff and cap retry attempts.
+- async / pending: Use get_ingestion_status, get_embedding_status, or corresponding status MCP tools to check; do not submit duplicates.
+- unknown tool / capability unavailable: Create inquiry/gap or delegate to UI; do not switch to REST APIs to bypass restrictions.
 
-| Status | Meaning | Agent Response |
-|--------|---------|----------------|
-| `200` | Success | Process normally |
-| `202` | Accepted, background processing | Capture `job_id`, poll `get_ingestion_status` |
-| `409` | Duplicate / conflict | Do not retry; use `update_node` on the existing node |
-| `422` | Validation failure | Read `detail` field; fix parameters and retry once |
-| `429` | Rate limit exceeded | Exponential backoff (see below); **do not retry immediately** |
-| `500` / `503` | Server error | Wait 10 seconds, retry once; give up if still failing |
-
-### Rate Limit Specs
-- Per user per minute: **120 requests**
-- Burst cap: **30 requests**
-- Exceeded: HTTP 429 with `Retry-After: N` (seconds) header
-
-### Exponential Backoff Implementation
-
-```python
-import time, random
-
-def call_with_backoff(fn, *args, max_retries=4, **kwargs):
-    for attempt in range(max_retries):
-        try:
-            return fn(*args, **kwargs)
-        except RateLimitError as e:
-            if attempt == max_retries - 1:
-                raise
-            wait = (2 ** attempt) + random.uniform(0, 1)
-            time.sleep(wait)
-    raise Exception("Max retries exceeded")
-```
-
-### 202 Polling Pattern
-
-```python
-job = ingest_document(...)
-job_id = job["job_id"]
-deadline = time.time() + 300  # max 5 minutes
-
-while time.time() < deadline:
-    status = get_ingestion_status(workspace_id, job_id)
-    if status["status"] == "completed":
-        break
-    if status["status"] == "failed":
-        raise Exception(f"Ingest failed: {status}")
-    time.sleep(3)
-else:
-    raise TimeoutError("Ingest did not complete in time")
-```
-
-### Common Error Quick Reference
-
-| Error message | Cause | Fix |
-|--------------|-------|-----|
-| `"relation not valid"` | Unrecognised edge relation | Call `get_schema` for valid relation list |
-| `"workspace not found"` | Wrong workspace_id or no access | Call `list_workspaces` to confirm accessible workspaces |
-| `"Semantic search failed"` | Embedding service not running | Wait for service recovery, or fall back to keyword search |
-| `"Node not found or no access"` | node_id doesn''t exist or cross-workspace | Confirm node belongs to current workspace |
-| `"daily quota exceeded"` | audit_proposal exceeded 20/day | Wait until next day, or ask admin to raise quota |',
-   ARRAY['agent-guide', 'error-handling', 'rate-limit', 'retry', '202', '429', 'mcp-tool']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
+Verify operation idempotency before every retry; creation operations should first search whether the item was already successfully created.',
+   ARRAY['agent-guide', 'mcp', 'mcp-only', 'error-handling', 'retry']::text[],'public','usr_6bc7b4c7','2026-05-29T00:45:54.425932+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9482,7 +9403,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_i001_en','1.0','ws_spec0001_en','User authentication: email and password','procedural','plain','MemTrace uses Email + Password authentication. Security measures include: bcrypt hash (cost ≥ 12), password policy (8–128 chars, upper+lower+digit, HaveIBeenPwned check), verification email (24h expiry), and 5-failure lockout for 15 minutes. Upon login, a JWT session (7 days) is issued and passed via the Authorization: Bearer header. Logout is handled via an immediate blocklist. Third-party OAuth is currently not supported to simplify the authentication surface and reduce external dependencies.',
+  ('mem_i001_en','1.0','ws_spec0001_en','User Authentication: Email and Password','procedural','plain','MemTrace uses an Email + Password authentication path. Security measures include: bcrypt hashing (cost ≥ 12), password policy (8–128 characters, uppercase/lowercase + numbers, HaveIBeenPwned breach checks), email verification email (24-hour validity), and lockout for 15 minutes after 5 failures. After logging in, a JWT session is issued (7 days), transmitted via the Authorization: Bearer header, and invalidated immediately upon logout via a blocklist. Third-party OAuth login is currently not supported to simplify the authentication surface and minimize external dependencies.',
    ARRAY['auth', 'security', 'jwt', 'password-policy']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9495,123 +9416,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_i002_en','1.0','ws_spec0001_en','REST API and external API keys','factual','markdown','External services and scripts authenticate with **API Keys** (format: `mt_live_<hex>`), not session JWTs. Keys may be scoped to a specific workspace or valid across all. Full key value shown only once at creation. Four scopes:
+  ('mem_i002_en','1.0','ws_spec0001_en','REST API and External API Keys','factual','markdown','External services and scripts authenticate via **API Keys** (format: `mt_live_<hex>`), rather than session JWTs. Keys can be scoped to a specific workspace or cross-workspace; once created, the full key is displayed only once. Four scopes:
 
-| Scope | Grants |
-|-------|--------|
-| `kb:read` | Read KBs, nodes, edges |
+| Scope | Permission |
+|-------|------|
+| `kb:read` | Read KB, nodes, edges |
 | `kb:write` | Create and edit nodes, edges |
 | `node:traverse` | Record traversal events |
 | `node:rate` | Submit path ratings (1–5) |
 
-All API endpoints prefixed with `/api/v1`, using `Authorization: Bearer` for both keys and session tokens (server distinguishes by prefix).',
+All API endpoints are prefixed with `/api/v1`, using `Authorization: Bearer` to pass the key or token (the server distinguishes between them by prefix).',
    ARRAY['api', 'api-key', 'access-control', 'integration']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6','human',
-   4,2)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_i003_en','1.0','ws_spec0001_en','MCP Server: AI agent integration','factual','markdown','MemTrace implements the **Model Context Protocol (MCP)**, allowing AI agents (e.g. Claude Code) to use MemTrace as a context provider without reading raw spec documents.
-
-**Transport**: stdio only for now (`node packages/mcp/dist/index.js`).
-
-**Currently implemented tools**:
-
-| Tool | Description |
-|------|-------------|
-| `search_nodes` | Keyword search across nodes (Chinese and English), returns full content |
-| `get_node` | Retrieve a specific node by ID with full content and metadata |
-| `traverse` | Get a node plus its upstream/downstream associations (depth=1 or 2) |
-| `list_by_tag` | List all nodes with a specific tag |
-
-**Environment variables**:
-- `MEMTRACE_API`: API base URL (default `http://localhost:8000/api/v1`)
-- `MEMTRACE_WS`: Workspace ID (default `ws_spec0001`)
-- `MEMTRACE_LANG`: Display language (default `zh-TW`)
-
-**Current limitation**: Each MCP server instance is locked to a single workspace (set by `MEMTRACE_WS`). To query multiple knowledge bases, the current workaround is to start a separate instance per workspace in `.mcp.json`, but identical tool names cause confusion for AI agents.
-
-**Planned but not yet implemented**:
-- Multi-workspace support: optional `workspace_id` parameter on all tools + `list_workspaces` tool
-- Resources (`memtrace://node/{id}` URI reads)
-- Write tools (`create_node`, `update_node`, `create_edge`)
-- HTTP + SSE transport
-- `traverse_edge` to trigger co-access boost
-
-Agents should call traverse when following an edge, keeping frequently used paths alive against decay.',
-   ARRAY['mcp', 'ai-agent', 'integration', 'api']::text[],'public','system','2026-04-11T00:00:00+00:00','c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7','human',
-   3,2)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_i004_en','1.0','ws_spec0001_en','Access control and permission roles: viewer / contributor / admin','factual','plain','MemTrace uses a git-inspired three-tier permission model that applies equally to human users and AI tools (including MCP).
-
-Roles:
-- viewer: read-only + Q&A chat
-- contributor: all viewer capabilities + submit change proposals (→ review queue, requires admin approval)
-- admin: all contributor capabilities + direct write + approve/reject proposals + manage members + invite users + soft-delete/restore workspace
-
-The workspace owner is always admin and cannot be demoted.
-
-API Key scope mapping:
-- kb:read → viewer
-- kb:propose → contributor
-- kb:write → admin
-
-MCP tools respect the same rules: a kb:read key cannot call create_node; a kb:propose key can call propose_node; a kb:write key can write directly.
-
-Contributor proposal flow: POST /workspaces/{ws_id}/proposals → review_queue (source_type = contributor_proposal) → takes effect after admin approval.
-
-Default role on join:
-- Create workspace → admin (owner)
-- Accept invite link → role embedded in the invite token by admin
-- Cross-workspace node copy → no membership granted',
-   ARRAY['access-control', 'permissions', 'roles', 'viewer', 'contributor', 'admin', 'mcp', 'api-key']::text[],'public','system','2026-04-12T00:00:00+00:00','d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2','human',
-   5,2)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_i005_en','1.0','ws_spec0001_en','OpenAI-compatible API: workspace-as-model RAG chat','factual','markdown','MemTrace exposes **OpenAI-compatible endpoints** (prefix `/v1`) so existing OpenAI SDKs and tools can treat a workspace as a "model" and run hybrid-RAG chat over it. Authentication reuses the external API key (`Authorization: Bearer mt_...`, see mem_i002_en).
-
-## Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/v1/models` | List the caller''s accessible workspaces, mapped as `memtrace-<ws_id>` models |
-| `GET` | `/v1/models/{id}` | Get metadata for a single workspace-as-model |
-| `POST` | `/v1/chat/completions` | Hybrid-RAG chat over the chosen workspace; responds in OpenAI `chat.completion` shape |
-
-## Workspace selection
-Pass `model` as `memtrace-<ws_id>`, or override via a system message containing `workspace_id: ws_xxx`. Retrieval spans the workspace and its associated workspaces (workspace_associations).
-
-## Behaviour
-- Answers are generated with the caller''s own AI provider (BYO key); retrieval uses hybrid (keyword + semantic) search.
-- The reply body appends a `**Sources:**` citation list; non-streaming responses also carry an `x_source_nodes` field (raw matched nodes).
-- `stream: true` yields an SSE stream (`text/event-stream`): content deltas, then the sources block, then a final chunk carrying `x_source_nodes`, then `[DONE]`.
-
-## Scope boundary
-Only `/v1/models` and `/v1/chat/completions` are implemented; there is **no** `/v1/embeddings` endpoint.',
-   ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','e5dc92aeb1637d84c446b8f4b0f7e39572e63be1f4e37692a36a98869b685afb','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9623,7 +9438,114 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_i006_en','1.0','ws_spec0001_en','Python SDK: the official memtrace client (MemTraceClient)','factual','markdown','`packages/sdk-python` ships the official Python client `MemTraceClient` for driving the MemTrace REST API (see mem_i002_en) programmatically, authenticating with an external API key.
+  ('mem_i003_en','1.0','ws_spec0001_en','MCP Server: AI Agent Integration','factual','markdown','MemTrace implements the **Model Context Protocol (MCP)**, allowing AI agents (such as Claude Code) to use MemTrace knowledge bases as context providers without needing to read specification documents directly.
+
+**Transport**: Currently supports stdio only (`node packages/mcp/dist/index.js`).
+
+**Current Implemented Tools**:
+
+| Tool | Description |
+|------|------|
+| `search_nodes` | Keyword search for nodes (Chinese or English), returning full content |
+| `get_node` | Retrieve full content and metadata for a specific node by ID |
+| `traverse` | Retrieve node and its upstream/downstream connections (depth=1 or 2) |
+| `list_by_tag` | List all nodes by tag |
+
+**Environment Variables**:
+- `MEMTRACE_API`: API base URL (default `http://localhost:8000/api/v1`)
+- `MEMTRACE_WS`: Workspace ID (default `ws_spec0001`)
+- `MEMTRACE_LANG`: Display language (default `zh-TW`)
+
+**Current Limitations**:
+Each MCP server instance can query only a single workspace (fixed by `MEMTRACE_WS`). If querying multiple knowledge bases is required, the current workaround is launching independent instances for each workspace in `.mcp.json`, but identical tool names can cause confusion for AI agents.
+
+**Planned but Not Yet Implemented**:
+- Multi-workspace support: adding an optional `workspace_id` parameter to tools + `list_workspaces` tool
+- Resources (reading URIs such as `memtrace://node/{id}`)
+- Write tools (`create_node`, `update_node`, `create_edge`)
+- HTTP + SSE transport
+- `traverse_edge` triggering co-access boost
+
+Agents should invoke traversal tools each time they move along an edge to keep frequently used paths active and resist decay.',
+   ARRAY['mcp', 'ai-agent', 'integration', 'api']::text[],'public','system','2026-04-11T00:00:00+00:00','c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
+  ('mem_i004_en','1.0','ws_spec0001_en','Access Control and Permission Roles: viewer / contributor / admin','factual','plain','MemTrace adopts a git-like three-tier permission model, applicable to human users and AI tools (including MCP).
+
+Role Definitions:
+- viewer: Read-only + Q&A
+- contributor: All viewer capabilities + proposing modification suggestions (→ review queue, requiring administrator review)
+- admin: All contributor capabilities + direct writes + reviewing proposals + managing members + inviting users + soft-deleting/restoring workspaces
+
+The workspace owner is always admin and cannot be demoted.
+
+API Key Scope Mappings:
+- kb:read → viewer
+- kb:propose → contributor
+- kb:write → admin
+
+MCP tools follow the same rules: a kb:read key cannot invoke create_node; a kb:propose key can invoke propose_node; a kb:write key can write directly.
+
+Contributor Proposal Workflow: POST /workspaces/{ws_id}/proposals → review_queue (source_type = contributor_proposal) → takes effect after admin review.
+
+Default Roles When Joining a Workspace:
+- Workspace creation → admin (owner)
+- Joining via invite link → role specified when creating the invite
+- Copying nodes across knowledge bases → grants no membership',
+   ARRAY['access-control', 'permissions', 'roles', 'viewer', 'contributor', 'admin', 'mcp', 'api-key']::text[],'public','system','2026-04-12T00:00:00+00:00','d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2f3a4b5c6d1e2','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
+  ('mem_i005_en','1.0','ws_spec0001_en','OpenAI-Compatible API Endpoint: RAG Chat with Workspace as Model','factual','markdown','MemTrace provides **OpenAI-compatible endpoints** (prefix `/v1`), allowing existing OpenAI SDKs or tools to directly treat a workspace as a "model" for hybrid retrieval-augmented generation (hybrid RAG). Authentication follows external API Keys (`Authorization: Bearer mt_...`, see mem_i002).
+
+## Endpoints
+
+| Method | Path | Description |
+|------|------|------|
+| `GET` | `/v1/models` | Lists workspaces accessible to the caller, mapped as `memtrace-<ws_id>` models |
+| `GET` | `/v1/models/{id}` | Retrieves metadata for a single workspace model |
+| `POST` | `/v1/chat/completions` | Performs hybrid RAG chat with the specified workspace, responding in OpenAI `chat.completion` format |
+
+## Workspace Selection
+Specify `memtrace-<ws_id>` in `model`; or override inside system message with `workspace_id: ws_xxx`. Retrieval scope includes the workspace and its associated workspaces (workspace_associations).
+
+## Behavior
+- Generates responses using the caller''s self-managed AI Provider (BYO key); retrieval utilizes hybrid search (keyword + semantic).
+- Response body appends a `**Sources:**` citation list; non-streaming responses additionally include an `x_source_nodes` field (raw data of matched nodes).
+- Supports SSE streaming with `stream: true` (`text/event-stream`): after streaming content, sends sources, followed by the final chunk containing `x_source_nodes`, and ends with `[DONE]`.
+
+## Scope Boundaries
+Currently only `/v1/models` and `/v1/chat/completions` are implemented; `/v1/embeddings` is **not** provided.',
+   ARRAY['api', 'openai-compatible', 'rag', 'integration', 'chat']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','26319322db8dec2367656d189d0b57ae905e41a79dafb2eee155df672c129097','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
+  ('mem_i006_en','1.0','ws_spec0001_en','Python SDK: Official memtrace Client (MemTraceClient)','factual','markdown','`packages/sdk-python` provides the official Python client `MemTraceClient` to interact with the MemTrace REST API programmatically (see mem_i002), authenticating with an external API Key.
 
 ```python
 from memtrace import MemTraceClient
@@ -9634,14 +9556,14 @@ c.search_nodes(workspace_id="ws_abc", query="how to config auth")
 ## Capabilities
 - **Workspaces**: `list_workspaces`, `get_workspace`
 - **Nodes**: `create_node`, `get_node`, `list_nodes`, `search_nodes`, `search_semantic`, `delete_node`
-- **Chat & retrieval**: `chat`, `chat_stream`
+- **Chat and Retrieval**: `chat`, `chat_stream`
 
-Every synchronous method has an async counterpart (the `a` prefix, e.g. `alist_workspaces`, `asearch_nodes`, `achat_stream`).
+Every synchronous method has a corresponding asynchronous version (`a` prefix, e.g., `alist_workspaces`, `asearch_nodes`, `achat_stream`).
 
-## Release status
+## Release Status
 
-**Not yet published to the package index (PyPI).** The code lives under `packages/` in this repository and is exercised by CI (`.github/workflows/packages.yml`), but that workflow deliberately does not publish. The imports shown above require obtaining the package from source; it cannot be fetched from the package index. Version `0.1.0`.',
-   ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','ec6bfad8e71afae13022bb721bf1a4fbe05fa48ef41d81182bcfa98211c22f9e','human',
+**Not yet published to a package index (PyPI).** The code resides under `packages/` in this repository and is tested by CI (`.github/workflows/packages.yml`), but that workflow intentionally skips publishing. Imports shown in the example above require obtaining the package from source before functioning and cannot be fetched directly from a package index. Version `0.1.0`.',
+   ARRAY['sdk', 'python', 'client', 'integration', 'api']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','a1f55b9b358593ffe74e5f0e978565588ecbde271b1e0769da0fc5f83b0d83d9','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9653,10 +9575,10 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_i007_en','1.0','ws_spec0001_en','Framework integrations: LangChain retriever and LlamaIndex vector store','factual','markdown','MemTrace ships two framework-integration packages that plug a knowledge base into an existing LLM pipeline in a few lines. Both connect with `base_url` + `api_key` + `workspace_id` and call the REST API underneath (see mem_i002_en).
+  ('mem_i007_en','1.0','ws_spec0001_en','Framework Integrations: LangChain Retriever and LlamaIndex Vector Store','factual','markdown','MemTrace provides two framework integration packages, enabling knowledge bases to connect into existing LLM pipelines in just a few lines. Both connect via `base_url` + `api_key` + `workspace_id`, backed by the REST API (see mem_i002).
 
 ## LangChain (`packages/langchain-memtrace`)
-`MemTraceRetriever`, compatible with the LangChain Expression Language (LCEL); `retriever.invoke(query)` returns documents.
+`MemTraceRetriever`, compatible with LangChain Expression Language (LCEL); `retriever.invoke(query)` returns documents.
 
 ```python
 from langchain_memtrace import MemTraceRetriever
@@ -9665,17 +9587,17 @@ chain = retriever | llm
 ```
 
 ## LlamaIndex (`packages/llama-index-memtrace`)
-`MemTraceVectorStore`, exposing a workspace as a LlamaIndex vector data source / index.
+`MemTraceVectorStore`, treating workspaces as vector data sources / indices for LlamaIndex.
 
 ```python
 from llama_index_memtrace import MemTraceVectorStore
 vs = MemTraceVectorStore(base_url="http://localhost:8000", api_key="mt_...", workspace_id="ws_abc")
 ```
 
-## Release status
+## Release Status
 
-**Not yet published to the package index (PyPI).** The code lives under `packages/` in this repository and is exercised by CI (`.github/workflows/packages.yml`), but that workflow deliberately does not publish. The imports shown above require obtaining the package from source; it cannot be fetched from the package index. Version `0.1.0`.',
-   ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','607e222a8d5dc6e00e18b2e87009ca846b225866e687b925a652bdc235d8d107','human',
+**Not yet published to a package index (PyPI).** The code resides under `packages/` in this repository and is tested by CI (`.github/workflows/packages.yml`), but that workflow intentionally skips publishing. Imports shown in the example above require obtaining the package from source before functioning and cannot be fetched directly from a package index. Version `0.1.0`.',
+   ARRAY['langchain', 'llamaindex', 'retriever', 'vector-store', 'integration']::text[],'public','memtrace-spec','2026-07-25T00:00:00+00:00','a8a980388655beeddb2d3fb9812ac4d155b7811a61d6b805200c778953de3f98','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9687,18 +9609,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_inq001_en','1.0','ws_spec0001_en','Gap: Multi-planner planning discussion (fan-out + consensus arbitration)','inquiry','markdown','The loop''s planning stage currently has only a single planner. We want to support multiple planners producing proposals in parallel, then arbitrate whether consensus is reached.
+  ('mem_inq001_en','1.0','ws_spec0001_en','Gap: Multi-Planner Planning Discussion (Fan-Out + Consensus Adjudication)','inquiry','markdown','Currently, the planning phase of the loop has only a single planner. The goal is to support multiple planners generating proposals in parallel, followed by adjudicating whether consensus is reached.
 
-**Open design questions:**
+**Design Questions for Discussion:**
 
-1. **Who launches the multiple planners?** External harness fan-out, or a MemTrace conductor actively triggering them?
-2. **Semantic boundary of proposals:** do the planners produce different solutions for "the same task", or does each pick a "different task"?
-3. **UI after escalate:** when converge_proposals returns escalate, how does the review_queue present a "pick-one-of-many" proposal card?
-4. **Interaction with existing claim_task:** when multiple planners claim different tasks simultaneously, does the task-allocation logic need adjusting?
+1. **Who is responsible for initiating multiple planners?** External harness fan-out, or active triggering by the MemTrace conductor?
+2. **Semantic boundaries of proposals:** Are multiple planners generating different solutions for the "same task", or are they each selecting "different tasks"?
+3. **UI after escalate:** When converge_proposals returns escalate, how should the review_queue present "multiple-choice" style proposal cards?
+4. **Interaction with existing claim_task:** When multiple planners claim different tasks concurrently, does the task allocation logic need adjustments?
 
-**Existing groundwork:** the `converge_proposals` MCP tool is implemented (reuses the consult synthesizer, returning converge / escalate).
-',
-   ARRAY['inquiry', 'gap', 'multi-agent', 'planner', 'mcp-tool', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','17430ff0bd605b7dd645606a3afe35b03a396a189dcb97431463cbccebdbad4a','ai',
+**Existing Components:** The `converge_proposals` MCP tool is implemented (reusing consult synthesizer, returning converge / escalate).',
+   ARRAY['inquiry', 'gap', 'multi-agent', 'planner', 'mcp-tool', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9710,16 +9631,15 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_inq002_en','1.0','ws_spec0001_en','Gap: claim registry -> Redis (multi-worker / restart survival)','inquiry','markdown','Currently the run-state for `claim_task` / `release_task` lives in an in-process `_TASK_CLAIMS` dict (TTL 30 minutes). It is lost on restart and not shared across workers.
+  ('mem_inq002_en','1.0','ws_spec0001_en','Gap: Migrating Claim Registry to Redis (Multi-Worker / Restart Survival)','inquiry','markdown','Currently, the run-state for `claim_task` / `release_task` is stored in an in-process `_TASK_CLAIMS` dict (TTL 30 minutes). It is lost upon restart and cannot be shared across multiple workers.
 
-**Open design questions:**
+**Design Questions to Discuss:**
 
-1. **Redis as a prerequisite:** should Redis become a required dependency for self-hosting? What is the impact on lightweight deployments?
-2. **Alternatives:** DB write (add a column to memory_nodes) vs. Redis; the former violates A7 (run-state must not enter the knowledge graph) but adds no extra dependency.
-3. **TTL policy:** is 30 minutes reasonable? When an agent crashes, is the TTL enough to auto-release the task?
-4. **Is it necessary:** is the multi-worker scenario an actual need today or an anticipated one?
-',
-   ARRAY['inquiry', 'gap', 'claim-registry', 'redis', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','70157464ecdddbd21c328aa1f0a271687d39bd4fe32543857b3dbd26bc58e134','ai',
+1. **Redis Deployment Prerequisite:** Should Redis be required as a mandatory dependency for self-hosted deployments? What is its impact on lightweight deployments?
+2. **Alternative Evaluation:** DB writes (adding fields to memory_nodes) vs. Redis; the former violates A7 (run-state must not enter the knowledge graph), but introduces no extra dependencies.
+3. **TTL Strategy:** Is 30 minutes reasonable? When an agent crashes, is the TTL sufficient to ensure tasks are automatically released?
+4. **Necessity:** Is the multi-worker scenario currently an actual requirement or an anticipated requirement?',
+   ARRAY['inquiry', 'gap', 'claim-registry', 'redis', 'infra', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9731,18 +9651,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_inq003_en','1.0','ws_spec0001_en','Gap: Human-gate review quality — presentation of flag-only items','inquiry','markdown','Currently `submit_outcome(fail)` failure flags and per-feature integration checks enter the `review_queue` with empty `node_data={}`; the reviewer sees an empty card with no concrete context.
+  ('mem_inq003_en','1.0','ws_spec0001_en','Gap: Human Gate Review Quality — Presentation of Flag-Only Items','inquiry','markdown','Currently, when failure flags from `submit_outcome(fail)` and per-feature integration checks are submitted to `review_queue`, they carry an empty `node_data={}`. Reviewers see an empty card lacking concrete context.
 
-**Open design questions:**
+**Design Questions to Discuss:**
 
-1. **Where does the summary go?** `node_data` (existing field) vs. `proposer_meta` (new field). How does each affect the review card UI?
-2. **UI presentation direction:**
-   - Option A: write the failure reason / integration-check summary into `node_data`, and have the review card show that instead of an empty diff
-   - Option B: acknowledge these are "flag-only" operations and give the UI a distinct style (no diff; show reason + a jump to the node)
-   - The two are not mutually exclusive, but differ in implementation priority
-3. **What does the reviewer actually need?** Can they decide directly after seeing the failure reason, or do they need to jump into node editing to get context?
-',
-   ARRAY['inquiry', 'gap', 'review-queue', 'human-gate', 'ux', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','7e0e7783c43e46a5253ff343daea5ff25118bd2b2fa20984ec11a406fae558c7','ai',
+1. **Where should the summary be written?** `node_data` (existing field) vs. `proposer_meta` (new field). What are their respective impacts on the review card UI?
+2. **UI Presentation Directions:**
+   - Option A: Write the failure reason / integration check summary into `node_data`, so the review card displays this content instead of an empty diff.
+   - Option B: Acknowledge that these are "flag-only" operations, and change the UI to use a dedicated style (do not show a diff; show the reason + link to navigate to the node).
+   - The two options are not mutually exclusive, but have different implementation priorities.
+3. **What do reviewers actually need?** Can they make a decision directly after reading the failure reason, or do they need to jump into node editing to understand the context?',
+   ARRAY['inquiry', 'gap', 'review-queue', 'human-gate', 'ux', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9754,17 +9673,16 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_inq004_en','1.0','ws_spec0001_en','Gap: Conductor — MemTrace actively triggering an external harness','inquiry','markdown','Currently an external harness must actively poll to learn about new tasks. We want MemTrace to actively notify the external harness to start the next loop when a pending inquiry / residue appears.
+  ('mem_inq004_en','1.0','ws_spec0001_en','Gap: Conductor — MemTrace Actively Triggering External Harnesses','inquiry','markdown','Currently, external harnesses must actively poll to detect new tasks. It is desired that when a pending inquiry / residue appears, MemTrace can proactively notify the external harness to start the next iteration.
 
-**Open design questions:**
+**Design Questions to Discuss:**
 
-1. **Trigger mechanism:** Webhook (HTTP push) vs. message queue (Redis pub/sub, AMQP). Deployment complexity vs. reliability.
-2. **MemTrace''s role boundary:** decision A1 clearly states "MemTrace is not the loop runtime". Is a Conductor a reasonable extension on the "memory side", or does it overstep?
-3. **Event granularity:** trigger on every pending inquiry, or batch (notify only after N or more)? Avoid over-triggering.
-4. **Harness integration surface:** where does the harness configure its webhook endpoint? Workspace setting or global setting?
-5. **Outcome accounting:** when multiple workers each submit_outcome, will path_reinforcement double-count?
-',
-   ARRAY['inquiry', 'gap', 'conductor', 'event', 'webhook', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','0b153b98673fa0a67e84736d923daba6d4ed6f90035b3e69a21c6f63bdd55e5d','ai',
+1. **Trigger Mechanism:** Webhook (HTTP push) vs. Message Queue (Redis pub/sub, AMQP). Deployment complexity vs. reliability.
+2. **MemTrace Role Boundary:** Decision A1 explicitly states that "MemTrace is not a loop runtime". Does Conductor constitute a reasonable extension of the "memory side", or has it already crossed the boundary?
+3. **Event Granularity:** Should every pending inquiry trigger a notification, or should they be batched (notify only when there are N or more)? This avoids excessive triggers.
+4. **Harness Integration Surface:** Where should the harness configure the webhook endpoint? Is it a workspace-level or global-level configuration?
+5. **Outcome Accounting Backflow:** When multiple workers independently execute submit_outcome, will path_reinforcement be double-counted?',
+   ARRAY['inquiry', 'gap', 'conductor', 'event', 'webhook', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq004a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9776,17 +9694,16 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_inq005_en','1.0','ws_spec0001_en','Gap: Multi-agent trust tiering and memory-poisoning defense','inquiry','markdown','The system currently uses a single trusted credential (homogeneous trusted agents, decision A3). As multiple planners are added, we need per-agent identity, trust tiering, and memory-poisoning defenses.
+  ('mem_inq005_en','1.0','ws_spec0001_en','Gap: Multi-Agent Trust Grading and Memory Contamination Defense','inquiry','markdown','Currently, the system adopts a single trusted credential (homogeneously trusted agents, Decision A3). As multiple planners join, per-agent identity, trust grading, and memory contamination defense mechanisms must be supplemented.
 
-**Open design questions:**
+**Design Questions to Discuss:**
 
-1. **Credential distribution:** the proposer_id field is reserved. How does an agent obtain its own proposer_id? Reuse the existing workspace API key + binding, or add an agent-specific key type?
-2. **Trust-tier thresholds:** writes from low-trust agents always go through a human gate (extending the mem_loop021 decision tiering). How is the threshold set? Does it stack with the operation risk level?
-3. **Poisoning defense:** how are residue nodes emitted (via emit_residue) by low-trust agents marked? Are they automatically deprioritized in the next planning loop?
-4. **Multi-workspace isolation:** when emit_residue emits residue into different workspaces, is there a collision risk in the advisory-lock key space (hashtext(ws_id))?
-5. **Priority:** is the H1 (credential) -> H2 (tiering) -> H3 (isolation) development order reasonable?
-',
-   ARRAY['inquiry', 'gap', 'trust', 'multi-agent', 'security', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','f1cf72bf4461e3f9c0f66995c845d06f16e6d08949f54ea458a980b02fb7460e','ai',
+1. **Credential Distribution:** A `proposer_id` field is already reserved. How does an agent obtain its own `proposer_id`? Should it reuse the existing workspace API key + binding, or introduce a new agent-specific key type?
+2. **Trust Grading Thresholds:** Writes from low-trust agents must always go through a human gate (extending the decision grading of mem_loop021). How should thresholds be defined? Do they stack with operational risk levels?
+3. **Contamination Defense:** How should residue nodes from low-trust agents (emitted via `emit_residue`) be flagged? Should their priority be automatically downgraded during the next round of planning?
+4. **Multi-Workspace Isolation:** When `emit_residue` outputs residue to different workspaces, is there a collision risk in the advisory lock (`hashtext(ws_id)`) key space?
+5. **Priority:** Is the development order of H1 (Credentials) → H2 (Grading) → H3 (Isolation) reasonable?',
+   ARRAY['inquiry', 'gap', 'trust', 'multi-agent', 'security', 'agent-loop']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','inq005a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -9798,9 +9715,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_k001_en','1.0','ws_spec0001_en','Knowledge Base: the container workspace','factual','plain','A Knowledge Base (Workspace) is the container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Users can create multiple Knowledge Bases. A Knowledge Base has its own sharing level (public / restricted / private), independent from node-level visibility — effective access is the more restrictive of the two. A Knowledge Base may be started blank or bootstrapped from a document with AI extraction. ID format: ws_<hex8>.',
+  ('mem_k001_en','1.0','ws_spec0001_en','Knowledge Base: Knowledge Base (Workspace)','factual','plain','A Knowledge Base (also known as a Workspace) is a container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Each user can create multiple knowledge bases. The knowledge base itself has a sharing tier (public / restricted / private), which is independent of node visibility—effective access permissions take the more restrictive of the two. A knowledge base can start from scratch, or bootstrap from a document with nodes extracted by AI. ID format: `ws_<hex8>`.',
    ARRAY['knowledge-base', 'workspace', 'container']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4','human',
-   3,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9811,16 +9728,16 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_k002_en','1.0','ws_spec0001_en','Knowledge Base sharing levels: four visibility tiers','factual','markdown','| Tier | Identifier | Description |
+  ('mem_k002_en','1.0','ws_spec0001_en','Knowledge Base Sharing Tiers: Four Visibilities','factual','markdown','| Tier | Identifier | Description |
 |------|------------|-------------|
-| Public | `public` | Anyone (incl. unauthenticated) can discover and read `public` nodes |
-| Conditional Public | `conditional_public` | Anyone can see graph topology, but node content is hidden; users may submit a join request to admins |
-| Restricted | `restricted` | KB is invisible to non-members; entry requires explicit admin invitation |
-| Private | `private` | Owner-only; invitations cannot be issued |
+| Fully Public | `public` | Anyone (including unauthenticated users) can explore and read `public` nodes |
+| Conditionally Public | `conditional_public` | Anyone can see the graph structure (topology), but node content is hidden; users can submit join requests to admins |
+| Restricted | `restricted` | The knowledge base is invisible to non-members; users must be explicitly invited by an admin to join |
+| Private | `private` | Visible only to the owner; invitations cannot be issued |
 
-**Important**: visibility is **immutable** after creation. Any `PATCH /workspaces/{ws_id}` containing `visibility` is rejected with `400 Immutable field: visibility`. The creation UI must show all four tiers clearly with inline descriptions and require explicit user confirmation.
+**IMPORTANT**: `visibility` is **immutable** once set at creation. Any `PATCH /workspaces/{ws_id}` request containing a `visibility` field will always return `400 Immutable field: visibility`. During creation, the UI must clearly display all four tiers, and the user must explicitly confirm.
 
-Node-level visibility (`public` / `team` / `private`) is independent of KB-level visibility — effective access is the more restrictive of the two.',
+Node-level visibility (public / team / private) is independent of the knowledge base tier; final effective access permissions take the more restrictive of the two.',
    ARRAY['knowledge-base', 'sharing', 'visibility', 'access-control', 'four-tier']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9833,9 +9750,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_k003_en','1.0','ws_spec0001_en','Cross-workspace node copy: portability','procedural','plain','Any node can be copied to another Knowledge Base, but its Edges are not copied. Copy behaviour: the target KB assigns a new id; created_at is reset to the copy time; provenance.copied_from records { node_id, workspace_id } for traceability; visibility defaults to private in the target KB; Trust scores are carried as a snapshot — subsequent changes in either KB do not affect the other; signature is recomputed in the target KB context. CLI: memtrace copy-node <node-id> --to <workspace-id>. API: POST /workspaces/{ws_id}/nodes (with copied_from parameter).',
+  ('mem_k003_en','1.0','ws_spec0001_en','Cross-Workspace Node Copying: Portability','procedural','plain','Any node can be copied to another knowledge base, but Edges are not copied along with it. Copying behavior: a new `id` is assigned in the target knowledge base; `created_at` is reset to the copy timestamp; `provenance.copied_from` records `{ node_id, workspace_id }` for provenance tracking; `visibility` defaults to `private` in the target workspace; the trust score is carried over as a snapshot, with subsequent changes on either side having no effect on the other; `signature` is recomputed in the target workspace environment. CLI command: `memtrace copy-node <node-id> --to <workspace-id>`. API: `POST /workspaces/{ws_id}/nodes` (with the `copied_from` parameter).',
    ARRAY['knowledge-base', 'portability', 'copy', 'provenance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6','human',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9846,27 +9763,27 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_k004_en','1.0','ws_spec0001_en','Workspace lifecycle and soft-delete (30-day grace period)','procedural','plain','Workspaces move through three states: active (normal), pending_deletion (soft-deleted, grace period active), deleted (purged from DB).
+  ('mem_k004_en','1.0','ws_spec0001_en','Workspace Lifecycle and Soft Deletion (30-Day Grace Period)','procedural','plain','A workspace has three states: `active` (normal), `pending_deletion` (soft-deleted), and `deleted` (purged).
 
-Soft-delete trigger: admin calls DELETE /workspaces/{ws_id}
-- Sets status = pending_deletion, deleted_at = NOW()
+Soft deletion trigger: an admin calls `DELETE /workspaces/{ws_id}`
+- Sets `status = pending_deletion`, `deleted_at = NOW()`
 - Non-admin members immediately lose access
-- Admin/owner retains read-only access (for data export)
-- Email notifications: day 0 (deletion initiated), day 25 (5-day warning), day 30 (final purge)
+- Admin/owner retains read-only access (can export data)
+- Notification emails: Day 0 (deletion initiated), Day 25 (5-day warning), Day 30 (final purge)
 
-Restoration: any admin calls POST /workspaces/{ws_id}/restore within the grace period
-- status returns to active, deleted_at is cleared, all member access is restored
+Restoration: within the grace period, an admin calls `POST /workspaces/{ws_id}/restore`
+- `status` returns to `active`, `deleted_at` is cleared, and access is restored for all members
 
-Automatic purge: daily background job deletes workspaces where status = ''pending_deletion'' AND deleted_at < NOW() - INTERVAL ''30 days''. This is a hard CASCADE DELETE — all nodes, edges, members, invites, and chat sessions are deleted. Cannot be undone.
+Automated purge: a daily background scheduler purges workspaces where `status = ''pending_deletion'' AND deleted_at < NOW() - INTERVAL ''30 days''` (CASCADE DELETE: nodes, edges, members, invitations, and conversation logs are all deleted and cannot be recovered).
 
-Grace period by KB type:
-- evergreen: 30 days
-- ephemeral: 7 days
+Grace period differences by KB type:
+- `evergreen`: 30 days
+- `ephemeral`: 7 days
 
-Schema change:
+Schema addition:
 ALTER TABLE workspaces ADD COLUMN status TEXT NOT NULL DEFAULT ''active'' CHECK (status IN (''active'',''pending_deletion'',''deleted'')), ADD COLUMN deleted_at TIMESTAMPTZ;',
    ARRAY['workspace', 'lifecycle', 'soft-delete', 'grace-period', 'deletion', 'restore']::text[],'public','system','2026-04-12T00:00:00+00:00','e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3a4b5c6d7e2f3','human',
-   4,2)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -9877,18 +9794,18 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ns001_en','1.0','ws_spec0001_en','Node-splitting principles (read before writing)','factual','markdown','A node = one unit that can be independently retrieved, independently true, and independently updated.
+  ('mem_ns001_en','1.0','ws_spec0001_en','Node Splitting Principles (Must-Read for Agents Before Writing)','factual','markdown','One node = one unit that can be independently retrieved, independently true, and independently updated.
 
-Co-variance test (the only discriminator): will these two things always change together? Yes → keep them in one node; can each be revised independently → split into two and connect with an edge.
+Covariance Test (the sole discriminator): Will these two things always change together? Yes → put them in the same node; can they be revised independently? → split into two nodes and connect them with an edge.
 
-5-step self-check before writing:
-1. Classify first: fact / step / decision / preference? → decide content_type
-2. One node = one independently retrievable, independently true, independently updatable unit
-3. Co-variance test: things that always change together go in one node; things that change independently get split + linked by an edge
-4. Narrative (A then B, if X then Y) → encode into edges (proceeds_to / depends_on), don''t stuff it into the body
-5. When done, ask: if only this node were retrieved, is it sufficient and not misleading?
+5-Step Self-Check Before Writing:
+1. Classify first: fact / step / decision / preference? → determine `content_type`
+2. One node = one unit that can be independently retrieved, independently true, and independently updated
+3. Covariance Test: things that change together stay in one node; things that can change independently are split + connected with edges
+4. Narrative (first A then B, if X then Y) → encode into edges (`proceeds_to` / `depends_on`), do not cram into the body
+5. After writing, ask yourself: if only this single node is retrieved, is it sufficient and not misleading?
 
-Valid relations only: depends_on / extends / related_to / contradicts / proceeds_to. Don''t invent new ones. See "Node-splitting example: how to split a decision network (plan)".',
+Permitted relations are only: `depends_on` / `extends` / `related_to` / `contradicts` / `proceeds_to`; do not invent custom ones. For concrete examples, see "Node Splitting Example: How to Split a Decision Network (Plan)".',
    ARRAY['authoring', 'node-splitting', 'meta']::text[],'public','system','2026-05-31T12:40:44.790751+00:00','2c5410e8e0cb0d2ad5b33fe10cf0a806bb945c9cc797d57ffb4b023e43c4d769','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9901,28 +9818,28 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ns002_en','1.0','ws_spec0001_en','Node-splitting example: how to split a decision network (plan)','procedural','markdown','Using a "plan / decision" document (Phase 6.4) as an example of how to split a decision network.
+  ('mem_ns002_en','1.0','ws_spec0001_en','Node Splitting Example: How to Split a Decision Network (Plan)','procedural','markdown','Taking a "Plan / Decision" document (Phase 6.4) as an example, this demonstrates how to split a decision network.
 
-Anti-pattern (too coarse, don''t do this): cram the whole plan into one factual body. Why it''s bad: (1) any related search hits this one node, so there''s no retrieval discrimination; (2) revising a single decision means touching the whole node, spreading risk; (3) a sub-decision can''t independently link to its implementation or up/downstream.
+Anti-pattern (too coarse, do not do this): Cramming the entire plan into a single factual body. Drawbacks: ① Any related search hits this single node, yielding no retrieval discrimination; ② Revising a single decision requires modifying the entire node, spreading risk; ③ Sub-decisions cannot independently link to their implementations or upstream/downstream dependencies.
 
-Correct (one factual node per atomic decision):
-- D1 Dead-ends are the primary trigger for consult
-- D3 The synthesizer''s job is to judge whether to escalate to a human, not to pick an answer
-- D5 The safety reviewer is orthogonal to trust tiers, always runs first, can only veto, fail-closed
-- D7 Consult is governed by cost/permission controls
-- D8 The consultant is per-workspace; the safety reviewer is environment-wide
+Correct Approach (one factual node per atomic decision):
+- D1 Dead ends are the primary trigger source for consult
+- D3 The synthesizer''s responsibility is to decide whether to escalate to a human, not to choose an answer
+- D5 The safety reviewer is orthogonal to trust tiers, always runs first, can only veto, and fails closed
+- D7 consult is governed by cost and authorization permissions
+- D8 consultant is per-workspace, while safety reviewer is environment-wide
 
 Narrative arrows → edges:
-- d1 —proceeds_to→ d3 —proceeds_to→ d5 (processing flow)
+- d1 —proceeds_to→ d3 —proceeds_to→ d5 (processing pipeline)
 - d1 —depends_on→ d7 (dependency)
-- d8 —extends→ d5 (d8 refines d5''s deployment facet)
+- d8 —extends→ d5 (d8 refines the deployment aspect of d5)
 
-Splitting rationale (co-variance test):
-- D1/D3/D5 can each be revised independently (changing safety classification doesn''t affect the trigger condition) → split
-- D5''s "orthogonal / runs first / veto-only / fail-closed" describe the same decision; changing one usually drags the others → keep in one node
-- D5 (behavior) vs D8 (deployment scope) evolve independently → split + connect with an edge
+Rationale for splitting (Covariance Test):
+- D1/D3/D5 can each be revised independently (modifying safety classification does not affect trigger conditions) → split
+- The attributes "orthogonal / runs first / veto-only / fail-closed" in D5 describe the same decision; modifying one usually cascades to the others → keep in the same node
+- D5 (behavior) and D8 (deployment scope) evolve independently → split + connect with edges
 
-Full teaching docs: docs/dev/node-splitting-example.md (decision networks) and troubleshooting-graph-authoring.md (action flows).',
+For complete tutorials, see docs/dev/node-splitting-example.md (Decision Networks) and troubleshooting-graph-authoring.md (Action Flows).',
    ARRAY['authoring', 'node-splitting', 'example', 'meta']::text[],'public','system','2026-05-31T12:40:44.790751+00:00','32f40e87cbd4a9e98a8551df9077b8398b24c3f25dbbc234d7ff701a9e999c0c','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9935,18 +9852,18 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_o001_en','1.0','ws_spec0001_en','First-run onboarding: web UI wizard','procedural','plain','Shown automatically on first login; permanently dismissed after completion (re-accessible from Settings → Getting Started). Eight-step flow:
+  ('mem_o001_en','1.0','ws_spec0001_en','First-Time Onboarding: Web UI Wizard','procedural','plain','After a user registers and logs in for the first time, they are guided through a mandatory eight-step onboarding wizard (cannot be bypassed, but can be paused and resumed at any time):
 
-① Create account (Email + Password)
-② Verify email
-③ Name first Knowledge Base (bilingual name + visibility, default private)
-④ Choose Knowledge Base Type: Evergreen (default) or Ephemeral — **immutable after creation**
-⑤ Choose starting point: blank or upload document (.md/.txt/.pdf/.docx)
-⑥ AI provider setup (shown only on document path, skippable)
-⑦ Review extracted candidate nodes (at least one must be accepted to advance)
-⑧ Done (three shortcuts: add first node, invite someone, connect AI tool)
+① Create Account (Email + Password)
+② Verify Email
+③ Name First Knowledge Base (Bilingual name + visibility, default private)
+④ Choose Knowledge Base Type: Evergreen (long-lived, default) or Ephemeral (short-lived) — **immutable once created**
+⑤ Choose Starting Point: Blank or Upload Document (.md/.txt/.pdf/.docx)
+⑥ AI Provider Configuration (shown only for document pathway; skippable)
+⑦ Review Extracted Candidate Nodes (must accept at least one to continue)
+⑧ Complete (displays three shortcuts: Add Node Manually, Invite Members, Connect AI Tools)
 
-Progress tracked server-side via the `onboarding` object (`steps_done[]` + `steps_skipped[]`); resumes from the last incomplete step after interruption. Once `completed: true`, the wizard is never shown automatically again.',
+Progress is tracked on the server via an `onboarding` object (`steps_done[]` + `steps_skipped[]`), allowing resumption from the last incomplete step if interrupted. Once `completed: true`, it is never displayed automatically again.',
    ARRAY['onboarding', 'ui', 'wizard', 'ux', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9959,17 +9876,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_o002_en','1.0','ws_spec0001_en','First-run onboarding: CLI memtrace init','procedural','plain','Running `memtrace init` launches an interactive terminal wizard with five steps:
+  ('mem_o002_en','1.0','ws_spec0001_en','First-Time Onboarding: CLI memtrace init','procedural','plain','Running `memtrace init` launches a 5-step interactive terminal wizard:
 
-① Authentication: log in to existing account / create new account
-② Create first Knowledge Base: English name + visibility (private / restricted / public, default private)
-③ Choose KB type: evergreen (default) or ephemeral — **immutable after creation**
-④ AI provider setup (press Enter to skip): choose openai / anthropic and enter API key (auto-tests connection)
-⑤ Import document (press Enter to skip): provide file path or URL
+① Authentication: Log into an existing account / Create a new account
+② Create First Knowledge Base: English name + visibility (private / restricted / public, default private)
+③ Select KB Type: evergreen (long-lived, default) or ephemeral (short-lived) — **immutable once created**
+④ AI Provider Configuration (press Enter to skip): Select openai / anthropic and input API Key (automatically tests connection)
+⑤ Import Document (press Enter to skip): Enter file path or URL
 
-Config written to `~/.memtrace/config.json` with `chmod 600` immediately.
+Configuration is written to `~/.memtrace/config.json` and immediately secured with `chmod 600`.
 
-Re-running: prompts which setting to update — AI provider / switch default workspace / re-authenticate / exit. Existing values are not overwritten unless explicitly selected.',
+Subsequent executions: Prompts whether to update AI provider / switch default workspace / re-authenticate / exit, without automatically overwriting existing configurations.',
    ARRAY['onboarding', 'cli', 'init', 'setup', 'kb-type']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9a4b5c6d7e8f9','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9982,7 +9899,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_p001_en','1.0','ws_spec0001_en','Knowledge through connection, not accumulation','context','plain','The core premise of MemTrace: knowledge does not need to live in large, monolithic documents. Each node captures one idea. Value emerges from the network of relationships between nodes. A node alone is lightweight; connected to others, it becomes part of a knowledge base whose scale is determined by the density and quality of its relationships, not the size of any single entry.',
+  ('mem_p001_en','1.0','ws_spec0001_en','Knowledge Through Connection Rather Than Accumulation','context','plain','The core premise of MemTrace: knowledge does not need to reside in massive documents. Each node captures only a single idea, and its value stems from the network of connections between nodes. Nodes themselves are lightweight, but together through relationships they form a vast knowledge base. The scale of a knowledge base is not determined by the size of individual nodes, but by the density and quality of relationships between nodes.',
    ARRAY['philosophy', 'core', 'design-principle']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9995,9 +9912,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_p002_en','1.0','ws_spec0001_en','Designed for knowledge inheritance','context','plain','MemTrace is designed for the reader who was not there when the knowledge was created. A new team member, a late collaborator, or an AI agent in an unfamiliar context — all can enter at any node and navigate by following edges, without needing the original author to guide them. Each node is self-contained enough to read in isolation, yet connected enough that following its edges leads naturally to everything related.',
+  ('mem_p002_en','1.0','ws_spec0001_en','Designed for Knowledge Handoff','context','plain','MemTrace is designed for the "non-author". Whether it is a newly joined team member, a collaborator stepping in midway, or an AI agent operating in unfamiliar context, anyone can enter the knowledge base from any node and traverse Edges to find all relevant content without requiring guidance from the original author. Every node is designed to be self-sufficient enough for standalone reading, while linking via Edges to allow readers to explore deeper naturally.',
    ARRAY['philosophy', 'core', 'design-principle', 'inheritance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3','human',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10008,7 +9925,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_p003_en','1.0','ws_spec0001_en','Co-authorship between humans and AI','context','plain','In MemTrace, humans and AI write into the same graph. The graph''s structure — edge weights, traversal counts, path ratings — reflects which knowledge has actually proven useful, not just what was recorded. Decay keeps the graph honest: connections nobody follows fade; connections visited frequently, rated positively, or extended by other nodes strengthen and persist. The result is a knowledge base that self-organises around what actually matters.',
+  ('mem_p003_en','1.0','ws_spec0001_en','Collaborative Knowledge Graph for Humans and AI','context','plain','In MemTrace, humans and AI write to the same graph. The graph structure—Edge weights, traversal counts, ratings—reflects what knowledge is actually proven useful, rather than merely recorded. Decay ensures graph honesty: untraversed links naturally fade, while frequently used links are reinforced and persist. Ultimately, this forms a self-organizing knowledge base centered around "knowledge that truly matters".',
    ARRAY['philosophy', 'core', 'ai', 'co-authorship']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10021,35 +9938,35 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_p410a_en','1.0','ws_spec0001_en','Account-Level API Key: Design Decision (Phase 4.10)','preference','markdown','## Decision
+  ('mem_p410a_en','1.0','ws_spec0001_en','Account-Level API Keys: Design Decision (Phase 4.10)','preference','markdown','## Decision
 
-Phase 4.10 redesigns MCP / API keys from workspace-bound + fixed scope to account-level + dynamic role inheritance.
+Phase 4.10 transitions MCP / API keys from "workspace-bound + fixed scope" to "account-level + dynamic role inheritance".
 
-## Problem with Old Design
+## Issues with the Legacy Design
 
-Each knowledge base required its own key, and scopes (kb:read, kb:write) were fixed at creation time — inconvenient across multiple workspaces.
+Each knowledge base required an independent key, and scopes (`kb:read`, `kb:write`) were fixed at creation time, making cross-workspace usage inconvenient and difficult to manage.
 
 ## key_type Discriminator (Migration 048)
 
 | key_type | Description |
 |---|---|
-| `account` | Account-level key, dynamic role inheritance (new) |
-| `service` | Workspace Service Token (§29), retains fixed scopes |
+| `account` | Account-level key, dynamically inherits roles (new) |
+| `service` | Workspace Service Token (§29), retains fixed scope |
 
-## Dynamic Role Resolution (deps.py, per request)
+## Dynamic Role Resolution (deps.py, per API Call)
 
-1. Extract workspace_id from request path
-2. Query workspace_members (user_id + workspace_id) for role
-3. If user is workspace owner (workspaces.owner_id), treat as admin
-4. No workspace in path (e.g. /auth/me) means role = None
+1. Extract `workspace_id` from the request path
+2. Query `workspace_members` (`user_id` + `workspace_id`) to obtain `role`
+3. If the user is the workspace owner (`workspaces.owner_id`), treat as `admin`
+4. If the path does not contain a workspace (e.g. `/auth/me`), `role = None`
 
-Role hierarchy: viewer < contributor < admin (owner treated as admin)
+Role hierarchy: `viewer` < `contributor` < `admin` (owner is treated as admin)
 
 ## Impact
 
-- RequireScope replaced by RequireRole (RequireScope kept only for §29 service tokens)
-- idx_wsm_user index ensures performant role lookups
-- UI Settings > MCP / API Keys removes scope/workspace selectors',
+- `RequireScope` replaced by `RequireRole` (`RequireScope` is retained only for §29 service tokens)
+- Added `idx_wsm_user` index to ensure query performance
+- UI Settings → MCP / API Keys removes the scope / workspace selector',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10062,36 +9979,48 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_p410m_en','1.0','ws_spec0001_en','Magic Link: Restricted to invite_only Mode (Phase 4.10)','factual','markdown','## Mechanism
+  ('mem_p410m_en','1.0','ws_spec0001_en','Magic Link: Restricted to invite_only Mode (Phase 4.10)','factual','markdown','## Magic Link Mechanism
 
-Magic Link is passwordless login: a one-time token (SHA-256 hash, 15-minute TTL) is emailed to the user; clicking it issues a JWT session.
+Magic Link provides passwordless login: the system generates a one-time token (SHA-256 hash stored in DB, 15-minute expiration) and sends it to the user''s email. Clicking it verifies the token and issues a JWT session.
 
-## Phase 4.10 Restriction
+## Magic Link Mode Restrictions
 
-Magic Link is only available when MEMTRACE_REGISTRATION_MODE=invite_only.
+Magic Link is only enabled when `MEMTRACE_REGISTRATION_MODE=invite_only`.
 
-| registration_mode | Magic Link available? |
+| registration_mode | Magic Link Available? |
 |---|---|
-| open | 403 magic_link_unavailable |
-| domain | 403 |
-| approval | 403 |
-| invite_only | available |
-| closed | 403 |
+| `open` | ❌ 403 magic_link_unavailable |
+| `domain` | ❌ 403 |
+| `approval` | ❌ 403 |
+| `invite_only` | ✅ Available |
+| `closed` | ❌ 403 |
+
+## Direct Password Registration (open / domain Modes)
+
+Under `open` or `domain` mode, the Register form switches to password mode:
+
+- Fields: Display Name (optional), Email, Password, Confirm Password
+- Endpoint: `POST /auth/register/password` (`routers/registration.py`)
+- Password policy: `check_password_policy()` (≥8 characters, contains uppercase/lowercase alphanumeric, HIBP breach check)
+- Upon success, issues a JWT session directly with `email_verified = false` (can be verified later)
+- Duplicate email returns 409
+- Calling this endpoint in `closed` / `invite_only` mode returns 403
 
 ## Backend Guard (routers/registration.py)
 
-Both POST /auth/magic-link/request and POST /auth/magic-link/verify check at the start:
-if settings.registration_mode != invite_only, return 403 magic_link_unavailable.
+Both `POST /auth/magic-link/request` and `POST /auth/magic-link/verify` endpoints perform an initial check:
+If `settings.registration_mode != "invite_only"`, returns 403 `magic_link_unavailable`.
 
-## Frontend Awareness
+## Frontend Awareness (AuthPage.tsx)
 
-UI calls GET /auth/config (no auth) to get registration_mode,
-and shows the magic link option only in invite_only mode.
+The UI retrieves `registration_mode` via `GET /auth/config` (no auth required):
+- `invite_only`: Register page displays the `purpose_note` field and follows the magic link flow
+- `open` / `domain`: Register page displays `displayName` + `password` + `confirmPassword`, creating the account and logging in directly
 
 ## Invitation Flow
 
-In invite_only mode, workspace invitation links still trigger Magic Link (magic_link_tokens includes invitation_id).
-In other modes, invitation links redirect to the standard register form.',
+Under `invite_only` mode, workspace invitation links still trigger Magic Link (`magic_link_tokens` contains `invitation_id`).
+Under other modes, invitation links redirect to the standard password register form instead.',
    ARRAY['auth', 'magic-link', 'registration', 'security']::text[],'public','system','2026-05-11T00:00:00+00:00','p410m_magic_link_invite_only_restriction','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10104,29 +10033,27 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_p410t_en','1.0','ws_spec0001_en','JWT Token Refresh Race Condition Fix (authChecking Pattern)','preference','markdown','## Problem
+  ('mem_p410t_en','1.0','ws_spec0001_en','JWT Token Refresh Race Condition Fix (authChecking Mode)','preference','markdown','## Problem
 
-After long inactivity, page refresh fires workspaces.list() with an expired token.
-The backend get_current_user_optional treats expired tokens as anonymous and returns 200 + public KBs (not 401, so no retry).
-Result: first refresh shows only public KBs; second refresh is correct.
+When a user refreshes the page after being idle for a long time, `workspaces.list()` sends a request using an expired token.
+The backend `get_current_user_optional` treats an expired token as anonymous, returning 200 + public knowledge bases instead of 401 (which prevents triggering a retry). As a result: the first refresh only shows public knowledge bases, and only on the second refresh does it return to normal.
 
 ## Root Cause
 
-App.tsx synchronously set authenticated = !!localStorage.getItem(mt_token),
-causing workspaces.list() to fire before token validation.
+`App.tsx` originally set `authenticated = !!localStorage.getItem(''mt_token'')` synchronously, causing `workspaces.list()` to trigger before token verification completed.
 
 ## Fix (App.tsx)
 
-Added authChecking state to block all data loading until token validation completes:
+Added an `authChecking` state that blocks all data loading until token verification/refresh finishes:
 
-1. authChecking starts true, shows loading spinner
-2. Async check isTokenStale(): if stale, call refreshAccessToken() first
-3. Refresh fails: clear token, authChecking = false, show login page
-4. Validation succeeds: authenticated = true, authChecking = false, data loading proceeds
+1. `authChecking` defaults to `true`, displaying a loading spinner
+2. Asynchronously check `isTokenStale()`: if expired, call `refreshAccessToken()` first
+3. Refresh failure → clear token, set `authChecking = false`, display login page
+4. Verification success → `authenticated = true`, `authChecking = false`, trigger data loading
 
 ## isTokenStale() (client.ts)
 
-Decodes JWT payload exp field with a 60-second buffer to avoid boundary race conditions.',
+Decodes the `exp` field of the JWT payload, treating it as expired 60 seconds early to avoid boundary race conditions.',
    ARRAY['auth', 'frontend', 'jwt', 'race-condition', 'ux']::text[],'public','system','2026-05-11T00:00:00+00:00','p410t_token_refresh_race_condition_fix','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10139,10 +10066,10 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_playbook_001_en','1.0','ws_spec0001_en','MemTrace Playbook: Principles of Knowledge Mapping','context','markdown','### Core Principles
-1. **Atomicity**: Each node should describe exactly one independent concept.
-2. **Bilingual Symmetry**: Provide both English and Chinese content to ensure cross-lingual discovery.
-3. **Relationship First**: A node without edges is isolated memory. Always consider how it relates to existing knowledge.',
+  ('mem_playbook_001_en','1.0','ws_spec0001_en','MemTrace Playbook: Knowledge Graph Principles','context','markdown','### Core Principles
+1. **Atomicity**: Each node should precisely describe an independent concept.
+2. **Bilingual Symmetry**: Provide English and Chinese content to ensure cross-language discovery.
+3. **Relationship First**: Nodes without edges are isolated memories. Always consider how a node relates to existing knowledge.',
    ARRAY['playbook', 'philosophy', 'core']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_001','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10155,12 +10082,12 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_playbook_002_en','1.0','ws_spec0001_en','Workflow: Human-in-the-Loop Review Cycle','procedural','markdown','### Collaboration Workflow
-1. **AI Proposal**: AI generates suggested nodes during chat or ingestion, which enter the review_queue.
-2. **Human Review**: Users periodically check the queue to refine, merge, or reject proposals.
+  ('mem_playbook_002_en','1.0','ws_spec0001_en','Workflow: Human-AI Collaborative Review Cycle','procedural','markdown','### Collaborative Process
+1. **AI Proposal**: AI generates candidate nodes during conversation or ingestion, which enter `review_queue`.
+2. **Human Review**: Users regularly inspect the queue to refine, merge, or reject proposals.
 3. **Commit**: Approved knowledge becomes part of the permanent Evergreen graph.',
    ARRAY['workflow', 'review', 'collaboration']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_002','ai',
-   1,1)
+   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -10171,9 +10098,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_playbook_003_en','1.0','ws_spec0001_en','Best Practice: Distinguishing Node Types','factual','markdown','### Content Type Guide
-- **Factual**: Objective facts, technical specs, definitions.
-- **Procedural**: Action steps, SOPs, how-to guides.
+  ('mem_playbook_003_en','1.0','ws_spec0001_en','Best Practices: Distinguishing Node Types','factual','markdown','### Content Type Guidelines
+- **Factual**: Objective facts, technical specifications, definitions.
+- **Procedural**: Action steps, SOPs, operational guides.
 - **Preference**: Team decisions, design preferences, rationale for choices.
 - **Context**: Project background, high-level philosophy, design intent.',
    ARRAY['best-practice', 'content-type', 'guide']::text[],'public','system','2026-04-24T13:35:31.814382+00:00','manual_playbook_003','ai',
@@ -10188,42 +10115,41 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_rq001_en','1.0','ws_spec0001_en','§S2 Review Queue SLA and Steward Rotation','procedural','markdown','## Background
+  ('mem_rq001_en','1.0','ws_spec0001_en','§S2 Review Queue SLA and Steward Rotation','procedural','markdown','## Problem Background
 
-The review queue was designed but nobody actually uses it: every node has `validity_confirmed_at = null` and `vote_count = 0`.
+A review queue was designed, but no one actually used it: all nodes had `validity_confirmed_at = null` and `vote_count = 0`.
 
-## SLA fields
+## SLA Fields
 
-Two fields are added to the `review_queue` table:
+Two new fields are added to the `review_queue` table:
 
-- `assigned_to` (text): the assigned reviewer''s user_id
+- `assigned_to` (text): user_id of the assigned reviewer
 - `due_at` (timestamptz): review deadline (default: 7 days after assignment)
 
-## Steward rotation cron
+## Steward Rotation Cron
 
-Runs automatically every Monday at 09:00:
-1. Find all pending items with `assigned_to IS NULL`
-2. Assign them round-robin among the ws owner + team members
+Executes automatically every Monday at 09:00:
+1. Find all pending items where `assigned_to IS NULL`
+2. Distribute them via round-robin among ws owners + team members
 3. Set `due_at = now() + interval ''7 days''`
 4. Send notifications (email / webhook: Slack, Discord)
 
-## SLA penalty
+## SLA Penalty
 
-If not handled within 7 days of assignment: the item enters the next assignment round
+Unprocessed 7 days after assignment: item enters the next round of distribution
 
-## Acceptance criterion
+## Acceptance Criteria
 
 ```sql
--- unassigned rate should = 0%
+-- Unassigned rate should = 0%
 SELECT count(*) FROM review_queue
 WHERE assigned_to IS NULL
   AND created_at < now() - interval ''1 day''
   AND status = ''pending'';
 ```
 
-Target: weekly active reviewers >= 2
-',
-   ARRAY['review-queue', 'sla', 'steward', 'governance', 'cron', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ed451d811138ddfe82e570f6259f00866ef8ddd4602bb757dfbea2e3300d9f5b','ai',
+Target: Weekly active reviewers ≥ 2',
+   ARRAY['review-queue', 'sla', 'steward', 'governance', 'cron', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','rq001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10235,43 +10161,42 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_syn001_en','1.0','ws_spec0001_en','§S4 summarize_cluster MCP Tool: AI Cluster Summary','factual','markdown','## Overview
+  ('mem_syn001_en','1.0','ws_spec0001_en','§S4 summarize_cluster MCP Tool: Cluster AI Summarization','factual','markdown','## Feature Description
 
-`summarize_cluster` lets an AI agent automatically generate a summary node for a given cluster, so a querier can grasp the gist of the whole cluster from a single node and avoid the token cost of traversing node by node.
+`summarize_cluster` allows an AI agent to automatically generate a summary node for a specified cluster, enabling queriers to grasp the essence of the entire cluster via a single node and reducing the token consumption of node-by-node traversal.
 
-## MCP tool definition
+## MCP Tool Definition
 
 ```json
 {
   "name": "summarize_cluster",
-  "description": "Generate a summary node for a given cluster and send it for review",
+  "description": "Generate a summary node for the specified cluster and submit for review",
   "parameters": {
-    "cluster_id": "the cluster''s id",
-    "workspace_id": "workspace id"
+    "cluster_id": "Cluster ID",
+    "workspace_id": "Workspace ID"
   }
 }
 ```
 
-## Implementation locations
+## Implementation Locations
 
 - `services/synthesis.py::generate_cluster_summary`
 - `routers/kb.py::maintenance_summarize_cluster` (route: `POST /workspaces/{ws_id}/maintenance/summarize-cluster`)
 - `services/mcp_tools.py` (MCP exposure)
 
-## Flow
+## Workflow
 
-1. Fetch all active nodes in the cluster
-2. Call the AI to generate the summary body
+1. Retrieve all active nodes in the cluster
+2. Call AI to generate summary body
 3. Create a new node with `source_type=''ai''`, `content_type=''context''`
-4. Send it into `review_queue` for human confirmation
-5. Once confirmed, the node is attached to the cluster and `extends` edges are created to member nodes
+4. Submit to `review_queue` awaiting human confirmation
+5. Once confirmed, attach node under the cluster and build `extends` edges to member nodes
 
-## Use cases
+## Use Cases
 
-- When a cluster has > 10 member nodes, the summary node can act as an "entry point"
-- Token savings: a querier that hits the summary is done, without reading each member
-',
-   ARRAY['mcp-tool', 'synthesis', 'cluster', 'summarize', 'ai', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9663af7dbe98364b9ff89273a0875de54e7af5750479ad2e0eaf80a3d51b0fe7','ai',
+- When a cluster has > 10 member nodes, the summary node can serve as an "entry point"
+- Token savings: queriers hit the summary directly without needing to read each member individually',
+   ARRAY['mcp-tool', 'synthesis', 'cluster', 'summarize', 'ai', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','syn001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10283,50 +10208,49 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_syn002_en','1.0','ws_spec0001_en','§S4 complement_node_languages MCP Tool: Fill Bilingual Gaps','factual','markdown','## Overview
+  ('mem_syn002_en','1.0','ws_spec0001_en','§S4 complement_node_languages MCP Tool: Complementing Bilingual Gaps','factual','markdown','## Feature Description
 
-`complement_node_languages` detects nodes in a workspace that have "zh only, no en" or "en only, no zh", and has the AI auto-translate to fill the gap, ensuring language symmetry in a bilingual workspace.
+`complement_node_languages` detects nodes in a workspace that exist "only in zh without en" or "only in en without zh", using AI to automatically translate and complement them to ensure linguistic symmetry in bilingual workspaces.
 
-## MCP tool definition
+## MCP Tool Definition
 
 ```json
 {
   "name": "complement_node_languages",
-  "description": "Scan and fill bilingual gaps in a workspace",
+  "description": "Scan and complement bilingual gaps in the workspace",
   "parameters": {
-    "workspace_id": "workspace id",
+    "workspace_id": "Workspace ID",
     "target_language": "zh-TW | en"
   }
 }
 ```
 
-## Implementation location
+## Implementation Locations
 
 - `services/mcp_tools.py` (MCP exposure, tool name `complement_node_languages`)
-- Scans the gap against the workspace referenced by `linked_workspace_id`
+- Scans gaps in the workspace corresponding to `linked_workspace_id`
 
-## Bilingual workspace architecture
+## Bilingual Workspace Architecture
 
-spec-as-kb uses a "two monolingual workspaces" design:
+spec-as-kb adopts a "two monolingual workspaces" design:
 - `ws_spec0001` (zh-TW)
 - `ws_spec0001_en` (en)
-- The two are linked to each other via `workspaces.linked_workspace_id`
+- Linked to each other via `workspaces.linked_workspace_id`
 
-An English node id is `{zh_id}_en` (e.g. `mem_d001_en`).
+English node IDs are `{zh_id}_en` (e.g. `mem_d001_en`).
 
-## Translation flow
+## Translation Workflow
 
-1. Find nodes that exist in zh but not en
-2. Call the AI to generate the English body
-3. Create the `{id}_en` node with `source_type=''ai''` and send it to the review_queue
-4. After approval, add it to the en workspace
+1. Identify nodes that exist in zh but not in en
+2. Call AI to generate the English body
+3. Create `{id}_en` node with `source_type=''ai''`, submit to `review_queue`
+4. Add to en workspace upon passing review
 
-## Use cases
+## Use Cases
 
-- Batch-fill the corresponding English nodes after each new zh node is added
-- After Phase 5, the en node gap (~30 nodes) can be batch-generated with this tool
-',
-   ARRAY['mcp-tool', 'synthesis', 'bilingual', 'language', 'complement', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9086481e81a6af53429683eb32fd350b5bc682caaffdd70e872aa7c3d7414280','ai',
+- Batch complement corresponding English nodes whenever new zh nodes are added
+- Mass-generate en node gaps (~30 nodes) after Phase 5 using this tool',
+   ARRAY['mcp-tool', 'synthesis', 'bilingual', 'language', 'complement', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','syn002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10338,44 +10262,43 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_syn003_en','1.0','ws_spec0001_en','§S4 suggest_edges MCP Tool: AI Suggests Missing Edges','factual','markdown','## Overview
+  ('mem_syn003_en','1.0','ws_spec0001_en','§S4 suggest_edges MCP Tool: AI-Suggested Missing Edges','factual','markdown','## Feature Description
 
-`suggest_edges` analyzes the semantic relationships between nodes in a KB, finds edges that should exist but are not yet linked, and proposes them for review. It avoids orphan nodes that break traversal.
+`suggest_edges` analyzes semantic relationships between nodes in a knowledge base to identify edges that should exist but have not yet been connected, submitting them as proposals for review. This prevents orphan nodes from causing dead ends during traversal.
 
-## MCP tool definition
+## MCP Tool Definition
 
 ```json
 {
   "name": "suggest_edges",
-  "description": "AI suggests missing semantic edges in a workspace",
+  "description": "AI suggests missing semantic edges in the workspace",
   "parameters": {
-    "workspace_id": "workspace id",
+    "workspace_id": "Workspace ID",
     "threshold": 0.75
   }
 }
 ```
 
-## Implementation locations
+## Implementation Locations
 
 - `services/synthesis.py::suggest_missing_edges` (`run_suggest_edges`)
 - `routers/kb.py::maintenance_suggest_edges` (route: `POST /workspaces/{ws_id}/maintenance/suggest-edges`)
 - `services/nodes.py::suggest_edges_for_node_in_db` (single-node version)
 - `services/mcp_tools.py` (MCP exposure)
-- `services/bg_jobs.py::bg_suggest_edges` (background-job version)
+- `services/bg_jobs.py::bg_suggest_edges` (background job version)
 
-## Triggers
+## Trigger Opportunities
 
-1. **After document ingestion**: `bg_suggest_edges(ws_id, new_node_id, user_id)` is triggered automatically in the background
-2. **Manual**: MCP tool or maintenance endpoint
+1. **Post-Document Ingestion**: Automatically triggered in the background via `bg_suggest_edges(ws_id, new_node_id, user_id)`
+2. **Manual Trigger**: Via MCP tool or maintenance endpoint
 
-## Edge proposal flow
+## Edge Proposal Workflow
 
-1. Compute the embedding cosine of candidate node pairs
-2. cosine >= threshold and no existing edge -> generate an edge proposal
-3. The proposal enters `review_queue` (`change_type=''edge_suggestion''`)
-4. After human confirmation, create the formal edge
-',
-   ARRAY['mcp-tool', 'synthesis', 'edges', 'suggest', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ceffafca0e247c2db843d43a54676b13d2dbb46afea8f43ebea5661203278bb5','ai',
+1. Calculate embedding cosine for candidate node pairs
+2. cosine ≥ threshold and no existing edge → generate edge proposal
+3. Proposal enters `review_queue` (`change_type=''edge_suggestion''`)
+4. Establish formal edge after human confirmation',
+   ARRAY['mcp-tool', 'synthesis', 'edges', 'suggest', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','syn003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10387,9 +10310,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ta001_en','1.0','ws_spec0001_en','§S1 Token Telemetry: retrieval_logs Table','factual','markdown','Every retrieval / chat call writes to the `retrieval_logs` table, the foundation for all token measurement.
+  ('mem_ta001_en','1.0','ws_spec0001_en','§S1 Token Telemetry: retrieval_logs Table','factual','markdown','Every retrieval / chat call writes to the `retrieval_logs` table, serving as the foundation for all token measurements.
 
-## Table structure
+## Table Schema
 
 ```sql
 CREATE TABLE retrieval_logs (
@@ -10404,30 +10327,29 @@ CREATE TABLE retrieval_logs (
   tokens_query   int,
   tokens_context int,
   tokens_answer  int,
-  answer_useful  boolean,        -- written back by a later vote
-  trace_id       text,           -- links a chat session
+  answer_useful  boolean,        -- Written back by subsequent vote
+  trace_id       text,           -- Connects to chat session
   created_at     timestamptz DEFAULT now()
 );
 ```
 
 Indexes: `(workspace_id, created_at DESC)`, `(workspace_id, mode, created_at DESC)`.
 
-## Write points
+## Write Points
 
-- `services/search.py::search_nodes_in_db` -> `mode=''search''`
-- `hybrid_retrieval_for_chat` -> `mode=''chat''`
-- Token counting: estimated uniformly via TokenEstimator (three-level measurement architecture)
+- `services/search.py::search_nodes_in_db` → `mode=''search''`
+- `hybrid_retrieval_for_chat` → `mode=''chat''`
+- Token calculation: Unified estimation via TokenEstimator (three-tier measurement architecture)
 
-## Analytics endpoint
+## Analytics Endpoint
 
 `GET /workspaces/{ws_id}/analytics/tokens?period=7d` returns aggregated query results.
 
-## Acceptance criteria
+## Acceptance Criteria
 
-- log coverage >= 99%
-- token-count error vs. real calls < 2%
-',
-   ARRAY['analytics', 'token', 'retrieval', 'telemetry', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','e605067f468c30cec9c8c119a0cfe72bba127df398cbf95a1f69834d94485136','ai',
+- Log coverage rate ≥ 99%
+- Token count error compared to actual calls < 2%',
+   ARRAY['analytics', 'token', 'retrieval', 'telemetry', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10439,9 +10361,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ta002_en','1.0','ws_spec0001_en','§S1 KB Health Snapshot: kb_health_daily Table','factual','markdown','`kb_health_daily` takes a daily snapshot of core KB metrics; it is the persistence source for the North Star measurements (M2–M4).
+  ('mem_ta002_en','1.0','ws_spec0001_en','§S1 KB Health Snapshot: kb_health_daily Table','factual','markdown','The `kb_health_daily` daily snapshot records core knowledge base metrics, serving as the persisted source for North Star measurements (M2–M4).
 
-## Table structure
+## Table Schema
 
 ```sql
 CREATE TABLE kb_health_daily (
@@ -10451,7 +10373,7 @@ CREATE TABLE kb_health_daily (
   token_savings_ratio       float,   -- M1: token savings ratio
   retrieval_recall_at_5     float,   -- M2: Recall@5
   retrieval_mrr             float,   -- MRR
-  decay_runs_last_14d       int,     -- M3: consecutive decay-run days
+  decay_runs_last_14d       int,     -- M3: decay consecutive execution days
   duplicate_pairs_unlinked  int,     -- M4: unlinked duplicate pairs
   avg_trust_active          float,
   active_users_7d           int,
@@ -10462,24 +10384,24 @@ CREATE TABLE kb_health_daily (
 );
 ```
 
-## Write timing
+## Write Timing
 
-A daily 03:30 cron writes a snapshot for all workspaces.
+Daily 03:30 cron snapshot written across all workspaces.
 
-## Health endpoint
+## Health Endpoint
 
-`GET /workspaces/{ws_id}/analytics/health` returns the latest snapshot plus a 7-day trend. The UI Dashboard displays these metrics.
+`GET /workspaces/{ws_id}/analytics/health` returns the latest snapshot and 7-day trends. The UI Dashboard displays these metrics.
 
-## North Star targets
+## North Star Metric Targets
 
 | Metric | Target | Measured (2026-05-16) |
 |------|------|-------------------|
-| M2 Recall@5 | >= 0.80 | 0.9471 |
-| M3 Decay 14 consecutive days | no gaps | continuously accumulating |
-| M4 Unlinked duplicate pairs | = 0 | 0 |
+| M2 Recall@5 | ≥ 0.80 | 0.9471 |
+| M3 Decay Continuous 14 Days | No interruption | Continuously accumulating |
+| M4 Unlinked Duplicate Pairs | = 0 | 0 |
 
-Note: the `token_savings_ratio` column remains in the schema (see the DDL above), but the token-reduction KPI derived from it was withdrawn on 2026-07-25. The published figure rested on a counterfactual baseline (assuming the alternative behaviour is loading the entire knowledge base) and improves automatically as the knowledge base grows, so it does not constitute a verifiable performance claim. The measurement method is being revised.',
-   ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','a69e2b393f6f80f41c24fd2d0b64e718a1987a49506d6ce3594566d4484acdae','ai',
+Note: The `token_savings_ratio` field is retained in the schema (DDL above), but its derived token reduction KPI was retired on 2026-07-25. The measurement baseline of the originally published value was a counterfactual assumption (assuming the alternative behavior was loading the entire knowledge base), which automatically improved as the knowledge base grew and did not constitute a verifiable performance claim. The measurement methodology is under revision.',
+   ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10491,28 +10413,28 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ta003_en','1.0','ws_spec0001_en','§S1 similar_to Automated Scan and Deduplication','procedural','markdown','## Goal
+  ('mem_ta003_en','1.0','ws_spec0001_en','§S1 similar_to Automated Scanning and Deduplication','procedural','markdown','## Objective
 
-Eliminate duplicate nodes: any node pair with embedding cosine >= 0.85 should have a `similar_to` edge, to avoid repeatedly feeding highly similar content to the AI (wasting tokens + confusing judgment).
+Eliminate duplicate nodes: node pairs with embedding cosine ≥ 0.85 must have a `similar_to` edge, preventing highly similar content from being repeatedly fed to AI (wasting tokens + impairing judgment).
 
-## Automation flow
+## Automation Workflow
 
-`bg_suggest_edges` (`services/bg_jobs.py`) is triggered at:
+`bg_suggest_edges` (`services/bg_jobs.py`) is triggered at the following times:
 
-1. **After document ingestion**: `pipeline.py` calls `scheduler.add_job(bg_suggest_edges, args=[ws_id, node_id, user_id])`
-2. **Periodic scan**: a weekly Sunday 02:00 cron reruns across all workspaces
+1. **Post-Document Ingestion**: `pipeline.py` calls `scheduler.add_job(bg_suggest_edges, args=[ws_id, node_id, user_id])`
+2. **Periodic Scan**: Every Sunday at 02:00 cron rerun across all workspaces
 
-## Similarity threshold rules
+## Similarity Threshold Rules
 
-| cosine range | Action |
+| cosine Range | Action |
 |------------|------|
-| >= 0.85, < 0.92 | auto-create a `similar_to` edge (weight = cosine value) |
-| >= 0.92 | enter `review_queue`, mark `duplicate_candidate` |
+| ≥ 0.85, < 0.92 | Automatically create `similar_to` edge (weight = cosine value) |
+| ≥ 0.92 | Enter `review_queue`, flagged as `duplicate_candidate` |
 
 ## Acceptance SQL
 
 ```sql
--- expect 0 (no unlinked high-similarity pairs)
+-- Expected to return 0 (no unlinked high-similarity pairs)
 WITH pairs AS (
   SELECT a.id AS a_id, b.id AS b_id,
          1 - (a.embedding <=> b.embedding) AS sim
@@ -10528,9 +10450,8 @@ WHERE NOT EXISTS (
     AND ((e.from_id = p.a_id AND e.to_id = p.b_id)
          OR (e.from_id = p.b_id AND e.to_id = p.a_id))
 );
-```
-',
-   ARRAY['dedup', 'similar_to', 'automation', 'cron', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','f3af78d19d917180f59bc0ae1a3d3f17d60809d0732a83f3b023741c3bcd5193','ai',
+```',
+   ARRAY['dedup', 'similar_to', 'automation', 'cron', 'embedding', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10542,34 +10463,33 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ta004_en','1.0','ws_spec0001_en','§S1 propose_merge MCP Tool: Node Granularity Optimization','factual','markdown','## Background
+  ('mem_ta004_en','1.0','ws_spec0001_en','§S1 propose_merge MCP Tool: Node Granularity Optimization','factual','markdown','## Problem Background
 
-Over-atomized nodes (each < 50 chars, 5 of them) consume more tokens than a single appropriately-sized node (200 chars, 1 of them), because each is stuffed into the context by top-k.
+Overly atomized nodes (e.g. 5 nodes each < 50 words) consume more tokens than a single node of appropriate granularity (e.g. 1 node of 200 words), because top-k loads each into the context.
 
-## propose_merge tool
+## propose_merge Tool
 
 ```json
 {
   "name": "propose_merge",
-  "description": "Merge multiple nodes into one and send the proposal for review",
+  "description": "Merge multiple nodes into a proposal and submit for review",
   "parameters": {
     "node_ids": ["mem_x001", "mem_x002"],
-    "reason": "high co-occurrence and each body < 50 chars"
+    "reason": "High-frequency co-occurrence and each body < 50 words"
   }
 }
 ```
 
-Trigger condition: analyze the `retrieval_logs.hit_node_ids` co-occurrence matrix to find groups of nodes "co-hit in >= 5 distinct queries, each with body < 50 chars", and auto-generate a merge proposal.
+Trigger condition: Analyze the `retrieval_logs.hit_node_ids` co-occurrence matrix to identify node clusters that "are simultaneously hit in ≥ 5 distinct queries and each have a body < 50 words", automatically generating a merge proposal.
 
-Merge flow: the proposal enters `review_queue` (`change_type=''merge''`) -> a human or AI edits the merged draft -> a new node is created -> the old nodes are archived -> an `extends` edge is created pointing to the new node.
+Merge workflow: Proposal enters `review_queue` (`change_type=''merge''`) → human or AI edits the merged draft → create new node → archive old nodes → create `extends` edge pointing to the new node.
 
-## Acceptance criteria
+## Acceptance Criteria
 
 Run the same golden set after merging:
-- avg context tokens drop >= 15%
-- accuracy (LLM-judge rubric) does not drop
-',
-   ARRAY['mcp-tool', 'merge', 'granularity', 'token', 'review-queue', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','dee18981cec89090326dadb7251ca06c1fb182db659ab0855c32128cb167297d','ai',
+- avg context tokens decreased by ≥ 15%
+- Accuracy (LLM judge rubric) does not decrease',
+   ARRAY['mcp-tool', 'merge', 'granularity', 'token', 'review-queue', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta004a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10581,44 +10501,43 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_tg001_en','1.0','ws_spec0001_en','§S5 TraversalGuard: Graph Traversal Rate Limiting','factual','markdown','## Goal
+  ('mem_tg001_en','1.0','ws_spec0001_en','§S5 TraversalGuard: Graph Traversal Rate Limiting','factual','markdown','## Objective
 
-Prevent a malicious or runaway AI agent from traversing the knowledge graph without bound, causing DoS or embedding abuse.
+Prevent malicious or runaway AI agents from infinitely traversing the knowledge graph, resulting in DoS or embedding abuse.
 
-## Implementation location
+## Implementation Location
 
 `core/ratelimit.py::TraversalGuard`
 
-## Call sites
+## Usage Points
 
-- `routers/kb.py`: node-read routes (`TraversalGuard.check(viewer_id)`)
+- `routers/kb.py`: Node reading routes (`TraversalGuard.check(viewer_id)`)
 - `services/nodes.py`: `get_node_in_db`
-- `services/edges.py`: edge-related operations
+- `services/edges.py`: Edge-related operations
 
-## Limit rules
+## Rate Limit Rules
 
-`TraversalGuard.check(user_id)` triggers a rejection when:
+`TraversalGuard.check(user_id)` triggers rejection under the following conditions:
 
-| Dimension | Default limit |
+| Dimension | Default Limit |
 |------|----------|
-| Traversals per minute per user | configurable |
-| Traversals per hour per user | configurable |
-| MCP agent traversals | counted separately |
+| Traversals per minute per user | Configurable |
+| Traversals per hour per user | Configurable |
+| MCP agent traversal count | Calculated independently |
 
-Exceeding a limit returns `429 Too Many Requests`.
+Exceeding the limit returns `429 Too Many Requests`.
 
-## Design principles
+## Design Principles
 
-- The limit targets `viewer_id` (user_id or agent_id), not IP
-- It does not affect normal traversal by cron / maintenance jobs (system operations are excluded)
-- Rate counting uses an in-memory cache (can be swapped for Redis, see mem_inq002)
+- Limits target `viewer_id` (user_id or agent_id), not IP
+- Does not affect normal traversals for cron / maintenance jobs (excludes system operations)
+- Rate counting uses an in-memory cache (migratable to Redis, see mem_inq002)
 
-## Related nodes
+## Related Nodes
 
-- [[mem_d006]] Traversal Tracking: the traversal-counting mechanism
-- [[mem_inq002]] claim registry -> Redis (includes the rate-limiting discussion)
-',
-   ARRAY['security', 'rate-limit', 'traversal', 'guard', 'hardening', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','d0cc4221d4e57c1c91a8c1b3ae3d38a7fa311229be5e909290d8667d23722f01','ai',
+- [[mem_d006]] Traversal Tracking: Traversal Counting Mechanism
+- [[mem_inq002]] Migrating Claim Registry to Redis (including rate limiting discussion)',
+   ARRAY['security', 'rate-limit', 'traversal', 'guard', 'hardening', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','tg001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10630,18 +10549,18 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_w001_en','1.0','ws_spec0001_en','Project Package Structure','factual','markdown','MemTrace uses an npm workspaces monorepo. The root `package.json` manages six packages:
+  ('mem_w001_en','1.0','ws_spec0001_en','Project Package Structure','factual','markdown','MemTrace adopts an npm workspaces monorepo, where the root `package.json` manages six packages:
 
 | Package | Path | Language | Role |
-|---------|------|----------|------|
-| core | packages/core | TypeScript | Shared types, decay logic, ID/signature generator |
+|------|------|------|------|
+| core | packages/core | TypeScript | Shared types, decay calculation, ID/signature generators |
 | api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer |
 | ui | packages/ui | React/Vite | Web frontend |
 | cli | packages/cli | TypeScript | Local CLI tool |
-| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transports) |
+| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transport) |
 | ingest | packages/ingest | TypeScript | Document ingestion pipeline |
 
-`core` is consumed by `cli`. `api` is independent of the TS workspace.',
+`core` is referenced by `cli`; `api` remains independent of the TS packages.',
    ARRAY['dev', 'architecture', 'monorepo']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10654,31 +10573,31 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_w002_en','1.0','ws_spec0001_en','Local Development Stack Setup','procedural','markdown','## Prerequisites
+  ('mem_w002_en','1.0','ws_spec0001_en','Local Development Environment Setup','procedural','markdown','## Prerequisites
 - Node.js 20 LTS+
 - Python **3.11+**
-- Docker Desktop (runs PostgreSQL 17 + pgvector)
+- Docker Desktop (starts PostgreSQL 17 + pgvector)
 
-## Start the Dev Environment
+## Starting the Development Environment
 ```bash
-# 1. Copy env config
-cp .env.example .env  # fill in POSTGRES_PASSWORD and SECRET_KEY
+# 1. Copy environment configuration
+cp .env.example .env  # Fill in POSTGRES_PASSWORD and SECRET_KEY
 
 # 2. Install Node dependencies
 npm install
 
 # 3. Install Python dependencies
 cd packages/api && python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt && cd ../...
+source venv/bin/activate  # macOS/Linux
+pip install -r requirements.txt && cd ../..
 
-# 4. Start the database container (empty Postgres only; schema not yet applied)
+# 4. Start database container (creates empty Postgres only, schema not yet applied)
 docker compose up -d
 
-# 5. Start the API (runs run_migrations() on startup, applying packages/api/migrations/ per MANIFEST.txt)
+# 5. Start API (executes run_migrations() on startup, applying all migrations in the order of packages/api/migrations/MANIFEST.txt)
 cd packages/api && uvicorn main:app --reload --port 8000
 
-# 6. Start the UI (separate terminal)
+# 6. Start UI (in another terminal)
 cd packages/ui && npm run dev
 ```
 
@@ -10695,25 +10614,25 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_w003_en','1.0','ws_spec0001_en','Spec KB Initialization','procedural','markdown','## How is the Spec KB created?
-The Spec Knowledge Base (`ws_spec0001`) is created by `packages/api/seeds/spec_kb.sql` (generated by `scripts/seed_spec_kb.py`).
+  ('mem_w003_en','1.0','ws_spec0001_en','Spec KB Initialization Guide','procedural','markdown','## How is the Spec KB Created?
+The specification knowledge base (`ws_spec0001`) is created by `packages/api/seeds/spec_kb.sql` (generated by `scripts/seed_spec_kb.py`).
 
-This file intentionally lives in its own `packages/api/seeds/` directory, separate from `packages/api/migrations/` — seed data is not a schema migration, so it is not listed in `packages/api/migrations/MANIFEST.txt` and `run_migrations()` does not apply it automatically. Apply it manually once, per `docs/DEPLOYMENT.md`:
+This file is deliberately placed in a separate `packages/api/seeds/` directory and not included in `packages/api/migrations/`—seed data is not a schema migration, is not listed in `packages/api/migrations/MANIFEST.txt`, and will not be automatically applied by `run_migrations()`. It must be executed manually once according to `docs/DEPLOYMENT.md`:
 ```bash
 docker exec -i memtrace-db psql -U memtrace -d memtrace \
   < packages/api/seeds/spec_kb.sql
 ```
 
-## Verify
+## Verification
 ```bash
 docker exec -it memtrace-db psql -U memtrace -d memtrace \
   -c "SELECT COUNT(*) FROM memory_nodes WHERE workspace_id=''ws_spec0001'' AND status=''active'';"
 ```
 
-## Reset Spec KB
+## Resetting Spec KB
 ```bash
-docker compose down -v && docker compose up -d   # rebuild an empty DB
-# then re-apply packages/api/seeds/spec_kb.sql manually (see above)
+docker compose down -v && docker compose up -d   # Rebuild blank DB
+# Then manually re-apply packages/api/seeds/spec_kb.sql (see above)
 ```',
    ARRAY['dev', 'seed', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0,0)
@@ -10727,11 +10646,11 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_w004_en','1.0','ws_spec0001_en','Development Progress & Status','procedural','markdown','## Completed (Phase 1–4)
+  ('mem_w004_en','1.0','ws_spec0001_en','Development Implementation Sequence and Current Status','procedural','markdown','## Completed Progress (Phase 1–4)
 
 | Layer | Status |
-|-------|--------|
-| core (types/decay/signature) | ✅ |
+|----|------|
+| core (types/decay/signatures) | ✅ |
 | SQL schema (1.0 baseline) | ✅ |
 | api/core (database/security/AI abstraction) | ✅ |
 | api/routers/auth (login/JWT/password reset) | ✅ |
@@ -10740,14 +10659,14 @@ VALUES
 | mcp server (stdio+SSE / read+write tools) | ✅ |
 | ui (Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics) | ✅ |
 
-## Phase 4 Completed Tasks
+## Phase 4 Completed Items
 
-| Task | Goal | Status |
-|------|------|--------|
-| P4-A | KB health dashboard + token efficiency report | ✅ |
-| P4-B | Spec-as-KB upgraded to public demo homepage | ✅ |
+| Task | Target | Status |
+|------|------|------|
+| P4-A | Knowledge Base Health Dashboard + Token Efficiency Report | ✅ |
+| P4-B | Spec-as-KB Upgraded to Public Demo Landing Page | ✅ |
 | P4-D | CLI ingest/copy-node/init, Core contentTypeHalfLife/SHA-256, Scheduler jobs | ✅ |
-| P4-G | Self-hosted Ollama provider (local/LAN/reverse proxy) | ✅ |',
+| P4-G | Self-hosted Ollama Provider (Local/LAN/Reverse Proxy) | ✅ |',
    ARRAY['dev', 'workflow', 'procedural']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10760,11 +10679,11 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ws001_en','1.0','ws_spec0001_en','§17 Concurrent Write Safety: Optimistic Locking and Write Queue','factual','markdown','When multiple users or AI agents submit writes to the same knowledge base simultaneously, the following failure modes must be prevented: a node modified by two parties at once producing a split state; concurrent document ingestion producing duplicate nodes or conflicting edges; AI restructuring proposing against a stale snapshot while a human edit is being saved.
+  ('mem_ws001_en','1.0','ws_spec0001_en','§17 Concurrent Write Safety: Optimistic Locking and Write Queue','factual','markdown','When multiple users or AI agents submit writes to the same knowledge base concurrently, the following failure modes must be prevented: split states caused by concurrent modifications of a node by two parties; duplicate nodes or conflicting edges caused by parallel document ingestion; AI reorganization proposing on an outdated snapshot while manual edits are being saved.
 
-## 17.2 Node optimistic locking
+## 17.2 Node Optimistic Locking
 
-Each `memory_nodes` row carries an `updated_at` timestamp and a `version` integer. All update endpoints require the caller to provide the last known version:
+Each `memory_nodes` row carries an `updated_at` timestamp and a `version` integer. All update endpoints require callers to provide the last known version:
 
 ```http
 PATCH /api/v1/workspaces/{ws_id}/nodes/{node_id}
@@ -10778,28 +10697,27 @@ HTTP 412 Precondition Failed
 { "detail": "Node was modified by another actor since your last fetch. Reload and retry." }
 ```
 
-The client must refetch the node, merge changes, and resubmit. Silent overwrites are not allowed.
+The client must refetch the node, merge changes, and resubmit. Silent overwrites are not permitted.
 
 ```sql
 ALTER TABLE memory_nodes ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;
--- on each successful UPDATE: version = version + 1
+-- On every successful UPDATE: version = version + 1
 ```
 
-## 17.3 Workspace write queue (Advisory Lock)
+## 17.3 Workspace Write Queue (Advisory Lock)
 
-To prevent race conditions among document ingestion, batch AI extraction, and concurrent node creation, **writes to the same workspace are serialized via a per-workspace Advisory Lock**:
+To prevent race conditions across document ingestion, batch AI extraction, and concurrent node creation, **writes to the same workspace are serialized via a per-workspace Advisory Lock**:
 
 ```sql
-SELECT pg_advisory_xact_lock(hashtext(ws_id));
--- released automatically on transaction commit or rollback
+SELECT pg_advisory_xact_lock(hashtext(<ws_id)));
+-- Automatically released upon transaction commit or rollback
 ```
 
 - If the lock cannot be acquired before timeout, the server returns `HTTP 429 Write queue busy — try again shortly`
-- The lock scope is per-workspace; writes to different workspaces run fully in parallel
-- Read operations are **not** subject to the write lock
-- The timeout is configurable via `WS_WRITE_LOCK_TIMEOUT_SECONDS` (default: 5 seconds)
-',
-   ARRAY['concurrency', 'write-serialization', 'optimistic-locking', 'advisory-lock', 'database', 'api']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','cb2fd109595f2fcba8e3985b8843c898222e3d815079168ca2c375a0339a58ea','ai',
+- Lock scope is per-workspace; writes to different workspaces are fully concurrent
+- Read operations are **not restricted** by write locks
+- Timeout is configurable via `WS_WRITE_LOCK_TIMEOUT_SECONDS` (default: 5 seconds)',
+   ARRAY['concurrency', 'write-serialization', 'optimistic-locking', 'advisory-lock', 'database', 'api']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ws001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10811,18 +10729,18 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ws002_en','1.0','ws_spec0001_en','§17.4 Logical Conflict Detection','factual','markdown','After any AI-generated or AI-restructured node is submitted, the system runs an **asynchronous conflict check** to detect logical inconsistencies introduced by the AI.
+  ('mem_ws002_en','1.0','ws_spec0001_en','§17.4 Logical Conflict Detection','factual','markdown','After any AI-generated or AI-reorganized node is submitted, the system executes an **asynchronous conflict check** to detect logical inconsistencies introduced by AI.
 
-## Conflict types (§17.4.1)
+## Conflict Types (§17.4.1)
 
 | Type | Description |
-|------|------|
-| `contradicts_existing` | the node body contradicts an existing node linked via a `contradicts` edge |
-| `duplicate_content` | node embedding cosine similarity >= 0.92 (against an existing active node) |
-| `circular_dependency` | a `depends_on` edge would form a cycle in the dependency graph |
-| `orphaned_reference` | the node body references another node by ID, but no corresponding edge exists |
+|------|-------------|
+| `contradicts_existing` | Node body contradicts existing nodes connected via `contradicts` edges |
+| `duplicate_content` | Node embedding cosine similarity ≥ 0.92 (with existing active nodes) |
+| `circular_dependency` | `depends_on` edge would form a cycle in the dependency graph |
+| `orphaned_reference` | Node body references another node by ID, but no corresponding edge exists |
 
-## Conflict-flag schema (§17.4.2)
+## Conflict Flagging Schema (§17.4.2)
 
 ```sql
 ALTER TABLE memory_nodes
@@ -10832,13 +10750,13 @@ ALTER TABLE memory_nodes
   -- { "type": "...", "conflicting_node_id": "...", "message": "..." }
 ```
 
-A flagged node shows an **amber warning indicator** in the graph view and a dismissible conflict card in the node editor.
+Flagged nodes display an **amber warning indicator** in graph views, and a dismissible conflict card in the node editor.
 
-**Resolution:** edit the node to remove the contradiction -> `conflict_status = ''resolved''`; or call `PATCH .../acknowledge-conflict` to dismiss the prompt without changing content.
+**Resolution:** Edit the node to eliminate the contradiction → `conflict_status = ''resolved''`; or call `PATCH .../acknowledge-conflict` to dismiss the prompt without altering content.
 
-## AI write rule (§17.4.3)
+## AI Write Rules (§17.4.3)
 
-AI Agents (MCP) are subject to the same write serialization and conflict detection as human users. If a conflict is detected after submission, the `conflict_warning` field is returned in the next tool response:
+AI Agents (MCP) are subject to the same write serialization and conflict detection constraints as human users. If a conflict is detected after submission, a `conflict_warning` field is returned in the next tool response:
 
 ```json
 {
@@ -10849,9 +10767,8 @@ AI Agents (MCP) are subject to the same write serialization and conflict detecti
     "similar_node_id": "mem_abc"
   }
 }
-```
-',
-   ARRAY['concurrency', 'conflict-detection', 'write-serialization', 'ai', 'database', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','64ea1c83980cc716fb87938c6bf06d868a46d8cdf82b5259e4253bab807c1323','ai',
+```',
+   ARRAY['concurrency', 'conflict-detection', 'write-serialization', 'ai', 'database', 'schema']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ws002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10863,43 +10780,42 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_ws003_en','1.0','ws_spec0001_en','§S3 Cross-Workspace Version Sync: sync_from_source','procedural','markdown','## Background
+  ('mem_ws003_en','1.0','ws_spec0001_en','§S3 Cross-Workspace Version Synchronization: sync_from_source','procedural','markdown','## Problem Background
 
-`copied_from_node` only records the source; after the source node is updated, the copies do not sync, leaving 5 workspaces with 5 divergent copies.
+`copied_from_node` only records the origin; when the source node is updated, copies are not synchronized, resulting in divergent content across 5 workspaces having 5 different copies.
 
-## Sync mechanism
+## Synchronization Mechanisms
 
-### Automatic notification (LISTEN/NOTIFY)
+### Automatic Notification (LISTEN/NOTIFY)
 
-When the original node is updated, PostgreSQL `LISTEN/NOTIFY` pushes all copied nodes into `review_queue`, marked `change_type=''source_updated''`. Notification latency <= 5 seconds.
+When an original node is updated, all copied nodes are pushed into `review_queue` via PostgreSQL `LISTEN/NOTIFY`, flagged with `change_type=''source_updated''`. Notification latency ≤ 5 seconds.
 
-### Manual sync MCP tool
+### Manual Sync MCP Tool
 
 ```json
 {
   "name": "sync_from_source",
-  "description": "Manually pull the latest version from the source node",
+  "description": "Manually pull the latest version from source node",
   "parameters": {
-    "node_id": "id of the copied node to sync"
+    "node_id": "ID of the copied node to synchronize"
   }
 }
 ```
 
-## Related fields
+## Relevant Fields
 
 `memory_nodes` table:
-- `copied_from_node` (text): source node id
-- `copied_from_ws` (text): source workspace id
+- `copied_from_node` (text): Source node id
+- `copied_from_ws` (text): Source workspace id
 
-## End-to-end acceptance flow
+## End-to-End Acceptance Flow
 
 1. Create node A (ws_a)
 2. Copy to ws_b, becoming node B (`copied_from_node = A.id`)
 3. Update node A
-4. Confirm node B enters `review_queue` with `change_type=''source_updated''`
-5. Confirm all copies receive the notification, latency <= 5 seconds
-',
-   ARRAY['cross-workspace', 'sync', 'mcp-tool', 'copied-node', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','9371bf9ac6a69c74803ebf20ba282f5d3947113b1ad687d4e444fe4069449859','ai',
+4. Verify node B enters `review_queue`, with `change_type=''source_updated''`
+5. Verify all copies receive notification with latency ≤ 5 seconds',
+   ARRAY['cross-workspace', 'sync', 'mcp-tool', 'copied-node', 'governance', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ws003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -13691,6 +13607,210 @@ VALUES ('edge_ns0001_en','ws_spec0001_en','mem_ns002_en','mem_ns001_en','extends
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_cl001_a002_en','ws_spec0001_en','mem_cl001_en','mem_a002_en','extends',0.8,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_cl001_a001_en','ws_spec0001_en','mem_cl001_en','mem_a001_en','related_to',0.6,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_cl002_cl001_en','ws_spec0001_en','mem_cl002_en','mem_cl001_en','extends',0.9,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ws001_d001_en','ws_spec0001_en','mem_ws001_en','mem_d001_en','related_to',0.8,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ws002_ws001_en','ws_spec0001_en','mem_ws002_en','mem_ws001_en','depends_on',0.85,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ws002_c9bd6c49_en','ws_spec0001_en','mem_ws002_en','mem_c9bd6c49_en','extends',0.8,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ws002_6d8524a7_en','ws_spec0001_en','mem_ws002_en','mem_6d8524a7_en','related_to',0.7,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_acp001_a004_en','ws_spec0001_en','mem_acp001_en','mem_a004_en','extends',0.85,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_acp002_acp001_en','ws_spec0001_en','mem_acp002_en','mem_acp001_en','proceeds_to',0.9,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_acp002_a003_en','ws_spec0001_en','mem_acp002_en','mem_a003_en','related_to',0.75,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_aul001_2e101ff1_en','ws_spec0001_en','mem_aul001_en','mem_2e101ff1_en','extends',0.85,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_aul001_05ce17d1_en','ws_spec0001_en','mem_aul001_en','mem_05ce17d1_en','extends',0.7,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_apidi001_a002_en','ws_spec0001_en','mem_apidi001_en','mem_a002_en','extends',0.85,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_apidi001_a003_en','ws_spec0001_en','mem_apidi001_en','mem_a003_en','related_to',0.7,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq001_i003_en','ws_spec0001_en','mem_inq001_en','mem_i003_en','related_to',0.85,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq001_acp001_en','ws_spec0001_en','mem_inq001_en','mem_acp001_en','related_to',0.6,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq002_i003_en','ws_spec0001_en','mem_inq002_en','mem_i003_en','related_to',0.8,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq002_inq001_en','ws_spec0001_en','mem_inq002_en','mem_inq001_en','related_to',0.7,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq003_a003_en','ws_spec0001_en','mem_inq003_en','mem_a003_en','related_to',0.85,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq003_ws002_en','ws_spec0001_en','mem_inq003_en','mem_ws002_en','related_to',0.6,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq004_i003_en','ws_spec0001_en','mem_inq004_en','mem_i003_en','related_to',0.8,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq005_i004_en','ws_spec0001_en','mem_inq005_en','mem_i004_en','related_to',0.8,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_inq005_inq001_en','ws_spec0001_en','mem_inq005_en','mem_inq001_en','depends_on',0.7,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ta001_a005_en','ws_spec0001_en','mem_ta001_en','mem_a005_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ta002_ta001_en','ws_spec0001_en','mem_ta002_en','mem_ta001_en','depends_on',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ta002_a005_en','ws_spec0001_en','mem_ta002_en','mem_a005_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ta003_ta001_en','ws_spec0001_en','mem_ta003_en','mem_ta001_en','depends_on',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ta003_g001_en','ws_spec0001_en','mem_ta003_en','mem_g001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ta004_ta003_en','ws_spec0001_en','mem_ta004_en','mem_ta003_en','depends_on',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ta004_a003_en','ws_spec0001_en','mem_ta004_en','mem_a003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_rq001_a003_en','ws_spec0001_en','mem_rq001_en','mem_a003_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ag001_i003_en','ws_spec0001_en','mem_ag001_en','mem_i003_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ws003_k003_en','ws_spec0001_en','mem_ws003_en','mem_k003_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ws003_ws001_en','ws_spec0001_en','mem_ws003_en','mem_ws001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_cf001_ws002_en','ws_spec0001_en','mem_cf001_en','mem_ws002_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_cf001_a003_en','ws_spec0001_en','mem_cf001_en','mem_a003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ah001_d005_en','ws_spec0001_en','mem_ah001_en','mem_d005_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ah001_i003_en','ws_spec0001_en','mem_ah001_en','mem_i003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_syn001_cl001_en','ws_spec0001_en','mem_syn001_en','mem_cl001_en','depends_on',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_syn001_a002_en','ws_spec0001_en','mem_syn001_en','mem_a002_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_syn002_i003_en','ws_spec0001_en','mem_syn002_en','mem_i003_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_syn002_k001_en','ws_spec0001_en','mem_syn002_en','mem_k001_en','depends_on',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_syn003_g003_en','ws_spec0001_en','mem_syn003_en','mem_g003_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_syn003_ta001_en','ws_spec0001_en','mem_syn003_en','mem_ta001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_tg001_d006_en','ws_spec0001_en','mem_tg001_en','mem_d006_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_tg001_i003_en','ws_spec0001_en','mem_tg001_en','mem_i003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_96a0ddf9_en','ws_spec0001_en','mem_c571ecc8_en','mem_a003_en','extends',0.9,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_6c9ef069_en','ws_spec0001_en','mem_d38edbc7_en','mem_c571ecc8_en','depends_on',0.95,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_eb03789c_en','ws_spec0001_en','mem_53bad7a9_en','mem_079a7573_en','related_to',0.9,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_34f39dc7_en','ws_spec0001_en','mem_53bad7a9_en','mem_c571ecc8_en','related_to',0.85,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_9c384c71_en','ws_spec0001_en','mem_47fe8f58_en','mem_d001_en','extends',0.95,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_i005i002_en','ws_spec0001_en','mem_i005_en','mem_i002_en','depends_on',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -13704,4 +13824,396 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_i007i006_en','ws_spec0001_en','mem_i007_en','mem_i006_en','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_20ec5826_en','ws_spec0001_en','mem_2563d8c1_en','mem_47aff2c9_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7c698f85_en','ws_spec0001_en','mem_17e5a3aa_en','mem_2563d8c1_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_77d93f7e_en','ws_spec0001_en','mem_26ff6cfe_en','mem_3c9c261b_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_99032247_en','ws_spec0001_en','mem_b0b85a7c_en','mem_3c9c261b_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_65daf1f7_en','ws_spec0001_en','mem_inq004_en','mem_3c9c261b_en','answered_by',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_78dfc477_en','ws_spec0001_en','mem_at001_en','mem_8ac95ea6_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e5453028_en','ws_spec0001_en','mem_c24bbdad_en','mem_8ac95ea6_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_35a1391c_en','ws_spec0001_en','mem_8ac95ea6_en','mem_c9dd39d4_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_38581118_en','ws_spec0001_en','mem_6c94cec3_en','mem_rq001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b6bf8836_en','ws_spec0001_en','mem_6fa7699b_en','mem_53bad7a9_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_22158f64_en','ws_spec0001_en','mem_75f4fbdc_en','mem_ta003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1adddb2d_en','ws_spec0001_en','mem_19f73d5a_en','mem_22c9d8d6_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_d4d48fdd_en','ws_spec0001_en','mem_4cc50909_en','mem_at001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_64b5bb85_en','ws_spec0001_en','mem_67362874_en','mem_d005_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_20395d1f_en','ws_spec0001_en','mem_d419e8e3_en','mem_6089d7d9_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1805a268_en','ws_spec0001_en','mem_cf633afb_en','mem_98300428_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2fe67de8_en','ws_spec0001_en','mem_98300428_en','mem_i003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fdd78b5f_en','ws_spec0001_en','mem_8de9f0c0_en','mem_guide_g01_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ec93fa4f_en','ws_spec0001_en','mem_p410m_en','mem_i001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4503ebf0_en','ws_spec0001_en','mem_p410t_en','mem_ac50a001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_9ca22ece_en','ws_spec0001_en','mem_p410m_en','mem_p410a_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b0e1ba3e_en','ws_spec0001_en','mem_dd1d4589_en','mem_4b0125e0_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_9d69775f_en','ws_spec0001_en','mem_exp001_en','mem_k002_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7713a62f_en','ws_spec0001_en','mem_f0a4f717_en','mem_53bad7a9_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_05410cb0_en','ws_spec0001_en','mem_bk001_en','mem_f0a4f717_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_15409e35_en','ws_spec0001_en','mem_c789e5cb_en','mem_ta003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_53c0845f_en','ws_spec0001_en','mem_35036bb8_en','mem_guide_g01_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_0019fbbd_en','ws_spec0001_en','mem_guide_g01_en','mem_ag001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e2e26418_en','ws_spec0001_en','mem_guide_g01_en','mem_guide_g02_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_97279a20_en','ws_spec0001_en','mem_guide_g02_en','mem_guide_g03_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e3eb632c_en','ws_spec0001_en','mem_guide_g03_en','mem_guide_g04_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_d19ca24d_en','ws_spec0001_en','mem_guide_g04_en','mem_guide_g06_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7e0089d0_en','ws_spec0001_en','mem_guide_g06_en','mem_guide_g07_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4a69f035_en','ws_spec0001_en','mem_4741542a_en','mem_19f73d5a_en','extends',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_8ed2cfb9_en','ws_spec0001_en','mem_4741542a_en','mem_ce00334f_en','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_91bf6886_en','ws_spec0001_en','mem_4741542a_en','mem_guide_g03_en','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_811abda7_en','ws_spec0001_en','mem_013d11be_en','mem_5a3bd1b0_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_8868f18b_en','ws_spec0001_en','mem_0752c920_en','mem_c3e5a685_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_70d164ff_en','ws_spec0001_en','mem_156804b8_en','mem_9d2bb35f_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_db533cbf_en','ws_spec0001_en','mem_1fc8782f_en','mem_7f9fadcd_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_99f06a52_en','ws_spec0001_en','mem_1fc8782f_en','mem_fb026368_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2ecde3e9_en','ws_spec0001_en','mem_21638c34_en','mem_41c6465d_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_6c99d3f2_en','ws_spec0001_en','mem_22c9d8d6_en','mem_g001_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_01b38b42_en','ws_spec0001_en','mem_25ad6564_en','mem_6089d7d9_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_0a05e1f5_en','ws_spec0001_en','mem_263e8dd9_en','mem_8dc3944b_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b80182e3_en','ws_spec0001_en','mem_2698efe6_en','mem_41c6465d_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_539fad34_en','ws_spec0001_en','mem_3b303d15_en','mem_76037494_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_bd0305b6_en','ws_spec0001_en','mem_41c6465d_en','mem_i002_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7372cfd2_en','ws_spec0001_en','mem_42669ba9_en','mem_21638c34_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7217ec21_en','ws_spec0001_en','mem_4379cf51_en','mem_67362874_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_84b4f489_en','ws_spec0001_en','mem_47aff2c9_en','mem_3c9c261b_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_383861f2_en','ws_spec0001_en','mem_4b0125e0_en','mem_08f1c514_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7a49563f_en','ws_spec0001_en','mem_4b0125e0_en','mem_565d7142_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b0236801_en','ws_spec0001_en','mem_4b0125e0_en','mem_97757fb8_en','related_to',1.0,365.0,0.1,true,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2dabdc1d_en','ws_spec0001_en','mem_526945e4_en','mem_82683707_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_dec491df_en','ws_spec0001_en','mem_52ac8940_en','mem_5a3bd1b0_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1255f39e_en','ws_spec0001_en','mem_54473627_en','mem_41c6465d_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_8aecb05e_en','ws_spec0001_en','mem_5a3bd1b0_en','mem_76037494_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_dfccfece_en','ws_spec0001_en','mem_67362874_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_7265ad5a_en','ws_spec0001_en','mem_7484cfc2_en','mem_d692bb11_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_210d4f0e_en','ws_spec0001_en','mem_7f9fadcd_en','mem_861a5678_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1040b0bf_en','ws_spec0001_en','mem_80054468_en','mem_ee62ef2c_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_6efd1e19_en','ws_spec0001_en','mem_82683707_en','mem_i003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1ef7d38a_en','ws_spec0001_en','mem_861a5678_en','mem_fb026368_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_1593121f_en','ws_spec0001_en','mem_8a8214f3_en','mem_67362874_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_c7c39781_en','ws_spec0001_en','mem_8ac95ea6_en','mem_35036bb8_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_61616e84_en','ws_spec0001_en','mem_8ac95ea6_en','mem_a003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4473d370_en','ws_spec0001_en','mem_8ac95ea6_en','mem_c571ecc8_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2ed731df_en','ws_spec0001_en','mem_8dc3944b_en','mem_0d6a7214_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e27024ec_en','ws_spec0001_en','mem_97757fb8_en','mem_67362874_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_3f328f38_en','ws_spec0001_en','mem_9d2bb35f_en','mem_i002_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_f3c354b8_en','ws_spec0001_en','mem_a71dcf58_en','mem_4741542a_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fe8d7607_en','ws_spec0001_en','mem_ah001_en','mem_tg001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_ec8435ce_en','ws_spec0001_en','mem_c24bbdad_en','mem_f83d6e1b_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_eb969b3c_en','ws_spec0001_en','mem_cbe1be4b_en','mem_o001_en','similar_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4affb5ea_en','ws_spec0001_en','mem_cce15a1a_en','mem_4379cf51_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_bf9db7a1_en','ws_spec0001_en','mem_cf001_en','mem_rq001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_a50ac35a_en','ws_spec0001_en','mem_d07c29a1_en','mem_67362874_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fb279531_en','ws_spec0001_en','mem_d1d90285_en','mem_9d2bb35f_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_bba91477_en','ws_spec0001_en','mem_d3564082_en','mem_76037494_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_45b2c91e_en','ws_spec0001_en','mem_df5063bd_en','mem_a71dcf58_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_76e6ea0b_en','ws_spec0001_en','mem_e10a0200_en','mem_1185cce5_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_e40599af_en','ws_spec0001_en','mem_ee62ef2c_en','mem_a005_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_07131597_en','ws_spec0001_en','mem_eedc4eef_en','mem_9d2bb35f_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_0d61dc80_en','ws_spec0001_en','mem_guide_g01_en','mem_guide_g06_en','depends_on',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_d55a40b4_en','ws_spec0001_en','mem_guide_g01_en','mem_playbook_001_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_726fe85f_en','ws_spec0001_en','mem_guide_g02_en','mem_i003_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2aa0120d_en','ws_spec0001_en','mem_guide_g03_en','mem_playbook_003_en','extends',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_2dc4f0f5_en','ws_spec0001_en','mem_guide_g07_en','mem_guide_g01_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_11108fc4_en','ws_spec0001_en','mem_guide_g07_en','mem_guide_g04_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_9b364886_en','ws_spec0001_en','mem_i002_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b870c50d_en','ws_spec0001_en','mem_ns001_en','mem_guide_g03_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_45094063_en','ws_spec0001_en','mem_rq001_en','mem_8ac95ea6_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_f6f6c292_en','ws_spec0001_en','mem_syn001_en','mem_syn002_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_c506ef8a_en','ws_spec0001_en','mem_syn002_en','mem_syn003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_36858278_en','ws_spec0001_en','mem_syn003_en','mem_i003_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fc8be58a_en','ws_spec0001_en','mem_ta004_en','mem_rq001_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_c1abd913_en','ws_spec0001_en','mem_tg001_en','mem_c9dd39d4_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;

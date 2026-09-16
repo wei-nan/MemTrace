@@ -2,11 +2,11 @@
   "id": "mem_inq001_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Gap: Multi-planner planning discussion (fan-out + consensus arbitration)",
+  "title": "Gap: Multi-Planner Planning Discussion (Fan-Out + Consensus Adjudication)",
   "content": {
     "type": "inquiry",
     "format": "markdown",
-    "body": "The loop's planning stage currently has only a single planner. We want to support multiple planners producing proposals in parallel, then arbitrate whether consensus is reached.\n\n**Open design questions:**\n\n1. **Who launches the multiple planners?** External harness fan-out, or a MemTrace conductor actively triggering them?\n2. **Semantic boundary of proposals:** do the planners produce different solutions for \"the same task\", or does each pick a \"different task\"?\n3. **UI after escalate:** when converge_proposals returns escalate, how does the review_queue present a \"pick-one-of-many\" proposal card?\n4. **Interaction with existing claim_task:** when multiple planners claim different tasks simultaneously, does the task-allocation logic need adjusting?\n\n**Existing groundwork:** the `converge_proposals` MCP tool is implemented (reuses the consult synthesizer, returning converge / escalate).\n"
+    "body": "Currently, the planning phase of the loop has only a single planner. The goal is to support multiple planners generating proposals in parallel, followed by adjudicating whether consensus is reached.\n\n**Design Questions for Discussion:**\n\n1. **Who is responsible for initiating multiple planners?** External harness fan-out, or active triggering by the MemTrace conductor?\n2. **Semantic boundaries of proposals:** Are multiple planners generating different solutions for the \"same task\", or are they each selecting \"different tasks\"?\n3. **UI after escalate:** When converge_proposals returns escalate, how should the review_queue present \"multiple-choice\" style proposal cards?\n4. **Interaction with existing claim_task:** When multiple planners claim different tasks concurrently, does the task allocation logic need adjustments?\n\n**Existing Components:** The `converge_proposals` MCP tool is implemented (reusing consult synthesizer, returning converge / escalate)."
   },
   "tags": [
     "inquiry",
@@ -20,8 +20,8 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-06-13T00:00:00+00:00",
-    "signature": "17430ff0bd605b7dd645606a3afe35b03a396a189dcb97431463cbccebdbad4a",
-    "source_type": "ai"
+    "signature": "inq001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
   },
   "traversal": {
     "count": 0,

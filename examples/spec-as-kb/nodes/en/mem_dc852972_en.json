@@ -2,16 +2,16 @@
   "id": "mem_dc852972_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "MEMTRACE_TOKEN Security Reminder",
+  "title": "MEMTRACE_TOKEN Security Notice",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "A security reminder text regarding `MEMTRACE_TOKEN` has been added to the server startup's standard error log (stderr log)."
+    "body": "A security notice regarding `MEMTRACE_TOKEN` has been added to the standard error log (stderr log) during server startup."
   },
   "tags": [
-    "環境變數",
-    "安全性",
-    "日誌"
+    "environment-variable",
+    "security",
+    "logging"
   ],
   "visibility": "public",
   "provenance": {

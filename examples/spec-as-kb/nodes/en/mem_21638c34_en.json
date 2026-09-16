@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "This endpoint is used to submit an explicit rating (1-5) for a path."
+    "body": "This endpoint is used to submit explicit ratings (1-5) for paths."
   },
   "tags": [
     "api",

@@ -2,16 +2,16 @@
   "id": "mem_2c0de61a_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Acceptance Scenario: No workspace_id Provided",
+  "title": "Acceptance Scenario: Omitting workspace_id",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "One acceptance scenario: when calling a tool without providing `workspace_id`, the system should use the default value from `MEMTRACE_WS`, and its behavior should be identical to the current version."
+    "body": "One of the acceptance scenarios: When tool invocation omits `workspace_id`, the system should use the default value from `MEMTRACE_WS`, and the behavior should remain identical to the existing version."
   },
   "tags": [
-    "驗收測試",
-    "工作區",
-    "預設值"
+    "acceptance-test",
+    "workspace",
+    "default-value"
   ],
   "visibility": "public",
   "provenance": {

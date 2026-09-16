@@ -2,11 +2,11 @@
   "id": "mem_d005_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Provenance: origin and traceability",
+  "title": "Provenance: Source and Traceability",
   "content": {
     "type": "factual",
     "format": "plain",
-    "body": "The provenance object on each node records the knowledge's origin: author, created_at, signature (SHA-256 content hash), source_type (human / ai_generated / ai_verified). updated_at is added on any edit. AI-extracted nodes additionally record source_document (the source file) and extraction_model (the AI model used). Nodes copied across Knowledge Bases record copied_from.node_id and copied_from.workspace_id. Provenance is always recorded but does not restrict access."
+    "body": "The provenance object on each node records knowledge origin information: author, created_at (creation timestamp), signature (SHA-256 content hash), source_type (human / ai_generated / ai_verified). After edits, updated_at is added. AI-extracted nodes additionally record source_document and extraction_model (AI model used). Nodes copied to other knowledge bases record copied_from.node_id and copied_from.workspace_id. Provenance is always recorded, but does not impose access restrictions."
   },
   "tags": [
     "data-model",
@@ -21,7 +21,7 @@
     "source_type": "human"
   },
   "traversal": {
-    "count": 2,
-    "unique_traversers": 2
+    "count": 0,
+    "unique_traversers": 0
   }
 }

@@ -21,7 +21,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 10,
-    "unique_traversers": 3
+    "count": 0,
+    "unique_traversers": 0
   }
 }

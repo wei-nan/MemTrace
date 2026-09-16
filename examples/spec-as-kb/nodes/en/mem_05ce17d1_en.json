@@ -6,11 +6,11 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Three indexes are created on the `ai_usage_log` table: `idx_ai_usage_user` (on `user_id`, `called_at` DESC), `idx_ai_usage_feature` (on `feature`, `called_at` DESC), and `idx_ai_usage_provider` (on `provider`, `called_at` DESC)."
+    "body": "Three indexes are created on the `ai_usage_log` table: `idx_ai_usage_user` (based on `user_id`, descending `called_at`), `idx_ai_usage_feature` (based on `feature`, descending `called_at`), and `idx_ai_usage_provider` (based on `provider`, descending `called_at`)."
   },
   "tags": [
     "ai",
-    "說明"
+    "description"
   ],
   "visibility": "public",
   "provenance": {

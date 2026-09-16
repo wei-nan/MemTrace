@@ -2,11 +2,11 @@
   "id": "mem_156804b8_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "API Key Scope: kb:write",
+  "title": "API Key Permission Scope: kb:write",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "An API key with the `kb:write` scope grants admin role capabilities, providing full write access."
+    "body": "API keys with the `kb:write` permission scope grant administrator role capabilities, providing full write permissions."
   },
   "tags": [
     "api-key",

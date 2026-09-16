@@ -6,11 +6,11 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "A new `ai_usage_log` table is created with fields such as `id`, `user_id`, `key_source`, `provider`, `model`, `feature`, `workspace_id`, `node_id`, `tokens_input`, `tokens_output`, `tokens_total`, `latency_ms`, `success`, `error_code`, and `called_at`."
+    "body": "Creates a new `ai_usage_log` table containing fields including `id`, `user_id`, `key_source`, `provider`, `model`, `feature`, `workspace_id`, `node_id`, `tokens_input`, `tokens_output`, `tokens_total`, `latency_ms`, `success`, `error_code`, and `called_at`."
   },
   "tags": [
     "ai",
-    "說明"
+    "description"
   ],
   "visibility": "public",
   "provenance": {

@@ -2,11 +2,11 @@
   "id": "mem_i001_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "User authentication: email and password",
+  "title": "User Authentication: Email and Password",
   "content": {
     "type": "procedural",
     "format": "plain",
-    "body": "MemTrace uses Email + Password authentication. Security measures include: bcrypt hash (cost ≥ 12), password policy (8–128 chars, upper+lower+digit, HaveIBeenPwned check), verification email (24h expiry), and 5-failure lockout for 15 minutes. Upon login, a JWT session (7 days) is issued and passed via the Authorization: Bearer header. Logout is handled via an immediate blocklist. Third-party OAuth is currently not supported to simplify the authentication surface and reduce external dependencies."
+    "body": "MemTrace uses an Email + Password authentication path. Security measures include: bcrypt hashing (cost ≥ 12), password policy (8–128 characters, uppercase/lowercase + numbers, HaveIBeenPwned breach checks), email verification email (24-hour validity), and lockout for 15 minutes after 5 failures. After logging in, a JWT session is issued (7 days), transmitted via the Authorization: Bearer header, and invalidated immediately upon logout via a blocklist. Third-party OAuth login is currently not supported to simplify the authentication surface and minimize external dependencies."
   },
   "tags": [
     "auth",

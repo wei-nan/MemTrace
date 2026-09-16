@@ -11,8 +11,8 @@
   "tags": [
     "jwt",
     "token",
-    "生命週期",
-    "重新整理"
+    "lifecycle",
+    "refresh"
   ],
   "visibility": "public",
   "provenance": {

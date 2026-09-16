@@ -2,11 +2,11 @@
   "id": "mem_d002_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Edge: a typed, directed relationship",
+  "title": "Edge: Directed, Typed Relationships",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "An Edge connects two Memory Nodes with direction `from → to`. Each edge contains:\n\n- **Relation type**: depends_on / extends / related_to / contradicts\n- **Weight**: 0–1, reflecting relationship strength; dynamically updated by decay and co-access boost\n- **Co-access count**: how many times accessed together\n- **Decay parameters**: half_life_days (default 30), min_weight (default 0.1)\n- **Traversal**: visit count, average rating (1–5), rating count\n\nEdge ID format: `edge_<hex8>`. Duplicate edges (same from, to, relation) are rejected."
+    "body": "An Edge connects two Memory Nodes with direction `from → to`. Each Edge contains:\n\n- **Relation type**: depends_on / extends / related_to / contradicts\n- **Weight**: 0–1, reflecting relationship strength; dynamically updated by decay and co-access boosts\n- **Co-access count**: Number of times co-accessed together\n- **Decay parameters**: half_life_days (default 30), min_weight (default 0.1)\n- **Traversal**: Traversal count, rating_avg (1–5 average rating, null when unrated), rating_count\n\nEdge ID format: `edge_<hex8>`. Edges between the same pair of nodes with the same relation type are deduplicated."
   },
   "tags": [
     "data-model",
@@ -22,7 +22,7 @@
     "source_type": "human"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }
