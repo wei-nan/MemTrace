@@ -613,6 +613,13 @@ def restore_node_from_trash(ws_id: str, node_id: str, user: dict = Depends(get_c
         return {"status": "active", "node_id": node_id}
 
 
+@router.post("/workspaces/{ws_id}/nodes/{node_id}/restore-from-archive")
+def restore_node_from_archive(ws_id: str, node_id: str, user: dict = Depends(get_current_user)):
+    from services.nodes import restore_archived_node_in_db
+    with db_cursor(commit=True) as cur:
+        return restore_archived_node_in_db(cur, ws_id, node_id, user)
+
+
 @router.get("/workspaces/{ws_id}/trash")
 def get_trash(ws_id: str, user: dict = Depends(get_current_user)):
     from services.nodes import list_trashed_nodes_in_db

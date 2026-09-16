@@ -975,6 +975,34 @@ def restore_trashed_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> Non
         raise HTTPException(status_code=404, detail="Node not found or not in trash")
 
 
+def restore_archived_node_in_db(cur, ws_id: str, node_id: str, user: dict) -> dict:
+    """
+    Bring a node back to 'active' from 'archived' (decay-driven, not trash).
+    Distinct from restore_trashed_node_in_db: archiving is apply_node_archiving()'s
+    automatic, non-destructive "nobody's looked at this in a while" state, not a
+    human-confirmed delete — there is no 30-day window or tombstone semantics
+    here, just an undo of the decay job's status flip. See ws_spec_plan
+    discussion on node-level `pinned` for why this was missing: before it,
+    the only way to bring an archived-but-still-valid node back was a raw
+    SQL UPDATE.
+    """
+    from services.workspaces import require_ws_access
+    require_ws_access(cur, ws_id, user, write=True, required_role="editor")
+    cur.execute(
+        f"""
+        UPDATE memory_nodes
+        SET status = 'active', archived_at = NULL
+        WHERE id = %s AND workspace_id = %s AND status = 'archived'
+        RETURNING {NODE_PUBLIC_COLUMNS}
+        """,
+        (node_id, ws_id),
+    )
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Node not found or not archived")
+    return row
+
+
 def list_trashed_nodes_in_db(cur, ws_id: str, user: Optional[dict]) -> list:
     from services.workspaces import require_ws_access
     require_ws_access(cur, ws_id, user)

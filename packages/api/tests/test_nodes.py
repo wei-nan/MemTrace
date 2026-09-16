@@ -9,6 +9,7 @@ from services.nodes import (
     validate_node_payload, prepare_node_data, create_node_in_db,
     update_node_in_db, delete_node_in_db, node_row_to_snapshot,
     publish_new_version, trash_node_in_db, restore_trashed_node_in_db,
+    restore_archived_node_in_db,
     list_trashed_nodes_in_db,
 )
 from fastapi import HTTPException
@@ -211,6 +212,22 @@ def test_restore_trashed_node_in_db(mock_access):
     cur.fetchone.return_value = None
     with pytest.raises(HTTPException):
         restore_trashed_node_in_db(cur, "ws_test", "mem_missing", {"sub": "user_1"})
+
+
+@patch("services.workspaces.require_ws_access")
+def test_restore_archived_node_in_db(mock_access):
+    """Distinct from restore_trashed_node_in_db: no 30-day window, just undoes decay's archived flip."""
+    cur = MagicMock()
+    cur.fetchone.return_value = {"id": "mem_1", "status": "active"}
+    restore_archived_node_in_db(cur, "ws_test", "mem_1", {"sub": "user_1"})
+    sql, params = cur.execute.call_args.args
+    assert "status = 'active'" in sql
+    assert "status = 'archived'" in sql
+    assert ("mem_1", "ws_test") == params
+
+    cur.fetchone.return_value = None
+    with pytest.raises(HTTPException):
+        restore_archived_node_in_db(cur, "ws_test", "mem_missing", {"sub": "user_1"})
 
 
 @patch("services.workspaces.require_ws_access")

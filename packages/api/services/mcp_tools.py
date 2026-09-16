@@ -21,6 +21,7 @@ from services.nodes import (
     update_node_in_db,
     trash_node_in_db,
     restore_trashed_node_in_db,
+    restore_archived_node_in_db,
     list_trashed_nodes_in_db,
     create_node_full_with_dedup,
     confirm_node_validity_in_db,
@@ -247,6 +248,7 @@ MCP_TOOL_PROFILES = {
         # so a default session that can trash something can also undo it.
         "delete_node",
         "restore_node",
+        "restore_archived_node",
         "delete_edge",
         "restore_edge",
         "list_trash",
@@ -461,6 +463,18 @@ TOOLS = [
     {
         "name": "restore_node",
         "description": "Restore a node out of trash back to active, if it is still within its 30-day trash window.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "node_id": {"type": "string"},
+            },
+            "required": ["workspace_id", "node_id"],
+        },
+    },
+    {
+        "name": "restore_archived_node",
+        "description": "Bring a node back to active from 'archived' (the automatic decay state — no traversal in a while), not from trash. No time window; just undoes apply_node_archiving()'s status flip. Use restore_node instead for a node that was explicitly trashed.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -1519,6 +1533,15 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         node_id = args["node_id"]
         with db_cursor(commit=True) as cur:
             restore_trashed_node_in_db(cur, ws_id, node_id, user)
+            log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"])
+            return {"restored": True, "node_id": node_id}
+
+    # ── restore_archived_node ────────────────────────────────────────────────
+    if name == "restore_archived_node":
+        ws_id   = args["workspace_id"]
+        node_id = args["node_id"]
+        with db_cursor(commit=True) as cur:
+            restore_archived_node_in_db(cur, ws_id, node_id, user)
             log_mcp_interaction(background_tasks, ws_id, name, node_id=node_id, actor_id=user["sub"])
             return {"restored": True, "node_id": node_id}
 
