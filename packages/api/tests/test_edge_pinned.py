@@ -30,6 +30,24 @@ def test_update_edge_in_db_sets_pinned():
     assert params[0] is True
 
 
+def test_update_edge_in_db_revives_faded_edge_when_pinning():
+    """Pinning a faded edge must also bring it back to active — otherwise the next
+    decay run just fades it right back out, silently undoing the intent to pin."""
+    cur = MagicMock()
+    cur.fetchone.side_effect = [
+        {"id": "edge_1", "status": "faded"},  # existence check
+        {"id": "edge_1", "from_id": "mem_a", "to_id": "mem_b", "relation": "related_to", "pinned": True, "status": "active"},
+    ]
+
+    update_edge_in_db(cur, "ws_test", "edge_1", {"pinned": True})
+
+    update_sql, params = next(
+        c.args for c in cur.execute.call_args_list if "UPDATE edges" in c.args[0]
+    )
+    assert "status = %s" in update_sql
+    assert params == (True, "active", "edge_1", "ws_test")
+
+
 def test_update_edge_in_db_missing_edge_raises_404():
     cur = MagicMock()
     cur.fetchone.return_value = None

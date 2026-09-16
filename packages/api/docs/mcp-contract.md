@@ -306,7 +306,7 @@ Create a directed semantic edge between two nodes.
 ---
 
 ### `update_edge`
-Update an existing edge. Currently only `pinned` is supported — use it to exempt an already-created edge from automatic decay/fading without deleting and recreating it (which would reset traversal history and `co_access_count`).
+Update an existing edge. Currently only `pinned` is supported — use it to exempt an already-created edge from automatic decay/fading without deleting and recreating it (which would reset traversal history and `co_access_count`). Also works on a `faded` edge: `pinned: true` both revives it to `active` and protects it in the same call, so reviving a bridge without pinning it can't silently get faded right back out by the next decay run.
 
 **Input**:
 | Field | Type | Required | Description |

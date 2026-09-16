@@ -558,7 +558,7 @@ TOOLS = [
     },
     {
         "name": "update_edge",
-        "description": "Update an existing edge. Currently only `pinned` is supported — use it to exempt an already-created edge from automatic decay/fading without deleting and recreating it.",
+        "description": "Update an existing edge. Currently only `pinned` is supported — use it to exempt an already-created edge from automatic decay/fading without deleting and recreating it. Works on a 'faded' edge too: pinned=true both revives it to active and protects it in the same call.",
         "inputSchema": {
             "type": "object",
             "properties": {
