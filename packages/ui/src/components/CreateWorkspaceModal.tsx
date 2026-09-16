@@ -77,8 +77,8 @@ export default function CreateWorkspaceModal({
       value: 'evergreen',
       label: zh ? '長效型 (Evergreen)' : 'Evergreen',
       desc: zh
-        ? '規格書、參考資料。記憶不會自動封存或淡化——長效內容常常是靠搜尋被用到，不代表沒人在用。'
-        : 'Specs, references. Nodes are never auto-archived or faded — long-lived content is often found via search, not traversal, so low traversal counts do not mean unused.',
+        ? '規格書、參考資料。記憶不會自動封存或淡化。'
+        : 'Specs, references. Nodes are never auto-archived or faded.',
     },
     {
       value: 'ephemeral',
