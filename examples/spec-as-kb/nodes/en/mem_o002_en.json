@@ -6,14 +6,13 @@
   "content": {
     "type": "procedural",
     "format": "plain",
-    "body": "Running `memtrace init` launches a 5-step interactive terminal wizard:\n\n① Authentication: Log into an existing account / Create a new account\n② Create First Knowledge Base: English name + visibility (private / restricted / public, default private)\n③ Select KB Type: evergreen (long-lived, default) or ephemeral (short-lived) — **immutable once created**\n④ AI Provider Configuration (press Enter to skip): Select openai / anthropic and input API Key (automatically tests connection)\n⑤ Import Document (press Enter to skip): Enter file path or URL\n\nConfiguration is written to `~/.memtrace/config.json` and immediately secured with `chmod 600`.\n\nSubsequent executions: Prompts whether to update AI provider / switch default workspace / re-authenticate / exit, without automatically overwriting existing configurations."
+    "body": "Running `memtrace init` starts an interactive terminal flow:\n\nIt first runs an automatic version check: calls the API for the server version and, if it doesn't match what the CLI expects, asks whether to run migrations; this step is skipped if the API is unreachable.\n\nStep 1 — Authentication: choose \"enter an API token manually\" or \"skip (work offline)\".\n\nStep 2 — AI Provider (optional, press Enter to skip): choose openai / anthropic / gemini / ollama (choosing ollama also asks for a Base URL and auth mode). After entering an API key, it calls the server to verify the key and lists how many models are available; if verification fails, you can still choose to save it locally.\n\nConfiguration is written to `~/.memtrace/config.json` and immediately secured with `chmod 600`.\n\nRunning `memtrace init` again: if an existing config is detected, it instead asks whether to \"update AI provider settings / re-authenticate / exit\", without automatically overwriting the existing configuration."
   },
   "tags": [
     "onboarding",
     "cli",
     "init",
-    "setup",
-    "kb-type"
+    "setup"
   ],
   "visibility": "public",
   "provenance": {

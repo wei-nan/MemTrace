@@ -6,14 +6,13 @@
   "content": {
     "type": "procedural",
     "format": "plain",
-    "body": "執行 `memtrace init` 啟動終端機互動式精靈，五步：\n\n① 認證：登入既有帳號 / 建立新帳號\n② 建立第一個知識庫：英文名稱 + 可見性（private / restricted / public，預設 private）\n③ 選擇 KB 類型：evergreen（長效型，預設）或 ephemeral（短效型）— **建立後不可變更**\n④ AI Provider 設定（可 Enter 跳過）：選擇 openai / anthropic 並輸入 API Key（自動測試連線）\n⑤ 匯入文件（可 Enter 跳過）：輸入檔案路徑或 URL\n\n設定寫入 `~/.memtrace/config.json`，立即 `chmod 600`。\n\n重複執行：詢問要更新 AI provider / 切換預設工作區 / 重新認證 / 退出，不自動覆寫現有設定。"
+    "body": "執行 `memtrace init` 啟動終端機互動式流程：\n\n先自動做版本檢查：呼叫 API 取得伺服器版本，與 CLI 預期版本不符時詢問是否要跑 migration；API 連不上就跳過這步。\n\nStep 1 — 認證：選擇「手動輸入 API token」或「跳過（離線模式）」。\n\nStep 2 — AI Provider（可 Enter 跳過）：選擇 openai / anthropic / gemini / ollama（選 ollama 會另外問 Base URL 與驗證模式）。輸入 API Key 後會呼叫伺服器驗證並列出可用模型數量；驗證失敗時可選擇仍儲存在本機。\n\n設定寫入 `~/.memtrace/config.json`，並立即 `chmod 600`。\n\n重複執行 `memtrace init`：偵測到既有設定時，改為詢問「更新 AI provider 設定 / 重新認證 / 退出」，不會自動覆寫現有設定。"
   },
   "tags": [
     "onboarding",
     "cli",
     "init",
-    "setup",
-    "kb-type"
+    "setup"
   ],
   "visibility": "public",
   "provenance": {
