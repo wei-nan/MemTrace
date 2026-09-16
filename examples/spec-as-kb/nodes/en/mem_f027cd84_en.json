@@ -2,11 +2,11 @@
   "id": "mem_f027cd84_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "MemTrace AI Features Overview",
+  "title": "MemTrace AI Feature Overview",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace uses AI in three distinct contexts, all sharing the same provider abstraction and API key model."
+    "body": "MemTrace uses AI across three distinct contexts, all of which share the same provider abstraction and API key model."
   },
   "tags": [
     "ai",

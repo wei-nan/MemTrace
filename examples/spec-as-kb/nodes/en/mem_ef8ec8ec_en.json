@@ -2,11 +2,11 @@
   "id": "mem_ef8ec8ec_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "AI Chat Uses KB Association Boundaries",
+  "title": "AI Chat Knowledge Base Association Boundaries",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The AI Chat functionality will depend on the boundary settings of knowledge base associations."
+    "body": "The AI Chat feature relies on boundary settings for knowledge base associations."
   },
   "tags": [
     "ai-chat",

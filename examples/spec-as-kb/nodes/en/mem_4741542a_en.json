@@ -1,0 +1,30 @@
+{
+  "id": "mem_4741542a_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Protecting Backbone Nodes and Relations from Automatic Archiving/Fading: node/edge pinned Mechanism",
+  "content": {
+    "type": "procedural",
+    "format": "markdown",
+    "body": "## Problem Background\n\nMemTrace's automatic decay mechanism converts long-unused nodes and edges into `archived` / `faded` based on creation time and traversal count, keeping the knowledge base lean and focused on actively used content (see \"Decay Product Stance\"). However, this mechanism originally only had a `pinned` exception on edges, with none for nodes. As a result, a \"backbone/overview\" node that originally connected to a large number of other nodes—even if it is still being traversed itself—would gradually become a de facto island as its surrounding neighbors are archived one by one due to decay. Consequently, the entire graph becomes fragmented into disjoint clusters.\n\n## Mechanism\n\nBoth nodes and edges support `pinned` (boolean, defaults to `false`):\n\n- **node.pinned = true**: `apply_node_archiving()` excludes this node; it will not be automatically transitioned to `archived` due to old creation time or low traversal count.\n- **edge.pinned = true**: `apply_edge_decay()` excludes this edge; its weight will not decay over time, nor will it be transitioned to `faded`.\n\nThese are separate flags that each only protect themselves: pinning a node does not automatically protect its edges, and vice versa. If the goal is to preserve reachability for an entire subgraph, both usually need to be configured.\n\n## How to Configure\n\nVia MCP:\n\n```json\n{\"name\": \"update_node\", \"arguments\": {\"workspace_id\": \"ws_abc\", \"node_id\": \"mem_xxx\", \"pinned\": true}}\n{\"name\": \"update_edge\", \"arguments\": {\"workspace_id\": \"ws_abc\", \"edge_id\": \"edge_xxx\", \"pinned\": true}}\n```\n\n`update_edge` is the only entry point for modifying an existing edge (currently no fields other than `pinned` are supported). Once an edge is created, modifying weight or relation type still requires deletion and recreation; however, pinning an existing edge does not require deletion and recreation (which would reset traversal records and `co_access_count`).\n\n## How to Decide What to Pin—Avoid Subjective Guesswork\n\nArbitrary pinning defeats the purpose of the decay mechanism (the knowledge base will bloat and lose focus). It is recommended to use two cross-referenced objective metrics rather than subjectively evaluating node by node:\n\n1. **Structural Degree**: Query the historical cumulative edge count for each node (`SELECT count(*) FROM edges WHERE from_id = node_id OR to_id = node_id`) and sort descending. True backbone nodes usually exhibit an obvious drop-off compared to other nodes in the rankings (for example, the top two are 35 and 23, while all nodes from third place onward are ≤ 6)—this drop-off itself serves as an objective cutoff point.\n2. **Content Nature**: Content with an \"overview / entry point\" nature such as `overview` / `core-purpose` / `positioning` / `agent-guide` is designed to exist long-term, unlike types such as `inquiry` (discussions) or `gap` (pending additions) which are expected to be resolved and faded away. A tag whitelist can be used to assist filtering.\n\nNodes that satisfy both criteria are candidates truly worthy of pinning; the resulting filtered list is usually very short (a medium-sized knowledge base might only have single digits to a dozen or so), followed by human review for final confirmation.\n\n## Case Study\n\nIn one knowledge base, a \"Platform Overview\" node accumulated 35 edges and 17 traversals historically, with a structural degree far exceeding the second place (23) and all remaining nodes (≤ 6)—a typical backbone node. However, because there was no node-level protection mechanism at the time, all of its surrounding neighbors were consecutively decayed into `archived`. Graph visualization made it appear as a cluster of isolated dots; in reality, most nodes still had edges, but the opposite ends of the edges were hidden. This is precisely the problem this mechanism addresses."
+  },
+  "tags": [
+    "decay",
+    "pinned",
+    "agent-guide",
+    "graph-health",
+    "kb-maintenance",
+    "operations"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-09-16T00:00:00+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

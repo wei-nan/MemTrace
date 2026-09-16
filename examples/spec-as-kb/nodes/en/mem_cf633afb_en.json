@@ -6,13 +6,13 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace defines two types of system actors:\n\n1. **Global system actor**: Represents the platform itself; belongs to no workspace; used for cross-workspace infrastructure operations (e.g., global decay scheduler).\n2. **Workspace-scoped system actor**: Bound to a specific workspace; represents that workspace's automated operations (e.g., ingestion pipeline, local decay scheduling).\n\nNeither type contributes to human `author_rep` calculations. Telemetry records use `source_type=\"system\"`."
+    "body": "MemTrace defines two classes of system actors:\n\n1. **global system actor**: Represents the platform itself, does not belong to any workspace, and is used for cross-workspace infrastructure operations (such as the global decay scheduler).\n2. **workspace-scoped system actor**: Bound to a specific workspace, representing automated operations for that workspace (such as ingestion pipelines and local decay schedules).\n\nNeither is counted toward human `author_rep` calculations, and telemetry records use `source_type=\"system\"`."
   },
   "tags": [
     "system-actor",
     "workspace-agent",
-    "identity",
     "actor",
+    "identity",
     "telemetry"
   ],
   "visibility": "public",

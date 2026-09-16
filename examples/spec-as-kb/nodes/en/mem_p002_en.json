@@ -2,11 +2,11 @@
   "id": "mem_p002_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Designed for knowledge inheritance",
+  "title": "Designed for Knowledge Handoff",
   "content": {
     "type": "context",
     "format": "plain",
-    "body": "MemTrace is designed for the reader who was not there when the knowledge was created. A new team member, a late collaborator, or an AI agent in an unfamiliar context — all can enter at any node and navigate by following edges, without needing the original author to guide them. Each node is self-contained enough to read in isolation, yet connected enough that following its edges leads naturally to everything related."
+    "body": "MemTrace is designed for the \"non-author\". Whether it is a newly joined team member, a collaborator stepping in midway, or an AI agent operating in unfamiliar context, anyone can enter the knowledge base from any node and traverse Edges to find all relevant content without requiring guidance from the original author. Every node is designed to be self-sufficient enough for standalone reading, while linking via Edges to allow readers to explore deeper naturally."
   },
   "tags": [
     "philosophy",
@@ -22,7 +22,7 @@
     "source_type": "human"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

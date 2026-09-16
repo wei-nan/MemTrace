@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Admins are repository owners or maintainers. They possess all contributor capabilities, direct write access, the ability to approve or reject proposals, manage members, and soft-delete and restore workspaces."
+    "body": "Admins are Knowledge Base owners or maintainers. They hold all Contributor abilities, direct-write permissions, the ability to approve or reject proposals, manage members, and soft-delete and restore workspaces."
   },
   "tags": [
     "role",

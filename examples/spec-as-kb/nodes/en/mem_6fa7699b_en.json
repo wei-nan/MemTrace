@@ -9,9 +9,10 @@
     "body": "Writes trigger safety review through three tiers:\n\n1. **Immediate scan (battery)**: On every `create_node`/`update_node`, synchronously runs secret_scanner, PII detection, and contradiction detection.\n2. **Async Tier0 demotion**: When the battery detects a serious issue, the node is demoted to Tier0 (invisible but retained) and the admin is notified asynchronously.\n3. **Human review queue**: A contradiction or safety flag triggers the `review_queue`; a human must confirm before the node becomes visible again."
   },
   "tags": [
+    "security",
     "safety",
     "review",
-    "three-tier",
+    "three-tier-trigger",
     "battery",
     "Tier0"
   ],

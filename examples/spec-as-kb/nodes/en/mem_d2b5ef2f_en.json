@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The MCP server handles requests for `memtrace://guide/node` and `memtrace://guide/edge` URIs based on the request parameters, returning corresponding Markdown content. For unknown resource URIs, the server throws an error."
+    "body": "The MCP server handles requests for `memtrace://guide/node` and `memtrace://guide/edge` based on the URI in request parameters, returning the corresponding Markdown content. For unknown resource URIs, the server throws an error."
   },
   "tags": [
     "mcp",

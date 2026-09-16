@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `author` column in the `memory_nodes` table is of type TEXT, storing the author of the memory node."
+    "body": "The `author` column in the `memory_nodes` table is of type TEXT and stores the author of the memory node."
   },
   "tags": [
     "database",

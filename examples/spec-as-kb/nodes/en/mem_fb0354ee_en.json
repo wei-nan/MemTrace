@@ -2,17 +2,17 @@
   "id": "mem_fb0354ee_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Add MEMTRACE_TOKEN Environment Variable",
+  "title": "Adding MEMTRACE_TOKEN Environment Variable",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `MEMTRACE_TOKEN` environment variable is added to support `list_workspaces` and future writing tools in accessing `/api/v1/workspaces`. This variable injects the API token into the `Authorization: Bearer` header of `apiFetch`."
+    "body": "To support `list_workspaces` and future write tool access to `/api/v1/workspaces`, the `MEMTRACE_TOKEN` environment variable was added. This variable injects the API token into the `Authorization: Bearer` header of `apiFetch`."
   },
   "tags": [
-    "環境變數",
+    "environment-variable",
     "api",
-    "認證",
-    "安全性"
+    "authentication",
+    "security"
   ],
   "visibility": "public",
   "provenance": {

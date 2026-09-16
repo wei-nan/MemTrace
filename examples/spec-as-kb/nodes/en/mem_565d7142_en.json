@@ -9,8 +9,8 @@
     "body": "To link extracted nodes to their source paragraphs, the `memory_nodes` table adds the `source_doc_node_id` field (referencing the source document node ID) and the `source_paragraph_ref` field (a paragraph-level reference)."
   },
   "tags": [
-    "來源",
-    "文件"
+    "source",
+    "document"
   ],
   "visibility": "public",
   "provenance": {

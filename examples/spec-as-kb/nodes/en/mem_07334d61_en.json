@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Node-level and full-Knowledge Base export/import are supported."
+    "body": "Supports export/import at both node-level and full knowledge base-level."
   },
   "tags": [
     "export",

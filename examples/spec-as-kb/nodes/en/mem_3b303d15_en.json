@@ -2,16 +2,16 @@
   "id": "mem_3b303d15_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Handle 422 Validation Errors for createNode/updateNode",
+  "title": "Handling 422 Validation Errors from createNode/updateNode",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "When the createNode or updateNode API returns a 422 validation error, the 'detail' array from the response should be extracted into readable prompt messages."
+    "body": "When createNode or updateNode APIs return 422 validation errors, the detail array in the response should be extracted into readable notification messages."
   },
   "tags": [
     "api",
-    "錯誤處理",
-    "驗證"
+    "error-handling",
+    "verification"
   ],
   "visibility": "public",
   "provenance": {

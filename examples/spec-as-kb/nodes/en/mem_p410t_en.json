@@ -2,11 +2,11 @@
   "id": "mem_p410t_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "JWT Token Refresh Race Condition Fix (authChecking Pattern)",
+  "title": "JWT Token Refresh Race Condition Fix (authChecking Mode)",
   "content": {
     "type": "preference",
     "format": "markdown",
-    "body": "## Problem\n\nAfter long inactivity, page refresh fires workspaces.list() with an expired token.\nThe backend get_current_user_optional treats expired tokens as anonymous and returns 200 + public KBs (not 401, so no retry).\nResult: first refresh shows only public KBs; second refresh is correct.\n\n## Root Cause\n\nApp.tsx synchronously set authenticated = !!localStorage.getItem(mt_token),\ncausing workspaces.list() to fire before token validation.\n\n## Fix (App.tsx)\n\nAdded authChecking state to block all data loading until token validation completes:\n\n1. authChecking starts true, shows loading spinner\n2. Async check isTokenStale(): if stale, call refreshAccessToken() first\n3. Refresh fails: clear token, authChecking = false, show login page\n4. Validation succeeds: authenticated = true, authChecking = false, data loading proceeds\n\n## isTokenStale() (client.ts)\n\nDecodes JWT payload exp field with a 60-second buffer to avoid boundary race conditions."
+    "body": "## Problem\n\nWhen a user refreshes the page after being idle for a long time, `workspaces.list()` sends a request using an expired token.\nThe backend `get_current_user_optional` treats an expired token as anonymous, returning 200 + public knowledge bases instead of 401 (which prevents triggering a retry). As a result: the first refresh only shows public knowledge bases, and only on the second refresh does it return to normal.\n\n## Root Cause\n\n`App.tsx` originally set `authenticated = !!localStorage.getItem('mt_token')` synchronously, causing `workspaces.list()` to trigger before token verification completed.\n\n## Fix (App.tsx)\n\nAdded an `authChecking` state that blocks all data loading until token verification/refresh finishes:\n\n1. `authChecking` defaults to `true`, displaying a loading spinner\n2. Asynchronously check `isTokenStale()`: if expired, call `refreshAccessToken()` first\n3. Refresh failure → clear token, set `authChecking = false`, display login page\n4. Verification success → `authenticated = true`, `authChecking = false`, trigger data loading\n\n## isTokenStale() (client.ts)\n\nDecodes the `exp` field of the JWT payload, treating it as expired 60 seconds early to avoid boundary race conditions."
   },
   "tags": [
     "auth",

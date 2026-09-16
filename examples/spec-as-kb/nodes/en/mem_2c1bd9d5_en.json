@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "Sends a message to a specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation."
+    "body": "Sends a message to the specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation."
   },
   "tags": [
     "api",

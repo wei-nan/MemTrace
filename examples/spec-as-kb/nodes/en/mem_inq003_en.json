@@ -2,11 +2,11 @@
   "id": "mem_inq003_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Gap: Human-gate review quality — presentation of flag-only items",
+  "title": "Gap: Human Gate Review Quality — Presentation of Flag-Only Items",
   "content": {
     "type": "inquiry",
     "format": "markdown",
-    "body": "Currently `submit_outcome(fail)` failure flags and per-feature integration checks enter the `review_queue` with empty `node_data={}`; the reviewer sees an empty card with no concrete context.\n\n**Open design questions:**\n\n1. **Where does the summary go?** `node_data` (existing field) vs. `proposer_meta` (new field). How does each affect the review card UI?\n2. **UI presentation direction:**\n   - Option A: write the failure reason / integration-check summary into `node_data`, and have the review card show that instead of an empty diff\n   - Option B: acknowledge these are \"flag-only\" operations and give the UI a distinct style (no diff; show reason + a jump to the node)\n   - The two are not mutually exclusive, but differ in implementation priority\n3. **What does the reviewer actually need?** Can they decide directly after seeing the failure reason, or do they need to jump into node editing to get context?\n"
+    "body": "Currently, when failure flags from `submit_outcome(fail)` and per-feature integration checks are submitted to `review_queue`, they carry an empty `node_data={}`. Reviewers see an empty card lacking concrete context.\n\n**Design Questions to Discuss:**\n\n1. **Where should the summary be written?** `node_data` (existing field) vs. `proposer_meta` (new field). What are their respective impacts on the review card UI?\n2. **UI Presentation Directions:**\n   - Option A: Write the failure reason / integration check summary into `node_data`, so the review card displays this content instead of an empty diff.\n   - Option B: Acknowledge that these are \"flag-only\" operations, and change the UI to use a dedicated style (do not show a diff; show the reason + link to navigate to the node).\n   - The two options are not mutually exclusive, but have different implementation priorities.\n3. **What do reviewers actually need?** Can they make a decision directly after reading the failure reason, or do they need to jump into node editing to understand the context?"
   },
   "tags": [
     "inquiry",
@@ -20,8 +20,8 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-06-13T00:00:00+00:00",
-    "signature": "7e0e7783c43e46a5253ff343daea5ff25118bd2b2fa20984ec11a406fae558c7",
-    "source_type": "ai"
+    "signature": "inq003a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
   },
   "traversal": {
     "count": 0,

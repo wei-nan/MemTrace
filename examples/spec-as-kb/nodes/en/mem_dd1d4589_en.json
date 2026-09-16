@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace's product stance on Connectors (third-party system integrations):\n\n1. Connectors are an optional feature, not a dependency on the core path.\n2. Third-party data enters via `ingest_document` and is subject to the same governance process as manually created nodes.\n3. Connectors do not bypass the safety review battery.\n4. Third-party source nodes have `provenance.source_type` set to `\"tool\"`; `author` records the connector name.\n5. The Connectors UI tab is temporarily hidden; the architectural foundation is in place and ready to enable."
+    "body": "MemTrace product stance on Connectors (third-party system integrations):\n\n1. Connectors are optional features, not core path dependencies.\n2. Third-party data enters via `ingest_document`, subject to the same governance workflow as manually created nodes.\n3. Connectors do not bypass security review batteries.\n4. Third-party sources have `provenance.source_type` marked as \"tool\", with `author` recording the connector name.\n5. The UI Connectors tab is temporarily hidden, with functional architecture in place awaiting activation."
   },
   "tags": [
     "connector",

@@ -2,11 +2,11 @@
   "id": "mem_g003_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Edge relation types: four semantic directions",
+  "title": "Edge Relation Types: Four Semantic Directions",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "| Relation | Semantics | When to use |\n|----------|-----------|-------------|\n| `depends_on` | Source requires target to be valid | A's process presupposes B's concept |\n| `extends` | Source extends or supplements target | A is an advanced version of B |\n| `related_to` | Related without clear dependency direction | A and B belong to the same topic |\n| `contradicts` | Source conflicts with target | A's conclusion conflicts with B |\n\nChoosing the correct relation type matters: it determines co-access boost strength and how AI agents interpret the relationship when traversing the graph."
+    "body": "| Relation | Semantics | When to Use |\n|----------|------|----------|\n| `depends_on` | Source node depends on target node to hold true | Concept B is a procedural prerequisite for A |\n| `extends` | Source node extends or supplements target node | A is an advanced version of B |\n| `related_to` | Related but without explicit dependency direction | Both A and B belong to the same topic |\n| `contradicts` | Source node content contradicts target node | Conclusion in A conflicts with B |\n\nChoosing the correct relation type is crucial, as it dictates the strength of the co-access boost and how AI agents interpret relationships when traversing the graph."
   },
   "tags": [
     "graph-mechanics",

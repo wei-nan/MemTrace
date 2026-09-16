@@ -9,9 +9,9 @@
     "body": "Archived nodes are not shown in the default graph view and are excluded from search results."
   },
   "tags": [
-    "視圖",
-    "隱藏",
-    "封存"
+    "view",
+    "hidden",
+    "archiving"
   ],
   "visibility": "public",
   "provenance": {

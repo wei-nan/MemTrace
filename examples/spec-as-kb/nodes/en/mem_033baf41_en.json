@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `NODE_GUIDE` constant defines node field specifications, `content_type` explanation, `visibility` explanation, best practices for creation, and common errors."
+    "body": "The `NODE_GUIDE` constant defines node field specifications, `content_type` descriptions, `visibility` descriptions, creation best practices, and common mistakes."
   },
   "tags": [
     "node_guide",

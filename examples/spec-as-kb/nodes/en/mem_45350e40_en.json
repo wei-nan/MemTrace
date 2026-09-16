@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "AI calls are made from the client or server using the user's supplied key."
+    "body": "AI calls are issued by the client or server using user-provided keys."
   },
   "tags": [
     "ai",

@@ -9,10 +9,10 @@
     "body": "Sessions are represented as signed JWTs (JSON Web Tokens) using the HS256 algorithm, with the secret stored in the environment."
   },
   "tags": [
-    "對談管理",
+    "conversation-management",
     "jwt",
     "hs256",
-    "安全"
+    "security"
   ],
   "visibility": "public",
   "provenance": {

@@ -2,11 +2,11 @@
   "id": "mem_g001_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Decay: natural weight reduction on edges",
+  "title": "Decay: Natural Decay of Edge Weights",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Edge weight decays over time according to (v1):\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n**Core principle**: **Decay shapes attention, not existence.** Nothing is deleted by decay alone.\n\n**Edge state transition**: When `weight < min_weight` (default 0.1), the edge transitions to `faded`:\n- Hidden from default Graph View and traversal results\n- Still stored in the database (`status = 'faded'`); restorable by the original author or admin\n- Queryable via API with `include_faded=true`\n\n**Node level**:\n- `evergreen` workspace: nodes are archived based on traversal count within an observation window (§7.3), not time-based\n- `ephemeral` workspace: when all connected edges are faded, the node is auto-archived\n\n**Pinned exemption**: Nodes and edges with `pinned: true` are fully exempt from both time-decay and traversal-count archiving.\n\nTrigger: daily by the `apply_edge_decay()` SQL function (mirrors `packages/core/src/decay.ts`)."
+    "body": "Edge weights decay over time according to the following formula (v1):\n\n```\nweight(t) = w₀ × 0.5 ^ (days_since_last_access / half_life)\n```\n\n**Core Principle**: **Decay shapes attention, not existence**. Nothing is deleted due to decay.\n\n**Edge State Transitions**: When `weight < min_weight` (default 0.1), the edge enters the `faded` state:\n- Hidden from the default Graph View and traversal results\n- Still exists in the database (`status = 'faded'`), and can be restored by the original author or admin\n- Still queryable when appending `include_faded=true` to the API\n\n**Node Tier**:\n- `evergreen` workspaces: Nodes themselves are archived based on \"traversal counts within the observation window\" (§7.3), independent of temporal decay\n- `ephemeral` workspaces: When all connected edges are faded, nodes are automatically archived\n\n**Pinned Exception**: Nodes and edges with `pinned: true` are fully exempt from decay and count-based archiving.\n\nDecay Trigger: Executed daily by the `apply_edge_decay()` SQL function (mirroring `packages/core/src/decay.ts`)."
   },
   "tags": [
     "graph-mechanics",

@@ -9,11 +9,11 @@
     "body": "After an AI agent calls `create_node`, if the API returns a 201 status code, it should call `traverse(node.id)` to confirm edge creation. If a 202 status code with a `review_id` is returned, it should call `list_review_queue()` to check the review queue status."
   },
   "tags": [
-    "ai代理",
-    "工作流程",
-    "節點建立",
+    "ai-agent",
+    "workflow",
+    "node-creation",
     "api",
-    "審核流程"
+    "review-process"
   ],
   "visibility": "public",
   "provenance": {

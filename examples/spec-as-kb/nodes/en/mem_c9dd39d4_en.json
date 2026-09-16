@@ -2,18 +2,18 @@
   "id": "mem_c9dd39d4_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Overview of Knowledge Base Protection Mechanisms",
+  "title": "Knowledge Base Protection Mechanisms Overview",
   "content": {
     "type": "factual",
     "format": "markdown",
     "body": "This section defines protection mechanisms designed to prevent knowledge theft while preserving legitimate usability for authorized members and approved previews."
   },
   "tags": [
-    "安全",
-    "概覽",
-    "介紹",
-    "權限",
-    "保護"
+    "security",
+    "overview",
+    "introduction",
+    "permission",
+    "protection"
   ],
   "visibility": "public",
   "provenance": {

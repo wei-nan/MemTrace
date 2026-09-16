@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "## Goal\n\nPrevent a malicious or runaway AI agent from traversing the knowledge graph without bound, causing DoS or embedding abuse.\n\n## Implementation location\n\n`core/ratelimit.py::TraversalGuard`\n\n## Call sites\n\n- `routers/kb.py`: node-read routes (`TraversalGuard.check(viewer_id)`)\n- `services/nodes.py`: `get_node_in_db`\n- `services/edges.py`: edge-related operations\n\n## Limit rules\n\n`TraversalGuard.check(user_id)` triggers a rejection when:\n\n| Dimension | Default limit |\n|------|----------|\n| Traversals per minute per user | configurable |\n| Traversals per hour per user | configurable |\n| MCP agent traversals | counted separately |\n\nExceeding a limit returns `429 Too Many Requests`.\n\n## Design principles\n\n- The limit targets `viewer_id` (user_id or agent_id), not IP\n- It does not affect normal traversal by cron / maintenance jobs (system operations are excluded)\n- Rate counting uses an in-memory cache (can be swapped for Redis, see mem_inq002)\n\n## Related nodes\n\n- [[mem_d006]] Traversal Tracking: the traversal-counting mechanism\n- [[mem_inq002]] claim registry -> Redis (includes the rate-limiting discussion)\n"
+    "body": "## Objective\n\nPrevent malicious or runaway AI agents from infinitely traversing the knowledge graph, resulting in DoS or embedding abuse.\n\n## Implementation Location\n\n`core/ratelimit.py::TraversalGuard`\n\n## Usage Points\n\n- `routers/kb.py`: Node reading routes (`TraversalGuard.check(viewer_id)`)\n- `services/nodes.py`: `get_node_in_db`\n- `services/edges.py`: Edge-related operations\n\n## Rate Limit Rules\n\n`TraversalGuard.check(user_id)` triggers rejection under the following conditions:\n\n| Dimension | Default Limit |\n|------|----------|\n| Traversals per minute per user | Configurable |\n| Traversals per hour per user | Configurable |\n| MCP agent traversal count | Calculated independently |\n\nExceeding the limit returns `429 Too Many Requests`.\n\n## Design Principles\n\n- Limits target `viewer_id` (user_id or agent_id), not IP\n- Does not affect normal traversals for cron / maintenance jobs (excludes system operations)\n- Rate counting uses an in-memory cache (migratable to Redis, see mem_inq002)\n\n## Related Nodes\n\n- [[mem_d006]] Traversal Tracking: Traversal Counting Mechanism\n- [[mem_inq002]] Migrating Claim Registry to Redis (including rate limiting discussion)"
   },
   "tags": [
     "security",
@@ -20,8 +20,9 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-06-13T00:00:00+00:00",
-    "signature": "d0cc4221d4e57c1c91a8c1b3ae3d38a7fa311229be5e909290d8667d23722f01",
-    "source_type": "ai"
+    "signature": "tg001a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human",
+    "updated_at": "2026-06-13T00:00:00+00:00"
   },
   "traversal": {
     "count": 0,

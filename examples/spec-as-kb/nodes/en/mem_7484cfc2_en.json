@@ -9,9 +9,9 @@
     "body": "The README and usage documentation have been updated to describe the multiple workspaces, unknown ID scenario: set `MEMTRACE_TOKEN`, then first call `list_workspaces` to retrieve the list of workspaces before deciding which one to operate on."
   },
   "tags": [
-    "文件",
-    "使用情境",
-    "工作區",
+    "document",
+    "use-case",
+    "workspace",
     "API"
   ],
   "visibility": "public",

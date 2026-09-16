@@ -2,11 +2,11 @@
   "id": "mem_31b38aa1_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Guide Content Source Sharing",
+  "title": "Shared Guide Content Source",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The content for `NODE_GUIDE` and `EDGE_GUIDE` shares the same source as the `get_schema` tool, derived from a split `SCHEMA_GUIDE` constant."
+    "body": "The contents of `NODE_GUIDE` and `EDGE_GUIDE` share the same source with the `get_schema` tool, split from the `SCHEMA_GUIDE` constant."
   },
   "tags": [
     "schema_guide",

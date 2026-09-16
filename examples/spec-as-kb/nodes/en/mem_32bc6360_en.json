@@ -2,11 +2,11 @@
   "id": "mem_32bc6360_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Schedule Call for `apply_node_archiving()`",
+  "title": "Scheduled Call to `apply_node_archiving()`",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "The scheduler should add a daily UTC 02:00 call to the `apply_node_archiving()` function, which exists but is currently not triggered."
+    "body": "The scheduler should add a daily UTC 02:00 call to the `apply_node_archiving()` function, which already exists but is currently not triggered."
   },
   "tags": [
     "scheduler",

@@ -2,17 +2,17 @@
   "id": "mem_d3564082_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Handle 202 Response for createNode/updateNode",
+  "title": "Handling 202 Responses for createNode/updateNode",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "When the createNode or updateNode API returns a 202 status code, the review_id should be extracted from the response body and explicitly returned to the AI agent."
+    "body": "When the createNode or updateNode API returns a 202 status code, review_id should be extracted from the response body and explicitly returned to the AI agent."
   },
   "tags": [
     "api",
-    "錯誤處理",
-    "ai代理",
-    "審核流程"
+    "error-handling",
+    "ai-agent",
+    "review-process"
   ],
   "visibility": "public",
   "provenance": {

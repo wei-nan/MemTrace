@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Workspace types are assigned during creation (Web UI step 4, CLI step 3)."
+    "body": "The workspace type is assigned during the creation process (Step 4 in Web UI or Step 3 in CLI)."
   },
   "tags": [
     "workspace",

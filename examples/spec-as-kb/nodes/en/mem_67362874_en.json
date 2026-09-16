@@ -11,7 +11,8 @@
   "tags": [
     "provenance",
     "evidence",
-    "write-semantics",
+    "write",
+    "semantics",
     "signature"
   ],
   "visibility": "public",

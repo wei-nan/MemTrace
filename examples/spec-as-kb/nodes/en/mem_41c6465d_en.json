@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "This endpoint records a traversal of an edge, which triggers the co-access boost and increments the traversal count of the nodes on both ends of the edge."
+    "body": "This endpoint is used to record edge traversals, which triggers co-access boosts and increments traversal counts of nodes on both ends."
   },
   "tags": [
     "api",
@@ -23,7 +23,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 2,
-    "unique_traversers": 2
+    "count": 0,
+    "unique_traversers": 0
   }
 }

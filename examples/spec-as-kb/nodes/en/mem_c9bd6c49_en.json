@@ -2,11 +2,11 @@
   "id": "mem_c9bd6c49_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "`conflict_status` Column in `memory_nodes` Table",
+  "title": "`conflict_status` Column in the memory_nodes Table",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `memory_nodes` table includes a text column named `conflict_status`, which can have values of `NULL`, `'flagged'`, or `'resolved'`."
+    "body": "The `memory_nodes` table contains a text column named `conflict_status`, whose value can be `NULL`, `'flagged'`, or `'resolved'`."
   },
   "tags": [
     "database_schema",
@@ -20,7 +20,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

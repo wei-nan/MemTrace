@@ -2,11 +2,11 @@
   "id": "mem_17e5a3aa_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Multi-Planner Escalate to Review Queue Presentation",
+  "title": "Multi-planner Escalation to Review Queue Presentation",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Presentation design for escalations to `review_queue` in multi-planner architecture:\n\n1. Proposals from different planners display their originating planner source in the review queue.\n2. When multiple planners submit conflicting proposals for the same node, they are displayed side-by-side in the UI for human arbitration.\n3. Escalation triggers a notification to workspace admins.\n4. The review queue does not merge proposals from different planners even when semantically similar — full provenance is preserved."
+    "body": "Multi-planner architecture escalation to `review_queue` presentation design:\n\n1. Proposals from different planners display their respective planner sources in the review queue.\n2. When multiple planners submit conflicting proposals for the same node, they are displayed side-by-side in the UI for human adjudication.\n3. Escalation actions trigger notifications to workspace administrators.\n4. The review queue presentation does not merge proposals from different planners even if semantically similar, preserving complete provenance."
   },
   "tags": [
     "multi-planner",

@@ -2,11 +2,11 @@
   "id": "mem_k001_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Knowledge Base: the container workspace",
+  "title": "Knowledge Base: Knowledge Base (Workspace)",
   "content": {
     "type": "factual",
     "format": "plain",
-    "body": "A Knowledge Base (Workspace) is the container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Users can create multiple Knowledge Bases. A Knowledge Base has its own sharing level (public / restricted / private), independent from node-level visibility — effective access is the more restrictive of the two. A Knowledge Base may be started blank or bootstrapped from a document with AI extraction. ID format: ws_<hex8>."
+    "body": "A Knowledge Base (also known as a Workspace) is a container for Memory Nodes and Edges, corresponding to an independent knowledge domain or project. Each user can create multiple knowledge bases. The knowledge base itself has a sharing tier (public / restricted / private), which is independent of node visibility—effective access permissions take the more restrictive of the two. A knowledge base can start from scratch, or bootstrap from a document with nodes extracted by AI. ID format: `ws_<hex8>`."
   },
   "tags": [
     "knowledge-base",
@@ -21,7 +21,7 @@
     "source_type": "human"
   },
   "traversal": {
-    "count": 3,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

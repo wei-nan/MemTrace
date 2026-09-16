@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `EDGE_GUIDE` constant defines relation type semantics, weight range, `half_life_days` explanation, and 409 conflict handling."
+    "body": "The `EDGE_GUIDE` constant defines relation type semantics, weight ranges, `half_life_days` descriptions, and 409 conflict handling methods."
   },
   "tags": [
     "edge_guide",

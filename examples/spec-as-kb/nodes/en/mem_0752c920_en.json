@@ -2,11 +2,11 @@
   "id": "mem_0752c920_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Contributor Role Capability: Proposing Changes",
+  "title": "Contributor Role Capabilities: Propose Changes",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Contributors can propose changes to nodes or edges. These proposals enter a review queue and require admin approval to be applied."
+    "body": "Contributors can propose changes to nodes or edges. These proposals enter the review queue and require administrator approval before being applied."
   },
   "tags": [
     "role",

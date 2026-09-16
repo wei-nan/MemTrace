@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Each Memory Node body (`content.body`) supports two input modes."
+    "body": "The body of each Memory Node (`content.body`) supports two input modes."
   },
   "tags": [
     "memory-node",

@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The selected input mode is persisted on the node as the `content.format` field (see §4.1 schema extension)."
+    "body": "The selected input mode is persisted in nodes as the content.format field (see §4.1 schema extension)."
   },
   "tags": [
     "memory-node",

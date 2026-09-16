@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace uses an npm workspaces monorepo. The root `package.json` manages six packages:\n\n| Package | Path | Language | Role |\n|---------|------|----------|------|\n| core | packages/core | TypeScript | Shared types, decay logic, ID/signature generator |\n| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer |\n| ui | packages/ui | React/Vite | Web frontend |\n| cli | packages/cli | TypeScript | Local CLI tool |\n| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transports) |\n| ingest | packages/ingest | TypeScript | Document ingestion pipeline |\n\n`core` is consumed by `cli`. `api` is independent of the TS workspace."
+    "body": "MemTrace adopts an npm workspaces monorepo, where the root `package.json` manages six packages:\n\n| Package | Path | Language | Role |\n|------|------|------|------|\n| core | packages/core | TypeScript | Shared types, decay calculation, ID/signature generators |\n| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer |\n| ui | packages/ui | React/Vite | Web frontend |\n| cli | packages/cli | TypeScript | Local CLI tool |\n| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transport) |\n| ingest | packages/ingest | TypeScript | Document ingestion pipeline |\n\n`core` is referenced by `cli`; `api` remains independent of the TS packages."
   },
   "tags": [
     "dev",

@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The import preview screen displays a summary of the import job, including the total number of nodes and edges, and which nodes are clean or potentially duplicates."
+    "body": "The import preview screen displays a summary of the import operation, including the total counts of nodes and edges, as well as which nodes are clean or potentially duplicate."
   },
   "tags": [
     "import",

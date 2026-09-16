@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The creation/edit form exposes several fields for user input."
+    "body": "The creation/edit form provides multiple fields for user input."
   },
   "tags": [
     "editor",
@@ -21,7 +21,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

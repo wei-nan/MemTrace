@@ -9,9 +9,9 @@
     "body": "One acceptance scenario: calling `search_nodes(query=\"authentication\", workspace_id=\"ws_project_abc\")` should successfully query nodes in the `ws_project_abc` workspace."
   },
   "tags": [
-    "驗收測試",
-    "工作區",
-    "查詢"
+    "acceptance-test",
+    "workspace",
+    "query"
   ],
   "visibility": "public",
   "provenance": {

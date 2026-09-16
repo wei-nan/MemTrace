@@ -2,11 +2,11 @@
   "id": "mem_d006_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Traversal Tracking: measuring real usage",
+  "title": "Traversal Tracking: Usage Counters",
   "content": {
     "type": "factual",
     "format": "plain",
-    "body": "Nodes and edges each track traversal data. Nodes record: traversal_count (total visits) and unique_traverser_count (distinct actors). Edges record: traversal_count, rating_avg (1–5 average, null if no ratings), and rating_count. Traversals are recorded via POST /nodes/{id}/traverse or POST /edges/{id}/traverse in the REST API, or via the MCP tool traverse_edge. These numbers reflect actual knowledge usage frequency, not just what was recorded."
+    "body": "Nodes and edges independently track traversal statistics. Nodes record: traversal_count (total traversals), unique_traverser_count (number of unique visitors). Edges record: traversal_count, rating_avg (1–5 average rating, null when unrated), rating_count. Traversals are recorded via API calls POST /nodes/{id}/traverse or POST /edges/{id}/traverse. The MCP tool traverse_edge also increments counts. These figures reflect the actual frequency of knowledge usage, rather than merely recorded facts."
   },
   "tags": [
     "data-model",

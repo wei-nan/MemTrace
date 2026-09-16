@@ -2,11 +2,11 @@
   "id": "mem_p001_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Knowledge through connection, not accumulation",
+  "title": "Knowledge Through Connection Rather Than Accumulation",
   "content": {
     "type": "context",
     "format": "plain",
-    "body": "The core premise of MemTrace: knowledge does not need to live in large, monolithic documents. Each node captures one idea. Value emerges from the network of relationships between nodes. A node alone is lightweight; connected to others, it becomes part of a knowledge base whose scale is determined by the density and quality of its relationships, not the size of any single entry."
+    "body": "The core premise of MemTrace: knowledge does not need to reside in massive documents. Each node captures only a single idea, and its value stems from the network of connections between nodes. Nodes themselves are lightweight, but together through relationships they form a vast knowledge base. The scale of a knowledge base is not determined by the size of individual nodes, but by the density and quality of relationships between nodes."
   },
   "tags": [
     "philosophy",

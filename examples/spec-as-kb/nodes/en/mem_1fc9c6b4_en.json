@@ -6,13 +6,13 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "Before creating a new node, an AI agent should first call `search_nodes(\"authentication mechanism\")` or similar functions to check if related nodes already exist in the knowledge base, preventing duplication."
+    "body": "Before creating a new node, an AI agent should first invoke functions like `search_nodes(\"Authentication Mechanism\")` to confirm whether relevant nodes already exist in the knowledge base, avoiding duplicates."
   },
   "tags": [
-    "ai代理",
-    "工作流程",
-    "節點建立",
-    "搜尋"
+    "ai-agent",
+    "workflow",
+    "node-creation",
+    "search"
   ],
   "visibility": "public",
   "provenance": {

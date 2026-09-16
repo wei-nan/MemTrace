@@ -6,13 +6,13 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The JWT Token payload includes `sub` (user ID), `email`, `display_name`, `iat` (issued-at time), and `exp` (expiry time) fields."
+    "body": "The JWT token payload includes fields such as `sub` (user ID), `email`, `display_name`, `iat` (issued-at time), and `exp` (expiration time)."
   },
   "tags": [
     "jwt",
     "token",
-    "載荷",
-    "對談管理"
+    "payload",
+    "conversation-management"
   ],
   "visibility": "public",
   "provenance": {

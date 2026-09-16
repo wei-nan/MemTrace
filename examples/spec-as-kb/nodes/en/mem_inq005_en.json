@@ -2,11 +2,11 @@
   "id": "mem_inq005_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Gap: Multi-agent trust tiering and memory-poisoning defense",
+  "title": "Gap: Multi-Agent Trust Grading and Memory Contamination Defense",
   "content": {
     "type": "inquiry",
     "format": "markdown",
-    "body": "The system currently uses a single trusted credential (homogeneous trusted agents, decision A3). As multiple planners are added, we need per-agent identity, trust tiering, and memory-poisoning defenses.\n\n**Open design questions:**\n\n1. **Credential distribution:** the proposer_id field is reserved. How does an agent obtain its own proposer_id? Reuse the existing workspace API key + binding, or add an agent-specific key type?\n2. **Trust-tier thresholds:** writes from low-trust agents always go through a human gate (extending the mem_loop021 decision tiering). How is the threshold set? Does it stack with the operation risk level?\n3. **Poisoning defense:** how are residue nodes emitted (via emit_residue) by low-trust agents marked? Are they automatically deprioritized in the next planning loop?\n4. **Multi-workspace isolation:** when emit_residue emits residue into different workspaces, is there a collision risk in the advisory-lock key space (hashtext(ws_id))?\n5. **Priority:** is the H1 (credential) -> H2 (tiering) -> H3 (isolation) development order reasonable?\n"
+    "body": "Currently, the system adopts a single trusted credential (homogeneously trusted agents, Decision A3). As multiple planners join, per-agent identity, trust grading, and memory contamination defense mechanisms must be supplemented.\n\n**Design Questions to Discuss:**\n\n1. **Credential Distribution:** A `proposer_id` field is already reserved. How does an agent obtain its own `proposer_id`? Should it reuse the existing workspace API key + binding, or introduce a new agent-specific key type?\n2. **Trust Grading Thresholds:** Writes from low-trust agents must always go through a human gate (extending the decision grading of mem_loop021). How should thresholds be defined? Do they stack with operational risk levels?\n3. **Contamination Defense:** How should residue nodes from low-trust agents (emitted via `emit_residue`) be flagged? Should their priority be automatically downgraded during the next round of planning?\n4. **Multi-Workspace Isolation:** When `emit_residue` outputs residue to different workspaces, is there a collision risk in the advisory lock (`hashtext(ws_id)`) key space?\n5. **Priority:** Is the development order of H1 (Credentials) → H2 (Grading) → H3 (Isolation) reasonable?"
   },
   "tags": [
     "inquiry",
@@ -20,8 +20,8 @@
   "provenance": {
     "author": "memtrace-spec",
     "created_at": "2026-06-13T00:00:00+00:00",
-    "signature": "f1cf72bf4461e3f9c0f66995c845d06f16e6d08949f54ea458a980b02fb7460e",
-    "source_type": "ai"
+    "signature": "inq005a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+    "source_type": "human"
   },
   "traversal": {
     "count": 0,

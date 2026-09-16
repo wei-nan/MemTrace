@@ -2,11 +2,11 @@
   "id": "mem_o002_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "First-run onboarding: CLI memtrace init",
+  "title": "First-Time Onboarding: CLI memtrace init",
   "content": {
     "type": "procedural",
     "format": "plain",
-    "body": "Running `memtrace init` launches an interactive terminal wizard with five steps:\n\n① Authentication: log in to existing account / create new account\n② Create first Knowledge Base: English name + visibility (private / restricted / public, default private)\n③ Choose KB type: evergreen (default) or ephemeral — **immutable after creation**\n④ AI provider setup (press Enter to skip): choose openai / anthropic and enter API key (auto-tests connection)\n⑤ Import document (press Enter to skip): provide file path or URL\n\nConfig written to `~/.memtrace/config.json` with `chmod 600` immediately.\n\nRe-running: prompts which setting to update — AI provider / switch default workspace / re-authenticate / exit. Existing values are not overwritten unless explicitly selected."
+    "body": "Running `memtrace init` launches a 5-step interactive terminal wizard:\n\n① Authentication: Log into an existing account / Create a new account\n② Create First Knowledge Base: English name + visibility (private / restricted / public, default private)\n③ Select KB Type: evergreen (long-lived, default) or ephemeral (short-lived) — **immutable once created**\n④ AI Provider Configuration (press Enter to skip): Select openai / anthropic and input API Key (automatically tests connection)\n⑤ Import Document (press Enter to skip): Enter file path or URL\n\nConfiguration is written to `~/.memtrace/config.json` and immediately secured with `chmod 600`.\n\nSubsequent executions: Prompts whether to update AI provider / switch default workspace / re-authenticate / exit, without automatically overwriting existing configurations."
   },
   "tags": [
     "onboarding",

@@ -2,16 +2,16 @@
   "id": "mem_f83d6e1b_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "AI Agent Workflow: Create New Node",
+  "title": "AI Agent Workflow: Creating New Nodes",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "AI agents should call the `create_node` function to create new nodes, providing fields such as `title_zh`, `title_en`, `content_type`, `content_format`, and `body_zh`. Specifically, AI agents must set `source_type: \"ai\"`."
+    "body": "AI agents should call the `create_node` function to create new nodes, providing fields such as `title_zh`, `title_en`, `content_type`, `content_format`, and `body_zh`. In particular, AI agents must set `source_type: \"ai\"`."
   },
   "tags": [
-    "ai代理",
-    "工作流程",
-    "節點建立",
+    "ai-agent",
+    "workflow",
+    "node-creation",
     "api"
   ],
   "visibility": "public",

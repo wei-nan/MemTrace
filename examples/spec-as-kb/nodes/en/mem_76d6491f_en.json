@@ -9,10 +9,10 @@
     "body": "The `.mcp.json` configuration file has been updated to a single-instance approach, removing the dependency on one instance per knowledge base and integrating token settings. This simplifies configuration and makes it easier to manage."
   },
   "tags": [
-    "設定檔",
+    "configuration",
     "mcp",
-    "架構",
-    "配置"
+    "architecture",
+    "configuration"
   ],
   "visibility": "public",
   "provenance": {

@@ -9,9 +9,9 @@
     "body": "Fields entirely omitted from the stripped graph payload response include `title_zh`, `title_en`, `body_zh`, `body_en`, `tags`, `author`, `signature`, and all provenance fields."
   },
   "tags": [
-    "資料載荷",
-    "API優化",
-    "簡化結構"
+    "payload",
+    "api-optimization",
+    "simplified-structure"
   ],
   "visibility": "public",
   "provenance": {

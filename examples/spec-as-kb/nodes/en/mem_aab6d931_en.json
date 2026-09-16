@@ -9,9 +9,9 @@
     "body": "The preview payload is not cacheable by the client, indicated by the response header `Cache-Control: no-store`."
   },
   "tags": [
-    "快取",
-    "API優化",
-    "性能"
+    "cache",
+    "api-optimization",
+    "performance"
   ],
   "visibility": "public",
   "provenance": {

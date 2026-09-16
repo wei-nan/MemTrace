@@ -2,11 +2,11 @@
   "id": "mem_26ff6cfe_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Harness Proposal Batch Processing Design",
+  "title": "Harness Proposals Batch Processing Design",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The harness layer handles proposal batch processing for multi-agent fan-out:\n\n1. The harness collects proposals from each planner; no single conductor merges them.\n2. Proposals within the same batch are automatically grouped by semantic similarity to reduce redundant reviews.\n3. The conductor role is notification-only (notify); it neither schedules models nor merges proposals.\n4. The harness does not itself persist proposals; persistence is handled by the `review_queue`."
+    "body": "The harness layer is responsible for proposal batch processing in multi-agent fan-out:\n\n1. The harness collects proposals from each planner, rather than relying on a single conductor for consolidation.\n2. Proposals within the same batch are automatically grouped by semantic similarity to reduce redundant reviews.\n3. The conductor role only notifies without scheduling models or merging proposals.\n4. The harness itself does not persist proposals; persistence is handled by `review_queue`."
   },
   "tags": [
     "harness",

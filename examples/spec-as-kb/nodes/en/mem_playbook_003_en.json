@@ -2,11 +2,11 @@
   "id": "mem_playbook_003_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Best Practice: Distinguishing Node Types",
+  "title": "Best Practices: Distinguishing Node Types",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "### Content Type Guide\n- **Factual**: Objective facts, technical specs, definitions.\n- **Procedural**: Action steps, SOPs, how-to guides.\n- **Preference**: Team decisions, design preferences, rationale for choices.\n- **Context**: Project background, high-level philosophy, design intent."
+    "body": "### Content Type Guidelines\n- **Factual**: Objective facts, technical specifications, definitions.\n- **Procedural**: Action steps, SOPs, operational guides.\n- **Preference**: Team decisions, design preferences, rationale for choices.\n- **Context**: Project background, high-level philosophy, design intent."
   },
   "tags": [
     "best-practice",

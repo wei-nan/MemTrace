@@ -2,11 +2,11 @@
   "id": "mem_1b0a6c77_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "API Key/Session Suspension Threshold",
+  "title": "API Key / Conversation Suspension Threshold",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "An API key or session is suspended if the traversal rate exceeds 2000 requests within a 10-minute period."
+    "body": "If the traversal rate exceeds 2000 requests within 10 minutes, the API key or conversation will be suspended."
   },
   "tags": [
     "api-key",
@@ -23,7 +23,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

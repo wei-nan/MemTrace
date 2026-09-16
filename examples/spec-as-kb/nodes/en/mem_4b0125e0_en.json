@@ -9,9 +9,9 @@
     "body": "When a document is ingested, its original source document is retained as a special node to ensure the traceability of extractions, providing a direct link from any extracted node back to its source paragraph without polluting the main knowledge graph."
   },
   "tags": [
-    "存取",
-    "來源",
-    "文件"
+    "access",
+    "source",
+    "document"
   ],
   "visibility": "public",
   "provenance": {
@@ -21,7 +21,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 1,
-    "unique_traversers": 1
+    "count": 0,
+    "unique_traversers": 0
   }
 }

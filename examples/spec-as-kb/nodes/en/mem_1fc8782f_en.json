@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `body_en` column in the `memory_nodes` table is of type TEXT, storing the English body of the memory node."
+    "body": "The `body_en` column in the `memory_nodes` table is of type TEXT and stores the English body of the memory node."
   },
   "tags": [
     "database",

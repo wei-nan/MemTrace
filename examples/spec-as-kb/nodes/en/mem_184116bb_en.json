@@ -2,11 +2,11 @@
   "id": "mem_184116bb_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Onboarding Object Structure",
+  "title": "Onboarding Flow Object Structure",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The onboarding state is represented by an `onboarding` object, including `completed`, `steps_done`, `steps_skipped`, and `first_kb_id` fields."
+    "body": "The onboarding flow state is represented by an `onboarding` object, including fields such as `completed`, `steps_done`, `steps_skipped`, and `first_kb_id`."
   },
   "tags": [
     "onboarding",

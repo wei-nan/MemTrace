@@ -2,11 +2,11 @@
   "id": "mem_1185cce5_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Create API Key",
+  "title": "Creating an API Key",
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new API key. The request must include an Authorization Bearer Token, Content-Type as `application/json`, and JSON data containing the key name and scopes (e.g., `kb:read`, `kb:write`)."
+    "body": "Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new API key. The request must include an authorization Bearer Token, Content-Type of `application/json`, and JSON data containing the key name and scopes (e.g., `kb:read`, `kb:write`)."
   },
   "tags": [],
   "visibility": "public",

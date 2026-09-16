@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "Input modes are selectable via a tab toggle within the editor."
+    "body": "Input modes can be selected via tab switching inside the editor."
   },
   "tags": [
     "editor",
@@ -21,7 +21,7 @@
     "source_type": "ai"
   },
   "traversal": {
-    "count": 10,
-    "unique_traversers": 3
+    "count": 0,
+    "unique_traversers": 0
   }
 }

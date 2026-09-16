@@ -2,18 +2,18 @@
   "id": "mem_fcfc3360_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "AI Call Logging Requirement",
+  "title": "AI Call Logging Requirements",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "All AI calls, regardless of whether they use a workspace-level or account-level key, must be logged. The log serves as the authoritative record for billing, debugging, and policy enforcement."
+    "body": "All AI calls, whether using workspace-level or account-level keys, must be logged. Logs serve as the authoritative record for billing, debugging, and policy enforcement."
   },
   "tags": [
     "ai",
-    "說明",
-    "記錄",
-    "錯誤",
-    "結構"
+    "description",
+    "logging",
+    "error",
+    "structure"
   ],
   "visibility": "public",
   "provenance": {

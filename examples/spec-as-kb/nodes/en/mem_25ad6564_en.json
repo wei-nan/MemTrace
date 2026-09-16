@@ -2,11 +2,11 @@
   "id": "mem_25ad6564_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Private Workspace Visibility",
+  "title": "Personal Workspace Visibility",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "A `private` workspace is completely hidden from all other users."
+    "body": "\"Private\" workspaces are completely hidden from all other users."
   },
   "tags": [
     "workspace-type",

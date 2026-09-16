@@ -2,11 +2,11 @@
   "id": "mem_f70b4273_en",
   "schema_version": "1.0",
   "language": "en",
-  "title": "Determining Onboarding Progress",
+  "title": "Determining Onboarding Flow Progress",
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `steps_done` and `steps_skipped` fields together determine the current onboarding step and progress bar value."
+    "body": "The two fields `steps_done` and `steps_skipped` jointly determine the current onboarding step and progress bar value."
   },
   "tags": [
     "onboarding",

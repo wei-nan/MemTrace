@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "Provide an API endpoint `GET /workspaces/{ws_id}/nodes?filter=archived` to list all archived nodes within a specified workspace."
+    "body": "Provides an API endpoint `GET /workspaces/{ws_id}/nodes?filter=archived` to list all archived nodes in the specified workspace."
   },
   "tags": [
     "api",
