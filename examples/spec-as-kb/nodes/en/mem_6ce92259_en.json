@@ -1,0 +1,27 @@
+{
+  "id": "mem_6ce92259_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "Memory Node content_type Current State: 7 Types (Including document, gap)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The current `content_type` enumeration has 7 values (per a live system schema query, not inferred from docs):\n\n- `factual`: concrete, verifiable information and definitions\n- `procedural`: step-by-step instructions, guides, or workflows\n- `preference`: user preferences, style guides, or subjective choices\n- `context`: background information necessary to understand other nodes\n- `inquiry`: questions, issues, or gaps in knowledge that need answering\n- `gap`: a detected knowledge gap awaiting content (for explicitly logged questions, prefer `inquiry`)\n- `document`: a source document node, first-class in the graph; knowledge nodes link to it via `extracted_from`\n\nSupersedes the older 4-value enumeration (`factual`/`procedural`/`preference`/`context`, see `mem_5e486c31_en`, `mem_playbook_003_en`) and the transitional 5-value version (`mem_9b4c8d95_en`, `mem_d001_en`, `mem_d003_en`, which named the added value `source_document` — the current field name is `document`, and both `inquiry` and `gap` were still missing from that version)."
+  },
+  "tags": [
+    "content-type",
+    "current-state-update",
+    "schema"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-09-16T13:13:11.598286+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

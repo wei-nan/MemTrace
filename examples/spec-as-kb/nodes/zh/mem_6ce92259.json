@@ -1,0 +1,23 @@
+{
+  "id": "mem_6ce92259",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "記憶節點內容類型現況：7 種 content_type（含 document、gap）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 目前的 `content_type` 列舉共 7 種（依即時系統 schema 查詢結果，非文件推測）：\n\n- `factual`：具體、可驗證的資訊與定義\n- `procedural`：步驟式指示、指南或工作流程\n- `preference`：使用者偏好、風格指南或主觀選擇\n- `context`：理解其他節點所需的背景資訊\n- `inquiry`：待解答的問題、議題或知識缺口\n- `gap`：已偵測到、等待補充內容的知識缺口（明確記錄的問題請優先用 `inquiry`）\n- `document`：來源文件節點，是圖譜中的第一級節點；知識節點透過 `extracted_from` 邊連結到它\n\n取代舊版四型列舉（`factual`/`procedural`/`preference`/`context`，見 `mem_5e486c31`、`mem_playbook_003`）與過渡版本（`mem_9b4c8d95`、`mem_d001`、`mem_d003` 描述的五型列舉，新增值命名為 `source_document`——現況欄位名稱是 `document`，且仍缺 `inquiry`、`gap` 兩種）。"
+  },
+  "tags": ["content-type", "現況更新", "schema"],
+  "visibility": "public",
+  "provenance": {
+    "author": "system",
+    "created_at": "2026-09-16T13:12:58.676345+00:00",
+    "signature": "",
+    "source_type": "human"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

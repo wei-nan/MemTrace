@@ -1232,6 +1232,29 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_6ce92259','1.0','ws_spec0001','記憶節點內容類型現況：7 種 content_type（含 document、gap）','factual','markdown','MemTrace 目前的 `content_type` 列舉共 7 種（依即時系統 schema 查詢結果，非文件推測）：
+
+- `factual`：具體、可驗證的資訊與定義
+- `procedural`：步驟式指示、指南或工作流程
+- `preference`：使用者偏好、風格指南或主觀選擇
+- `context`：理解其他節點所需的背景資訊
+- `inquiry`：待解答的問題、議題或知識缺口
+- `gap`：已偵測到、等待補充內容的知識缺口（明確記錄的問題請優先用 `inquiry`）
+- `document`：來源文件節點，是圖譜中的第一級節點；知識節點透過 `extracted_from` 邊連結到它
+
+取代舊版四型列舉（`factual`/`procedural`/`preference`/`context`，見 `mem_5e486c31`、`mem_playbook_003`）與過渡版本（`mem_9b4c8d95`、`mem_d001`、`mem_d003` 描述的五型列舉，新增值命名為 `source_document`——現況欄位名稱是 `document`，且仍缺 `inquiry`、`gap` 兩種）。',
+   ARRAY['content-type', '現況更新', 'schema']::text[],'public','system','2026-09-16T13:12:58.676345+00:00','','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_6d8524a7','1.0','ws_spec0001','新數據模型欄位','factual','markdown','數據模型中新增了 `version`, `conflict_status`, `conflict_detail`, `source_doc_node_id`, 和 `source_paragraph_ref` 等欄位。',
    ARRAY['data-model', 'schema', 'update']::text[],'public','system','2026-04-24T11:31:27.718604+00:00','ce86c3a5dbe8e825cb9600f783656939236cc44481125fd58c074491c61e572c','ai',
    0,0)
@@ -3335,6 +3358,26 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_e73ea399','1.0','ws_spec0001','EDGE_GUIDE 內容定義','factual','markdown','`EDGE_GUIDE` 常數定義了關聯類型語意、權重範圍、`half_life_days` 說明以及 409 衝突處理方式。',
    ARRAY['edge_guide', 'edge', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:29.242927+00:00','5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
+  ('mem_e7607e5d','1.0','ws_spec0001','MCP Server 現況：單一實例、MEMTRACE_TOKEN、多工作區、HTTP+SSE','factual','markdown','MemTrace MCP server 目前以單一實例服務所有工作區，不再是早期「每個知識庫一個實例」的設計：
+
+- **設定**：`.mcp.json` 採單實例寫法，`env` 帶 `MEMTRACE_API`、`MEMTRACE_TOKEN`、`MEMTRACE_LANG`。`MEMTRACE_WS` 仍可設，但降級為「未傳 `workspace_id` 參數時的預設工作區」，不再是唯一可存取的工作區。
+- **多工作區存取**：設定 `MEMTRACE_TOKEN` 後，`list_workspaces()` 回傳該 token 可存取的所有工作區；未傳 `MEMTRACE_TOKEN` 則維持匿名行為，只能存取公開工作區（`list_workspaces` 回傳公開庫或空列表）。呼叫工具時可透過 `workspace_id` 參數指定要操作哪個工作區（例如 `search_nodes(query=..., workspace_id="ws_xxx")`）。
+- **傳輸模式**：除了 stdio，`memtrace serve --mcp` 也支援 HTTP + SSE 傳輸模式。
+- **寫入工具已上線**：AI agent 已能透過 MCP 直接呼叫 `create_node`/`update_node`/`create_edge` 寫入知識庫，不是規劃中尚未實作的功能。
+
+取代 `mem_i003` 描述的舊版狀態（單工作區、僅 stdio、寫入工具規劃中尚未實作）——`mem_i003` 建立於 2026-04-11，本節點依 2026-04-24～26 期間的驗收情境節點群（`mem_87639252`、`mem_960858c8`、`mem_964c73a3`、`mem_76d6491f`、`mem_b3ee2495`、`mem_7484cfc2`、`mem_71aebf92`、`mem_526945e4`）彙整而成。',
+   ARRAY['mcp', '現況更新', '多工作區', 'http-sse', '寫入工具']::text[],'public','system','2026-09-16T13:12:53.988076+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6633,6 +6676,29 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_6ce92259_en','1.0','ws_spec0001_en','Memory Node content_type Current State: 7 Types (Including document, gap)','factual','markdown','The current `content_type` enumeration has 7 values (per a live system schema query, not inferred from docs):
+
+- `factual`: concrete, verifiable information and definitions
+- `procedural`: step-by-step instructions, guides, or workflows
+- `preference`: user preferences, style guides, or subjective choices
+- `context`: background information necessary to understand other nodes
+- `inquiry`: questions, issues, or gaps in knowledge that need answering
+- `gap`: a detected knowledge gap awaiting content (for explicitly logged questions, prefer `inquiry`)
+- `document`: a source document node, first-class in the graph; knowledge nodes link to it via `extracted_from`
+
+Supersedes the older 4-value enumeration (`factual`/`procedural`/`preference`/`context`, see `mem_5e486c31_en`, `mem_playbook_003_en`) and the transitional 5-value version (`mem_9b4c8d95_en`, `mem_d001_en`, `mem_d003_en`, which named the added value `source_document` — the current field name is `document`, and both `inquiry` and `gap` were still missing from that version).',
+   ARRAY['content-type', 'current-state-update', 'schema']::text[],'public','system','2026-09-16T13:13:11.598286+00:00','','human',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_6d8524a7_en','1.0','ws_spec0001_en','New Data Model Fields','factual','markdown','New fields `version`, `conflict_status`, `conflict_detail`, `source_doc_node_id`, and `source_paragraph_ref` have been added to the data model.',
    ARRAY['data-model', 'schema', 'update']::text[],'public','system','2026-04-24T11:31:27.718604+00:00','ce86c3a5dbe8e825cb9600f783656939236cc44481125fd58c074491c61e572c','ai',
    0,0)
@@ -8739,6 +8805,26 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_e73ea399_en','1.0','ws_spec0001_en','EDGE_GUIDE Content Definition','factual','markdown','The `EDGE_GUIDE` constant defines relation type semantics, weight ranges, `half_life_days` descriptions, and 409 conflict handling methods.',
    ARRAY['edge_guide', 'edge', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:29.242927+00:00','5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
+  ('mem_e7607e5d_en','1.0','ws_spec0001_en','MCP Server Current State: Single Instance, MEMTRACE_TOKEN, Multi-Workspace, HTTP+SSE','factual','markdown','The MemTrace MCP server currently serves all workspaces from a single instance, no longer the earlier "one instance per knowledge base" design:
+
+- **Configuration**: `.mcp.json` uses the single-instance form, with `env` carrying `MEMTRACE_API`, `MEMTRACE_TOKEN`, `MEMTRACE_LANG`. `MEMTRACE_WS` can still be set, but is now only "the default workspace used when `workspace_id` is omitted," not the only accessible workspace.
+- **Multi-workspace access**: with `MEMTRACE_TOKEN` set, `list_workspaces()` returns all workspaces accessible to that token; without it, the server stays anonymous and can only access public workspaces (`list_workspaces` returns public KBs or an empty list). Tool calls can target a specific workspace via the `workspace_id` parameter (e.g. `search_nodes(query=..., workspace_id="ws_xxx")`).
+- **Transport**: besides stdio, `memtrace serve --mcp` also supports HTTP + SSE transport.
+- **Write tools are live**: AI agents can already call `create_node`/`update_node`/`create_edge` directly via MCP to write to the knowledge base — this is not a planned, unimplemented feature.
+
+Supersedes the older state described in `mem_i003_en` (single-workspace, stdio-only, write tools "planned but not yet implemented"). `mem_i003_en` was created 2026-04-11; this node consolidates the acceptance-scenario node cluster from 2026-04-24–26 (`mem_87639252`, `mem_960858c8`, `mem_964c73a3`, `mem_76d6491f`, `mem_b3ee2495`, `mem_7484cfc2`, `mem_71aebf92`, `mem_526945e4_en`).',
+   ARRAY['mcp', 'current-state-update', 'multi-workspace', 'http-sse', 'write-tools']::text[],'public','system','2026-09-16T13:13:07.939987+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -12520,6 +12606,30 @@ INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,
 VALUES ('edge_c1abd913','ws_spec0001','mem_tg001','mem_c9dd39d4','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_aeb49684','ws_spec0001','mem_i003','mem_e7607e5d','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fab1bfa9','ws_spec0001','mem_5e486c31','mem_6ce92259','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_8408b078','ws_spec0001','mem_9b4c8d95','mem_6ce92259','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_d0f01d17','ws_spec0001','mem_d001','mem_6ce92259','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_897ef005','ws_spec0001','mem_d003','mem_6ce92259','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_9a9edf53','ws_spec0001','mem_playbook_003','mem_6ce92259','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
 
 -- ── en edges ────────────────────────────────────────────
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -14216,4 +14326,28 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_c1abd913_en','ws_spec0001_en','mem_tg001_en','mem_c9dd39d4_en','related_to',1.0,30.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_fc1c113e','ws_spec0001_en','mem_i003_en','mem_e7607e5d_en','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_6acccf67','ws_spec0001_en','mem_5e486c31_en','mem_6ce92259_en','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_28c46bdd','ws_spec0001_en','mem_9b4c8d95_en','mem_6ce92259_en','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_aed2f2aa','ws_spec0001_en','mem_d001_en','mem_6ce92259_en','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_71016b75','ws_spec0001_en','mem_d003_en','mem_6ce92259_en','superseded_by',1.0,365.0,0.05,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_c765757e','ws_spec0001_en','mem_playbook_003_en','mem_6ce92259_en','superseded_by',1.0,365.0,0.05,false,0,0)
 ON CONFLICT (id) DO NOTHING;
