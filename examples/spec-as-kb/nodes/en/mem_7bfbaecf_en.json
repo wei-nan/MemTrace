@@ -1,0 +1,28 @@
+{
+  "id": "mem_7bfbaecf_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "The Actual AI Conflict-Detection Mechanism: status='conflicted' and edge metadata (not conflict_status)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "When AI conflict detection (`services/contradiction.py`) finds a contradiction, it does not actually write to `conflict_status` / `conflict_detail` — no code anywhere currently reads or writes either column. The real mechanism is:\n\n- The new node's `memory_nodes.status` is changed to `conflicted` (one of the `node_status` enum values: admit-but-conflicted — the node stays in the graph, but can't be treated as truth until arbitrated)\n- A `contradicts` edge is created, with the contradiction reason recorded in that edge's `metadata.reason` (free text, not a fixed value set)\n- `create_proposal` is called to file an audit proposal with `category='contradiction'`; `severity` is high/mid depending on whether the target node has `validity_confirmed_at` set or traversal count ≥ 10 (trust score was removed 2026-07-26 and is no longer used as a severity signal)\n\nManually creating a `contradicts` edge triggers the same review-intake flow (`propose_change(..., \"conflict\", ...)`, see `services/edges.py`). Arbitration outcomes `keep_a` / `keep_b` / `merge` / `both_valid` are covered in \"§S3 Contradicts Conflict Arbitration Flow\"."
+  },
+  "tags": [
+    "conflict",
+    "database_schema",
+    "ai",
+    "governance"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-09-16T14:38:50.706878+00:00",
+    "signature": "fdbeed97b7702661be669cb47876eed3b5b2b509186bc2523bdf9011459d091d",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

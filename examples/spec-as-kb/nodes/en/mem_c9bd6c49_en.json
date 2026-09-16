@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The `memory_nodes` table contains a text column named `conflict_status`, whose value can be `NULL`, `'flagged'`, or `'resolved'`."
+    "body": "The `memory_nodes` table contains a text column named `conflict_status`, whose value can be `NULL`, `'flagged'`, or `'resolved'` (per the DB CHECK constraint). No code in the current codebase (`packages/api/`) reads or writes this column — AI conflict detection actually changes `memory_nodes.status = 'conflicted'` instead. See \"The Actual AI Conflict-Detection Mechanism: status='conflicted' and edge metadata (not conflict_status)\"."
   },
   "tags": [
     "database_schema",

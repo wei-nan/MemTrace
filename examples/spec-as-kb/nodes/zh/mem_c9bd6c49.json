@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "`memory_nodes` 表包含一個名為 `conflict_status` 的文本欄位，其值可以為 `NULL`, `'flagged'`, 或 `'resolved'`。"
+    "body": "`memory_nodes` 表包含一個名為 `conflict_status` 的文本欄位，其值可以為 `NULL`, `'flagged'`, 或 `'resolved'`（DB CHECK constraint 定義）。目前程式碼庫（`packages/api/`）沒有任何地方讀寫這個欄位——AI 衝突偵測實際改寫的是 `memory_nodes.status = 'conflicted'`，見「AI 衝突偵測的實際機制：status='conflicted' 與 edge metadata（非 conflict_status）」。"
   },
   "tags": [
     "database_schema",

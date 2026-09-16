@@ -1,0 +1,28 @@
+{
+  "id": "mem_7bfbaecf",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "AI 衝突偵測的實際機制：status='conflicted' 與 edge metadata（非 conflict_status）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "AI 衝突偵測（`services/contradiction.py`）偵測到矛盾時，實際寫入的不是 `conflict_status`／`conflict_detail`——這兩個欄位目前沒有任何程式碼讀寫。真正的機制是：\n\n- 把新節點的 `memory_nodes.status` 改成 `conflicted`（`node_status` enum 的其中一個值：admit-but-conflicted，節點留在圖裡，但在被仲裁前不能被當作定論）\n- 建立一條 `contradicts` edge，矛盾原因記在該 edge 的 `metadata.reason`（自由文字，不是固定值域）\n- 呼叫 `create_proposal` 發一筆 `category='contradiction'` 的 audit proposal；`severity` 依對方節點是否 `validity_confirmed_at` 或走訪次數 ≥ 10 決定 high／mid（trust score 已於 2026-07-26 移除，不再作為嚴重度依據）\n\n人工手動建立 `contradicts` edge 時也會觸發同一套進審流程（`propose_change(..., \"conflict\", ...)`，見 `services/edges.py`）。仲裁結果 `keep_a`／`keep_b`／`merge`／`both_valid` 見「§S3 Contradicts 衝突仲裁流程」。"
+  },
+  "tags": [
+    "conflict",
+    "database_schema",
+    "ai",
+    "governance"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-09-16T14:38:18.102636+00:00",
+    "signature": "58040deab231ad02625fc7c383b291361501244a5555df8c78e7950e794fd6cc",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
