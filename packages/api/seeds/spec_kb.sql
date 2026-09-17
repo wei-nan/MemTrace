@@ -2880,7 +2880,7 @@ VALUES
   ('mem_d001','1.0','ws_spec0001','Memory Node：知識的最小單位','factual','markdown','Memory Node 是 MemTrace 中知識的最小單位。每個節點捕捉**一個**想法，包含：
 
 - **雙語標題與內文**（zh-TW + en），各自獨立
-- **Content Type**：`factual` / `procedural` / `preference` / `context` / `source_document`
+- **Content Type**：`factual` / `procedural` / `preference` / `context` / `inquiry` / `document` / `gap`（現況共 7 種，見「記憶節點內容類型現況」）
 - **Format**：`plain` 或 `markdown`
 - **Tags**：字串陣列，用於分類與搜尋
 - **Visibility**：`public` / `team` / `private`
@@ -2894,7 +2894,7 @@ VALUES
 - `conflict_detail` — JSONB，schema 上定義為記錄衝突類型與相關節點，同樣目前沒有程式碼讀寫
 
 **來源文件追溯欄位**（§20）：
-- `source_doc_node_id` — 指向 `source_document` 類型節點，用於追溯萃取來源
+- `source_doc_node_id` — 指向 `document` 類型節點，用於追溯萃取來源
 - `source_paragraph_ref` — 字串，標記在原文件中的段落位置（如 `page:3, para:2` 或 `00:14:32-00:15:01`）
 
 節點 ID 格式：`mem_<hex8>`，例如 `mem_a1b2c3d4`。',
@@ -3458,7 +3458,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f9a2bb47','1.0','ws_spec0001','來源文件節點欄位定義','factual','markdown','來源文件節點包含以下欄位：`content_type` 為 `source_document`，`title_zh`/`title_en` 為原始檔名 + 匯入時間戳，`body_zh`/`body_en` 為完整的提取文本或轉錄稿，`visibility` 預設為 `private`，且 `source_type` 為 `human`。',
+  ('mem_f9a2bb47','1.0','ws_spec0001','來源文件節點欄位定義','factual','markdown','來源文件節點包含以下欄位：`content_type` 為 `document`（現況欄位名稱，非舊版 `source_document`，見「記憶節點內容類型現況」），`title_zh`/`title_en` 為原始檔名 + 匯入時間戳，`body_zh`/`body_en` 為完整的提取文本或轉錄稿，`visibility` 預設為 `private`，且 `source_type` 為 `human`。',
    ARRAY['後端資料', '來源', '文件']::text[],'public','system','2026-04-24T11:25:40.773860+00:00','7d2711cfebac275319bf5ebc62579cd1b3de62a9d03f2952bdd65e03bb984b84','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -4132,7 +4132,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_k003','1.0','ws_spec0001','節點跨庫複製：可攜性','procedural','plain','任何節點可被複製到另一個知識庫，但 Edge 不隨行。複製行為：目標庫中取得新 id；created_at 重設為複製時間；provenance.copied_from 記錄 { node_id, workspace_id } 供溯源；目標庫中 visibility 預設為 private；Trust 分數以快照帶入，兩邊後續互不影響；signature 在目標庫環境重新計算。CLI 指令：memtrace copy-node <node-id> --to <workspace-id>。API：POST /workspaces/{ws_id}/nodes（帶 copied_from 參數）。',
+  ('mem_k003','1.0','ws_spec0001','節點跨庫複製：可攜性','procedural','plain','任何節點可被複製到另一個知識庫，但 Edge 不隨行。複製行為：目標庫中取得新 id；created_at 重設為複製時間；provenance.copied_from 記錄 { node_id, workspace_id } 供溯源；目標庫中 visibility 預設為 private；signature 在目標庫環境重新計算。CLI 指令：memtrace copy-node <node-id> --to <workspace-id>。API：POST /workspaces/{ws_id}/nodes（帶 copied_from 參數）。
+
+（Trust 分數已於 2026-07-26 隨 Trust 機制全量移除，見 `ws_spec_plan/mem_c10f6685`；複製行為不再涉及任何 trust 快照。）',
    ARRAY['knowledge-base', 'portability', 'copy', 'provenance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6','human',
    1,1)
 ON CONFLICT (id) DO UPDATE SET
@@ -4759,7 +4761,6 @@ CREATE TABLE kb_health_daily (
   retrieval_mrr             float,   -- MRR
   decay_runs_last_14d       int,     -- M3：decay 連續執行天數
   duplicate_pairs_unlinked  int,     -- M4：未連結重複對
-  avg_trust_active          float,
   active_users_7d           int,
   review_queue_depth        int,
   ai_nodes_unverified_ratio float,
@@ -4784,7 +4785,9 @@ CREATE TABLE kb_health_daily (
 | M3 Decay 連續 14 天 | 無中斷 | 持續累積 |
 | M4 未連結重複對 | = 0 | 0 |
 
-註：`token_savings_ratio` 欄位仍保留於 schema（DDL 如上），但其衍生的 token 縮減 KPI 已於 2026-07-25 撤下。原公布值的量測基線為反事實假設（假定替代行為是載入整個知識庫），且會隨知識庫成長而自動改善，不構成可驗證的效能主張。量測方法修訂中。',
+註：`token_savings_ratio` 欄位仍保留於 schema（DDL 如上），但其衍生的 token 縮減 KPI 已於 2026-07-25 撤下。原公布值的量測基線為反事實假設（假定替代行為是載入整個知識庫），且會隨知識庫成長而自動改善，不構成可驗證的效能主張。量測方法修訂中。
+
+另註：`avg_trust_active` 欄位已隨 Trust 機制全量移除（2026-07-26 決策，見 `ws_spec_plan/mem_c10f6685`「移除範圍」明列「workspace 健康度中的 trust 項」）一併從表中移除，本節點的 DDL 已同步更新，不再列出該欄位。',
    ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -8069,7 +8072,7 @@ VALUES
   ('mem_d001_en','1.0','ws_spec0001_en','Memory Node: The Atom of Knowledge','factual','markdown','The Memory Node is the atomic unit of knowledge in MemTrace. Each node captures **a single** idea and contains:
 
 - **Bilingual Title and Body** (zh-TW + en), maintained independently
-- **Content Type**: `factual` / `procedural` / `preference` / `context` / `source_document`
+- **Content Type**: `factual` / `procedural` / `preference` / `context` / `inquiry` / `document` / `gap` (7 types currently — see "Memory Node content_type Current State")
 - **Format**: `plain` or `markdown`
 - **Tags**: an array of strings, used for classification and search
 - **Visibility**: `public` / `team` / `private`
@@ -8083,7 +8086,7 @@ VALUES
 - `conflict_detail` — JSONB, defined in the schema to record conflict type and related nodes, also currently unread/unwritten by any code
 
 **Source-document traceability fields** (§20):
-- `source_doc_node_id` — points to a `source_document`-type node, used to trace back to the extraction source
+- `source_doc_node_id` — points to a `document`-type node, used to trace back to the extraction source
 - `source_paragraph_ref` — a string marking the paragraph location in the original document (e.g. `page:3, para:2` or `00:14:32-00:15:01`)
 
 Node ID format: `mem_<hex8>`, e.g. `mem_a1b2c3d4`.',
@@ -8647,7 +8650,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_f9a2bb47_en','1.0','ws_spec0001_en','Source Document Node Field Definitions','factual','markdown','Source document nodes contain the following fields: `content_type` is `source_document`, `title_zh`/`title_en` is the original filename + import timestamp, `body_zh`/`body_en` is the complete extracted text or transcript, `visibility` defaults to `private`, and `source_type` is `human`.',
+  ('mem_f9a2bb47_en','1.0','ws_spec0001_en','Source Document Node Field Definitions','factual','markdown','Source document nodes contain the following fields: `content_type` is `document` (the current field value, not the old `source_document` — see "Memory Node content_type Current State"), `title_zh`/`title_en` is the original filename + import timestamp, `body_zh`/`body_en` is the complete extracted text or transcript, `visibility` defaults to `private`, and `source_type` is `human`.',
    ARRAY['backend-data', 'source', 'document']::text[],'public','system','2026-04-24T11:25:40.773860+00:00','7d2711cfebac275319bf5ebc62579cd1b3de62a9d03f2952bdd65e03bb984b84','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9321,7 +9324,9 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_k003_en','1.0','ws_spec0001_en','Cross-Workspace Node Copying: Portability','procedural','plain','Any node can be copied to another knowledge base, but Edges are not copied along with it. Copying behavior: a new `id` is assigned in the target knowledge base; `created_at` is reset to the copy timestamp; `provenance.copied_from` records `{ node_id, workspace_id }` for provenance tracking; `visibility` defaults to `private` in the target workspace; the trust score is carried over as a snapshot, with subsequent changes on either side having no effect on the other; `signature` is recomputed in the target workspace environment. CLI command: `memtrace copy-node <node-id> --to <workspace-id>`. API: `POST /workspaces/{ws_id}/nodes` (with the `copied_from` parameter).',
+  ('mem_k003_en','1.0','ws_spec0001_en','Cross-Workspace Node Copying: Portability','procedural','plain','Any node can be copied to another knowledge base, but Edges are not copied along with it. Copying behavior: a new `id` is assigned in the target knowledge base; `created_at` is reset to the copy timestamp; `provenance.copied_from` records `{ node_id, workspace_id }` for provenance tracking; `visibility` defaults to `private` in the target workspace; `signature` is recomputed in the target workspace environment. CLI command: `memtrace copy-node <node-id> --to <workspace-id>`. API: `POST /workspaces/{ws_id}/nodes` (with the `copied_from` parameter).
+
+(Trust score was entirely removed on 2026-07-26 along with the rest of the Trust mechanism, see `ws_spec_plan/mem_c10f6685`; copying no longer involves any trust snapshot.)',
    ARRAY['knowledge-base', 'portability', 'copy', 'provenance']::text[],'public','memtrace-spec','2026-04-11T00:00:00+00:00','c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6e7f8a3b4c5d6','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9946,7 +9951,6 @@ CREATE TABLE kb_health_daily (
   retrieval_mrr             float,   -- MRR
   decay_runs_last_14d       int,     -- M3: decay consecutive execution days
   duplicate_pairs_unlinked  int,     -- M4: unlinked duplicate pairs
-  avg_trust_active          float,
   active_users_7d           int,
   review_queue_depth        int,
   ai_nodes_unverified_ratio float,
@@ -9971,7 +9975,9 @@ Daily 03:30 cron snapshot written across all workspaces.
 | M3 Decay Continuous 14 Days | No interruption | Continuously accumulating |
 | M4 Unlinked Duplicate Pairs | = 0 | 0 |
 
-Note: The `token_savings_ratio` field is retained in the schema (DDL above), but its derived token reduction KPI was retired on 2026-07-25. The measurement baseline of the originally published value was a counterfactual assumption (assuming the alternative behavior was loading the entire knowledge base), which automatically improved as the knowledge base grew and did not constitute a verifiable performance claim. The measurement methodology is under revision.',
+Note: The `token_savings_ratio` field is retained in the schema (DDL above), but its derived token reduction KPI was retired on 2026-07-25. The measurement baseline of the originally published value was a counterfactual assumption (assuming the alternative behavior was loading the entire knowledge base), which automatically improved as the knowledge base grew and did not constitute a verifiable performance claim. The measurement methodology is under revision.
+
+Additional note: the `avg_trust_active` column was dropped from this table as part of the full Trust-mechanism removal (2026-07-26 decision, see `ws_spec_plan/mem_c10f6685`, whose removal scope explicitly lists "the trust item in workspace health metrics"). This node''s DDL has been updated to match and no longer lists that column.',
    ARRAY['analytics', 'health', 'dashboard', 'token', 'recall', 'schema', 'phase5']::text[],'public','memtrace-spec','2026-06-13T00:00:00+00:00','ta002a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET

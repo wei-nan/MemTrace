@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "Source document nodes contain the following fields: `content_type` is `source_document`, `title_zh`/`title_en` is the original filename + import timestamp, `body_zh`/`body_en` is the complete extracted text or transcript, `visibility` defaults to `private`, and `source_type` is `human`."
+    "body": "Source document nodes contain the following fields: `content_type` is `document` (the current field value, not the old `source_document` — see \"Memory Node content_type Current State\"), `title_zh`/`title_en` is the original filename + import timestamp, `body_zh`/`body_en` is the complete extracted text or transcript, `visibility` defaults to `private`, and `source_type` is `human`."
   },
   "tags": [
     "backend-data",
