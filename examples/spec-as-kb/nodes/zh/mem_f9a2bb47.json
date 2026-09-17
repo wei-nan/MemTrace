@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "來源文件節點包含以下欄位：`content_type` 為 `source_document`，`title_zh`/`title_en` 為原始檔名 + 匯入時間戳，`body_zh`/`body_en` 為完整的提取文本或轉錄稿，`visibility` 預設為 `private`，且 `source_type` 為 `human`。"
+    "body": "來源文件節點包含以下欄位：`content_type` 為 `document`（現況欄位名稱，非舊版 `source_document`，見「記憶節點內容類型現況」），`title_zh`/`title_en` 為原始檔名 + 匯入時間戳，`body_zh`/`body_en` 為完整的提取文本或轉錄稿，`visibility` 預設為 `private`，且 `source_type` 為 `human`。"
   },
   "tags": [
     "後端資料",
