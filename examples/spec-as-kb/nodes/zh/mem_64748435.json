@@ -1,0 +1,28 @@
+{
+  "id": "mem_64748435",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "MCP Server 現況：HTTP-only，透過 Authorization header 認證（無環境變數）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "舊的 Node.js stdio MCP server（`packages/mcp/src/index.ts`，env 帶 `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`）已於 2026-05-05（commit `ff97d9a`：「replace Node.js MCP server with native Python API endpoints」）整個移除，改為現行的原生 Python HTTP 端點（`packages/api/routers/mcp.py`）。stdio 傳輸模式不再存在。\n\n**現況（`.mcp.json`／`.mcp.json.example`）**：\n\n```json\n{\n  \"mcpServers\": {\n    \"memtrace\": {\n      \"type\": \"http\",\n      \"url\": \"https://<your-memtrace-host>/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer <your-memtrace-api-key>\",\n        \"X-MemTrace-Tool-Profile\": \"core+agent_loop\"\n      }\n    }\n  }\n}\n```\n\n**沒有任何環境變數**——API key 直接寫在設定檔的 `headers.Authorization` 裡（`Bearer mt_<api_key>`）。`workspace_id` 改為每次工具呼叫時的參數，不是靠環境變數固定預設工作區。\n\n多工作區存取、寫入工具（`create_node`/`update_node`/`create_edge`）、`list_workspaces` 等能力現況見 `mem_i003`（已標記 `resolution_status: superseded`，本節點取代其作為現況的角色）。"
+  },
+  "tags": [
+    "mcp",
+    "現況更新",
+    "authentication",
+    "http"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-09-17T01:33:05.361151+00:00",
+    "signature": "c596d371c52089b922dfc3dac2aa91fbc198ffaec5824b26cc5d2c52a3859798",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

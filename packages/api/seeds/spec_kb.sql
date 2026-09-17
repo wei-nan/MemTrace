@@ -1141,6 +1141,40 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_64748435','1.0','ws_spec0001','MCP Server 現況：HTTP-only，透過 Authorization header 認證（無環境變數）','factual','markdown','舊的 Node.js stdio MCP server（`packages/mcp/src/index.ts`，env 帶 `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`）已於 2026-05-05（commit `ff97d9a`：「replace Node.js MCP server with native Python API endpoints」）整個移除，改為現行的原生 Python HTTP 端點（`packages/api/routers/mcp.py`）。stdio 傳輸模式不再存在。
+
+**現況（`.mcp.json`／`.mcp.json.example`）**：
+
+```json
+{
+  "mcpServers": {
+    "memtrace": {
+      "type": "http",
+      "url": "https://<your-memtrace-host>/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-memtrace-api-key>",
+        "X-MemTrace-Tool-Profile": "core+agent_loop"
+      }
+    }
+  }
+}
+```
+
+**沒有任何環境變數**——API key 直接寫在設定檔的 `headers.Authorization` 裡（`Bearer mt_<api_key>`）。`workspace_id` 改為每次工具呼叫時的參數，不是靠環境變數固定預設工作區。
+
+多工作區存取、寫入工具（`create_node`/`update_node`/`create_edge`）、`list_workspaces` 等能力現況見 `mem_i003`（已標記 `resolution_status: superseded`，本節點取代其作為現況的角色）。',
+   ARRAY['mcp', '現況更新', 'authentication', 'http']::text[],'public','usr_6bc7b4c7','2026-09-17T01:33:05.361151+00:00','c596d371c52089b922dfc3dac2aa91fbc198ffaec5824b26cc5d2c52a3859798','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_6709672b','1.0','ws_spec0001','B 關聯管理 UI','procedural','markdown','此功能目標是為跨知識庫關聯提供一個完整的設定介面，以補充現有的 API 功能。',
    ARRAY['ui', 'knowledge-base', 'association']::text[],'public','system','2026-04-25T02:39:05.267545+00:00','23d35304327fc4430ebc791c6c9b00a2c222a6c3516e33b32fb27dcf9990b9e9','ai',
    10,3)
@@ -1341,19 +1375,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_76d6491f','1.0','ws_spec0001','.mcp.json 設定檔更新為單實例寫法','procedural','markdown','`.mcp.json` 設定檔已更新為單實例寫法，移除了對每個知識庫一個實例的依賴，並整合了 token 設定。這簡化了配置，使其更易於管理。',
-   ARRAY['設定檔', 'mcp', '架構', '配置']::text[],'public','system','2026-04-25T02:39:38.497095+00:00','61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_79dce6e3','1.0','ws_spec0001','記憶節點 Schema 版本','factual','markdown','`memory_nodes` 表中的 `schema_version` 欄位類型為 TEXT，固定為 ''1.0''。',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:38.872833+00:00','ba4fdaf3d15b468f342627140d094e4d7edd8e03d683ca2e527e33dca2be84ed','ai',
    0,0)
@@ -1375,19 +1396,6 @@ VALUES
 
 人工手動建立 `contradicts` edge 時也會觸發同一套進審流程（`propose_change(..., "conflict", ...)`，見 `services/edges.py`）。仲裁結果 `keep_a`／`keep_b`／`merge`／`both_valid` 見「§S3 Contradicts 衝突仲裁流程」。',
    ARRAY['conflict', 'database_schema', 'ai', 'governance']::text[],'public','usr_6bc7b4c7','2026-09-16T14:38:18.102636+00:00','58040deab231ad02625fc7c383b291361501244a5555df8c78e7950e794fd6cc','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_7dfe253a','1.0','ws_spec0001','MCP 身份驗證','factual','markdown','驗證是透過傳遞 API 金鑰完成的，該金鑰作為 `MEMTRACE_API_KEY` 環境變量（stdio 模式）或 `Authorization` 標頭（HTTP 模式）傳遞。',
-   ARRAY['mcp', 'authentication', 'api-key', 'environment-variable', 'http-header']::text[],'public','system','2026-04-24T11:25:40.347126+00:00','40ba3456cf0cbbf4aa1cf85bbac939f6d6e95a7488dd0d987161188f20053de6','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -1529,19 +1537,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_87639252','1.0','ws_spec0001','驗收情境：列出所有可存取工作區','procedural','markdown','驗收情境之一：當設定 `MEMTRACE_TOKEN` 後，呼叫 `list_workspaces()` 應回傳該 token 可存取的所有工作區清單。',
-   ARRAY['驗收測試', '工作區', 'API', '認證']::text[],'public','system','2026-04-26T00:29:47.179895+00:00','f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962','ai',
-   1,1)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_8a8214f3','1.0','ws_spec0001','記憶節點來源類型','factual','markdown','`memory_nodes` 表中的 `source_type` 欄位類型為 ENUM，可能的值為 `human` / `ai_generated` / `ai_verified`。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:39.108336+00:00','5dce0a872a0e0bec6f9fc2e51d4e0fc0593f549fbac11c16734de343d7cce113','ai',
    0,0)
@@ -1647,32 +1642,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_9209a508','1.0','ws_spec0001','記憶節點標籤','factual','markdown','`memory_nodes` 表中的 `tags` 欄位類型為 TEXT[]，存儲記憶節點的標籤，並已建立 GIN 索引。',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'indexing']::text[],'public','system','2026-04-24T11:25:39.008653+00:00','56e5ce2c9c37c38be23ac86af4fe6b4d09f5df89d845026f4202d553b0f40f75','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_960858c8','1.0','ws_spec0001','.mcp.json 設定範例','factual','markdown','更新後的 `.mcp.json` 範例結構包含 `mcpServers` 物件，其中 `memtrace` 服務定義了 `command`、`args` 和 `env` 變數，如 `MEMTRACE_API`、`MEMTRACE_WS`、`MEMTRACE_LANG` 和 `MEMTRACE_TOKEN`。',
-   ARRAY['設定檔', 'MCP', '範例', '環境變數']::text[],'public','system','2026-04-26T00:29:47.081337+00:00','cb8a163dc1c365306103f3ad0ff2315f25bf59e91ccf68703c3ca99fda285996','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_964c73a3','1.0','ws_spec0001','MEMTRACE_TOKEN 匿名行為','factual','markdown','若未傳遞 `MEMTRACE_TOKEN`，系統將維持匿名行為，僅能存取公開工作區，`list_workspaces` 將返回公開庫或空列表。',
-   ARRAY['環境變數', 'API', '認證', '匿名存取']::text[],'public','system','2026-04-26T00:29:47.061108+00:00','12b69126a9d518c5b28e719a150430576fa04e99ea78b9b1c86d9a7769fee9eb','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -3232,19 +3201,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_dc852972','1.0','ws_spec0001','MEMTRACE_TOKEN 安全提醒','factual','markdown','關於 `MEMTRACE_TOKEN` 的安全提醒文字已加入伺服器啟動時的標準錯誤日誌 (stderr log) 中。',
-   ARRAY['環境變數', '安全性', '日誌']::text[],'public','system','2026-04-25T02:39:36.926692+00:00','656f7b6e924f07b2bef8f84a0a2a011de8f9270d6618c86707eb069cb8973af7','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_dd1d4589','1.0','ws_spec0001','Connector 第三方整合產品立場','factual','markdown','MemTrace 對 Connector（第三方系統整合）的產品立場：
 
 1. Connector 為選用功能，不是核心路徑的依賴。
@@ -3318,26 +3274,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_e73ea399','1.0','ws_spec0001','EDGE_GUIDE 內容定義','factual','markdown','`EDGE_GUIDE` 常數定義了關聯類型語意、權重範圍、`half_life_days` 說明以及 409 衝突處理方式。',
    ARRAY['edge_guide', 'edge', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:29.242927+00:00','5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_e7607e5d','1.0','ws_spec0001','MCP Server 現況：單一實例、MEMTRACE_TOKEN、多工作區、HTTP+SSE','factual','markdown','MemTrace MCP server 目前以單一實例服務所有工作區，不再是早期「每個知識庫一個實例」的設計：
-
-- **設定**：`.mcp.json` 採單實例寫法，`env` 帶 `MEMTRACE_API`、`MEMTRACE_TOKEN`、`MEMTRACE_LANG`。`MEMTRACE_WS` 仍可設，但降級為「未傳 `workspace_id` 參數時的預設工作區」，不再是唯一可存取的工作區。
-- **多工作區存取**：設定 `MEMTRACE_TOKEN` 後，`list_workspaces()` 回傳該 token 可存取的所有工作區；未傳 `MEMTRACE_TOKEN` 則維持匿名行為，只能存取公開工作區（`list_workspaces` 回傳公開庫或空列表）。呼叫工具時可透過 `workspace_id` 參數指定要操作哪個工作區（例如 `search_nodes(query=..., workspace_id="ws_xxx")`）。
-- **傳輸模式**：除了 stdio，`memtrace serve --mcp` 也支援 HTTP + SSE 傳輸模式。
-- **寫入工具已上線**：AI agent 已能透過 MCP 直接呼叫 `create_node`/`update_node`/`create_edge` 寫入知識庫，不是規劃中尚未實作的功能。
-
-取代 `mem_i003` 描述的舊版狀態（單工作區、僅 stdio、寫入工具規劃中尚未實作）——`mem_i003` 建立於 2026-04-11，本節點依 2026-04-24～26 期間的驗收情境節點群（`mem_87639252`、`mem_960858c8`、`mem_964c73a3`、`mem_76d6491f`、`mem_b3ee2495`、`mem_7484cfc2`、`mem_71aebf92`、`mem_526945e4`）彙整而成。',
-   ARRAY['mcp', '現況更新', '多工作區', 'http-sse', '寫入工具']::text[],'public','system','2026-09-16T13:12:53.988076+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6476,6 +6412,40 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_64748435_en','1.0','ws_spec0001_en','MCP Server Current State: HTTP-only, Authenticated via Authorization Header (No Environment Variables)','factual','markdown','The old Node.js stdio MCP server (`packages/mcp/src/index.ts`, with env vars `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`) was entirely removed on 2026-05-05 (commit `ff97d9a`: "replace Node.js MCP server with native Python API endpoints"), replaced by the current native Python HTTP endpoints (`packages/api/routers/mcp.py`). The stdio transport no longer exists.
+
+**Current state (`.mcp.json` / `.mcp.json.example`)**:
+
+```json
+{
+  "mcpServers": {
+    "memtrace": {
+      "type": "http",
+      "url": "https://<your-memtrace-host>/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-memtrace-api-key>",
+        "X-MemTrace-Tool-Profile": "core+agent_loop"
+      }
+    }
+  }
+}
+```
+
+**There are no environment variables at all** — the API key is written directly into the config file''s `headers.Authorization` (`Bearer mt_<api_key>`). `workspace_id` is now a per-call tool parameter rather than a fixed default set via an environment variable.
+
+Current-state details for multi-workspace access, write tools (`create_node`/`update_node`/`create_edge`), `list_workspaces`, etc. are in `mem_i003` (already marked `resolution_status: superseded` — this node takes over its role as the current-state pointer).',
+   ARRAY['mcp', 'current-state', 'authentication', 'http']::text[],'public','usr_6bc7b4c7','2026-09-17T01:33:29.073543+00:00','6244793314d69686bc674874903ce1489f0e47edb02a03927f3566498187b881','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_6709672b_en','1.0','ws_spec0001_en','B Association Management UI','procedural','markdown','The goal of this feature is to provide a complete UI for cross-knowledge base association settings, complementing existing API functionality.',
    ARRAY['ui', 'knowledge-base', 'association']::text[],'public','system','2026-04-25T02:39:05.267545+00:00','23d35304327fc4430ebc791c6c9b00a2c222a6c3516e33b32fb27dcf9990b9e9','ai',
    0,0)
@@ -6676,19 +6646,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_76d6491f_en','1.0','ws_spec0001_en','.mcp.json Configuration Update to Single Instance','procedural','markdown','The `.mcp.json` configuration file has been updated to a single-instance approach, removing the dependency on one instance per knowledge base and integrating token settings. This simplifies configuration and makes it easier to manage.',
-   ARRAY['configuration', 'mcp', 'architecture', 'configuration']::text[],'public','system','2026-04-25T02:39:38.497095+00:00','61e28dfaf329b22ab626103c29e89e1dc61b98f08be7a0c17c2ca073c04ef97c','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_79dce6e3_en','1.0','ws_spec0001_en','Memory Node Schema Version','factual','markdown','The `schema_version` column in the `memory_nodes` table is of type TEXT, fixed to ''1.0''.',
    ARRAY['database', 'schema', 'memory_nodes', 'column']::text[],'public','system','2026-04-24T11:25:38.872833+00:00','ba4fdaf3d15b468f342627140d094e4d7edd8e03d683ca2e527e33dca2be84ed','ai',
    0,0)
@@ -6710,19 +6667,6 @@ VALUES
 
 Manually creating a `contradicts` edge triggers the same review-intake flow (`propose_change(..., "conflict", ...)`, see `services/edges.py`). Arbitration outcomes `keep_a` / `keep_b` / `merge` / `both_valid` are covered in "§S3 Contradicts Conflict Arbitration Flow".',
    ARRAY['conflict', 'database_schema', 'ai', 'governance']::text[],'public','usr_6bc7b4c7','2026-09-16T14:38:50.706878+00:00','fdbeed97b7702661be669cb47876eed3b5b2b509186bc2523bdf9011459d091d','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_7dfe253a_en','1.0','ws_spec0001_en','MCP Authentication','factual','markdown','Authentication is via an API key passed as the `MEMTRACE_API_KEY` environment variable (stdio mode) or `Authorization` header (HTTP mode).',
-   ARRAY['mcp', 'authentication', 'api-key', 'environment-variable', 'http-header']::text[],'public','system','2026-04-24T11:25:40.347126+00:00','40ba3456cf0cbbf4aa1cf85bbac939f6d6e95a7488dd0d987161188f20053de6','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -6864,19 +6808,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_87639252_en','1.0','ws_spec0001_en','Acceptance Scenario: List All Accessible Workspaces','procedural','markdown','One acceptance scenario: after setting `MEMTRACE_TOKEN`, calling `list_workspaces()` should return a list of all workspaces accessible by that token.',
-   ARRAY['acceptance-test', 'workspace', 'API', 'authentication']::text[],'public','system','2026-04-26T00:29:47.179895+00:00','f9748eb16dab611945667df0411f7ebb856c3ecaaf7a2ee54cbf2d213a113962','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_8a8214f3_en','1.0','ws_spec0001_en','Memory Node Source Type','factual','markdown','The `source_type` column in the `memory_nodes` table is of type ENUM, with possible values `human` / `ai_generated` / `ai_verified`.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'enum']::text[],'public','system','2026-04-24T11:25:39.108336+00:00','5dce0a872a0e0bec6f9fc2e51d4e0fc0593f549fbac11c16734de343d7cce113','ai',
    0,0)
@@ -6982,32 +6913,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_9209a508_en','1.0','ws_spec0001_en','Memory Node Tags','factual','markdown','The `tags` column in the `memory_nodes` table is of type TEXT[], storing tags for the memory node, and is GIN-indexed.',
    ARRAY['database', 'schema', 'memory_nodes', 'column', 'indexing']::text[],'public','system','2026-04-24T11:25:39.008653+00:00','56e5ce2c9c37c38be23ac86af4fe6b4d09f5df89d845026f4202d553b0f40f75','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_960858c8_en','1.0','ws_spec0001_en','.mcp.json Configuration Example','factual','markdown','The updated `.mcp.json` example structure includes an `mcpServers` object, where the `memtrace` service defines `command`, `args`, and `env` variables such as `MEMTRACE_API`, `MEMTRACE_WS`, `MEMTRACE_LANG`, and `MEMTRACE_TOKEN`.',
-   ARRAY['configuration', 'MCP', 'example', 'environment-variable']::text[],'public','system','2026-04-26T00:29:47.081337+00:00','cb8a163dc1c365306103f3ad0ff2315f25bf59e91ccf68703c3ca99fda285996','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_964c73a3_en','1.0','ws_spec0001_en','MEMTRACE_TOKEN Anonymous Behavior','factual','markdown','If `MEMTRACE_TOKEN` is not provided, the system will maintain anonymous behavior, allowing access only to public workspaces. `list_workspaces` will return public repositories or an empty list.',
-   ARRAY['environment-variable', 'API', 'authentication', 'anonymous-access']::text[],'public','system','2026-04-26T00:29:47.061108+00:00','12b69126a9d518c5b28e719a150430576fa04e99ea78b9b1c86d9a7769fee9eb','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8570,19 +8475,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_dc852972_en','1.0','ws_spec0001_en','MEMTRACE_TOKEN Security Notice','factual','markdown','A security notice regarding `MEMTRACE_TOKEN` has been added to the standard error log (stderr log) during server startup.',
-   ARRAY['environment-variable', 'security', 'logging']::text[],'public','system','2026-04-25T02:39:36.926692+00:00','656f7b6e924f07b2bef8f84a0a2a011de8f9270d6618c86707eb069cb8973af7','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_dd1d4589_en','1.0','ws_spec0001_en','Connector Third-Party Integration Product Stance','factual','markdown','MemTrace product stance on Connectors (third-party system integrations):
 
 1. Connectors are optional features, not core path dependencies.
@@ -8656,26 +8548,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_e73ea399_en','1.0','ws_spec0001_en','EDGE_GUIDE Content Definition','factual','markdown','The `EDGE_GUIDE` constant defines relation type semantics, weight ranges, `half_life_days` descriptions, and 409 conflict handling methods.',
    ARRAY['edge_guide', 'edge', 'specification', 'documentation']::text[],'public','system','2026-04-25T02:39:29.242927+00:00','5fef9aae465627bf86285619c53a86bb7deaa85f2734000b16bad20efcd47632','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_e7607e5d_en','1.0','ws_spec0001_en','MCP Server Current State: Single Instance, MEMTRACE_TOKEN, Multi-Workspace, HTTP+SSE','factual','markdown','The MemTrace MCP server currently serves all workspaces from a single instance, no longer the earlier "one instance per knowledge base" design:
-
-- **Configuration**: `.mcp.json` uses the single-instance form, with `env` carrying `MEMTRACE_API`, `MEMTRACE_TOKEN`, `MEMTRACE_LANG`. `MEMTRACE_WS` can still be set, but is now only "the default workspace used when `workspace_id` is omitted," not the only accessible workspace.
-- **Multi-workspace access**: with `MEMTRACE_TOKEN` set, `list_workspaces()` returns all workspaces accessible to that token; without it, the server stays anonymous and can only access public workspaces (`list_workspaces` returns public KBs or an empty list). Tool calls can target a specific workspace via the `workspace_id` parameter (e.g. `search_nodes(query=..., workspace_id="ws_xxx")`).
-- **Transport**: besides stdio, `memtrace serve --mcp` also supports HTTP + SSE transport.
-- **Write tools are live**: AI agents can already call `create_node`/`update_node`/`create_edge` directly via MCP to write to the knowledge base — this is not a planned, unimplemented feature.
-
-Supersedes the older state described in `mem_i003_en` (single-workspace, stdio-only, write tools "planned but not yet implemented"). `mem_i003_en` was created 2026-04-11; this node consolidates the acceptance-scenario node cluster from 2026-04-24–26 (`mem_87639252`, `mem_960858c8`, `mem_964c73a3`, `mem_76d6491f`, `mem_b3ee2495`, `mem_7484cfc2`, `mem_71aebf92`, `mem_526945e4_en`).',
-   ARRAY['mcp', 'current-state-update', 'multi-workspace', 'http-sse', 'write-tools']::text[],'public','system','2026-09-16T13:13:07.939987+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10733,10 +10605,6 @@ VALUES ('edge_0d44e22e','ws_spec0001','mem_c9bd6c49','mem_d001','related_to',1.0
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_0e02004e','ws_spec0001','mem_b3ee2495','mem_964c73a3','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_1162caa6','ws_spec0001','mem_e778fedf','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -10798,10 +10666,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_269859df','ws_spec0001','mem_7484cfc2','mem_4621ebb5','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_284bd9ec','ws_spec0001','mem_76d6491f','mem_af74b0f0','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -10873,10 +10737,6 @@ VALUES ('edge_46179afc','ws_spec0001','mem_c8db759e','mem_ce00334f','related_to'
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_468e1757','ws_spec0001','mem_7dfe253a','mem_d679d993','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_47fe6bc3','ws_spec0001','mem_cbe1be4b','mem_8145c1ad','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -10906,10 +10766,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_533750d3','ws_spec0001','mem_565d7142','mem_8145c1ad','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_537826c7','ws_spec0001','mem_960858c8','mem_dc852972','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -11013,23 +10869,11 @@ VALUES ('edge_71f92565','ws_spec0001','mem_31b38aa1','mem_d001','related_to',1.0
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_72e52180','ws_spec0001','mem_7dfe253a','mem_54cc2c31','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_731702b1','ws_spec0001','mem_c4ce77e1','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_73f801b3','ws_spec0001','mem_87639252','mem_4621ebb5','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_749a44a8','ws_spec0001','mem_1b50a9b1','mem_861a5678','extends',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_750979fa','ws_spec0001','mem_7dfe253a','mem_9fbbb5eb','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -11078,10 +10922,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_858a86b0','ws_spec0001','mem_107440f8','mem_10a89b1f','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_86ae45b8','ws_spec0001','mem_2c0de61a','mem_76d6491f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -11225,10 +11065,6 @@ VALUES ('edge_a68f7b40','ws_spec0001','mem_25b80084','mem_10a89b1f','related_to'
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_ae9ad765','ws_spec0001','mem_964c73a3','mem_4621ebb5','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_b2d8bb45','ws_spec0001','mem_8145c1ad','mem_25b80084','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -11262,10 +11098,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_c1df6653','ws_spec0001','mem_00d32c49','mem_d001','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_c50e617f','ws_spec0001','mem_d692bb11','mem_76d6491f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -11442,10 +11274,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_f2a2e7fa','ws_spec0001','mem_a71dcf58','mem_d001','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_f307927c','ws_spec0001','mem_dc852972','mem_4621ebb5','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12221,10 +12049,6 @@ VALUES ('edge_c1abd913','ws_spec0001','mem_tg001','mem_c9dd39d4','related_to',1.
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_aeb49684','ws_spec0001','mem_i003','mem_e7607e5d','superseded_by',1.0,365.0,0.05,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_fab1bfa9','ws_spec0001','mem_5e486c31','mem_6ce92259','superseded_by',1.0,365.0,0.05,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -12254,6 +12078,10 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_447b3cfb','ws_spec0001','mem_7bfbaecf','mem_d001','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_48952f7a','ws_spec0001','mem_64748435','mem_i003','superseded_by',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -12296,10 +12124,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_0d44e22e_en','ws_spec0001_en','mem_c9bd6c49_en','mem_d001_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_0e02004e_en','ws_spec0001_en','mem_b3ee2495_en','mem_964c73a3_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12364,10 +12188,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_269859df_en','ws_spec0001_en','mem_7484cfc2_en','mem_4621ebb5_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_284bd9ec_en','ws_spec0001_en','mem_76d6491f_en','mem_af74b0f0_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12439,10 +12259,6 @@ VALUES ('edge_46179afc_en','ws_spec0001_en','mem_c8db759e_en','mem_ce00334f_en',
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_468e1757_en','ws_spec0001_en','mem_7dfe253a_en','mem_d679d993_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_47fe6bc3_en','ws_spec0001_en','mem_cbe1be4b_en','mem_8145c1ad_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -12472,10 +12288,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_533750d3_en','ws_spec0001_en','mem_565d7142_en','mem_8145c1ad_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_537826c7_en','ws_spec0001_en','mem_960858c8_en','mem_dc852972_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12579,23 +12391,11 @@ VALUES ('edge_71f92565_en','ws_spec0001_en','mem_31b38aa1_en','mem_d001_en','rel
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_72e52180_en','ws_spec0001_en','mem_7dfe253a_en','mem_54cc2c31_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_731702b1_en','ws_spec0001_en','mem_c4ce77e1_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_73f801b3_en','ws_spec0001_en','mem_87639252_en','mem_4621ebb5_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_749a44a8_en','ws_spec0001_en','mem_1b50a9b1_en','mem_861a5678_en','extends',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_750979fa_en','ws_spec0001_en','mem_7dfe253a_en','mem_9fbbb5eb_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12644,10 +12444,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_858a86b0_en','ws_spec0001_en','mem_107440f8_en','mem_10a89b1f_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_86ae45b8_en','ws_spec0001_en','mem_2c0de61a_en','mem_76d6491f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12791,10 +12587,6 @@ VALUES ('edge_a68f7b40_en','ws_spec0001_en','mem_25b80084_en','mem_10a89b1f_en',
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_ae9ad765_en','ws_spec0001_en','mem_964c73a3_en','mem_4621ebb5_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_b2d8bb45_en','ws_spec0001_en','mem_8145c1ad_en','mem_25b80084_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -12828,10 +12620,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_c1df6653_en','ws_spec0001_en','mem_00d32c49_en','mem_d001_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_c50e617f_en','ws_spec0001_en','mem_d692bb11_en','mem_76d6491f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -13008,10 +12796,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_f2a2e7fa_en','ws_spec0001_en','mem_a71dcf58_en','mem_d001_en','depends_on',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_f307927c_en','ws_spec0001_en','mem_dc852972_en','mem_4621ebb5_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -13787,10 +13571,6 @@ VALUES ('edge_c1abd913_en','ws_spec0001_en','mem_tg001_en','mem_c9dd39d4_en','re
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_fc1c113e','ws_spec0001_en','mem_i003_en','mem_e7607e5d_en','superseded_by',1.0,365.0,0.05,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_6acccf67','ws_spec0001_en','mem_5e486c31_en','mem_6ce92259_en','superseded_by',1.0,365.0,0.05,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -13820,4 +13600,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_e8e9bfa3','ws_spec0001_en','mem_7bfbaecf_en','mem_d001_en','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_4030034c','ws_spec0001_en','mem_64748435_en','mem_i003_en','superseded_by',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;

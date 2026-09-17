@@ -1,0 +1,28 @@
+{
+  "id": "mem_64748435_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "MCP Server Current State: HTTP-only, Authenticated via Authorization Header (No Environment Variables)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "The old Node.js stdio MCP server (`packages/mcp/src/index.ts`, with env vars `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`) was entirely removed on 2026-05-05 (commit `ff97d9a`: \"replace Node.js MCP server with native Python API endpoints\"), replaced by the current native Python HTTP endpoints (`packages/api/routers/mcp.py`). The stdio transport no longer exists.\n\n**Current state (`.mcp.json` / `.mcp.json.example`)**:\n\n```json\n{\n  \"mcpServers\": {\n    \"memtrace\": {\n      \"type\": \"http\",\n      \"url\": \"https://<your-memtrace-host>/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer <your-memtrace-api-key>\",\n        \"X-MemTrace-Tool-Profile\": \"core+agent_loop\"\n      }\n    }\n  }\n}\n```\n\n**There are no environment variables at all** — the API key is written directly into the config file's `headers.Authorization` (`Bearer mt_<api_key>`). `workspace_id` is now a per-call tool parameter rather than a fixed default set via an environment variable.\n\nCurrent-state details for multi-workspace access, write tools (`create_node`/`update_node`/`create_edge`), `list_workspaces`, etc. are in `mem_i003` (already marked `resolution_status: superseded` — this node takes over its role as the current-state pointer)."
+  },
+  "tags": [
+    "mcp",
+    "current-state",
+    "authentication",
+    "http"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-09-17T01:33:29.073543+00:00",
+    "signature": "6244793314d69686bc674874903ce1489f0e47edb02a03927f3566498187b881",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}
