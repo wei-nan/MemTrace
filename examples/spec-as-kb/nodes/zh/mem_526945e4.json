@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "當 `memtrace serve --mcp` 運行時（第二階段），可以使用 HTTP + SSE 傳輸模式。"
+    "body": "舊的 stdio MCP server 已於 2026-05-05（`ff97d9a`）整個移除。現行 MCP 功能是 `packages/api/routers/mcp.py` 裡的一個 router，同時支援兩種傳輸，沒有 stdio：\n\n- **Streamable HTTP**（`POST /mcp`，MCP spec 2025-03-26）——單一 POST 端點處理所有 JSON-RPC 訊息，`.mcp.json.example` 用的是這種\n- **SSE**（`GET /sse` + `POST /messages`）——舊式 SSE 傳輸，仍在運作\n\n兩者都用 `Authorization: Bearer mt_<api_key>` header 認證，沒有環境變數。`memtrace serve --mcp` 這個指令不存在——CLI（`packages/cli`）目前沒有 `serve` 子指令，MCP router 是 api 服務本身內建的一部分，隨 api 啟動。"
   },
   "tags": [
     "mcp",

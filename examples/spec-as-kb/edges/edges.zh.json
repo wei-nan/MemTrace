@@ -456,63 +456,6 @@
     }
   },
   {
-    "id": "edge_2627ad77",
-    "from": "mem_e0ebc6e5",
-    "to": "mem_ce00334f",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-25T14:06:42.035809+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_269859df",
-    "from": "mem_7484cfc2",
-    "to": "mem_4621ebb5",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-26T00:29:47.140277+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_28b93b3b",
-    "from": "mem_82683707",
-    "to": "mem_54cc2c31",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_29245c4a",
     "from": "mem_727c2cb2",
     "to": "mem_ce00334f",
@@ -1482,44 +1425,6 @@
     }
   },
   {
-    "id": "edge_764f46eb",
-    "from": "mem_f8057a39",
-    "to": "mem_d001",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-25T14:42:59.149067+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_772d5cd7",
-    "from": "mem_b3ee2495",
-    "to": "mem_f8057a39",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-26T00:29:47.097515+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_781b97ce",
     "from": "mem_ef8ec8ec",
     "to": "mem_i003",
@@ -2040,25 +1945,6 @@
     "weight": 1.0,
     "co_access_count": 0,
     "last_co_accessed": "2026-04-24T11:55:46.810734+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_9be1e60d",
-    "from": "mem_e0ebc6e5",
-    "to": "mem_k001",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-04-25T14:06:42.035809+00:00",
     "decay": {
       "half_life_days": 30.0,
       "min_weight": 0.1,
@@ -6289,25 +6175,6 @@
     }
   },
   {
-    "id": "edge_2dabdc1d",
-    "from": "mem_526945e4",
-    "to": "mem_82683707",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-09-16T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_dec491df",
     "from": "mem_52ac8940",
     "to": "mem_5a3bd1b0",
@@ -6384,25 +6251,6 @@
     }
   },
   {
-    "id": "edge_7265ad5a",
-    "from": "mem_7484cfc2",
-    "to": "mem_d692bb11",
-    "relation": "similar_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-09-16T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
     "id": "edge_210d4f0e",
     "from": "mem_7f9fadcd",
     "to": "mem_861a5678",
@@ -6425,25 +6273,6 @@
     "id": "edge_1040b0bf",
     "from": "mem_80054468",
     "to": "mem_ee62ef2c",
-    "relation": "related_to",
-    "weight": 1.0,
-    "co_access_count": 0,
-    "last_co_accessed": "2026-09-16T00:00:00+00:00",
-    "decay": {
-      "half_life_days": 30.0,
-      "min_weight": 0.1,
-      "pinned": false
-    },
-    "traversal": {
-      "count": 0,
-      "rating_avg": null,
-      "rating_count": 0
-    }
-  },
-  {
-    "id": "edge_6efd1e19",
-    "from": "mem_82683707",
-    "to": "mem_i003",
     "relation": "related_to",
     "weight": 1.0,
     "co_access_count": 0,

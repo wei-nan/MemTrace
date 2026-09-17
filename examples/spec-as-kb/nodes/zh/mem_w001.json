@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理六個套件：\n\n| 套件 | 路徑 | 語言 | 角色 |\n|------|------|------|------|\n| core | packages/core | TypeScript | 共用型別、decay 計算、ID/簽章產生器 |\n| api | packages/api | Python/FastAPI | REST API、資料庫存取、AI 抽象層 |\n| ui | packages/ui | React/Vite | 網頁前端 |\n| cli | packages/cli | TypeScript | 本地 CLI 工具 |\n| mcp | packages/mcp | TypeScript | MCP server（stdio + SSE 傳輸） |\n| ingest | packages/ingest | TypeScript | 文件攝入 pipeline |\n\n`core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。"
+    "body": "MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理五個套件：\n\n| 套件 | 路徑 | 語言 | 角色 |\n|------|------|------|------|\n| core | packages/core | TypeScript | 共用型別、decay 計算、ID/簽章產生器 |\n| api | packages/api | Python/FastAPI | REST API、資料庫存取、AI 抽象層、MCP server（`routers/mcp.py`，streamable HTTP + SSE） |\n| ui | packages/ui | React/Vite | 網頁前端 |\n| cli | packages/cli | TypeScript | 本地 CLI 工具 |\n| ingest | packages/ingest | TypeScript | 文件攝入 pipeline |\n\n`core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。原本獨立的 `packages/mcp`（Node.js stdio MCP server）已於 2026-05-05（`ff97d9a`）移除，MCP 功能整合進 `api` 內的一個 router，不再是獨立套件。"
   },
   "tags": [
     "dev",
