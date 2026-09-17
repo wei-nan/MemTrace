@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new API key. The request must include an authorization Bearer Token, Content-Type of `application/json`, and JSON data containing the key name and scopes (e.g., `kb:read`, `kb:write`)."
+    "body": "Use a `curl` command to send a POST request to the `/api/v1/users/me/api-keys` endpoint to create a new account-level API key. The request must include an authorization Bearer Token, Content-Type of `application/json`, and the key name (`name`) with an optional expiry (`expires_at`) — this account-level endpoint does not accept a `scope` field; the key's role is dynamically inherited from the caller's workspace membership on each call (see \"Account-Level API Keys: Design Decision (Phase 4.10)\")."
   },
   "tags": [],
   "visibility": "public",

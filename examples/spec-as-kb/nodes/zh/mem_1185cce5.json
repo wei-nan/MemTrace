@@ -6,7 +6,7 @@
   "content": {
     "type": "procedural",
     "format": "markdown",
-    "body": "使用 `curl` 命令向 `/api/v1/users/me/api-keys` 端點發送 POST 請求，以建立一個新的 API 金鑰。請求需包含授權 Bearer Token、Content-Type 為 `application/json`，以及包含金鑰名稱和範圍（例如 `kb:read`, `kb:write`）的 JSON 資料。"
+    "body": "使用 `curl` 命令向 `/api/v1/users/me/api-keys` 端點發送 POST 請求，以建立一個新的帳號層級 API 金鑰。請求需包含授權 Bearer Token、Content-Type 為 `application/json`，以及金鑰名稱（`name`）與選填的到期時間（`expires_at`）——此帳號層級端點不接受 `scope` 欄位，金鑰在每次呼叫時依當下工作區的成員身分動態繼承角色（見「帳號層級 API 金鑰：設計決策（Phase 4.10）」）。"
   },
   "tags": [],
   "visibility": "public",
