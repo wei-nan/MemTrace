@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "MemTrace adopts an npm workspaces monorepo, where the root `package.json` manages six packages:\n\n| Package | Path | Language | Role |\n|------|------|------|------|\n| core | packages/core | TypeScript | Shared types, decay calculation, ID/signature generators |\n| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer |\n| ui | packages/ui | React/Vite | Web frontend |\n| cli | packages/cli | TypeScript | Local CLI tool |\n| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transport) |\n| ingest | packages/ingest | TypeScript | Document ingestion pipeline |\n\n`core` is referenced by `cli`; `api` remains independent of the TS packages."
+    "body": "MemTrace adopts an npm workspaces monorepo, where the root `package.json` manages five packages:\n\n| Package | Path | Language | Role |\n|------|------|------|------|\n| core | packages/core | TypeScript | Shared types, decay calculation, ID/signature generators |\n| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer, MCP server (`routers/mcp.py`, streamable HTTP + SSE) |\n| ui | packages/ui | React/Vite | Web frontend |\n| cli | packages/cli | TypeScript | Local CLI tool |\n| ingest | packages/ingest | TypeScript | Document ingestion pipeline |\n\n`core` is referenced by `cli`; `api` remains independent of the TS packages. The formerly standalone `packages/mcp` (a Node.js stdio MCP server) was removed on 2026-05-05 (`ff97d9a`); MCP functionality was folded into a router inside `api` and is no longer a separate package."
   },
   "tags": [
     "dev",

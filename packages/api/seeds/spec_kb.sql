@@ -518,19 +518,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_2c0de61a','1.0','ws_spec0001','驗收情境：不傳 workspace_id','procedural','markdown','驗收情境之一：當呼叫工具不傳遞 `workspace_id` 時，系統應使用 `MEMTRACE_WS` 的預設值，且行為應與現有版本相同。',
-   ARRAY['驗收測試', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.160150+00:00','89d20e0e7af63433f78a354afc2310c674a8000d91be7a2f7763c8b069a72691','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_2c1bd9d5','1.0','ws_spec0001','對話 API：發送消息 (POST /chat)','procedural','markdown','透過 POST 請求向指定的工作區發送消息。可以傳遞可選的 `session_id` 以繼續現有對話。',
    ARRAY['api', 'chat', 'message', 'conversation', 'post']::text[],'public','system','2026-04-24T11:31:27.693915+00:00','6b15654db2b55b29e7943d96ebfe8bd110b52e5febab150f4e704a1b2117ab6b','ai',
    0,0)
@@ -916,7 +903,12 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_526945e4','1.0','ws_spec0001','MCP 傳輸模式：HTTP + SSE','factual','markdown','當 `memtrace serve --mcp` 運行時（第二階段），可以使用 HTTP + SSE 傳輸模式。',
+  ('mem_526945e4','1.0','ws_spec0001','MCP 傳輸模式：HTTP + SSE','factual','markdown','舊的 stdio MCP server 已於 2026-05-05（`ff97d9a`）整個移除。現行 MCP 功能是 `packages/api/routers/mcp.py` 裡的一個 router，同時支援兩種傳輸，沒有 stdio：
+
+- **Streamable HTTP**（`POST /mcp`，MCP spec 2025-03-26）——單一 POST 端點處理所有 JSON-RPC 訊息，`.mcp.json.example` 用的是這種
+- **SSE**（`GET /sse` + `POST /messages`）——舊式 SSE 傳輸，仍在運作
+
+兩者都用 `Authorization: Bearer mt_<api_key>` header 認證，沒有環境變數。`memtrace serve --mcp` 這個指令不存在——CLI（`packages/cli`）目前沒有 `serve` 子指令，MCP router 是 api 服務本身內建的一部分，隨 api 啟動。',
    ARRAY['mcp', 'transport', 'http', 'sse', 'phase-2']::text[],'public','system','2026-04-24T11:25:40.327756+00:00','8dfd08b535e9fe8263dcd1cf08eebf3b2f95bc51b3a1c9d7fc574a6d12ecbb5d','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -1141,7 +1133,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_64748435','1.0','ws_spec0001','MCP Server 現況：HTTP-only，透過 Authorization header 認證（無環境變數）','factual','markdown','舊的 Node.js stdio MCP server（`packages/mcp/src/index.ts`，env 帶 `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`）已於 2026-05-05（commit `ff97d9a`：「replace Node.js MCP server with native Python API endpoints」）整個移除，改為現行的原生 Python HTTP 端點（`packages/api/routers/mcp.py`）。stdio 傳輸模式不再存在。
+  ('mem_64748435','1.0','ws_spec0001','MCP Server 現況：Streamable HTTP + SSE，透過 Authorization header 認證（無環境變數）','factual','markdown','舊的 Node.js stdio MCP server（`packages/mcp/src/index.ts`，env 帶 `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`）已於 2026-05-05（commit `ff97d9a`：「replace Node.js MCP server with native Python API endpoints」）整個移除，改為現行的原生 Python HTTP 端點（`packages/api/routers/mcp.py`）。stdio 傳輸模式不再存在。
 
 **現況（`.mcp.json`／`.mcp.json.example`）**：
 
@@ -1160,7 +1152,9 @@ VALUES
 }
 ```
 
-**沒有任何環境變數**——API key 直接寫在設定檔的 `headers.Authorization` 裡（`Bearer mt_<api_key>`）。`workspace_id` 改為每次工具呼叫時的參數，不是靠環境變數固定預設工作區。
+MCP router 同時支援兩種傳輸：**streamable HTTP**（`POST /mcp`，上面範例用的這種）與 **SSE**（`GET /sse` + `POST /messages`，舊式但仍在運作）。詳見「MCP 傳輸模式：HTTP + SSE」。
+
+**沒有任何環境變數**——API key 直接寫在設定檔的 `headers.Authorization` 裡（`Bearer mt_<api_key>`）。`workspace_id` 改為每次工具呼叫時的必填參數，不是靠環境變數固定預設工作區。
 
 多工作區存取、寫入工具（`create_node`/`update_node`/`create_edge`）、`list_workspaces` 等能力現況見 `mem_i003`（已標記 `resolution_status: superseded`，本節點取代其作為現況的角色）。',
    ARRAY['mcp', '現況更新', 'authentication', 'http']::text[],'public','usr_6bc7b4c7','2026-09-17T01:33:05.361151+00:00','c596d371c52089b922dfc3dac2aa91fbc198ffaec5824b26cc5d2c52a3859798','ai',
@@ -1332,19 +1326,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_7484cfc2','1.0','ws_spec0001','README/使用文件更新：多庫、不知 ID 使用情境','procedural','markdown','README 和使用文件已更新，說明多庫、不知 ID 使用情境：設定 `MEMTRACE_TOKEN`，然後先呼叫 `list_workspaces` 取得工作區清單，再決定要操作哪個工作區。',
-   ARRAY['文件', '使用情境', '工作區', 'API']::text[],'public','system','2026-04-26T00:29:47.140277+00:00','6983266fb92ae46b22414142a0280713c5effeace03270342f52ae2abd1ed078','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_75f4fbdc','1.0','ws_spec0001','寫入治理：Fail-open 去重閘門','factual','markdown','去重閘門採 **fail-open** 設計：當去重服務不可用或超時，新節點仍可寫入，不因去重失敗而阻擋。
 
 - 去重閘門通過後，節點立即進入 review queue（**enqueue on write**），不等待批次處理。
@@ -1475,19 +1456,6 @@ VALUES
   ('mem_8145c1ad','1.0','ws_spec0001','個人工作區邀請限制','factual','markdown','無法為「私有」工作區發出邀請，且不能添加非所有者使用者。',
    ARRAY['workspace-type', 'private', 'invitation', 'restriction']::text[],'public','system','2026-04-24T11:25:39.666242+00:00','435ab2d509c4abf3d81388b7bcca68ec976f2116156fc76bc3ee0e5a9a6baf63','ai',
    1,1)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_82683707','1.0','ws_spec0001','MCP 傳輸模式：stdio','factual','markdown','stdio 是本地 CLI 使用的默認 MCP 傳輸模式。',
-   ARRAY['mcp', 'transport', 'cli']::text[],'public','system','2026-04-24T11:25:40.307697+00:00','f880922d12b02e864797d55776d62aa807c4e9908e7c0cd744586cd744afcf2c','ai',
-   0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
   content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
@@ -2438,19 +2406,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_b3ee2495','1.0','ws_spec0001','MEMTRACE_WS 作為預設工作區','factual','markdown','`MEMTRACE_WS` 環境變數被設定為預設工作區。當工具呼叫未傳遞 `workspace_id` 參數時，將會使用此預設值。',
-   ARRAY['環境變數', '工作區', '預設值']::text[],'public','system','2026-04-26T00:29:47.097515+00:00','fc08a173c8a31db9d4fbf0232313d32789b8d3c9b4b025c8947b7c51a658ee1b','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_b41097bf','1.0','ws_spec0001','記憶節點複製功能','factual','markdown','任何單獨的記憶節點都可以複製到不同的知識庫。',
    ARRAY['memory-node', 'knowledge-base', 'copy']::text[],'public','system','2026-04-24T11:31:27.655142+00:00','cea540a33f70ed93236f0dbdc41def46a9b3201f9f8378d4a7f27aa582019b77','ai',
    0,0)
@@ -3162,19 +3117,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d692bb11','1.0','ws_spec0001','README/使用文件更新：多庫、已知 ID 使用情境','procedural','markdown','README 和使用文件已更新，說明多庫、已知 ID 使用情境：將 `MEMTRACE_WS` 設定為最常用工作區，並在查詢其他工作區時，每次呼叫工具都帶上 `workspace_id` 參數。',
-   ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-26T00:29:47.118808+00:00','9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_da5739b0','1.0','ws_spec0001','匯入預覽畫面概覽','factual','markdown','匯入預覽畫面顯示匯入作業的摘要，包括節點和邊的總數，以及哪些節點是乾淨的或可能是重複的。',
    ARRAY['import', 'ui', 'preview']::text[],'public','system','2026-04-24T11:25:40.950895+00:00','33e0e380ea727d436286ac1bf2851417357f1fbec9cdf77e3c99a89c6c790c2a','ai',
    0,0)
@@ -3222,19 +3164,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_df5063bd','1.0','ws_spec0001','列出已歸檔節點 API','procedural','markdown','提供一個 API 端點 `GET /workspaces/{ws_id}/nodes?filter=archived`，用於列出指定工作區中所有已歸檔的節點。',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:49.910036+00:00','50c10babc72825ea1a4c613a30ae476d998c5a3f0fbe90f05d8277b528f729c9','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_e0ebc6e5','1.0','ws_spec0001','README/使用文件更新：單庫使用情境','procedural','markdown','README 和使用文件已更新，說明單庫（最簡單）使用情境：只需設定 `MEMTRACE_WS` 環境變數，並在呼叫工具時不傳遞 `workspace_id` 參數。',
-   ARRAY['文件', '使用情境', '工作區']::text[],'public','system','2026-04-25T02:39:36.230691+00:00','e59e02c6a9011e9b691d3806389ed96d8988532eecc222d1c30c7876176156ef','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -3505,19 +3434,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_f70b4273','1.0','ws_spec0001','判斷入門流程進度','factual','markdown','`steps_done` 與 `steps_skipped` 兩個欄位共同決定目前的入門步驟與進度條數值。',
    ARRAY['onboarding', 'progress', 'ui']::text[],'public','system','2026-04-24T11:25:40.398911+00:00','16aaf873e830ab998ec1834add380b9d5bafa80ec0b980ad6bc58c2a60e90b4a','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_f8057a39','1.0','ws_spec0001','工具 description 更新','procedural','markdown','`search_nodes`、`get_node`、`traverse`、`list_by_tag` 等工具的描述已更新，新增一行說明如何使用 `workspace_id` 參數查詢特定知識庫，或省略以使用預設值 `MEMTRACE_WS`。',
-   ARRAY['工具', '文件', '工作區']::text[],'public','system','2026-04-25T02:39:37.786358+00:00','619066f74e4abdca14e319bcd9cbfe613562619b098582a5070872003bddedae','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -5017,18 +4933,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_w001','1.0','ws_spec0001','專案套件結構','factual','markdown','MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理六個套件：
+  ('mem_w001','1.0','ws_spec0001','專案套件結構','factual','markdown','MemTrace 採用 npm workspaces monorepo，根目錄 `package.json` 管理五個套件：
 
 | 套件 | 路徑 | 語言 | 角色 |
 |------|------|------|------|
 | core | packages/core | TypeScript | 共用型別、decay 計算、ID/簽章產生器 |
-| api | packages/api | Python/FastAPI | REST API、資料庫存取、AI 抽象層 |
+| api | packages/api | Python/FastAPI | REST API、資料庫存取、AI 抽象層、MCP server（`routers/mcp.py`，streamable HTTP + SSE） |
 | ui | packages/ui | React/Vite | 網頁前端 |
 | cli | packages/cli | TypeScript | 本地 CLI 工具 |
-| mcp | packages/mcp | TypeScript | MCP server（stdio + SSE 傳輸） |
 | ingest | packages/ingest | TypeScript | 文件攝入 pipeline |
 
-`core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。',
+`core` 由 `cli` 引用；`api` 獨立於 TS 套件之外。原本獨立的 `packages/mcp`（Node.js stdio MCP server）已於 2026-05-05（`ff97d9a`）移除，MCP 功能整合進 `api` 內的一個 router，不再是獨立套件。',
    ARRAY['dev', 'architecture', 'monorepo']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -5124,7 +5039,7 @@ VALUES
 | api/routers/auth（登入/JWT/密碼重設）| ✅ |
 | api/routers/kb（workspace/node/edge/roles）| ✅ |
 | api/routers/ingest（PDF/Markdown 攝入）| ✅ |
-| mcp server（stdio+SSE / read+write tools）| ✅ |
+| api/routers/mcp（streamable HTTP + SSE / read+write tools）| ✅ |
 | ui（Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics）| ✅ |
 
 ## Phase 4 完成項目
@@ -5787,19 +5702,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_2c0de61a_en','1.0','ws_spec0001_en','Acceptance Scenario: Omitting workspace_id','procedural','markdown','One of the acceptance scenarios: When tool invocation omits `workspace_id`, the system should use the default value from `MEMTRACE_WS`, and the behavior should remain identical to the existing version.',
-   ARRAY['acceptance-test', 'workspace', 'default-value']::text[],'public','system','2026-04-26T00:29:47.160150+00:00','89d20e0e7af63433f78a354afc2310c674a8000d91be7a2f7763c8b069a72691','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_2c1bd9d5_en','1.0','ws_spec0001_en','Chat API: Send Message (POST /chat)','procedural','markdown','Sends a message to the specified workspace via a POST request. An optional `session_id` can be passed to continue an existing conversation.',
    ARRAY['api', 'chat', 'message', 'conversation', 'post']::text[],'public','system','2026-04-24T11:31:27.693915+00:00','6b15654db2b55b29e7943d96ebfe8bd110b52e5febab150f4e704a1b2117ab6b','ai',
    0,0)
@@ -6186,7 +6088,12 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_526945e4_en','1.0','ws_spec0001_en','MCP Transport Mode: HTTP + SSE','factual','markdown','The HTTP + SSE transport mode is available when `memtrace serve --mcp` is running (Phase 2).',
+  ('mem_526945e4_en','1.0','ws_spec0001_en','MCP Transport Mode: HTTP + SSE','factual','markdown','The old stdio MCP server was entirely removed on 2026-05-05 (`ff97d9a`). MCP functionality is now a router inside `packages/api/routers/mcp.py`, supporting two transports, with no stdio:
+
+- **Streamable HTTP** (`POST /mcp`, MCP spec 2025-03-26) — a single POST endpoint handling all JSON-RPC messages; this is what `.mcp.json.example` uses
+- **SSE** (`GET /sse` + `POST /messages`) — the older SSE transport, still functional
+
+Both authenticate via an `Authorization: Bearer mt_<api_key>` header, with no environment variables. The `memtrace serve --mcp` command does not exist — the CLI (`packages/cli`) currently has no `serve` subcommand; the MCP router is built into the api service itself and starts with it.',
    ARRAY['mcp', 'transport', 'http', 'sse', 'phase-2']::text[],'public','system','2026-04-24T11:25:40.327756+00:00','8dfd08b535e9fe8263dcd1cf08eebf3b2f95bc51b3a1c9d7fc574a6d12ecbb5d','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -6412,7 +6319,7 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_64748435_en','1.0','ws_spec0001_en','MCP Server Current State: HTTP-only, Authenticated via Authorization Header (No Environment Variables)','factual','markdown','The old Node.js stdio MCP server (`packages/mcp/src/index.ts`, with env vars `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`) was entirely removed on 2026-05-05 (commit `ff97d9a`: "replace Node.js MCP server with native Python API endpoints"), replaced by the current native Python HTTP endpoints (`packages/api/routers/mcp.py`). The stdio transport no longer exists.
+  ('mem_64748435_en','1.0','ws_spec0001_en','MCP Server Current State: Streamable HTTP + SSE, Authenticated via Authorization Header (No Environment Variables)','factual','markdown','The old Node.js stdio MCP server (`packages/mcp/src/index.ts`, with env vars `MEMTRACE_API`/`MEMTRACE_WS`/`MEMTRACE_LANG`/`MEMTRACE_TOKEN`) was entirely removed on 2026-05-05 (commit `ff97d9a`: "replace Node.js MCP server with native Python API endpoints"), replaced by the current native Python HTTP endpoints (`packages/api/routers/mcp.py`). The stdio transport no longer exists.
 
 **Current state (`.mcp.json` / `.mcp.json.example`)**:
 
@@ -6431,7 +6338,9 @@ VALUES
 }
 ```
 
-**There are no environment variables at all** — the API key is written directly into the config file''s `headers.Authorization` (`Bearer mt_<api_key>`). `workspace_id` is now a per-call tool parameter rather than a fixed default set via an environment variable.
+The MCP router supports two transports: **streamable HTTP** (`POST /mcp`, used in the example above) and **SSE** (`GET /sse` + `POST /messages`, older but still functional). See "MCP Transport Mode: HTTP + SSE" for details.
+
+**There are no environment variables at all** — the API key is written directly into the config file''s `headers.Authorization` (`Bearer mt_<api_key>`). `workspace_id` is now a required per-call tool parameter rather than a fixed default set via an environment variable.
 
 Current-state details for multi-workspace access, write tools (`create_node`/`update_node`/`create_edge`), `list_workspaces`, etc. are in `mem_i003` (already marked `resolution_status: superseded` — this node takes over its role as the current-state pointer).',
    ARRAY['mcp', 'current-state', 'authentication', 'http']::text[],'public','usr_6bc7b4c7','2026-09-17T01:33:29.073543+00:00','6244793314d69686bc674874903ce1489f0e47edb02a03927f3566498187b881','ai',
@@ -6603,19 +6512,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_7484cfc2_en','1.0','ws_spec0001_en','README/Usage Document Update: Multiple Workspaces, Unknown ID Scenario','procedural','markdown','The README and usage documentation have been updated to describe the multiple workspaces, unknown ID scenario: set `MEMTRACE_TOKEN`, then first call `list_workspaces` to retrieve the list of workspaces before deciding which one to operate on.',
-   ARRAY['document', 'use-case', 'workspace', 'API']::text[],'public','system','2026-04-26T00:29:47.140277+00:00','6983266fb92ae46b22414142a0280713c5effeace03270342f52ae2abd1ed078','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_75f4fbdc_en','1.0','ws_spec0001_en','Write Governance: Fail-Open Deduplication Gate','factual','markdown','The deduplication gate uses a **fail-open** design: if the dedup service is unavailable or times out, the new node is still written — writes are never blocked by a dedup failure.
 
 - Once the dedup gate passes, the node immediately enters the review queue (**enqueue on write**), with no batching delay.
@@ -6745,19 +6641,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_8145c1ad_en','1.0','ws_spec0001_en','Private Workspace Invitation Restriction','factual','markdown','Invitations cannot be issued for `private` workspaces, and no non-owner user may be added.',
    ARRAY['workspace-type', 'private', 'invitation', 'restriction']::text[],'public','system','2026-04-24T11:25:39.666242+00:00','435ab2d509c4abf3d81388b7bcca68ec976f2116156fc76bc3ee0e5a9a6baf63','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_82683707_en','1.0','ws_spec0001_en','MCP Transport Mode: stdio','factual','markdown','stdio is the default MCP transport mode for local CLI usage.',
-   ARRAY['mcp', 'transport', 'cli']::text[],'public','system','2026-04-24T11:25:40.307697+00:00','f880922d12b02e864797d55776d62aa807c4e9908e7c0cd744586cd744afcf2c','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -7712,19 +7595,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_b3ee2495_en','1.0','ws_spec0001_en','MEMTRACE_WS as Default Workspace','factual','markdown','The `MEMTRACE_WS` environment variable is configured as the default workspace. This default value will be used when tool calls do not provide a `workspace_id` parameter.',
-   ARRAY['environment-variable', 'workspace', 'default-value']::text[],'public','system','2026-04-26T00:29:47.097515+00:00','fc08a173c8a31db9d4fbf0232313d32789b8d3c9b4b025c8947b7c51a658ee1b','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_b41097bf_en','1.0','ws_spec0001_en','Memory Node Copy Functionality','factual','markdown','Any individual Memory Node can be copied to a different Knowledge Base.',
    ARRAY['memory-node', 'knowledge-base', 'copy']::text[],'public','system','2026-04-24T11:31:27.655142+00:00','cea540a33f70ed93236f0dbdc41def46a9b3201f9f8378d4a7f27aa582019b77','ai',
    0,0)
@@ -8436,19 +8306,6 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_d692bb11_en','1.0','ws_spec0001_en','README / Documentation Update: Multi-KB, Known ID Use Case','procedural','markdown','The README and documentation have been updated to explain the multi-KB, known ID use case: set `MEMTRACE_WS` to the most frequently used workspace, and pass the `workspace_id` parameter with every tool call when querying other workspaces.',
-   ARRAY['document', 'use-case', 'workspace']::text[],'public','system','2026-04-26T00:29:47.118808+00:00','9ac19666134fbb8959c26d7cb4f2bb7a4d735773f634d8f3c72e31d1df271051','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
   ('mem_da5739b0_en','1.0','ws_spec0001_en','Import Preview Screen Overview','factual','markdown','The import preview screen displays a summary of the import operation, including the total counts of nodes and edges, as well as which nodes are clean or potentially duplicate.',
    ARRAY['import', 'ui', 'preview']::text[],'public','system','2026-04-24T11:25:40.950895+00:00','33e0e380ea727d436286ac1bf2851417357f1fbec9cdf77e3c99a89c6c790c2a','ai',
    0,0)
@@ -8496,19 +8353,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_df5063bd_en','1.0','ws_spec0001_en','List Archived Nodes API','procedural','markdown','Provides an API endpoint `GET /workspaces/{ws_id}/nodes?filter=archived` to list all archived nodes in the specified workspace.',
    ARRAY['api', 'node-archiving']::text[],'public','system','2026-04-25T02:38:49.910036+00:00','50c10babc72825ea1a4c613a30ae476d998c5a3f0fbe90f05d8277b528f729c9','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_e0ebc6e5_en','1.0','ws_spec0001_en','README / Documentation Update: Single-KB Use Case','procedural','markdown','The README and documentation have been updated to explain the single-KB (simplest) use case: simply set the `MEMTRACE_WS` environment variable, and omit passing the `workspace_id` parameter when calling tools.',
-   ARRAY['document', 'use-case', 'workspace']::text[],'public','system','2026-04-25T02:39:36.230691+00:00','e59e02c6a9011e9b691d3806389ed96d8988532eecc222d1c30c7876176156ef','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -8779,19 +8623,6 @@ INSERT INTO memory_nodes
 VALUES
   ('mem_f70b4273_en','1.0','ws_spec0001_en','Determining Onboarding Flow Progress','factual','markdown','The two fields `steps_done` and `steps_skipped` jointly determine the current onboarding step and progress bar value.',
    ARRAY['onboarding', 'progress', 'ui']::text[],'public','system','2026-04-24T11:25:40.398911+00:00','16aaf873e830ab998ec1834add380b9d5bafa80ec0b980ad6bc58c2a60e90b4a','ai',
-   0,0)
-ON CONFLICT (id) DO UPDATE SET
-  title=EXCLUDED.title, body=EXCLUDED.body,
-  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
-  tags=EXCLUDED.tags;
-
-INSERT INTO memory_nodes
-  (id,schema_version,workspace_id,title,content_type,content_format,body,
-   tags,visibility,author,created_at,signature,source_type,
-   traversal_count,unique_traverser_count)
-VALUES
-  ('mem_f8057a39_en','1.0','ws_spec0001_en','Tool Description Update','procedural','markdown','The descriptions of tools including `search_nodes`, `get_node`, `traverse`, and `list_by_tag` have been updated to add a line explaining how to use the `workspace_id` parameter to query a specific knowledge base, or omit it to use the default `MEMTRACE_WS`.',
-   ARRAY['tool', 'document', 'workspace']::text[],'public','system','2026-04-25T02:39:37.786358+00:00','619066f74e4abdca14e319bcd9cbfe613562619b098582a5070872003bddedae','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
   title=EXCLUDED.title, body=EXCLUDED.body,
@@ -10289,18 +10120,17 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
-  ('mem_w001_en','1.0','ws_spec0001_en','Project Package Structure','factual','markdown','MemTrace adopts an npm workspaces monorepo, where the root `package.json` manages six packages:
+  ('mem_w001_en','1.0','ws_spec0001_en','Project Package Structure','factual','markdown','MemTrace adopts an npm workspaces monorepo, where the root `package.json` manages five packages:
 
 | Package | Path | Language | Role |
 |------|------|------|------|
 | core | packages/core | TypeScript | Shared types, decay calculation, ID/signature generators |
-| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer |
+| api | packages/api | Python/FastAPI | REST API, database access, AI abstraction layer, MCP server (`routers/mcp.py`, streamable HTTP + SSE) |
 | ui | packages/ui | React/Vite | Web frontend |
 | cli | packages/cli | TypeScript | Local CLI tool |
-| mcp | packages/mcp | TypeScript | MCP server (stdio + SSE transport) |
 | ingest | packages/ingest | TypeScript | Document ingestion pipeline |
 
-`core` is referenced by `cli`; `api` remains independent of the TS packages.',
+`core` is referenced by `cli`; `api` remains independent of the TS packages. The formerly standalone `packages/mcp` (a Node.js stdio MCP server) was removed on 2026-05-05 (`ff97d9a`); MCP functionality was folded into a router inside `api` and is no longer a separate package.',
    ARRAY['dev', 'architecture', 'monorepo']::text[],'public','system','2026-04-28T00:00:00+00:00','','human',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -10396,7 +10226,7 @@ VALUES
 | api/routers/auth (login/JWT/password reset) | ✅ |
 | api/routers/kb (workspace/node/edge/roles) | ✅ |
 | api/routers/ingest (PDF/Markdown ingestion) | ✅ |
-| mcp server (stdio+SSE / read+write tools) | ✅ |
+| api/routers/mcp (streamable HTTP + SSE / read+write tools) | ✅ |
 | ui (Auth/Onboarding/Graph 2D+3D/Table/Settings/Analytics) | ✅ |
 
 ## Phase 4 Completed Items
@@ -10661,18 +10491,6 @@ VALUES ('edge_24dfdebd','ws_spec0001','mem_08f1c514','mem_8145c1ad','related_to'
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_2627ad77','ws_spec0001','mem_e0ebc6e5','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_269859df','ws_spec0001','mem_7484cfc2','mem_4621ebb5','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_28b93b3b','ws_spec0001','mem_82683707','mem_54cc2c31','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_29245c4a','ws_spec0001','mem_727c2cb2','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -10877,14 +10695,6 @@ VALUES ('edge_749a44a8','ws_spec0001','mem_1b50a9b1','mem_861a5678','extends',1.
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_764f46eb','ws_spec0001','mem_f8057a39','mem_d001','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_772d5cd7','ws_spec0001','mem_b3ee2495','mem_f8057a39','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_781b97ce','ws_spec0001','mem_ef8ec8ec','mem_i003','depends_on',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -10994,10 +10804,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_97177962','ws_spec0001','mem_6a46a549','mem_ce00334f','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_9be1e60d','ws_spec0001','mem_e0ebc6e5','mem_k001','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -11889,10 +11695,6 @@ VALUES ('edge_b0236801','ws_spec0001','mem_4b0125e0','mem_97757fb8','related_to'
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_2dabdc1d','ws_spec0001','mem_526945e4','mem_82683707','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_dec491df','ws_spec0001','mem_52ac8940','mem_5a3bd1b0','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -11909,19 +11711,11 @@ VALUES ('edge_dfccfece','ws_spec0001','mem_67362874','mem_ce00334f','related_to'
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_7265ad5a','ws_spec0001','mem_7484cfc2','mem_d692bb11','similar_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_210d4f0e','ws_spec0001','mem_7f9fadcd','mem_861a5678','similar_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_1040b0bf','ws_spec0001','mem_80054468','mem_ee62ef2c','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_6efd1e19','ws_spec0001','mem_82683707','mem_i003','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -12183,18 +11977,6 @@ VALUES ('edge_24dfdebd_en','ws_spec0001_en','mem_08f1c514_en','mem_8145c1ad_en',
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_2627ad77_en','ws_spec0001_en','mem_e0ebc6e5_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_269859df_en','ws_spec0001_en','mem_7484cfc2_en','mem_4621ebb5_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_28b93b3b_en','ws_spec0001_en','mem_82683707_en','mem_54cc2c31_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_29245c4a_en','ws_spec0001_en','mem_727c2cb2_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -12399,14 +12181,6 @@ VALUES ('edge_749a44a8_en','ws_spec0001_en','mem_1b50a9b1_en','mem_861a5678_en',
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_764f46eb_en','ws_spec0001_en','mem_f8057a39_en','mem_d001_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_772d5cd7_en','ws_spec0001_en','mem_b3ee2495_en','mem_f8057a39_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_781b97ce_en','ws_spec0001_en','mem_ef8ec8ec_en','mem_i003_en','depends_on',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -12516,10 +12290,6 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_97177962_en','ws_spec0001_en','mem_6a46a549_en','mem_ce00334f_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_9be1e60d_en','ws_spec0001_en','mem_e0ebc6e5_en','mem_k001_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -13411,10 +13181,6 @@ VALUES ('edge_b0236801_en','ws_spec0001_en','mem_4b0125e0_en','mem_97757fb8_en',
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_2dabdc1d_en','ws_spec0001_en','mem_526945e4_en','mem_82683707_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_dec491df_en','ws_spec0001_en','mem_52ac8940_en','mem_5a3bd1b0_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
@@ -13431,19 +13197,11 @@ VALUES ('edge_dfccfece_en','ws_spec0001_en','mem_67362874_en','mem_ce00334f_en',
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_7265ad5a_en','ws_spec0001_en','mem_7484cfc2_en','mem_d692bb11_en','similar_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_210d4f0e_en','ws_spec0001_en','mem_7f9fadcd_en','mem_861a5678_en','similar_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_1040b0bf_en','ws_spec0001_en','mem_80054468_en','mem_ee62ef2c_en','related_to',1.0,30.0,0.1,false,0,0)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
-VALUES ('edge_6efd1e19_en','ws_spec0001_en','mem_82683707_en','mem_i003_en','related_to',1.0,30.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)

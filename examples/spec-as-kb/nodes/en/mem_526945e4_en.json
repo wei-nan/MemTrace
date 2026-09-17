@@ -6,7 +6,7 @@
   "content": {
     "type": "factual",
     "format": "markdown",
-    "body": "The HTTP + SSE transport mode is available when `memtrace serve --mcp` is running (Phase 2)."
+    "body": "The old stdio MCP server was entirely removed on 2026-05-05 (`ff97d9a`). MCP functionality is now a router inside `packages/api/routers/mcp.py`, supporting two transports, with no stdio:\n\n- **Streamable HTTP** (`POST /mcp`, MCP spec 2025-03-26) — a single POST endpoint handling all JSON-RPC messages; this is what `.mcp.json.example` uses\n- **SSE** (`GET /sse` + `POST /messages`) — the older SSE transport, still functional\n\nBoth authenticate via an `Authorization: Bearer mt_<api_key>` header, with no environment variables. The `memtrace serve --mcp` command does not exist — the CLI (`packages/cli`) currently has no `serve` subcommand; the MCP router is built into the api service itself and starts with it."
   },
   "tags": [
     "mcp",
