@@ -1,8 +1,15 @@
-.btn {
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-ghost,
+.btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
   border-radius: 8px;
   font-family: inherit;
   font-weight: 500;
@@ -13,7 +20,12 @@
   user-select: none;
 }
 
-.btn:disabled {
+.btn:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled,
+.btn-ghost:disabled,
+.btn-icon:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -56,6 +68,7 @@
   background: transparent;
   color: var(--text-secondary);
   border: none;
+  padding: 7px 10px;
 }
 .btn-ghost:hover:not(:disabled) {
   background: var(--bg-elevated);
@@ -63,9 +76,15 @@
 }
 
 .btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: transparent;
   border: none;
   color: var(--color-primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
   padding: 0 !important;
 }
 .btn-link:hover:not(:disabled) {
@@ -84,7 +103,7 @@
   color: var(--text-primary);
 }
 
-/* ── Sizes ── */
+/* ── Optional size overrides (used together with a variant class, e.g. "btn-primary btn-sm") ── */
 .btn-sm {
   padding: 5px 10px;
   font-size: 12px;
