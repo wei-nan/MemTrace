@@ -124,14 +124,41 @@ _Profile: `workspace_admin`._ List a workspace's members. Any member (including 
 
 ---
 
-### `list_associations` / `add_association` / `remove_association`
-_Profile: `workspace_admin`._ Manage the one-hop associations that `search_cross_workspace` covers.
+### `list_associations`
+_Profile: `workspace_admin`._ List the workspaces this workspace is associated with — the one-hop set that `search_cross_workspace` covers. Needs read access to the workspace.
 
-| Tool | Input | Output | Access |
-|------|-------|--------|--------|
-| `list_associations` | `workspace_id` | `[{ id, target_workspace_id, target_name, created_at }]` | read on the workspace |
-| `add_association` | `workspace_id` (source), `target_workspace_id` | `{ id, workspace_id, target_workspace_id, target_name, created_at }` | write on source, read on target; 409 if it already exists |
-| `remove_association` | `workspace_id` (source), `target_workspace_id` | `{ removed: true, workspace_id, target_workspace_id }` | write on source; 404 if absent |
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | yes | |
+
+**Output**: `[{ "id", "target_workspace_id", "target_name", "created_at" }]`
+
+---
+
+### `add_association`
+_Profile: `workspace_admin`._ Associate a source workspace with a target workspace, which widens `search_cross_workspace` for the source. Needs write access to the source and read access to the target; returns 409 if the association already exists.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | yes | Source workspace |
+| `target_workspace_id` | string | yes | |
+
+**Output**: `{ "id", "workspace_id", "target_workspace_id", "target_name", "created_at" }`
+
+---
+
+### `remove_association`
+_Profile: `workspace_admin`._ Remove an association from a source workspace to a target workspace. Needs write access to the source; returns 404 if it does not exist.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | yes | Source workspace |
+| `target_workspace_id` | string | yes | |
+
+**Output**: `{ "removed": true, "workspace_id", "target_workspace_id" }`
 
 ---
 
