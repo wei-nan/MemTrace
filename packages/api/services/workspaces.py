@@ -70,6 +70,10 @@ def require_ws_access(
         if not required_role:  # If we didn't check required_role above, at least ensure they have access
             if not role:
                 raise HTTPException(status_code=403, detail="Access denied")
+            # The editor check below lives in the restricted/write branch, which a private
+            # workspace never reaches, so without this a viewer passed write=True here.
+            if write and role not in ("editor", "admin"):
+                raise HTTPException(status_code=403, detail="Editor or Admin role required")
     elif vis in ("public", "conditional_public") and not write:
         pass # Public read access
     elif vis == "restricted" or write:
