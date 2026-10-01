@@ -4178,6 +4178,45 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_mcp_wsadm','1.0','ws_spec0001','MCP 工作區管理工具：workspace_admin profile（建立、更新、成員清單、關聯）','factual','markdown','MemTrace 的 MCP 提供「工作區管理」工具，讓 agent 能建立與調整知識庫，而不必切換到 UI。這組工具放在選用的 `workspace_admin` profile，不在預設的 `core+agent_loop` 裡（預設工具數與 schema 成本不變）。啟用方式：在 `X-MemTrace-Tool-Profile` 加上它，例如 `core+agent_loop+workspace_admin`。
+
+**工具**：
+
+| 工具 | 說明 |
+|------|------|
+| `create_workspace` | 建立工作區，呼叫者成為擁有者 |
+| `update_workspace` | 更新名稱、說明、封存視窗天數、最小走訪數、Q&A 歸檔模式 |
+| `list_members` | 列出成員（`user_id`、`display_name`、`role`、`joined_at`），**不含 email** |
+| `list_associations` | 列出此工作區關聯的工作區 |
+| `add_association` | 新增關聯（需來源的寫入權限與目標的讀取權限） |
+| `remove_association` | 移除關聯（需來源的寫入權限） |
+
+**`create_workspace` 的參數與預設**：
+
+- 可傳：`name`、`language`（`zh-TW` 或 `en`）為必填；`description`、`visibility`、`kb_type` 為選填。
+- `visibility` 預設 `private`，只接受 `private` 或 `restricted`。公開（`public`、`conditional_public`）屬對外發布，必須由人在 UI 設定，MCP 會拒絕。
+- `kb_type` 預設 `evergreen`，建立後不可更改。
+- 由伺服器固定、不開放給 MCP：Q&A 歸檔模式為 `manual_review`（agent 建立的知識需人工審核）、自動節點拆分關閉、MCP 遠端攝入開啟且每日配額為 100 份文件。
+- 向量模型由伺服器依帳號設定自動選擇，建立後鎖定。
+- 傳入上述以外的欄位會被拒絕（HTTP 400），不會被默默忽略。
+
+**`update_workspace` 的限制**：只有工作區擁有者可呼叫；不能透過 MCP 變更可見度、匿名檢視、向量模型、遷移與進階設定。
+
+**權限**：個人 API key 以其擁有者的身分運作，不會超出該使用者在各工作區的角色。綁定單一工作區的服務 token 不能建立新工作區。
+
+**不在此批**：刪除工作區、成員的新增／移除／改角色、邀請，仍只能在 UI 操作。',
+   ARRAY['mcp', 'workspace', 'tool-profile', '現況更新']::text[],'public','usr_6bc7b4c7','2026-10-01T00:00:00+00:00','','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_ns001','1.0','ws_spec0001','節點拆分原則(agent 寫入前必讀)','factual','markdown','一顆節點 = 一個能獨立檢索、獨立為真、獨立被更新的單元。
 
 共變測試(唯一判別器):這兩件事永遠會一起改嗎?會 → 放同一顆;能各自獨立修訂 → 拆成兩顆,用 edge 連。
@@ -9370,6 +9409,45 @@ INSERT INTO memory_nodes
    tags,visibility,author,created_at,signature,source_type,
    traversal_count,unique_traverser_count)
 VALUES
+  ('mem_mcp_wsadm_en','1.0','ws_spec0001_en','MCP Workspace Management Tools: the workspace_admin Profile (Create, Update, Members, Associations)','factual','markdown','MemTrace''s MCP provides workspace-management tools so an agent can create and adjust knowledge bases without switching to the UI. These tools live in the opt-in `workspace_admin` profile and are not part of the default `core+agent_loop` profile (the default tool count and schema cost are unchanged). To enable it, add it to `X-MemTrace-Tool-Profile`, for example `core+agent_loop+workspace_admin`.
+
+**Tools**:
+
+| Tool | Description |
+|------|-------------|
+| `create_workspace` | Create a workspace; the caller becomes its owner |
+| `update_workspace` | Update name, description, archive window days, minimum traversals, and Q&A archive mode |
+| `list_members` | List members (`user_id`, `display_name`, `role`, `joined_at`); **emails are not returned** |
+| `list_associations` | List the workspaces this workspace is associated with |
+| `add_association` | Add an association (needs write access to the source and read access to the target) |
+| `remove_association` | Remove an association (needs write access to the source) |
+
+**`create_workspace` parameters and defaults**:
+
+- Accepted: `name` and `language` (`zh-TW` or `en`) are required; `description`, `visibility`, and `kb_type` are optional.
+- `visibility` defaults to `private` and only accepts `private` or `restricted`. Making a workspace public (`public`, `conditional_public`) is publishing, so a human must do it in the UI; MCP rejects it.
+- `kb_type` defaults to `evergreen` and cannot be changed after creation.
+- Fixed by the server and not open to MCP: Q&A archive mode is `manual_review` (knowledge created by an agent needs human review), automatic node splitting is off, MCP remote ingestion is on with a daily quota of 100 documents.
+- The embedding model is chosen by the server from the account''s settings and is locked after creation.
+- Any field other than the ones above is rejected (HTTP 400), not silently ignored.
+
+**`update_workspace` limits**: only the workspace owner can call it; visibility, anonymous view, the embedding model, migration, and advanced settings cannot be changed through MCP.
+
+**Permissions**: a personal API key acts as its owner and never exceeds that user''s role in any workspace. A service token bound to a single workspace cannot create new workspaces.
+
+**Not in this batch**: deleting workspaces, adding/removing members or changing their roles, and invitations remain UI-only.',
+   ARRAY['mcp', 'workspace', 'tool-profile', 'current-state']::text[],'public','usr_6bc7b4c7','2026-10-01T00:00:00+00:00','','ai',
+   0,0)
+ON CONFLICT (id) DO UPDATE SET
+  title=EXCLUDED.title, body=EXCLUDED.body,
+  content_type=EXCLUDED.content_type, content_format=EXCLUDED.content_format,
+  tags=EXCLUDED.tags;
+
+INSERT INTO memory_nodes
+  (id,schema_version,workspace_id,title,content_type,content_format,body,
+   tags,visibility,author,created_at,signature,source_type,
+   traversal_count,unique_traverser_count)
+VALUES
   ('mem_ns001_en','1.0','ws_spec0001_en','Node Splitting Principles (Must-Read for Agents Before Writing)','factual','markdown','One node = one unit that can be independently retrieved, independently true, and independently updated.
 
 Covariance Test (the sole discriminator): Will these two things always change together? Yes → put them in the same node; can they be revised independently? → split into two nodes and connect them with an edge.
@@ -11884,6 +11962,10 @@ INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,
 VALUES ('edge_48952f7a','ws_spec0001','mem_64748435','mem_i003','superseded_by',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_a1c3e5f7','ws_spec0001','mem_mcp_wsadm','mem_64748435','related_to',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
 
 -- ── en edges ────────────────────────────────────────────
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
@@ -13368,4 +13450,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
 VALUES ('edge_4030034c','ws_spec0001_en','mem_64748435_en','mem_i003_en','superseded_by',1.0,365.0,0.1,false,0,0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO edges (id,workspace_id,from_id,to_id,relation,weight,half_life_days,min_weight,pinned,co_access_count,traversal_count)
+VALUES ('edge_b2d4f6a8','ws_spec0001_en','mem_mcp_wsadm_en','mem_64748435_en','related_to',1.0,365.0,0.1,false,0,0)
 ON CONFLICT (id) DO NOTHING;

@@ -45,6 +45,7 @@ To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**.
 - **`ingest_docs`**: Document, URL, and evidence imports.
 - **`advanced_graph`**: Advanced search and analysis (cross-workspace, similar edges).
 - **`review_admin`**: Governance, conflict resolution, and audit trails (`list_review_queue`, `reject_proposal`, `resolve_conflict`, `verify_audit`, `transfer_authorship`).
+- **`workspace_admin`** (opt-in): Workspace management — `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, `remove_association`. Not part of the default profile; add it explicitly, e.g. `core+agent_loop+workspace_admin`. Design record: `ws_spec_plan/mem_c98ff99b`.
 - **`full`**: Exposes all tools.
 
 Profiles can be combined using `+` or `,` (e.g., `core+agent_loop`).
@@ -80,6 +81,57 @@ List all workspaces accessible to the authenticated user.
   }
 ]
 ```
+
+---
+
+### `create_workspace`
+_Profile: `workspace_admin`._ Create a workspace owned by the caller.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Workspace name |
+| `language` | string | yes | `zh-TW` or `en` |
+| `description` | string | no | |
+| `visibility` | string | no | `private` (default) or `restricted`. `public` / `conditional_public` are rejected — publishing is done by a human in the UI |
+| `kb_type` | string | no | `evergreen` (default) or `ephemeral`; immutable after creation |
+
+Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `auto_split=false`, `settings.mcp_ingest_enabled=true`, `settings.mcp_ingest_daily_quota=100`; the embedding model is resolved from the account and locked. Any other field is rejected with HTTP 400 (not ignored). Workspace-scoped service tokens get 403.
+
+**Output**:
+```json
+{ "id": "ws_abc123", "name": "Notes", "language": "zh-TW", "visibility": "private", "kb_type": "evergreen", "my_role": "admin" }
+```
+(`description` is included when set.)
+
+---
+
+### `update_workspace`
+_Profile: `workspace_admin`._ Update a workspace. Owner only (an admin member gets 403).
+
+**Input**: `workspace_id` (required) plus at least one of `name` (non-empty), `description` (empty string clears it), `archive_window_days` (integer ≥ 1), `min_traversals` (integer ≥ 0), `qa_archive_mode` (`auto_active` | `manual_review`). Visibility, anonymous view, embedding, migration and `settings` are rejected with HTTP 400.
+
+**Output**: `{ id, name, description, archive_window_days, min_traversals, qa_archive_mode, updated_at }`
+
+---
+
+### `list_members`
+_Profile: `workspace_admin`._ List a workspace's members. Any member (including viewer) may call it.
+
+**Input**: `workspace_id`
+
+**Output**: `[{ "user_id", "display_name", "role", "joined_at" }]` — the owner is listed once, first, with role `owner`. Emails are never returned.
+
+---
+
+### `list_associations` / `add_association` / `remove_association`
+_Profile: `workspace_admin`._ Manage the one-hop associations that `search_cross_workspace` covers.
+
+| Tool | Input | Output | Access |
+|------|-------|--------|--------|
+| `list_associations` | `workspace_id` | `[{ id, target_workspace_id, target_name, created_at }]` | read on the workspace |
+| `add_association` | `workspace_id` (source), `target_workspace_id` | `{ id, workspace_id, target_workspace_id, target_name, created_at }` | write on source, read on target; 409 if it already exists |
+| `remove_association` | `workspace_id` (source), `target_workspace_id` | `{ removed: true, workspace_id, target_workspace_id }` | write on source; 404 if absent |
 
 ---
 
