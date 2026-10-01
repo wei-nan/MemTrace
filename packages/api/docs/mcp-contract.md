@@ -96,7 +96,7 @@ _Profile: `workspace_admin`._ Create a workspace owned by the caller.
 | `visibility` | string | no | `private` (default) or `restricted`. `public` / `conditional_public` are rejected — publishing is done by a human in the UI |
 | `kb_type` | string | no | `evergreen` (default) or `ephemeral`; immutable after creation |
 
-Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `auto_split=false`, `settings.mcp_ingest_enabled=true`, `settings.mcp_ingest_daily_quota=100`; the embedding model is resolved from the account and locked. Any other field is rejected with HTTP 400 (not ignored). Workspace-scoped service tokens get 403.
+Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `auto_split=false`, `settings.mcp_ingest_enabled=true`, `settings.mcp_ingest_daily_quota=100`; the embedding model is resolved from the account and locked. Any other field, and any non-string value for a string field, is rejected with a `400` error (not ignored). Workspace-scoped service tokens get `403`.
 
 **Output**:
 ```json
@@ -109,14 +109,14 @@ Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `au
 ### `update_workspace`
 _Profile: `workspace_admin`._ Update a workspace. Owner only (an admin member gets 403).
 
-**Input**: `workspace_id` (required) plus at least one of `name` (non-empty), `description` (empty string clears it), `archive_window_days` (integer ≥ 1), `min_traversals` (integer ≥ 0), `qa_archive_mode` (`auto_active` | `manual_review`). Visibility, anonymous view, embedding, migration and `settings` are rejected with HTTP 400.
+**Input**: `workspace_id` (required) plus at least one of `name` (non-empty), `description` (empty string clears it), `archive_window_days` (integer, 1 to 2147483647), `min_traversals` (integer, 0 to 2147483647), `qa_archive_mode` (`auto_active` | `manual_review`). Visibility, anonymous view, embedding, migration and `settings` are rejected with a `400` error.
 
-**Output**: `{ id, name, description, archive_window_days, min_traversals, qa_archive_mode, updated_at }`
+**Output**: `{ id, name, description, archive_window_days, min_traversals, qa_archive_mode, updated_at }` (keys whose value is null, such as an unset `description`, are omitted)
 
 ---
 
 ### `list_members`
-_Profile: `workspace_admin`._ List a workspace's members. Any member (including viewer) may call it.
+_Profile: `workspace_admin`._ List a workspace's members. Members only (including viewer): a signed-in user who can merely read a public workspace gets `403`.
 
 **Input**: `workspace_id`
 
@@ -125,7 +125,7 @@ _Profile: `workspace_admin`._ List a workspace's members. Any member (including 
 ---
 
 ### `list_associations`
-_Profile: `workspace_admin`._ List the workspaces this workspace is associated with — the one-hop set that `search_cross_workspace` covers. Needs read access to the workspace.
+_Profile: `workspace_admin`._ List the workspaces this workspace is associated with — the one-hop set that `search_cross_workspace` covers. Needs read access to the workspace. Targets the caller cannot read are omitted, so the list can be shorter than the stored associations.
 
 **Input**:
 | Field | Type | Required | Description |

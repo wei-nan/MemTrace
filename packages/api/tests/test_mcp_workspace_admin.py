@@ -14,7 +14,14 @@ from fastapi import HTTPException
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from services.mcp_tools import MCP_TOOL_PROFILES, execute_tool, resolve_profile_tools
-from services.workspaces import create_workspace_in_db, list_members_in_db, update_workspace_in_db
+from services.workspaces import (
+    create_association_in_db,
+    create_workspace_in_db,
+    delete_association_in_db,
+    list_associations_in_db,
+    list_members_in_db,
+    update_workspace_in_db,
+)
 
 WORKSPACE_ADMIN_TOOLS = {
     "create_workspace",
@@ -172,6 +179,23 @@ async def test_create_workspace_rejects_fields_not_open_to_mcp(extra):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("args", [
+    {"name": 123, "language": "en"},
+    {"name": ["x"], "language": "en"},
+    {"name": "Notes", "language": 5},
+    {"name": "Notes", "language": "en", "description": 123},
+    {"name": "Notes", "language": "en", "visibility": ["private"]},
+    {"name": "Notes", "language": "en", "kb_type": {"a": 1}},
+])
+async def test_create_workspace_rejects_non_string_values_with_400(args):
+    with patch("services.workspaces.create_workspace_in_db") as create:
+        with pytest.raises(HTTPException) as exc:
+            await execute_tool("create_workspace", args, USER, MagicMock())
+    assert exc.value.status_code == 400
+    create.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_create_workspace_allows_harness_correlation_ids():
     ctx, _ = _cursor_ctx()
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
@@ -284,6 +308,11 @@ async def test_update_workspace_rejects_fields_not_open_to_mcp(extra):
     {"workspace_id": "ws_1", "archive_window_days": True},
     {"workspace_id": "ws_1", "archive_window_days": "30"},
     {"workspace_id": "ws_1", "min_traversals": -1},
+    {"workspace_id": "ws_1", "name": 5},
+    {"workspace_id": "ws_1", "description": 123},
+    {"workspace_id": "ws_1", "qa_archive_mode": ["auto_active"]},
+    {"workspace_id": "ws_1", "archive_window_days": 10 ** 12},
+    {"workspace_id": "ws_1", "min_traversals": 2_147_483_648},
 ])
 async def test_update_workspace_validates_values(args):
     with patch("services.workspaces.update_workspace_in_db") as upd:
@@ -349,11 +378,25 @@ async def test_list_members_returns_service_rows_for_a_member():
     ctx, cur = _cursor_ctx()
     rows = [{"user_id": "u1", "display_name": "A", "role": "owner", "joined_at": "t"}]
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
-         patch("services.mcp_tools.require_ws_access") as access, \
+         patch("services.mcp_tools.require_ws_access", return_value={"my_role": "viewer"}) as access, \
          patch("services.workspaces.list_members_in_db", return_value=rows):
         res = await execute_tool("list_members", {"workspace_id": "ws_1"}, USER, MagicMock())
     access.assert_called_once_with(cur, "ws_1", USER)
     assert res == rows
+
+
+@pytest.mark.asyncio
+async def test_list_members_refuses_a_non_member_who_can_read_a_public_workspace():
+    """require_ws_access passes any signed-in user on a public workspace; the member
+    list must still be members-only."""
+    ctx, _ = _cursor_ctx()
+    with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access", return_value={"my_role": None}), \
+         patch("services.workspaces.list_members_in_db") as listing:
+        with pytest.raises(HTTPException) as exc:
+            await execute_tool("list_members", {"workspace_id": "ws_public"}, USER, MagicMock())
+    assert exc.value.status_code == 403
+    listing.assert_not_called()
 
 
 def test_list_members_in_db_omits_email_and_lists_owner_once_first():
@@ -379,9 +422,108 @@ async def test_list_associations_projects_rows():
     ctx, _ = _cursor_ctx()
     rows = [{"id": "asc_1", "source_ws_id": "ws_1", "target_ws_id": "ws_2", "target_name": "Two", "created_at": "t"}]
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access"), \
          patch("services.workspaces.list_associations_in_db", return_value=rows):
         res = await execute_tool("list_associations", {"workspace_id": "ws_1"}, USER, MagicMock())
     assert res == [{"id": "asc_1", "target_workspace_id": "ws_2", "target_name": "Two", "created_at": "t"}]
+
+
+@pytest.mark.asyncio
+async def test_list_associations_omits_targets_the_caller_cannot_read():
+    ctx, cur = _cursor_ctx()
+    rows = [
+        {"id": "asc_1", "source_ws_id": "ws_1", "target_ws_id": "ws_open", "target_name": "Open", "created_at": "t"},
+        {"id": "asc_2", "source_ws_id": "ws_1", "target_ws_id": "ws_secret", "target_name": "Secret name", "created_at": "t"},
+    ]
+
+    def access(_cur, ws_id, _user, **_kw):
+        if ws_id == "ws_secret":
+            raise HTTPException(status_code=403, detail="Access denied")
+        return {"my_role": "viewer"}
+
+    with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access", side_effect=access), \
+         patch("services.workspaces.list_associations_in_db", return_value=rows):
+        res = await execute_tool("list_associations", {"workspace_id": "ws_1"}, USER, MagicMock())
+    assert [r["target_workspace_id"] for r in res] == ["ws_open"]
+    assert "Secret name" not in str(res) and "ws_secret" not in str(res)
+
+
+# ─── association service functions: the access rules themselves, not mocked away ──
+
+def _access_recorder(deny=()):
+    """A require_ws_access stand-in that records its calls and denies chosen workspaces."""
+    calls = []
+
+    def access(cur, ws_id, user, write=False, **kw):
+        calls.append((ws_id, write, kw.get("required_role")))
+        if ws_id in deny:
+            raise HTTPException(status_code=403, detail="Access denied")
+        return {"my_role": "editor"}
+
+    return access, calls
+
+
+def test_list_associations_in_db_checks_access_before_querying():
+    cur = MagicMock()
+    access, calls = _access_recorder(deny={"ws_1"})
+    with patch("services.workspaces.require_ws_access", side_effect=access):
+        with pytest.raises(HTTPException) as exc:
+            list_associations_in_db(cur, "ws_1", USER)
+    assert exc.value.status_code == 403
+    assert calls == [("ws_1", False, None)]
+    cur.execute.assert_not_called()
+
+
+def test_create_association_in_db_needs_write_on_source_and_read_on_target():
+    cur = MagicMock()
+    cur.fetchone.side_effect = [{"id": "asc_1", "source_ws_id": "ws_1", "target_ws_id": "ws_2", "created_at": "t"}, {"name": "Two"}]
+    access, calls = _access_recorder()
+    with patch("services.workspaces.require_ws_access", side_effect=access):
+        create_association_in_db(cur, "ws_1", "ws_2", USER)
+    assert calls == [("ws_1", True, None), ("ws_2", False, None)]
+
+
+@pytest.mark.parametrize("denied", ["ws_1", "ws_2"])
+def test_create_association_in_db_inserts_nothing_when_either_side_is_refused(denied):
+    cur = MagicMock()
+    access, _ = _access_recorder(deny={denied})
+    with patch("services.workspaces.require_ws_access", side_effect=access):
+        with pytest.raises(HTTPException) as exc:
+            create_association_in_db(cur, "ws_1", "ws_2", USER)
+    assert exc.value.status_code == 403
+    cur.execute.assert_not_called()
+
+
+def test_create_association_in_db_duplicate_is_409():
+    cur = MagicMock()
+    cur.fetchone.return_value = None  # ON CONFLICT DO NOTHING returned no row
+    access, _ = _access_recorder()
+    with patch("services.workspaces.require_ws_access", side_effect=access):
+        with pytest.raises(HTTPException) as exc:
+            create_association_in_db(cur, "ws_1", "ws_2", USER)
+    assert exc.value.status_code == 409
+
+
+def test_delete_association_in_db_needs_write_on_source_and_deletes_nothing_without_it():
+    cur = MagicMock()
+    access, calls = _access_recorder(deny={"ws_1"})
+    with patch("services.workspaces.require_ws_access", side_effect=access):
+        with pytest.raises(HTTPException) as exc:
+            delete_association_in_db(cur, "ws_1", "ws_2", USER)
+    assert exc.value.status_code == 403
+    assert calls == [("ws_1", True, None)]
+    cur.execute.assert_not_called()
+
+
+def test_delete_association_in_db_missing_row_is_404():
+    cur = MagicMock()
+    cur.fetchone.return_value = None
+    access, _ = _access_recorder()
+    with patch("services.workspaces.require_ws_access", side_effect=access):
+        with pytest.raises(HTTPException) as exc:
+            delete_association_in_db(cur, "ws_1", "ws_2", USER)
+    assert exc.value.status_code == 404
 
 
 @pytest.mark.asyncio

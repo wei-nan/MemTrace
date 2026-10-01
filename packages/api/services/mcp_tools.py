@@ -389,7 +389,7 @@ TOOLS = [
     },
     {
         "name": "list_members",
-        "description": "List a workspace's members (user_id, display_name, role, joined_at). Emails are not returned. Any member may call this.",
+        "description": "List a workspace's members (user_id, display_name, role, joined_at). Emails are not returned. Only members of the workspace may call this.",
         "inputSchema": {
             "type": "object",
             "properties": {"workspace_id": {"type": "string"}},
@@ -398,7 +398,7 @@ TOOLS = [
     },
     {
         "name": "list_associations",
-        "description": "List the workspaces this workspace is associated with (one hop; these are the ones search_cross_workspace covers).",
+        "description": "List the workspaces this workspace is associated with (one hop; these are the ones search_cross_workspace covers). Targets the caller cannot read are omitted.",
         "inputSchema": {
             "type": "object",
             "properties": {"workspace_id": {"type": "string"}},
@@ -1404,6 +1404,16 @@ def _reject_unopened_args(args: dict, allowed: frozenset) -> None:
             status_code=400,
             detail=f"Not available through MCP: {', '.join(unexpected)}",
         )
+
+
+_INT32_MAX = 2_147_483_647
+
+
+def _require_str_args(args: dict, keys) -> None:
+    """Reject non-string values for string fields with a 400 instead of a 500."""
+    for key in keys:
+        if args.get(key) is not None and not isinstance(args[key], str):
+            raise HTTPException(status_code=400, detail=f"'{key}' must be a string")
 
 
 def _require_editor_on_source(cur, ws_id: str, user: dict) -> None:
@@ -2985,6 +2995,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         from services.workspaces import create_workspace_in_db
 
         _reject_unopened_args(args, _CREATE_WORKSPACE_ARGS)
+        _require_str_args(args, _CREATE_WORKSPACE_ARGS)
         # Without a workspace id, require_ws_access cannot stop a workspace-scoped
         # service token from minting new workspaces, so refuse it here.
         if user.get("workspace_id"):
@@ -3032,6 +3043,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         from services.workspaces import update_workspace_in_db
 
         _reject_unopened_args(args, _UPDATE_WORKSPACE_ARGS | {"workspace_id"})
+        _require_str_args(args, {"name", "description", "qa_archive_mode"})
         ws_id = args["workspace_id"]
         updates = {k: args[k] for k in _UPDATE_WORKSPACE_ARGS if k in args}
         if not updates:
@@ -3043,8 +3055,11 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         for int_field, minimum in (("archive_window_days", 1), ("min_traversals", 0)):
             if int_field in updates:
                 value = updates[int_field]
-                if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
-                    raise HTTPException(status_code=400, detail=f"'{int_field}' must be an integer >= {minimum}")
+                if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= _INT32_MAX:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"'{int_field}' must be an integer between {minimum} and {_INT32_MAX}",
+                    )
         if "qa_archive_mode" in updates and updates["qa_archive_mode"] not in ("auto_active", "manual_review"):
             raise HTTPException(status_code=400, detail="'qa_archive_mode' must be 'auto_active' or 'manual_review'")
         with db_cursor(commit=True) as cur:
@@ -3068,7 +3083,11 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
 
         ws_id = args["workspace_id"]
         with db_cursor() as cur:
-            require_ws_access(cur, ws_id, user)
+            ws = require_ws_access(cur, ws_id, user)
+            # require_ws_access lets any signed-in user read a public workspace, so
+            # being able to read it is not enough to see who belongs to it.
+            if not ws.get("my_role"):
+                raise HTTPException(status_code=403, detail="Only workspace members can list members")
             return list_members_in_db(cur, ws_id)
 
     if name == "list_associations":
@@ -3077,6 +3096,16 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         with db_cursor() as cur:
             rows = list_associations_in_db(cur, ws_id, user)
+            # The source's members can see the source, not necessarily its targets;
+            # do not leak the id/name of a workspace the caller cannot read.
+            readable = []
+            for r in rows:
+                try:
+                    require_ws_access(cur, r["target_ws_id"], user)
+                except HTTPException:
+                    continue
+                readable.append(r)
+            rows = readable
         return [
             {
                 "id": r["id"],
