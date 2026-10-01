@@ -389,6 +389,7 @@ async def test_add_association_projects_row():
     ctx, cur = _cursor_ctx()
     row = {"id": "asc_1", "source_ws_id": "ws_1", "target_ws_id": "ws_2", "target_name": "Two", "created_at": "t"}
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access"), \
          patch("services.workspaces.create_association_in_db", return_value=row) as create:
         res = await execute_tool(
             "add_association", {"workspace_id": "ws_1", "target_workspace_id": "ws_2"}, USER, MagicMock()
@@ -401,9 +402,29 @@ async def test_add_association_projects_row():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("tool", ["add_association", "remove_association"])
+async def test_association_writes_require_editor_role_on_source(tool):
+    """require_ws_access(write=True) lets a viewer through on private workspaces
+    (ws_spec_plan/mem_85a249ea), so these tools must demand the role explicitly."""
+    ctx, cur = _cursor_ctx()
+    denied = HTTPException(status_code=403, detail={"error": "insufficient_role", "required": "editor", "actual": "viewer"})
+    with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access", side_effect=denied) as access, \
+         patch("services.workspaces.create_association_in_db") as create, \
+         patch("services.workspaces.delete_association_in_db") as delete:
+        with pytest.raises(HTTPException) as exc:
+            await execute_tool(tool, {"workspace_id": "ws_1", "target_workspace_id": "ws_2"}, USER, MagicMock())
+    assert exc.value.status_code == 403
+    access.assert_called_once_with(cur, "ws_1", USER, required_role="editor")
+    create.assert_not_called()
+    delete.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_add_association_duplicate_surfaces_409():
     ctx, _ = _cursor_ctx()
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access"), \
          patch("services.workspaces.create_association_in_db",
                side_effect=HTTPException(status_code=409, detail="Association already exists")):
         with pytest.raises(HTTPException) as exc:
@@ -417,6 +438,7 @@ async def test_add_association_duplicate_surfaces_409():
 async def test_add_association_without_target_read_access_is_refused():
     ctx, _ = _cursor_ctx()
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access"), \
          patch("services.workspaces.create_association_in_db",
                side_effect=HTTPException(status_code=403, detail="no_membership")):
         with pytest.raises(HTTPException) as exc:
@@ -430,6 +452,7 @@ async def test_add_association_without_target_read_access_is_refused():
 async def test_remove_association_reports_removal():
     ctx, cur = _cursor_ctx()
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access"), \
          patch("services.workspaces.delete_association_in_db") as delete:
         res = await execute_tool(
             "remove_association", {"workspace_id": "ws_1", "target_workspace_id": "ws_2"}, USER, MagicMock()
@@ -442,6 +465,7 @@ async def test_remove_association_reports_removal():
 async def test_remove_association_missing_surfaces_404():
     ctx, _ = _cursor_ctx()
     with patch("services.mcp_tools.db_cursor", return_value=ctx), \
+         patch("services.mcp_tools.require_ws_access"), \
          patch("services.workspaces.delete_association_in_db",
                side_effect=HTTPException(status_code=404, detail="Association not found")):
         with pytest.raises(HTTPException) as exc:

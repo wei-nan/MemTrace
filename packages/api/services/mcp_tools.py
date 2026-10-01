@@ -1406,6 +1406,17 @@ def _reject_unopened_args(args: dict, allowed: frozenset) -> None:
         )
 
 
+def _require_editor_on_source(cur, ws_id: str, user: dict) -> None:
+    """Editor-or-above on the source workspace, checked by role.
+
+    require_ws_access(write=True) is not enough here: on a *private* workspace it
+    only checks that the caller has some role, so a viewer passes. That is a
+    pre-existing gap (ws_spec_plan/mem_85a249ea); MCP-created workspaces default to
+    private, so these tools must not lean on it.
+    """
+    require_ws_access(cur, ws_id, user, required_role="editor")
+
+
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
     # Optional correlation ids for this call, if the caller (an external
     # harness) supplied them — see _run_context above. Absent by default;
@@ -3082,6 +3093,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         target_id = args["target_workspace_id"]
         with db_cursor(commit=True) as cur:
+            _require_editor_on_source(cur, ws_id, user)
             row = create_association_in_db(cur, ws_id, target_id, user)
         return {
             "id": row["id"],
@@ -3097,6 +3109,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         target_id = args["target_workspace_id"]
         with db_cursor(commit=True) as cur:
+            _require_editor_on_source(cur, ws_id, user)
             delete_association_in_db(cur, ws_id, target_id, user)
         return {"removed": True, "workspace_id": ws_id, "target_workspace_id": target_id}
 
