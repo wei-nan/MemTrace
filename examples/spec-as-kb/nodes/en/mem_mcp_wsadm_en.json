@@ -1,0 +1,28 @@
+{
+  "id": "mem_mcp_wsadm_en",
+  "schema_version": "1.0",
+  "language": "en",
+  "title": "MCP Workspace Management Tools: the workspace_admin Profile (Create, Update, Members, Associations)",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace's MCP provides workspace-management tools so an agent can create and adjust knowledge bases without switching to the UI. These tools live in the opt-in `workspace_admin` profile and are not part of the default `core+agent_loop` profile (the default tool count and schema cost are unchanged). To enable it, add it to `X-MemTrace-Tool-Profile`, for example `core+agent_loop+workspace_admin`.\n\n**Tools**:\n\n| Tool | Description |\n|------|-------------|\n| `create_workspace` | Create a workspace; the caller becomes its owner |\n| `update_workspace` | Update name, description, archive window days, minimum traversals, and Q&A archive mode |\n| `list_members` | List members (`user_id`, `display_name`, `role`, `joined_at`); **emails are not returned** |\n| `list_associations` | List the workspaces this workspace is associated with |\n| `add_association` | Add an association (needs write access to the source and read access to the target) |\n| `remove_association` | Remove an association (needs write access to the source) |\n\n**`create_workspace` parameters and defaults**:\n\n- Accepted: `name` and `language` (`zh-TW` or `en`) are required; `description`, `visibility`, and `kb_type` are optional.\n- `visibility` defaults to `private` and only accepts `private` or `restricted`. Making a workspace public (`public`, `conditional_public`) is publishing, so a human must do it in the UI; MCP rejects it.\n- `kb_type` defaults to `evergreen` and cannot be changed after creation.\n- Fixed by the server and not open to MCP: Q&A archive mode is `manual_review` (knowledge created by an agent needs human review), automatic node splitting is off, MCP remote ingestion is on with a daily quota of 100 documents.\n- The embedding model is chosen by the server from the account's settings and is locked after creation.\n- Any field other than the ones above is rejected (HTTP 400), not silently ignored.\n\n**`update_workspace` limits**: only the workspace owner can call it; visibility, anonymous view, the embedding model, migration, and advanced settings cannot be changed through MCP.\n\n**Permissions**: a personal API key acts as its owner and never exceeds that user's role in any workspace. A service token bound to a single workspace cannot create new workspaces.\n\n**Not in this batch**: deleting workspaces, adding/removing members or changing their roles, and invitations remain UI-only."
+  },
+  "tags": [
+    "mcp",
+    "workspace",
+    "tool-profile",
+    "current-state"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-10-01T00:00:00+00:00",
+    "signature": "",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

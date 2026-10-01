@@ -231,9 +231,9 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
             id, name, language, visibility, kb_type, owner_id,
             archive_window_days, min_traversals, embedding_model, embedding_dim,
             qa_archive_mode, extraction_provider, embedding_provider, auto_split,
-            consult_trust_tier, consult_provider, settings
+            consult_trust_tier, consult_provider, settings, description
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *
         """,
         (
@@ -251,11 +251,41 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
                 "mcp_ingest_enabled": False,
                 "mcp_ingest_daily_quota": 5,
                 **(body_dict.get("settings") or {}),
-            })
+            }),
+            body_dict.get("description"),
         ),
     )
     res = cur.fetchone()
     return {**dict(res), "my_role": "admin"}
+
+
+def list_members_in_db(cur, ws_id: str) -> list[dict]:
+    """Members of a workspace without contact details (the MCP-facing shape).
+
+    The owner is listed once, first, with role 'owner'; the REST endpoint in
+    routers/collaboration.py returns the same people but also their emails.
+    """
+    cur.execute(
+        """
+        SELECT u.id AS user_id, u.display_name, 'owner' AS role, w.created_at AS joined_at
+        FROM workspaces w JOIN users u ON u.id = w.owner_id
+        WHERE w.id = %s
+        """,
+        (ws_id,),
+    )
+    owner_rows = cur.fetchall()
+    cur.execute(
+        """
+        SELECT u.id AS user_id, u.display_name, m.role::text AS role, m.joined_at
+        FROM workspace_members m
+        JOIN users u ON u.id = m.user_id
+        JOIN workspaces w ON w.id = m.workspace_id
+        WHERE m.workspace_id = %s AND m.user_id <> w.owner_id
+        ORDER BY m.joined_at
+        """,
+        (ws_id,),
+    )
+    return [dict(r) for r in owner_rows] + [dict(r) for r in cur.fetchall()]
 
 def update_workspace_in_db(cur, ws_id: str, uid: str, body_dict: dict) -> dict:
     cur.execute("SELECT * FROM workspaces WHERE id = %s", (ws_id,))

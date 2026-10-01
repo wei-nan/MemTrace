@@ -1,0 +1,28 @@
+{
+  "id": "mem_mcp_wsadm",
+  "schema_version": "1.0",
+  "language": "zh-TW",
+  "title": "MCP 工作區管理工具：workspace_admin profile（建立、更新、成員清單、關聯）",
+  "content": {
+    "type": "factual",
+    "format": "markdown",
+    "body": "MemTrace 的 MCP 提供「工作區管理」工具，讓 agent 能建立與調整知識庫，而不必切換到 UI。這組工具放在選用的 `workspace_admin` profile，不在預設的 `core+agent_loop` 裡（預設工具數與 schema 成本不變）。啟用方式：在 `X-MemTrace-Tool-Profile` 加上它，例如 `core+agent_loop+workspace_admin`。\n\n**工具**：\n\n| 工具 | 說明 |\n|------|------|\n| `create_workspace` | 建立工作區，呼叫者成為擁有者 |\n| `update_workspace` | 更新名稱、說明、封存視窗天數、最小走訪數、Q&A 歸檔模式 |\n| `list_members` | 列出成員（`user_id`、`display_name`、`role`、`joined_at`），**不含 email** |\n| `list_associations` | 列出此工作區關聯的工作區 |\n| `add_association` | 新增關聯（需來源的寫入權限與目標的讀取權限） |\n| `remove_association` | 移除關聯（需來源的寫入權限） |\n\n**`create_workspace` 的參數與預設**：\n\n- 可傳：`name`、`language`（`zh-TW` 或 `en`）為必填；`description`、`visibility`、`kb_type` 為選填。\n- `visibility` 預設 `private`，只接受 `private` 或 `restricted`。公開（`public`、`conditional_public`）屬對外發布，必須由人在 UI 設定，MCP 會拒絕。\n- `kb_type` 預設 `evergreen`，建立後不可更改。\n- 由伺服器固定、不開放給 MCP：Q&A 歸檔模式為 `manual_review`（agent 建立的知識需人工審核）、自動節點拆分關閉、MCP 遠端攝入開啟且每日配額為 100 份文件。\n- 向量模型由伺服器依帳號設定自動選擇，建立後鎖定。\n- 傳入上述以外的欄位會被拒絕（HTTP 400），不會被默默忽略。\n\n**`update_workspace` 的限制**：只有工作區擁有者可呼叫；不能透過 MCP 變更可見度、匿名檢視、向量模型、遷移與進階設定。\n\n**權限**：個人 API key 以其擁有者的身分運作，不會超出該使用者在各工作區的角色。綁定單一工作區的服務 token 不能建立新工作區。\n\n**不在此批**：刪除工作區、成員的新增／移除／改角色、邀請，仍只能在 UI 操作。"
+  },
+  "tags": [
+    "mcp",
+    "workspace",
+    "tool-profile",
+    "現況更新"
+  ],
+  "visibility": "public",
+  "provenance": {
+    "author": "usr_6bc7b4c7",
+    "created_at": "2026-10-01T00:00:00+00:00",
+    "signature": "",
+    "source_type": "ai"
+  },
+  "traversal": {
+    "count": 0,
+    "unique_traversers": 0
+  }
+}

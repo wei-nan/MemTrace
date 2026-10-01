@@ -1291,6 +1291,8 @@ Tools allow agents to take actions within MemTrace.
 | `traverse_edge` | `node:traverse` | Record traversal of an edge and increment path + node counts |
 | `rate_path` | `node:rate` | Submit a 1–5 rating for a traversed edge |
 
+**Workspace management (opt-in `workspace_admin` profile).** `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, and `remove_association` are available only when a client adds the `workspace_admin` tool profile (`X-MemTrace-Tool-Profile: core+agent_loop+workspace_admin`); the default profile does not include them. They authorize by the calling user's workspace role (§14.2), not by the scopes above. Through MCP, `create_workspace` can only produce `private` or `restricted` workspaces with manual-review Q&A archiving and a fixed MCP ingestion quota; publishing a workspace, deleting it, and managing members or invitations remain UI-only. Field-level contract: `packages/api/docs/mcp-contract.md`.
+
 ##### `search_nodes` — Input schema
 ```json
 {
