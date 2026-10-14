@@ -8,15 +8,33 @@ Level 3 (Analytics): Standardized token usage calculations for analytics reports
 
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as _FutureTimeoutError
 from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
-# Try loading optional vendor tokenizers
+# tiktoken.get_encoding() downloads the BPE file over the network on first use
+# and has no built-in timeout, so a slow/unreachable host can block the caller
+# indefinitely. Load it in a worker thread with a hard timeout so a stalled
+# download degrades to the lexical fallback instead of hanging the process
+# (this previously stalled the asyncio event loop during app startup when the
+# decay job ran before the encoding was cached).
 _TIKTOKEN_ENCODER = None
 try:
     import tiktoken
-    _TIKTOKEN_ENCODER = tiktoken.get_encoding("cl100k_base")
+    _pool = ThreadPoolExecutor(max_workers=1)
+    try:
+        _TIKTOKEN_ENCODER = _pool.submit(tiktoken.get_encoding, "cl100k_base").result(timeout=5)
+    finally:
+        # wait=False: a stalled download's thread is abandoned rather than
+        # blocked on, since ThreadPoolExecutor has no way to cancel it.
+        _pool.shutdown(wait=False)
+except _FutureTimeoutError:
+    _TIKTOKEN_ENCODER = None
+    logger.warning(
+        "tiktoken encoding download timed out; TokenEstimator will fall back "
+        "to the lexical heuristic for vendor-mode estimates."
+    )
 except Exception as e:
     _TIKTOKEN_ENCODER = None
     logger.warning(
