@@ -244,7 +244,7 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
             json.dumps({
                 "node_complexity": {"enabled": True, "char_threshold": 600, "auto_split": False},
                 "auto_dedup_threshold": 0.92,
-                "mcp_ingest_enabled": False,
+                "mcp_ingest_enabled": True,
                 "mcp_ingest_daily_quota": 5,
                 **(body_dict.get("settings") or {}),
             })

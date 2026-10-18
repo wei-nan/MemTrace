@@ -1741,61 +1741,6 @@ export default function WorkspaceSettings({ wsId, userId }: { wsId: string; user
             </div>
           </SectionCard>
 
-          {/* P4.8-S9-7: MCP Ingestion Settings */}
-          <SectionCard>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600 }}>{t('ws_settings.mcp_ingestion')}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 400 }}>
-                    {zh ? "允許透過 MCP 協定 (如 IDE 插件) 直接將內容寫入此工作區。" : "Allow direct content ingestion via MCP protocol (e.g., from IDE plugins)."}
-                  </div>
-                </div>
-                <label className="mt-switch" style={{ opacity: isOwner ? 1 : 0.5 }}>
-                  <input 
-                    type="checkbox" 
-                    checked={ws?.settings?.mcp_ingest_enabled ?? false} 
-                    disabled={!isOwner} 
-                    onChange={async (e) => {
-                      const newSettings = { ...ws?.settings, mcp_ingest_enabled: e.target.checked };
-                      try {
-                        const updatedWs = await workspaces.update(wsId, { settings: newSettings });
-                        setWs(updatedWs);
-                        toast({ message: t('common.save'), variant: "success" });
-                      } catch (err) { toast({ message: String(err), variant: "error" }); }
-                    }} 
-                  />
-                  <span className="mt-switch-slider round"></span>
-                </label>
-              </div>
-              
-              {ws?.settings?.mcp_ingest_enabled && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
-                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                     {t('ws_settings.mcp_daily_quota')}
-                   </div>
-                   <input 
-                     className="mt-input" 
-                     type="number" 
-                     value={ws?.settings?.mcp_ingest_daily_quota ?? 5} 
-                     disabled={!isOwner}
-                     style={{ width: 80 }}
-                     onChange={async (e) => {
-                       const val = parseInt(e.target.value);
-                       if (isNaN(val)) return;
-                       const newSettings = { ...ws?.settings, mcp_ingest_daily_quota: val };
-                       try {
-                         const updatedWs = await workspaces.update(wsId, { settings: newSettings });
-                         setWs(updatedWs);
-                       } catch (err) { toast({ message: String(err), variant: "error" }); }
-                     }}
-                   />
-                </div>
-              )}
-            </div>
-          </SectionCard>
-
-
           <SectionCard>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
