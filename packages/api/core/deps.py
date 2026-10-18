@@ -70,6 +70,7 @@ def get_current_user(
                     "role": None,
                     "scopes": row["scopes"] or [],
                     "workspace_id": row["workspace_id"],
+                    "key_type": "service",
                 }
 
             # Account-level key — resolve role dynamically from workspace_members
@@ -133,6 +134,21 @@ def get_current_user(
         payload = {**payload, "role": None}
 
     return payload
+
+
+def get_current_user_no_service_token(user: dict = Depends(get_current_user)):
+    """Like get_current_user, but refuses workspace service tokens.
+
+    A service token's user_id is the workspace owner, so an owner-only check
+    passes for it. Endpoints that issue or manage credentials must never be
+    reachable with a service token, whatever its scopes.
+    """
+    if user.get("key_type") == "service":
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "service_token_forbidden", "message": "Workspace service tokens cannot manage API keys or workspaces"},
+        )
+    return user
 
 
 # S3-4a: RequireRole — replaces RequireScope for workspace-aware role checks

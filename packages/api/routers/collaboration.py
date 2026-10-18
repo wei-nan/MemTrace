@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import secrets
 
 from core.database import db_cursor
-from core.deps import get_current_user
+from core.deps import get_current_user_no_service_token
 from core.config import settings
 from core.security import generate_id
 from models.collaboration import (
@@ -54,7 +54,7 @@ def _notify_member_added(cur, *, ws_id: str, ws_name: str, recipient_id: str, in
     )
 
 @router.get("/{ws_id}/members", response_model=List[MemberResponse])
-def list_members(ws_id: str, user: dict = Depends(get_current_user)):
+def list_members(ws_id: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor() as cur:
         _require_ws_access(cur, ws_id, user)
         # Fetch owner
@@ -79,7 +79,7 @@ def list_user_candidates(
     ws_id: str,
     q: str = Query(..., min_length=2),
     limit: int = Query(20, ge=1, le=50),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user_no_service_token),
 ):
     with db_cursor() as cur:
         ws = _require_workspace_admin(cur, ws_id, user)
@@ -104,7 +104,7 @@ def list_user_candidates(
         return cur.fetchall()
 
 @router.post("/{ws_id}/members", response_model=MemberResponse, status_code=201)
-def add_existing_member(ws_id: str, body: MemberCreate, user: dict = Depends(get_current_user)):
+def add_existing_member(ws_id: str, body: MemberCreate, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         ws = _require_workspace_admin(cur, ws_id, user)
         if ws["visibility"] == "private":
@@ -150,7 +150,7 @@ def add_existing_member(ws_id: str, body: MemberCreate, user: dict = Depends(get
         }
 
 @router.post("/{ws_id}/invites", response_model=InviteResponse, status_code=201)
-def create_invite(ws_id: str, body: InviteCreate, user: dict = Depends(get_current_user)):
+def create_invite(ws_id: str, body: InviteCreate, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()
@@ -174,7 +174,7 @@ def create_invite(ws_id: str, body: InviteCreate, user: dict = Depends(get_curre
         return row
 
 @router.get("/{ws_id}/invites", response_model=List[InviteResponse])
-def list_invites(ws_id: str, user: dict = Depends(get_current_user)):
+def list_invites(ws_id: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor() as cur:
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()
@@ -193,7 +193,7 @@ def list_invites(ws_id: str, user: dict = Depends(get_current_user)):
         return rows
 
 @router.delete("/{ws_id}/invites/{token}", status_code=200)
-def revoke_invite(ws_id: str, token: str, user: dict = Depends(get_current_user)):
+def revoke_invite(ws_id: str, token: str, user: dict = Depends(get_current_user_no_service_token)):
     """B3: Revoke an invite by setting its status to 'revoked'."""
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
@@ -215,7 +215,7 @@ def revoke_invite(ws_id: str, token: str, user: dict = Depends(get_current_user)
         return {"message": "Invite revoked"}
 
 @router.post("/invites/{token}/accept")
-def accept_invite(token: str, user: dict = Depends(get_current_user)):
+def accept_invite(token: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT * FROM workspace_invites WHERE token = %s AND status = 'pending'", (token,))
         invite = cur.fetchone()
@@ -243,7 +243,7 @@ def accept_invite(token: str, user: dict = Depends(get_current_user)):
         return {"message": "Invite accepted", "workspace_id": invite["workspace_id"]}
 
 @router.delete("/invites/{id}")
-def delete_invite(id: str, user: dict = Depends(get_current_user)):
+def delete_invite(id: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT workspace_id FROM workspace_invites WHERE id = %s OR token = %s", (id, id))
         invite = cur.fetchone()
@@ -262,7 +262,7 @@ def delete_invite(id: str, user: dict = Depends(get_current_user)):
         return {"message": "Invite deleted"}
 
 @router.put("/{ws_id}/members/{user_id}")
-def update_member_role(ws_id: str, user_id: str, body: dict, user: dict = Depends(get_current_user)):
+def update_member_role(ws_id: str, user_id: str, body: dict, user: dict = Depends(get_current_user_no_service_token)):
     # role is expected in body["role"]
     new_role = body.get("role")
     if new_role not in ["viewer", "editor"]:
@@ -294,7 +294,7 @@ def update_member_role(ws_id: str, user_id: str, body: dict, user: dict = Depend
         return {"message": "Member role updated"}
 
 @router.delete("/{ws_id}/members/me")
-def leave_workspace(ws_id: str, user: dict = Depends(get_current_user)):
+def leave_workspace(ws_id: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()
@@ -312,7 +312,7 @@ def leave_workspace(ws_id: str, user: dict = Depends(get_current_user)):
         return {"message": "Left workspace"}
 
 @router.delete("/{ws_id}/members/{user_id}")
-def remove_member(ws_id: str, user_id: str, user: dict = Depends(get_current_user)):
+def remove_member(ws_id: str, user_id: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         # Verify requester is owner
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
@@ -336,7 +336,7 @@ def remove_member(ws_id: str, user_id: str, user: dict = Depends(get_current_use
 # ── Join Requests ─────────────────────────────────────────────────────────────
 
 @router.post("/{ws_id}/join-requests", response_model=JoinRequestResponse, status_code=201)
-def create_join_request(ws_id: str, body: JoinRequestCreate, user: dict = Depends(get_current_user)):
+def create_join_request(ws_id: str, body: JoinRequestCreate, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         # Check if workspace is conditional_public
         cur.execute("SELECT visibility FROM workspaces WHERE id = %s", (ws_id,))
@@ -365,7 +365,7 @@ def create_join_request(ws_id: str, body: JoinRequestCreate, user: dict = Depend
             raise
 
 @router.get("/{ws_id}/join-requests", response_model=List[JoinRequestResponse])
-def list_join_requests(ws_id: str, status: str = Query("pending"), user: dict = Depends(get_current_user)):
+def list_join_requests(ws_id: str, status: str = Query("pending"), user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor() as cur:
         # Verify requester is owner or admin
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
@@ -380,7 +380,7 @@ def list_join_requests(ws_id: str, status: str = Query("pending"), user: dict = 
         return cur.fetchall()
 
 @router.post("/{ws_id}/join-requests/{req_id}/approve", response_model=JoinRequestResponse)
-def approve_join_request(ws_id: str, req_id: str, user: dict = Depends(get_current_user)):
+def approve_join_request(ws_id: str, req_id: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()
@@ -409,7 +409,7 @@ def approve_join_request(ws_id: str, req_id: str, user: dict = Depends(get_curre
         return cur.fetchone()
 
 @router.post("/{ws_id}/join-requests/{req_id}/reject", response_model=JoinRequestResponse)
-def reject_join_request(ws_id: str, req_id: str, user: dict = Depends(get_current_user)):
+def reject_join_request(ws_id: str, req_id: str, user: dict = Depends(get_current_user_no_service_token)):
     with db_cursor(commit=True) as cur:
         cur.execute("SELECT owner_id FROM workspaces WHERE id = %s", (ws_id,))
         ws = cur.fetchone()

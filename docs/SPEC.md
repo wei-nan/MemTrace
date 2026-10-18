@@ -1291,7 +1291,7 @@ Tools allow agents to take actions within MemTrace.
 | `traverse_edge` | `node:traverse` | Record traversal of an edge and increment path + node counts |
 | `rate_path` | `node:rate` | Submit a 1–5 rating for a traversed edge |
 
-**Workspace management (opt-in `workspace_admin` profile).** `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, and `remove_association` are available only when a client adds the `workspace_admin` tool profile (`X-MemTrace-Tool-Profile: core+agent_loop+workspace_admin`); the default profile does not include them. They authorize by the calling user's workspace role (§14.2), not by the scopes above. Through MCP, `create_workspace` can only produce `private` or `restricted` workspaces with manual-review Q&A archiving and a fixed MCP ingestion quota; publishing a workspace, deleting it, and managing members or invitations remain UI-only. Field-level contract: `packages/api/docs/mcp-contract.md`.
+**Workspace management (opt-in `workspace_admin` profile).** `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, and `remove_association` are available only when a client adds the `workspace_admin` tool profile (`X-MemTrace-Tool-Profile: core+agent_loop+workspace_admin`); the default profile does not include them. A personal API key authorizes by its owner's workspace role (§14.2). A workspace service token additionally needs `workspace:admin` (§29.2) for `update_workspace`, `add_association` and `remove_association`, and cannot call `create_workspace` at all. Through MCP, `create_workspace` can only produce `private` or `restricted` workspaces with manual-review Q&A archiving and a fixed MCP ingestion quota; publishing a workspace, deleting it, and managing members or invitations remain UI-only. Field-level contract: `packages/api/docs/mcp-contract.md`.
 
 ##### `search_nodes` — Input schema
 ```json
@@ -1850,8 +1850,9 @@ These tokens carry a **fixed scope** that is set at creation time and does not v
 | Scope | Role | Description |
 |-------|------|-------------|
 | `kb:read` | viewer | Search, read, traverse, rate |
-| `kb:propose` | contributor | All read + submit proposals |
-| `kb:write` | admin | Full write access |
+| `kb:propose` | contributor | Grants nothing yet (see §29.2) |
+| `kb:write` | admin | Read + write nodes and edges |
+| `workspace:admin` | admin | `kb:write` + workspace settings and associations |
 
 A service token is workspace-owned, not tied to any user account, and is intended for CI/CD pipelines and shared MCP integrations where a personal identity is inappropriate.
 
@@ -3200,17 +3201,27 @@ Workspace API Keys are **service-account tokens** scoped to a specific workspace
 
 ### 29.2 Scopes
 
-| Scope | Capabilities |
-|-------|-------------|
-| `kb:read` | Search, list nodes, traverse, Q&A chat |
-| `kb:propose` | All read + submit proposals to review queue |
-| `kb:write` | Full write access (create/edit/delete nodes and edges) |
+A service token's `user_id` is the workspace owner, so a role check alone would make every token as powerful as the owner. Its scopes are therefore the only thing that limits it, and they are enforced on every request to the token's workspace. The effective level is the highest one the token's scopes reach:
+
+| Level | Scopes | Capabilities |
+|-------|--------|--------------|
+| read | `kb:read`, `node:traverse`, `node:rate` | Search, list, read, traverse, Q&A chat |
+| write | `kb:write` | Read + create/edit/delete nodes and edges |
+| admin | `workspace:admin`, `*` | Write + update workspace settings and associations, delete or purge the workspace, trigger re-embedding |
+| none | `kb:propose`, any unknown string | Every request is refused |
+
+- `kb:propose` currently grants nothing (fails closed): routing a token's writes to the review queue is not implemented yet.
+- A token whose scopes fall short gets `403` with `detail = {"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`.
+- A token stays bound to its own workspace; any other workspace returns `403`.
+- Scopes given at creation must be a non-empty subset of `kb:read`, `kb:propose`, `kb:write`, `node:traverse`, `node:rate`, `workspace:admin`, `*`; anything else returns `422`.
+- **A service token can never manage credentials, membership or workspace creation, whatever its scopes.** Creating, listing, rotating or revoking API keys (workspace or personal), `POST /workspaces`, and the invite, member and join-request endpoints return `403` with `detail.error = "service_token_forbidden"`. Keys are issued only by the owner through a signed-in session or an account-level key.
+- Updating workspace settings (`PATCH /workspaces/{id}`, MCP `update_workspace`, `add_association`, `remove_association`) needs `workspace:admin`.
 
 ### 29.3 Lifecycle
-- Keys are created by admins via the Workspace Settings → API Keys panel.
+- Keys are created by the workspace owner via the Workspace Settings → API Keys panel, or with an account-level key. A service token cannot create keys (§29.2).
 - A key can be **rotated** (invalidates old key, issues new one with same name/scope).
 - A key can be **revoked** (permanently invalidated).
-- The raw key value is shown **once** on creation. It is stored as a bcrypt hash.
+- The raw key value is shown **once** on creation. Only a hash of it is stored.
 
 ### 29.4 API
 ```

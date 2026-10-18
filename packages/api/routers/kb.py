@@ -20,7 +20,7 @@ from core.config import settings
 
 
 
-from core.deps import get_current_user, get_current_user_optional, RequireScope, RequireRole
+from core.deps import get_current_user, get_current_user_optional, get_current_user_no_service_token, RequireScope, RequireRole
 from core.ratelimit import TraversalGuard
 from core.diff import build_node_diff
 from core.security import compute_signature, generate_id
@@ -255,7 +255,7 @@ def unpin_workspace(ws_id: str, user: dict = Depends(get_current_user)):
 
 
 @router.post("/workspaces", response_model=WorkspaceResponse, status_code=201)
-def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_user)):
+def create_workspace(body: WorkspaceCreate, user: dict = Depends(get_current_user_no_service_token)):
     from services.workspaces import create_workspace_in_db
     # Phase 6 S2-T08: language is required for single-language architecture
     if not body.language:
@@ -286,6 +286,10 @@ def get_graph_preview(ws_id: str, limit: int = 100, user: dict = Depends(get_cur
 def update_workspace(ws_id: str, body: WorkspaceUpdate, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     from services.workspaces import update_workspace_in_db
     with db_cursor(commit=True) as cur:
+        if user.get("key_type") == "service":
+            # Binds the token to its own workspace and demands workspace:admin.
+            from services.workspaces import require_ws_access
+            require_ws_access(cur, ws_id, user, write=True, required_role="admin")
         ws = update_workspace_in_db(cur, ws_id, user["sub"], body.model_dump(exclude_unset=True))
 
     if body.migration_status == 'in_progress':

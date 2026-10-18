@@ -4202,7 +4202,7 @@ VALUES
 
 **`update_workspace` 的限制**：只有工作區擁有者可呼叫；不能透過 MCP 變更可見度、匿名檢視、向量模型、遷移與進階設定。
 
-**權限**：個人 API key 以其擁有者的身分運作，不會超出該使用者在各工作區的角色。綁定單一工作區的服務 token 不能建立新工作區。
+**權限**：個人 API key 以其擁有者的身分運作，不會超出該使用者在各工作區的角色。綁定單一工作區的服務 token 不能建立新工作區；它呼叫 `update_workspace`、`add_association`、`remove_association` 時另需 `workspace:admin` scope，否則回 403（`required: workspace:admin`）。
 
 **不在此批**：刪除工作區、成員的新增／移除／改角色、邀請，仍只能在 UI 操作。',
    ARRAY['mcp', 'workspace', 'tool-profile', '現況更新']::text[],'public','usr_6bc7b4c7','2026-10-01T00:00:00+00:00','','ai',
@@ -4387,9 +4387,27 @@ Phase 4.10 將 MCP / API 金鑰從「工作區綁定 + 固定 scope」改為「�
 
 ## 影響
 
-- `RequireScope` 改為 `RequireRole`。但目前 `RequireScope`／`require_ws_access` 的 `required_scope` 參數在全部路由中都沒有實際呼叫點——包含 §29 service token 在內，scope 目前都沒有被任何地方強制檢查，屬於死碼。
+- `RequireScope` 改為 `RequireRole`。當時 `required_scope` 在全部路由中都沒有實際呼叫點，§29 service token 的 scope 實際上沒有被強制。這個缺口已補上，語意見下方「服務 token 的 scope 語意」。
 - 新增 `idx_wsm_user` 索引確保查詢效能
-- UI Settings → MCP / API Keys 移除 scope / workspace selector',
+- UI Settings → MCP / API Keys 移除 scope / workspace selector
+
+## 服務 token 的 scope 語意
+
+服務 token 的 `user_id` 是工作區擁有者，單靠角色檢查會讓每把 token 都等同擁有者，因此 scope 是限制它的唯一依據。每次存取該工作區時，依 token 的 scope 取其能達到的最高層級：
+
+| 層級 | scope | 可做的事 |
+|---|---|---|
+| 唯讀 | `kb:read`、`node:traverse`、`node:rate` | 搜尋、讀取、走訪 |
+| 寫入 | `kb:write` | 唯讀＋新增／修改／刪除節點與邊 |
+| 管理 | `workspace:admin`、`*` | 寫入＋更新工作區設定與關聯、刪除或清空工作區、觸發重新嵌入 |
+| 無權限 | `kb:propose`、任何未知字串 | 所有請求皆拒絕 |
+
+- `kb:propose` 目前不授予任何權限（失效即關閉）：把它的寫入導向審核佇列尚未實作。
+- scope 不足回 HTTP 403，`detail` 為 `{"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`。
+- 服務 token 仍綁定單一工作區，存取其他工作區回 403。
+- 簽發時 scopes 必須是非空集合，且只能包含 `kb:read`、`kb:propose`、`kb:write`、`node:traverse`、`node:rate`、`workspace:admin`、`*`，否則回 422。
+- **服務 token 無論 scope 為何，都不能管理憑證、成員或建立工作區**：個人與工作區 API 金鑰的建立／列出／輪替／撤銷、`POST /workspaces`，以及邀請、成員、加入申請端點，一律回 403，`detail.error` 為 `service_token_forbidden`。金鑰只能由擁有者以登入 session 或帳號層級金鑰簽發。
+- 更新工作區設定（`PATCH /workspaces/{id}`、MCP `update_workspace`／`add_association`／`remove_association`）需要 `workspace:admin`。',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9433,7 +9451,7 @@ VALUES
 
 **`update_workspace` limits**: only the workspace owner can call it; visibility, anonymous view, the embedding model, migration, and advanced settings cannot be changed through MCP.
 
-**Permissions**: a personal API key acts as its owner and never exceeds that user''s role in any workspace. A service token bound to a single workspace cannot create new workspaces.
+**Permissions**: a personal API key acts as its owner and never exceeds that user''s role in any workspace. A service token bound to a single workspace cannot create new workspaces, and it needs the `workspace:admin` scope to call `update_workspace`, `add_association` or `remove_association` (otherwise 403 with `required: workspace:admin`).
 
 **Not in this batch**: deleting workspaces, adding/removing members or changing their roles, and invitations remain UI-only.',
    ARRAY['mcp', 'workspace', 'tool-profile', 'current-state']::text[],'public','usr_6bc7b4c7','2026-10-01T00:00:00+00:00','','ai',
@@ -9618,9 +9636,27 @@ Role hierarchy: `viewer` < `editor` < `admin` (owner is treated as admin). `ROLE
 
 ## Impact
 
-- `RequireScope` replaced by `RequireRole`. However, `RequireScope` / the `required_scope` parameter on `require_ws_access` currently has no actual call sites anywhere in the routers — scope is not enforced anywhere right now, including for §29 service tokens; it''s dead code.
+- `RequireScope` replaced by `RequireRole`. At the time, `required_scope` had no call sites in any route, so the scopes of a §29 service token were not actually enforced. That gap is now closed; see "Service-token scope semantics" below.
 - Added `idx_wsm_user` index to ensure query performance
-- UI Settings → MCP / API Keys removes the scope / workspace selector',
+- UI Settings → MCP / API Keys removes the scope / workspace selector
+
+## Service-token scope semantics
+
+A service token''s `user_id` is the workspace owner, so a role check alone would make every token as powerful as the owner. Its scopes are therefore the only thing that limits it. On every request to its workspace, the token gets the highest level its scopes reach:
+
+| Level | Scopes | Can do |
+|---|---|---|
+| read | `kb:read`, `node:traverse`, `node:rate` | Search, read, traverse |
+| write | `kb:write` | Read + create/edit/delete nodes and edges |
+| admin | `workspace:admin`, `*` | Write + update workspace settings and associations, delete or purge the workspace, trigger re-embedding |
+| none | `kb:propose`, any unknown string | Every request is refused |
+
+- `kb:propose` currently grants nothing (fails closed): routing its writes to the review queue is not implemented yet.
+- A token whose scopes fall short gets HTTP 403 with `detail` = `{"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`.
+- A service token stays bound to its own workspace; any other workspace returns 403.
+- Scopes given at creation must be a non-empty subset of `kb:read`, `kb:propose`, `kb:write`, `node:traverse`, `node:rate`, `workspace:admin`, `*`; anything else returns 422.
+- **A service token can never manage credentials, membership or workspace creation, whatever its scopes**: creating, listing, rotating or revoking API keys (workspace or personal), `POST /workspaces`, and the invite, member and join-request endpoints always return 403 with `detail.error = "service_token_forbidden"`. Keys are issued only by the owner through a signed-in session or an account-level key.
+- Updating workspace settings (`PATCH /workspaces/{id}`, MCP `update_workspace`, `add_association`, `remove_association`) needs `workspace:admin`.',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET

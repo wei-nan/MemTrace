@@ -919,6 +919,20 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
 
   useEffect(() => { load(); }, [wsId]);
 
+  // The key and its copy button come first, the one-time warning sits below them.
+  const renderSecretKey = (secret: string, note: string) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Input readOnly value={secret} style={{ flex: 1, minWidth: 0, fontFamily: "monospace" }} />
+        <Button variant="secondary" style={{ flexShrink: 0 }} onClick={() => {
+          navigator.clipboard.writeText(secret);
+          toast({ message: t('common.copied'), variant: "success" });
+        }} leftIcon={<Copy size={16} />} />
+      </div>
+      <p style={{ margin: 0 }}>{note}</p>
+    </div>
+  );
+
   const handleCreate = async () => {
     if (!newKeyName.trim()) return;
     try {
@@ -927,18 +941,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
       await load();
       alert({
         title: t('ws_settings.new_key_title'),
-        message: (
-          <div style={{ display: "flex", gap: 12 }}>
-            <p>{t('ws_settings.new_key_msg')}</p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <Input readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
-              <Button variant="secondary" onClick={() => {
-                navigator.clipboard.writeText(res.key);
-                toast({ message: t('common.copied'), variant: "success" });
-              }} leftIcon={<Copy size={16} />} />
-            </div>
-          </div>
-        )
+        message: renderSecretKey(res.key, t('ws_settings.new_key_msg'))
       });
     } catch (e) {
       toast({ message: String(e), variant: "error" });
@@ -953,18 +956,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
       await load();
       alert({
         title: t('ws_settings.rotated_key_title'),
-        message: (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <p>{t('ws_settings.rotated_key_msg')}</p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <Input readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
-              <Button variant="secondary" onClick={() => {
-                navigator.clipboard.writeText(res.key);
-                toast({ message: t('common.copied'), variant: "success" });
-              }} leftIcon={<Copy size={16} />} />
-            </div>
-          </div>
-        )
+        message: renderSecretKey(res.key, t('ws_settings.rotated_key_msg'))
       });
     } catch (e) {
       toast({ message: String(e), variant: "error" });

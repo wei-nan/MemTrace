@@ -96,7 +96,7 @@ _Profile: `workspace_admin`._ Create a workspace owned by the caller.
 | `visibility` | string | no | `private` (default) or `restricted`. `public` / `conditional_public` are rejected — publishing is done by a human in the UI |
 | `kb_type` | string | no | `evergreen` (default) or `ephemeral`; immutable after creation |
 
-Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `auto_split=false`, `settings.mcp_ingest_enabled=true`, `settings.mcp_ingest_daily_quota=100`; the embedding model is resolved from the account and locked. Any other field, and any non-string value for a string field, is rejected with a `400` error (not ignored). Workspace-scoped service tokens get `403`.
+Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `auto_split=false`, `settings.mcp_ingest_enabled=true`, `settings.mcp_ingest_daily_quota=100`; the embedding model is resolved from the account and locked. Any other field, and any non-string value for a string field, is rejected with a `400` error (not ignored). Workspace-scoped service tokens always get `403`, whatever their scopes.
 
 **Output**:
 ```json
@@ -107,7 +107,7 @@ Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `au
 ---
 
 ### `update_workspace`
-_Profile: `workspace_admin`._ Update a workspace. Owner only (an admin member gets 403).
+_Profile: `workspace_admin`._ Update a workspace. Owner only (an admin member gets 403). A service token also needs the `workspace:admin` scope (otherwise `403`, `detail.required = "workspace:admin"`).
 
 **Input**: `workspace_id` (required) plus at least one of `name` (non-empty), `description` (empty string clears it), `archive_window_days` (integer, 1 to 2147483647), `min_traversals` (integer, 0 to 2147483647), `qa_archive_mode` (`auto_active` | `manual_review`). Visibility, anonymous view, embedding, migration and `settings` are rejected with a `400` error.
 
@@ -137,7 +137,7 @@ _Profile: `workspace_admin`._ List the workspaces this workspace is associated w
 ---
 
 ### `add_association`
-_Profile: `workspace_admin`._ Associate a source workspace with a target workspace, which widens `search_cross_workspace` for the source. Needs write access to the source and read access to the target; returns 409 if the association already exists.
+_Profile: `workspace_admin`._ Associate a source workspace with a target workspace, which widens `search_cross_workspace` for the source. Needs write access to the source and read access to the target; returns 409 if the association already exists. A service token also needs `workspace:admin`.
 
 **Input**:
 | Field | Type | Required | Description |
@@ -150,7 +150,7 @@ _Profile: `workspace_admin`._ Associate a source workspace with a target workspa
 ---
 
 ### `remove_association`
-_Profile: `workspace_admin`._ Remove an association from a source workspace to a target workspace. Needs write access to the source; returns 404 if it does not exist.
+_Profile: `workspace_admin`._ Remove an association from a source workspace to a target workspace. Needs write access to the source; returns 404 if it does not exist. A service token also needs `workspace:admin`.
 
 **Input**:
 | Field | Type | Required | Description |

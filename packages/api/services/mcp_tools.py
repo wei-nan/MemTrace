@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, HTTPException
 from core.database import db_cursor
 from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T
-from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
+from services.workspaces import require_ws_access, require_service_tier, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
 from services.edges import (
     record_traversal, create_edge_in_db, update_edge_in_db, trash_edge_in_db,
     restore_trashed_edge_in_db, list_trashed_edges_in_db,
@@ -3066,6 +3066,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             # Enforces a workspace-scoped key's restriction and 404s unknown ids;
             # the owner-only rule itself lives in update_workspace_in_db.
             require_ws_access(cur, ws_id, user)
+            require_service_tier(user, "admin")
             ws = update_workspace_in_db(cur, ws_id, user["sub"], updates)
         projected = {
             "id": ws.get("id"),
@@ -3122,6 +3123,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         target_id = args["target_workspace_id"]
         with db_cursor(commit=True) as cur:
+            require_service_tier(user, "admin")
             _require_editor_on_source(cur, ws_id, user)
             row = create_association_in_db(cur, ws_id, target_id, user)
         return {
@@ -3138,6 +3140,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         target_id = args["target_workspace_id"]
         with db_cursor(commit=True) as cur:
+            require_service_tier(user, "admin")
             _require_editor_on_source(cur, ws_id, user)
             delete_association_in_db(cur, ws_id, target_id, user)
         return {"removed": True, "workspace_id": ws_id, "target_workspace_id": target_id}
