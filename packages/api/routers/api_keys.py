@@ -116,7 +116,7 @@ def revoke_api_key(
 ):
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "DELETE FROM api_keys WHERE id = %s AND user_id = %s",
+            "DELETE FROM api_keys WHERE id = %s AND user_id = %s AND key_type = 'account'",
             (key_id, current_user["sub"])
         )
         if cur.rowcount == 0:
@@ -135,7 +135,7 @@ def rotate_api_key(
     """S3-7a: Rotate a personal API key — only copy name and expires_at (no scopes/workspace_id)."""
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "SELECT id, name, expires_at FROM api_keys WHERE id = %s AND user_id = %s",
+            "SELECT id, name, expires_at FROM api_keys WHERE id = %s AND user_id = %s AND key_type = 'account'",
             (key_id, current_user["sub"])
         )
         old_key = cur.fetchone()

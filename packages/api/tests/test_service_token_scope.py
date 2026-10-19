@@ -528,6 +528,9 @@ def test_no_service_token_dependency_refuses_service_tokens_and_passes_others():
     with pytest.raises(HTTPException) as exc:
         dep({"sub": "u", "key_type": "service", "scopes": ["*"]})
     assert exc.value.status_code == 403 and exc.value.detail["error"] == "service_token_forbidden"
+    with pytest.raises(HTTPException) as exc:        # provisioner keys are refused here too
+        dep({"sub": "u", "key_type": "provisioner", "scopes": ["provision"]})
+    assert exc.value.status_code == 403
     account = {"sub": "u", "api_key_id": "k", "scopes": []}
     assert dep(account) is account
     jwt = {"sub": "u"}

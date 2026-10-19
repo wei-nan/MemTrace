@@ -98,6 +98,25 @@ def get_current_user(
                 (ip, row["id"])
             )
 
+            # A provisioner key (migration 011) may only call POST /provision/workspaces.
+            # It must be handled before the account-key fallthrough below, or it would
+            # inherit its owner's full account access.
+            if row["key_type"] == "provisioner":
+                if not (request.method == "POST" and request.url.path == "/api/v1/provision/workspaces"):
+                    raise HTTPException(
+                        status_code=403,
+                        detail={"error": "provisioner_key_forbidden", "message": "A provisioner key can only create knowledge bases"},
+                    )
+                return {
+                    "sub": row["user_id"],
+                    "email": row["email"],
+                    "api_key_id": row["id"],
+                    "role": None,
+                    "scopes": ["provision"],
+                    "workspace_id": None,
+                    "key_type": "provisioner",
+                }
+
             # Option D (P4.10): branch on key_type
             if row["key_type"] == "service":
                 # §29 workspace service token — fixed scopes, no dynamic role resolution
@@ -186,7 +205,7 @@ def get_current_user_no_service_token(user: dict = Depends(get_current_user)):
     passes for it. Endpoints that issue or manage credentials must never be
     reachable with a service token, whatever its scopes.
     """
-    if user.get("key_type") == "service":
+    if user.get("key_type") in ("service", "provisioner"):
         raise HTTPException(
             status_code=403,
             detail={"error": "service_token_forbidden", "message": "Workspace service tokens cannot manage API keys or workspaces"},
