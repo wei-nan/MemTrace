@@ -194,6 +194,36 @@ def test_minting_accepts_the_documented_scopes(client, world, scopes):
     assert r.status_code == 200, f"{scopes}: {r.status_code} {r.text[:120]}"
 
 
+# ─── content writes beyond nodes: kb:write is enough, kb:read is not ──────────
+
+def _two_nodes(client, world):
+    ids = []
+    for t in ("a", "b"):
+        r = client.post(f"/api/v1/workspaces/{world['ws1']}/nodes", json={**_node_body(), "title": f"edge-{t}"},
+                        headers=_auth(world["owner_key"]))
+        assert r.status_code == 201, r.text[:200]
+        ids.append(r.json()["id"])
+    return ids
+
+
+def test_kb_write_token_can_create_edges_and_read_token_cannot(client, world):
+    a, b = _two_nodes(client, world)
+    body = {"from_id": a, "to_id": b, "relation": "related_to"}
+    r = client.post(f"/api/v1/workspaces/{world['ws1']}/edges", json=body, headers=_auth(world["tokens"]["read"]))
+    assert r.status_code == 403 and r.json()["detail"]["required"] == "kb:write", r.text[:200]
+    r = client.post(f"/api/v1/workspaces/{world['ws1']}/edges", json=body, headers=_auth(world["tokens"]["write"]))
+    assert r.status_code in (200, 201), r.text[:200]
+
+
+@pytest.mark.parametrize("name,forbidden", [("read", True), ("write", True), ("admin", False)])
+def test_review_queue_rest_needs_workspace_admin(client, world, name, forbidden):
+    r = client.get(f"/api/v1/workspaces/{world['ws1']}/review-queue", headers=_auth(world["tokens"][name]))
+    if forbidden:
+        assert r.status_code == 403 and r.json()["detail"]["error"] == "service_token_forbidden"
+    else:
+        assert r.status_code != 403, r.text[:200]
+
+
 # ─── membership endpoints (invites are credentials too) ───────────────────────
 
 @pytest.mark.parametrize("name", ["read", "star"])
@@ -422,6 +452,39 @@ def test_mcp_update_workspace_cannot_reach_another_workspace(world):
     with pytest.raises(HTTPException) as exc:
         _run_tool("update_workspace", {"workspace_id": world["ws2"], "description": "x"},
                   _svc_user(world, "star"))
+    assert exc.value.status_code == 403
+
+
+# ─── defense in depth: pinned without going through the route allowlist ───────
+
+def test_no_service_token_dependency_refuses_service_tokens_and_passes_others():
+    from core.deps import get_current_user_no_service_token as dep
+    with pytest.raises(HTTPException) as exc:
+        dep({"sub": "u", "key_type": "service", "scopes": ["*"]})
+    assert exc.value.status_code == 403 and exc.value.detail["error"] == "service_token_forbidden"
+    account = {"sub": "u", "api_key_id": "k", "scopes": []}
+    assert dep(account) is account
+    jwt = {"sub": "u"}
+    assert dep(jwt) is jwt
+
+
+@pytest.mark.parametrize("name,allowed", [("read", False), ("write", False), ("admin", True)])
+def test_reembed_all_needs_workspace_admin_even_without_the_allowlist(world, db_conn, name, allowed):
+    from services.nodes import reembed_all_nodes_in_db
+    cur = db_conn.cursor()
+    try:
+        reembed_all_nodes_in_db(cur, world["ws1"], _svc_user(world, name))
+        assert allowed
+    except HTTPException as e:
+        assert not allowed and e.status_code == 403
+        assert e.detail == {"error": "insufficient_scope", "required": "workspace:admin"}
+
+
+@pytest.mark.parametrize("name", ["read", "write"])
+def test_delete_workspace_needs_workspace_admin_even_without_the_allowlist(world, db_conn, name):
+    from services.workspaces import delete_workspace_in_db
+    with pytest.raises(HTTPException) as exc:
+        delete_workspace_in_db(db_conn.cursor(), world["ws1"], _svc_user(world, name))
     assert exc.value.status_code == 403
 
 

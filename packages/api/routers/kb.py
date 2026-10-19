@@ -288,8 +288,9 @@ def update_workspace(ws_id: str, body: WorkspaceUpdate, background_tasks: Backgr
     with db_cursor(commit=True) as cur:
         if user.get("key_type") == "service":
             # Binds the token to its own workspace and demands workspace:admin.
-            from services.workspaces import require_ws_access
+            from services.workspaces import require_ws_access, require_service_tier
             require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+            require_service_tier(user, "admin")
         ws = update_workspace_in_db(cur, ws_id, user["sub"], body.model_dump(exclude_unset=True))
 
     if body.migration_status == 'in_progress':

@@ -71,13 +71,16 @@ def require_ws_access(
     - required_scope: legacy (§29 workspace service tokens)
     """
     # API key scope and workspace validation
+    if user and user.get("key_type") == "service" and not user.get("workspace_id"):
+        raise HTTPException(status_code=403, detail="Service token is not bound to a workspace")
     if user and "api_key_id" in user:
         ak_ws_id = user.get("workspace_id")
         if ak_ws_id and ak_ws_id != ws_id:
             raise HTTPException(status_code=403, detail="API key is restricted to another workspace")
-        if required_role == "admin":
-            needed = "admin"
-        elif write or required_role in ("editor", "contributor"):
+        # kb:write is the content-writing tier (SPEC: kb:write <-> admin role), so
+        # the admin *role* required for edges, documents etc. needs only kb:write.
+        # Settings, deletion and moderation call require_service_tier(user, "admin").
+        if write or required_role in ("admin", "editor", "contributor"):
             needed = "write"
         else:
             needed = "read"
@@ -430,6 +433,7 @@ def delete_workspace_in_db(cur, ws_id: str, user: dict) -> None:
 
 def purge_workspace_in_db(cur, ws_id: str, user: dict) -> dict:
     ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+    require_service_tier(user, "admin")
     if ws["owner_id"] != user["sub"]:
         raise HTTPException(status_code=403, detail="Only workspace owner can purge it")
     cur.execute("DELETE FROM edges WHERE workspace_id = %s", (ws_id,))

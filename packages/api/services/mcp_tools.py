@@ -1427,6 +1427,65 @@ def _require_editor_on_source(cur, ws_id: str, user: dict) -> None:
     require_ws_access(cur, ws_id, user, required_role="editor")
 
 
+# ─── Access level every MCP tool needs on the workspace it is pointed at ──────
+# Enforced for ALL tools in one place (enforce_mcp_tool_access), before the
+# handler runs, so a tool cannot forget its own check. A tool that is not
+# listed here is refused, and tests/test_mcp_tool_access.py fails until it is
+# classified.
+#   read   -> any member (or a public workspace) may call it
+#   write  -> editor/admin; for a service token, kb:write
+#   admin  -> workspace admin; for a service token, workspace:admin
+#   none   -> takes no workspace_id and guards itself
+MCP_TOOL_ACCESS = {
+    # no workspace argument
+    "list_workspaces": "none", "create_workspace": "none", "get_schema": "none",
+    # workspace management (their handlers add owner / tier checks of their own)
+    "update_workspace": "read", "list_members": "read", "list_associations": "read",
+    "add_association": "read", "remove_association": "read",
+    # reads
+    "list_nodes": "read", "get_node": "read", "search_nodes": "read",
+    "search_cross_workspace": "read", "list_trash": "read", "wait_for_embedding": "read",
+    "get_embedding_status": "read", "traverse": "read", "consult": "read",
+    "list_by_tag": "read", "list_review_queue": "read", "get_ingestion_status": "read",
+    "suggest_edges": "read", "verify_audit": "read", "list_documents": "read",
+    "get_document": "read", "get_node_sources": "read", "search_with_history": "read",
+    "get_next_task": "read", "get_playbook": "read", "converge_check": "read",
+    "converge_proposals": "read",
+    # writes
+    "create_node": "write", "update_node": "write", "delete_node": "write",
+    "restore_node": "write", "restore_archived_node": "write", "restore_edge": "write",
+    "create_edge": "write", "update_edge": "write", "delete_edge": "write",
+    "extract_from_text": "write", "ingest_document": "write", "sync_from_source": "write",
+    "attach_url": "write", "attach_evidence": "write", "upload_file": "write",
+    "record_path": "write", "propose_decision": "write", "submit_outcome": "write",
+    "emit_residue": "write", "claim_task": "write", "release_task": "write",
+    "summarize_cluster": "write", "complement_node_languages": "write",
+    # moderation
+    "reject_proposal": "admin", "resolve_conflict": "admin", "transfer_authorship": "admin",
+}
+
+
+def enforce_mcp_tool_access(name: str, args: dict, user: dict) -> None:
+    """Refuse the call unless `user` may use tool `name` on args["workspace_id"]."""
+    level = MCP_TOOL_ACCESS.get(name)
+    if level is None:
+        raise HTTPException(status_code=403, detail=f"Tool '{name}' has no access classification")
+    if level == "none":
+        return
+    ws_id = args.get("workspace_id")
+    if not isinstance(ws_id, str) or not ws_id:
+        raise HTTPException(status_code=400, detail="'workspace_id' is required and must be a string")
+    with db_cursor() as cur:
+        require_ws_access(
+            cur, ws_id, user,
+            write=level in ("write", "admin"),
+            required_role="admin" if level == "admin" else None,
+        )
+    if level == "admin":
+        # moderation (resolve_conflict, reject_proposal, transfer_authorship)
+        require_service_tier(user, "admin")
+
+
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
     # Optional correlation ids for this call, if the caller (an external
     # harness) supplied them — see _run_context above. Absent by default;
@@ -1436,6 +1495,8 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         "task_id": args.get("task_id"),
         "stage": args.get("stage"),
     })
+
+    enforce_mcp_tool_access(name, args, user)
 
     # ── list_workspaces ───────────────────────────────────────────────────────
     if name == "list_workspaces":

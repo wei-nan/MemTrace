@@ -10,6 +10,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from services.node_projection import calculate_top_edges, project_node
 from services.mcp_tools import execute_tool, dispatch, USER_CAPABILITIES
 
+pytestmark = pytest.mark.usefixtures("bypass_mcp_access_guard")
+
 # ─── 1. Top Edges 計算邏輯測試 ──────────────────────────────────────────────────
 
 def test_calculate_top_edges():

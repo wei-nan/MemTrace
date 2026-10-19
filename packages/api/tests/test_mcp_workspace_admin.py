@@ -23,6 +23,8 @@ from services.workspaces import (
     update_workspace_in_db,
 )
 
+pytestmark = pytest.mark.usefixtures("bypass_mcp_access_guard")
+
 WORKSPACE_ADMIN_TOOLS = {
     "create_workspace",
     "update_workspace",

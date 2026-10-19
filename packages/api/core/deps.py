@@ -42,14 +42,14 @@ def _extract_workspace_id(request: Request) -> Optional[str]:
 _SERVICE_WS_SEGMENTS = frozenset({
     "nodes", "nodes-search", "edges", "table-view", "graph-preview", "decay-stats",
     "analytics", "stats", "clusters", "trash", "documents", "ingest", "sources",
-    "review-queue", "audit-proposals", "consult", "exports", "imports", "associations",
+    "audit-proposals", "consult", "exports", "imports", "associations",
 })
 # Workspace configuration and operations: need the workspace:admin tier.
 _SERVICE_WS_ADMIN_SEGMENTS = frozenset({
     "ai-reviewers", "audit", "conductor", "connector-bindings", "connector-runs",
     "failed-embeddings", "job-runs", "maintenance", "model-bindings", "purge",
     "reembed-all", "retry-failed-embeddings", "review", "review-policy",
-    "reviewer-profiles", "safety-review-queue", "scheduler-heartbeats",
+    "review-queue", "reviewer-profiles", "safety-review-queue", "scheduler-heartbeats",
 })
 _SERVICE_WS_PATH = re.compile(r"^/api/v1/workspaces/([^/]+)(?:/([^/]+))?")
 

@@ -128,3 +128,14 @@ def fake_admin_user() -> dict:
 @pytest.fixture
 def fake_workspace_id() -> str:
     return "ws_test_fixture_001"
+
+
+# ─── MCP access guard ────────────────────────────────────────────────────────
+
+@pytest.fixture
+def bypass_mcp_access_guard(monkeypatch):
+    """Handler-level MCP tests run with a mocked cursor, so the real
+    enforce_mcp_tool_access (which opens its own DB cursor) is stubbed out.
+    The guard itself is covered, un-stubbed, in tests/test_mcp_tool_access.py."""
+    import services.mcp_tools as mcp_tools
+    monkeypatch.setattr(mcp_tools, "enforce_mcp_tool_access", lambda name, args, user: None)

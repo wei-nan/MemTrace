@@ -34,6 +34,10 @@ Each request body must be a JSON-RPC 2.0 envelope:
 
 ---
 
+## Access control
+
+Every tool call passes `enforce_mcp_tool_access` before its handler runs. `MCP_TOOL_ACCESS` (in `services/mcp_tools.py`) classifies each tool as `read`, `write`, `admin`, or `none` (no `workspace_id`; the tool guards itself). `read` needs read access to `workspace_id`; `write` needs editor or admin (a service token: `kb:write`); `admin` needs workspace admin (a service token: `workspace:admin`). A tool missing from the table is refused, and `tests/test_mcp_tool_access.py` fails until it is classified. `workspace_id` must be a non-empty string (`400` otherwise). Refusals are `403`; for a service token `detail` is `{"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`. A workspace service token is bound to its own workspace and sees only that workspace in `list_workspaces`.
+
 ## Tool Profiles
 
 To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 50 tools, clients can request a specific functional subset.

@@ -4393,20 +4393,21 @@ Phase 4.10 將 MCP / API 金鑰從「工作區綁定 + 固定 scope」改為「�
 
 ## 服務 token 的 scope 語意
 
-服務 token 的 `user_id` 是工作區擁有者，單靠角色檢查會讓每把 token 都等同擁有者，因此 scope 是限制它的唯一依據。每次存取該工作區時，依 token 的 scope 取其能達到的最高層級：
+服務 token 的 `user_id` 是工作區擁有者，單靠角色檢查會讓每把 token 都等同擁有者，因此 scope 是限制它的唯一依據。強制分兩層：REST 的路由白名單（見下），以及每次 MCP 工具呼叫在 handler 執行前都要通過的存取檢查。有效層級取 token 的 scope 能達到的最高者：
 
 | 層級 | scope | 可做的事 |
 |---|---|---|
-| 唯讀 | `kb:read`、`node:traverse`、`node:rate` | 搜尋、讀取、走訪 |
-| 寫入 | `kb:write` | 唯讀＋新增／修改／刪除節點與邊 |
-| 管理 | `workspace:admin`、`*` | 寫入＋更新工作區設定與關聯、刪除或清空工作區、觸發重新嵌入 |
+| 唯讀 | `kb:read`、`node:traverse`、`node:rate` | 讀取與搜尋工作區、走訪、分析、`consult` |
+| 寫入 | `kb:write` | 唯讀＋寫入工作區內容：新增、編輯、刪除、還原節點與邊，文件與攝入，agent-loop 寫入（claim／release task、record path、submit outcome） |
+| 管理 | `workspace:admin`、`*` | 寫入＋工作區設定與關聯、刪除／清空／重新嵌入工作區、審核佇列與仲裁（`resolve_conflict`、`reject_proposal`、`transfer_authorship`）、設定類路由 |
 | 無權限 | `kb:propose`、任何未知字串 | 工作區資料請求皆拒絕 |
 
 - `kb:propose` 目前不授予任何權限（失效即關閉）：把它的寫入導向審核佇列尚未實作，UI 也不再提供此選項。
 - scope 不足回 HTTP 403，`detail` 為 `{"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`。
-- 服務 token 仍綁定單一工作區，存取其他工作區回 403。
+- 服務 token 在 REST 與 MCP 都綁定自己的工作區，存取其他工作區回 403；沒有綁定工作區的服務 token 一律拒絕。
 - 簽發時 scopes 必須是非空集合，且只能包含 `kb:read`、`kb:propose`、`kb:write`、`node:traverse`、`node:rate`、`workspace:admin`、`*`，否則回 422。
-- **路由白名單（失效即關閉）。** 服務 token 只能呼叫 MCP 端點（`/mcp`、`/api/v1/mcp/*`），以及自己工作區的 `/api/v1/workspaces/{id}` 與子資源 `nodes`、`nodes-search`、`edges`、`table-view`、`graph-preview`、`decay-stats`、`analytics`、`stats`、`clusters`、`trash`、`documents`、`ingest`、`sources`、`review-queue`、`audit-proposals`、`consult`、`exports`、`imports`、`associations`。工作區設定與維運類子資源（`ai-reviewers`、`audit`、`conductor`、`connector-bindings`、`connector-runs`、`failed-embeddings`、`job-runs`、`maintenance`、`model-bindings`、`purge`、`reembed-all`、`retry-failed-embeddings`、`review`、`review-policy`、`reviewer-profiles`、`safety-review-queue`、`scheduler-heartbeats`）另需 `workspace:admin`。其他所有路由無論 scope 為何一律回 403，`detail.error` 為 `service_token_forbidden`：帳號設定（`/auth/*`）、AI 金鑰與 AI 對話、通知、連接器帳號、clone 與 fork、系統路由、其他工作區，以及一切管理憑證、成員或建立工作區的端點（API 金鑰、成員、邀請、加入申請、`POST /workspaces`）。新增的路由預設拒絕。同時開放匿名的路由（工作區列表、explore）會把服務 token 視為匿名。金鑰只能由擁有者以登入 session 或帳號層級金鑰簽發。
+- **REST 路由白名單（失效即關閉）。** 服務 token 只能呼叫 MCP 端點（`/mcp`、`/api/v1/mcp/*`），以及自己工作區的 `/api/v1/workspaces/{id}` 與子資源 `nodes`、`nodes-search`、`edges`、`table-view`、`graph-preview`、`decay-stats`、`analytics`、`stats`、`clusters`、`trash`、`documents`、`ingest`、`sources`、`audit-proposals`、`consult`、`exports`、`imports`、`associations`。設定與維運類子資源（`ai-reviewers`、`audit`、`conductor`、`connector-bindings`、`connector-runs`、`failed-embeddings`、`job-runs`、`maintenance`、`model-bindings`、`purge`、`reembed-all`、`retry-failed-embeddings`、`review`、`review-policy`、`review-queue`、`reviewer-profiles`、`safety-review-queue`、`scheduler-heartbeats`）另需 `workspace:admin`。其他所有路由無論 scope 為何一律回 403，`detail.error` 為 `service_token_forbidden`：帳號設定（`/auth/*`）、AI 金鑰與 AI 對話、通知、連接器帳號、clone 與 fork、系統路由、其他工作區，以及一切管理憑證、成員或建立工作區的端點（API 金鑰、成員、邀請、加入申請、`POST /workspaces`）。新增的路由預設拒絕。同時開放匿名的路由（工作區列表、explore）會把服務 token 視為匿名。金鑰只能由擁有者以登入 session 或帳號層級金鑰簽發。
+- **MCP 工具存取。** 每個 MCP 工具都在 `MCP_TOOL_ACCESS` 中分類為讀、寫或管理（或不帶工作區），且對所有工具、所有呼叫者，檢查都在 handler 之前執行。唯讀 token、綁定其他工作區的 token、非成員的使用者，對 `update_node`、`delete_node`、`resolve_conflict` 等工具一律被拒絕。同一檢查也適用於真人：工作區檢視者不能再呼叫寫入工具，非成員不能呼叫寫入工具，也不能讀取非公開的工作區。`list_workspaces`、`create_workspace`、`get_schema` 不帶工作區、由自身把關：服務 token 在 `list_workspaces` 只看得到自己的工作區、不能呼叫 `create_workspace`，`list_members` 拒絕服務 token。`tools/list` 不依 scope 過濾。
 - 更新工作區設定（`PATCH /workspaces/{id}`、MCP `update_workspace`／`add_association`／`remove_association`）需要 `workspace:admin`。',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
    0,0)
@@ -9642,20 +9643,21 @@ Role hierarchy: `viewer` < `editor` < `admin` (owner is treated as admin). `ROLE
 
 ## Service-token scope semantics
 
-A service token''s `user_id` is the workspace owner, so a role check alone would make every token as powerful as the owner. Its scopes are therefore the only thing that limits it. On every request to its workspace, the token gets the highest level its scopes reach:
+A service token''s `user_id` is the workspace owner, so a role check alone would make every token as powerful as the owner. Its scopes are therefore the only thing that limits it. Two layers enforce them: a route allowlist for REST (below), and an access check that every MCP tool call passes before its handler runs. The effective level is the highest one the token''s scopes reach:
 
 | Level | Scopes | Can do |
 |---|---|---|
-| read | `kb:read`, `node:traverse`, `node:rate` | Search, read, traverse |
-| write | `kb:write` | Read + create/edit/delete nodes and edges |
-| admin | `workspace:admin`, `*` | Write + update workspace settings and associations, delete or purge the workspace, trigger re-embedding |
+| read | `kb:read`, `node:traverse`, `node:rate` | Read and search the workspace, traverse, analytics, `consult` |
+| write | `kb:write` | Read + write workspace content: create, edit, delete and restore nodes and edges, documents and ingestion, agent-loop writes (claim/release task, record path, submit outcome) |
+| admin | `workspace:admin`, `*` | Write + workspace settings and associations, delete, purge or re-embed the workspace, the review queue and moderation (`resolve_conflict`, `reject_proposal`, `transfer_authorship`), configuration routes |
 | none | `kb:propose`, any unknown string | Requests for workspace data are refused |
 
 - `kb:propose` currently grants nothing (fails closed): routing its writes to the review queue is not implemented yet, and the UI no longer offers it.
-- A token whose scopes fall short gets HTTP 403 with `detail` = `{"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`.
-- A service token stays bound to its own workspace; any other workspace returns 403.
-- Scopes given at creation must be a non-empty subset of `kb:read`, `kb:propose`, `kb:write`, `node:traverse`, `node:rate`, `workspace:admin`, `*`; anything else returns 422.
-- **Route allowlist (fail closed).** A service token can only call the MCP endpoint (`/mcp`, `/api/v1/mcp/*`) and, for its own workspace, `/api/v1/workspaces/{id}` plus the sub-resources `nodes`, `nodes-search`, `edges`, `table-view`, `graph-preview`, `decay-stats`, `analytics`, `stats`, `clusters`, `trash`, `documents`, `ingest`, `sources`, `review-queue`, `audit-proposals`, `consult`, `exports`, `imports` and `associations`. Workspace configuration and operations (`ai-reviewers`, `audit`, `conductor`, `connector-bindings`, `connector-runs`, `failed-embeddings`, `job-runs`, `maintenance`, `model-bindings`, `purge`, `reembed-all`, `retry-failed-embeddings`, `review`, `review-policy`, `reviewer-profiles`, `safety-review-queue`, `scheduler-heartbeats`) additionally need `workspace:admin`. Every other route returns `403` with `detail.error = "service_token_forbidden"`, whatever the scopes: account settings (`/auth/*`), AI keys and AI chat, notifications, connector accounts, clone and fork, system routes, other workspaces, and everything that manages credentials, membership or workspace creation (API keys, members, invites, join requests, `POST /workspaces`). New routes are denied by default. Routes that also serve anonymous callers (workspace listing, explore) treat a service token as anonymous. Keys are issued only by the owner through a signed-in session or an account-level key.
+- A token whose scopes fall short gets `403` with `detail = {"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`.
+- A service token stays bound to its own workspace, over REST and MCP; any other workspace returns `403`. A service token row without a workspace is refused everywhere.
+- Scopes given at creation must be a non-empty subset of `kb:read`, `kb:propose`, `kb:write`, `node:traverse`, `node:rate`, `workspace:admin`, `*`; anything else returns `422`.
+- **REST route allowlist (fail closed).** A service token can only call the MCP endpoint (`/mcp`, `/api/v1/mcp/*`) and, for its own workspace, `/api/v1/workspaces/{id}` plus the sub-resources `nodes`, `nodes-search`, `edges`, `table-view`, `graph-preview`, `decay-stats`, `analytics`, `stats`, `clusters`, `trash`, `documents`, `ingest`, `sources`, `audit-proposals`, `consult`, `exports`, `imports` and `associations`. Configuration and operations sub-resources (`ai-reviewers`, `audit`, `conductor`, `connector-bindings`, `connector-runs`, `failed-embeddings`, `job-runs`, `maintenance`, `model-bindings`, `purge`, `reembed-all`, `retry-failed-embeddings`, `review`, `review-policy`, `review-queue`, `reviewer-profiles`, `safety-review-queue`, `scheduler-heartbeats`) additionally need `workspace:admin`. Every other route returns `403` with `detail.error = "service_token_forbidden"`, whatever the scopes: account settings (`/auth/*`), AI keys and AI chat, notifications, connector accounts, clone and fork, system routes, other workspaces, and everything that manages credentials, membership or workspace creation (API keys, members, invites, join requests, `POST /workspaces`). New routes are denied by default. Routes that also serve anonymous callers (workspace listing, explore) treat a service token as anonymous. Keys are issued only by the owner through a signed-in session or an account-level key.
+- **MCP tool access.** Every MCP tool is classified read, write or admin (or takes no workspace) in `MCP_TOOL_ACCESS`, and the check runs for all of them before the handler, for every kind of caller. A read-only token, a token bound to another workspace, and a user who is not a member of the workspace are all refused on tools such as `update_node`, `delete_node` and `resolve_conflict`. The same check applies to people: a workspace viewer can no longer call a write tool, and a non-member can no longer call a write tool or read a workspace that is not public. `list_workspaces`, `create_workspace` and `get_schema` take no workspace and guard themselves: a service token sees only its own workspace in `list_workspaces`, cannot call `create_workspace`, and `list_members` refuses service tokens. `tools/list` is not filtered by scope.
 - Updating workspace settings (`PATCH /workspaces/{id}`, MCP `update_workspace`, `add_association`, `remove_association`) needs `workspace:admin`.',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
    0,0)
