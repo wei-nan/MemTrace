@@ -224,6 +224,72 @@ def test_review_queue_rest_needs_workspace_admin(client, world, name, forbidden)
         assert r.status_code != 403, r.text[:200]
 
 
+# ─── audit proposals: the handlers themselves must check access ───────────────
+
+SECRET_REASON = "SECRET-AUDIT-REASONING-7731"
+
+
+@pytest.fixture
+def audit_row(world, db_conn):
+    cur = db_conn.cursor()
+    pid = f"aprop_{uuid.uuid4().hex[:10]}"
+    cur.execute(
+        """INSERT INTO audit_proposals (id, workspace_id, reviewer, category, target_ids, reasoning)
+           VALUES (%s, %s, 'integrity_auditor', 'missing_embedding', %s, %s)""",
+        (pid, world["ws1"], ["mem_x"], SECRET_REASON),
+    )
+    yield pid
+    cur.execute("DELETE FROM audit_proposals WHERE id = %s", (pid,))
+
+
+def _acct_user(world, sub, role=None):
+    return {"sub": sub, "api_key_id": "apikey_t", "role": role, "scopes": [], "workspace_id": None}
+
+
+@pytest.mark.parametrize("name", ["propose", "unknown"])
+def test_none_tier_service_tokens_cannot_read_audit_proposals(client, world, audit_row, name):
+    h = _auth(world["tokens"][name])
+    for url in (f"/api/v1/workspaces/{world['ws1']}/audit-proposals",
+                f"/api/v1/workspaces/{world['ws1']}/nodes/mem_x/audit-summary"):
+        r = client.get(url, headers=h)
+        assert r.status_code == 403, f"{name} {url}: {r.status_code} {r.text[:120]}"
+        assert SECRET_REASON not in r.text
+
+
+@pytest.mark.parametrize("name", ["read", "write", "admin"])
+def test_service_tokens_with_a_read_scope_can_still_read_audit_proposals(client, world, audit_row, name):
+    r = client.get(f"/api/v1/workspaces/{world['ws1']}/audit-proposals", headers=_auth(world["tokens"][name]))
+    assert r.status_code == 200 and SECRET_REASON in r.text, r.text[:200]
+    r = client.get(f"/api/v1/workspaces/{world['ws1']}/nodes/mem_x/audit-summary", headers=_auth(world["tokens"][name]))
+    assert r.status_code == 200, r.text[:200]
+
+
+def test_audit_proposals_are_not_readable_by_a_non_member_account_key(client, world, db_conn, audit_row):
+    sfx = uuid.uuid4().hex[:8]
+    cur = db_conn.cursor()
+    cur.execute("INSERT INTO users (id, display_name, email) VALUES (%s, 'outsider', %s)",
+                (f"usr_out{sfx}", f"out{sfx}@example.invalid"))
+    raw = _insert_key(cur, user_id=f"usr_out{sfx}", ws_id=None, scopes=[], key_type="account")
+    try:
+        for url in (f"/api/v1/workspaces/{world['ws1']}/audit-proposals",
+                    f"/api/v1/workspaces/{world['ws1']}/nodes/mem_x/audit-summary"):
+            r = client.get(url, headers=_auth(raw))
+            assert r.status_code == 403 and SECRET_REASON not in r.text, f"{url}: {r.status_code}"
+    finally:
+        cur.execute("DELETE FROM api_keys WHERE user_id = %s", (f"usr_out{sfx}",))
+        cur.execute("DELETE FROM users WHERE id = %s", (f"usr_out{sfx}",))
+
+
+def test_the_owner_account_key_can_read_audit_proposals(client, world, audit_row):
+    r = client.get(f"/api/v1/workspaces/{world['ws1']}/audit-proposals", headers=_auth(world["owner_key"]))
+    assert r.status_code == 200 and SECRET_REASON in r.text
+
+
+def test_audit_proposals_in_an_unknown_workspace_stay_404(client, world):
+    r = client.get("/api/v1/workspaces/ws_does_not_exist/audit-proposals", headers=_auth(world["owner_key"]))
+    assert r.status_code == 404
+
+
 # ─── membership endpoints (invites are credentials too) ───────────────────────
 
 @pytest.mark.parametrize("name", ["read", "star"])

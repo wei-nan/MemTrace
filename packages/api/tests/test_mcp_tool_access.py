@@ -323,3 +323,43 @@ def test_workspace_summary_resource_is_refused_without_access(world, who):
         assert e.status_code in (401, 403)
     else:
         assert "error" in out, who
+
+
+# ─── an unbound service token gets nothing, not even from the no-workspace tools ──
+
+NONE_LEVEL_TOOLS = sorted(n for n, lvl in MCP_TOOL_ACCESS.items() if lvl == "none")
+
+
+def test_none_level_tools_are_the_three_expected():
+    assert NONE_LEVEL_TOOLS == ["create_workspace", "get_schema", "list_workspaces"]
+
+
+@pytest.mark.parametrize("tool", NONE_LEVEL_TOOLS)
+@pytest.mark.parametrize("scopes", [["*"], ["kb:read"], ["kb:write"], ["workspace:admin"]])
+def test_unbound_service_token_is_refused_by_the_no_workspace_tools(world, tool, scopes):
+    user = _svc(world["owner"], None, scopes)
+    with pytest.raises(HTTPException) as exc:
+        enforce_mcp_tool_access(tool, {}, user)
+    assert exc.value.status_code == 403
+    assert "not bound" in exc.value.detail
+
+
+@pytest.mark.parametrize("tool,args", [("list_workspaces", {}), ("get_schema", {})])
+def test_bound_service_token_and_people_can_still_use_the_no_workspace_tools(world, tool, args):
+    for who in ("svc_read", "svc_propose", "owner", "viewer", "stranger"):
+        enforce_mcp_tool_access(tool, args, world["users"][who])  # must not raise
+
+
+def test_unbound_service_token_cannot_create_a_workspace_end_to_end(world, db_conn):
+    cur = db_conn.cursor()
+    cur.execute("SELECT count(*) AS n FROM workspaces WHERE owner_id = %s", (world["owner"],))
+    before = cur.fetchone()["n"]
+    with pytest.raises(HTTPException) as exc:
+        _call("create_workspace", {"name": "should-not-exist", "language": "zh-TW"}, world["users"]["svc_unbound"])
+    assert exc.value.status_code == 403
+    cur.execute("SELECT count(*) AS n FROM workspaces WHERE owner_id = %s", (world["owner"],))
+    assert cur.fetchone()["n"] == before
+    out = None
+    with pytest.raises(HTTPException):
+        out = _call("list_workspaces", {}, world["users"]["svc_unbound"])
+    assert out is None

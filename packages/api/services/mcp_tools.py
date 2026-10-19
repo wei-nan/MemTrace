@@ -1470,6 +1470,11 @@ def enforce_mcp_tool_access(name: str, args: dict, user: dict) -> None:
     level = MCP_TOOL_ACCESS.get(name)
     if level is None:
         raise HTTPException(status_code=403, detail=f"Tool '{name}' has no access classification")
+    # Checked before the "none" return: list_workspaces, create_workspace and
+    # get_schema take no workspace_id, but a service token with no workspace
+    # must still get nothing from them.
+    if user.get("key_type") == "service" and not user.get("workspace_id"):
+        raise HTTPException(status_code=403, detail="Service token is not bound to a workspace")
     if level == "none":
         return
     ws_id = args.get("workspace_id")
