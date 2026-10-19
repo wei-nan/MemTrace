@@ -1291,6 +1291,8 @@ Tools allow agents to take actions within MemTrace.
 | `traverse_edge` | `node:traverse` | Record traversal of an edge and increment path + node counts |
 | `rate_path` | `node:rate` | Submit a 1–5 rating for a traversed edge |
 
+**Workspace management (opt-in `workspace_admin` profile).** `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, and `remove_association` are available only when a client adds the `workspace_admin` tool profile (`X-MemTrace-Tool-Profile: core+agent_loop+workspace_admin`); the default profile does not include them. A personal API key authorizes by its owner's workspace role (§14.2). A workspace service token additionally needs `workspace:admin` (§29.2) for `update_workspace`, `add_association` and `remove_association`, and cannot call `create_workspace` at all. Through MCP, `create_workspace` can only produce `private` or `restricted` workspaces with manual-review Q&A archiving and a fixed MCP ingestion quota; publishing a workspace, deleting it, and managing members or invitations remain UI-only. Field-level contract: `packages/api/docs/mcp-contract.md`.
+
 ##### `search_nodes` — Input schema
 ```json
 {
@@ -1848,8 +1850,9 @@ These tokens carry a **fixed scope** that is set at creation time and does not v
 | Scope | Role | Description |
 |-------|------|-------------|
 | `kb:read` | viewer | Search, read, traverse, rate |
-| `kb:propose` | contributor | All read + submit proposals |
-| `kb:write` | admin | Full write access |
+| `kb:propose` | contributor | Grants nothing yet (see §29.2) |
+| `kb:write` | admin | Read + write workspace content (nodes, edges, documents) |
+| `workspace:admin` | admin | `kb:write` + workspace settings and associations |
 
 A service token is workspace-owned, not tied to any user account, and is intended for CI/CD pipelines and shared MCP integrations where a personal identity is inappropriate.
 
@@ -3198,14 +3201,25 @@ Workspace API Keys are **service-account tokens** scoped to a specific workspace
 
 ### 29.2 Scopes
 
-| Scope | Capabilities |
-|-------|-------------|
-| `kb:read` | Search, list nodes, traverse, Q&A chat |
-| `kb:propose` | All read + submit proposals to review queue |
-| `kb:write` | Full write access (create/edit/delete nodes and edges) |
+A service token's `user_id` is the workspace owner, so a role check alone would make every token as powerful as the owner. Its scopes are therefore the only thing that limits it. Two layers enforce them: a route allowlist for REST (below), and an access check that every MCP tool call passes before its handler runs. The effective level is the highest one the token's scopes reach:
+
+| Level | Scopes | Can do |
+|---|---|---|
+| read | `kb:read`, `node:traverse`, `node:rate` | Read and search the workspace, traverse, analytics, `consult` |
+| write | `kb:write` | Read + write workspace content: create, edit, delete and restore nodes and edges, documents and ingestion, exports, imports, clusters, node safety review, agent-loop writes (claim/release task, record path, submit outcome) |
+| admin | `workspace:admin`, `*` | Write + workspace settings and associations, delete, purge or re-embed the workspace, the review queue and moderation (`resolve_conflict`, `reject_proposal`, `transfer_authorship`), configuration routes |
+| none | `kb:propose`, any unknown string | Requests for workspace data are refused |
+
+- `kb:propose` currently grants nothing (fails closed): routing its writes to the review queue is not implemented yet, and the UI no longer offers it.
+- A token whose scopes fall short gets `403` with `detail = {"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`.
+- A service token stays bound to its own workspace, over REST and MCP; any other workspace returns `403`. A service token row without a workspace is refused everywhere.
+- Scopes given at creation must be a non-empty subset of `kb:read`, `kb:propose`, `kb:write`, `node:traverse`, `node:rate`, `workspace:admin`, `*`; anything else returns `422`.
+- **REST route allowlist (fail closed).** A service token can only call the MCP endpoint (`/mcp`, `/api/v1/mcp/*`) and, for its own workspace, `/api/v1/workspaces/{id}` plus the sub-resources `nodes`, `nodes-search`, `edges`, `table-view`, `graph-preview`, `decay-stats`, `analytics`, `stats`, `clusters`, `trash`, `documents`, `ingest`, `sources`, `audit-proposals`, `consult`, `exports`, `imports` and `associations`. Configuration and operations sub-resources (`ai-reviewers`, `audit`, `conductor`, `connector-bindings`, `connector-runs`, `failed-embeddings`, `job-runs`, `maintenance`, `model-bindings`, `purge`, `reembed-all`, `retry-failed-embeddings`, `review`, `review-policy`, `review-queue`, `reviewer-profiles`, `safety-review-queue`, `scheduler-heartbeats`) additionally need `workspace:admin`. Every other route returns `403` with `detail.error = "service_token_forbidden"`, whatever the scopes: account settings (`/auth/*`), AI keys and AI chat, notifications, connector accounts, clone and fork, system routes, other workspaces, and everything that manages credentials, membership or workspace creation (API keys, members, invites, join requests, `POST /workspaces`). New routes are denied by default. Routes that also serve anonymous callers (workspace listing, explore) treat a service token as anonymous. Keys are issued only by the owner through a signed-in session or an account-level key.
+- **MCP tool access.** Every MCP tool is classified read, write or admin (or takes no workspace) in `MCP_TOOL_ACCESS`, and the check runs for all of them before the handler, for every kind of caller. A read-only token, a token bound to another workspace, and a user who is not a member of the workspace are all refused on tools such as `update_node`, `delete_node` and `resolve_conflict`. The same check applies to people: a workspace viewer can no longer call a write tool, and a non-member can no longer call a write tool or read a workspace that is not public. `list_workspaces`, `create_workspace` and `get_schema` take no workspace and guard themselves: a service token sees only its own workspace in `list_workspaces`, cannot call `create_workspace`, and `list_members` refuses service tokens. MCP resources follow the same rules: `memtrace://node/{id}` and the workspace summary are refused to anyone who could not call `get_node`, a refusal looks like "not found", and a workspace viewer gets the node without its body. `tools/list` is not filtered by scope.
+- Updating workspace settings (`PATCH /workspaces/{id}`, MCP `update_workspace`, `add_association`, `remove_association`) needs `workspace:admin`.
 
 ### 29.3 Lifecycle
-- Keys are created by admins via the Workspace Settings → API Keys panel.
+- Keys are created by the workspace owner via the Workspace Settings → API Keys panel, or with an account-level key. A service token cannot create keys (§29.2).
 - A key can be **rotated** (invalidates old key, issues new one with same name/scope).
 - A key can be **revoked** (permanently invalidated).
 - The raw key value is shown **once** on creation. It is stored as a bcrypt hash.

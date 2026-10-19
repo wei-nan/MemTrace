@@ -34,6 +34,10 @@ Each request body must be a JSON-RPC 2.0 envelope:
 
 ---
 
+## Access control
+
+Every tool call passes `enforce_mcp_tool_access` before its handler runs. `MCP_TOOL_ACCESS` (in `services/mcp_tools.py`) classifies each tool as `read`, `write`, `admin`, or `none` (no `workspace_id`; the tool guards itself). `read` needs read access to `workspace_id`; `write` needs editor or admin (a service token: `kb:write`); `admin` needs workspace admin (a service token: `workspace:admin`). A tool missing from the table is refused, and `tests/test_mcp_tool_access.py` fails until it is classified. `workspace_id` must be a non-empty string (`400` otherwise). Refusals are `403`; for a service token `detail` is `{"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`. A workspace service token is bound to its own workspace and sees only that workspace in `list_workspaces`. `resources/read` for `memtrace://node/{id}` and `memtrace://workspace/{id}/summary` applies the same access rules (a refusal for a node looks like "not found"), and a workspace viewer gets the node without its body.
+
 ## Tool Profiles
 
 To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**. Instead of loading all 50 tools, clients can request a specific functional subset.
@@ -45,6 +49,7 @@ To reduce fixed token costs on cold-starts, MemTrace supports **tool profiles**.
 - **`ingest_docs`**: Document, URL, and evidence imports.
 - **`advanced_graph`**: Advanced search and analysis (cross-workspace, similar edges).
 - **`review_admin`**: Governance, conflict resolution, and audit trails (`list_review_queue`, `reject_proposal`, `resolve_conflict`, `verify_audit`, `transfer_authorship`).
+- **`workspace_admin`** (opt-in): Workspace management — `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, `remove_association`. Not part of the default profile; add it explicitly, e.g. `core+agent_loop+workspace_admin`. Design record: `ws_spec_plan/mem_c98ff99b`.
 - **`full`**: Exposes all tools.
 
 Profiles can be combined using `+` or `,` (e.g., `core+agent_loop`).
@@ -80,6 +85,84 @@ List all workspaces accessible to the authenticated user.
   }
 ]
 ```
+
+---
+
+### `create_workspace`
+_Profile: `workspace_admin`._ Create a workspace owned by the caller.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Workspace name |
+| `language` | string | yes | `zh-TW` or `en` |
+| `description` | string | no | |
+| `visibility` | string | no | `private` (default) or `restricted`. `public` / `conditional_public` are rejected — publishing is done by a human in the UI |
+| `kb_type` | string | no | `evergreen` (default) or `ephemeral`; immutable after creation |
+
+Fixed by the server, not accepted as input: `qa_archive_mode=manual_review`, `auto_split=false`, `settings.mcp_ingest_enabled=true`, `settings.mcp_ingest_daily_quota=100`; the embedding model is resolved from the account and locked. Any other field, and any non-string value for a string field, is rejected with a `400` error (not ignored). Workspace-scoped service tokens always get `403`, whatever their scopes.
+
+**Output**:
+```json
+{ "id": "ws_abc123", "name": "Notes", "language": "zh-TW", "visibility": "private", "kb_type": "evergreen", "my_role": "admin" }
+```
+(`description` is included when set.)
+
+---
+
+### `update_workspace`
+_Profile: `workspace_admin`._ Update a workspace. Owner only (an admin member gets 403). A service token also needs the `workspace:admin` scope (otherwise `403`, `detail.required = "workspace:admin"`).
+
+**Input**: `workspace_id` (required) plus at least one of `name` (non-empty), `description` (empty string clears it), `archive_window_days` (integer, 1 to 2147483647), `min_traversals` (integer, 0 to 2147483647), `qa_archive_mode` (`auto_active` | `manual_review`). Visibility, anonymous view, embedding, migration and `settings` are rejected with a `400` error.
+
+**Output**: `{ id, name, description, archive_window_days, min_traversals, qa_archive_mode, updated_at }` (keys whose value is null, such as an unset `description`, are omitted)
+
+---
+
+### `list_members`
+_Profile: `workspace_admin`._ List a workspace's members. Members only (including viewer): a signed-in user who can merely read a public workspace gets `403`.
+
+**Input**: `workspace_id`
+
+**Output**: `[{ "user_id", "display_name", "role", "joined_at" }]` — the owner is listed once, first, with role `owner`. Emails are never returned.
+
+---
+
+### `list_associations`
+_Profile: `workspace_admin`._ List the workspaces this workspace is associated with — the one-hop set that `search_cross_workspace` covers. Needs read access to the workspace. Targets the caller cannot read are omitted, so the list can be shorter than the stored associations.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | yes | |
+
+**Output**: `[{ "id", "target_workspace_id", "target_name", "created_at" }]`
+
+---
+
+### `add_association`
+_Profile: `workspace_admin`._ Associate a source workspace with a target workspace, which widens `search_cross_workspace` for the source. Needs write access to the source and read access to the target; returns 409 if the association already exists. A service token also needs `workspace:admin`.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | yes | Source workspace |
+| `target_workspace_id` | string | yes | |
+
+**Output**: `{ "id", "workspace_id", "target_workspace_id", "target_name", "created_at" }`
+
+---
+
+### `remove_association`
+_Profile: `workspace_admin`._ Remove an association from a source workspace to a target workspace. Needs write access to the source; returns 404 if it does not exist. A service token also needs `workspace:admin`.
+
+**Input**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `workspace_id` | string | yes | Source workspace |
+| `target_workspace_id` | string | yes | |
+
+**Output**: `{ "removed": true, "workspace_id", "target_workspace_id" }`
 
 ---
 

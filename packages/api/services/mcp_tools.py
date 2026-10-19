@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, HTTPException
 from core.database import db_cursor
 from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T
-from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
+from services.workspaces import require_ws_access, require_service_tier, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
 from services.edges import (
     record_traversal, create_edge_in_db, update_edge_in_db, trash_edge_in_db,
     restore_trashed_edge_in_db, list_trashed_edges_in_db,
@@ -299,6 +299,16 @@ MCP_TOOL_PROFILES = {
         "verify_audit",
         "transfer_authorship",
     },
+    # Workspace management, batch 1 (ws_spec_plan/mem_c98ff99b). Opt-in so the
+    # default core+agent_loop schema cost is unchanged.
+    "workspace_admin": {
+        "create_workspace",
+        "update_workspace",
+        "list_members",
+        "list_associations",
+        "add_association",
+        "remove_association",
+    },
     "deprecated": {
         "complement_node_languages",
     },
@@ -335,6 +345,88 @@ TOOLS = [
             "type": "object",
             "properties": {},
             "required": [],
+        },
+    },
+    {
+        "name": "create_workspace",
+        "description": (
+            "Create a workspace owned by the caller. Always created with manual-review Q&A archiving, "
+            "auto-split off, and MCP ingestion enabled (daily quota 100); the embedding model is chosen "
+            "by the server and locked. Visibility may only be 'private' or 'restricted' — publishing is "
+            "done by a human in the UI. Not available to workspace-scoped service tokens."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "language": {"type": "string", "enum": ["zh-TW", "en"]},
+                "description": {"type": "string"},
+                "visibility": {"type": "string", "enum": ["private", "restricted"], "description": "Default 'private'."},
+                "kb_type": {"type": "string", "enum": ["evergreen", "ephemeral"], "description": "Default 'evergreen'; immutable after creation."},
+            },
+            "required": ["name", "language"],
+        },
+    },
+    {
+        "name": "update_workspace",
+        "description": (
+            "Update a workspace's name, description, archive window, minimum traversals, or Q&A archive mode. "
+            "Only the workspace owner may call this. Visibility, anonymous view, embedding, migration and "
+            "settings cannot be changed through MCP."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "archive_window_days": {"type": "integer", "minimum": 1},
+                "min_traversals": {"type": "integer", "minimum": 0},
+                "qa_archive_mode": {"type": "string", "enum": ["auto_active", "manual_review"]},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "list_members",
+        "description": "List a workspace's members (user_id, display_name, role, joined_at). Emails are not returned. Only members of the workspace may call this.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"workspace_id": {"type": "string"}},
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "list_associations",
+        "description": "List the workspaces this workspace is associated with (one hop; these are the ones search_cross_workspace covers). Targets the caller cannot read are omitted.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"workspace_id": {"type": "string"}},
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "add_association",
+        "description": "Associate a workspace with a target workspace. Needs write access to the source and read access to the target. Widens search_cross_workspace for the source.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Source workspace."},
+                "target_workspace_id": {"type": "string"},
+            },
+            "required": ["workspace_id", "target_workspace_id"],
+        },
+    },
+    {
+        "name": "remove_association",
+        "description": "Remove an association from a source workspace to a target workspace. Needs write access to the source.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "Source workspace."},
+                "target_workspace_id": {"type": "string"},
+            },
+            "required": ["workspace_id", "target_workspace_id"],
         },
     },
     {
@@ -1295,6 +1387,110 @@ def optimize_traverse_response(cur, ws_id: str, traverse_result: dict, initial_l
     projected_result["original_size"] = original_size
     return projected_result
 
+# Workspace management (ws_spec_plan/mem_c98ff99b). Fields outside these sets are
+# deliberately not open to MCP; the schema is advisory, so handlers enforce it.
+_CREATE_WORKSPACE_ARGS = frozenset({"name", "language", "description", "visibility", "kb_type"})
+_UPDATE_WORKSPACE_ARGS = frozenset({"name", "description", "archive_window_days", "min_traversals", "qa_archive_mode"})
+_MCP_CREATABLE_VISIBILITY = frozenset({"private", "restricted"})
+_MCP_INGEST_DAILY_QUOTA_DEFAULT = 100
+# Optional correlation ids an external harness may attach to any call (see _run_context).
+_CORRELATION_ARGS = frozenset({"run_id", "task_id", "stage"})
+
+
+def _reject_unopened_args(args: dict, allowed: frozenset) -> None:
+    unexpected = sorted(set(args) - allowed - _CORRELATION_ARGS)
+    if unexpected:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Not available through MCP: {', '.join(unexpected)}",
+        )
+
+
+_INT32_MAX = 2_147_483_647
+
+
+def _require_str_args(args: dict, keys) -> None:
+    """Reject non-string values for string fields with a 400 instead of a 500."""
+    for key in keys:
+        if args.get(key) is not None and not isinstance(args[key], str):
+            raise HTTPException(status_code=400, detail=f"'{key}' must be a string")
+
+
+def _require_editor_on_source(cur, ws_id: str, user: dict) -> None:
+    """Editor-or-above on the source workspace, checked by role.
+
+    require_ws_access(write=True) is not enough here: on a *private* workspace it
+    only checks that the caller has some role, so a viewer passes. That is a
+    pre-existing gap (ws_spec_plan/mem_85a249ea); MCP-created workspaces default to
+    private, so these tools must not lean on it.
+    """
+    require_ws_access(cur, ws_id, user, required_role="editor")
+
+
+# ─── Access level every MCP tool needs on the workspace it is pointed at ──────
+# Enforced for ALL tools in one place (enforce_mcp_tool_access), before the
+# handler runs, so a tool cannot forget its own check. A tool that is not
+# listed here is refused, and tests/test_mcp_tool_access.py fails until it is
+# classified.
+#   read   -> any member (or a public workspace) may call it
+#   write  -> editor/admin; for a service token, kb:write
+#   admin  -> workspace admin; for a service token, workspace:admin
+#   none   -> takes no workspace_id and guards itself
+MCP_TOOL_ACCESS = {
+    # no workspace argument
+    "list_workspaces": "none", "create_workspace": "none", "get_schema": "none",
+    # workspace management (their handlers add owner / tier checks of their own)
+    "update_workspace": "read", "list_members": "read", "list_associations": "read",
+    "add_association": "read", "remove_association": "read",
+    # reads
+    "list_nodes": "read", "get_node": "read", "search_nodes": "read",
+    "search_cross_workspace": "read", "list_trash": "read", "wait_for_embedding": "read",
+    "get_embedding_status": "read", "traverse": "read", "consult": "read",
+    "list_by_tag": "read", "list_review_queue": "read", "get_ingestion_status": "read",
+    "suggest_edges": "read", "verify_audit": "read", "list_documents": "read",
+    "get_document": "read", "get_node_sources": "read", "search_with_history": "read",
+    "get_next_task": "read", "get_playbook": "read", "converge_check": "read",
+    "converge_proposals": "read",
+    # writes
+    "create_node": "write", "update_node": "write", "delete_node": "write",
+    "restore_node": "write", "restore_archived_node": "write", "restore_edge": "write",
+    "create_edge": "write", "update_edge": "write", "delete_edge": "write",
+    "extract_from_text": "write", "ingest_document": "write", "sync_from_source": "write",
+    "attach_url": "write", "attach_evidence": "write", "upload_file": "write",
+    "record_path": "write", "propose_decision": "write", "submit_outcome": "write",
+    "emit_residue": "write", "claim_task": "write", "release_task": "write",
+    "summarize_cluster": "write", "complement_node_languages": "write",
+    # moderation
+    "reject_proposal": "admin", "resolve_conflict": "admin", "transfer_authorship": "admin",
+}
+
+
+def enforce_mcp_tool_access(name: str, args: dict, user: dict) -> None:
+    """Refuse the call unless `user` may use tool `name` on args["workspace_id"]."""
+    level = MCP_TOOL_ACCESS.get(name)
+    if level is None:
+        raise HTTPException(status_code=403, detail=f"Tool '{name}' has no access classification")
+    # Checked before the "none" return: list_workspaces, create_workspace and
+    # get_schema take no workspace_id, but a service token with no workspace
+    # must still get nothing from them.
+    if user.get("key_type") == "service" and not user.get("workspace_id"):
+        raise HTTPException(status_code=403, detail="Service token is not bound to a workspace")
+    if level == "none":
+        return
+    ws_id = args.get("workspace_id")
+    if not isinstance(ws_id, str) or not ws_id:
+        raise HTTPException(status_code=400, detail="'workspace_id' is required and must be a string")
+    with db_cursor() as cur:
+        require_ws_access(
+            cur, ws_id, user,
+            write=level in ("write", "admin"),
+            required_role="admin" if level == "admin" else None,
+        )
+    if level == "admin":
+        # moderation (resolve_conflict, reject_proposal, transfer_authorship)
+        require_service_tier(user, "admin")
+
+
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
     # Optional correlation ids for this call, if the caller (an external
     # harness) supplied them — see _run_context above. Absent by default;
@@ -1304,6 +1500,8 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         "task_id": args.get("task_id"),
         "stage": args.get("stage"),
     })
+
+    enforce_mcp_tool_access(name, args, user)
 
     # ── list_workspaces ───────────────────────────────────────────────────────
     if name == "list_workspaces":
@@ -2857,6 +3055,165 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             return {"released": False, "reason": "not_your_claim", "task_node_id": task_id}
         return {"released": True, "task_node_id": task_id, "note": "task was not claimed"}
 
+    # ── Workspace management, batch 1 (ws_spec_plan/mem_c98ff99b) ─────────────
+    if name == "create_workspace":
+        from models.kb import WorkspaceCreate
+        from services.workspaces import create_workspace_in_db
+
+        _reject_unopened_args(args, _CREATE_WORKSPACE_ARGS)
+        _require_str_args(args, _CREATE_WORKSPACE_ARGS)
+        # Without a workspace id, require_ws_access cannot stop a workspace-scoped
+        # service token from minting new workspaces, so refuse it here.
+        if user.get("workspace_id"):
+            raise HTTPException(status_code=403, detail="Workspace-scoped API keys cannot create workspaces")
+        ws_name = (args.get("name") or "").strip()
+        if not ws_name:
+            raise HTTPException(status_code=400, detail="'name' is required")
+        if args.get("language") not in ("zh-TW", "en"):
+            raise HTTPException(status_code=400, detail="'language' is required. Accepted values: 'zh-TW', 'en'.")
+        visibility = args.get("visibility", "private")
+        if visibility not in _MCP_CREATABLE_VISIBILITY:
+            raise HTTPException(
+                status_code=400,
+                detail="MCP can only create 'private' or 'restricted' workspaces; publish from the UI.",
+            )
+        kb_type = args.get("kb_type", "evergreen")
+        if kb_type not in ("evergreen", "ephemeral"):
+            raise HTTPException(status_code=400, detail="'kb_type' must be 'evergreen' or 'ephemeral'")
+
+        # Build from the REST model so every unlisted field keeps the REST/UI default.
+        body = WorkspaceCreate(
+            name=ws_name,
+            description=args.get("description"),
+            language=args["language"],
+            visibility=visibility,
+            kb_type=kb_type,
+        ).model_dump()
+        body["qa_archive_mode"] = "manual_review"
+        body["auto_split"] = False
+        body["settings"] = {"mcp_ingest_enabled": True, "mcp_ingest_daily_quota": _MCP_INGEST_DAILY_QUOTA_DEFAULT}
+        with db_cursor(commit=True) as cur:
+            ws = create_workspace_in_db(cur, user["sub"], body)
+        projected = {
+            "id": ws.get("id"),
+            "name": ws.get("name"),
+            "description": ws.get("description"),
+            "language": ws.get("language"),
+            "visibility": ws.get("visibility"),
+            "kb_type": ws.get("kb_type"),
+            "my_role": ws.get("my_role"),
+        }
+        return {k: v for k, v in projected.items() if v is not None}
+
+    if name == "update_workspace":
+        from services.workspaces import update_workspace_in_db
+
+        _reject_unopened_args(args, _UPDATE_WORKSPACE_ARGS | {"workspace_id"})
+        _require_str_args(args, {"name", "description", "qa_archive_mode"})
+        ws_id = args["workspace_id"]
+        updates = {k: args[k] for k in _UPDATE_WORKSPACE_ARGS if k in args}
+        if not updates:
+            raise HTTPException(status_code=400, detail="No updatable field provided")
+        if "name" in updates:
+            updates["name"] = (updates["name"] or "").strip()
+            if not updates["name"]:
+                raise HTTPException(status_code=400, detail="'name' must not be empty")
+        for int_field, minimum in (("archive_window_days", 1), ("min_traversals", 0)):
+            if int_field in updates:
+                value = updates[int_field]
+                if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= _INT32_MAX:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"'{int_field}' must be an integer between {minimum} and {_INT32_MAX}",
+                    )
+        if "qa_archive_mode" in updates and updates["qa_archive_mode"] not in ("auto_active", "manual_review"):
+            raise HTTPException(status_code=400, detail="'qa_archive_mode' must be 'auto_active' or 'manual_review'")
+        with db_cursor(commit=True) as cur:
+            # Enforces a workspace-scoped key's restriction and 404s unknown ids;
+            # the owner-only rule itself lives in update_workspace_in_db.
+            require_ws_access(cur, ws_id, user)
+            require_service_tier(user, "admin")
+            ws = update_workspace_in_db(cur, ws_id, user["sub"], updates)
+        projected = {
+            "id": ws.get("id"),
+            "name": ws.get("name"),
+            "description": ws.get("description"),
+            "archive_window_days": ws.get("archive_window_days"),
+            "min_traversals": ws.get("min_traversals"),
+            "qa_archive_mode": ws.get("qa_archive_mode"),
+            "updated_at": ws.get("updated_at"),
+        }
+        return {k: v for k, v in projected.items() if v is not None}
+
+    if name == "list_members":
+        from services.workspaces import list_members_in_db
+
+        ws_id = args["workspace_id"]
+        if user.get("key_type") == "service":
+            # Same rule as the REST members endpoint: membership is not for service tokens.
+            raise HTTPException(status_code=403, detail="Workspace service tokens cannot list members")
+        with db_cursor() as cur:
+            ws = require_ws_access(cur, ws_id, user)
+            # require_ws_access lets any signed-in user read a public workspace, so
+            # being able to read it is not enough to see who belongs to it.
+            if not ws.get("my_role"):
+                raise HTTPException(status_code=403, detail="Only workspace members can list members")
+            return list_members_in_db(cur, ws_id)
+
+    if name == "list_associations":
+        from services.workspaces import list_associations_in_db
+
+        ws_id = args["workspace_id"]
+        with db_cursor() as cur:
+            rows = list_associations_in_db(cur, ws_id, user)
+            # The source's members can see the source, not necessarily its targets;
+            # do not leak the id/name of a workspace the caller cannot read.
+            readable = []
+            for r in rows:
+                try:
+                    require_ws_access(cur, r["target_ws_id"], user)
+                except HTTPException:
+                    continue
+                readable.append(r)
+            rows = readable
+        return [
+            {
+                "id": r["id"],
+                "target_workspace_id": r["target_ws_id"],
+                "target_name": r["target_name"],
+                "created_at": r["created_at"],
+            }
+            for r in rows
+        ]
+
+    if name == "add_association":
+        from services.workspaces import create_association_in_db
+
+        ws_id = args["workspace_id"]
+        target_id = args["target_workspace_id"]
+        with db_cursor(commit=True) as cur:
+            require_service_tier(user, "admin")
+            _require_editor_on_source(cur, ws_id, user)
+            row = create_association_in_db(cur, ws_id, target_id, user)
+        return {
+            "id": row["id"],
+            "workspace_id": row["source_ws_id"],
+            "target_workspace_id": row["target_ws_id"],
+            "target_name": row["target_name"],
+            "created_at": row["created_at"],
+        }
+
+    if name == "remove_association":
+        from services.workspaces import delete_association_in_db
+
+        ws_id = args["workspace_id"]
+        target_id = args["target_workspace_id"]
+        with db_cursor(commit=True) as cur:
+            require_service_tier(user, "admin")
+            _require_editor_on_source(cur, ws_id, user)
+            delete_association_in_db(cur, ws_id, target_id, user)
+        return {"removed": True, "workspace_id": ws_id, "target_workspace_id": target_id}
+
     raise ValueError(f"Unknown tool: {name}")
 
 async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks, tool_profile: Optional[str] = None) -> dict:
@@ -2911,17 +3268,25 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks,
              if node_match:
                  node_id = node_match.group(1)
                  with db_cursor() as cur:
-                     from services.workspaces import list_workspaces_in_db
-                     workspaces = list_workspaces_in_db(cur, search=None, user=user)
-                     ws_ids = [w["id"] for w in workspaces]
-                     
                      cur.execute(
-                         "SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = ANY(%s) AND status = 'active'",
-                         (node_id, ws_ids)
+                         "SELECT * FROM memory_nodes WHERE id = %s AND status = 'active'",
+                         (node_id,)
                      )
                      node = cur.fetchone()
+                     role = None
+                     if node:
+                         # Same rule as the tools: scope tier, token binding and
+                         # membership are all decided by require_ws_access. A refusal
+                         # looks like "not found" so the id's existence is not revealed.
+                         try:
+                             ws = require_ws_access(cur, node["workspace_id"], user)
+                             role = ws.get("my_role")
+                         except HTTPException:
+                             node = None
                      if not node:
                          return jsonrpc_error(msg_id, -32602, f"Node {node_id} not found or no access")
+                     # Viewers get the same redaction as get_node.
+                     node = strip_body_if_viewer(node, role)
                          
                      cur.execute(
                          """
@@ -2982,7 +3347,6 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks,
              if ws_match:
                  ws_id = ws_match.group(1)
                  with db_cursor() as cur:
-                     from services.workspaces import require_ws_access
                      workspace = require_ws_access(cur, ws_id, user, write=False)
                      
                      cur.execute("SELECT COUNT(*) as count FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))

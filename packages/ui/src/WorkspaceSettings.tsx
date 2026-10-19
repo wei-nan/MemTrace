@@ -919,6 +919,20 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
 
   useEffect(() => { load(); }, [wsId]);
 
+  // The key and its copy button come first, the one-time warning sits below them.
+  const renderSecretKey = (secret: string, note: string) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Input readOnly value={secret} style={{ flex: 1, minWidth: 0, fontFamily: "monospace" }} />
+        <Button variant="secondary" style={{ flexShrink: 0 }} onClick={() => {
+          navigator.clipboard.writeText(secret);
+          toast({ message: t('common.copied'), variant: "success" });
+        }} leftIcon={<Copy size={16} />} />
+      </div>
+      <p style={{ margin: 0 }}>{note}</p>
+    </div>
+  );
+
   const handleCreate = async () => {
     if (!newKeyName.trim()) return;
     try {
@@ -927,18 +941,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
       await load();
       alert({
         title: t('ws_settings.new_key_title'),
-        message: (
-          <div style={{ display: "flex", gap: 12 }}>
-            <p>{t('ws_settings.new_key_msg')}</p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <Input readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
-              <Button variant="secondary" onClick={() => {
-                navigator.clipboard.writeText(res.key);
-                toast({ message: t('common.copied'), variant: "success" });
-              }} leftIcon={<Copy size={16} />} />
-            </div>
-          </div>
-        )
+        message: renderSecretKey(res.key, t('ws_settings.new_key_msg'))
       });
     } catch (e) {
       toast({ message: String(e), variant: "error" });
@@ -953,18 +956,7 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
       await load();
       alert({
         title: t('ws_settings.rotated_key_title'),
-        message: (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <p>{t('ws_settings.rotated_key_msg')}</p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <Input readOnly value={res.key} style={{ flex: 1, fontFamily: "monospace" }} />
-              <Button variant="secondary" onClick={() => {
-                navigator.clipboard.writeText(res.key);
-                toast({ message: t('common.copied'), variant: "success" });
-              }} leftIcon={<Copy size={16} />} />
-            </div>
-          </div>
-        )
+        message: renderSecretKey(res.key, t('ws_settings.rotated_key_msg'))
       });
     } catch (e) {
       toast({ message: String(e), variant: "error" });
@@ -1097,7 +1089,6 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
             <tbody>
               {[
                 { scope: "kb:read",    desc: zh ? "唯讀：搜尋、讀取節點" : "Read-only: search and retrieve nodes" },
-                { scope: "kb:propose", desc: zh ? "可提案：新增節點須人工審核" : "Propose: node additions go to review queue" },
                 { scope: "kb:write",   desc: zh ? "完整寫入：直接新增/修改節點" : "Full write: create and edit nodes directly" },
               ].map(({ scope, desc }, i) => (
                 <tr key={scope} style={{ borderBottom: i < 2 ? "1px solid var(--border-subtle)" : "none" }}>
@@ -1126,7 +1117,6 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
           <Input placeholder={zh ? "名稱 (例: Ingestion Bot)" : "Key name (e.g. Ingestion Bot)"} value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ flex: 2, minWidth: 200 }} />
           <select className="mt-input" value={newKeyScope} onChange={e => setNewKeyScope(e.target.value)} style={{ flex: 1, minWidth: 140 }}>
             <option value="kb:read">kb:read</option>
-            <option value="kb:propose">kb:propose</option>
             <option value="kb:write">kb:write</option>
           </select>
           <Button variant="primary" onClick={handleCreate}>{zh ? "產生 Token" : "Generate Token"}</Button>

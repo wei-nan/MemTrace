@@ -21,6 +21,42 @@ from core.constants import VALID_KB_VIS
 
 # ─── Access Control ───────────────────────────────────────────────────────────
 
+# ─── Workspace service-token scopes ───────────────────────────────────────────
+# A service token's user_id is the workspace owner, so role checks alone would
+# give every token owner power. Its scopes are the only thing that limits it.
+# kb:propose grants nothing yet: routing its writes to the review queue needs
+# role capping at every get_effective_role call site (follow-up).
+_SERVICE_READ_SCOPES = frozenset({"kb:read", "node:traverse", "node:rate"})
+_SERVICE_WRITE_SCOPES = frozenset({"kb:write"})
+_SERVICE_ADMIN_SCOPES = frozenset({"workspace:admin", "*"})
+_TIER_RANK = {"none": 0, "read": 1, "write": 2, "admin": 3}
+_TIER_SCOPE = {"read": "kb:read", "write": "kb:write", "admin": "workspace:admin"}
+
+
+def service_token_tier(user: Optional[dict]) -> Optional[str]:
+    """None for non-service callers; else 'none' | 'read' | 'write' | 'admin'."""
+    if not user or user.get("key_type") != "service":
+        return None
+    scopes = set(user.get("scopes") or [])
+    if scopes & _SERVICE_ADMIN_SCOPES:
+        return "admin"
+    if scopes & _SERVICE_WRITE_SCOPES:
+        return "write"
+    if scopes & _SERVICE_READ_SCOPES:
+        return "read"
+    return "none"
+
+
+def require_service_tier(user: Optional[dict], needed: str) -> None:
+    """403 when a workspace service token's scopes do not reach `needed`."""
+    tier = service_token_tier(user)
+    if tier is not None and _TIER_RANK[tier] < _TIER_RANK[needed]:
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "insufficient_scope", "required": _TIER_SCOPE[needed]},
+        )
+
+
 def require_ws_access(
     cur,
     ws_id: str,
@@ -35,10 +71,20 @@ def require_ws_access(
     - required_scope: legacy (§29 workspace service tokens)
     """
     # API key scope and workspace validation
+    if user and user.get("key_type") == "service" and not user.get("workspace_id"):
+        raise HTTPException(status_code=403, detail="Service token is not bound to a workspace")
     if user and "api_key_id" in user:
         ak_ws_id = user.get("workspace_id")
         if ak_ws_id and ak_ws_id != ws_id:
             raise HTTPException(status_code=403, detail="API key is restricted to another workspace")
+        # kb:write is the content-writing tier (SPEC: kb:write <-> admin role), so
+        # the admin *role* required for edges, documents etc. needs only kb:write.
+        # Settings, deletion and moderation call require_service_tier(user, "admin").
+        if write or required_role in ("admin", "editor", "contributor"):
+            needed = "write"
+        else:
+            needed = "read"
+        require_service_tier(user, needed)
         if required_scope:
             scopes = user.get("scopes") or []
             if "*" not in scopes and required_scope not in scopes:
@@ -70,6 +116,10 @@ def require_ws_access(
         if not required_role:  # If we didn't check required_role above, at least ensure they have access
             if not role:
                 raise HTTPException(status_code=403, detail="Access denied")
+            # The editor check below lives in the restricted/write branch, which a private
+            # workspace never reaches, so without this a viewer passed write=True here.
+            if write and role not in ("editor", "admin"):
+                raise HTTPException(status_code=403, detail="Editor or Admin role required")
     elif vis in ("public", "conditional_public") and not write:
         pass # Public read access
     elif vis == "restricted" or write:
@@ -227,9 +277,9 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
             id, name, language, visibility, kb_type, owner_id,
             archive_window_days, min_traversals, embedding_model, embedding_dim,
             qa_archive_mode, extraction_provider, embedding_provider, auto_split,
-            consult_trust_tier, consult_provider, settings
+            consult_trust_tier, consult_provider, settings, description
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *
         """,
         (
@@ -247,11 +297,41 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
                 "mcp_ingest_enabled": True,
                 "mcp_ingest_daily_quota": 5,
                 **(body_dict.get("settings") or {}),
-            })
+            }),
+            body_dict.get("description"),
         ),
     )
     res = cur.fetchone()
     return {**dict(res), "my_role": "admin"}
+
+
+def list_members_in_db(cur, ws_id: str) -> list[dict]:
+    """Members of a workspace without contact details (the MCP-facing shape).
+
+    The owner is listed once, first, with role 'owner'; the REST endpoint in
+    routers/collaboration.py returns the same people but also their emails.
+    """
+    cur.execute(
+        """
+        SELECT u.id AS user_id, u.display_name, 'owner' AS role, w.created_at AS joined_at
+        FROM workspaces w JOIN users u ON u.id = w.owner_id
+        WHERE w.id = %s
+        """,
+        (ws_id,),
+    )
+    owner_rows = cur.fetchall()
+    cur.execute(
+        """
+        SELECT u.id AS user_id, u.display_name, m.role::text AS role, m.joined_at
+        FROM workspace_members m
+        JOIN users u ON u.id = m.user_id
+        JOIN workspaces w ON w.id = m.workspace_id
+        WHERE m.workspace_id = %s AND m.user_id <> w.owner_id
+        ORDER BY m.joined_at
+        """,
+        (ws_id,),
+    )
+    return [dict(r) for r in owner_rows] + [dict(r) for r in cur.fetchall()]
 
 def update_workspace_in_db(cur, ws_id: str, uid: str, body_dict: dict) -> dict:
     cur.execute("SELECT * FROM workspaces WHERE id = %s", (ws_id,))
@@ -346,12 +426,14 @@ def explore_workspaces_in_db(cur, user: Optional[dict], q: Optional[str], lang: 
 
 def delete_workspace_in_db(cur, ws_id: str, user: dict) -> None:
     ws = require_ws_access(cur, ws_id, user, write=True)
+    require_service_tier(user, "admin")
     if ws["owner_id"] != user["sub"]:
         raise HTTPException(status_code=403, detail="Only the workspace owner can delete it")
     cur.execute("DELETE FROM workspaces WHERE id = %s", (ws_id,))
 
 def purge_workspace_in_db(cur, ws_id: str, user: dict) -> dict:
     ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+    require_service_tier(user, "admin")
     if ws["owner_id"] != user["sub"]:
         raise HTTPException(status_code=403, detail="Only workspace owner can purge it")
     cur.execute("DELETE FROM edges WHERE workspace_id = %s", (ws_id,))

@@ -7047,5 +7047,24 @@
       "rating_avg": null,
       "rating_count": 0
     }
+  },
+  {
+    "id": "edge_a1c3e5f7",
+    "from": "mem_mcp_wsadm",
+    "to": "mem_64748435",
+    "relation": "related_to",
+    "weight": 1.0,
+    "co_access_count": 0,
+    "last_co_accessed": "2026-10-01T00:00:00+00:00",
+    "decay": {
+      "half_life_days": 365.0,
+      "min_weight": 0.1,
+      "pinned": false
+    },
+    "traversal": {
+      "count": 0,
+      "rating_avg": null,
+      "rating_count": 0
+    }
   }
 ]
