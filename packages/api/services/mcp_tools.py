@@ -3263,17 +3263,25 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks,
              if node_match:
                  node_id = node_match.group(1)
                  with db_cursor() as cur:
-                     from services.workspaces import list_workspaces_in_db
-                     workspaces = list_workspaces_in_db(cur, search=None, user=user)
-                     ws_ids = [w["id"] for w in workspaces]
-                     
                      cur.execute(
-                         "SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = ANY(%s) AND status = 'active'",
-                         (node_id, ws_ids)
+                         "SELECT * FROM memory_nodes WHERE id = %s AND status = 'active'",
+                         (node_id,)
                      )
                      node = cur.fetchone()
+                     role = None
+                     if node:
+                         # Same rule as the tools: scope tier, token binding and
+                         # membership are all decided by require_ws_access. A refusal
+                         # looks like "not found" so the id's existence is not revealed.
+                         try:
+                             ws = require_ws_access(cur, node["workspace_id"], user)
+                             role = ws.get("my_role")
+                         except HTTPException:
+                             node = None
                      if not node:
                          return jsonrpc_error(msg_id, -32602, f"Node {node_id} not found or no access")
+                     # Viewers get the same redaction as get_node.
+                     node = strip_body_if_viewer(node, role)
                          
                      cur.execute(
                          """
@@ -3334,7 +3342,6 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks,
              if ws_match:
                  ws_id = ws_match.group(1)
                  with db_cursor() as cur:
-                     from services.workspaces import require_ws_access
                      workspace = require_ws_access(cur, ws_id, user, write=False)
                      
                      cur.execute("SELECT COUNT(*) as count FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))

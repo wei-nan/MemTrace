@@ -28,6 +28,38 @@ BY_LEVEL = {lvl: sorted(n for n, v in MCP_TOOL_ACCESS.items() if v == lvl) for l
 
 # ─── classification ───────────────────────────────────────────────────────────
 
+# A fixed, hand-written copy of the table. MCP_TOOL_ACCESS is the security-critical
+# list, and the matrix tests below derive their expectations from it, so without
+# this literal a careless downgrade (say claim_task -> read) would pass every test.
+EXPECTED_LEVELS = {
+    "list_workspaces": "none", "create_workspace": "none", "get_schema": "none",
+    "update_workspace": "read", "list_members": "read", "list_associations": "read",
+    "add_association": "read", "remove_association": "read",
+    "list_nodes": "read", "get_node": "read", "search_nodes": "read",
+    "search_cross_workspace": "read", "list_trash": "read", "wait_for_embedding": "read",
+    "get_embedding_status": "read", "traverse": "read", "consult": "read",
+    "list_by_tag": "read", "list_review_queue": "read", "get_ingestion_status": "read",
+    "suggest_edges": "read", "verify_audit": "read", "list_documents": "read",
+    "get_document": "read", "get_node_sources": "read", "search_with_history": "read",
+    "get_next_task": "read", "get_playbook": "read", "converge_check": "read",
+    "converge_proposals": "read",
+    "create_node": "write", "update_node": "write", "delete_node": "write",
+    "restore_node": "write", "restore_archived_node": "write", "restore_edge": "write",
+    "create_edge": "write", "update_edge": "write", "delete_edge": "write",
+    "extract_from_text": "write", "ingest_document": "write", "sync_from_source": "write",
+    "attach_url": "write", "attach_evidence": "write", "upload_file": "write",
+    "record_path": "write", "propose_decision": "write", "submit_outcome": "write",
+    "emit_residue": "write", "claim_task": "write", "release_task": "write",
+    "summarize_cluster": "write", "complement_node_languages": "write",
+    "reject_proposal": "admin", "resolve_conflict": "admin", "transfer_authorship": "admin",
+}
+
+
+def test_access_table_equals_the_reviewed_literal():
+    assert MCP_TOOL_ACCESS == EXPECTED_LEVELS
+
+
+
 def test_every_tool_is_classified_and_no_stale_entries():
     assert set(MCP_TOOL_ACCESS) == {t["name"] for t in TOOLS}
 
@@ -231,3 +263,63 @@ def test_a_permitted_writer_can_still_update_and_trash(client, world, db_conn, w
     assert _node(db_conn, nid)["title"] == "edited"
     _call("delete_node", {"workspace_id": world["ws1"], "node_id": nid}, user)
     assert _node(db_conn, nid)["status"] == "trashed"
+
+
+# ─── resources/read: same rules as the tools ──────────────────────────────────
+
+SECRET_BODY = "SECRET-BODY-MARKER-0451"
+
+
+def _read_resource(uri, user):
+    from services.mcp_tools import dispatch
+    payload = {"jsonrpc": "2.0", "id": 1, "method": "resources/read", "params": {"uri": uri}}
+    return asyncio.run(dispatch(payload, user, BackgroundTasks()))
+
+
+def _secret_node(client, world, ws):
+    r = client.post(f"/api/v1/workspaces/{world[ws]}/nodes",
+                    json={"title": "resource-title", "content_type": "factual", "body": SECRET_BODY, "force_create": True},
+                    headers={"Authorization": f"Bearer {world['owner_key']}"})
+    assert r.status_code == 201, r.text[:200]
+    return r.json()["id"]
+
+
+@pytest.mark.parametrize("who", ["svc_propose", "svc_unknown", "svc_unbound", "stranger"])
+def test_node_resource_is_refused_without_access(client, world, who):
+    nid = _secret_node(client, world, "ws1")
+    out = _read_resource(f"memtrace://node/{nid}", world["users"][who])
+    assert "error" in out and "result" not in out, who
+    text = str(out)
+    assert "resource-title" not in text and SECRET_BODY not in text, f"{who} read the node through resources/read"
+
+
+@pytest.mark.parametrize("who", ["svc_read", "svc_write", "svc_admin", "owner", "editor"])
+def test_node_resource_is_readable_with_access(client, world, who):
+    nid = _secret_node(client, world, "ws1")
+    out = _read_resource(f"memtrace://node/{nid}", world["users"][who])
+    text = out["result"]["contents"][0]["text"]
+    assert "resource-title" in text and SECRET_BODY in text
+
+
+def test_viewer_gets_the_node_resource_without_its_body(client, world):
+    nid = _secret_node(client, world, "ws1")
+    text = _read_resource(f"memtrace://node/{nid}", world["users"]["viewer"])["result"]["contents"][0]["text"]
+    assert "resource-title" in text and SECRET_BODY not in text
+
+
+@pytest.mark.parametrize("who", ["svc_read", "svc_write", "svc_admin"])
+def test_node_resource_does_not_cross_into_a_sibling_workspace(client, world, who):
+    nid = _secret_node(client, world, "ws2")
+    out = _read_resource(f"memtrace://node/{nid}", world["users"][who])
+    assert "error" in out and SECRET_BODY not in str(out)
+
+
+@pytest.mark.parametrize("who", ["svc_propose", "svc_unknown", "svc_unbound", "stranger"])
+def test_workspace_summary_resource_is_refused_without_access(world, who):
+    from fastapi import HTTPException as _HTTP
+    try:
+        out = _read_resource(f"memtrace://workspace/{world['ws1']}/summary", world["users"][who])
+    except _HTTP as e:
+        assert e.status_code in (401, 403)
+    else:
+        assert "error" in out, who

@@ -488,6 +488,61 @@ def test_delete_workspace_needs_workspace_admin_even_without_the_allowlist(world
     assert exc.value.status_code == 403
 
 
+def _route_depends_on(route, target):
+    stack = list(route.dependant.dependencies)
+    while stack:
+        d = stack.pop()
+        if d.call is target:
+            return True
+        stack.extend(d.dependencies)
+    return False
+
+
+def test_credential_membership_and_creation_routes_keep_the_service_token_guard():
+    """The route allowlist already blocks these; this pins the second layer."""
+    from main import app
+    from core.deps import get_current_user_no_service_token as guard
+    wanted = []
+    for r in app.routes:
+        path = getattr(r, "path", "")
+        methods = getattr(r, "methods", None) or set()
+        if not hasattr(r, "dependant") or "review-policy" in path:
+            continue
+        if "api-keys" in path or "/join-requests" in path or "/invites" in path or "/members" in path \
+                or "/user-candidates" in path or (path == "/api/v1/workspaces" and "POST" in methods):
+            wanted.append(r)
+    assert len(wanted) >= 20, "route discovery is broken"
+    missing = [f"{sorted(r.methods)} {r.path}" for r in wanted if not _route_depends_on(r, guard)]
+    assert not missing, missing
+
+
+@pytest.mark.parametrize("name,kwargs,allowed", [
+    ("read", {"write": True}, False),
+    ("read", {"required_role": "admin"}, False),
+    ("read", {"required_role": "editor"}, False),
+    ("write", {"write": True}, True),
+    ("write", {"required_role": "admin"}, True),
+    ("read", {}, True),
+])
+def test_require_ws_access_maps_write_and_role_requirements_to_the_write_tier(world, db_conn, name, kwargs, allowed):
+    from services.workspaces import require_ws_access
+    cur = db_conn.cursor()
+    try:
+        require_ws_access(cur, world["ws1"], _svc_user(world, name), **kwargs)
+        assert allowed
+    except HTTPException as e:
+        assert not allowed and e.status_code == 403
+        assert e.detail == {"error": "insufficient_scope", "required": "kb:write"}
+
+
+@pytest.mark.parametrize("name", ["read", "write"])
+def test_purge_workspace_needs_workspace_admin_even_without_the_allowlist(world, db_conn, name):
+    from services.workspaces import purge_workspace_in_db
+    with pytest.raises(HTTPException) as exc:
+        purge_workspace_in_db(db_conn.cursor(), world["ws1"], _svc_user(world, name))
+    assert exc.value.status_code == 403
+
+
 # ─── pure tier logic ──────────────────────────────────────────────────────────
 
 def test_tier_mapping():
