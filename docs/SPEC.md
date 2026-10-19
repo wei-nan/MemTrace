@@ -3232,6 +3232,20 @@ POST   /api/v1/workspaces/{ws_id}/api-keys/{id}/rotate → rotate key
 DELETE /api/v1/workspaces/{ws_id}/api-keys/{id}   → revoke key
 ```
 
+### 29.5 Provisioner keys (harness-created knowledge bases)
+
+An external harness can create a knowledge base for its owner and receive a `kb:write` token for it, without the owner (or the conversation the harness is serving) ever handling that token.
+
+1. **The owner authorizes once.** While signed in (a person, not an API key), the owner creates a provisioner key: `POST /api/v1/users/me/provisioner-keys` with `name`, `expires_in_days` (1 to 90, default 90) and `max_workspaces` (1 to 10, default 10). The key is returned once. The owner stores it in the harness's secret store. `GET /api/v1/users/me/provisioner-keys` lists active keys (prefix, expiry, cap, how many workspaces each created); `DELETE /api/v1/users/me/provisioner-keys/{id}` revokes one.
+2. **The harness provisions.** `POST /api/v1/provision/workspaces` with the provisioner key and `{"name", "language": "zh-TW"|"en", "description"?, "token_name"?, "token_expires_in_days"? (1 to 365)}`. In one transaction the server creates a private workspace owned by the key's owner (Q&A archive mode `manual_review`, MCP ingestion on, like MCP `create_workspace`) and a workspace service token with scopes exactly `["kb:write"]`, and returns `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}}`. The `key` appears only in this response. If any step fails, neither the workspace nor the token exists.
+3. **The harness uses the token** as `Authorization: Bearer <key>` against `/mcp` (or REST) for that workspace only.
+
+What a provisioner key can do: call `POST /api/v1/provision/workspaces`, and nothing else. Every other route, including `/mcp`, returns `403` with `detail.error = "provisioner_key_forbidden"`. It can create at most `max_workspaces` workspaces (`403` with `detail.error = "quota_exceeded"` after that; concurrent requests cannot overrun the cap), and it stops working at its expiry or when revoked (`401`). A provisioner key cannot be created by an API key, only by a signed-in person.
+
+What the minted token can do: exactly what a `kb:write` service token can do (see §29.2). It cannot create workspaces, mint keys, or change workspace settings, so it cannot make itself more powerful. Revoking a provisioner key does not revoke the tokens it already minted; revoke those from the workspace's API keys.
+
+The plaintext keys are never logged, and only their hashes are stored. The server records which provisioner key created each workspace (`workspaces.provisioned_by_key_id`) and which minted each token (`api_keys.parent_key_id`).
+
 ---
 
 ## 30. Scheduled Local Backups

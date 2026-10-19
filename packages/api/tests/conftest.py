@@ -139,3 +139,21 @@ def bypass_mcp_access_guard(monkeypatch):
     The guard itself is covered, un-stubbed, in tests/test_mcp_tool_access.py."""
     import services.mcp_tools as mcp_tools
     monkeypatch.setattr(mcp_tools, "enforce_mcp_tool_access", lambda name, args, user: None)
+
+
+# ─── Rate limiter isolation ──────────────────────────────────────────────────
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter_state():
+    """The in-memory limiter keys on client IP, and every TestClient looks like the
+    same IP, so request counts leak from one test into the next and the suite fails
+    with 429s once enough HTTP tests share a process. Start each test from a clean slate."""
+    try:
+        from core import ratelimit
+    except Exception:
+        yield
+        return
+    ratelimit._windows.clear()
+    ratelimit._traversal_windows.clear()
+    ratelimit._suspended_until.clear()
+    yield
