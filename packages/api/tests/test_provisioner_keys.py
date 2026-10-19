@@ -15,6 +15,8 @@ import hashlib
 import secrets
 import uuid
 
+from unittest.mock import patch
+
 import pytest
 
 
@@ -103,16 +105,37 @@ def test_a_signed_in_person_can_create_list_and_revoke_a_provisioner_key(client,
 
 
 @pytest.mark.parametrize("body", [
-    {"expires_in_days": 91}, {"expires_in_days": 0}, {"max_workspaces": 11}, {"max_workspaces": 0}, {"name": ""},
+    {"expires_in_days": 91}, {"expires_in_days": 0}, {"max_workspaces": 51}, {"max_workspaces": 0}, {"name": ""},
+    {"name": "   "}, {"name": "a\u0000b"}, {"expires_in_days": True}, {"max_workspaces": True}, {"can_delete_workspaces": "yes"},
 ])
 def test_provisioner_key_limits_are_enforced(client, world, body):
     r = client.post("/api/v1/users/me/provisioner-keys", json={"name": "k", **body}, headers=_bearer(world["jwt"]))
     assert r.status_code == 422, f"{body}: {r.status_code}"
 
 
-def test_defaults_are_the_documented_maximums(client, world):
+def test_defaults_are_the_deployments_ceiling(client, world):
     made = _mint_provisioner(client, world)
-    assert made["max_workspaces"] == 10
+    assert made["max_workspaces"] == 50 and made["can_delete_workspaces"] is False
+
+
+def test_the_ceiling_comes_from_the_deployment_setting(client, world):
+    from core.config import settings
+    with patch.object(settings, "max_provisioned_workspaces", 3):
+        assert _mint_provisioner(client, world)["max_workspaces"] == 3
+        assert _mint_provisioner(client, world, max_workspaces=2)["max_workspaces"] == 2
+        r = client.post("/api/v1/users/me/provisioner-keys", json={"name": "k", "max_workspaces": 4},
+                        headers=_bearer(world["jwt"]))
+        assert r.status_code == 422 and r.json()["detail"] == {"error": "max_workspaces_too_large", "max": 3}
+
+
+def test_a_lowered_ceiling_also_limits_existing_keys(client, world):
+    from core.config import settings
+    prov = _mint_provisioner(client, world, max_workspaces=5)
+    with patch.object(settings, "max_provisioned_workspaces", 1):
+        assert _provision(client, prov["key"]).status_code == 201
+        r = _provision(client, prov["key"])
+        assert r.status_code == 403 and r.json()["detail"] == {"error": "quota_exceeded", "max_workspaces": 1}
+        assert client.get("/api/v1/provision/quota", headers=_bearer(prov["key"])).json()["max_workspaces"] == 1
 
 
 def test_an_api_key_cannot_create_or_manage_provisioner_keys(client, world):
@@ -243,8 +266,10 @@ def test_a_provisioner_key_is_refused_everywhere_else(client, world):
     # Routes that also serve anonymous callers treat the key as anonymous: no private workspaces
     for url in ("/api/v1/workspaces", "/api/v1/workspaces/explore"):
         assert ws not in client.get(url, headers=h).text, url
-    # GET on the provisioning route itself is not an allowed method either
-    assert client.get("/api/v1/provision/workspaces", headers=h).status_code in (403, 405)
+    # on the provisioning routes themselves only the documented methods are allowed
+    for method in ("put", "patch"):
+        assert getattr(client, method)("/api/v1/provision/workspaces", headers=h).status_code in (403, 405)
+    assert client.post("/api/v1/provision/quota", headers=h).status_code in (403, 405)
 
 
 def test_a_provisioner_key_does_not_inherit_account_access(client, world):
