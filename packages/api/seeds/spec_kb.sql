@@ -4375,6 +4375,7 @@ Phase 4.10 將 MCP / API 金鑰從「工作區綁定 + 固定 scope」改為「�
 |---|---|
 | `account` | 帳號層級金鑰，動態繼承角色（新） |
 | `service` | Workspace Service Token（§29），保留固定 scope |
+| `provisioner` | 供應金鑰（§29.5），只能呼叫 `/api/v1/provision/*` |
 
 ## 動態角色解析（deps.py，每次 API 呼叫）
 
@@ -4410,19 +4411,38 @@ Phase 4.10 將 MCP / API 金鑰從「工作區綁定 + 固定 scope」改為「�
 - **MCP 工具存取。** 每個 MCP 工具都在 `MCP_TOOL_ACCESS` 中分類為讀、寫或管理（或不帶工作區），且對所有工具、所有呼叫者，檢查都在 handler 之前執行。唯讀 token、綁定其他工作區的 token、非成員的使用者，對 `update_node`、`delete_node`、`resolve_conflict` 等工具一律被拒絕。同一檢查也適用於真人：工作區檢視者不能再呼叫寫入工具，非成員不能呼叫寫入工具，也不能讀取非公開的工作區。`list_workspaces`、`create_workspace`、`get_schema` 不帶工作區、由自身把關：服務 token 在 `list_workspaces` 只看得到自己的工作區、不能呼叫 `create_workspace`，`list_members` 拒絕服務 token。MCP 資源遵守同樣的規則：`memtrace://node/{id}` 與工作區摘要，對不能呼叫 `get_node` 的人一律拒絕（拒絕時看起來像「找不到」），工作區檢視者讀到的節點不含內文。`tools/list` 不依 scope 過濾。
 - 更新工作區設定（`PATCH /workspaces/{id}`、MCP `update_workspace`／`add_association`／`remove_association`）需要 `workspace:admin`。
 
-## 供應金鑰：讓 harness 為自己建立知識庫
+## 供應金鑰：讓 harness 建立並管理自己的知識庫
 
-外部 harness 可以為擁有者建立知識庫並取得該庫的 `kb:write` token，擁有者以及 harness 所服務的對話都不會接觸到這把 token。
+外部 harness 可以為擁有者建立知識庫並取得該庫的 `kb:write` token，擁有者以及 harness 所服務的對話都不會接觸到這把 token。供應金鑰在 `/api/v1/provision/*` 以外什麼都做不了：其他所有路由（含 `/mcp`）一律回 `403`，`detail.error` 為 `provisioner_key_forbidden`；同時開放匿名的路由（公開工作區列表）則把它視為匿名。
 
-1. **擁有者授權一次。** 擁有者在登入狀態（真人，不是 API 金鑰）下建立供應金鑰：`POST /api/v1/users/me/provisioner-keys`，帶 `name`、`expires_in_days`（1 到 90，預設 90）與 `max_workspaces`（1 到 10，預設 10）。金鑰只回傳一次，由擁有者存進 harness 的 secret store。`GET /api/v1/users/me/provisioner-keys` 列出有效金鑰（前綴、到期、上限、各自已建立的工作區數）；`DELETE /api/v1/users/me/provisioner-keys/{id}` 撤銷。
-2. **harness 進行供應。** 以供應金鑰呼叫 `POST /api/v1/provision/workspaces`，body 為 `{"name", "language": "zh-TW"|"en", "description"?, "token_name"?, "token_expires_in_days"?（1 到 365）}`。伺服器在同一個交易內建立一個由金鑰擁有者擁有的私有工作區（Q&A 歸檔模式 `manual_review`、開啟 MCP 攝入，與 MCP `create_workspace` 相同），以及 scope 恰為 `["kb:write"]` 的工作區服務 token，並回傳 `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}}`。`key` 只出現在這次回應。任何一步失敗，工作區與 token 都不會留下。
-3. **harness 使用該 token**：以 `Authorization: Bearer <key>` 呼叫 `/mcp`（或 REST），只能用於該工作區。
+**擁有者授權一次。** 擁有者以真人身分登入（`POST /auth/login` 取得的 `access_token`；API 金鑰不行），用 `POST /api/v1/users/me/provisioner-keys` 建立供應金鑰：
 
-供應金鑰能做的事：只能呼叫 `POST /api/v1/provision/workspaces`。其他所有路由（含 `/mcp`）一律回 `403`，`detail.error` 為 `provisioner_key_forbidden`。最多建立 `max_workspaces` 個工作區（超過回 `403`，`detail.error` 為 `quota_exceeded`；並發請求也無法超過上限），到期或被撤銷後失效（`401`）。供應金鑰只能由登入的真人建立，API 金鑰不行。
+| 欄位 | 意義 |
+|---|---|
+| `name` | 標籤（1 到 100 字） |
+| `expires_in_days` | 1 到 90，預設 90。到期後金鑰失效（`401`），請在到期前建立替代金鑰 |
+| `max_workspaces` | 這把金鑰同時可擁有的工作區數量。預設與上限為部署設定 `MAX_PROVISIONED_WORKSPACES`（50） |
+| `can_delete_workspaces` | 預設 `false`。只有設為 `true`，這把金鑰才能刪除它自己建立的工作區 |
 
-簽出的 token 能做的事：與 `kb:write` 服務 token 完全相同（見 §29.2）。它不能建立工作區、簽發金鑰或修改工作區設定，所以無法讓自己變得更強。撤銷供應金鑰不會撤銷它已簽出的 token，那些要從工作區的 API 金鑰撤銷。
+明文 `key` 只回傳一次，由擁有者存進 harness 的 secret store。`GET /api/v1/users/me/provisioner-keys` 列出未撤銷的金鑰（前綴、到期、上限、刪除旗標、各自已建立的工作區數；過期但未撤銷的仍會列出）；`DELETE /api/v1/users/me/provisioner-keys/{id}` 撤銷一把。
 
-明文金鑰不會寫進日誌，資料庫只存雜湊。伺服器會記錄每個工作區由哪把供應金鑰建立（`workspaces.provisioned_by_key_id`），以及每把 token 由哪把簽出（`api_keys.parent_key_id`）。',
+**harness 使用金鑰**（`Authorization: Bearer <key>`），永遠只能操作「同一把金鑰自己建立的」工作區：
+
+| 請求 | 作用 |
+|---|---|
+| `POST /api/v1/provision/workspaces` | body `{"name", "language": "zh-TW"\|"en", "description"?, "token_name"?, "token_expires_in_days"?（1 到 365）}`。在一個交易內建立由金鑰擁有者擁有的私有工作區（Q&A 歸檔模式 `manual_review`、開啟 MCP 攝入，與 MCP `create_workspace` 相同），以及 scope 恰為 `["kb:write"]` 的工作區服務 token。回傳 `201` `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}, "idempotent_replay": false}`。token 的 `key` 只出現在這次回應。任何一步失敗，工作區與 token 都不會留下 |
+| `GET /api/v1/provision/quota` | `{"max_workspaces", "workspaces_created", "remaining", "expires_at"}`；`max_workspaces` 取金鑰上限與部署上限中較小者 |
+| `GET /api/v1/provision/workspaces?idempotency_key=&limit=&offset=` | 這把金鑰建立的工作區，由舊到新（`limit` 1 到 200，預設 50），每筆 `{"workspace_id", "name", "language", "idempotency_key", "created_at", "token": {"id", "prefix", "expires_at"} \| null}`，絕不含 token 明文。用 `idempotency_key` 篩選即可查詢單筆 |
+| `DELETE /api/v1/provision/workspaces/{id}/token` | 撤銷這把金鑰為該工作區簽出的所有 token（`204`；重複呼叫無害）。擁有者以其他方式簽出的 token 不受影響 |
+| `DELETE /api/v1/provision/workspaces/{id}` | body `{"confirm_name": "<工作區目前的名稱>"}`。刪除工作區、其節點與綁定它的所有服務 token（`204`），並釋放配額。除非擁有者為這把金鑰開啟 `can_delete_workspaces`（否則 `403 deletion_not_allowed`）、這把金鑰簽出的 token 已先撤銷（否則 `409 tokens_still_active`）、名稱完全相符（否則 `409 confirmation_mismatch`），否則拒絕 |
+
+不是這把金鑰建立的工作區（別把金鑰建立的，或擁有者以其他方式建立的）或不存在的工作區，一律 `404`。已撤銷或過期的金鑰回 `401`。
+
+**安全重試。** `POST /api/v1/provision/workspaces` 接受 `Idempotency-Key` 標頭（1 到 128 字元，限 `A-Z a-z 0-9 . _ : -`）。第一次請求建立工作區並回 `201`。同一個 key、相同的 `name`、`language`、`description` 再送一次，回 `200` 且 `idempotent_replay: true`，`workspace_id` 相同，並簽出一把新 token；先前為該工作區簽出的 token 會被撤銷，因為伺服器從不儲存 token，只能「換新」而不能「重放」。重放不佔配額，可以另外指定 `token_name` 與 `token_expires_in_days`。同一個 key 但請求內容不同回 `409`（`idempotency_conflict`），且不會改變任何東西。key 只屬於一把供應金鑰；相同 key 的並發請求會被序列化，只有最後一次回應的 token 有效。不帶標頭時，每次請求都建立新的工作區。
+
+**限制與它做不到的事。** 供應金鑰不能建立金鑰、讀寫節點，或碰自己清單以外的工作區。更換金鑰不會繼承：新的供應金鑰看不到、撤銷不了、也刪不了舊金鑰建立的工作區，所以舊金鑰要留到那些工作區不再需要管理為止，或由擁有者登入後處理。簽出的 token 是一般的 `kb:write` 服務 token（§29.2）：不能建立工作區、簽發金鑰或改設定，除非指定 `token_expires_in_days` 否則沒有到期，且在供應金鑰到期或被撤銷後仍然有效（用上面的請求撤銷，或從工作區的 API 金鑰撤銷）。若擁有者透過工作區的 API 金鑰端點輪替簽出的 token，擁有者會看到新的明文，所以「擁有者從不接觸 token」是這個流程的使用方式，不是安全邊界。
+
+明文金鑰與 token 都不會寫進日誌，資料庫只存雜湊。伺服器會記錄每個工作區由哪把供應金鑰建立（`workspaces.provisioned_by_key_id`），以及每把 token 由哪把簽出（`api_keys.parent_key_id`）。',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET
@@ -9639,6 +9659,7 @@ Each knowledge base required an independent key, and scopes (`kb:read`, `kb:writ
 |---|---|
 | `account` | Account-level key, dynamically inherits roles (new) |
 | `service` | Workspace Service Token (§29), retains fixed scope |
+| `provisioner` | Provisioner key (§29.5), can only call `/api/v1/provision/*` |
 
 ## Dynamic Role Resolution (deps.py, per API Call)
 
@@ -9674,19 +9695,38 @@ A service token''s `user_id` is the workspace owner, so a role check alone would
 - **MCP tool access.** Every MCP tool is classified read, write or admin (or takes no workspace) in `MCP_TOOL_ACCESS`, and the check runs for all of them before the handler, for every kind of caller. A read-only token, a token bound to another workspace, and a user who is not a member of the workspace are all refused on tools such as `update_node`, `delete_node` and `resolve_conflict`. The same check applies to people: a workspace viewer can no longer call a write tool, and a non-member can no longer call a write tool or read a workspace that is not public. `list_workspaces`, `create_workspace` and `get_schema` take no workspace and guard themselves: a service token sees only its own workspace in `list_workspaces`, cannot call `create_workspace`, and `list_members` refuses service tokens. MCP resources follow the same rules: `memtrace://node/{id}` and the workspace summary are refused to anyone who could not call `get_node`, a refusal looks like "not found", and a workspace viewer gets the node without its body. `tools/list` is not filtered by scope.
 - Updating workspace settings (`PATCH /workspaces/{id}`, MCP `update_workspace`, `add_association`, `remove_association`) needs `workspace:admin`.
 
-## Provisioner keys: a harness that creates its own knowledge base
+## Provisioner keys: a harness that creates and manages its own knowledge base
 
-An external harness can create a knowledge base for its owner and receive a `kb:write` token for it, without the owner (or the conversation the harness is serving) ever handling that token.
+An external harness can create a knowledge base for its owner and receive a `kb:write` token for it, without the owner (or the conversation the harness serves) ever handling that token. A provisioner key can do nothing outside `/api/v1/provision/*`: every other route, including `/mcp`, returns `403` with `detail.error = "provisioner_key_forbidden"`, except routes that also serve anonymous callers (public workspace listings), which treat the key as anonymous.
 
-1. **The owner authorizes once.** While signed in (a person, not an API key), the owner creates a provisioner key: `POST /api/v1/users/me/provisioner-keys` with `name`, `expires_in_days` (1 to 90, default 90) and `max_workspaces` (1 to 10, default 10). The key is returned once. The owner stores it in the harness''s secret store. `GET /api/v1/users/me/provisioner-keys` lists active keys (prefix, expiry, cap, how many workspaces each created); `DELETE /api/v1/users/me/provisioner-keys/{id}` revokes one.
-2. **The harness provisions.** `POST /api/v1/provision/workspaces` with the provisioner key and `{"name", "language": "zh-TW"|"en", "description"?, "token_name"?, "token_expires_in_days"? (1 to 365)}`. In one transaction the server creates a private workspace owned by the key''s owner (Q&A archive mode `manual_review`, MCP ingestion on, like MCP `create_workspace`) and a workspace service token with scopes exactly `["kb:write"]`, and returns `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}}`. The `key` appears only in this response. If any step fails, neither the workspace nor the token exists.
-3. **The harness uses the token** as `Authorization: Bearer <key>` against `/mcp` (or REST) for that workspace only.
+**The owner authorizes once.** While signed in as a person (the `access_token` from `POST /auth/login`; API keys cannot do this), the owner creates a provisioner key with `POST /api/v1/users/me/provisioner-keys`:
 
-What a provisioner key can do: call `POST /api/v1/provision/workspaces`, and nothing else. Every other route, including `/mcp`, returns `403` with `detail.error = "provisioner_key_forbidden"`. It can create at most `max_workspaces` workspaces (`403` with `detail.error = "quota_exceeded"` after that; concurrent requests cannot overrun the cap), and it stops working at its expiry or when revoked (`401`). A provisioner key cannot be created by an API key, only by a signed-in person.
+| Field | Meaning |
+|---|---|
+| `name` | Label (1 to 100 characters) |
+| `expires_in_days` | 1 to 90, default 90. The key stops working at expiry (`401`); create a replacement before then |
+| `max_workspaces` | How many workspaces the key may have created at once. Default and ceiling: the deployment''s `MAX_PROVISIONED_WORKSPACES` setting (50) |
+| `can_delete_workspaces` | Default `false`. Only when `true` may the key delete the workspaces it created |
 
-What the minted token can do: exactly what a `kb:write` service token can do (see §29.2). It cannot create workspaces, mint keys, or change workspace settings, so it cannot make itself more powerful. Revoking a provisioner key does not revoke the tokens it already minted; revoke those from the workspace''s API keys.
+The plaintext `key` is returned once; the owner stores it in the harness''s secret store. `GET /api/v1/users/me/provisioner-keys` lists the keys that are not revoked (prefix, expiry, cap, deletion flag, how many workspaces each created; an expired key is still listed until revoked); `DELETE /api/v1/users/me/provisioner-keys/{id}` revokes one.
 
-The plaintext keys are never logged, and only their hashes are stored. The server records which provisioner key created each workspace (`workspaces.provisioned_by_key_id`) and which minted each token (`api_keys.parent_key_id`).',
+**The harness uses the key** (`Authorization: Bearer <key>`), always and only on workspaces that same key created:
+
+| Request | What it does |
+|---|---|
+| `POST /api/v1/provision/workspaces` | Body `{"name", "language": "zh-TW"\|"en", "description"?, "token_name"?, "token_expires_in_days"? (1 to 365)}`. In one transaction creates a private workspace owned by the key''s owner (Q&A archive mode `manual_review`, MCP ingestion on, like MCP `create_workspace`) and a workspace service token with scopes exactly `["kb:write"]`. Returns `201` `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}, "idempotent_replay": false}`. The token `key` appears only in this response. If any step fails, neither the workspace nor the token exists |
+| `GET /api/v1/provision/quota` | `{"max_workspaces", "workspaces_created", "remaining", "expires_at"}`; `max_workspaces` is the smaller of the key''s cap and the deployment ceiling |
+| `GET /api/v1/provision/workspaces?idempotency_key=&limit=&offset=` | The key''s workspaces, oldest first (`limit` 1 to 200, default 50), each `{"workspace_id", "name", "language", "idempotency_key", "created_at", "token": {"id", "prefix", "expires_at"} \| null}`. Never a token secret. Filter by `idempotency_key` to look one up |
+| `DELETE /api/v1/provision/workspaces/{id}/token` | Revokes every token this key minted for that workspace (`204`; repeating it is harmless). Tokens the owner minted another way are untouched |
+| `DELETE /api/v1/provision/workspaces/{id}` | Body `{"confirm_name": "<the workspace''s current name>"}`. Deletes the workspace with its nodes and all service tokens bound to it (`204`) and frees quota. Refused unless the owner enabled `can_delete_workspaces` for the key (`403 deletion_not_allowed`), the key''s own tokens for it are already revoked (`409 tokens_still_active`), and the name matches exactly (`409 confirmation_mismatch`) |
+
+A workspace the key did not create (made by another key, or by the owner another way) or that does not exist is always `404`. A key that was revoked or expired gets `401`.
+
+**Retrying safely.** `POST /api/v1/provision/workspaces` accepts an `Idempotency-Key` header (1 to 128 characters from `A-Z a-z 0-9 . _ : -`). The first request creates the workspace and returns `201`. The same key, with the same `name`, `language` and `description`, sent again returns `200` with `idempotent_replay: true`, the same `workspace_id`, and a newly minted token; the tokens minted before for that workspace are revoked, because the server never stores a token and so can only replace it. A replay does not use quota and may choose its own `token_name` and `token_expires_in_days`. The same key with a different request is `409` (`idempotency_conflict`) and changes nothing. Keys belong to one provisioner key; concurrent requests with the same key are serialized, so only the token from the last response works. Without the header, every request creates a new workspace.
+
+**Limits and what it cannot do.** A provisioner key cannot create keys, read or write nodes, or touch workspaces outside its own list. Replacing a key does not carry over: a new provisioner key cannot see, revoke or delete the workspaces an older key created, so keep the old key until those are no longer managed, or let the owner act while signed in. The minted token is an ordinary `kb:write` service token (§29.2): it cannot create workspaces, mint keys or change settings, has no expiry unless `token_expires_in_days` was given, and keeps working after its provisioner key expires or is revoked (revoke it with the request above, or from the workspace''s API keys). If the owner rotates a minted token through the workspace''s API-key endpoints, the owner sees the new plaintext, so "the owner never sees the token" is how the flow is used, not a security boundary.
+
+Plaintext keys and tokens are never logged and only their hashes are stored. The server records which provisioner key created each workspace (`workspaces.provisioned_by_key_id`) and which minted each token (`api_keys.parent_key_id`).',
    ARRAY['api-key', 'auth', 'rbac', 'phase-4', 'architecture', 'mcp-tool']::text[],'public','system','2026-05-11T00:00:00+00:00','p410a_account_level_api_key_design_decision','ai',
    0,0)
 ON CONFLICT (id) DO UPDATE SET

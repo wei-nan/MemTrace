@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     # ── DB connection pool (PostgreSQL only; ignored for SQLite) ─────────────────
     db_pool_min: int = 2
     db_pool_max: int = 20
+    # Upper bound (and default) for how many workspaces one provisioner key may create.
+    # Env var MAX_PROVISIONED_WORKSPACES; the owner can still choose a smaller cap per key.
+    max_provisioned_workspaces: int = 50
 
     # ── Background/admission-time LLM checks ──────────────────────────────────
     # Each defaults to False (existing behavior). Set to true to skip the LLM

@@ -3234,17 +3234,36 @@ DELETE /api/v1/workspaces/{ws_id}/api-keys/{id}   → revoke key
 
 ### 29.5 Provisioner keys (harness-created knowledge bases)
 
-An external harness can create a knowledge base for its owner and receive a `kb:write` token for it, without the owner (or the conversation the harness is serving) ever handling that token.
+An external harness can create a knowledge base for its owner and receive a `kb:write` token for it, without the owner (or the conversation the harness serves) ever handling that token. A provisioner key can do nothing outside `/api/v1/provision/*`: every other route, including `/mcp`, returns `403` with `detail.error = "provisioner_key_forbidden"`, except routes that also serve anonymous callers (public workspace listings), which treat the key as anonymous.
 
-1. **The owner authorizes once.** While signed in (a person, not an API key), the owner creates a provisioner key: `POST /api/v1/users/me/provisioner-keys` with `name`, `expires_in_days` (1 to 90, default 90) and `max_workspaces` (1 to 10, default 10). The key is returned once. The owner stores it in the harness's secret store. `GET /api/v1/users/me/provisioner-keys` lists active keys (prefix, expiry, cap, how many workspaces each created); `DELETE /api/v1/users/me/provisioner-keys/{id}` revokes one.
-2. **The harness provisions.** `POST /api/v1/provision/workspaces` with the provisioner key and `{"name", "language": "zh-TW"|"en", "description"?, "token_name"?, "token_expires_in_days"? (1 to 365)}`. In one transaction the server creates a private workspace owned by the key's owner (Q&A archive mode `manual_review`, MCP ingestion on, like MCP `create_workspace`) and a workspace service token with scopes exactly `["kb:write"]`, and returns `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}}`. The `key` appears only in this response. If any step fails, neither the workspace nor the token exists.
-3. **The harness uses the token** as `Authorization: Bearer <key>` against `/mcp` (or REST) for that workspace only.
+**The owner authorizes once.** While signed in as a person (the `access_token` from `POST /auth/login`; API keys cannot do this), the owner creates a provisioner key with `POST /api/v1/users/me/provisioner-keys`:
 
-What a provisioner key can do: call `POST /api/v1/provision/workspaces`, and nothing else. Every other route, including `/mcp`, returns `403` with `detail.error = "provisioner_key_forbidden"`. It can create at most `max_workspaces` workspaces (`403` with `detail.error = "quota_exceeded"` after that; concurrent requests cannot overrun the cap), and it stops working at its expiry or when revoked (`401`). A provisioner key cannot be created by an API key, only by a signed-in person.
+| Field | Meaning |
+|---|---|
+| `name` | Label (1 to 100 characters) |
+| `expires_in_days` | 1 to 90, default 90. The key stops working at expiry (`401`); create a replacement before then |
+| `max_workspaces` | How many workspaces the key may have created at once. Default and ceiling: the deployment's `MAX_PROVISIONED_WORKSPACES` setting (50) |
+| `can_delete_workspaces` | Default `false`. Only when `true` may the key delete the workspaces it created |
 
-What the minted token can do: exactly what a `kb:write` service token can do (see §29.2). It cannot create workspaces, mint keys, or change workspace settings, so it cannot make itself more powerful. Revoking a provisioner key does not revoke the tokens it already minted; revoke those from the workspace's API keys.
+The plaintext `key` is returned once; the owner stores it in the harness's secret store. `GET /api/v1/users/me/provisioner-keys` lists the keys that are not revoked (prefix, expiry, cap, deletion flag, how many workspaces each created; an expired key is still listed until revoked); `DELETE /api/v1/users/me/provisioner-keys/{id}` revokes one.
 
-The plaintext keys are never logged, and only their hashes are stored. The server records which provisioner key created each workspace (`workspaces.provisioned_by_key_id`) and which minted each token (`api_keys.parent_key_id`).
+**The harness uses the key** (`Authorization: Bearer <key>`), always and only on workspaces that same key created:
+
+| Request | What it does |
+|---|---|
+| `POST /api/v1/provision/workspaces` | Body `{"name", "language": "zh-TW"\|"en", "description"?, "token_name"?, "token_expires_in_days"? (1 to 365)}`. In one transaction creates a private workspace owned by the key's owner (Q&A archive mode `manual_review`, MCP ingestion on, like MCP `create_workspace`) and a workspace service token with scopes exactly `["kb:write"]`. Returns `201` `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}, "idempotent_replay": false}`. The token `key` appears only in this response. If any step fails, neither the workspace nor the token exists |
+| `GET /api/v1/provision/quota` | `{"max_workspaces", "workspaces_created", "remaining", "expires_at"}`; `max_workspaces` is the smaller of the key's cap and the deployment ceiling |
+| `GET /api/v1/provision/workspaces?idempotency_key=&limit=&offset=` | The key's workspaces, oldest first (`limit` 1 to 200, default 50), each `{"workspace_id", "name", "language", "idempotency_key", "created_at", "token": {"id", "prefix", "expires_at"} \| null}`. Never a token secret. Filter by `idempotency_key` to look one up |
+| `DELETE /api/v1/provision/workspaces/{id}/token` | Revokes every token this key minted for that workspace (`204`; repeating it is harmless). Tokens the owner minted another way are untouched |
+| `DELETE /api/v1/provision/workspaces/{id}` | Body `{"confirm_name": "<the workspace's current name>"}`. Deletes the workspace with its nodes and all service tokens bound to it (`204`) and frees quota. Refused unless the owner enabled `can_delete_workspaces` for the key (`403 deletion_not_allowed`), the key's own tokens for it are already revoked (`409 tokens_still_active`), and the name matches exactly (`409 confirmation_mismatch`) |
+
+A workspace the key did not create (made by another key, or by the owner another way) or that does not exist is always `404`. A key that was revoked or expired gets `401`.
+
+**Retrying safely.** `POST /api/v1/provision/workspaces` accepts an `Idempotency-Key` header (1 to 128 characters from `A-Z a-z 0-9 . _ : -`). The first request creates the workspace and returns `201`. The same key, with the same `name`, `language` and `description`, sent again returns `200` with `idempotent_replay: true`, the same `workspace_id`, and a newly minted token; the tokens minted before for that workspace are revoked, because the server never stores a token and so can only replace it. A replay does not use quota and may choose its own `token_name` and `token_expires_in_days`. The same key with a different request is `409` (`idempotency_conflict`) and changes nothing. Keys belong to one provisioner key; concurrent requests with the same key are serialized, so only the token from the last response works. Without the header, every request creates a new workspace.
+
+**Limits and what it cannot do.** A provisioner key cannot create keys, read or write nodes, or touch workspaces outside its own list. Replacing a key does not carry over: a new provisioner key cannot see, revoke or delete the workspaces an older key created, so keep the old key until those are no longer managed, or let the owner act while signed in. The minted token is an ordinary `kb:write` service token (§29.2): it cannot create workspaces, mint keys or change settings, has no expiry unless `token_expires_in_days` was given, and keeps working after its provisioner key expires or is revoked (revoke it with the request above, or from the workspace's API keys). If the owner rotates a minted token through the workspace's API-key endpoints, the owner sees the new plaintext, so "the owner never sees the token" is how the flow is used, not a security boundary.
+
+Plaintext keys and tokens are never logged and only their hashes are stored. The server records which provisioner key created each workspace (`workspaces.provisioned_by_key_id`) and which minted each token (`api_keys.parent_key_id`).
 
 ---
 

@@ -21,3 +21,4 @@
 009_evergreen_no_decay.sql
 010_mcp_ingest_default_on.sql
 011_provisioner_keys.sql
+012_provision_idempotency.sql

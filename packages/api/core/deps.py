@@ -54,6 +54,20 @@ _SERVICE_WS_ADMIN_SEGMENTS = frozenset({
 _SERVICE_WS_PATH = re.compile(r"^/api/v1/workspaces/([^/]+)(?:/([^/]+))?")
 
 
+# The only routes a provisioner key may call (migrations 011/012, routers/provision.py).
+_PROVISIONER_ROUTES = (
+    ("POST", re.compile(r"^/api/v1/provision/workspaces$")),
+    ("GET", re.compile(r"^/api/v1/provision/workspaces$")),
+    ("GET", re.compile(r"^/api/v1/provision/quota$")),
+    ("DELETE", re.compile(r"^/api/v1/provision/workspaces/[^/]+/token$")),
+    ("DELETE", re.compile(r"^/api/v1/provision/workspaces/[^/]+$")),
+)
+
+
+def _provisioner_route_allowed(method: str, path: str) -> bool:
+    return any(method == m and pattern.match(path) for m, pattern in _PROVISIONER_ROUTES)
+
+
 def _service_token_route_allowed(path: str, token_ws_id: Optional[str], scopes: list) -> bool:
     if path == "/mcp" or path.startswith("/api/v1/mcp/"):
         return True
@@ -102,7 +116,7 @@ def get_current_user(
             # It must be handled before the account-key fallthrough below, or it would
             # inherit its owner's full account access.
             if row["key_type"] == "provisioner":
-                if not (request.method == "POST" and request.url.path == "/api/v1/provision/workspaces"):
+                if not _provisioner_route_allowed(request.method, request.url.path):
                     raise HTTPException(
                         status_code=403,
                         detail={"error": "provisioner_key_forbidden", "message": "A provisioner key can only create knowledge bases"},
