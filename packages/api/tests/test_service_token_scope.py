@@ -113,6 +113,12 @@ def test_read_only_service_token_cannot_write_nodes(client, world):
     assert r.json()["detail"]["required"] == "kb:write"
 
 
+def test_insufficient_scope_label_names_the_missing_scope(client, world):
+    r = client.get(f"/api/v1/workspaces/{world['ws1']}/nodes", headers=_auth(world["tokens"]["unknown"]))
+    assert r.status_code == 403
+    assert r.json()["detail"] == {"error": "insufficient_scope", "required": "kb:read"}
+
+
 @pytest.mark.parametrize("name", ["read", "traverse", "write", "admin", "star"])
 def test_service_tokens_with_a_known_scope_can_read(client, world, name):
     r = client.get(f"/api/v1/workspaces/{world['ws1']}/nodes", headers=_auth(world["tokens"][name]))
@@ -201,10 +207,20 @@ def test_service_token_cannot_use_membership_endpoints(client, world, name):
         ("put", f"/api/v1/workspaces/{ws}/members/{world['user_id']}", {"role": "viewer"}),
         ("delete", f"/api/v1/workspaces/{ws}/members/{world['user_id']}", None),
         ("get", f"/api/v1/workspaces/{ws}/join-requests", None),
+        ("post", f"/api/v1/workspaces/{ws}/join-requests", {"message": "x"}),
+        ("post", f"/api/v1/workspaces/{ws}/join-requests/jr_x/approve", None),
+        ("post", f"/api/v1/workspaces/{ws}/join-requests/jr_x/reject", None),
+        ("post", f"/api/v1/workspaces/{ws}/members", {"user_id": "usr_x", "role": "viewer"}),
+        ("delete", f"/api/v1/workspaces/{ws}/members/me", None),
+        ("get", f"/api/v1/workspaces/{ws}/user-candidates?q=a", None),
+        ("delete", f"/api/v1/workspaces/{ws}/invites/tok_x", None),
+        ("post", "/api/v1/workspaces/invites/tok_x/accept", None),
+        ("delete", "/api/v1/workspaces/invites/inv_x", None),
     ]
     for method, url, body in calls:
         r = getattr(client, method)(url, headers=h, **({"json": body} if body else {}))
         assert r.status_code == 403, f"{method.upper()} {url} -> {r.status_code} {r.text[:120]}"
+        assert r.json()["detail"]["error"] == "service_token_forbidden", f"{method.upper()} {url}: {r.text[:120]}"
 
 
 def test_owner_account_key_can_still_create_invites(client, world):
@@ -270,6 +286,100 @@ def test_workspace_admin_token_can_delete_its_workspace(client, world, db_conn):
     assert r.status_code == 204, r.text[:200]
 
 
+# ─── routes outside the workspace: fail-closed allowlist ─────────────────────
+
+NON_WORKSPACE_ROUTES = [
+    ("post", "/auth/me/password", {"new_password": "Sup3r-secret-pw!"}),
+    ("get", "/auth/me", None),
+    ("patch", "/auth/me/onboarding", {}),
+    ("put", "/auth/me/notification-preferences", {}),
+    ("post", "/api/v1/ai/keys", {"provider": "openai", "api_key": "sk-not-a-real-key"}),
+    ("get", "/api/v1/ai/keys", None),
+    ("get", "/api/v1/ai/voice-keys", None),
+    ("post", "/api/v1/ai/chat", {"workspace_id": "{ws2}", "message": "hi"}),
+    ("get", "/api/v1/notifications", None),
+    ("delete", "/api/v1/notifications", None),
+    ("get", "/api/v1/users/me/connector-accounts", None),
+    ("delete", "/api/v1/clone-jobs/clonejob_x", None),
+    ("post", "/api/v1/clone-jobs/clonejob_x/cancel", None),
+    ("get", "/api/v1/system/users", None),
+]
+
+
+@pytest.mark.parametrize("name", ["read", "write", "star"])
+def test_service_token_cannot_reach_account_level_routes(client, world, name):
+    for method, url, body in NON_WORKSPACE_ROUTES:
+        body = {k: (v.format(**world) if isinstance(v, str) else v) for k, v in body.items()} if body is not None else None
+        r = getattr(client, method)(url, headers=_auth(world["tokens"][name]), **({"json": body} if body is not None else {}))
+        assert r.status_code == 403, f"{name}: {method.upper()} {url} -> {r.status_code} {r.text[:120]}"
+        assert r.json()["detail"]["error"] == "service_token_forbidden", f"{name}: {url}: {r.text[:120]}"
+
+
+@pytest.mark.parametrize("url", ["/api/v1/workspaces", "/api/v1/workspaces/explore"])
+def test_workspace_listings_do_not_reveal_the_owners_other_workspaces(client, world, url):
+    # These routes serve anonymous callers too, so a service token is treated as anonymous.
+    r = client.get(url, headers=_auth(world["tokens"]["star"]))
+    assert world["ws1"] not in r.text and world["ws2"] not in r.text
+
+
+def test_route_allowlist_is_fail_closed():
+    from core.deps import _service_token_route_allowed as allowed
+    assert allowed("/api/v1/workspaces/ws_a/nodes", "ws_a", ["kb:read"])
+    assert allowed("/api/v1/workspaces/ws_a", "ws_a", ["kb:read"])
+    assert allowed("/mcp", "ws_a", ["kb:read"])
+    assert not allowed("/api/v1/workspaces/ws_a/some-future-route", "ws_a", ["*"])
+    assert not allowed("/api/v1/workspaces/ws_b/nodes", "ws_a", ["*"])
+    assert not allowed("/api/v1/workspaces/ws_a/ai-reviewers", "ws_a", ["kb:write"])
+    assert allowed("/api/v1/workspaces/ws_a/ai-reviewers", "ws_a", ["workspace:admin"])
+    assert not allowed("/api/v1/workspaces", "ws_a", ["*"])
+    assert not allowed("/auth/me/password", "ws_a", ["*"])
+    assert not allowed("/api/v1/ai/chat", "ws_a", ["*"])
+
+
+def test_password_change_with_a_service_token_leaves_the_password_alone(client, world, db_conn):
+    cur = db_conn.cursor()
+    cur.execute("UPDATE users SET password_hash = 'ORIGINAL' WHERE id = %s", (world["user_id"],))
+    r = client.post("/auth/me/password", json={"new_password": "Sup3r-secret-pw!"},
+                    headers=_auth(world["tokens"]["read"]))
+    assert r.status_code == 403, r.text[:200]
+    cur.execute("SELECT password_hash FROM users WHERE id = %s", (world["user_id"],))
+    assert cur.fetchone()["password_hash"] == "ORIGINAL"
+
+
+@pytest.mark.parametrize("segment,method", [
+    ("clone", "post"), ("fork", "post"), ("pin", "post"), ("clone-status", "get"),
+])
+def test_workspace_sub_routes_off_the_allowlist_are_denied(client, world, segment, method):
+    r = getattr(client, method)(f"/api/v1/workspaces/{world['ws1']}/{segment}",
+                                headers=_auth(world["tokens"]["star"]))
+    assert r.status_code == 403 and r.json()["detail"]["error"] == "service_token_forbidden", \
+        f"{segment}: {r.status_code} {r.text[:120]}"
+
+
+@pytest.mark.parametrize("name,expect_denied", [("read", True), ("write", True), ("admin", False), ("star", False)])
+def test_workspace_configuration_routes_need_workspace_admin(client, world, name, expect_denied):
+    for method, segment in (("get", "ai-reviewers"), ("get", "review-policy"), ("get", "conductor/hooks"),
+                            ("get", "model-bindings"), ("get", "job-runs")):
+        r = getattr(client, method)(f"/api/v1/workspaces/{world['ws1']}/{segment}", headers=_auth(world["tokens"][name]))
+        if expect_denied:
+            assert r.status_code == 403 and r.json()["detail"]["error"] == "service_token_forbidden", \
+                f"{name} {segment}: {r.status_code}"
+        else:
+            assert r.status_code != 403, f"{name} {segment}: {r.status_code} {r.text[:120]}"
+
+
+def test_ai_reviewer_cannot_be_created_by_a_read_token(client, world):
+    r = client.post(f"/api/v1/workspaces/{world['ws1']}/ai-reviewers",
+                    json={"name": "x", "system_prompt": "x"}, headers=_auth(world["tokens"]["read"]))
+    assert r.status_code == 403
+
+
+def test_mcp_endpoint_is_reachable_by_service_tokens(client, world):
+    r = client.post("/mcp", json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+                    headers=_auth(world["tokens"]["read"]))
+    assert r.status_code == 200, r.text[:200]
+
+
 # ─── MCP workspace-management tools ───────────────────────────────────────────
 
 def _run_tool(name, args, user):
@@ -289,6 +399,17 @@ def test_mcp_workspace_management_refuses_tokens_without_workspace_admin(world, 
         _run_tool(tool, {"workspace_id": world["ws1"], **args}, _svc_user(world, name))
     assert exc.value.status_code == 403
     assert exc.value.detail["required"] == "workspace:admin"
+
+
+def test_mcp_list_workspaces_shows_only_the_bound_workspace(world):
+    out = _run_tool("list_workspaces", {}, _svc_user(world, "read"))
+    assert [w["id"] for w in out] == [world["ws1"]]
+
+
+def test_mcp_list_members_refuses_service_tokens(world):
+    with pytest.raises(HTTPException) as exc:
+        _run_tool("list_members", {"workspace_id": world["ws1"]}, _svc_user(world, "star"))
+    assert exc.value.status_code == 403
 
 
 def test_mcp_update_workspace_allows_workspace_admin_token(world):

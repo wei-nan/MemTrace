@@ -1089,7 +1089,6 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
             <tbody>
               {[
                 { scope: "kb:read",    desc: zh ? "唯讀：搜尋、讀取節點" : "Read-only: search and retrieve nodes" },
-                { scope: "kb:propose", desc: zh ? "可提案：新增節點須人工審核" : "Propose: node additions go to review queue" },
                 { scope: "kb:write",   desc: zh ? "完整寫入：直接新增/修改節點" : "Full write: create and edit nodes directly" },
               ].map(({ scope, desc }, i) => (
                 <tr key={scope} style={{ borderBottom: i < 2 ? "1px solid var(--border-subtle)" : "none" }}>
@@ -1118,7 +1117,6 @@ function APIKeysSettings({ wsId }: { wsId: string }) {
           <Input placeholder={zh ? "名稱 (例: Ingestion Bot)" : "Key name (e.g. Ingestion Bot)"} value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ flex: 2, minWidth: 200 }} />
           <select className="mt-input" value={newKeyScope} onChange={e => setNewKeyScope(e.target.value)} style={{ flex: 1, minWidth: 140 }}>
             <option value="kb:read">kb:read</option>
-            <option value="kb:propose">kb:propose</option>
             <option value="kb:write">kb:write</option>
           </select>
           <Button variant="primary" onClick={handleCreate}>{zh ? "產生 Token" : "Generate Token"}</Button>

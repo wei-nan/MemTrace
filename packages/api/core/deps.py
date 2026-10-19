@@ -30,6 +30,44 @@ def _extract_workspace_id(request: Request) -> Optional[str]:
     return m.group(1) if m else None
 
 
+# ─── Service-token route allowlist ────────────────────────────────────────────
+# A service token's user_id is the workspace owner, and many routes (account
+# settings, AI keys, clone/fork, notifications, reviewer config...) authorize by
+# `user["sub"]` alone and never look at the token's workspace or scopes. Rather
+# than patch them one by one, a service token may only reach what is listed
+# here; every other route returns 403, and new routes are denied by default.
+
+# Segment right after /api/v1/workspaces/{id}/ that a service token may use.
+# The handlers behind them enforce the scope tier via require_ws_access.
+_SERVICE_WS_SEGMENTS = frozenset({
+    "nodes", "nodes-search", "edges", "table-view", "graph-preview", "decay-stats",
+    "analytics", "stats", "clusters", "trash", "documents", "ingest", "sources",
+    "review-queue", "audit-proposals", "consult", "exports", "imports", "associations",
+})
+# Workspace configuration and operations: need the workspace:admin tier.
+_SERVICE_WS_ADMIN_SEGMENTS = frozenset({
+    "ai-reviewers", "audit", "conductor", "connector-bindings", "connector-runs",
+    "failed-embeddings", "job-runs", "maintenance", "model-bindings", "purge",
+    "reembed-all", "retry-failed-embeddings", "review", "review-policy",
+    "reviewer-profiles", "safety-review-queue", "scheduler-heartbeats",
+})
+_SERVICE_WS_PATH = re.compile(r"^/api/v1/workspaces/([^/]+)(?:/([^/]+))?")
+
+
+def _service_token_route_allowed(path: str, token_ws_id: Optional[str], scopes: list) -> bool:
+    if path == "/mcp" or path.startswith("/api/v1/mcp/"):
+        return True
+    m = _SERVICE_WS_PATH.match(path)
+    if not m or m.group(1) != token_ws_id:
+        return False
+    segment = m.group(2)
+    if segment is None or segment in _SERVICE_WS_SEGMENTS:
+        return True
+    if segment in _SERVICE_WS_ADMIN_SEGMENTS:
+        return bool(set(scopes or []) & {"workspace:admin", "*"})
+    return False
+
+
 def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(bearer),
@@ -63,6 +101,11 @@ def get_current_user(
             # Option D (P4.10): branch on key_type
             if row["key_type"] == "service":
                 # §29 workspace service token — fixed scopes, no dynamic role resolution
+                if not _service_token_route_allowed(request.url.path, row["workspace_id"], row["scopes"]):
+                    raise HTTPException(
+                        status_code=403,
+                        detail={"error": "service_token_forbidden", "message": "This route is not available to workspace service tokens"},
+                    )
                 return {
                     "sub": row["user_id"],
                     "email": row["email"],

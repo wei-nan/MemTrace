@@ -3083,6 +3083,9 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         from services.workspaces import list_members_in_db
 
         ws_id = args["workspace_id"]
+        if user.get("key_type") == "service":
+            # Same rule as the REST members endpoint: membership is not for service tokens.
+            raise HTTPException(status_code=403, detail="Workspace service tokens cannot list members")
         with db_cursor() as cur:
             ws = require_ws_access(cur, ws_id, user)
             # require_ws_access lets any signed-in user read a public workspace, so

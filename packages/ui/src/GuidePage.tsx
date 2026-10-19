@@ -244,7 +244,6 @@ export default function GuidePage({ onOpenSpecKb }: GuidePageProps) {
 
   const scopes = [
     { scope: 'kb:read', desc: zh ? '唯讀：搜尋、讀取節點' : 'Read-only: search and retrieve nodes' },
-    { scope: 'kb:propose', desc: zh ? '可提案：新增節點須經審核佇列' : 'Propose: new nodes go to the review queue' },
     { scope: 'kb:write', desc: zh ? '完整寫入：直接新增 / 修改節點' : 'Full write: create and edit nodes directly' },
   ];
 

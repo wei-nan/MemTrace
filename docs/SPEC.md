@@ -3205,23 +3205,23 @@ A service token's `user_id` is the workspace owner, so a role check alone would 
 
 | Level | Scopes | Capabilities |
 |-------|--------|--------------|
-| read | `kb:read`, `node:traverse`, `node:rate` | Search, list, read, traverse, Q&A chat |
+| read | `kb:read`, `node:traverse`, `node:rate` | Search, list, read, traverse |
 | write | `kb:write` | Read + create/edit/delete nodes and edges |
 | admin | `workspace:admin`, `*` | Write + update workspace settings and associations, delete or purge the workspace, trigger re-embedding |
-| none | `kb:propose`, any unknown string | Every request is refused |
+| none | `kb:propose`, any unknown string | Requests for workspace data are refused |
 
-- `kb:propose` currently grants nothing (fails closed): routing a token's writes to the review queue is not implemented yet.
+- `kb:propose` currently grants nothing (fails closed): routing a token's writes to the review queue is not implemented yet, and the UI no longer offers it. Existing tokens that carry it keep working for nothing until re-issued with `kb:read` or `kb:write`.
 - A token whose scopes fall short gets `403` with `detail = {"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`.
 - A token stays bound to its own workspace; any other workspace returns `403`.
 - Scopes given at creation must be a non-empty subset of `kb:read`, `kb:propose`, `kb:write`, `node:traverse`, `node:rate`, `workspace:admin`, `*`; anything else returns `422`.
-- **A service token can never manage credentials, membership or workspace creation, whatever its scopes.** Creating, listing, rotating or revoking API keys (workspace or personal), `POST /workspaces`, and the invite, member and join-request endpoints return `403` with `detail.error = "service_token_forbidden"`. Keys are issued only by the owner through a signed-in session or an account-level key.
+- **Route allowlist (fail closed).** A service token can only call the MCP endpoint (`/mcp`, `/api/v1/mcp/*`) and, for its own workspace, `/api/v1/workspaces/{id}` plus the sub-resources `nodes`, `nodes-search`, `edges`, `table-view`, `graph-preview`, `decay-stats`, `analytics`, `stats`, `clusters`, `trash`, `documents`, `ingest`, `sources`, `review-queue`, `audit-proposals`, `consult`, `exports`, `imports` and `associations`. Workspace configuration and operations (`ai-reviewers`, `audit`, `conductor`, `connector-bindings`, `connector-runs`, `failed-embeddings`, `job-runs`, `maintenance`, `model-bindings`, `purge`, `reembed-all`, `retry-failed-embeddings`, `review`, `review-policy`, `reviewer-profiles`, `safety-review-queue`, `scheduler-heartbeats`) additionally need `workspace:admin`. Every other route returns `403` with `detail.error = "service_token_forbidden"`, whatever the scopes: account settings (`/auth/*`), AI keys and AI chat, notifications, connector accounts, clone and fork, system routes, other workspaces, and everything that manages credentials, membership or workspace creation (API keys, members, invites, join requests, `POST /workspaces`). New routes are denied by default. Routes that also serve anonymous callers (workspace listing, explore) treat a service token as anonymous. Keys are issued only by the owner through a signed-in session or an account-level key.
 - Updating workspace settings (`PATCH /workspaces/{id}`, MCP `update_workspace`, `add_association`, `remove_association`) needs `workspace:admin`.
 
 ### 29.3 Lifecycle
 - Keys are created by the workspace owner via the Workspace Settings → API Keys panel, or with an account-level key. A service token cannot create keys (§29.2).
 - A key can be **rotated** (invalidates old key, issues new one with same name/scope).
 - A key can be **revoked** (permanently invalidated).
-- The raw key value is shown **once** on creation. Only a hash of it is stored.
+- The raw key value is shown **once** on creation. It is stored as a bcrypt hash.
 
 ### 29.4 API
 ```
