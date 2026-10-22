@@ -1,6 +1,7 @@
 import hashlib
 import os
 import pathlib
+import select
 import sqlite3
 import psycopg2
 import psycopg2.extras
@@ -67,8 +68,34 @@ def get_conn():
 
     init_pool()
     conn = _pool.getconn()
+    # A Postgres restart or failover leaves every idle pooled connection dead. Handing one out
+    # fails that request (up to a pool's worth of 500s after the database is back), so replace
+    # dead ones here instead. If the database is still down, the replacement's connect() raises
+    # as it always did.
+    for _ in range(settings.db_pool_max):
+        if _connection_usable(conn):
+            break
+        _pool.putconn(conn, close=True)
+        conn = _pool.getconn()
     conn.set_client_encoding('UTF8')
     return conn
+
+
+def _connection_usable(conn) -> bool:
+    """False for an idle pooled connection the server has since closed.
+
+    A connection nobody is using has nothing to read; if its socket is readable the server sent
+    something unprompted, in practice the EOF of a restart. No round trip, so it adds nothing to
+    the per-request cost the pool exists to remove. A connection cut without the server saying
+    so (a dropped network) is not detected here and fails once, as before.
+    """
+    if conn.closed:
+        return False
+    try:
+        readable, _, _ = select.select([conn], [], [], 0)
+    except (OSError, ValueError, psycopg2.Error):
+        return False
+    return not readable
 
 
 @contextmanager
