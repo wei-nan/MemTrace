@@ -1266,8 +1266,9 @@ def restore_node_revision_in_db(cur, ws_id: str, node_id: str, revision_no: int,
     return node, None
 
 def reembed_all_nodes_in_db(cur, ws_id: str, user: dict) -> int:
-    from services.workspaces import require_ws_access
+    from services.workspaces import require_ws_access, require_service_tier
     ws = require_ws_access(cur, ws_id, user)
+    require_service_tier(user, "admin")
     if ws["owner_id"] != user["sub"]:
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Only the workspace owner can trigger re-embedding")

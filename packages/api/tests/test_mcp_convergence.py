@@ -10,6 +10,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from services.node_projection import calculate_top_edges, project_node
 from services.mcp_tools import execute_tool, dispatch, USER_CAPABILITIES
 
+pytestmark = pytest.mark.usefixtures("bypass_mcp_access_guard")
+
 # ─── 1. Top Edges 計算邏輯測試 ──────────────────────────────────────────────────
 
 def test_calculate_top_edges():
@@ -374,7 +376,9 @@ async def test_markdown_resources():
     mock_db_cursor.__enter__.return_value = cur
     
     with patch("services.mcp_tools.db_cursor", return_value=mock_db_cursor):
-        with patch("services.workspaces.list_workspaces_in_db", return_value=[{"id": "ws_1"}]):
+        # access to the node's workspace is decided by require_ws_access; its real
+        # behaviour is covered in tests/test_mcp_tool_access.py
+        with patch("services.mcp_tools.require_ws_access", return_value={"my_role": "admin"}):
             cur.fetchone.return_value = node_row
             cur.fetchall.return_value = edges_rows
             

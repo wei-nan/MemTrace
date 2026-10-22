@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, HTTPException
 from core.database import db_cursor
 from core.security import generate_id, compute_signature
 from core.constants import VALID_RELATIONS, VALID_CONTENT_T
-from services.workspaces import require_ws_access, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
+from services.workspaces import require_ws_access, require_service_tier, get_effective_role, list_workspaces_in_db, strip_body_if_viewer
 from services.edges import (
     record_traversal, create_edge_in_db, update_edge_in_db, trash_edge_in_db,
     restore_trashed_edge_in_db, list_trashed_edges_in_db,
@@ -1427,6 +1427,70 @@ def _require_editor_on_source(cur, ws_id: str, user: dict) -> None:
     require_ws_access(cur, ws_id, user, required_role="editor")
 
 
+# ─── Access level every MCP tool needs on the workspace it is pointed at ──────
+# Enforced for ALL tools in one place (enforce_mcp_tool_access), before the
+# handler runs, so a tool cannot forget its own check. A tool that is not
+# listed here is refused, and tests/test_mcp_tool_access.py fails until it is
+# classified.
+#   read   -> any member (or a public workspace) may call it
+#   write  -> editor/admin; for a service token, kb:write
+#   admin  -> workspace admin; for a service token, workspace:admin
+#   none   -> takes no workspace_id and guards itself
+MCP_TOOL_ACCESS = {
+    # no workspace argument
+    "list_workspaces": "none", "create_workspace": "none", "get_schema": "none",
+    # workspace management (their handlers add owner / tier checks of their own)
+    "update_workspace": "read", "list_members": "read", "list_associations": "read",
+    "add_association": "read", "remove_association": "read",
+    # reads
+    "list_nodes": "read", "get_node": "read", "search_nodes": "read",
+    "search_cross_workspace": "read", "list_trash": "read", "wait_for_embedding": "read",
+    "get_embedding_status": "read", "traverse": "read", "consult": "read",
+    "list_by_tag": "read", "list_review_queue": "read", "get_ingestion_status": "read",
+    "suggest_edges": "read", "verify_audit": "read", "list_documents": "read",
+    "get_document": "read", "get_node_sources": "read", "search_with_history": "read",
+    "get_next_task": "read", "get_playbook": "read", "converge_check": "read",
+    "converge_proposals": "read",
+    # writes
+    "create_node": "write", "update_node": "write", "delete_node": "write",
+    "restore_node": "write", "restore_archived_node": "write", "restore_edge": "write",
+    "create_edge": "write", "update_edge": "write", "delete_edge": "write",
+    "extract_from_text": "write", "ingest_document": "write", "sync_from_source": "write",
+    "attach_url": "write", "attach_evidence": "write", "upload_file": "write",
+    "record_path": "write", "propose_decision": "write", "submit_outcome": "write",
+    "emit_residue": "write", "claim_task": "write", "release_task": "write",
+    "summarize_cluster": "write", "complement_node_languages": "write",
+    # moderation
+    "reject_proposal": "admin", "resolve_conflict": "admin", "transfer_authorship": "admin",
+}
+
+
+def enforce_mcp_tool_access(name: str, args: dict, user: dict) -> None:
+    """Refuse the call unless `user` may use tool `name` on args["workspace_id"]."""
+    level = MCP_TOOL_ACCESS.get(name)
+    if level is None:
+        raise HTTPException(status_code=403, detail=f"Tool '{name}' has no access classification")
+    # Checked before the "none" return: list_workspaces, create_workspace and
+    # get_schema take no workspace_id, but a service token with no workspace
+    # must still get nothing from them.
+    if user.get("key_type") == "service" and not user.get("workspace_id"):
+        raise HTTPException(status_code=403, detail="Service token is not bound to a workspace")
+    if level == "none":
+        return
+    ws_id = args.get("workspace_id")
+    if not isinstance(ws_id, str) or not ws_id:
+        raise HTTPException(status_code=400, detail="'workspace_id' is required and must be a string")
+    with db_cursor() as cur:
+        require_ws_access(
+            cur, ws_id, user,
+            write=level in ("write", "admin"),
+            required_role="admin" if level == "admin" else None,
+        )
+    if level == "admin":
+        # moderation (resolve_conflict, reject_proposal, transfer_authorship)
+        require_service_tier(user, "admin")
+
+
 async def execute_tool(name: str, args: dict, user: dict, background_tasks: BackgroundTasks) -> Any:
     # Optional correlation ids for this call, if the caller (an external
     # harness) supplied them — see _run_context above. Absent by default;
@@ -1436,6 +1500,8 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         "task_id": args.get("task_id"),
         "stage": args.get("stage"),
     })
+
+    enforce_mcp_tool_access(name, args, user)
 
     # ── list_workspaces ───────────────────────────────────────────────────────
     if name == "list_workspaces":
@@ -3066,6 +3132,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
             # Enforces a workspace-scoped key's restriction and 404s unknown ids;
             # the owner-only rule itself lives in update_workspace_in_db.
             require_ws_access(cur, ws_id, user)
+            require_service_tier(user, "admin")
             ws = update_workspace_in_db(cur, ws_id, user["sub"], updates)
         projected = {
             "id": ws.get("id"),
@@ -3082,6 +3149,9 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         from services.workspaces import list_members_in_db
 
         ws_id = args["workspace_id"]
+        if user.get("key_type") == "service":
+            # Same rule as the REST members endpoint: membership is not for service tokens.
+            raise HTTPException(status_code=403, detail="Workspace service tokens cannot list members")
         with db_cursor() as cur:
             ws = require_ws_access(cur, ws_id, user)
             # require_ws_access lets any signed-in user read a public workspace, so
@@ -3122,6 +3192,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         target_id = args["target_workspace_id"]
         with db_cursor(commit=True) as cur:
+            require_service_tier(user, "admin")
             _require_editor_on_source(cur, ws_id, user)
             row = create_association_in_db(cur, ws_id, target_id, user)
         return {
@@ -3138,6 +3209,7 @@ async def execute_tool(name: str, args: dict, user: dict, background_tasks: Back
         ws_id = args["workspace_id"]
         target_id = args["target_workspace_id"]
         with db_cursor(commit=True) as cur:
+            require_service_tier(user, "admin")
             _require_editor_on_source(cur, ws_id, user)
             delete_association_in_db(cur, ws_id, target_id, user)
         return {"removed": True, "workspace_id": ws_id, "target_workspace_id": target_id}
@@ -3196,17 +3268,25 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks,
              if node_match:
                  node_id = node_match.group(1)
                  with db_cursor() as cur:
-                     from services.workspaces import list_workspaces_in_db
-                     workspaces = list_workspaces_in_db(cur, search=None, user=user)
-                     ws_ids = [w["id"] for w in workspaces]
-                     
                      cur.execute(
-                         "SELECT * FROM memory_nodes WHERE id = %s AND workspace_id = ANY(%s) AND status = 'active'",
-                         (node_id, ws_ids)
+                         "SELECT * FROM memory_nodes WHERE id = %s AND status = 'active'",
+                         (node_id,)
                      )
                      node = cur.fetchone()
+                     role = None
+                     if node:
+                         # Same rule as the tools: scope tier, token binding and
+                         # membership are all decided by require_ws_access. A refusal
+                         # looks like "not found" so the id's existence is not revealed.
+                         try:
+                             ws = require_ws_access(cur, node["workspace_id"], user)
+                             role = ws.get("my_role")
+                         except HTTPException:
+                             node = None
                      if not node:
                          return jsonrpc_error(msg_id, -32602, f"Node {node_id} not found or no access")
+                     # Viewers get the same redaction as get_node.
+                     node = strip_body_if_viewer(node, role)
                          
                      cur.execute(
                          """
@@ -3267,7 +3347,6 @@ async def dispatch(payload: dict, user: dict, background_tasks: BackgroundTasks,
              if ws_match:
                  ws_id = ws_match.group(1)
                  with db_cursor() as cur:
-                     from services.workspaces import require_ws_access
                      workspace = require_ws_access(cur, ws_id, user, write=False)
                      
                      cur.execute("SELECT COUNT(*) as count FROM memory_nodes WHERE workspace_id = %s AND status = 'active'", (ws_id,))

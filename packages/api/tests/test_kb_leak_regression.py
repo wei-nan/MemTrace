@@ -20,6 +20,8 @@ from unittest.mock import MagicMock, AsyncMock, patch
 
 import pytest
 
+pytestmark = pytest.mark.usefixtures("bypass_mcp_access_guard")
+
 
 # ─── shared helpers ───────────────────────────────────────────────────────────
 

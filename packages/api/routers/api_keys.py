@@ -4,11 +4,11 @@ from typing import List, Optional
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from core.database import db_cursor
 from core.security import generate_id
-from core.deps import get_current_user
+from core.deps import get_current_user, get_current_user_no_service_token
 
 router = APIRouter(tags=["api-keys"])
 
@@ -16,11 +16,26 @@ class ApiKeyCreate(BaseModel):
     name: str
     expires_at: Optional[datetime] = None
 
+# Scopes a workspace service token may carry. kb:propose is accepted for
+# compatibility but grants nothing yet (see services.workspaces.service_token_tier).
+ALLOWED_SERVICE_SCOPES = frozenset({
+    "kb:read", "kb:propose", "kb:write", "node:traverse", "node:rate", "workspace:admin", "*",
+})
+
+
 class ApiKeyCreateWorkspace(BaseModel):
     """Used only for workspace-level service tokens (§29)."""
     name: str
     scopes: List[str]
     workspace_id: Optional[str] = None
+
+    @field_validator("scopes")
+    @classmethod
+    def _known_scopes_only(cls, v: List[str]) -> List[str]:
+        unknown = sorted(set(v) - ALLOWED_SERVICE_SCOPES)
+        if not v or unknown:
+            raise ValueError(f"scopes must be a non-empty subset of {sorted(ALLOWED_SERVICE_SCOPES)}; unknown: {unknown}")
+        return v
 
 class ApiKeyResponse(BaseModel):
     id: str
@@ -51,7 +66,7 @@ class ApiKeyCreateResponseLegacy(ApiKeyResponseLegacy):
 @router.post("/users/me/api-keys", response_model=ApiKeyCreateResponse)
 def create_api_key(
     data: ApiKeyCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     """S3-6a: Create an account-level API key (no scopes/workspace_id — role inherited dynamically)."""
     raw_key = "mt_" + secrets.token_hex(20)
@@ -80,7 +95,7 @@ def create_api_key(
 
 @router.get("/users/me/api-keys", response_model=List[ApiKeyResponse])
 def list_api_keys(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     with db_cursor() as cur:
         cur.execute(
@@ -97,11 +112,11 @@ def list_api_keys(
 @router.delete("/users/me/api-keys/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
 def revoke_api_key(
     key_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "DELETE FROM api_keys WHERE id = %s AND user_id = %s",
+            "DELETE FROM api_keys WHERE id = %s AND user_id = %s AND key_type = 'account'",
             (key_id, current_user["sub"])
         )
         if cur.rowcount == 0:
@@ -115,12 +130,12 @@ class RotateApiKeyResponse(ApiKeyCreateResponse):
 @router.post("/users/me/api-keys/{key_id}/rotate", response_model=RotateApiKeyResponse)
 def rotate_api_key(
     key_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     """S3-7a: Rotate a personal API key — only copy name and expires_at (no scopes/workspace_id)."""
     with db_cursor(commit=True) as cur:
         cur.execute(
-            "SELECT id, name, expires_at FROM api_keys WHERE id = %s AND user_id = %s",
+            "SELECT id, name, expires_at FROM api_keys WHERE id = %s AND user_id = %s AND key_type = 'account'",
             (key_id, current_user["sub"])
         )
         old_key = cur.fetchone()
@@ -163,7 +178,7 @@ def rotate_api_key(
 @router.get("/workspaces/{ws_id}/api-keys", response_model=List[ApiKeyResponse])
 def list_workspace_api_keys(
     ws_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     with db_cursor() as cur:
         # Check ownership
@@ -190,7 +205,7 @@ def list_workspace_api_keys(
 def create_workspace_api_key(
     ws_id: str,
     data: ApiKeyCreateWorkspace,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     with db_cursor(commit=True) as cur:
         # Check ownership
@@ -229,7 +244,7 @@ def create_workspace_api_key(
 def rotate_workspace_api_key(
     ws_id: str,
     key_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     with db_cursor(commit=True) as cur:
         # Check workspace ownership
@@ -285,7 +300,7 @@ def rotate_workspace_api_key(
 def revoke_workspace_api_key(
     ws_id: str,
     key_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user_no_service_token)
 ):
     with db_cursor(commit=True) as cur:
         # Check workspace ownership

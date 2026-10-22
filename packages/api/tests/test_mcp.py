@@ -8,6 +8,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from services.mcp_tools import execute_tool, TOOLS, dispatch
 
+pytestmark = pytest.mark.usefixtures("bypass_mcp_access_guard")
+
 @pytest.mark.asyncio
 async def test_execute_tool_list_workspaces():
     user = {"sub": "user_1"}
@@ -499,6 +501,7 @@ def test_log_mcp_interaction_create_is_not_keep_alive():
 # these itself (see mem_f2e46f6a boundary: passive ingest, not an executor).
 
 from services.mcp_tools import _run_context
+
 
 
 def test_log_mcp_interaction_passes_run_correlation_from_contextvar():

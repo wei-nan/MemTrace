@@ -1291,7 +1291,7 @@ Tools allow agents to take actions within MemTrace.
 | `traverse_edge` | `node:traverse` | Record traversal of an edge and increment path + node counts |
 | `rate_path` | `node:rate` | Submit a 1–5 rating for a traversed edge |
 
-**Workspace management (opt-in `workspace_admin` profile).** `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, and `remove_association` are available only when a client adds the `workspace_admin` tool profile (`X-MemTrace-Tool-Profile: core+agent_loop+workspace_admin`); the default profile does not include them. They authorize by the calling user's workspace role (§14.2), not by the scopes above. Through MCP, `create_workspace` can only produce `private` or `restricted` workspaces with manual-review Q&A archiving and a fixed MCP ingestion quota; publishing a workspace, deleting it, and managing members or invitations remain UI-only. Field-level contract: `packages/api/docs/mcp-contract.md`.
+**Workspace management (opt-in `workspace_admin` profile).** `create_workspace`, `update_workspace`, `list_members`, `list_associations`, `add_association`, and `remove_association` are available only when a client adds the `workspace_admin` tool profile (`X-MemTrace-Tool-Profile: core+agent_loop+workspace_admin`); the default profile does not include them. A personal API key authorizes by its owner's workspace role (§14.2). A workspace service token additionally needs `workspace:admin` (§29.2) for `update_workspace`, `add_association` and `remove_association`, and cannot call `create_workspace` at all. Through MCP, `create_workspace` can only produce `private` or `restricted` workspaces with manual-review Q&A archiving and a fixed MCP ingestion quota; publishing a workspace, deleting it, and managing members or invitations remain UI-only. Field-level contract: `packages/api/docs/mcp-contract.md`.
 
 ##### `search_nodes` — Input schema
 ```json
@@ -1850,8 +1850,9 @@ These tokens carry a **fixed scope** that is set at creation time and does not v
 | Scope | Role | Description |
 |-------|------|-------------|
 | `kb:read` | viewer | Search, read, traverse, rate |
-| `kb:propose` | contributor | All read + submit proposals |
-| `kb:write` | admin | Full write access |
+| `kb:propose` | contributor | Grants nothing yet (see §29.2) |
+| `kb:write` | admin | Read + write workspace content (nodes, edges, documents) |
+| `workspace:admin` | admin | `kb:write` + workspace settings and associations |
 
 A service token is workspace-owned, not tied to any user account, and is intended for CI/CD pipelines and shared MCP integrations where a personal identity is inappropriate.
 
@@ -3200,14 +3201,25 @@ Workspace API Keys are **service-account tokens** scoped to a specific workspace
 
 ### 29.2 Scopes
 
-| Scope | Capabilities |
-|-------|-------------|
-| `kb:read` | Search, list nodes, traverse, Q&A chat |
-| `kb:propose` | All read + submit proposals to review queue |
-| `kb:write` | Full write access (create/edit/delete nodes and edges) |
+A service token's `user_id` is the workspace owner, so a role check alone would make every token as powerful as the owner. Its scopes are therefore the only thing that limits it. Two layers enforce them: a route allowlist for REST (below), and an access check that every MCP tool call passes before its handler runs. The effective level is the highest one the token's scopes reach:
+
+| Level | Scopes | Can do |
+|---|---|---|
+| read | `kb:read`, `node:traverse`, `node:rate` | Read and search the workspace, traverse, analytics, `consult` |
+| write | `kb:write` | Read + write workspace content: create, edit, delete and restore nodes and edges, documents and ingestion, exports, imports, clusters, node safety review, agent-loop writes (claim/release task, record path, submit outcome) |
+| admin | `workspace:admin`, `*` | Write + workspace settings and associations, delete, purge or re-embed the workspace, the review queue and moderation (`resolve_conflict`, `reject_proposal`, `transfer_authorship`), configuration routes |
+| none | `kb:propose`, any unknown string | Requests for workspace data are refused |
+
+- `kb:propose` currently grants nothing (fails closed): routing its writes to the review queue is not implemented yet, and the UI no longer offers it.
+- A token whose scopes fall short gets `403` with `detail = {"error": "insufficient_scope", "required": "kb:read" | "kb:write" | "workspace:admin"}`.
+- A service token stays bound to its own workspace, over REST and MCP; any other workspace returns `403`. A service token row without a workspace is refused everywhere.
+- Scopes given at creation must be a non-empty subset of `kb:read`, `kb:propose`, `kb:write`, `node:traverse`, `node:rate`, `workspace:admin`, `*`; anything else returns `422`.
+- **REST route allowlist (fail closed).** A service token can only call the MCP endpoint (`/mcp`, `/api/v1/mcp/*`) and, for its own workspace, `/api/v1/workspaces/{id}` plus the sub-resources `nodes`, `nodes-search`, `edges`, `table-view`, `graph-preview`, `decay-stats`, `analytics`, `stats`, `clusters`, `trash`, `documents`, `ingest`, `sources`, `audit-proposals`, `consult`, `exports`, `imports` and `associations`. Configuration and operations sub-resources (`ai-reviewers`, `audit`, `conductor`, `connector-bindings`, `connector-runs`, `failed-embeddings`, `job-runs`, `maintenance`, `model-bindings`, `purge`, `reembed-all`, `retry-failed-embeddings`, `review`, `review-policy`, `review-queue`, `reviewer-profiles`, `safety-review-queue`, `scheduler-heartbeats`) additionally need `workspace:admin`. Every other route returns `403` with `detail.error = "service_token_forbidden"`, whatever the scopes: account settings (`/auth/*`), AI keys and AI chat, notifications, connector accounts, clone and fork, system routes, other workspaces, and everything that manages credentials, membership or workspace creation (API keys, members, invites, join requests, `POST /workspaces`). New routes are denied by default. Routes that also serve anonymous callers (workspace listing, explore) treat a service token as anonymous. Keys are issued only by the owner through a signed-in session or an account-level key.
+- **MCP tool access.** Every MCP tool is classified read, write or admin (or takes no workspace) in `MCP_TOOL_ACCESS`, and the check runs for all of them before the handler, for every kind of caller. A read-only token, a token bound to another workspace, and a user who is not a member of the workspace are all refused on tools such as `update_node`, `delete_node` and `resolve_conflict`. The same check applies to people: a workspace viewer can no longer call a write tool, and a non-member can no longer call a write tool or read a workspace that is not public. `list_workspaces`, `create_workspace` and `get_schema` take no workspace and guard themselves: a service token sees only its own workspace in `list_workspaces`, cannot call `create_workspace`, and `list_members` refuses service tokens. MCP resources follow the same rules: `memtrace://node/{id}` and the workspace summary are refused to anyone who could not call `get_node`, a refusal looks like "not found", and a workspace viewer gets the node without its body. `tools/list` is not filtered by scope.
+- Updating workspace settings (`PATCH /workspaces/{id}`, MCP `update_workspace`, `add_association`, `remove_association`) needs `workspace:admin`.
 
 ### 29.3 Lifecycle
-- Keys are created by admins via the Workspace Settings → API Keys panel.
+- Keys are created by the workspace owner via the Workspace Settings → API Keys panel, or with an account-level key. A service token cannot create keys (§29.2).
 - A key can be **rotated** (invalidates old key, issues new one with same name/scope).
 - A key can be **revoked** (permanently invalidated).
 - The raw key value is shown **once** on creation. It is stored as a bcrypt hash.
@@ -3219,6 +3231,39 @@ GET    /api/v1/workspaces/{ws_id}/api-keys        → list keys (no raw values)
 POST   /api/v1/workspaces/{ws_id}/api-keys/{id}/rotate → rotate key
 DELETE /api/v1/workspaces/{ws_id}/api-keys/{id}   → revoke key
 ```
+
+### 29.5 Provisioner keys (harness-created knowledge bases)
+
+An external harness can create a knowledge base for its owner and receive a `kb:write` token for it, without the owner (or the conversation the harness serves) ever handling that token. A provisioner key can do nothing outside `/api/v1/provision/*`: every other route, including `/mcp`, returns `403` with `detail.error = "provisioner_key_forbidden"`, except routes that also serve anonymous callers (public workspace listings), which treat the key as anonymous.
+
+**The owner authorizes once.** While signed in as a person (the `access_token` from `POST /auth/login`; API keys cannot do this), the owner creates a provisioner key with `POST /api/v1/users/me/provisioner-keys`:
+
+| Field | Meaning |
+|---|---|
+| `name` | Label (1 to 100 characters) |
+| `expires_in_days` | 1 to 90, default 90. The key stops working at expiry (`401`); create a replacement before then |
+| `max_workspaces` | How many workspaces the key may have created at once. Default and ceiling: the deployment's `MAX_PROVISIONED_WORKSPACES` setting (50) |
+| `can_delete_workspaces` | Default `false`. Only when `true` may the key delete the workspaces it created |
+
+The plaintext `key` is returned once; the owner stores it in the harness's secret store. `GET /api/v1/users/me/provisioner-keys` lists the keys that are not revoked (prefix, expiry, cap, deletion flag, how many workspaces each created; an expired key is still listed until revoked); `DELETE /api/v1/users/me/provisioner-keys/{id}` revokes one.
+
+**The harness uses the key** (`Authorization: Bearer <key>`), always and only on workspaces that same key created:
+
+| Request | What it does |
+|---|---|
+| `POST /api/v1/provision/workspaces` | Body `{"name", "language": "zh-TW"\|"en", "description"?, "token_name"?, "token_expires_in_days"? (1 to 365)}`. In one transaction creates a private workspace owned by the key's owner (Q&A archive mode `manual_review`, MCP ingestion on, like MCP `create_workspace`) and a workspace service token with scopes exactly `["kb:write"]`. Returns `201` `{"workspace_id", "name", "language", "service_token": {"id", "key", "prefix", "scopes", "expires_at"}, "idempotent_replay": false}`. The token `key` appears only in this response. If any step fails, neither the workspace nor the token exists |
+| `GET /api/v1/provision/quota` | `{"max_workspaces", "workspaces_created", "remaining", "expires_at"}`; `max_workspaces` is the smaller of the key's cap and the deployment ceiling |
+| `GET /api/v1/provision/workspaces?idempotency_key=&limit=&offset=` | The key's workspaces, oldest first (`limit` 1 to 200, default 50), each `{"workspace_id", "name", "language", "idempotency_key", "created_at", "token": {"id", "prefix", "expires_at"} \| null}`. Never a token secret. Filter by `idempotency_key` to look one up |
+| `DELETE /api/v1/provision/workspaces/{id}/token` | Revokes every token this key minted for that workspace (`204`; repeating it is harmless). Tokens the owner minted another way are untouched |
+| `DELETE /api/v1/provision/workspaces/{id}` | Body `{"confirm_name": "<the workspace's current name>"}`. Deletes the workspace with its nodes and all service tokens bound to it (`204`) and frees quota. Refused unless the owner enabled `can_delete_workspaces` for the key (`403 deletion_not_allowed`), the key's own tokens for it are already revoked (`409 tokens_still_active`), and the name matches exactly (`409 confirmation_mismatch`) |
+
+A workspace the key did not create (made by another key, or by the owner another way) or that does not exist is always `404`. A key that was revoked or expired gets `401`.
+
+**Retrying safely.** `POST /api/v1/provision/workspaces` accepts an `Idempotency-Key` header (1 to 128 characters from `A-Z a-z 0-9 . _ : -`). The first request creates the workspace and returns `201`. The same key, with the same `name`, `language` and `description`, sent again returns `200` with `idempotent_replay: true`, the same `workspace_id`, and a newly minted token; the tokens minted before for that workspace are revoked, because the server never stores a token and so can only replace it. A replay does not use quota and may choose its own `token_name` and `token_expires_in_days`. The same key with a different request is `409` (`idempotency_conflict`) and changes nothing. Keys belong to one provisioner key; concurrent requests with the same key are serialized, so only the token from the last response works. Without the header, every request creates a new workspace.
+
+**Limits and what it cannot do.** A provisioner key cannot create keys, read or write nodes, or touch workspaces outside its own list. Replacing a key does not carry over: a new provisioner key cannot see, revoke or delete the workspaces an older key created, so keep the old key until those are no longer managed, or let the owner act while signed in. The minted token is an ordinary `kb:write` service token (§29.2): it cannot create workspaces, mint keys or change settings, has no expiry unless `token_expires_in_days` was given, and keeps working after its provisioner key expires or is revoked (revoke it with the request above, or from the workspace's API keys). If the owner rotates a minted token through the workspace's API-key endpoints, the owner sees the new plaintext, so "the owner never sees the token" is how the flow is used, not a security boundary.
+
+Plaintext keys and tokens are never logged and only their hashes are stored. The server records which provisioner key created each workspace (`workspaces.provisioned_by_key_id`) and which minted each token (`api_keys.parent_key_id`).
 
 ---
 

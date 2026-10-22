@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from core.deps     import get_current_user
 from core.database import db_cursor
+from services.workspaces import require_ws_access
 from services.audit_proposals import (
     list_proposals,
     mark_proposal_read,
@@ -51,10 +52,8 @@ def list_audit_proposals(
     支援按 status / severity / reviewer 篩選，依 severity 高→低、建立時間降序排列。
     """
     with db_cursor() as cur:
-        # 確認 workspace 存在且使用者有存取權
-        cur.execute("SELECT id FROM workspaces WHERE id = %s", (ws_id,))
-        if not cur.fetchone():
-            raise HTTPException(status_code=404, detail="Workspace not found")
+        # 確認 workspace 存在且使用者有存取權（含服務 token 的 scope 與工作區綁定）
+        require_ws_access(cur, ws_id, user)
 
         results = list_proposals(
             cur,
@@ -129,5 +128,6 @@ def get_audit_summary_for_node(
     """
     user_id = user.get("sub") or user.get("id", "unknown")
     with db_cursor() as cur:
+        require_ws_access(cur, ws_id, user)
         summary = get_node_audit_summary(cur, ws_id, node_id, user_id)
     return summary

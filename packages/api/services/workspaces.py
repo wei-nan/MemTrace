@@ -21,6 +21,42 @@ from core.constants import VALID_KB_VIS
 
 # ─── Access Control ───────────────────────────────────────────────────────────
 
+# ─── Workspace service-token scopes ───────────────────────────────────────────
+# A service token's user_id is the workspace owner, so role checks alone would
+# give every token owner power. Its scopes are the only thing that limits it.
+# kb:propose grants nothing yet: routing its writes to the review queue needs
+# role capping at every get_effective_role call site (follow-up).
+_SERVICE_READ_SCOPES = frozenset({"kb:read", "node:traverse", "node:rate"})
+_SERVICE_WRITE_SCOPES = frozenset({"kb:write"})
+_SERVICE_ADMIN_SCOPES = frozenset({"workspace:admin", "*"})
+_TIER_RANK = {"none": 0, "read": 1, "write": 2, "admin": 3}
+_TIER_SCOPE = {"read": "kb:read", "write": "kb:write", "admin": "workspace:admin"}
+
+
+def service_token_tier(user: Optional[dict]) -> Optional[str]:
+    """None for non-service callers; else 'none' | 'read' | 'write' | 'admin'."""
+    if not user or user.get("key_type") != "service":
+        return None
+    scopes = set(user.get("scopes") or [])
+    if scopes & _SERVICE_ADMIN_SCOPES:
+        return "admin"
+    if scopes & _SERVICE_WRITE_SCOPES:
+        return "write"
+    if scopes & _SERVICE_READ_SCOPES:
+        return "read"
+    return "none"
+
+
+def require_service_tier(user: Optional[dict], needed: str) -> None:
+    """403 when a workspace service token's scopes do not reach `needed`."""
+    tier = service_token_tier(user)
+    if tier is not None and _TIER_RANK[tier] < _TIER_RANK[needed]:
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "insufficient_scope", "required": _TIER_SCOPE[needed]},
+        )
+
+
 def require_ws_access(
     cur,
     ws_id: str,
@@ -35,10 +71,20 @@ def require_ws_access(
     - required_scope: legacy (§29 workspace service tokens)
     """
     # API key scope and workspace validation
+    if user and user.get("key_type") == "service" and not user.get("workspace_id"):
+        raise HTTPException(status_code=403, detail="Service token is not bound to a workspace")
     if user and "api_key_id" in user:
         ak_ws_id = user.get("workspace_id")
         if ak_ws_id and ak_ws_id != ws_id:
             raise HTTPException(status_code=403, detail="API key is restricted to another workspace")
+        # kb:write is the content-writing tier (SPEC: kb:write <-> admin role), so
+        # the admin *role* required for edges, documents etc. needs only kb:write.
+        # Settings, deletion and moderation call require_service_tier(user, "admin").
+        if write or required_role in ("admin", "editor", "contributor"):
+            needed = "write"
+        else:
+            needed = "read"
+        require_service_tier(user, needed)
         if required_scope:
             scopes = user.get("scopes") or []
             if "*" not in scopes and required_scope not in scopes:
@@ -248,7 +294,7 @@ def create_workspace_in_db(cur, uid: str, body_dict: dict) -> dict:
             json.dumps({
                 "node_complexity": {"enabled": True, "char_threshold": 600, "auto_split": False},
                 "auto_dedup_threshold": 0.92,
-                "mcp_ingest_enabled": False,
+                "mcp_ingest_enabled": True,
                 "mcp_ingest_daily_quota": 5,
                 **(body_dict.get("settings") or {}),
             }),
@@ -380,12 +426,14 @@ def explore_workspaces_in_db(cur, user: Optional[dict], q: Optional[str], lang: 
 
 def delete_workspace_in_db(cur, ws_id: str, user: dict) -> None:
     ws = require_ws_access(cur, ws_id, user, write=True)
+    require_service_tier(user, "admin")
     if ws["owner_id"] != user["sub"]:
         raise HTTPException(status_code=403, detail="Only the workspace owner can delete it")
     cur.execute("DELETE FROM workspaces WHERE id = %s", (ws_id,))
 
 def purge_workspace_in_db(cur, ws_id: str, user: dict) -> dict:
     ws = require_ws_access(cur, ws_id, user, write=True, required_role="admin")
+    require_service_tier(user, "admin")
     if ws["owner_id"] != user["sub"]:
         raise HTTPException(status_code=403, detail="Only workspace owner can purge it")
     cur.execute("DELETE FROM edges WHERE workspace_id = %s", (ws_id,))
